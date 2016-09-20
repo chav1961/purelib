@@ -19,7 +19,7 @@ class InternalUtils {
 			throw new IllegalArgumentException("Pair's list can't be null");
 		}
 		else {
-			return parseCommandLine((source+'\n').toCharArray(),0,(template+'\n').toCharArray(),0,pairs);
+			return parseCommandLine((' '+source+'\n').toCharArray(),0,(' '+template+'\n').toCharArray(),0,pairs);
 		}
 	}
 
@@ -271,16 +271,5 @@ class InternalUtils {
 			}
 		}
 		return false;
-	}
-	
-	private static class ParseCommandLineSavepoint {
-		String	name;
-		int[]	locations;
-		
-		public ParseCommandLineSavepoint(final String name, final int... locations) {
-			this.name = name;
-			this.locations = locations;
-		}
-		
 	}
 }

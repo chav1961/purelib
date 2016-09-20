@@ -15,67 +15,70 @@ public class InternalUtilsTest {
 	public void parseCommandLineTest()  {
 		final List<String[]>	vars = new ArrayList<String[]>();
 		
-		// Parsing as-is
-		Assert.assertTrue(parseCommandLine("String as is","String as is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String   as   is  ","String as is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String   as   is  "," String as is",vars) >= 0);
-
+		// Parsing as-is and escaping
+		Assert.assertTrue(parseCommandLine("String as is","String as is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String   as   is  ","String as is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String   as   is  "," String as is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("\\ [ ] { | } < > $","\\\\ \\[ \\] \\{ \\| \\} \\< \\> \\$",vars) > 0);
+		
 		// Parsing options
-		Assert.assertTrue(parseCommandLine("String as is","String [as] is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String is","String [as] is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String   is  ","String [as] is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String as is","String as [is]",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String as","String as [is]",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String as is ","String as [is]",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String as is","[String] as is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("as is","[String] as is",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String as is","String [as] is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String is","String [as] is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String   is  ","String [as] is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String as is","String as [is]",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String as","String as [is]",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String as is ","String as [is]",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String as is","[String] as is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("as is","[String] as is",vars) > 0);
 
 		// Parsing cases
-		Assert.assertTrue(parseCommandLine("String one is","String {one|two|} is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String two is","String {one|two|} is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String is","String {one|two|} is",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String one is","String {one|two|} is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String two is","String {one|two|} is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String is","String {one|two|} is",vars) > 0);
 		Assert.assertFalse(parseCommandLine("String is","String {one|two|three} is",vars) >= 0);
 		Assert.assertFalse(parseCommandLine("String three is","String {one|two|} is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("one is","{one|two|} is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("two is","{one|two|} is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("is","{one|two|} is",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String one","String {one|two|}",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String two","String {one|two|}",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String","String {one|two|}",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("one is","{one|two|} is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("two is","{one|two|} is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("is","{one|two|} is",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String one","String {one|two|}",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String two","String {one|two|}",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String","String {one|two|}",vars) > 0);
 
 		// Parsing repeats with seq char
-		Assert.assertTrue(parseCommandLine("String oh shit","String <oh>,... shit",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String oh,oh shit","String <oh>,... shit",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String oh , oh shit","String <oh>,... shit",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("oh , oh shit","<oh>,... shit",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String oh , oh","String <oh>,...",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String oh shit","String <oh>,... shit",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String oh,oh shit","String <oh>,... shit",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String oh , oh shit","String <oh>,... shit",vars) > 0);
+		Assert.assertTrue(parseCommandLine("oh , oh shit","<oh>,... shit",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String oh , oh","String <oh>,...",vars) > 0);
 
 		// Parsing repeats without seq char
-		Assert.assertTrue(parseCommandLine("String oh shit","String <oh>... shit",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String oh oh shit","String <oh>... shit",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("oh oh shit","<oh>... shit",vars) >= 0);
-		Assert.assertTrue(parseCommandLine("String oh oh","String <oh>...",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String oh shit","String <oh>... shit",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String oh oh shit","String <oh>... shit",vars) > 0);
+		Assert.assertTrue(parseCommandLine("oh oh shit","<oh>... shit",vars) > 0);
+		Assert.assertTrue(parseCommandLine("String oh oh","String <oh>...",vars) > 0);
 
 		// Parsing variable
 		vars.clear();
-		Assert.assertTrue(parseCommandLine("String text value","String ${key} value",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String text value","String ${key} value",vars) > 0);
 		Assert.assertArrayEquals(vars.get(0),new String[]{"key","text"});
 		vars.clear();
-		Assert.assertTrue(parseCommandLine("String value","String ${key} value",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String value","String ${key} value",vars) > 0);
 		Assert.assertArrayEquals(vars.get(0),new String[]{"key",""});
 		vars.clear();
-		Assert.assertTrue(parseCommandLine("String    value","String ${key} value",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String    value","String ${key} value",vars) > 0);
 		Assert.assertArrayEquals(vars.get(0),new String[]{"key",""});
 		vars.clear();
-		Assert.assertTrue(parseCommandLine("String value","String ${key}",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("String value","String ${key}",vars) > 0);
 		Assert.assertArrayEquals(vars.get(0),new String[]{"key","value"});
 		vars.clear();
-		Assert.assertTrue(parseCommandLine("String text","${key} text",vars) >= 0); // TODO:
+		Assert.assertTrue(parseCommandLine("String text","${key} text",vars) > 0);
+		Assert.assertArrayEquals(vars.get(0),new String[]{"key","String"});
+		Assert.assertTrue(parseCommandLine("\"String\" text","${key} text",vars) > 0);
 		Assert.assertArrayEquals(vars.get(0),new String[]{"key","String"});
 	
 		// Complex test
 		vars.clear();
-		Assert.assertTrue(parseCommandLine("One,two,three let me see","<${name}>,... let [{me ${action}|you ${mode}}]",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("One,two,three let me see","<${name}>,... let [{me ${action}|you ${mode}}]",vars) > 0);
 		Assert.assertEquals(vars.size(),4);
 		Assert.assertArrayEquals(vars.get(0),new String[]{"name","One"});
 		Assert.assertArrayEquals(vars.get(1),new String[]{"name","two"});
@@ -83,7 +86,7 @@ public class InternalUtilsTest {
 		Assert.assertArrayEquals(vars.get(3),new String[]{"action","see"});
 
 		vars.clear();
-		Assert.assertTrue(parseCommandLine("+1-2=3","<{+${one}|-${two}}>...=${three}",vars) >= 0);
+		Assert.assertTrue(parseCommandLine("+1-2=3","<{+${one}|-${two}}>...=${three}",vars) > 0);
 		Assert.assertEquals(vars.size(),3);
 		Assert.assertArrayEquals(vars.get(0),new String[]{"one","1"});
 		Assert.assertArrayEquals(vars.get(1),new String[]{"two","2"});
@@ -162,6 +165,20 @@ public class InternalUtilsTest {
 		
 		// Enumerations
 		Assert.assertEquals(InternalUtils.convert("value1",PseudoTestEnum.class),PseudoTestEnum.value1);
+		
+		// Conversion problems
+		try{InternalUtils.convert("test",ArrayList.class);
+			Assert.fail("Mandatory exception was not detected (unsupported conversion)");
+		} catch (UnsupportedOperationException exc) {
+		}		
+		try{InternalUtils.convert("://localhost",URL.class);
+			Assert.fail("Mandatory exception was not detected (invalid URL)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{InternalUtils.convert("://localhost",URI.class);
+			Assert.fail("Mandatory exception was not detected (invalid URI)");
+		} catch (IllegalArgumentException exc) {
+		}		
 	}
 	
 	
