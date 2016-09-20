@@ -49,6 +49,7 @@ import chav1961.purelib.basic.interfaces.ConsoleManagerInterface;
  * </ul>
  * <p>Syntax of the command templates is described in the {@link chav1961.purelib.basic.annotations.ConsoleCommand ConsoleCommand} annotation. See {@link #processHelp() processHelp()} and {@link #processHelp(java.lang.String) processHelp(String)} methods for example.</p>
  * <p>When variable parts in the console command contains special symbols (for example, file names with blank chars), use quotas(") to prevent data content against parsing, for example <b><code>help "my command"</code></b></p>      
+ * <p>This class implements {@link java.io.Closeable Closeable} interface, so it can be used in the <b>try-with-resource</b> statements.</p>
  * 
  * @see chav1961.purelib.basic.annotations.ConsoleCommand @ConsoleCommand
  * @see chav1961.purelib.basic.annotations.ConsoleCommandPrefix @ConsoleCommandPrefix
@@ -111,6 +112,9 @@ public class ConsoleCommandManager implements ConsoleManagerInterface {
 				}
 			}
 		}
+		else {
+			throw new IllegalArgumentException("Deployment list can't be null or empty array");
+		}
 	}
 
 	@Override
@@ -118,7 +122,7 @@ public class ConsoleCommandManager implements ConsoleManagerInterface {
 		if (wasClosed) {
 			throw new IllegalStateException("Attempt to undeploy command processor(s) on closed manager!");
 		}
-		else if (callbacks != null || callbacks.length > 0) {
+		else if (callbacks != null && callbacks.length > 0) {
 			for (int index = 0; index < callbacks.length; index++) {
 				if (callbacks[index] != null) {
 					if (deployment.contains(callbacks[index])) {
@@ -133,6 +137,9 @@ public class ConsoleCommandManager implements ConsoleManagerInterface {
 					throw new IllegalArgumentException("Null object an position ["+index+"] in the parameter's list");
 				}
 			}
+		}
+		else {
+			throw new IllegalArgumentException("Undeployment list can't be null or empty array");
 		}
 	}
 
@@ -210,7 +217,7 @@ public class ConsoleCommandManager implements ConsoleManagerInterface {
 	@ConsoleCommand(template="help cmd=${cmd}",help="Help about given cmd")
 	public String processHelp(@ConsoleCommandParameter(name="cmd") final String commandPrefix) {
 		if (!cmdList.containsKey(commandPrefix)) {
-			return "";
+			return "command prefix ["+commandPrefix+"] in not known, use help to get list of available commands\n";
 		}
 		else {
 			final StringBuilder		sb = new StringBuilder();
@@ -360,9 +367,6 @@ public class ConsoleCommandManager implements ConsoleManagerInterface {
 		for (int index = 0; index < names.length; index++) {
 			if (!props.containsKey(names[index])){
 				props.put(names[index],Arrays.asList(defaults[index]));
-			}
-			else if (props.get(names[index]).isEmpty()) {
-				props.get(names[index]).add(defaults[index]);
 			}
 			parms[index] = convert(template,names[index],props.get(names[index]),types[index]);
 		}
