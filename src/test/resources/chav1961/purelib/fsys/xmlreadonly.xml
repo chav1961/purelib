@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<directory1 key1="value1">
+		<directory2 key2="value2"/>
+		<file1 key3="value3">file content</file1>
+	</directory1>
+</root>
