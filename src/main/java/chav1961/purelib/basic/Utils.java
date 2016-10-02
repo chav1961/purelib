@@ -1,12 +1,22 @@
 package chav1961.purelib.basic;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 /**
  * <p>This class contains implementation of the useful actions in the system</p> 
@@ -98,6 +108,100 @@ public class Utils {
 				}
 			}
 			return result;
+		}
+	}
+	
+	/**
+	 * <p>Build a set of the given type from the parameter's list</p>
+	 * @param <T> any class to make set instances from
+	 * @param content class of the set content
+	 * @param parameters parameters to add to set
+	 * @return set created with the given parameters
+	 */
+	public static <T> Set<T> mkSet(final Class<T> content, final T... parameters) {
+		if (content == null) {
+			throw new IllegalArgumentException("Content class cant' be null");
+		}
+		else if (parameters == null) {
+			throw new IllegalArgumentException("Parameters can't be null");
+		}
+		else {
+			final Set<T>	result = new HashSet<T>();
+			
+			for (T item : parameters) {
+				if (item != null) {
+					result.add(item);
+				}
+			}
+			return result;
+		}
+	}
+	
+	/**
+	 * <p>Get class list from given packages and it's sub-packages. This method can be useful to process all classes from the given packages</p>
+	 * @param packages package list to load classes from
+	 * @return loaded class list. Can be empty but not null
+	 * @throws IOException if some exception was thrown
+	 */
+	public static List<Class<?>> loadClasses(final Package... packages) throws IOException {
+		if (packages == null) {
+			throw new IllegalArgumentException("Package list can't be null"); 
+		}
+		else {
+			final List<Class<?>>	result = new ArrayList<>();
+			
+			for (Package item : packages) {
+				for (Package sub : Package.getPackages()) {	// Seek sub-packages
+					if (sub.getName().startsWith(item.getName())) {
+						fillClasses(sub,result);
+					}
+				}
+			}
+			return result;
+		}
+	}
+
+	private static void fillClasses(final Package item, final List<Class<?>> result) throws IOException {
+		final URL	resource = item.getClass().getClassLoader().getSystemClassLoader().getResource(item.getName().replace('.','/')); 
+		
+		if (resource != null) {
+			switch (resource.getProtocol()) {
+				case "file" 	:
+					try(final InputStream		is = resource.openStream();
+						final Reader			rdr = new InputStreamReader(is);
+						final BufferedReader	brdr = new BufferedReader(rdr)) {
+						String	buffer;
+								
+						while ((buffer = brdr.readLine()) != null) {
+							if (buffer.endsWith(".class")) {
+								result.add(item.getClass().getClassLoader().loadClass(item.getName()+'.'+buffer.substring(0,buffer.lastIndexOf('.'))));
+							}
+						}						
+					} catch (ClassNotFoundException e) {
+						throw new IOException(e.getMessage());
+					}
+					break;
+				case "jar" 		:
+					try{final String[]	parts = resource.toURI().getSchemeSpecificPart().split("\\!");
+						try(final InputStream		is = new URL(parts[0]).openStream();
+							final JarInputStream	jis = new JarInputStream(is)) {
+							final StringBuilder		sb = new StringBuilder();
+							JarEntry	je;
+							
+							while ((je = jis.getNextJarEntry()) != null) {
+								final String	packageName = je.getName().substring(0,je.getName().lastIndexOf('/'));
+								
+								if (packageName.equals(parts[1].substring(1)) && je.getName().endsWith(".class")) {
+									result.add(item.getClass().getClassLoader().loadClass(je.getName().substring(0,je.getName().lastIndexOf('.')).replace('/','.')));
+								}
+							}
+						}
+					} catch (URISyntaxException | ClassNotFoundException e) {
+						throw new IOException(e.getMessage());
+					} 
+					break;
+				default : throw new UnsupportedOperationException("Resource URL ["+resource+"] is not supported for class loading");
+			}
 		}
 	}
 }

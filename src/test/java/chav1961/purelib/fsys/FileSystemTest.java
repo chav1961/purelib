@@ -13,6 +13,12 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.rmi.AccessException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +27,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.xml.sax.Locator;
+
+import com.sun.tools.javac.resources.javac;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -91,11 +100,18 @@ public class FileSystemTest {
 		}
 	}
 	
-	
-	
 	@Test
 	public void test() throws Exception {
+		// test usual file system
 		try(final FileSystemInterface	fs = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").toURI())) {
+			test(fs,false);
+		}
+
+		// Test RMI connection to the file system 
+		Registry	r = java.rmi.registry.LocateRegistry.createRegistry(Registry.REGISTRY_PORT);	// Start RMI registry
+		try(final FileSystemInterface	fsNest = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").toURI());
+			final RMIFileSystemServer	fss = new RMIFileSystemServer(URI.create("rmi://localhost:"+Registry.REGISTRY_PORT+"/testRMI"),fsNest);  
+			final FileSystemInterface	fs = new FileSystemOnRMI(URI.create("rmi://localhost:"+Registry.REGISTRY_PORT+"/testRMI"))) {
 			test(fs,false);
 		}
 	}

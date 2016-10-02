@@ -22,7 +22,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * 
  * <p>This class is not thread-safe.</p>
  * 
- * @see chav1961.purelib.fsys.interfaces.FileSystemInterface IFileSystem
+ * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
@@ -31,6 +31,9 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 public class FileSystemOnFile extends AbstractFileSystem {
 	private	final URI					rootPath;
 
+	/**
+	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
+	 */
 	public FileSystemOnFile(){
 		rootPath = null;
 	}

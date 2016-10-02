@@ -36,8 +36,8 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * <p>Don't use the class as a type of variables or parameters in your program. Use the {@link FileSystemInterface} interface instead in all these cases</p>  
  * <p>This class is not thread-safe.</p>
  * 
- * @see chav1961.purelib.fsys.interfaces.FileSystemInterface IFileSystem
- * @see chav1961.purelib.fsys.FileSystemOnFile FileSystemOnFile
+ * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
+ * @see chav1961.purelib.fsys.FileSystemOnFile
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

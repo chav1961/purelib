@@ -2,6 +2,8 @@ chav1961.purelib.basic
 chav1961.purelib.basic.annotations
 chav1961.purelib.basic.exceptions
 chav1961.purelib.basic.interfaces
+chav1961.purelib.examples
 chav1961.purelib.fsys
 chav1961.purelib.fsys.interfaces
 chav1961.purelib.streams.char2char
+chav1961.purelib.ultralight

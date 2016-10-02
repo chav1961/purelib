@@ -27,11 +27,28 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
+/**
+ * <p>This class implements the file system interface on the XML gile content.</p>
+ * 
+ * <p>Content of XML is interpreted as directory and file tree. 'Directory' is any tag containing other tags or <b>not</b> containing
+ * any text content. Use <code>&lt;tag .../&gt;</code> tag's syntax to avoid any text content for the terminal 'directory'.</p>
+ * <p>The main usability of the file system is to use it as a tree to mount other file systems on it.</p>
+ * <p>This class is not thread-safe.</p>
+ * 
+ * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
+ * @see chav1961.purelib.fsys JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.1
+ */
+
 public class FileSystemOnXMLReadOnly extends AbstractFileSystem {
 	private final XPathFactory 	factory = XPathFactory.newInstance();
 	private final URI 			rootPath;
 	private final Document		doc;
 
+	/**
+	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
+	 */
 	public FileSystemOnXMLReadOnly(){
 		this.rootPath = null;
 		this.doc = null;

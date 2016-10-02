@@ -12,7 +12,7 @@ import java.io.IOException;
  */
 
 @FunctionalInterface
-public interface ILineByLineProcessorCallback {
+public interface LineByLineProcessorCallback {
 	/**
 	 * <p>Process line from the source character stream</p>
 	 * @param lineNo 1-based sequential line number in the data stream

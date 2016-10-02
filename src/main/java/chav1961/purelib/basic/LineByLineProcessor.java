@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
 
-import chav1961.purelib.basic.interfaces.ILineByLineProcessorCallback;
+import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 
 /**
  * <p>This utility class supports line-by-line processing for the character streams. It parses the input stream data, defines line locations in it, calculates sequential number for the lines found
@@ -20,7 +20,7 @@ import chav1961.purelib.basic.interfaces.ILineByLineProcessorCallback;
  * <p>This class is not thread-safe.</p>
  * 
  * @see java.io.Writer Writer
- * @see chav1961.purelib.basic.interfaces.ILineByLineProcessorCallback ILineByLineProcessorCallback
+ * @see chav1961.purelib.basic.interfaces.LineByLineProcessorCallback ILineByLineProcessorCallback
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
@@ -28,7 +28,7 @@ import chav1961.purelib.basic.interfaces.ILineByLineProcessorCallback;
 
 public class LineByLineProcessor implements Closeable {
 	private final StringBuilder					sb = new StringBuilder();
-	private final ILineByLineProcessorCallback	callback;
+	private final LineByLineProcessorCallback	callback;
 	private int									lineNo = 1;
 	
 	/**
@@ -36,7 +36,7 @@ public class LineByLineProcessor implements Closeable {
 	 * @param callback callback to process
 	 * @throws IllegalArgumentException any parameter's problems
 	 */
-	public LineByLineProcessor(final ILineByLineProcessorCallback callback) {
+	public LineByLineProcessor(final LineByLineProcessorCallback callback) {
 		if (callback == null) {
 			throw new IllegalArgumentException("Callback can't be null");
 		}
