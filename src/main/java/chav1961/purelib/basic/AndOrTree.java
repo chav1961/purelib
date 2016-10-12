@@ -31,6 +31,9 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  */
 public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 	private static final int		ENUM_STEP = 16;		
+	private static final int		TYPE_OR = 0;
+	private static final int		TYPE_AND = 1;
+
 	
 	private long					actualId, amount = 0;
 	private AndOrNode<T>			nameRoot = new OrNode<>();
@@ -43,13 +46,15 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public long placeName(final char[] value, final int from, final int to, final T cargo) {
-		if (value == null || value.length == 0) {
+		int		forValue;
+		
+		if (value == null || (forValue = value.length) == 0) {
 			throw new IllegalArgumentException("Value can't be null or empty array"); 
 		}
-		else if (from < 0 || from >= value.length) {
+		else if (from < 0 || from >= forValue) {
 			throw new IllegalArgumentException("From position ["+from+"] outside the array! Need be in 0.."+value.length); 
 		}
-		else if (to < 0 || to > value.length) {
+		else if (to < 0 || to > forValue) {
 			throw new IllegalArgumentException("To position ["+to+"] outside the array! Need be in 0.."+value.length); 
 		}
 		else if (from > to) {
@@ -76,13 +81,15 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public long placeName(final char[] value, final int from, final int to, final long id, final T cargo) {
-		if (value == null || value.length == 0) {
+		int		forValue;
+		
+		if (value == null || (forValue = value.length) == 0) {
 			throw new IllegalArgumentException("Value can't be null or empty array"); 
 		}
-		else if (from < 0 || from >= value.length) {
+		else if (from < 0 || from >= forValue) {
 			throw new IllegalArgumentException("From position ["+from+"] outside the array! Need be in 0.."+value.length); 
 		}
-		else if (to < 0 || to > value.length) {
+		else if (to < 0 || to > forValue) {
 			throw new IllegalArgumentException("To position ["+to+"] outside the array! Need be in 0.."+value.length); 
 		}
 		else if (from > to) {
@@ -108,13 +115,15 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 	
 	@Override
 	public long seekName(final char[] value, final int from, final int to) {
-		if (value == null || value.length == 0) {
+		int		forValue;
+		
+		if (value == null || (forValue = value.length) == 0) {
 			throw new IllegalArgumentException("Value can't be null or empty array"); 
 		}
-		else if (from < 0 || from >= value.length) {
+		else if (from < 0 || from >= forValue) {
 			throw new IllegalArgumentException("From position ["+from+"] outside the array! Need be in 0.."+value.length); 
 		}
-		else if (to < 0 || to > value.length) {
+		else if (to < 0 || to > forValue) {
 			throw new IllegalArgumentException("To position ["+to+"] outside the array! Need be in 0.."+value.length); 
 		}
 		else if (from > to) {
@@ -219,7 +228,7 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 				int			partSize;
 				
 				for (int index = from + descr.sourceLength - 1; index >= from;) {
-					if (actual.type == AndOrNode.TYPE_AND) {
+					if (actual.type == TYPE_AND) {
 						partSize = ((AndNode<?>)actual).chainChar.length;
 						System.arraycopy(((AndNode<?>)actual).chainChar,0,target,index-partSize+1,partSize);
 						index -= partSize; 
@@ -324,87 +333,85 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 		int				poz = from, place;
 		
 repeat:	while (poz < to) {
-			switch (root.type) {
-				case AndOrNode.TYPE_OR 	:
-					if ((place = Arrays.binarySearch(((OrNode<?>)root).childrenChar,source[poz])) < 0) {	// Place is missing - insert new branch in the tree
-						final char[]			newChars = new char[((OrNode<T>)root).childrenChar.length+1];
-						final AndOrNode<T>[]	newRefs = new AndOrNode[((OrNode<T>)root).childrenChar.length+1];
+			if (root.type == TYPE_OR) {
+				if ((place = Arrays.binarySearch(((OrNode<?>)root).childrenChar,source[poz])) < 0) {	// Place is missing - insert new branch in the tree
+					final char[]			newChars = new char[((OrNode<T>)root).childrenChar.length+1];
+					final AndOrNode<T>[]	newRefs = new AndOrNode[((OrNode<T>)root).childrenChar.length+1];
+					
+					if (place != -1) {		// Expand ordered lists in the OR-node
+						System.arraycopy(((OrNode<?>)root).childrenChar,0,newChars,0,-place-1);
+						System.arraycopy(((OrNode<?>)root).children,0,newRefs,0,-place-1);
+					}
+					newChars[-place-1] = source[poz];
+					if (-place < newChars.length) {
+						System.arraycopy(((OrNode<T>)root).childrenChar,-place-1,newChars,-place,newChars.length+place);
+						System.arraycopy(((OrNode<T>)root).children,-place-1,newRefs,-place,newRefs.length+place);
+					}
+					((OrNode<T>)root).childrenChar = newChars;
+					((OrNode<T>)root).children = newRefs;
+					
+					final AndNode<T>		tail = new AndNode<T>();	// Create AND-node and place it to the tree
+					
+					tail.parent = root;		tail.parentChar = source[poz];
+					tail.chainChar = new char[to-poz-1];
+					
+					if (tail.chainChar.length > 0) {
+						System.arraycopy(source,poz+1,tail.chainChar,0,tail.chainChar.length);
+					}
+					return newRefs[-place-1] = tail;
+				}
+				else {
+					root = ((OrNode<T>)root).children[place];
+					poz++;
+				}
+			}
+			else {
+				place = poz;
+				for (int maxLen = ((AndNode<?>)root).chainChar.length; poz < to && (poz-place) < maxLen; poz++) {
+					if (((AndNode<?>)root).chainChar[poz-place] != source[poz]) {	// Comparison failed - cut existent AND node text and insert chained OR and AND node in the cutting
+						cutAndNode((AndNode<T>)root,poz-place);						// Cut AND-node and continue placement
+						root = ((AndNode<T>)root).child;
+						continue repeat;
+					}
+				}
+				if (poz < to) {
+					if (((AndNode<?>)root).child == null) {	// This is a leaf - expand tree with chained OR and AND node.
+						final OrNode<T>		newOr = new OrNode<T>();
+						final AndNode<T>	newAnd = new AndNode<T>();
 						
-						if (place != -1) {		// Expand ordered lists in the OR-node
-							System.arraycopy(((OrNode<?>)root).childrenChar,0,newChars,0,-place-1);
-							System.arraycopy(((OrNode<?>)root).children,0,newRefs,0,-place-1);
+						newOr.childrenChar = new char[]{source[poz]};
+						newOr.children = new AndOrNode[]{newAnd};
+						newOr.parent = root;
+						
+						newAnd.parentChar = source[poz];
+						newAnd.parent = newOr;
+						newAnd.chainChar = new char[to-poz-1];
+						
+						if (newAnd.chainChar.length > 0) {
+							System.arraycopy(source,poz+1,newAnd.chainChar,0,newAnd.chainChar.length);
 						}
-						newChars[-place-1] = source[poz];
-						if (-place < newChars.length) {
-							System.arraycopy(((OrNode<T>)root).childrenChar,-place-1,newChars,-place,newChars.length+place);
-							System.arraycopy(((OrNode<T>)root).children,-place-1,newRefs,-place,newRefs.length+place);
-						}
-						((OrNode<T>)root).childrenChar = newChars;
-						((OrNode<T>)root).children = newRefs;
+						((AndNode<T>)root).child = newOr;
 						
-						final AndNode<T>		tail = new AndNode<T>();	// Create AND-node and place it to the tree
-						
-						tail.parent = root;		tail.parentChar = source[poz];
-						tail.chainChar = new char[to-poz-1];
-						
-						if (tail.chainChar.length > 0) {
-							System.arraycopy(source,poz+1,tail.chainChar,0,tail.chainChar.length);
-						}
-						return newRefs[-place-1] = tail;
+						return newAnd;
 					}
 					else {
-						root = ((OrNode<T>)root).children[place];
-						poz++;
+						root = ((AndNode<T>)root).child;
 					}
-					break;
-				case AndOrNode.TYPE_AND :
-					place = poz;
-					for (; poz < to && (poz-place) < ((AndNode<?>)root).chainChar.length; poz++) {
-						if (((AndNode<?>)root).chainChar[poz-place] != source[poz]) {	// Comparison failed - cut existent AND node text and insert chained OR and AND node in the cutting
-							cutAndNode((AndNode<T>)root,poz-place);						// Cut AND-node and continue placement
-							root = ((AndNode<T>)root).child;
-							continue repeat;
-						}
-					}
-					if (poz < to) {
-						if (((AndNode<?>)root).child == null) {	// This is a leaf - expand tree with chained OR and AND node.
-							final OrNode<T>		newOr = new OrNode<T>();
-							final AndNode<T>	newAnd = new AndNode<T>();
-							
-							newOr.childrenChar = new char[]{source[poz]};
-							newOr.children = new AndOrNode[]{newAnd};
-							newOr.parent = root;
-							
-							newAnd.parentChar = source[poz];
-							newAnd.parent = newOr;
-							newAnd.chainChar = new char[to-poz-1];
-							
-							if (newAnd.chainChar.length > 0) {
-								System.arraycopy(source,poz+1,newAnd.chainChar,0,newAnd.chainChar.length);
-							}
-							((AndNode<T>)root).child = newOr;
-							
-							return newAnd;
-						}
-						else {
-							root = ((AndNode<T>)root).child;
-						}
-						break;
-					}
-					else if ((poz-place) < ((AndNode<T>)root).chainChar.length) {	// Truncation of the existent node is needed
-						cutAndNode((AndNode<T>)root,poz-place);
-						break repeat;
-					}
-					else {
-						break repeat;
-					}
+				}
+				else if ((poz-place) < ((AndNode<T>)root).chainChar.length) {	// Truncation of the existent node is needed
+					cutAndNode((AndNode<T>)root,poz-place);
+					break repeat;
+				}
+				else {
+					break repeat;
+				}
 			}
 		}
 		return root;
 	}
 	
 	private void placeContainer(final long id, final AndOrNode<T> cargo) {
-		final short[]	ids = id2Shorts(id);
+		final int[]	ids = id2Shorts(id);
 
 		TreeIds<T>	start = idRoot;
 		for (int index = 0; index <= 3; index++) {
@@ -424,50 +431,57 @@ repeat:	while (poz < to) {
 		start.reference = cargo;
 	}
 
-	private AndOrNode<T> getName(final char[] source, final int from, final int to) {
+	private AndOrNode<T> getName(final char[] source, int from, final int to) {
 		AndOrNode<T>	root = nameRoot;
-		int				poz = from, place;
+		char[]			temp;
+		char			midVal, key;
+		int				place, maxLen, low, high, mid;
 		
-repeat:	while (poz < to) {
-			switch (root.type) {
-				case AndOrNode.TYPE_OR 	:
-					if ((place = Arrays.binarySearch(((OrNode<T>)root).childrenChar,source[poz])) < 0) {
+repeat:	while (from < to) {
+			if (root.type == TYPE_OR) {
+				key = source[from];
+				temp = ((OrNode<T>)root).childrenChar;				
+				low = 0;	high = temp.length-1;
+
+				while (low <= high) {
+					midVal = temp[mid = (low + high) >>> 1];
+
+					if (midVal < key) low = mid + 1;
+					else if (midVal > key) high = mid - 1;
+					else {
+						root = ((OrNode<T>)root).children[mid];
+						from++;
+						continue repeat;
+					}
+				}
+				return null;
+			}
+			else {
+				temp = ((AndNode<T>)root).chainChar;
+				
+				for (place = 0, maxLen = temp.length; from < to && place < maxLen; from++, place++) {
+					if (temp[place] != source[from]) {
+						return null;
+					}
+				}
+				if (from < to) {
+					if (((AndNode<T>)root).child == null) {
 						return null;
 					}
 					else {
-						root = ((OrNode<T>)root).children[place];
-						poz++;
+						root = ((AndNode<T>)root).child;
 					}
-					break;
-				case AndOrNode.TYPE_AND :
-					place = poz;
-					for (; poz < to && (poz-place) < ((AndNode<T>)root).chainChar.length; poz++) {
-						if (((AndNode<T>)root).chainChar[poz-place] != source[poz]) {
-							return null;
-						}
-					}
-					if (poz < to) {
-						if (((AndNode<T>)root).child == null) {
-							return null;
-						}
-						else {
-							root = ((AndNode<T>)root).child;
-						}
-						break;
-					}
-					else if ((poz - place) < ((AndNode<T>)root).chainChar.length) {
-						return null;
-					}
-					else {
-						break repeat;
-					}
+				}
+				else {
+					return place < maxLen ? null : root;
+				}
 			}
 		}
 		return root;
 	}
 	
 	private CargoContainer<T> getContainer(final long id) {
-		final short[]	ids = id2Shorts(id);
+		final int[]	ids = id2Shorts(id);
 		
 		TreeIds<T>	start = idRoot;
 		for (int index = 0; index <= 2; index++) {
@@ -526,14 +540,14 @@ repeat:	while (poz < to) {
 	private void remove(final AndOrNode<T> node) throws IOException {
 		if (node != null) {
 			switch (node.type) {
-				case AndOrNode.TYPE_OR	:
+				case TYPE_OR	:
 					if (((OrNode<T>)node).children != null) {
 						for (AndOrNode<T> item : ((OrNode<T>)node).children) {
 							remove(item);
 						}
 					}
 					break;
-				case AndOrNode.TYPE_AND	:
+				case TYPE_AND	:
 					remove(((AndNode<T>)node).child);
 					break;
 			}
@@ -554,15 +568,12 @@ repeat:	while (poz < to) {
 		}
 	}
 	
-	private static final short[] id2Shorts(long id) {
+	private static final int[] id2Shorts(long id) {
 		id = id & 0x00FFFFFFFFFFFFFFL;
-		return new short[]{(short)((id >> 48) & 0xFFFF),(short)((id >> 32) & 0xFFFF),(short)((id >> 16) & 0xFFFF),(short)(id & 0xFFFF)}; 
+		return new int[]{(int)((id >> 48) & 0xFFFF),(int)((id >> 32) & 0xFFFF),(int)((id >> 16) & 0xFFFF),(int)(id & 0xFFFF)}; 
 	}	
 	
 	private static class AndOrNode<T> {
-		static final int			TYPE_OR = 0;
-		static final int			TYPE_AND = 1;
-
 		public int					type;
 		public AndOrNode<T>			parent;
 		public CargoContainer<T>	container;
@@ -622,11 +633,11 @@ repeat:	while (poz < to) {
 	}
 	
 	private static class CargoContainer<T> {
-		public final int			sourceLength;
-		public final long			stringId;
-		public long					counter = 1;
-		public T					cargo;
-		public AndOrNode<T>			andOrNode;
+		public final int		sourceLength;
+		public int				counter = 1;
+		public final long		stringId;
+		public T				cargo;
+		public AndOrNode<T>		andOrNode;
 		
 		public CargoContainer(final AndOrNode<T> andOrNode, final int length, final long stringId, final T cargo) {
 			this.andOrNode= andOrNode;

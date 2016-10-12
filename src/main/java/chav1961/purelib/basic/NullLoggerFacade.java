@@ -1,9 +1,10 @@
 package chav1961.purelib.basic;
 
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 
 /**
- * <p>This class is an implementation of {@link LoggerFacade} interface for ths System.err target log file.</p>
+ * <p>This class is an implementation of {@link LoggerFacade} interface for the empty target log file.</p>
  * <p>This class is not thread-safe.</p>
  * 
  * @see LoggerFacade
@@ -27,11 +28,5 @@ public class NullLoggerFacade extends AbstractLoggerFacade {
 		return new NullLoggerFacade(mark,root);
 	}
 
-	@Override
-	protected void toLogger(Severity level, String text, Throwable throwable) {
-		System.err.println(level+": "+text);
-		if (throwable != null) {
-			throwable.printStackTrace();
-		}
-	}
+	@Override protected void toLogger(Severity level, String text, Throwable throwable) {}
 }

@@ -22,14 +22,18 @@ import java.util.Arrays;
  * @since 0.0.1
  */
 
-public class BitCharSet {
+public class BitCharSet implements Cloneable {
 	protected long[]			data = new long[2];
 
+	protected BitCharSet(final BitCharSet another) {
+		this.data = another.data.clone();
+	}
+	
 	/**
 	 * <p>Create empty set of characters</p>
 	 */
 	public BitCharSet() {}
-
+	
 	/**
 	 * <p>Create set of characters with the initial values</p>
 	 * @param chars initial characters in the set
@@ -67,7 +71,7 @@ public class BitCharSet {
 			return this;
 		}
 	}
-
+	
 	/**
 	 * <p>Add all character for the given range to the character set</p>
 	 * @param from start character range to add
@@ -184,6 +188,11 @@ public class BitCharSet {
 		return	result;
 	}
 
+	@Override
+	public BitCharSet clone() {
+		return new BitCharSet(this); 
+	}
+	
 	@Override
 	public String toString() {
 		return "BitCharSet " + Arrays.toString(toArray());

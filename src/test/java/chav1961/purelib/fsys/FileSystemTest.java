@@ -29,8 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.Locator;
 
-import com.sun.tools.javac.resources.javac;
-
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 

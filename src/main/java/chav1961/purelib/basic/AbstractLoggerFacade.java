@@ -16,7 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * <li>{link {@link #toLogger(chav1961.purelib.basic.interfaces.LoggerFacade.Severity, String, Throwable)} - log message by any way</li>
  * </ul>
  * 
- * <p>The good examples of the implementation are {@link NullLoggerFacade} and {@link DefaultLoggerFacade} classes in this peckage.</p>
+ * <p>The good examples of the implementation are {@link SystemErrLoggerFacade} and {@link DefaultLoggerFacade} classes in this peckage.</p>
  * <p>This class is not thread-safe.</p>
  * 
  * @see LoggerFacade

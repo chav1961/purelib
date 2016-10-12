@@ -15,6 +15,10 @@ import java.util.Arrays;
  */
 
 public class ExtendedBitCharSet extends BitCharSet {
+	protected ExtendedBitCharSet(final ExtendedBitCharSet another) {
+		super(another);
+	}
+	
 	/**
 	 * <p>Create empty set of characters</p>
 	 */
@@ -58,6 +62,12 @@ public class ExtendedBitCharSet extends BitCharSet {
 			return false;
 		}
 	}
+
+	@Override
+	public ExtendedBitCharSet clone() {
+		return new ExtendedBitCharSet(this); 
+	}
+	
 	
 	@Override
 	public String toString() {
