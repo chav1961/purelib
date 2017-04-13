@@ -68,6 +68,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		this.stack.addAll(another.stack);
 	}	
 
+	@Override public abstract boolean canServe(final String uriSchema);	
 	@Override public abstract FileSystemInterface clone();
 	@Override public abstract DataWrapperInterface createDataWrapper(final URI actualPath) throws IOException;
 

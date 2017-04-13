@@ -7,6 +7,8 @@ import java.io.StringReader;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.exceptions.SyntaxException;
+
 public class LineByLineProcessorTest {
 	private static String[]	SOURCE = new String[]{"123\n456","\n789","\n","A","BC","\nDEF"};
 	
@@ -14,7 +16,7 @@ public class LineByLineProcessorTest {
 	private String			result;
 	
 	@Test
-	public void basicTest() throws IOException {
+	public void basicTest() throws IOException, SyntaxException {
 		lineCount = 0;		result = "";
 		
 		try(final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->{lineCount++; result += new String(data,from,len);})) {

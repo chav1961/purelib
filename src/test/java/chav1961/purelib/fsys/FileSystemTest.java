@@ -1,10 +1,10 @@
 package chav1961.purelib.fsys;
 
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,21 +13,16 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.rmi.AccessException;
-import java.rmi.AlreadyBoundException;
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.jar.JarOutputStream;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.xml.sax.Locator;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -35,7 +30,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class FileSystemTest {
 	@Before
-	public void prepare() throws ClassNotFoundException {
+	public void prepare() throws ClassNotFoundException, IOException {
 		new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").listFiles(new FileFilter(){
 			@Override
 			public boolean accept(File pathname) {
@@ -44,11 +39,31 @@ public class FileSystemTest {
 				return false;
 			}
 		});
+		new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/").listFiles(new FileFilter(){
+			@Override
+			public boolean accept(File pathname) {
+				pathname.listFiles(this);
+				pathname.delete();
+				return false;
+			}
+		});
+		try(final OutputStream		os = new FileOutputStream(new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"));
+			final JarOutputStream	jos = new JarOutputStream(os)) {
+			jos.finish();
+		}
 	}
 
 	@After
 	public void unprepare() {
 		new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").listFiles(new FileFilter(){
+			@Override
+			public boolean accept(File pathname) {
+				pathname.listFiles(this);
+				pathname.delete();
+				return false;
+			}
+		});
+		new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/").listFiles(new FileFilter(){
 			@Override
 			public boolean accept(File pathname) {
 				pathname.listFiles(this);
@@ -105,6 +120,12 @@ public class FileSystemTest {
 			test(fs,false);
 		}
 
+		// test file system on file system
+		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
+			test(fs,false);
+		}
+		
+		
 		// Test RMI connection to the file system 
 		Registry	r = java.rmi.registry.LocateRegistry.createRegistry(Registry.REGISTRY_PORT);	// Start RMI registry
 		try(final FileSystemInterface	fsNest = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").toURI());

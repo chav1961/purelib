@@ -114,6 +114,18 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 	}	
 	
 	@Override
+	public long placeName(final String name, final T cargo) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Name can't be null or empty"); 
+		}
+		else {
+			final char[]	value = name.toCharArray();
+			
+			return placeName(value,0,value.length,cargo);
+		}
+	}
+	
+	@Override
 	public long seekName(final char[] value, final int from, final int to) {
 		int		forValue;
 		
@@ -495,12 +507,17 @@ repeat:	while (from < to) {
 				start = start.children[ids[index]];
 			}
 		}
-		if (((AndNode<T>)start.children[ids[3]].reference) != null && ((AndNode<T>)start.children[ids[3]].reference).container != null) {
-			if (id != ((AndNode<T>)start.children[ids[3]].reference).container.stringId) {
-				throw new IllegalStateException("Err load ref [id="+id+"]: "+(AndNode<T>)start.children[ids[3]].reference);
+		if (start.children[ids[3]] != null) {
+			if (((AndNode<T>)start.children[ids[3]].reference) != null && ((AndNode<T>)start.children[ids[3]].reference).container != null) {
+				if (id != ((AndNode<T>)start.children[ids[3]].reference).container.stringId) {
+					throw new IllegalStateException("Err load ref [id="+id+"]: "+(AndNode<T>)start.children[ids[3]].reference);
+				}
 			}
+			return ((AndNode<T>)start.children[ids[3]].reference).container;
 		}
-		return ((AndNode<T>)start.children[ids[3]].reference).container;
+		else {
+			return null;
+		}
 	}
 
 

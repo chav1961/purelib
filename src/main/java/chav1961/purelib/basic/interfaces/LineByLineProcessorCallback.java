@@ -2,6 +2,8 @@ package chav1961.purelib.basic.interfaces;
 
 import java.io.IOException;
 
+import chav1961.purelib.basic.exceptions.SyntaxException;
+
 /**
  * <p>This interface uses with the {@link chav1961.purelib.basic.LineByLineProcessor LineByLineProcessor} class to support lambda-styled callback for it</p>
  * 
@@ -20,6 +22,7 @@ public interface LineByLineProcessorCallback {
 	 * @param from starting position of the actual line in the data stream
 	 * @param length length of the actual line in the data stream
 	 * @throws IOException is any I/O errors were detected
+	 * @throws IOException is any syntax errors were detected
 	 */
-	void processLine(int lineNo, char[] data, int from, int length) throws IOException;
+	void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException;
 }

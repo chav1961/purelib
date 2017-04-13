@@ -1,5 +1,12 @@
 package chav1961.purelib.basic.exceptions;
 
+/**
+ * <p>This exception describes any problems on syntax parsing of data during I/O operations</p>
+ *  
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.1
+ *
+ */
 public class SyntaxException extends Exception {
 	private static final long serialVersionUID = 8141880743233589596L;
 

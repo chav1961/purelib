@@ -204,4 +204,45 @@ public class Utils {
 			}
 		}
 	}
+
+	/**
+	 * <p>Load resource content to string.</p>
+	 * @param resourceURL resource URL
+	 * @return string loaded
+	 * @throws IOException 
+	 */
+	public static String fromResource(final URL resourceURL) throws IOException {
+		return fromResource(resourceURL,"UTF-8");
+	}
+	
+	
+	/**
+	 * <p>Load resource content to string.</p>
+	 * @param resourceURL resource URL
+	 * @param encoding resource content encoding
+	 * @return string loaded
+	 * @throws IOException 
+	 */
+	public static String fromResource(final URL resourceURL, final String encoding) throws IOException {
+		if (resourceURL == null) {
+			throw new IllegalArgumentException("Resource URL can't be null");
+		}
+		else if (encoding == null || encoding.isEmpty()) {
+			throw new IllegalArgumentException("Resource content encodin can't be null or empty");
+		}
+		else {
+			final StringBuilder		sb = new StringBuilder();
+			
+			try(final InputStream	is = resourceURL.openStream();
+				final Reader		rdr = new InputStreamReader(is,encoding)) {
+				final char[]		buffer = new char[8192];
+				int		len;
+				
+				while ((len = rdr.read(buffer)) > 0) {
+					sb.append(buffer,0,len);					
+				}
+			}
+			return sb.toString();
+		}
+	}
 }

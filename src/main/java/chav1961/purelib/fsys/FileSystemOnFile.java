@@ -22,7 +22,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * 
  * <p>This class is not thread-safe.</p>
  * 
- * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
+ * @see chav1961.purelib.fsys.interfaces.FileSystemInterface FileSystemInterface
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
@@ -39,7 +39,7 @@ public class FileSystemOnFile extends AbstractFileSystem {
 	}
 	
 	/**
-	 * <p>Create the file system for the given directory.  
+	 * <p>Create the file system for the given directory.</p>  
 	 * @param rootPath root directory for the file system. Need be absolute URI with the schema 'file', for example <code>'file://./c:/mydir'</code>
 	 * @throws IOException if any exception was thrown
 	 */

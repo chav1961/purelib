@@ -82,4 +82,19 @@ public class UtilsTest {
 		} catch (IllegalArgumentException exc) {				
 		}
 	}
+
+	@Test
+	public void fromResourceTest() throws IOException {
+		Assert.assertEquals(Utils.fromResource(this.getClass().getResource("resourcefile.txt")),"test string");
+		
+		try{Utils.fromResource(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {			
+		}
+		try{Utils.fromResource(this.getClass().getResource("resourcefile.txt"),null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (IllegalArgumentException exc) {			
+		}
+	}
+
 }

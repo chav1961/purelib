@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class CharsUtilTest {
+	public static final float		EPSILON_FLOAT = 0.00001f;
 	public static final double		EPSILON = 0.000000001;
 	
 	@Test
@@ -145,6 +146,65 @@ public class CharsUtilTest {
 	}
 
 	@Test
+	public void floatConversionTest() {
+		final float[]		value = new float[1];
+		
+		Assert.assertEquals(CharsUtil.parseFloat("0".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],0,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("1".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],1,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("1 ".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],1,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("123456".toCharArray(),0,value,false),6);		Assert.assertEquals(value[0],123456,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("1234567".toCharArray(),0,value,false),7);		Assert.assertEquals(value[0],1234567.0,EPSILON_FLOAT);
+		
+		Assert.assertEquals(CharsUtil.parseFloat("0.1".toCharArray(),0,value,false),3);			Assert.assertEquals(value[0],0.1,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("0.0000000000000000001".toCharArray(),0,value,false),21);			Assert.assertEquals(value[0],0.0000000000000000001,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("2E10".toCharArray(),0,value,false),4);		Assert.assertEquals(value[0],2E10,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("1.2E10".toCharArray(),0,value,false),6);		Assert.assertEquals(value[0],1.2E10,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("1.2E+10".toCharArray(),0,value,false),7);		Assert.assertEquals(value[0],1.2E10,EPSILON_FLOAT);
+		Assert.assertEquals(CharsUtil.parseFloat("1.2E-10".toCharArray(),0,value,false),7);		Assert.assertEquals(value[0],1.2E-10,EPSILON_FLOAT);
+
+		try{CharsUtil.parseFloat(null,0,value,false);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("".toCharArray(),0,value,false);
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("0".toCharArray(),1,value,false);
+			Assert.fail("Mandatory exception was not detected (1-nd argument outside the bound)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("0".toCharArray(),0,null,false);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("0".toCharArray(),0,new float[0],false);
+			Assert.fail("Mandatory exception was not detected (zero length 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("1.".toCharArray(),0,value,false);
+			Assert.fail("Mandatory exception was not detected (missing fractional)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("1E".toCharArray(),0,value,false);
+			Assert.fail("Mandatory exception was not detected (missing exponent)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("1E-".toCharArray(),0,value,false);
+			Assert.fail("Mandatory exception was not detected (missing exponent)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat("1E+".toCharArray(),0,value,false);
+			Assert.fail("Mandatory exception was not detected (missing exponent)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharsUtil.parseFloat(("1E"+(Float.MAX_EXPONENT+10)).toCharArray(),0,value,true);
+			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
+
+	@Test
 	public void doubleConversionTest() {
 		final double[]		value = new double[1];
 		
@@ -197,12 +257,12 @@ public class CharsUtilTest {
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{CharsUtil.parseDouble("1E400".toCharArray(),0,value,true);
+		try{CharsUtil.parseDouble(("1E"+(Double.MAX_EXPONENT+10)).toCharArray(),0,value,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
 		} catch (IllegalArgumentException exc) {
 		}
 	}
-
+	
 	@Test
 	public void numberConversionTest() {
 		final long[]		value = new long[2];
@@ -256,7 +316,7 @@ public class CharsUtilTest {
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{CharsUtil.parseNumber("1E400".toCharArray(),0,value,CharsUtil.PREF_ANY,true);
+		try{CharsUtil.parseNumber(("1E"+(Double.MAX_EXPONENT+10)).toCharArray(),0,value,CharsUtil.PREF_ANY,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -409,6 +469,61 @@ public class CharsUtilTest {
 			Assert.fail("Mandatory exception was not detected (enum constant not exists)");
 		} catch (IllegalArgumentException exc) {
 		}
+	}
+
+	@Test
+	public void compareTest() {
+		Assert.assertTrue(CharsUtil.compare("test string".toCharArray(), 5, "str".toCharArray()));
+		Assert.assertTrue(CharsUtil.compare("test string".toCharArray(), 5, "string".toCharArray()));
+		Assert.assertTrue(CharsUtil.compare("test string".toCharArray(), 5, "".toCharArray()));
+		Assert.assertFalse(CharsUtil.compare("test string".toCharArray(), 5, "str1".toCharArray()));
+	
+		try{CharsUtil.compare(null, 5, "str".toCharArray());
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("".toCharArray(), 5, "str".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("test string".toCharArray(), 11, "str".toCharArray());
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of bounds)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("test string".toCharArray(), 5, null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+
+		Assert.assertTrue(CharsUtil.compare("test string".toCharArray(), 5, "str".toCharArray(), 0, 3));
+		Assert.assertTrue(CharsUtil.compare("test string".toCharArray(), 5, "string".toCharArray(), 0, 6));
+		Assert.assertTrue(CharsUtil.compare("test string".toCharArray(), 5, "".toCharArray(), 0, 0));
+		Assert.assertFalse(CharsUtil.compare("test string".toCharArray(), 5, "str1".toCharArray(), 0, 4));
+
+		try{CharsUtil.compare(null, 5, "str".toCharArray(), 0, 3);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("".toCharArray(), 5, "str".toCharArray(), 0, 3);
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("test string".toCharArray(), 11, "str".toCharArray(), 0, 3);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of bounds)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("test string".toCharArray(), 5, null, 0, 3);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("test string".toCharArray(), 5, "str".toCharArray(), 3, 3);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharsUtil.compare("test string".toCharArray(), 5, "str".toCharArray(), 0, 4);
+			Assert.fail("Mandatory exception was not detected (5-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}		
 	}
 }
 

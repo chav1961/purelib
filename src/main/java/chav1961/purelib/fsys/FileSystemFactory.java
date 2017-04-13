@@ -19,8 +19,18 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * <p>The first constructor is a requirement of the SPI, but not uses by file system factory. File system instance was created with the given constructor, need support the
  * {@link FileSystemInterface#canServe(String) canServe(String)} method only and <b>nothing more</b>! The second constructor is the legal way to create file system instance.
  * Any URI parameter for this constructor need be absolute, contains a scheme, and need contain all required information for creating file system instance (for example, database
- * connection, user name and apssword string etc). The factory find all deployed classes (as described in <a href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">Java SPI</a>),
+ * connection, user name and password string etc). The factory find all deployed classes (as described in <a href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">Java SPI</a>),
  * and test the class about supporting URI with the given scheme. If class was found, the factory creates the class instance and return it<p>
+ * 
+ * <p>This package implements a restricted set of file systems:</p> 
+ * <ul>
+ * <li>{@link FileSystemOnFile} - file system based on the native file system</li>
+ * <li>{@link FileSystemOnRMI} - file system as a client for remote server</li>
+ * <li>{@link FileSystemOnXMLReadOnly} - file system based on an XML file content</li>
+ * <li>{@link FileSystemOnFileSystem} - file system based on standard file system in the Java 1.7 or later</li>
+ * </ul>
+ * <p>Any vendor can add it's own file system implementation to the library. To make this, simply use SPI protocol. The reference to vendor file system
+ * need be described in the <b>META-INF/services/chav1961.purelib.fsys.interfaces.FileSystemInterface</b> file</p> 
  * 
  * @see <a href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">Java SPI description</a>
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface IFileSystem

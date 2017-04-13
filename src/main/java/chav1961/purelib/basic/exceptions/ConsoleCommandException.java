@@ -1,7 +1,7 @@
 package chav1961.purelib.basic.exceptions;
 
 /**
- * This exception describes any problems on concole command processing
+ * <p>This exception describes any problems on concole command processing</p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

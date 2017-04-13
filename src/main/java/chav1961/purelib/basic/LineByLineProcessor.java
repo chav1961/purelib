@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
 
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 
 /**
@@ -49,7 +50,10 @@ public class LineByLineProcessor implements Closeable {
 	public void close() throws IOException {
 		if (sb.length() > 0) {
 			sb.append('\n');
-			processFromBuilder();
+			try{processFromBuilder();
+			} catch (SyntaxException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 	
@@ -59,9 +63,10 @@ public class LineByLineProcessor implements Closeable {
 	 * @param off offset inside the source array to use as data beginning
 	 * @param len length of data need to process
 	 * @throws IOException if any I/O exceptions were detected
+	 * @throws SyntaxException if any syntax problems was detected 
 	 * @throws IllegalArgumentException any parameter's problems
 	 */
-	public void write(final char[] cbuf, final int off, final int len) throws IOException {
+	public void write(final char[] cbuf, final int off, final int len) throws IOException, SyntaxException {
 		if (cbuf == null || cbuf.length == 0) {
 			throw new IllegalArgumentException("Char array can't be null or empty");
 		}
@@ -89,7 +94,7 @@ public class LineByLineProcessor implements Closeable {
 			
 			for (int index = off, maxIndex = Math.min(cbuf.length,off+len); index < maxIndex; index++) {
 				if (cbuf[index] == '\n') {
-					callback.processLine(lineNo,cbuf,start,index-start+1);
+					callback.processLine(lineNo++,cbuf,start,index-start+1);
 					start = index + 1;
 				}
 			}
@@ -103,9 +108,10 @@ public class LineByLineProcessor implements Closeable {
 	 * <p>Process data from the reader until EOF will be detected</p>
 	 * @param rdr reader to process data from
 	 * @throws IOException if any I/O exceptions were detected
+	 * @throws SyntaxException if any syntax problems were detected
 	 * @throws IllegalArgumentException any parameter's problems
 	 */
-	public void write(final Reader rdr) throws IOException {
+	public void write(final Reader rdr) throws IOException, SyntaxException {
 		if (rdr == null) {
 			throw new IllegalArgumentException("Readed can't be null");
 		}
@@ -120,12 +126,11 @@ public class LineByLineProcessor implements Closeable {
 	}
 	
 	
-	private void processFromBuilder() throws IOException {
+	private void processFromBuilder() throws IOException, SyntaxException {
 		final char[]	data = new char[sb.length()];
 		
 		sb.getChars(0,data.length,data,0);
 		sb.setLength(0);
-		callback.processLine(lineNo,data,0,data.length);
-		lineNo++;
+		callback.processLine(lineNo++,data,0,data.length);
 	}
 }

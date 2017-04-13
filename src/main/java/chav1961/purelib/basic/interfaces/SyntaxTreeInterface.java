@@ -29,6 +29,14 @@ public interface SyntaxTreeInterface<T> {
 	long placeName(char[] value, int from, int to, T cargo);
 
 	/**
+	 * <p>Place new name into tree and assign unique id for it</p>
+	 * @param name name to place into tree
+	 * @param cargo cargo associated (can be null)
+	 * @return id of the placed name. If exists, replaces cargo for the name
+	 */
+	long placeName(final String name, final T cargo);
+	
+	/**
 	 * <p>Place new name into tree with the given id</p>
 	 * @param value name value
 	 * @param from from name index

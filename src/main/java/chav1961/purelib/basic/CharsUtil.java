@@ -23,8 +23,9 @@ package chav1961.purelib.basic;
 public class CharsUtil {
 	public static final int			PREF_INT = 1;
 	public static final int			PREF_LONG = 2;
-	public static final int			PREF_DOUBLE = 4;
-	public static final int			PREF_ANY = PREF_INT | PREF_LONG | PREF_DOUBLE;
+	public static final int			PREF_FLOAT = 4;
+	public static final int			PREF_DOUBLE = 8;
+	public static final int			PREF_ANY = PREF_INT | PREF_LONG | PREF_FLOAT | PREF_DOUBLE;
 	
 	private static final int		INTMAX_2 = Integer.MAX_VALUE / 2;
 	private static final int		INTMAX_8 = Integer.MAX_VALUE / 8;
@@ -34,7 +35,7 @@ public class CharsUtil {
 	private static final long		LONGMAX_8 = Long.MAX_VALUE / 8;
 	private static final long		LONGMAX_10 = Long.MAX_VALUE / 10;
 	private static final long		LONGMAX_16 = Long.MAX_VALUE / 16;
-	private static final int		EXP_BOUND = 306;
+	private static final int		EXP_BOUND = Double.MAX_EXPONENT;
 	private static final int		U_ESCAPE_SIZE = 4;
 	private static final double		EXPS[];
 	
@@ -326,6 +327,112 @@ public class CharsUtil {
 			}
 		}
 	}
+
+	/**
+	 * <p>Extract unsigned float value from the current position of the source data</p>
+	 * @param source source data contains character representation of the integer value
+	 * @param from starting position in the source data
+	 * @param result array (new double[1]) to store parsed value
+	 * @param checkOverflow need check overflow when parsing data
+	 * @return position of the first char in the source after successful parsing of the current integer 
+	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 */
+	public static int parseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) {
+		int		len;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
+		}
+		else if (result == null || result.length == 0) {
+			throw new IllegalArgumentException("Result array can't be null or empty array"); 
+		}
+		else {
+			long	temp = 0;
+			int		index = from;
+			char	symbol = ' ';
+			boolean	continueParsing = false;
+			
+			while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+				if (temp > LONGMAX_10) {
+					continueParsing = true;
+					break;
+				}
+				temp = temp * 10 + symbol - '0';
+				index++;
+			}
+			
+			if (index == from) {
+				throw new NumberFormatException("No one digits in the number was detected!");
+			}
+			else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E') || continueParsing) {
+				double	tempInt = temp;
+				
+				if (continueParsing) {
+					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+						tempInt = tempInt * 10 + symbol - '0';
+						index++;
+					}
+				}
+				
+				if (symbol == '.') {
+					double	frac = 0, scale = 1;
+					int		fracFrom = ++index;
+					
+					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+						frac = frac * 10 + symbol - '0';
+						scale *= 0.1;
+						index++;
+					}
+					
+					if (index == fracFrom) {
+						throw new NumberFormatException("No one digits in the fractional part of float was detected!");
+					}
+					else {
+						tempInt += frac * scale;
+					}
+				}
+				if (symbol == 'e' || symbol == 'E') {
+					int		multiplier = 1;
+					
+					index++;
+					if (index < len && (symbol = source[index]) == '-') {
+						multiplier = -1;
+						index++;
+					}
+					else if (symbol == '+') {
+						index++;
+					}
+					int		exp = 0, expFrom = index;
+					
+					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+						exp = exp * 10 + symbol - '0';
+						index++;
+					}
+					exp *= multiplier;
+					
+					
+					if (checkOverflow && (exp > Float.MAX_EXPONENT || exp < Float.MIN_EXPONENT)) {
+						throw new NumberFormatException("Number is greater then maximal available float");
+					}
+					
+					if (index == expFrom) {
+						throw new NumberFormatException("No one digits in the exponent part of float was detected!");
+					}
+					else {
+						tempInt *= EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
+					}
+				}
+				result[0] = (float)tempInt;
+			}
+			else {
+				result[0] = temp;
+			}
+			return index;
+		}
+	}
 	
 	
 	/**
@@ -414,7 +521,7 @@ public class CharsUtil {
 					exp *= multiplier;
 					
 					
-					if (checkOverflow && (exp > EXP_BOUND || exp < -EXP_BOUND)) {
+					if (checkOverflow && (exp > Double.MAX_EXPONENT || exp < Double.MIN_EXPONENT)) {
 						throw new NumberFormatException("Number is greater then maximal available double");
 					}
 					
@@ -484,11 +591,21 @@ public class CharsUtil {
 				temp = temp * 10 + symbol - '0';
 				index++;
 			}
+			if (index < len && (source[index] == 'l' || source[index] == 'L')) {
+				if ((preferences & PREF_LONG) == 0) {
+					throw new NumberFormatException("Long constant is not wated here");
+				}
+				else {
+					result[0] = temp; 
+					result[1] = PREF_LONG;
+					return index+1;
+				}
+			}
 			
 			if (index == from) {
 				throw new NumberFormatException("No one digits in the number was detected!");
 			}
-			else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E') || continueParsing) {
+			else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E' || symbol == 'f' || symbol == 'F') || continueParsing) {
 				double	tempInt = temp;
 				
 				if (continueParsing) {
@@ -545,8 +662,29 @@ public class CharsUtil {
 						tempInt *= EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
 					}
 				}
-				result[0] = Double.doubleToLongBits(tempInt);
-				result[1] = PREF_DOUBLE;
+
+				if (symbol == 'f' || symbol == 'f') {
+					index++;
+					if ((preferences | PREF_FLOAT) == 0) {
+						throw new NumberFormatException("Float number is not waited here");
+					}
+					else if (Math.abs(tempInt) < Float.MAX_VALUE) {
+						result[0] = Float.floatToIntBits((float)tempInt);
+						result[1] = PREF_FLOAT;
+					}
+					else {
+						throw new NumberFormatException("Float number is greater then maximal available float");
+					}
+				}
+				else {
+					if ((preferences | PREF_DOUBLE) != 0) {
+						result[0] = Double.doubleToLongBits(tempInt);
+						result[1] = PREF_DOUBLE;
+					}
+					else {
+						throw new NumberFormatException("Double number is not waited here");
+					}
+				}
 			}
 			else {
 				result[0] = temp; 
@@ -874,5 +1012,75 @@ public class CharsUtil {
 				throw new IllegalArgumentException("No enumeration constant ["+parsed+"] found in the "+clazz.getName()+" enumeration class"); 
 			}
 		}		
+	}
+
+	/**
+	 * <p>Compare char array slice with the given template</p>
+	 * @param source source data contains data to compare
+	 * @param from starting position of the slice to compare 
+	 * @param template template to compare
+	 * @return true if the source slice is equals to template
+	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 */
+	public static boolean compare(final char[] source, final int from, final char[] template) {
+		if (source == null || source.length == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= source.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+source.length); 
+		}
+		else if (template == null) {
+			throw new IllegalArgumentException("Template data can't be null"); 
+		}
+		else if (template.length == 0) {
+			return true;
+		}
+		else {
+			return compare(source,from,template,0,template.length);
+		}
+	}
+
+	/**
+	 * <p>Compare char array slice with the given part of template</p>
+	 * @param source source data contains data to compare
+	 * @param from starting position of the slice to compare 
+	 * @param template template to compare
+	 * @param templateFrom starting position on the template to compare
+	 * @param templateLen legth of template piece to compare with
+	 * @return true if the source slice is equals to template part
+	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 */
+	public static boolean compare(final char[] source, final int from, final char[] template, final int templateFrom, final int templateLen) {
+		int	len, tempLen;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+source.length); 
+		}
+		else if (template == null) {
+			throw new IllegalArgumentException("Template data can't be null"); 
+		}
+		else if (templateFrom > (tempLen = template.length) || templateFrom < 0) {
+			throw new IllegalArgumentException("From template position ["+templateFrom+"] out of range 0.."+tempLen); 
+		}
+		else if (templateFrom + templateLen < 0 || templateFrom + templateLen > tempLen) {
+			throw new IllegalArgumentException("End template position ["+(templateFrom+templateLen)+"] out of range 0.."+tempLen); 
+		}
+		else if (tempLen == 0) {
+			return true;
+		}
+		else if ((len-from) < tempLen) {
+			return false;
+		}
+		else {
+			for (int index = 0; index < templateLen; index++) {
+				if (source[from+index] != template[templateFrom+index]) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 }
