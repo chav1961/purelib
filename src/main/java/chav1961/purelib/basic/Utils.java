@@ -209,7 +209,7 @@ public class Utils {
 	 * <p>Load resource content to string.</p>
 	 * @param resourceURL resource URL
 	 * @return string loaded
-	 * @throws IOException 
+	 * @throws IOException any I/O exceptions 
 	 */
 	public static String fromResource(final URL resourceURL) throws IOException {
 		return fromResource(resourceURL,"UTF-8");
@@ -221,7 +221,7 @@ public class Utils {
 	 * @param resourceURL resource URL
 	 * @param encoding resource content encoding
 	 * @return string loaded
-	 * @throws IOException 
+	 * @throws IOException any I/O exceptions 
 	 */
 	public static String fromResource(final URL resourceURL, final String encoding) throws IOException {
 		if (resourceURL == null) {

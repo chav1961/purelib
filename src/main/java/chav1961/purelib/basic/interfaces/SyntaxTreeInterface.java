@@ -134,7 +134,7 @@ public interface SyntaxTreeInterface<T> {
 
 	/**
 	 * <p>Walk all the ids in the tree</p>
-	 * @param walker
+	 * @param walker callback to process each walked item
 	 */
 	void walk(Walker walker);
 	

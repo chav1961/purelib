@@ -22,7 +22,7 @@ public interface LineByLineProcessorCallback {
 	 * @param from starting position of the actual line in the data stream
 	 * @param length length of the actual line in the data stream
 	 * @throws IOException is any I/O errors were detected
-	 * @throws IOException is any syntax errors were detected
+	 * @throws SyntaxException is any syntax errors were detected
 	 */
 	void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException;
 }

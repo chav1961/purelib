@@ -25,7 +25,7 @@ import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
- * <p>This class implements the file system interface on the standard filesystem mechanism in the Java 1.7 and later.</p>
+ * <p>This class implements the file system interface on the standard file system mechanism in the Java 1.7 and later.</p>
  * 
  * <p>This class is not thread-safe.</p>
  * 
@@ -35,8 +35,6 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  */
-
-
 public class FileSystemOnFileSystem extends AbstractFileSystem {
 	private final FileSystem		fs;
 	private final boolean			needClose;

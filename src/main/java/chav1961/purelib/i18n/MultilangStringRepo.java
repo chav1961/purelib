@@ -16,7 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
  * <p>This class describes a repository for {@link MultilangString} entites. Every entity identifies in the repository
- * by it;s unique <i><key</i>. Repository can be filled by individual call by {@link #add(String, MultilangString)} method,
+ * by it;s unique <i>key</i>. Repository can be filled by individual call by {@link #add(String, MultilangString) } method,
  * by bulk method {@link MultilangStringRepo#add(MultilangStringRepo)} or by import repository content from XML DOM tree. 
  * This class can also substitute multilang strings into the given string content (method {@link MultilangStringRepo#substitute(String)})</p>
  *  
@@ -125,7 +125,7 @@ public class MultilangStringRepo implements AutoCloseable {
 	
 	/**
 	 * <p>Get key list from the repository</p>
-	 * @return
+	 * @return key list in the repo. Can be empty but ot null
 	 */
 	public Iterable<String> keys() {
 		return repo.keySet();
@@ -237,6 +237,7 @@ public class MultilangStringRepo implements AutoCloseable {
 	 * @param source string to substitute data to
 	 * @param defaultValue default value for the source string if null. Can't be null
 	 * @return substituted string
+	 * @throws ContentException any error in content
 	 * @see #substitute(String)
 	 */
 	public String substitute(final String source, final String defaultValue) throws ContentException {

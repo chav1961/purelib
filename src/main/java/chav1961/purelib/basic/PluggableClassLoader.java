@@ -16,12 +16,12 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * {@link #loadClass(String, boolean)} method of this class loader tries to find appropriative classes in the each class loader
  * in the collection. When one of the plugins will be uninstalled, find fails.</p>
  * <p>The template to use this class is:</p>
- * <p><code>PluggableClassLoader pcl = new PluggableClassLoader(parent);<br/>
- * pcl.install(...) // install new plugin<br/>
- * Class cl = pcl.loadClass("Class.Name") // get any class from the plugin loaded<br/>
+ * <p><code>PluggableClassLoader pcl = new PluggableClassLoader(parent);<br>
+ * pcl.install(...) // install new plugin<br>
+ * Class cl = pcl.loadClass("Class.Name") // get any class from the plugin loaded<br>
  * // use plugin class
- * pcl.uninstall(...) // uninstall existent plugin<br/>
- * <code></p>
+ * pcl.uninstall(...) // uninstall existent plugin<br>
+ * </code></p>
  * <p>WARNING! Don't use {@link Class#forName(String, boolean, ClassLoader)} method to load classes from this loader, because
  * this method has an internal cache for all classes loaded, and this cache doesn't clear when the plugin will be uninstalled</p>
  * <p>This class is not thread-safe.</p>

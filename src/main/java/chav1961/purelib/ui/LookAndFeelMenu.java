@@ -22,12 +22,12 @@ import javax.swing.UnsupportedLookAndFeelException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
- * <p>This class allows programmer to get prepared "Look & Feel change" submenu to use in the Swing applications.
+ * <p>This class allows programmer to get prepared "Look &amp; Feel change" submenu to use in the Swing applications.
  * This class is a child class of the {@link JMenu} class and can' be used everywhere the parent one is used</p>
  * 
- * <p>This class not only fills menu by existent Looks and Feels, but installs all additional L&F implementation.  
- * Any vendor can add it's own Look & Feel implementation to the library. To make this, simply use SPI protocol. 
- * The reference to vendor L&F need be described in the <b>META-INF/services/javax.swing.LookAndFeel</b> file</p> 
+ * <p>This class not only fills menu by existent Looks and Feels, but installs all additional L&amp;F implementation.  
+ * Any vendor can add it's own Look &amp; Feel implementation to the library. To make this, simply use SPI protocol. 
+ * The reference to vendor L&amp;F need be described in the <b>META-INF/services/javax.swing.LookAndFeel</b> file</p> 
  * 
  * @see javax.swing.JMenu JMenu
  * @see javax.swing Java Swing
@@ -59,9 +59,9 @@ public class LookAndFeelMenu extends JMenu {
 										}; 
 	
 	/**
-	 * <p>Create "Look & Feel change" submenu</p> 
+	 * <p>Create "Look &amp; Feel change" submenu</p> 
 	 * @param caption menu caption in the parent menu. Can't be null or empty
-	 * @param refreshRoot root of the Swing application windows to refresh it's look&feel. Can't be null or empty 
+	 * @param refreshRoot root of the Swing application windows to refresh it's look&amp;feel. Can't be null or empty 
 	 */
 	public LookAndFeelMenu(final String caption, final Component refreshRoot) {
 		if (caption == null || caption.isEmpty()) {

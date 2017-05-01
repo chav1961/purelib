@@ -3,16 +3,17 @@ package chav1961.purelib.streams.interfaces;
 import chav1961.purelib.basic.exceptions.PrintingException;
 
 /**
- * <p>This interface describes char target to use in the printers</p>
+ * <p>This interface describes char target to use in the different printers.</p>
+ * @see chav1961.purelib.streams.chartarget
  * @author chav1961
- *
+ * @since 0.0.1
  */
 public interface CharacterTarget {
 	/**
 	 * <p>Put symbol into the target</p>
 	 * @param symbol symbol to put
 	 * @return self
-	 * @throws PrintingException
+	 * @throws PrintingException any printing exceptions
 	 */
 	CharacterTarget put(char symbol) throws PrintingException;
 	
@@ -20,7 +21,7 @@ public interface CharacterTarget {
 	 * <p>Put char array into the target</p>
 	 * @param symbols char array to put
 	 * @return self
-	 * @throws PrintingException
+	 * @throws PrintingException any printing exceptions
 	 */
 	CharacterTarget put(char[] symbols) throws PrintingException;
 	
@@ -30,7 +31,7 @@ public interface CharacterTarget {
 	 * @param from start position to put
 	 * @param to end position to put
 	 * @return self
-	 * @throws PrintingException
+	 * @throws PrintingException any printing exceptions
 	 */
 	CharacterTarget put(char[] symbols, int from, int to) throws PrintingException;
 	
@@ -38,7 +39,7 @@ public interface CharacterTarget {
 	 * <p>Put string into the target</p>
 	 * @param source source to put into the target
 	 * @return self
-	 * @throws PrintingException
+	 * @throws PrintingException any printing exceptions
 	 */
 	CharacterTarget put(String source) throws PrintingException;
 	
@@ -48,7 +49,7 @@ public interface CharacterTarget {
 	 * @param from start position to put
 	 * @param to end position to put
 	 * @return self
-	 * @throws PrintingException
+	 * @throws PrintingException any printing exceptions
 	 */
 	CharacterTarget put(String source, int from, int to) throws PrintingException;
 	

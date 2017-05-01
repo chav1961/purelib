@@ -1,7 +1,7 @@
 package chav1961.purelib.basic.exceptions;
 
 /**
- * <p>This exception describes any problems in the librar environment</p>
+ * <p>This exception describes any problems in the library environment</p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

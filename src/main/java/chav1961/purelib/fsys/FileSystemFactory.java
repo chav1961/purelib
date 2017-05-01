@@ -20,7 +20,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * {@link FileSystemInterface#canServe(String) canServe(String)} method only and <b>nothing more</b>! The second constructor is the legal way to create file system instance.
  * Any URI parameter for this constructor need be absolute, contains a scheme, and need contain all required information for creating file system instance (for example, database
  * connection, user name and password string etc). The factory find all deployed classes (as described in <a href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">Java SPI</a>),
- * and test the class about supporting URI with the given scheme. If class was found, the factory creates the class instance and return it<p>
+ * and test the class about supporting URI with the given scheme. If class was found, the factory creates the class instance and return it</p>
  * 
  * <p>This package implements a restricted set of file systems:</p> 
  * <ul>

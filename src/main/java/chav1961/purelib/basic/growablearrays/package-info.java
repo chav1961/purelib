@@ -1,6 +1,6 @@
 /**
  *<p>This package contains a set of growable arrays for all primitive types (except boolean)
- * Differ to List<?>, these classes are optimized for a special use case:</p>
+ * Differ to List&lt;?&gt;, these classes are optimized for a special use case:</p>
  * <ul>
  * <li>loading a lot of appropriative primitive type data</li> 
  * <li>use them as a plain array of the primitive type</li> 

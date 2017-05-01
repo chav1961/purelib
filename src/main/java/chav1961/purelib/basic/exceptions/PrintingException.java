@@ -1,5 +1,12 @@
 package chav1961.purelib.basic.exceptions;
 
+/**
+ * <p>This exception describes any problems on writing data in the stream</p>
+ *  
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.1
+ *
+ */
 public class PrintingException extends Exception {
 	private static final long serialVersionUID = 6747558191548783494L;
 
