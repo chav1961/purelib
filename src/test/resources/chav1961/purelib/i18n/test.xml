@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<repo>
+	<item key="item1">
+		<value locale="en">value1</value>
+		<value locale="ru_RU">значение1</value>
+	</item>
+	<item key="item2">
+		<value locale="en">value2</value>
+		<value locale="ru_RU">значение2</value>
+	</item>
+	<item key="item3">
+		<value locale="en">value3</value>
+		<value locale="ru_RU">значение3</value>
+	</item>
+</repo>
+ 
