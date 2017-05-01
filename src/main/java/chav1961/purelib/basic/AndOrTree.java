@@ -248,19 +248,20 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 		
 		if (descr != null && descr.counter > 0) {
 			if (from + descr.sourceLength <= target.length) {
-				AndOrNode<?>	actual = descr.andOrNode;
-				int			partSize;
-				
-				for (int index = from + descr.sourceLength - 1; index >= from;) {
-					if (actual.type == TYPE_AND) {
-						partSize = ((AndNode<?>)actual).chainChar.length;
-						System.arraycopy(((AndNode<?>)actual).chainChar,0,target,index-partSize+1,partSize);
-						index -= partSize; 
-						target[index--] = ((AndNode<?>)actual).parentChar;
-					}
-					actual = actual.parent;
-				}
-				return from + descr.sourceLength;
+//				AndOrNode<?>	actual = descr.andOrNode;
+//				int				partSize;
+//				
+//				for (int index = from + descr.sourceLength - 1; index >= from;) {
+//					if (actual.type == TYPE_AND) {
+//						partSize = ((AndNode<?>)actual).chainChar.length;
+//						System.arraycopy(((AndNode<?>)actual).chainChar,0,target,index-partSize+1,partSize);
+//						index -= partSize; 
+//						target[index--] = ((AndNode<?>)actual).parentChar;
+//					}
+//					actual = actual.parent;
+//				}
+//				return from + descr.sourceLength;
+				return getName(descr.andOrNode,target,from);
 			}
 			else {
 				return - (from + descr.sourceLength);
@@ -268,6 +269,26 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 		}
 		else {
 			return from;
+		}
+	}
+
+	private int getName(final AndOrNode<?> actual, final char[] target, int from) {
+		if (actual == null) {
+			return from;
+		}
+		else {
+			from = getName(actual.parent,target,from);
+			if (actual.type == TYPE_AND) {
+				if (from < target.length) {
+					target[from++] = ((AndNode<?>)actual).parentChar;
+				}
+				final int	minLen = Math.min(((AndNode<?>)actual).chainChar.length,target.length-from);
+				System.arraycopy(((AndNode<?>)actual).chainChar,0,target,from,minLen);
+				return from + minLen;
+			}
+			else {
+				return from;
+			}
 		}
 	}
 
@@ -299,9 +320,13 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 	}
 	
 	private void walk(final TreeIds<T> idRoot, final Walker walker) {
-		for (TreeIds<T> item : idRoot.children) {
-			if (item != null) {
-				walk(item,walker);
+		if (idRoot != null) {
+			if (idRoot.children != null) {
+				for (TreeIds<T> item : idRoot.children) {
+					if (item != null) {
+						walk(item,walker);
+					}
+				}
 			}
 			if (idRoot.reference != null) {
 				if (idRoot.reference.container != null && idRoot.reference.container.stringId != -1) {
