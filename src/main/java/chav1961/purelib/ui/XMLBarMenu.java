@@ -7,6 +7,10 @@ import javax.swing.JMenuBar;
 
 import org.w3c.dom.Element;
 
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.i18n.MultilangStringRepo;
+import chav1961.purelib.ui.interfaces.CustomMenuInterface;
+
 /**
  *	<p>This class allows programmer to get prepared bar menu by it's XML description to use in the Swing applications.
  * 	This class is a child class of the {@link JMenuBar} class and can' be used everywhere the parent one is used</p>
@@ -39,15 +43,31 @@ import org.w3c.dom.Element;
 public class XMLBarMenu extends JMenuBar {
 	private static final long 	serialVersionUID = -1513870957660929643L;
 
-	public XMLBarMenu(final Element descriptor, final ActionListener listener) {
+	public XMLBarMenu(final Element descriptor, final ActionListener listener, final MultilangStringRepo repo) throws ContentException {
+		this(descriptor,listener,repo,new CustomMenuInterface(){
+				@Override
+				public JMenu getCustomMenu(Element menuDescriptor) {
+					throw new IllegalArgumentException("There is a custom menu descriptor in the XML, but no any custom interfaces was used. Call another constructor!");
+				}
+			}
+		);
+	}
+
+	public XMLBarMenu(final Element descriptor, final ActionListener listener, final MultilangStringRepo repo, final CustomMenuInterface custom) throws ContentException {
 		if (descriptor == null) {
 			throw new IllegalArgumentException("Menu descriptor can't be null"); 
 		}
 		else if (listener == null) {
-			throw new IllegalArgumentException("action listener can't be null"); 
+			throw new IllegalArgumentException("Action listener can't be null"); 
+		}
+		else if (repo == null) {
+			throw new IllegalArgumentException("Multilang repo can't be null"); 
+		}
+		else if (custom == null) {
+			throw new IllegalArgumentException("Custom menu interface can't be null"); 
 		}
 		else {
-			Util.buildMenu(this,descriptor, listener);
+			Util.buildMenu(this,descriptor,listener,repo,custom);
 		}
 	}
 }

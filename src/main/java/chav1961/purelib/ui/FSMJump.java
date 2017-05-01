@@ -1,7 +1,7 @@
 package chav1961.purelib.ui;
 
 public class FSMJump {
-	public int		terminal;
+	public String	terminal;
 	public int		newState;
 	public String	actionCommand;
 	

@@ -17,8 +17,8 @@ public class AndOrTreeTest {
 		
 		Assert.assertEquals(tree.seekName("vassya".toCharArray(),0,"vassya".length()),nameId);	// Seek name
 		Assert.assertEquals(tree.seekName("unknown".toCharArray(),0,"unknown".length()),-1);	// Seek soundexed names
-		Assert.assertEquals(tree.seekName("vassy".toCharArray(),0,"vassy".length()),-1);
-		Assert.assertEquals(tree.seekName("vassya1".toCharArray(),0,"vassya1".length()),-1);
+		Assert.assertEquals(tree.seekName("vassy".toCharArray(),0,"vassy".length()),-6);
+		Assert.assertEquals(tree.seekName("vassya1".toCharArray(),0,"vassya1".length()),-7);
 		
 		Assert.assertEquals(tree.getNameLength(nameId),6);		// Check name properties
 		Assert.assertEquals(tree.getName(nameId),"vassya");
@@ -39,7 +39,7 @@ public class AndOrTreeTest {
 		Assert.assertEquals(tree.seekName("vanya".toCharArray(),0,"vanya".length()),name5Id);
 		
 		tree.removeName(nameId);
-		Assert.assertEquals(tree.seekName("vassya".toCharArray(),0,"vassya".length()),-1);
+		Assert.assertEquals(tree.seekName("vassya".toCharArray(),0,"vassya".length()),-7);
 		
 		Assert.assertEquals(tree.size(),4);
 		tree.clear();

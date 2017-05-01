@@ -12,12 +12,17 @@ import javax.swing.JSeparator;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class Util {
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.i18n.MultilangStringRepo;
+import chav1961.purelib.ui.interfaces.CustomMenuInterface;
+
+class Util {
 	private static final String		TAG_SUBMENU = "submenu";
 	private static final String		TAG_ITEM = "item";
 	private static final String		TAG_CHECKED = "checked";
 	private static final String		TAG_RADIO = "radio";
 	private static final String		TAG_SEPARATOR = "separator";
+	private static final String		TAG_CUSTOM = "custom";
 	
 	private static final String		ATTR_NAME = "name";	
 	private static final String		ATTR_CAPTION = "caption";	
@@ -27,8 +32,7 @@ public class Util {
 	private static final String		ATTR_ICON = "icon";	
 	private static final String		ATTR_ACTION = "action";	
 	
-	
-	static JComponent buildMenu(final JComponent location, final Element descriptor, final ActionListener listener) {
+	static JComponent buildMenu(final JComponent location, final Element descriptor, final ActionListener listener, final MultilangStringRepo repo, final CustomMenuInterface custom) throws ContentException {
 		final NodeList	list = descriptor.getChildNodes();
 		
 		for (int index = 0; index < list.getLength(); index++) {
@@ -39,29 +43,29 @@ public class Util {
 				
 				switch (entity.getTagName()) {
 					case TAG_SUBMENU	:
-						final JMenu		submenu = new JMenu(testNullString(TAG_SUBMENU+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION)));
+						final JMenu		submenu = new JMenu(repo.substitute(testNullString(TAG_SUBMENU+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION))));
 						
 						submenu.setName(testNullString(TAG_SUBMENU+"->"+ATTR_NAME,entity.getAttribute(ATTR_NAME)));
-						submenu.setToolTipText(fillNullString(entity.getAttribute(ATTR_TOOLTIP),""));
+						submenu.setToolTipText(repo.substitute(fillNullString(entity.getAttribute(ATTR_TOOLTIP),"")));
 						submenu.setEnabled(new Boolean(fillNullString(entity.getAttribute(ATTR_ENABLED),"true")));
-						buildMenu(submenu,entity,listener);
+						buildMenu(submenu,entity,listener,repo,custom);
 						location.add(submenu);
 						break;
 					case TAG_ITEM		:
-						final JMenuItem	item = new JMenuItem(testNullString(TAG_ITEM+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION)));
+						final JMenuItem	item = new JMenuItem(repo.substitute(testNullString(TAG_ITEM+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION))));
 						
 						item.setName(testNullString(TAG_ITEM+"->"+ATTR_NAME,entity.getAttribute(ATTR_NAME)));
-						item.setToolTipText(fillNullString(entity.getAttribute(ATTR_TOOLTIP),""));
+						item.setToolTipText(repo.substitute(fillNullString(entity.getAttribute(ATTR_TOOLTIP),"")));
 						item.setEnabled(new Boolean(fillNullString(entity.getAttribute(ATTR_ENABLED),"true")));
 						item.setActionCommand(testNullString(TAG_ITEM+"->"+ATTR_ACTION,entity.getAttribute(ATTR_ACTION)));
 						item.addActionListener(listener);
 						location.add(item);
 						break;
 					case TAG_CHECKED	:
-						final JCheckBoxMenuItem	check = new JCheckBoxMenuItem(testNullString(TAG_ITEM+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION)));
+						final JCheckBoxMenuItem	check = new JCheckBoxMenuItem(repo.substitute(testNullString(TAG_ITEM+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION))));
 						
 						check.setName(testNullString(TAG_ITEM+"->"+ATTR_NAME,entity.getAttribute(ATTR_NAME)));
-						check.setToolTipText(fillNullString(entity.getAttribute(ATTR_TOOLTIP),""));
+						check.setToolTipText(repo.substitute(fillNullString(entity.getAttribute(ATTR_TOOLTIP),"")));
 						check.setEnabled(new Boolean(fillNullString(entity.getAttribute(ATTR_ENABLED),"true")));
 						check.setSelected(new Boolean(fillNullString(entity.getAttribute(ATTR_CHECKED),"false")));
 						check.setActionCommand(testNullString(TAG_ITEM+"->"+ATTR_ACTION,entity.getAttribute(ATTR_ACTION)));
@@ -69,10 +73,10 @@ public class Util {
 						location.add(check);
 						break;
 					case TAG_RADIO		:
-						final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(testNullString(TAG_ITEM+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION)));
+						final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(repo.substitute(testNullString(TAG_ITEM+"->"+ATTR_CAPTION,entity.getAttribute(ATTR_CAPTION))));
 						
 						radio.setName(testNullString(TAG_ITEM+"->"+ATTR_NAME,entity.getAttribute(ATTR_NAME)));
-						radio.setToolTipText(fillNullString(entity.getAttribute(ATTR_TOOLTIP),""));
+						radio.setToolTipText(repo.substitute(fillNullString(entity.getAttribute(ATTR_TOOLTIP),"")));
 						radio.setEnabled(new Boolean(fillNullString(entity.getAttribute(ATTR_ENABLED),"true")));
 						radio.setSelected(new Boolean(fillNullString(entity.getAttribute(ATTR_CHECKED),"false")));
 						radio.setActionCommand(testNullString(TAG_ITEM+"->"+ATTR_ACTION,entity.getAttribute(ATTR_ACTION)));
@@ -81,6 +85,9 @@ public class Util {
 						break;
 					case TAG_SEPARATOR	:
 						location.add(new JSeparator());
+						break;
+					case TAG_CUSTOM		:
+						location.add(custom.getCustomMenu(entity));
 						break;
 				}
 			}

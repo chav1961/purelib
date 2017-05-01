@@ -19,6 +19,16 @@ import chav1961.purelib.basic.AndOrTree;
 
 public interface SyntaxTreeInterface<T> {
 	/**
+	 * <p>This interface describes list of all id's in the tree</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.1
+	 */
+	@FunctionalInterface
+	public interface Walker {
+		public void process(final long id);
+	}
+	
+	/**
 	 * <p>Place new name into tree and assign unique id for it</p>
 	 * @param value name value
 	 * @param from from name index
@@ -52,10 +62,17 @@ public interface SyntaxTreeInterface<T> {
 	 * @param value name value to seek
 	 * @param from from name index
 	 * @param to to name index
-	 * @return id of the name or -1 if missing
+	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1) 
 	 */
 	long seekName(char[] value, int from, int to);
 
+	/**
+	 * <p>Seek name and return it's id</p>
+	 * @param name name to seek
+	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1) 
+	 */
+	long seekName(String name);
+	
 	/**
 	 * <p>Remove name from the tree</p>
 	 * @param id name id to remove
@@ -114,6 +131,12 @@ public interface SyntaxTreeInterface<T> {
 	 * @return code is the same as for Comparable interface
 	 */
 	int compareNames(long first, long second);
+
+	/**
+	 * <p>Walk all the ids in the tree</p>
+	 * @param walker
+	 */
+	void walk(Walker walker);
 	
 	/**
 	 * <p>Return amount of items in the tree</p>

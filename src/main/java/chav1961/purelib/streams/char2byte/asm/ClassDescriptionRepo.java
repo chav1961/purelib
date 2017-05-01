@@ -60,7 +60,7 @@ class ClassDescriptionRepo {
 		else {
 			long	id;
 			
-			if ((id = repoShort.seekName(data,from,to)) != -1) {
+			if ((id = repoShort.seekName(data,from,to)) >= 0) {
 				if (repoShort.getCargo(id).content == type) {
 					if (repoShort.getCargo(id).useCounter > 1) {
 						throw new AsmSyntaxException("Short name ["+new String(data,from,to-from)+"] is ambigious, use qualified name instead!");
@@ -73,7 +73,7 @@ class ClassDescriptionRepo {
 					throw new AsmSyntaxException("Short name ["+new String(data,from,to-from)+"] is not a "+content+", but ["+repoShort.getCargo(id).content+"]");
 				}
 			}
-			else if ((id = repoLong.seekName(data,from,to)) != -1) {
+			else if ((id = repoLong.seekName(data,from,to)) >= 0) {
 				if (repoLong.getCargo(id).content == type) {
 					return (T) repoLong.getCargo(id).data;
 				}
@@ -116,10 +116,10 @@ class ClassDescriptionRepo {
 		final char[]	simpleName = entityName.toCharArray(), qualifiedName = (className+'.'+entityName).toCharArray();
 		long			id;
 		
-		if (longTree.seekName(qualifiedName,0,qualifiedName.length) != -1) {
+		if (longTree.seekName(qualifiedName,0,qualifiedName.length) >= 0) {
 			throw new AsmSyntaxException("Duplicate description for the "+entityType+" ["+new String(qualifiedName)+"] was detected during import");
 		}
-		else if ((id = shortTree.seekName(simpleName,0,simpleName.length)) != -1) {
+		else if ((id = shortTree.seekName(simpleName,0,simpleName.length)) >= 0) {
 			final Keeper	oldKeeper = shortTree.getCargo(id);
 			
 			oldKeeper.useCounter++;

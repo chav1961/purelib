@@ -19,14 +19,14 @@ public class NullLoggerFacade extends AbstractLoggerFacade {
 		super();
 	}
 
-	public NullLoggerFacade(String mark, Class<?> root) {
+	public NullLoggerFacade(final String mark, final Class<?> root) {
 		super(mark, root);
 	}
 
 	@Override
-	protected AbstractLoggerFacade getAbstractLoggerFacade(String mark, Class<?> root) {
+	protected AbstractLoggerFacade getAbstractLoggerFacade(final String mark, final Class<?> root) {
 		return new NullLoggerFacade(mark,root);
 	}
 
-	@Override protected void toLogger(Severity level, String text, Throwable throwable) {}
+	@Override protected void toLogger(final Severity level, final String text, final Throwable throwable) {}
 }

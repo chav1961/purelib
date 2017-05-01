@@ -142,13 +142,14 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("From position ["+from+"] is greatr than to position ["+to+"]"); 
 		}
 		else {
-			final AndOrNode<T>	node = getName(value,from,to);
+			final int[]			terminated = new int[1];
+			final AndOrNode<T>	node = getName(value,from,to,terminated);
 			
 			if (node == null) {
-				return -1;
+				return from - terminated[0] - 1;
 			}
 			else if (node.container == null || node.container.counter <= 0) {
-				return -1;
+				return from - terminated[0] - 1;
 			}
 			else {
 				return node.container.stringId;
@@ -156,6 +157,17 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 		}
 	}
 
+	@Override
+	public long seekName(String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Name can't be null or empty");
+		}
+		else {
+			return seekName(name.toCharArray(),0,name.length());
+		}
+	}
+	
+	
 	@Override
 	public boolean removeName(final long id) {
 		final CargoContainer<T>	descr = getContainer(id);
@@ -275,7 +287,30 @@ public class AndOrTree<T> implements SyntaxTreeInterface<T> {
 			}
 		}
 	}
+
+	@Override
+	public void walk(final Walker walker) {
+		if (walker == null) {
+			throw new IllegalArgumentException("Walker interface can't be null");
+		}
+		else {
+			walk(idRoot,walker);
+		}
+	}
 	
+	private void walk(final TreeIds<T> idRoot, final Walker walker) {
+		for (TreeIds<T> item : idRoot.children) {
+			if (item != null) {
+				walk(item,walker);
+			}
+			if (idRoot.reference != null) {
+				if (idRoot.reference.container != null && idRoot.reference.container.stringId != -1) {
+					walker.process(idRoot.reference.container.stringId);
+				}
+			}
+		}
+	}
+
 	@Override public long size() {return amount;}
 
 	@Override
@@ -443,7 +478,7 @@ repeat:	while (poz < to) {
 		start.reference = cargo;
 	}
 
-	private AndOrNode<T> getName(final char[] source, int from, final int to) {
+	private AndOrNode<T> getName(final char[] source, int from, final int to, final int[] terminated) {
 		AndOrNode<T>	root = nameRoot;
 		char[]			temp;
 		char			midVal, key;
@@ -466,6 +501,7 @@ repeat:	while (from < to) {
 						continue repeat;
 					}
 				}
+				terminated[0] = from;
 				return null;
 			}
 			else {
@@ -473,11 +509,13 @@ repeat:	while (from < to) {
 				
 				for (place = 0, maxLen = temp.length; from < to && place < maxLen; from++, place++) {
 					if (temp[place] != source[from]) {
+						terminated[0] = from;
 						return null;
 					}
 				}
 				if (from < to) {
 					if (((AndNode<T>)root).child == null) {
+						terminated[0] = from;
 						return null;
 					}
 					else {
@@ -485,10 +523,12 @@ repeat:	while (from < to) {
 					}
 				}
 				else {
+					terminated[0] = from;
 					return place < maxLen ? null : root;
 				}
 			}
 		}
+		terminated[0] = from;
 		return root;
 	}
 	
@@ -668,5 +708,4 @@ repeat:	while (from < to) {
 			return "CargoContainer [sourceLength=" + sourceLength + ", stringId=" + stringId + ", counter=" + counter + ", cargo=" + cargo + "]";
 		}
 	}
-
 }
