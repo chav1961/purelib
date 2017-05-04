@@ -94,8 +94,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final int						CMD_EVAL = 402;
 	private static final int						CMD_CALL = 403;
 
-	private static final SyntaxTreeInterface<Object>				staticDirectiveTree = new AndOrTree<>(1);
-	private static final SyntaxTreeInterface<CommandDescriptor>	staticCommandTree = new AndOrTree<>(2);
+	private static final SyntaxTreeInterface<Object>			staticDirectiveTree = new AndOrTree<>(2,16);
+	private static final SyntaxTreeInterface<CommandDescriptor>	staticCommandTree = new AndOrTree<>(3,16);
 
 	private static final Class<?>[]					PRELOADED_CLASSES = new Class<?>[]{boolean.class,byte.class,char.class,double.class,float.class,int.class,long.class,short.class,void.class,
 																					   boolean[].class,byte[].class,char[].class,double[].class,float[].class,int[].class,long[].class,short[].class,

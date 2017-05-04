@@ -1,5 +1,8 @@
 package chav1961.purelib.streams.interfaces;
 
+import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.streams.JsonSaxParser;
+
 /**
  * <p>This interface describes a SAX-styled handler to parse JSON input data.</p>
  * 
@@ -7,8 +10,31 @@ package chav1961.purelib.streams.interfaces;
  * all string-related methods can process as raw char array data, so data converted into string. Optional ability for the interface is an implementation of 
  * automatic decoding all 'names' in the input JSON to it's predefined ids to use them directly in the switch statements</p>
  * 
- * @see chav1961.purelib.streams.JsonSaxParser
+ * <p>Life cycle of the interface is:</p>
+ * <code>
+ * {@link #startDoc()}<br>
+ * {@link #startArr()} <b>[</b><br>
+ * {@link #startIndex(int)} <br>
+ * {@link #startObj()} <b>{</b><br>	
+ * {@link #startName(char[], int, int)} <b>"name1"</b><br>
+ * {@link #endName()} <b>:</b><br> 
+ * {@link #value()} <b>null</b><br>
+ * {@link #endObj()} <b>}</b><br>	
+ * {@link #endIndex()}<br>
+ * 						<b>,</b><br>
+ * {@link #startIndex(int)}<br>
+ * {@link #startObj()} <b>{</b><br>	
+ * {@link #startName(char[], int, int)} <b>"name2"</b><br>
+ * {@link #endName()} <b>:</b><br>
+ * {@link #value(char[], int, int)} <b>"value"</b><br>
+ * {@link #endObj()} <b>}</b><br>	
+ * {@link #endIndex()}<br>
+ * {@link #endArr()} <b>]</b><br>
+ * {@link #endDoc()}<br>
+ * </code>
  * 
+ * @see chav1961.purelib.streams.JsonSaxParser
+ * @see <a href="http://www.rfc-base.org/rfc-7159.html">RFC 7159</a> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  */
@@ -59,7 +85,8 @@ public interface JsonSaxHandler {
 	void startName(String name);
 	
 	/**
-	 * <p>This event is fired on every 'name' in the object</p>
+	 * <p>This event is fired on every 'name' in the object. This method is optional and will never be called by {@link JsonSaxParser}.
+	 * It was reserved to use with the {@link AndOrTree}</p>
 	 * @param id predefined long id of the name was detected. Use <code> switch ((int)id) {...} </code> to operate with it
 	 */
 	void startName(long id);

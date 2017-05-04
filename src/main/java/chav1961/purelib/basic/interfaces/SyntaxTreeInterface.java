@@ -25,7 +25,7 @@ public interface SyntaxTreeInterface<T> {
 	 */
 	@FunctionalInterface
 	public interface Walker {
-		public void process(final long id);
+		boolean process(char[] name, int len, long id, Object cargo);
 	}
 	
 	/**

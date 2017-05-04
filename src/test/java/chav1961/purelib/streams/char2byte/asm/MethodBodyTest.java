@@ -36,7 +36,7 @@ public class MethodBodyTest {
 
 	//@Test
 	public void basicTest() throws IOException {
-		final SyntaxTreeInterface	aot = new AndOrTree(1);
+		final SyntaxTreeInterface	aot = new AndOrTree(1,16);
 		final MethodBody	mb = new MethodBody(aot);
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1, null);
@@ -65,7 +65,7 @@ public class MethodBodyTest {
 
 	@Test
 	public void unresolvedLabelsTest() throws IOException {
-		final SyntaxTreeInterface	aot = new AndOrTree(1);
+		final SyntaxTreeInterface	aot = new AndOrTree(1,16);
 		final MethodBody	mb = new MethodBody(aot);
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1,null);

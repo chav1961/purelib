@@ -71,7 +71,7 @@ class InternalUtils {
 		if (tree == null) {
 			throw new IllegalArgumentException("Names tree can't be null");
 		}
-		else if (tree.getNameLength(item) < 0) {
+		else if (!tree.contains(item)) {
 			throw new IllegalArgumentException("Item ["+item+"] is missing in the names tree");
 		}
 		else {
@@ -93,14 +93,14 @@ class InternalUtils {
 		else if (parameters == null) {
 			throw new IllegalArgumentException("Parameters can't be null");
 		}
-		else if (tree.getNameLength(retType) <= 0) {
+		else if (!tree.contains(retType)) {
 			throw new IllegalArgumentException("Returned type item ["+retType+"] is missing in the names tree");
 		}
 		else {
 			final StringBuilder	sb = new StringBuilder("(");
 			
 			for (int index = staticMethod ? 0 : 1; index < parameters.length; index++) {
-				if (tree.getNameLength(parameters[index]) <= 0) {
+				if (!tree.contains(parameters[index])) {
 					throw new IllegalArgumentException("Parameter["+index+"] = "+parameters[index]+" is missing in the names tree");
 				}
 				else {

@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class ClassContainerTest {
 				Assert.fail("Mandatory exception was not detected (call getClassName() before setClassName())");
 			} catch (IllegalStateException exc) {
 			}
-			cc.setClassName((short) 0x0001,-1,cc.getNameTree().placeName("Test",null));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",null));
 			cc.dump(baos);
 			
 			final Class<?>	loaded = loadClass(cc.getClassName(),baos);
@@ -50,7 +51,7 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			final ClassContainer		cc = new ClassContainer();
 
-			cc.setClassName((short) 0x0001,-1,cc.getNameTree().placeName("Test",null));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",null));
 			cc.setExtendsClassName(cc.getNameTree().placeName(this.getClass().getName(),null));
 			cc.dump(baos);
 			
@@ -64,7 +65,7 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final ClassContainer		cc = new ClassContainer()) {
 
-			cc.setClassName((short) 0x0001,-1,cc.getNameTree().placeName("Test",null));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",null));
 			cc.addInterfaceName(cc.getNameTree().placeName(Serializable.class.getName(),null));
 			cc.addInterfaceName(cc.getNameTree().placeName(AutoCloseable.class.getName(),null));
 			cc.dump(baos);
@@ -115,11 +116,14 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			final ClassContainer		cc = new ClassContainer();
 
-			cc.setClassName((short) 0x0401,-1,cc.getNameTree().placeName("Test",null));
+			cc.setClassName((short) 0x0401,0,cc.getNameTree().placeName("Test",null));
 			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethod",null),cc.getNameTree().placeName("void",null)).complete();
 			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethodWithThrows",null),cc.getNameTree().placeName("void",null),cc.getNameTree().placeName("java.lang.Throwable",null)).complete();
 			
-			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,cc.getNameTree().placeName("voidMethodWithThrows",null),cc.getNameTree().placeName("void",null),cc.getNameTree().placeName("java.lang.Throwable",null));
+			long	id;
+			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,id = cc.getNameTree().placeName("voidMethodWithThrows",null),cc.getNameTree().placeName("void",null),cc.getNameTree().placeName("java.lang.Throwable",null));
+			
+			System.err.println(cc.getNameTree().getName(id));
 			desc.getBody().putCommand(0,(byte)0xB1);	// Void method with return command only
 			desc.complete();
 			
@@ -131,13 +135,14 @@ public class ClassContainerTest {
 			Assert.assertEquals(loaded.getName(),"Test");
 			Assert.assertEquals(loaded.getMethod("voidAbstractMethod").getReturnType(),void.class);
 			Assert.assertEquals(loaded.getMethod("voidAbstractMethodWithThrows").getReturnType(),void.class);
+			System.err.println("Methods: "+Arrays.toString(loaded.getMethods()));
 			Assert.assertEquals(loaded.getMethod("voidMethodWithThrows").getReturnType(),void.class);
 		}
 
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			final ClassContainer		cc = new ClassContainer();
 
-			cc.setClassName((short) 0x0001,-1,cc.getNameTree().placeName("Test",null));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",null));
 			
 			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,cc.getNameTree().placeName("add",null),cc.getNameTree().placeName("int",null));
 			desc.addParameterDeclaration((short)0x0000,cc.getNameTree().placeName("x",null),cc.getNameTree().placeName("int",null));

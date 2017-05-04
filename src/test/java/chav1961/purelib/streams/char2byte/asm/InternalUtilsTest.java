@@ -43,7 +43,7 @@ public class InternalUtilsTest {
 
 	@Test
 	public void softSignatures() throws NoSuchMethodException, SecurityException, NoSuchFieldException {
-		final SyntaxTreeInterface<String>	tree = new AndOrTree<String>(1);
+		final SyntaxTreeInterface<String>	tree = new AndOrTree<String>(1,16);
 		final long					field1 = tree.placeName("java.lang.String",null), field2 = tree.placeName("java.lang.String[]",null), field3 = tree.placeName("int",null);
 		final long					returned =  tree.placeName("void",null);
 		

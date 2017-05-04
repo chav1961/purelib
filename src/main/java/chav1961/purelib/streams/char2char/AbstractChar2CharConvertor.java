@@ -114,7 +114,7 @@ public class AbstractChar2CharConvertor implements LineByLineProcessorCallback {
 		True, Group, SkipBlank, Recursion, Compare, CompareAndSkip, Extract, ExtractNumber, Increment, If, While, Until, Substitute, AnchoredSubstitute, NestedSubstitute, NestedAnchoredSubstitute
 	}
 
-	private final SyntaxTreeInterface<String>	tree = new AndOrTree<String>(1);
+	private final SyntaxTreeInterface<String>	tree = new AndOrTree<String>(1,16);
 	private BitCharSet		common = new BitCharSet(), partial[];  
 	private char[]			buffer, lex;
 	private int				from, to, lineNo;

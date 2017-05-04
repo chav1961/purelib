@@ -15,10 +15,14 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  * <p>This class implements a SAX-styled JSON parser. Usage of this class is:</p>
  * <code>
  * 		JsonSaxHandler handler = ...;
- * 		new JsonSaxParser(handler).parse(new InptStreamReader(...));
+ * 		new JsonSaxParser(handler).parse(new InputStreamReader(...));
  * </code>
+ * <p>JSON format is according to <a href="http://www.rfc-base.org/rfc-7159.html">RFC 7159</a> 
+ * <p>This class is specialized for fast JSON parsing, so it's native format in most of cases is a character arrays.
+ * To prevent performance degradation, avoid escaped strings in the input</p> 
  * <p>This class is not thread-safe.</p>
  * 
+ * @see <a href="http://www.rfc-base.org/rfc-7159.html">RFC 7159</a> 
  * @see chav1961.purelib.streams.interfaces.JsonSaxHandler
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961

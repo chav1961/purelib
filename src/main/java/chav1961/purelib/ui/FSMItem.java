@@ -5,6 +5,7 @@ import java.util.Arrays;
 public class FSMItem {
 	public int 			state;
 	public String		caption;
+	public String		text;
 	public String		image;
 	public String[]		items;
 	public boolean		terminal;
@@ -13,6 +14,6 @@ public class FSMItem {
 	
 	@Override
 	public String toString() {
-		return "FSMItem [state=" + state + ", caption=" + caption + ", image=" + image + ", items=" + Arrays.toString(items) + ", terminal=" + terminal + ", tooltip=" + tooltip + ", jumps=" + Arrays.toString(jumps) + "]";
+		return "FSMItem [state=" + state + ", caption=" + caption + ", text=" + text + ", image=" + image + ", items=" + Arrays.toString(items) + ", terminal=" + terminal + ", tooltip=" + tooltip + ", jumps=" + Arrays.toString(jumps) + "]";
 	}
 }

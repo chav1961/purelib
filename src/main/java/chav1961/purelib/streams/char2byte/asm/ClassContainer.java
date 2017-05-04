@@ -14,7 +14,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 public class ClassContainer implements Closeable {
 	
-	private final SyntaxTreeInterface<NameDescriptor>	tree = new AndOrTree<>(1);
+	private final SyntaxTreeInterface<NameDescriptor>	tree = new AndOrTree<>(1,16);
 	private final ClassConstantsRepo			ccr = new ClassConstantsRepo(tree);
 	private final ByteArrayOutputStream			interf = new ByteArrayOutputStream(32);
 	private final DataOutputStream				interfDos = new DataOutputStream(interf);

@@ -16,8 +16,8 @@ class ClassDescriptionRepo {
 	private static final String				KIND_METHOD = "method";
 	private static final String				KIND_CONSTRUCTOR = "constructor";
 	
-	private final SyntaxTreeInterface<Keeper>		repoShort = new AndOrTree<Keeper>(1);
-	private final SyntaxTreeInterface<Keeper>		repoLong = new AndOrTree<Keeper>(2);
+	private final SyntaxTreeInterface<Keeper>		repoShort = new AndOrTree<Keeper>(1,16);
+	private final SyntaxTreeInterface<Keeper>		repoLong = new AndOrTree<Keeper>(2,16);
 
 	ClassDescriptionRepo() throws AsmSyntaxException {
 	}
