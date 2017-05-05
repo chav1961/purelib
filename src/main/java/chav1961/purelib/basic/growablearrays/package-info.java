@@ -23,4 +23,3 @@
  * @since 0.0.1
  */
 package chav1961.purelib.basic.growablearrays;
-import chav1961.purelib.basic.interfaces.LoggerFacade;

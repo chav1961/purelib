@@ -3,10 +3,6 @@ package chav1961.purelib.i18n;
 import java.util.Arrays;
 import java.util.Locale;
 
-import chav1961.purelib.basic.DefaultLoggerFacade;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade;
-
 /**
  * <p>This class is a multilanguage string. It contains all available values for all the languages supported.
  * Every value associates with the appropriative locale for it. Getting string value defines by current locale

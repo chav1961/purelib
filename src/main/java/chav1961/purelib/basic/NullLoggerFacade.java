@@ -1,7 +1,6 @@
 package chav1961.purelib.basic;
 
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 
 /**
  * <p>This class is an implementation of {@link LoggerFacade} interface for the empty target log file.</p>

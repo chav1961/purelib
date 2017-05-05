@@ -26,7 +26,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  */
 
 public abstract class AbstractLoggerFacade implements LoggerFacade {
-	private final List<Set<Reducing>>		stack = new ArrayList<Set<Reducing>>(){{add(0,new HashSet<Reducing>());}};
+	private final List<Set<Reducing>>		stack = new ArrayList<Set<Reducing>>();
 	private final Set<StackTraceElement>	repeatables = new HashSet<StackTraceElement>();
 	private final boolean					inTransaction;
 	private final Class<?>					transactionRoot;
@@ -36,6 +36,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		this.inTransaction = false;
 		this.transactionRoot = null;
 		this.messages = null;
+		this.stack.add(0,new HashSet<Reducing>());
 	}
 
 	protected AbstractLoggerFacade(final String mark, final Class<?> root) {

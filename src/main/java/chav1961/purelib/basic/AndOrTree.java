@@ -205,6 +205,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public T getCargo(final long id) {
 		if (id < 0) {
@@ -641,6 +642,7 @@ seek:	while (from < to && root != null) {
 		return root != null && root.type == TYPE_TERM && from == to ? root :  null;
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean walk(final Node root, final char[] place, final int from, final Walker callback) {
 		if (root != null) {
 			if (root.type == TYPE_OR) {

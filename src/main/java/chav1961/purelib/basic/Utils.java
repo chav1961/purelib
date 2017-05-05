@@ -118,6 +118,7 @@ public class Utils {
 	 * @param parameters parameters to add to set
 	 * @return set created with the given parameters
 	 */
+	@SafeVarargs
 	public static <T> Set<T> mkSet(final Class<T> content, final T... parameters) {
 		if (content == null) {
 			throw new IllegalArgumentException("Content class cant' be null");
@@ -162,7 +163,7 @@ public class Utils {
 	}
 
 	private static void fillClasses(final Package item, final List<Class<?>> result) throws IOException {
-		final URL	resource = item.getClass().getClassLoader().getSystemClassLoader().getResource(item.getName().replace('.','/')); 
+		final URL	resource = ClassLoader.getSystemClassLoader().getResource(item.getName().replace('.','/')); 
 		
 		if (resource != null) {
 			switch (resource.getProtocol()) {
@@ -185,7 +186,6 @@ public class Utils {
 					try{final String[]	parts = resource.toURI().getSchemeSpecificPart().split("\\!");
 						try(final InputStream		is = new URL(parts[0]).openStream();
 							final JarInputStream	jis = new JarInputStream(is)) {
-							final StringBuilder		sb = new StringBuilder();
 							JarEntry	je;
 							
 							while ((je = jis.getNextJarEntry()) != null) {

@@ -393,7 +393,6 @@ public class FSMManager extends JDialog {
 				
 				@Override public void value() {}
 				@Override public void value(double data) {}
-				@Override public void value(long data) {}
 				@Override public void value(char[] data, int from, int len) {value(new String(data,from,len));}
 
 				@Override
@@ -404,10 +403,10 @@ public class FSMManager extends JDialog {
 				}
 				
 				@Override 
-				public void value(int data) {
+				public void value(long data) {
 					switch (name) {
-						case "state"			: item.state = data; break;
-						case "newState"			: jump.newState = data; break;
+						case "state"			: item.state = (int)data; break;
+						case "newState"			: jump.newState = (int)data; break;
 					}
 				}
 				

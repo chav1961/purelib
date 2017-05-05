@@ -149,6 +149,7 @@ end:			for (int index = dollarPos + 1; index < len; index++) {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected <T> T convert(final String key, final String value, final Class<T> awaited) {
 		if (awaited == null) {
 			throw new IllegalArgumentException("Awaied class can't be null");

@@ -12,7 +12,7 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 
 
 /**
- * <p>This class implements a SAX-styled JSON parser. Usage of this class is:</p>
+ * <p>This class implements a SAX-styled JSON parser to use in the in-stream JSON parsing application. Usage of this class is:</p>
  * <code>
  * 		JsonSaxHandler handler = ...;
  * 		new JsonSaxParser(handler).parse(new InputStreamReader(...));
@@ -21,6 +21,18 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  * <p>This class is specialized for fast JSON parsing, so it's native format in most of cases is a character arrays.
  * To prevent performance degradation, avoid escaped strings in the input</p> 
  * <p>This class is not thread-safe.</p>
+ * 
+ * <p><b>Performance notes:</b></p>
+ * <ul>
+ * <li>environment: Intel Celeron 1.5GHz 2-core, 64, Windows 8. Windows performance index=3.2. Java SE 1.8-32.</li>
+ * <li>testing set: 250 MB in-memory JSON(see test).</li>
+ * </ul>
+ * <p>Performance result:</p>
+ * <ul>
+ * <li>parsing speed ~50 MB/second</li> 
+ * </ul>
+ * 
+ * <p>This class is not thread-safe, but all it's parsing methods are reusable</p> 
  * 
  * @see <a href="http://www.rfc-base.org/rfc-7159.html">RFC 7159</a> 
  * @see chav1961.purelib.streams.interfaces.JsonSaxHandler
@@ -35,9 +47,15 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	private static final char[]		CONST_NULL = "null".toCharArray();
 
 	private final JsonSaxHandler	handler;
+	private final int[]				locations = new int[2];
+	private final long[]			numbers = new long[2];
 	private StackTop[]				stack = new StackTop[16];
 	private int						stackTop = -1;
 	
+	/**
+	 * <p>COnstructor of the object</p>
+	 * @param handler handler to get all Json events
+	 */
 	public JsonSaxParser(final JsonSaxHandler handler) {
 		if (handler == null) {
 			throw new IllegalArgumentException("Handler can't be null");
@@ -47,6 +65,12 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		}
 	}
 
+	/**
+	 * <p>Parse JSON stream from the stream reader</p>
+	 * @param reader reader to get JSON content from
+	 * @throws IOException on any I/O problems
+	 * @throws SyntaxException on syntax problems in the JSON content
+	 */
 	public void parse(final Reader reader) throws IOException, SyntaxException {
 		stackTop = -1;		handler.startDoc();		push('=');
 		
@@ -61,25 +85,69 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		
 		handler.endDoc(); 	pop();
 		if (stackTop != -1) {
-			throw new IllegalArgumentException();
+			throw new SyntaxException(0,0,"Unclosed brackets or quotas (\") in the and of input");
 		}
 	}
 
+	/**
+	 * <p>Parse JSON stream from string</p>
+	 * @param data string with the JSON
+	 * @throws IOException on any I/O problems
+	 * @throws SyntaxException on syntax problems in the JSON content
+	 */
 	public void parse(final String data) throws IOException, SyntaxException {
-		parse(data.toCharArray());
-	}
-	
-	public void parse(final char[] data) throws IOException, SyntaxException {
-		parse(data,0,data.length);
+		try{parse(data.toCharArray());
+		} catch (IOException exc) {
+			if (exc.getCause() instanceof SyntaxException) {
+				throw (SyntaxException)exc.getCause();
+			}
+			else {
+				throw exc;
+			}
+		}
 	}
 
+	/**
+	 * <p>Parse JSON stream from character array</p>
+	 * @param data character array with the JSON
+	 * @throws IOException on any I/O problems
+	 * @throws SyntaxException on syntax problems in the JSON content
+	 */
+	public void parse(final char[] data) throws IOException, SyntaxException {
+		try{parse(data,0,data.length);
+		} catch (IOException exc) {
+			if (exc.getCause() instanceof SyntaxException) {
+				throw (SyntaxException)exc.getCause();
+			}
+			else {
+				throw exc;
+			}
+		}
+	}
+
+	/**
+	 * <p>Parse JSON stream from character array</p>
+	 * @param data character array with the JSON
+	 * @param from start position in the array to parse
+	 * @param len length or the piece to parse
+	 * @throws IOException on any I/O problems
+	 * @throws SyntaxException on syntax problems in the JSON content
+	 */
 	public void parse(final char[] data, final int from, final int len) throws IOException, SyntaxException {
-		parse(new CharArrayReader(data,from,len));
+		try{parse(new CharArrayReader(data,from,len));
+		} catch (IOException exc) {
+			if (exc.getCause() instanceof SyntaxException) {
+				throw (SyntaxException)exc.getCause();
+			}
+			else {
+				throw exc;
+			}
+		}
 	}
 
 	@Override
-	public void processLine(int lineNo, char[] data, int from, int length) throws IOException {
-		int				current = from, multiplier = 1, temp;
+	public void processLine(final int lineNo, final char[] data, final int from, final int length) throws IOException {
+		int				current = from;
 		char			symbol;
 
 		for (;;) {
@@ -92,7 +160,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 					case '\"'	:
 						switch (stack[stackTop].nameState) {
 							case StackTop.STATE_BEFORE_FIRST	:
-								current = stringValue(data,current,length);
+								current = stringValue(lineNo,from,data,current,length);
 								stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
 								break;
 							case StackTop.STATE_BEFORE_NAME		:
@@ -100,13 +168,14 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 								stack[stackTop].nameState = StackTop.STATE_AFTER_NAME;
 								break;
 							case StackTop.STATE_BEFORE_VALUE	:
-								current = stringValue(data,current,length);
+								current = stringValue(lineNo,from,data,current,length);
 								stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
 								break;
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_VALUE		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default : 
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (\")"));
 						}
 						break;
 					case '{'	:
@@ -121,7 +190,8 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_VALUE		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited ({)"));
 						}
 						break;
 					case '['	:
@@ -137,7 +207,8 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_VALUE		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited ([)"));
 						}
 						break;
 					case '}'	: 
@@ -157,7 +228,8 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_BEFORE_VALUE	:
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (})"));
 						}
 						break;
 					case ']'	: 
@@ -166,7 +238,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_BEFORE_VALUE	:
 							case StackTop.STATE_AFTER_VALUE		:
 								if (stack[stackTop].recordType != '[') {
-									throw new IllegalArgumentException();
+									throw new IOException(new SyntaxException(lineNo,current-from,"Missing ([)"));
 								}
 								else {
 									pop();		current++;
@@ -178,7 +250,8 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_BEFORE_NAME		:
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (])"));
 						}
 						break;
 					case ':'	: 
@@ -192,7 +265,8 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_BEFORE_VALUE	:
 							case StackTop.STATE_BEFORE_NAME		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (:)"));
 						}
 						break;
 					case ','	: 
@@ -214,7 +288,8 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_BEFORE_VALUE	:
 							case StackTop.STATE_BEFORE_NAME		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (,)"));
 						}
 						break;
 					case '-' : case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
@@ -231,24 +306,26 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_VALUE		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited number"));
 						}
 						break;
 					case 't' : case 'f' :
 						switch (stack[stackTop].nameState) {
 							case StackTop.STATE_BEFORE_FIRST	:
-								current = booleanValue(data,current,length);
+								current = booleanValue(lineNo,from,data,current,length);
 								stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
 								break;
 							case StackTop.STATE_BEFORE_VALUE	:
-								current = booleanValue(data,current,length);
+								current = booleanValue(lineNo,from,data,current,length);
 								stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
 								break;
 							case StackTop.STATE_BEFORE_NAME		:
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_VALUE		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,(from-current),"Unwaited boolean"));
 						}
 						break;
 					case 'n'	:
@@ -265,7 +342,8 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 							case StackTop.STATE_AFTER_NAME		:
 							case StackTop.STATE_AFTER_VALUE		:
 							case StackTop.STATE_AFTER_LAST		:
-							default : throw new IllegalArgumentException();
+							default :
+								throw new IOException(new SyntaxException(lineNo,(from-current),"Unwaited null"));
 						}
 						break;
 					default : 
@@ -279,13 +357,13 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	}
 
 	private int stringName(final char[] data, final int from, final int length) {
-		int		temp, locations[] = new int[2];
+		int		temp;
 		
 		if ((temp = CharsUtil.parseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
 			final StringBuilder	sb = new StringBuilder(); 
 			
 			temp = CharsUtil.parseString(data,from+1,'\"',sb);
-			handler.startName(sb.toString());
+			handler.startName(sb.toString().toCharArray(),0,sb.length());
 		}
 		else {
 			handler.startName(data,locations[0],locations[1]-locations[0]+1);
@@ -303,7 +381,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private int booleanValue(final char[] data, final int from, final int length) {
+	private int booleanValue(final int lineNo, final int startLine, final char[] data, final int from, final int length) throws IOException {
 		if (CharsUtil.compare(data,from,CONST_TRUE)) {
 			handler.value(true);
 			return from + CONST_TRUE.length;
@@ -313,12 +391,11 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 			return from + CONST_FALSE.length;
 		}
 		else {
-			throw new IllegalArgumentException();
+			throw new IOException(new SyntaxException(lineNo, from-startLine, "Unknown boolean value"));
 		}
 	}
 
 	private int numericValue(final char[] data, int from, final int length) {
-		final long[]	numbers = new long[2];
 		final int		multiplier;
 		
 		if (data[from] == '-') {
@@ -331,25 +408,37 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		final int		result = CharsUtil.parseNumber(data,from,numbers,CharsUtil.PREF_ANY,true);
 		
 		switch ((int)numbers[1]) {
-			case CharsUtil.PREF_INT 	: handler.value((int)(multiplier * numbers[0])); break;
-			case CharsUtil.PREF_LONG 	: handler.value(multiplier * numbers[0]); break;
-			case CharsUtil.PREF_DOUBLE	: handler.value(multiplier * Double.longBitsToDouble(numbers[0])); break;
-			default : throw new UnsupportedOperationException();
+			case CharsUtil.PREF_INT 	:
+				handler.value(multiplier * (int)numbers[0]); 
+				break;
+			case CharsUtil.PREF_LONG 	:
+				handler.value(multiplier * numbers[0]); 
+				break;
+			case CharsUtil.PREF_FLOAT	: 
+				handler.value(multiplier * Float.intBitsToFloat((int)numbers[0]));
+				break;
+			case CharsUtil.PREF_DOUBLE	: 
+				handler.value(multiplier * Double.longBitsToDouble(numbers[0]));
+				break;
+			default : throw new UnsupportedOperationException("Unknown preferred type from CharsUtil...");
 		}
 		return result;
 	}
 
-	private int stringValue(final char[] data, final int from, final int length) {
+	private int stringValue(final int lineNo, final int start,final char[] data, final int from, final int length) throws IOException {
 		int		temp, locations[] = new int[2];
 		
-		if ((temp = CharsUtil.parseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
-			final StringBuilder	sb = new StringBuilder(); 
-			
-			temp = CharsUtil.parseString(data,from+1,'\"',sb);
-			handler.value(sb.toString());
-		}
-		else {
-			handler.value(data,locations[0],locations[1]-locations[0]+1);
+		try{if ((temp = CharsUtil.parseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
+				final StringBuilder	sb = new StringBuilder(); 
+				
+				temp = CharsUtil.parseString(data,from+1,'\"',sb);
+				handler.value(sb.toString().toCharArray(),0,sb.length());
+			}
+			else {
+				handler.value(data,locations[0],locations[1]-locations[0]+1);
+			}
+		} catch (IllegalArgumentException exc) {
+			throw new IOException(new SyntaxException(lineNo,from-start,exc.getMessage()));
 		}
 		return temp;
 	}

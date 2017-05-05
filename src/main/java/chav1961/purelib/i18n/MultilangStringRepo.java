@@ -1,7 +1,5 @@
 package chav1961.purelib.i18n;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -9,10 +7,7 @@ import java.util.Map;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import chav1961.purelib.basic.DefaultLoggerFacade;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
  * <p>This class describes a repository for {@link MultilangString} entites. Every entity identifies in the repository

@@ -20,15 +20,17 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  */
 
 public class DefaultLoggerFacade extends AbstractLoggerFacade {
-	private static final Map<Severity,Level>	DECODE = new HashMap<Severity,Level>(){{
-																	put(Severity.trace,Level.FINE);
-																	put(Severity.debug,Level.FINE);
-																	put(Severity.info,Level.INFO);
-																	put(Severity.warning,Level.WARNING);
-																	put(Severity.error,Level.SEVERE);
-																	put(Severity.severe,Level.SEVERE);
-																}};  
+	private static final Map<Severity,Level>	DECODE = new HashMap<Severity,Level>();  
 	
+	static {
+		DECODE.put(Severity.trace,Level.FINE);
+		DECODE.put(Severity.debug,Level.FINE);
+		DECODE.put(Severity.info,Level.INFO);
+		DECODE.put(Severity.warning,Level.WARNING);
+		DECODE.put(Severity.error,Level.SEVERE);
+		DECODE.put(Severity.severe,Level.SEVERE);
+	}
+																
 	private final Logger	logger;
 	
 	public DefaultLoggerFacade() {

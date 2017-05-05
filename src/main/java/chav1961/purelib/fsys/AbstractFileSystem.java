@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;

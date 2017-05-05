@@ -24,6 +24,7 @@ class InternalUtils {
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	static <T> T convert(final String string, final Class<T> awaited) {
 		if (string == null || string.isEmpty()) {
 			throw new IllegalArgumentException("String value can't be null or empty");

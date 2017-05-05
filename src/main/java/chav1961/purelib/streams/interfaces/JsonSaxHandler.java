@@ -79,14 +79,21 @@ public interface JsonSaxHandler {
 	void startName(char[] data, int from, int len);
 	
 	/**
-	 * <p>This event is fired on every 'name' in the object. Escapes in the name will be processed correctly</p>
+	 * <p>This event is fired on every 'name' in the object. This method is optional and will never be called by {@link JsonSaxParser}.
+	 * To use it, implement {@link #startName(char[], int, int)} method as:</p>
+	 * <code>
+	 * startName(new String(data,from,len));
+	 * </code>
 	 * @param name 'name' detected.
 	 */
 	void startName(String name);
 	
 	/**
 	 * <p>This event is fired on every 'name' in the object. This method is optional and will never be called by {@link JsonSaxParser}.
-	 * It was reserved to use with the {@link AndOrTree}</p>
+	 * It was reserved to use with the {@link AndOrTree}. To use it, implement {@link #startName(char[], int, int)} method as:</p>
+	 * <code>
+	 * startName(treeFromLorien.seekName(data,from,len));
+	 * </code>
 	 * @param id predefined long id of the name was detected. Use <code> switch ((int)id) {...} </code> to operate with it
 	 */
 	void startName(long id);
@@ -116,16 +123,14 @@ public interface JsonSaxHandler {
 	void value(char[] data, int from, int len);
 	
 	/**
-	 * <p>This event is fired on every string value in the object. Escapes in the value will be processed correctly</p>
+	 * <p>This event is fired on every string value in the object. This method is optional and will never be called by {@link JsonSaxParser}. 
+	 * To use it, implement {@link #value(char[], int, int)} method as:</p>
+	 * <code>
+	 * value(new String(data,from,len));
+	 * </code>
 	 * @param data value was extracted from JSON input
 	 */
 	void value(String data);
-	
-	/**
-	 * <p>This event is fired on every integer value in the JSON input.</p>
-	 * @param data value was extracted from JSON input
-	 */
-	void value(int data);
 	
 	/**
 	 * <p>This event is fired on every long integer value in the JSON input.</p>

@@ -3,10 +3,6 @@ package chav1961.purelib.basic.growablearrays;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
-import chav1961.purelib.basic.DefaultLoggerFacade;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade;
-
 /**
  * <p>This class implements functionality for the growable byte arrays.</p>
  * <p>This class is not thread-safe.</p>

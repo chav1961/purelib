@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
@@ -172,7 +171,7 @@ public class PluggableClassLoader extends ClassLoader implements Closeable {
 		private final String		name;
 		private final String 		description;
 		private final FileSystemInterface	content;
-		private final Map<String,Class>	loadedClasses = new HashMap<>();	
+		private final Map<String,Class<?>>	loadedClasses = new HashMap<>();	
 		
 		InternalClassLoader(final ClassLoader parent, final String name, final String description, final FileSystemInterface content) {
 			super(parent);
@@ -229,7 +228,7 @@ public class PluggableClassLoader extends ClassLoader implements Closeable {
 							while ((len = is.read(buffer)) > 0) {
 								baos.write(buffer,0,len);
 							}
-							final Class		cl = defineClass(className,baos.toByteArray(),0,baos.size());
+							final Class<?>		cl = defineClass(className,baos.toByteArray(),0,baos.size());
 							
 							loadedClasses.put(className,cl);
 							if (resolve) {
@@ -266,7 +265,7 @@ public class PluggableClassLoader extends ClassLoader implements Closeable {
 							while ((len = is.read(buffer)) > 0) {
 								baos.write(buffer,0,len);
 							}
-							final Class		cl = defineClass(className,baos.toByteArray(),0,baos.size());
+							final Class<?>		cl = defineClass(className,baos.toByteArray(),0,baos.size());
 							
 							loadedClasses.put(className,cl);
 							return cl;

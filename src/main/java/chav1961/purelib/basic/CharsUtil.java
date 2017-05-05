@@ -967,6 +967,7 @@ public class CharsUtil {
 
 	/**
 	 * <p>Parse enumeration constants from the source</p>
+	 * @param <T> enumeration type
 	 * @param source source data contains character representation of the string value
 	 * @param from starting position in the source data. 
 	 * @param clazz enumeration class awaited for the constant

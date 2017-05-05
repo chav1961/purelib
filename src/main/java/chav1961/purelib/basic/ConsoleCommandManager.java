@@ -63,23 +63,26 @@ import chav1961.purelib.basic.interfaces.ConsoleManagerInterface;
 
 @ConsoleCommandPrefix("help")
 public class ConsoleCommandManager implements ConsoleManagerInterface {
-	private static final Set<Class<?>>				AVAILABLE_CLASSES = new HashSet<Class<?>>(){{
-																	add(int.class);				add(int[].class);
-																	add(long.class);			add(long[].class);
-																	add(float.class);			add(float[].class);
-																	add(double.class);			add(double[].class);
-																	add(boolean.class);			add(boolean[].class);
-																	add(Integer.class);			add(Integer[].class);
-																	add(Long.class);			add(Long[].class);
-																	add(Float.class);			add(Float[].class);
-																	add(Double.class);			add(Double[].class);
-																	add(Boolean.class);			add(Boolean[].class);
-																	add(String.class);			add(String[].class);
-																	add(File.class);			add(File[].class);
-																	add(URL.class);				add(URL[].class);
-																	add(URI.class);				add(URI[].class);
-																}};
+	private static final Set<Class<?>>				AVAILABLE_CLASSES = new HashSet<Class<?>>();
 	
+	static {
+		AVAILABLE_CLASSES.add(int.class);			AVAILABLE_CLASSES.add(int[].class);
+		AVAILABLE_CLASSES.add(long.class);			AVAILABLE_CLASSES.add(long[].class);
+		AVAILABLE_CLASSES.add(float.class);			AVAILABLE_CLASSES.add(float[].class);
+		AVAILABLE_CLASSES.add(double.class);		AVAILABLE_CLASSES.add(double[].class);
+		AVAILABLE_CLASSES.add(boolean.class);		AVAILABLE_CLASSES.add(boolean[].class);
+		AVAILABLE_CLASSES.add(Integer.class);		AVAILABLE_CLASSES.add(Integer[].class);
+		AVAILABLE_CLASSES.add(Long.class);			AVAILABLE_CLASSES.add(Long[].class);
+		AVAILABLE_CLASSES.add(Float.class);			AVAILABLE_CLASSES.add(Float[].class);
+		AVAILABLE_CLASSES.add(Double.class);		AVAILABLE_CLASSES.add(Double[].class);
+		AVAILABLE_CLASSES.add(Boolean.class);		AVAILABLE_CLASSES.add(Boolean[].class);
+		AVAILABLE_CLASSES.add(String.class);		AVAILABLE_CLASSES.add(String[].class);
+		AVAILABLE_CLASSES.add(File.class);			AVAILABLE_CLASSES.add(File[].class);
+		AVAILABLE_CLASSES.add(URL.class);			AVAILABLE_CLASSES.add(URL[].class);
+		AVAILABLE_CLASSES.add(URI.class);			AVAILABLE_CLASSES.add(URI[].class);
+	}
+																
+																
 	private final List<Object>						deployment = new ArrayList<>();
 	private final Map<String,List<CmdContainer>> 	cmdList = new HashMap<>();
 	private boolean									wasClosed = false;
@@ -149,7 +152,7 @@ public class ConsoleCommandManager implements ConsoleManagerInterface {
 			throw new IllegalStateException("Attempt to undeploy command processor(s) on closed manager!");
 		}
 		else {
-			for (Object item : new ArrayList(){{addAll(deployment);}}) {
+			for (Object item : deployment.toArray(new Object[deployment.size()])) {
 				undeploy(item);
 			}
 		}

@@ -1,15 +1,13 @@
 package chav1961.purelib.fsys.interfaces;
 
-import java.net.URI;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
 import java.util.Map;
-
-import chav1961.purelib.fsys.AbstractFileSystem;
 
 
 

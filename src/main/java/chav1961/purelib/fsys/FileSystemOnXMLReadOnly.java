@@ -102,11 +102,9 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem {
 	}
 
 	private static class XMLDataWrapper implements DataWrapperInterface {
-		private final URI	item;
 		private final Node	node;
 		
 		public XMLDataWrapper(final URI item, final Node node) {
-			this.item = item;
 			this.node = node;
 		}
 
