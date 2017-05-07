@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import chav1961.purelib.basic.ConsoleCommandManager;
+
 /**
  * <p>This annotation is used to mark a method to call from the Console manager. It describes command line template and help string for the given command processor</p>
  * <p>Annotation contains two parameters:</p>
@@ -24,6 +26,9 @@ import java.lang.annotation.Target;
  * <li>any char sequence - represents self as-is. Any sequence of blank symbols in the command line string are reduced to exactly one blank char</li>
  * </ul>
  * 
+ * <p>To get examples of using this annotation, see {@link ConsoleCommandManager} class Java code
+ * 
+ * @see ConsoleCommandManager
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  */

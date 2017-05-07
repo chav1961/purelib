@@ -10,14 +10,16 @@
  * All classes in the package are not thread-safe.
  * All classes in the package use two models to keep data:</p>
  * <ul>
- * <li>plain model - contiguous array of the data, that drows twice on overflow (the same as in the {@link java.io.ByteArrayOutputStream}</li>
- * <li>sliced model - two-dimensional array ('root'). that has 'leafs' with the same size</li>
+ * <li>plain model - contiguous array of the data, that grows twice on overflow (the same as in the {@link java.io.ByteArrayOutputStream})</li>
+ * <li>sliced model - two-dimensional array ('root'). that has 'leafs' with unified size</li>
  * </ul>
  * <p>The first model guarantees maximal speed for inserting and reading, but can duplicate memory requirements to store data. The second one
- * restructs memory reuirements with the one empty 'left' in worst case, but slows down performance.</p>
+ * restricts memory requirements with the one empty 'left' in worst case, but slows a bit down performance.</p>
  * <p>To exclude extra moving data and allocating memory, all these classes allow direct access to their internal arrays, so they are not immutable.
  * Method toArray() for all these classes allow access to 'raw' data, without cloning them. Length of returned array in almost all cases will be 
- * greater than really used, so always use only length() method instead of array.length variable!</p>  
+ * greater than really used, so always use only length() method instead of array.length variable!</p>
+ * 
+ * <p>All the classes in the package are not thread-safe, but reusable. To reuse class instance, simply call <i>clear()</i> method for it</p> 
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

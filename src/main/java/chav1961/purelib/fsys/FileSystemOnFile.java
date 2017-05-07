@@ -18,7 +18,8 @@ import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
- * <p>This class implements the file system interface on the usual file system.</p>
+ * <p>This class implements the file system interface on the usual file system. The URI to use this class is 
+ * <code>URI.create("file:file:path_to_root_directory");</code> (for example <code>URI.create("file:file:./muRootDirectory");</code>)</p>
  * 
  * <p>This class is not thread-safe.</p>
  * 

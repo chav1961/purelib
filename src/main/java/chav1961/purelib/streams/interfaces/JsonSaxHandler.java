@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.interfaces;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.JsonSaxParser;
 
 /**
@@ -17,16 +18,18 @@ import chav1961.purelib.streams.JsonSaxParser;
  * {@link #startIndex(int)} <br>
  * {@link #startObj()} <b>{</b><br>	
  * {@link #startName(char[], int, int)} <b>"name1"</b><br>
- * {@link #endName()} <b>:</b><br> 
+ * 						<b>:</b><br>
  * {@link #value()} <b>null</b><br>
+ * {@link #endName()} <br> 
  * {@link #endObj()} <b>}</b><br>	
  * {@link #endIndex()}<br>
  * 						<b>,</b><br>
  * {@link #startIndex(int)}<br>
  * {@link #startObj()} <b>{</b><br>	
  * {@link #startName(char[], int, int)} <b>"name2"</b><br>
- * {@link #endName()} <b>:</b><br>
+ * 						<b>:</b><br>
  * {@link #value(char[], int, int)} <b>"value"</b><br>
+ * {@link #endName()} <br>
  * {@link #endObj()} <b>}</b><br>	
  * {@link #endIndex()}<br>
  * {@link #endArr()} <b>]</b><br>
@@ -42,41 +45,48 @@ import chav1961.purelib.streams.JsonSaxParser;
 public interface JsonSaxHandler {
 	/**
 	 * <p>This event is fired on the start of the document</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void startDoc();
+	void startDoc() throws ContentException;
 	
 	/**
 	 * <p>This event is fired on the end of the document</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void endDoc();
+	void endDoc() throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every opened '{'</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void startObj();
+	void startObj() throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every closed '}'</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void endObj();
+	void endObj() throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every opened '['</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void startArr();
+	void startArr() throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every closed ']'</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void endArr();
+	void endArr() throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every 'name' in the object. Differ to {@link #startName(String)}, name will not contain any escapes!</p>
 	 * @param data char arrays contained name
 	 * @param from starting position of the name in the array
 	 * @param len length of the name detected
+	 * @throws ContentException if any content problems was detected
 	 */
-	void startName(char[] data, int from, int len);
+	void startName(char[] data, int from, int len) throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every 'name' in the object. This method is optional and will never be called by {@link JsonSaxParser}.
@@ -85,8 +95,9 @@ public interface JsonSaxHandler {
 	 * startName(new String(data,from,len));
 	 * </code>
 	 * @param name 'name' detected.
+	 * @throws ContentException if any content problems was detected
 	 */
-	void startName(String name);
+	void startName(String name) throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every 'name' in the object. This method is optional and will never be called by {@link JsonSaxParser}.
@@ -95,32 +106,37 @@ public interface JsonSaxHandler {
 	 * startName(treeFromLorien.seekName(data,from,len));
 	 * </code>
 	 * @param id predefined long id of the name was detected. Use <code> switch ((int)id) {...} </code> to operate with it
+	 * @throws ContentException if any content problems was detected
 	 */
-	void startName(long id);
+	void startName(long id) throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every 'name' termination in the object. Single values terminate name after it's value, arrays and objects terminate names after exhausting it's data</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void endName();
+	void endName() throws ContentException;
 	
 	/**
 	 * <p>This event is fired before any new value of the array element</p>
 	 * @param index index of the new array element
+	 * @throws ContentException if any content problems was detected
 	 */
-	void startIndex(int index);
+	void startIndex(int index) throws ContentException;
 	
 	/**
 	 * <p>This event is fired after any new value of the array element</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void endIndex();
+	void endIndex() throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every string value in the JSON input. Differ to {@link #value(String)}, value will not contain any escapes!</p>
 	 * @param data source array containing string data
 	 * @param from starting position of the string data was detected
 	 * @param len length of the string was detected
+	 * @throws ContentException if any content problems was detected
 	 */
-	void value(char[] data, int from, int len);
+	void value(char[] data, int from, int len) throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every string value in the object. This method is optional and will never be called by {@link JsonSaxParser}. 
@@ -129,29 +145,34 @@ public interface JsonSaxHandler {
 	 * value(new String(data,from,len));
 	 * </code>
 	 * @param data value was extracted from JSON input
+	 * @throws ContentException if any content problems was detected
 	 */
-	void value(String data);
+	void value(String data) throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every long integer value in the JSON input.</p>
 	 * @param data value was extracted from JSON input
+	 * @throws ContentException if any content problems was detected
 	 */
-	void value(long data);
+	void value(long data) throws ContentException;
 
 	/**
 	 * <p>This event is fired on every double value in the JSON input.</p>
 	 * @param data value was extracted from JSON input
+	 * @throws ContentException if any content problems was detected
 	 */
-	void value(double data);
+	void value(double data) throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every boolean value in the JSON input.</p>
 	 * @param data value was extracted from JSON input
+	 * @throws ContentException if any content problems was detected
 	 */
-	void value(boolean data);
+	void value(boolean data) throws ContentException;
 	
 	/**
 	 * <p>This event is fired on every null value in the JSON input.</p>
+	 * @throws ContentException if any content problems was detected
 	 */
-	void value();
+	void value() throws ContentException;
 }

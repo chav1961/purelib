@@ -16,7 +16,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void localAddressTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -40,7 +40,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -64,7 +64,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -84,7 +84,7 @@ public class ByteCodeLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -108,7 +108,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void localValueTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -131,7 +131,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -154,7 +154,7 @@ public class ByteCodeLineParserTest {
 		}
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -177,7 +177,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -200,7 +200,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -223,7 +223,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -246,7 +246,7 @@ public class ByteCodeLineParserTest {
 		}
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -265,7 +265,7 @@ public class ByteCodeLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -288,7 +288,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void arrayOfPrimitiveTypeTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -309,7 +309,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -330,7 +330,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void arrayOfreferencedTypeTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -351,7 +351,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -369,7 +369,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -394,7 +394,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void incrementTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -419,7 +419,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void constantTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -439,7 +439,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -459,7 +459,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -479,7 +479,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -499,7 +499,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -519,7 +519,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -535,7 +535,7 @@ public class ByteCodeLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -551,7 +551,7 @@ public class ByteCodeLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -571,7 +571,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void brunchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -596,7 +596,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -625,7 +625,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -658,7 +658,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void constructorTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -689,7 +689,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void fieldAccessTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -720,7 +720,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -764,7 +764,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void invocationTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -836,7 +836,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void switchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -870,7 +870,7 @@ public class ByteCodeLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -907,7 +907,7 @@ public class ByteCodeLineParserTest {
 	@Test
 	public void tryCatchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"

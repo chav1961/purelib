@@ -10,6 +10,7 @@ import java.net.URI;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -18,7 +19,9 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.RMIDataWrapperInterface;
 
 /**
- * <p>This class implements the file system interface on remote server using Java RMI protocol.</p>
+ * <p>This class implements the file system interface on remote server using standard Java RMI protocol.
+ * //localhost:"+Registry.REGISTRY_PORT+"/testRMI
+ * </p>
  * 
  * <p>This class is not thread-safe.</p>
  * 

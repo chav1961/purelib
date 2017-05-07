@@ -32,7 +32,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * </ul>
  * 
  * <p>As a good example, see {@link chav1961.purelib.fsys.FileSystemOnFile} class implementation.</p>
- * <p>Don't use the class as a type of variables or parameters in your program. Use the {@link FileSystemInterface} interface instead in all these cases</p>  
+ * <p>Don't use the class as a type of variables or parameters in your program. Use the {@link FileSystemInterface} interface instead in all cases</p>  
  * <p>This class is not thread-safe.</p>
  * 
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface

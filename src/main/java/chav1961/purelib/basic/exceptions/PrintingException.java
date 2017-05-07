@@ -1,7 +1,7 @@
 package chav1961.purelib.basic.exceptions;
 
 /**
- * <p>This exception describes any problems on writing data in the stream</p>
+ * <p>This exception describes any problems on writing data in the stream (not only printers)</p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

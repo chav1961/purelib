@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import chav1961.purelib.basic.ConsoleCommandManager;
+
 /**
  * <p>This annotation is used to associate the method parameters and console command variable. It associates parameter of the method with the variable name in the command template.</p>
  * <p>Annotation contains two parameters:</p>
@@ -23,6 +25,8 @@ import java.lang.annotation.Target;
  * </ul>
  * <p>If console command variable located inside the <i>repeat</i> template, parameter need be an <i>array</i> of appropriative type</p>
  * 
+ * @see ConsoleCommand
+ * @see ConsoleCommandManager
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  */

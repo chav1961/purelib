@@ -25,7 +25,9 @@ import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
- * <p>This class implements the file system interface on the standard file system mechanism in the Java 1.7 and later.</p>
+ * <p>This class implements the file system interface on the standard file system mechanism in the Java 1.7 and later.
+ * The URI to use this class is <code>URI.create("fsys:filesystem_specific_url");</code> 
+ * (for example <code>URI.create("fsys:jar:./myJar.jar");</code>)</p>
  * 
  * <p>This class is not thread-safe.</p>
  * 

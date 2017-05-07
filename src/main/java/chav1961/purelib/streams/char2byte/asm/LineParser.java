@@ -1,6 +1,5 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,7 +24,6 @@ import chav1961.purelib.basic.exceptions.AsmSyntaxException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.AsmWriter;
 
 class LineParser implements LineByLineProcessorCallback {
 	private static final int						EXPONENT_BASE = 305;
@@ -382,7 +380,6 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private final ClassDescriptionRepo				cdr;
 	private final SyntaxTreeInterface<NameDescriptor>		tree;
-	private final AsmWriter							writer;
 	private final ClassContainer					cc;
 
 	private ParserState								state = ParserState.beforePackage;
@@ -395,8 +392,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private int										switchAddress;
 	private List<int[]>								tryList = new ArrayList<int[]>();
 	
-	LineParser(final AsmWriter writer, final ClassContainer cc) throws AsmSyntaxException {
-		this.writer = writer;						this.cc = cc;
+	LineParser(final ClassContainer cc) throws AsmSyntaxException {
+		this.cc = cc;
 		this.tree = cc.getNameTree();				this.cdr = new ClassDescriptionRepo();
 		for (Class<?> item : PRELOADED_CLASSES) {
 			cdr.addDescription(item);
@@ -781,10 +778,6 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private void registerBranch(final long forResult, final boolean shortBrunch) throws IOException {
 		methodDescriptor.getBody().registerBrunch(forResult,shortBrunch);
-	}
-
-	private void registerBranch(final int address, final long forResult, final boolean shortBrunch) throws IOException {
-		methodDescriptor.getBody().registerBrunch(address,address+1,forResult,shortBrunch);
 	}
 
 	private void registerBranch(final int address, final int placement, final long forResult, final boolean shortBrunch) throws IOException {
@@ -1436,7 +1429,6 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private int processValueShortIndexCommand(final char[] data, int start, final short[] result) throws IOException {
 		short		displ;
-		char		symbol;
 
 		try{switch (data[start]) {
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' : case '-' :
@@ -1664,6 +1656,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 			else {
 				final long					defaultLabel = jumps.remove(DEFAULT_MARK);
+				@SuppressWarnings("unchecked")
 				final Entry<Long,Long>[]	table = jumps.entrySet().toArray(new Entry[jumps.size()]);
 				
 				Arrays.sort(table,SORT_COMPARATOR);
@@ -1704,6 +1697,7 @@ class LineParser implements LineByLineProcessorCallback {
 				}
 			}
 			final long					defaultLabel = jumps.remove(DEFAULT_MARK);
+			@SuppressWarnings("unchecked")
 			final Entry<Long,Long>[]	table = jumps.entrySet().toArray(new Entry[jumps.size()]);
 			
 			Arrays.sort(table,SORT_COMPARATOR);
@@ -1784,7 +1778,6 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private int calculateMethodAddress(final char[] data, int start, final int end, final int[] result) throws IOException {
 		int			startName = start, endName = start = skipSimpleName(data,start);
-		boolean		simpleName = true;
 		
 		if (data[start] == '.') {
 			endName = start = skipQualifiedName(data,startName);
@@ -1809,7 +1802,7 @@ class LineParser implements LineByLineProcessorCallback {
 						);
 					}
 				} catch (AsmSyntaxException exc) {
-					final Constructor	c = cdr.getConstructorDescription(data,startName,endSignature);
+					final Constructor<?>	c = cdr.getConstructorDescription(data,startName,endSignature);
 					
 					result[0] = cc.getConstantPool().asMethodRefDescription(
 							tree.placeName(c.getDeclaringClass().getCanonicalName().replace('.','/'),null),
@@ -1859,8 +1852,7 @@ class LineParser implements LineByLineProcessorCallback {
 						}
 					default :
 						if (Character.isJavaIdentifierStart(data[start])) {
-							final int 	startName = start, endName = start = skipSimpleName(data,start);
-							
+							start = skipSimpleName(data,start);
 						}
 						throw new AsmSyntaxException("Non-constant value in the expression");
 				}

@@ -28,7 +28,9 @@ import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
- * <p>This class implements the file system interface on the XML gile content.</p>
+ * <p>This class implements the file system interface on the XML file content. The URI to use this class is 
+ * <code>URI.create("xmlReadOnly:source_url");</code> (for example <code>URI.create("xmlReadOnly:http://mysite/myxml.xml");</code>).
+ * Good practice is to use XML <i>resource</i> URL (got it by <code>MyClass.class.getResource("resource_name")</code>). </p>
  * 
  * <p>Content of XML is interpreted as directory and file tree. 'Directory' is any tag containing other tags or <b>not</b> containing
  * any text content. Use <code>&lt;tag .../&gt;</code> tag's syntax to avoid any text content for the terminal 'directory'.</p>

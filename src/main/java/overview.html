@@ -1,0 +1,35 @@
+<html>
+<head></head>
+<body>
+<p>Pure library is a collection of different packages and classes, that can be used in Java projects. This library is based on Java
+JRE only and doesn't use any third-party libraries. It was one of the main goals when this library was developing. In the most of cases,
+it's classes are oriented to maximal performance, so many of them have an old-styled program code. They also oriented to use standard
+Java mechanisms, protocols and so on...</p>
+<h2>Library content</h2>
+<h3>chav1961.purelib.basic package</h3>
+<p>This package contains classes to simplify quick parsers development and to simplify development of the console-oriented stand-alone applications.
+It contains a 'pluggable' class loader to implement easy-to-use plugin mechanism in your applications, a class, that simplified processing of the 
+console commands (it parses console command according to it's syntax, finds appropriative command processor and execute it), a set of logger facades
+(because of the <b>ZOO</b> of the logger projects, that is a real problem now). It also contains 'smart' Property class, that supports property 
+substitutions and automatic data type conversions, some classes that can be used in quick parsers (including quick tree to manipulate lexemas and names)
+ûand quick character reader for line-by-line data processing. A special utility class supports some usable functions in the programming practice.</p>    
+<h3>chav1961.purelib.growablearrays package</h3>
+<p>This package supports a set of <i>growable</i> arrays to use in the quick parsers. It usability is specialized on the well-known task: quick filling
+of the array's content with the data and longer using them as 'constant' data. Differ to {@link java.util.List} functionality, growable arrays supports
+only primitive types without any wrapping.</p> 
+<h3>chav1961.purelib.fsys package</h3>
+<p>This package supports a 'File system' abstractions for the different kings of it's 'substrate'. This concept is similar to File system concept in the
+Java 1.7, but extends it to the wide range of data stores: files and file systems, RMI connections, URL-based connections, database content and so on. In
+the extension of the pure library you can find a lot of the additional 'file system' implementations. File systems also supports Linux-styled <i>mounting</i>,
+that allow you to make heterogenous file system tree to use it in your program.</p>   
+<h3>chav1961.purelib.i18n package</h3>
+<p>This package supports concept of the <i>multilingual</i> strings.</p>
+<h3>chav1961.purelib.streams package</h3>
+<p>This package supports Java I/O concept of the streams. The 'root' package contains class, that supports stream parsing of the JSON content by XML SAX style.
+It also contains utility class to build JSON SAX-style handlers for quick-and-simple deserialization JSON content into Java classes</p>
+<p>Subpackages of this package contain different kind of the streams-convertors. Main idea of them is to make on-the-fly conversion from data written
+from one format to another. All the streams are 'ordinal' I/O streams and don't require a special case to use. Subpackages contain a markdown--&gt;HTML converotr,
+Creole--&gt;HTML convertor, and also <b>Java bytecode Assembler</b>, that converts assembly byte code to byte[], containing class description for use with 
+{@link java.lang.ClassLoader#defineClass(String,byte[],int,int)} method</p>
+</body>
+</html>

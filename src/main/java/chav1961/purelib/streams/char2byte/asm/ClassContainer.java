@@ -12,7 +12,7 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 
-public class ClassContainer implements Closeable {
+class ClassContainer implements Closeable {
 	
 	private final SyntaxTreeInterface<NameDescriptor>	tree = new AndOrTree<>(1,16);
 	private final ClassConstantsRepo			ccr = new ClassConstantsRepo(tree);

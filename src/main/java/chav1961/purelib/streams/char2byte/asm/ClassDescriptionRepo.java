@@ -47,6 +47,7 @@ class ClassDescriptionRepo {
 		return getDescription(data,from,to,KIND_CONSTRUCTOR,KeeperContent.isConstructor,Constructor.class);
 	}
 	
+	@SuppressWarnings("unchecked")
 	private <T> T getDescription(final char[] data, final int from, final int to, final String content, final KeeperContent type, final Class<T> result) throws AsmSyntaxException {
 		if (data == null || data.length == 0) {
 			throw new IllegalArgumentException("Data char array cant be null or zero length");

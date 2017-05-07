@@ -1,127 +1,50 @@
 package chav1961.purelib.streams.char2byte;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Writer;
 
 import chav1961.purelib.basic.LineByLineProcessor;
-import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.AsmSyntaxException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.streams.char2byte.asm.Asm;
 
+/**
+ * <p>This class is a Java byte code Assembler. It implements as an usual Writer:</p>
+ * <code>
+ * try(final OutputStream os = ...;<br>
+ * 	   final Writer wr = new AsmWriter(os);<br>
+ * 	   final PrintWriter pw = new PrintWriter(wr)) {<br>
+ * 
+ * 		pw.println("      .package mypackage");<br>
+ * 		pw.println("Test  .class public");<br>
+ * . . .<br>
+ * 		pw.println("Test  .end");<br>
+ * }<br>
+ * </code>
+ * 
+ * <p>After closing streams, output stream will contain ready-to-use class description, and you can pass it to {@link java.lang.ClassLoader#defineClass(String,byte[],int,int)}
+ * protected method to create new class in the JVM. Syntax of the assembler instructions and pseudocommands will be described later</p>
+ *    
+ * <p>I not guarantee, that this implementation is free of any bugs, and nice to get any feedback about</p>
+ * 
+ * <p>This class is not thread-safe</p> 
+ * 
+ * @see java.lang.ClassLoader
+ * @see chav1961.purelib.streams JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.1
+ */
 
-public class AsmWriter extends OutputStreamWriter {
-	private static final int			CONSTRUCTOR_TYPE_0 = 0; 
-	private static final int			CONSTRUCTOR_TYPE_1 = 1; 
-	private static final int			CONSTRUCTOR_TYPE_2 = 2; 
+public class AsmWriter extends Writer {
+	private final OutputStream			os;
+	private final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->process(lineNo,data,from,len));
+	private final Asm					asm;
 
-	private final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->process(lineNo,data,from,len));  
-	private final Map<String,Object>	settings;
-	private final int					constructorType;
-	private final StringBuilder			sb = new StringBuilder();
-	
-	private Charset						charset;
-	private String						encoding;
-	private								int lineNo = 1;
-
-	public AsmWriter(final OutputStream arg0, final Charset arg1) {
-		super(arg0, arg1);
-		this.settings = new HashMap<String,Object>();
-		this.constructorType = CONSTRUCTOR_TYPE_0;
-		this.charset = arg1;
+	public AsmWriter(final OutputStream arg0) throws AsmSyntaxException {
+		this.os = arg0;
+		this.asm = new Asm(os);
 	}
-
-	public AsmWriter(final OutputStream arg0, final CharsetEncoder arg1) {
-		super(arg0, arg1);
-		this.settings = new HashMap<String,Object>();
-		this.constructorType = CONSTRUCTOR_TYPE_0;
-		this.charset = arg1.charset();
-	}
-
-	public AsmWriter(final OutputStream arg0, final String arg1) throws UnsupportedEncodingException {
-		super(arg0, arg1);
-		this.settings = new HashMap<String,Object>();
-		this.constructorType = CONSTRUCTOR_TYPE_1;
-		this.encoding = arg1;
-	}
-
-	public AsmWriter(final OutputStream arg0) {
-		super(arg0);
-		this.settings = new HashMap<String,Object>();
-		this.constructorType = CONSTRUCTOR_TYPE_2;
-	}
-	
-	public AsmWriter(final OutputStream arg0, final Charset arg1, final Map<String,Object> settings) {
-		super(arg0, arg1);
-		if (settings == null) {
-			throw new IllegalArgumentException("Settings can't be null!"); 
-		}
-		else {
-			this.settings = settings;
-			this.constructorType = CONSTRUCTOR_TYPE_0;
-			this.charset = arg1;
-		}
-	}
-
-	public AsmWriter(final OutputStream arg0, final CharsetEncoder arg1, final Map<String,Object> settings) {
-		super(arg0, arg1);
-		if (settings == null) {
-			throw new IllegalArgumentException("Settings can't be null!"); 
-		}
-		else {
-			this.settings = settings;
-			this.constructorType = CONSTRUCTOR_TYPE_0;
-			this.charset = arg1.charset();
-		}
-	}
-
-	public AsmWriter(final OutputStream arg0, final String arg1, final Map<String,Object> settings) throws UnsupportedEncodingException {
-		super(arg0, arg1);
-		if (settings == null) {
-			throw new IllegalArgumentException("Settings can't be null!"); 
-		}
-		else {
-			this.settings = new HashMap<String,Object>();
-			this.constructorType = CONSTRUCTOR_TYPE_1;
-			this.encoding = arg1;
-		}
-	}
-
-	public AsmWriter(final OutputStream arg0, final Map<String,Object> settings) {
-		super(arg0);
-		if (settings == null) {
-			throw new IllegalArgumentException("Settings can't be null!"); 
-		}
-		else {
-			this.settings = settings;
-			this.constructorType = CONSTRUCTOR_TYPE_2;
-		}
-	}
-
-	public AsmWriter(final OutputStream arg0, final Charset arg1, final Object... settings) {
-		this(arg0, arg1, Utils.mkMap(settings));
-	}
-
-	public AsmWriter(final OutputStream arg0, final CharsetEncoder arg1, final Object... settings) {
-		this(arg0, arg1, Utils.mkMap(settings));
-	}
-
-	public AsmWriter(final OutputStream arg0, final String arg1, final Object... settings) throws UnsupportedEncodingException {
-		this(arg0, arg1, Utils.mkMap(settings));
-	}
-
-	public AsmWriter(final OutputStream arg0, final Object... settings) {
-		this(arg0, Utils.mkMap(settings));
-	}
-	
 	
 	@Override
 	public void write(final char[] cbuf, final int off, final int len) throws IOException {
@@ -141,32 +64,22 @@ public class AsmWriter extends OutputStreamWriter {
         write(new char[]{(char) c},0,1);
     }	
 
-	private void process(final int lineNo, final char[] data, final int from, final int length) throws IOException {
+	@Override
+	public void flush() throws IOException {
+		asm.flush();
+		os.flush();
 	}
 
-	private void pushReader(final String source, final InputStream is) throws IOException, SyntaxException {
-		switch (constructorType) {
-			case CONSTRUCTOR_TYPE_0	:
-				try(final Reader			rdr = new InputStreamReader(is,this.charset);) {
-					processReader(rdr);
-				}
-				break;
-			case CONSTRUCTOR_TYPE_1	: 
-				try(final Reader			rdr = new InputStreamReader(is,this.encoding);) {
-					processReader(rdr);
-				}
-				break;
-			case CONSTRUCTOR_TYPE_2	: 
-				try(final Reader			rdr = new InputStreamReader(is);) {
-					processReader(rdr);
-				}
-				break;
-		}
+	@Override
+	public void close() throws IOException {
+		asm.close();
 	}
 	
-	private void processReader(final Reader rdr) throws IOException, SyntaxException {
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->process(lineNo,data,from,len))) {
-			lblp.write(rdr);
+	
+	private void process(final int lineNo, final char[] data, final int from, final int length) throws IOException {
+		try{asm.processLine(lineNo, data, from, length);
+		} catch (SyntaxException e) {
+			throw new IOException(e.getMessage(),e);
 		}
 	}
 }

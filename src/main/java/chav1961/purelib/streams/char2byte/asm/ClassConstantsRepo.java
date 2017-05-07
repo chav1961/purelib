@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import chav1961.purelib.basic.exceptions.AsmSyntaxException;
-import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 

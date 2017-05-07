@@ -13,7 +13,7 @@ public class InterfaceLineParserTest {
 	@Test
 	public void emptyInterfaceTest() throws IOException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 					 		 " 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -28,7 +28,7 @@ public class InterfaceLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							 " 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -45,7 +45,7 @@ public class InterfaceLineParserTest {
 	@Test
 	public void emptyEntendedAndImportInterfaceTest() throws IOException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							 " 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -63,7 +63,7 @@ public class InterfaceLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"		.import java.lang.AutoCloseable\n"
@@ -79,7 +79,7 @@ public class InterfaceLineParserTest {
 //	@Test
 	public void interfaceWithFieldsTest() throws IOException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							 " 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -97,7 +97,7 @@ public class InterfaceLineParserTest {
 	@Test
 	public void classWithMethodTest() throws IOException, NoSuchMethodException, SecurityException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			ClassLineParserTest.processString(lp,
 							 " 		.package "+this.getClass().getPackage().getName()+"\n"

@@ -11,6 +11,37 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import chav1961.purelib.basic.interfaces.LoggerFacade;
+
+/**
+ * <p>This class is an extension of the standard {@link Properties} class to support automatic substitutions and data type conversions 
+ * when getting properties. Substitution as any template <b>${name}</b> inside any property value. It substitutes with the value of other
+ * property, whose key is 'name'. You can also used one-level depth template <b>${${nameLocation}}</b> whose 'nameLocation' means 'get 
+ * key name to substitute from the nameLocation key'. All substitutions are recursive. A source of properties to substitute are own 
+ * properties, but one-level depth template can be referenced to {@link System#getProperties()} key set. Maximum substitution depth level
+ * is restricted by 16</p>
+ * <p>You can get property content not only as string, but a lot of other classes:</p>
+ * <ul>
+ * <li>any appropriative {@link Enum} class constant</li>
+ * <li>a subset of primitive type value (int, long, float, double, boolean)</li>
+ * <li>a subset of wrappers to primitive type value ({@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link Boolean})</li>
+ * <li>a {@link File} or {@link InputStream} instance, if the property value contains valid file name</li>
+ * <li>a {@link URL} or {@link URI} instance, if the property value contains valid URL or URI</li>
+ * </ul>
+ * <p>To use it, simply type:</p>
+ * <code>
+ * if (subst.getProperty("canUseSomething",boolean.class)) {<br>
+ * 		int amount = subst.getProperty("amountOfSomething",int.class);<br>
+ * }<br>
+ * </code>
+ * 
+ * <p>This class is thread-safe.</p>
+ *
+ * @see Properties
+ * @see chav1961.purelib.basic JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.1
+ */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
 	private static final int	MAX_SUBST_DEPTH = 16;
@@ -40,11 +71,13 @@ public class SubstitutableProperties extends Properties {
 								put(URL.class,Conversions.URL);
 								put(URI.class,Conversions.URI);
 								}};
+
+	public SubstitutableProperties() {}
 	
-	public SubstitutableProperties(){
-		super();
-	}
-	
+	/**
+	 * <p>Constructor of the class. Gets another property class and fill own content with it's content</p> 
+	 * @param defaults another properties class to fill own content
+	 */
 	public SubstitutableProperties(final Properties defaults) {
 		super(defaults);
 	}
@@ -63,13 +96,28 @@ public class SubstitutableProperties extends Properties {
 		return value != null ? substitution(key,value,0) : null;
 	}
 	
-	public <T> T getProperty(final Class<T> awaited, final String key) {
+	/**
+	 * <p>Get property and convert it to requested class</p>
+	 * @param <T> class returned
+	 * @param key key to get property value for
+	 * @param awaited awaited class to convert value to
+	 * @return value converted
+	 */
+	public <T> T getProperty(final String key, final Class<T> awaited) {
 		final String	value = getProperty(key);
 		
 		return value != null ? convert(key,value,awaited) : null;
 	}
 
-	public <T> T getProperty(final Class<T> awaited, final String key, final String defaultValue) {
+	/**
+	 * <p>Get property and convert it to requested class</p>
+	 * @param <T> class returned
+	 * @param key key to get property value for
+	 * @param awaited awaited class to convert value to
+	 * @param defaultValue defaultValue to convert when property is missing
+	 * @return value converted
+	 */
+	public <T> T getProperty(final String key, final Class<T> awaited, final String defaultValue) {
 		final String	value = getProperty(key,defaultValue);
 		
 		return value != null ? convert(key,value,awaited) : null;

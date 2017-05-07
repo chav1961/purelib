@@ -19,7 +19,7 @@ public class ClassLineParserTest {
 	@Test
 	public void emptyClassTest() throws IOException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -33,7 +33,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public private\n"
@@ -43,7 +43,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public protected\n"
@@ -53,7 +53,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class abstract final\n"
@@ -63,7 +63,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"
@@ -75,7 +75,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"
@@ -89,7 +89,7 @@ public class ClassLineParserTest {
 	@Test
 	public void emptyExtendedClassTest() throws IOException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public extends java.lang.Throwable final\n"
@@ -103,7 +103,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public extends java.lang.String final\n"
@@ -117,7 +117,7 @@ public class ClassLineParserTest {
 	@Test
 	public void emptyImplementedAndImportClassTest() throws IOException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"		.import java.lang.AutoCloseable\n"
@@ -134,7 +134,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"		.import unknown\n"
@@ -145,7 +145,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract extends Throwable implements Unknown\n"
@@ -155,7 +155,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract extends Throwable implements java.lang.String\n"
@@ -169,7 +169,7 @@ public class ClassLineParserTest {
 	@Test
 	public void classWithFieldsTest() throws IOException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -191,7 +191,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -202,7 +202,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -217,7 +217,7 @@ public class ClassLineParserTest {
 	@Test
 	public void classWithMethodTest() throws IOException, NoSuchMethodException, SecurityException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -234,7 +234,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"
@@ -246,7 +246,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -258,7 +258,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -270,7 +270,7 @@ public class ClassLineParserTest {
 		} catch (AsmSyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -286,7 +286,7 @@ public class ClassLineParserTest {
 	@Test
 	public void realClassMethodTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(null,cc);
+			final LineParser		lp = new LineParser(cc);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"

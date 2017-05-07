@@ -10,7 +10,7 @@ import java.util.List;
 import chav1961.purelib.basic.exceptions.AsmSyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
-public class MethodDescriptor implements Closeable {
+class MethodDescriptor implements Closeable {
 	private static final char[]					THIS = "this".toCharArray(); 
 	
 	private final List<Long>					parametersList = new ArrayList<>();
@@ -21,11 +21,11 @@ public class MethodDescriptor implements Closeable {
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
 	private final short							accessFlags;
-	private final long							methodId, returnedTypeId;
+	private final long							returnedTypeId;
 	private final short							methodDispl;
 	private final long[]						throwsList;
 	private final short[]						throwsDispl;
-	private final short							exceptionsWord, codeWord, stackMapTableWord, localVariableTableWord, lineNumberTableWord;
+	private final short							exceptionsWord, codeWord, localVariableTableWord, lineNumberTableWord;
 	private final boolean						methodBodyAwait;
 	
 	private MethodBody							body = null;
@@ -37,7 +37,7 @@ public class MethodDescriptor implements Closeable {
 		final int	tLen = throwsList.length;
 		
 		this.tree = tree;						this.ccr = ccr;	
-		this.accessFlags = accessFlags;			this.methodId = methodId;
+		this.accessFlags = accessFlags;			
 		this.returnedTypeId = returnTypeId;		this.throwsList = throwsList;
 		this.methodDispl = ccr.asUTF(methodId);	
 
@@ -47,7 +47,6 @@ public class MethodDescriptor implements Closeable {
 		}
 		this.exceptionsWord = ccr.asUTF(tree.placeName(Constants.ATTRIBUTE_Exceptions,0,Constants.ATTRIBUTE_Exceptions.length,null));
 		this.codeWord = ccr.asUTF(tree.placeName(Constants.ATTRIBUTE_Code,0,Constants.ATTRIBUTE_Code.length,null));
-		this.stackMapTableWord = ccr.asUTF(tree.placeName(Constants.ATTRIBUTE_StackMapTable,0,Constants.ATTRIBUTE_StackMapTable.length,null));
 		this.localVariableTableWord = ccr.asUTF(tree.placeName(Constants.ATTRIBUTE_LocalVariableTable,0,Constants.ATTRIBUTE_LocalVariableTable.length,null));
 		this.lineNumberTableWord =  ccr.asUTF(tree.placeName(Constants.ATTRIBUTE_LineNumberTable,0,Constants.ATTRIBUTE_LineNumberTable.length,null));
 		

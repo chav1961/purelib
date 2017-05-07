@@ -3,7 +3,7 @@ package chav1961.purelib.basic.interfaces;
 import chav1961.purelib.basic.AndOrTree;
 
 /**
- * <p>This interface describes a quick syntax tree to store strings and associate any data to them.</p> 
+ * <p>This interface describes a quick syntax tree to store strings and associate any data to them for use in the parsers.</p> 
  * 
  * <p>The main aim of interface is to radically reduce memory and time to manipulate with the string data. All methods of the interface are based on character arrays, not strings.
  * This solution excludes any conversions between source data (usually char arrays) and their string representations. Every 'string' in the tree is identified by it's long <i>id</i>.
@@ -19,12 +19,19 @@ import chav1961.purelib.basic.AndOrTree;
 
 public interface SyntaxTreeInterface<T> {
 	/**
-	 * <p>This interface describes list of all id's in the tree</p>
+	 * <p>This interface describes processing all terminal nodes in the tree.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
 	 */
-	@FunctionalInterface
 	public interface Walker {
+		/**
+		 * <p>Process terminal node for the tree</p>
+		 * @param name source array containing node name
+		 * @param len length of the source array (don't use name.length in your implementations!)
+		 * @param id node id
+		 * @param cargo cargo associated
+		 * @return false for immediately interruption of the tree walking, true otherwise 
+		 */
 		boolean process(char[] name, int len, long id, Object cargo);
 	}
 	
@@ -125,7 +132,7 @@ public interface SyntaxTreeInterface<T> {
 	int getName(long id, char[] target, int from);
 	
 	/**
-	 * <p>Compare two names represented by it's identifiers</p>
+	 * <p>Compare two <i>names</i> represented by it's <i>identifiers</i></p>
 	 * @param first id of the first name
 	 * @param second id of the second name
 	 * @return code is the same as for Comparable interface

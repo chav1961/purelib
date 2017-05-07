@@ -6,6 +6,7 @@ import java.io.Reader;
 
 import chav1961.purelib.basic.CharsUtil;
 import chav1961.purelib.basic.LineByLineProcessor;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
@@ -72,20 +73,23 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	 * @throws SyntaxException on syntax problems in the JSON content
 	 */
 	public void parse(final Reader reader) throws IOException, SyntaxException {
-		stackTop = -1;		handler.startDoc();		push('=');
-		
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor(this)) {
-			final char[]	buffer = new char[8192];
-			int	len;
+		try{stackTop = -1;		handler.startDoc();		push('=');
 			
-			while ((len = reader.read(buffer)) > 0) {
-				lblp.write(buffer, 0, len);
+			try(final LineByLineProcessor	lblp = new LineByLineProcessor(this)) {
+				final char[]	buffer = new char[8192];
+				int	len;
+				
+				while ((len = reader.read(buffer)) > 0) {
+					lblp.write(buffer, 0, len);
+				}
 			}
-		}
-		
-		handler.endDoc(); 	pop();
-		if (stackTop != -1) {
-			throw new SyntaxException(0,0,"Unclosed brackets or quotas (\") in the and of input");
+			
+			handler.endDoc(); 	pop();
+			if (stackTop != -1) {
+				throw new SyntaxException(0,0,"Unclosed brackets or quotas (\") in the and of input");
+			}
+		} catch (ContentException exc) {
+			throw new SyntaxException(0,0,exc.getMessage(),exc);
 		}
 	}
 
@@ -150,213 +154,243 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		int				current = from;
 		char			symbol;
 
-		for (;;) {
-			while ((symbol = data[current]) <= ' ' && symbol != '\n') {
-				current++;
-			}
-			
-			if (symbol != '\n') {
-				switch (symbol) {
-					case '\"'	:
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_FIRST	:
-								current = stringValue(lineNo,from,data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
-								break;
-							case StackTop.STATE_BEFORE_NAME		:
-								current = stringName(data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_NAME;
-								break;
-							case StackTop.STATE_BEFORE_VALUE	:
-								current = stringValue(lineNo,from,data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
-								break;
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_VALUE		:
-							case StackTop.STATE_AFTER_LAST		:
-							default : 
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (\")"));
-						}
-						break;
-					case '{'	:
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_FIRST	:
-							case StackTop.STATE_BEFORE_VALUE	:
-								push('{');	current++;
-								handler.startObj();
-								stack[stackTop].nameState = StackTop.STATE_BEFORE_NAME;
-								break;
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_VALUE		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited ({)"));
-						}
-						break;
-					case '['	:
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_FIRST	:
-							case StackTop.STATE_BEFORE_VALUE	:
-								push('[');	current++;
-								handler.startArr();
-								handler.startIndex(0);
-								stack[stackTop].nameState = StackTop.STATE_BEFORE_VALUE;
-								break;
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_VALUE		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited ([)"));
-						}
-						break;
-					case '}'	: 
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_VALUE		:
-								if (stack[stackTop].recordType != '{') {
-									throw new IllegalArgumentException();
-								}
-								else {
-									pop();		current++;
-									stack[stackTop].nameState =  StackTop.STATE_AFTER_VALUE;
-									handler.endObj();
-								}
-								break;
-							case StackTop.STATE_BEFORE_FIRST	:
-							case StackTop.STATE_BEFORE_VALUE	:
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (})"));
-						}
-						break;
-					case ']'	: 
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_FIRST	:
-							case StackTop.STATE_BEFORE_VALUE	:
-							case StackTop.STATE_AFTER_VALUE		:
-								if (stack[stackTop].recordType != '[') {
-									throw new IOException(new SyntaxException(lineNo,current-from,"Missing ([)"));
-								}
-								else {
-									pop();		current++;
-									stack[stackTop].nameState =  StackTop.STATE_AFTER_VALUE;
-									handler.endIndex();
-									handler.endArr();
-								}
-								break;
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (])"));
-						}
-						break;
-					case ':'	: 
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_AFTER_NAME		:
-								stack[stackTop].nameState = StackTop.STATE_BEFORE_VALUE;
-								current++;
-								break;
-							case StackTop.STATE_AFTER_VALUE		:
-							case StackTop.STATE_BEFORE_FIRST	:
-							case StackTop.STATE_BEFORE_VALUE	:
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (:)"));
-						}
-						break;
-					case ','	: 
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_AFTER_VALUE		:
-								if (stack[stackTop].recordType == '[') {
-									stack[stackTop].nameState = StackTop.STATE_BEFORE_VALUE;
-									handler.endIndex();
-									handler.startIndex(++stack[stackTop].indexNo);
-								}
-								else {
-									stack[stackTop].nameState = StackTop.STATE_BEFORE_NAME;
-									handler.endName();
-								}
-								current++;
-								break;
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_BEFORE_FIRST	:
-							case StackTop.STATE_BEFORE_VALUE	:
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (,)"));
-						}
-						break;
-					case '-' : case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_FIRST	:
-								current = numericValue(data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
-								break;
-							case StackTop.STATE_BEFORE_VALUE	:
-								current = numericValue(data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
-								break;
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_VALUE		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited number"));
-						}
-						break;
-					case 't' : case 'f' :
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_FIRST	:
-								current = booleanValue(lineNo,from,data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
-								break;
-							case StackTop.STATE_BEFORE_VALUE	:
-								current = booleanValue(lineNo,from,data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
-								break;
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_VALUE		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,(from-current),"Unwaited boolean"));
-						}
-						break;
-					case 'n'	:
-						switch (stack[stackTop].nameState) {
-							case StackTop.STATE_BEFORE_FIRST	:
-								current = nullValue(data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
-								break;
-							case StackTop.STATE_BEFORE_VALUE	:
-								current = nullValue(data,current,length);
-								stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
-								break;
-							case StackTop.STATE_BEFORE_NAME		:
-							case StackTop.STATE_AFTER_NAME		:
-							case StackTop.STATE_AFTER_VALUE		:
-							case StackTop.STATE_AFTER_LAST		:
-							default :
-								throw new IOException(new SyntaxException(lineNo,(from-current),"Unwaited null"));
-						}
-						break;
-					default : 
+		try{for (;;) {
+				while ((symbol = data[current]) <= ' ' && symbol != '\n') {
+					current++;
 				}
-				symbol = data[current];
+				
+				if (symbol != '\n') {
+					switch (symbol) {
+						case '\"'	:
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_FIRST	:
+									current = stringValue(lineNo,from,data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
+									break;
+								case StackTop.STATE_BEFORE_NAME		:
+									current = stringName(data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_NAME;
+									break;
+								case StackTop.STATE_BEFORE_VALUE	:
+									if (stack[stackTop].recordType == '[' && stack[stackTop].indexNo == -1) {
+										handler.startIndex(++stack[stackTop].indexNo);
+									}
+									current = stringValue(lineNo,from,data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
+									break;
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_VALUE		:
+								case StackTop.STATE_AFTER_LAST		:
+								default : 
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (\")"));
+							}
+							break;
+						case '{'	:
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_FIRST	:
+								case StackTop.STATE_BEFORE_VALUE	:
+									push('{');	current++;
+									handler.startObj();
+									stack[stackTop].nameState = StackTop.STATE_BEFORE_NAME;
+									break;
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_VALUE		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited ({)"));
+							}
+							break;
+						case '['	:
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_FIRST	:
+								case StackTop.STATE_BEFORE_VALUE	:
+									push('[');	current++;
+									handler.startArr();
+									stack[stackTop].nameState = StackTop.STATE_BEFORE_VALUE;
+									break;
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_VALUE		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited ([)"));
+							}
+							break;
+						case '}'	: 
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_VALUE		:
+									if (stack[stackTop].recordType != '{') {
+										throw new IllegalArgumentException();
+									}
+									else {
+										pop();		current++;
+										stack[stackTop].nameState =  StackTop.STATE_AFTER_VALUE;
+										handler.endName();
+										handler.endObj();
+									}
+									break;
+								case StackTop.STATE_BEFORE_FIRST	:
+								case StackTop.STATE_BEFORE_VALUE	:
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (})"));
+							}
+							break;
+						case ']'	: 
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_FIRST	:
+									if (stack[stackTop].recordType != '[') {
+										throw new IOException(new SyntaxException(lineNo,current-from,"Missing ([)"));
+									}
+									else {
+										if (stack[stackTop].indexNo != -1) {
+											handler.endIndex();
+										}
+										pop();		current++;
+										stack[stackTop].nameState =  StackTop.STATE_AFTER_VALUE;
+										handler.endArr();
+									}
+									break;
+								case StackTop.STATE_BEFORE_VALUE	:
+								case StackTop.STATE_AFTER_VALUE		:
+									if (stack[stackTop].recordType != '[') {
+										throw new IOException(new SyntaxException(lineNo,current-from,"Missing ([)"));
+									}
+									else {
+										if (stack[stackTop].indexNo != -1) {
+											handler.endIndex();
+										}
+										pop();		current++;
+										stack[stackTop].nameState =  StackTop.STATE_AFTER_VALUE;
+										handler.endArr();
+									}
+									break;
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (])"));
+							}
+							break;
+						case ':'	: 
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_AFTER_NAME		:
+									stack[stackTop].nameState = StackTop.STATE_BEFORE_VALUE;
+									current++;
+									break;
+								case StackTop.STATE_AFTER_VALUE		:
+								case StackTop.STATE_BEFORE_FIRST	:
+								case StackTop.STATE_BEFORE_VALUE	:
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (:)"));
+							}
+							break;
+						case ','	: 
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_AFTER_VALUE		:
+									if (stack[stackTop].recordType == '[') {
+										stack[stackTop].nameState = StackTop.STATE_BEFORE_VALUE;
+										handler.endIndex();
+										handler.startIndex(++stack[stackTop].indexNo);
+									}
+									else {
+										stack[stackTop].nameState = StackTop.STATE_BEFORE_NAME;
+										handler.endName();
+									}
+									current++;
+									break;
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_BEFORE_FIRST	:
+								case StackTop.STATE_BEFORE_VALUE	:
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited (,)"));
+							}
+							break;
+						case '-' : case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_FIRST	:
+									current = numericValue(data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
+									break;
+								case StackTop.STATE_BEFORE_VALUE	:
+									if (stack[stackTop].recordType == '[' && stack[stackTop].indexNo == -1) {
+										handler.startIndex(++stack[stackTop].indexNo);
+									}
+									current = numericValue(data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
+									break;
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_VALUE		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,current-from,"Unwaited number"));
+							}
+							break;
+						case 't' : case 'f' :
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_FIRST	:
+									current = booleanValue(lineNo,from,data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
+									break;
+								case StackTop.STATE_BEFORE_VALUE	:
+									if (stack[stackTop].recordType == '[' && stack[stackTop].indexNo == -1) {
+										handler.startIndex(++stack[stackTop].indexNo);
+									}
+									current = booleanValue(lineNo,from,data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
+									break;
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_VALUE		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,(from-current),"Unwaited boolean"));
+							}
+							break;
+						case 'n'	:
+							switch (stack[stackTop].nameState) {
+								case StackTop.STATE_BEFORE_FIRST	:
+									current = nullValue(data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_LAST;
+									break;
+								case StackTop.STATE_BEFORE_VALUE	:
+									if (stack[stackTop].recordType == '[' && stack[stackTop].indexNo == -1) {
+										handler.startIndex(++stack[stackTop].indexNo);
+									}
+									current = nullValue(data,current,length);
+									stack[stackTop].nameState = StackTop.STATE_AFTER_VALUE;
+									break;
+								case StackTop.STATE_BEFORE_NAME		:
+								case StackTop.STATE_AFTER_NAME		:
+								case StackTop.STATE_AFTER_VALUE		:
+								case StackTop.STATE_AFTER_LAST		:
+								default :
+									throw new IOException(new SyntaxException(lineNo,(current-from),"Unwaited null"));
+							}
+							break;
+						default : 
+							throw new IOException(new SyntaxException(lineNo,(current-from),"Illegal char (possibly non-quoted name?)"));
+					}
+					symbol = data[current];
+				}
+				else {
+					break;
+				}
 			}
-			else {
-				break;
-			}
+		} catch (ContentException exc) {
+			throw new IOException(new SyntaxException(lineNo,(current-from),exc.getMessage(),exc));
 		}
 	}
 
-	private int stringName(final char[] data, final int from, final int length) {
+	private int stringName(final char[] data, final int from, final int length) throws ContentException {
 		int		temp;
 		
 		if ((temp = CharsUtil.parseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
@@ -371,7 +405,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		return temp;
 	}
 	
-	private int nullValue(final char[] data, final int from, final int length) {
+	private int nullValue(final char[] data, final int from, final int length) throws ContentException {
 		if (CharsUtil.compare(data,from,CONST_NULL)) {
 			handler.value();
 			return from + CONST_NULL.length;
@@ -381,7 +415,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private int booleanValue(final int lineNo, final int startLine, final char[] data, final int from, final int length) throws IOException {
+	private int booleanValue(final int lineNo, final int startLine, final char[] data, final int from, final int length) throws IOException, ContentException {
 		if (CharsUtil.compare(data,from,CONST_TRUE)) {
 			handler.value(true);
 			return from + CONST_TRUE.length;
@@ -395,7 +429,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private int numericValue(final char[] data, int from, final int length) {
+	private int numericValue(final char[] data, int from, final int length) throws ContentException {
 		final int		multiplier;
 		
 		if (data[from] == '-') {
@@ -425,7 +459,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		return result;
 	}
 
-	private int stringValue(final int lineNo, final int start,final char[] data, final int from, final int length) throws IOException {
+	private int stringValue(final int lineNo, final int start,final char[] data, final int from, final int length) throws IOException, ContentException {
 		int		temp, locations[] = new int[2];
 		
 		try{if ((temp = CharsUtil.parseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
@@ -474,7 +508,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		private static final int	STATE_AFTER_LAST = 6;
 		
 		char	recordType;
-		int		indexNo = 0;
+		int		indexNo = -1;
 		int		nameState = STATE_BEFORE_FIRST;
 		
 		public StackTop(final char recordType) {

@@ -1,6 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-public class Constants {
+class Constants {
 	/**
 	 * <p>Class file header constants</p>
 	 */

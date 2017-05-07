@@ -28,6 +28,51 @@ import java.util.jar.JarInputStream;
 
 public class Utils {
 	/**
+	 * <p>This class is a reference class</p>
+	 */
+	public static final int		CLASSTYPE_REFERENCE = 0;
+	
+	/**
+	 * <p>This class is a primitive byte</p>
+	 */
+	public static final int		CLASSTYPE_BYTE = 1;
+	
+	/**
+	 * <p>This class is a primitive short</p>
+	 */
+	public static final int		CLASSTYPE_SHORT = 2;
+	
+	/**
+	 * <p>This class is a primitive char</p>
+	 */
+	public static final int		CLASSTYPE_CHAR = 3;	
+	
+	/**
+	 * <p>This class is a primitive int</p>
+	 */
+	public static final int		CLASSTYPE_INT = 4;	
+	
+	/**
+	 * <p>This class is a primitive long</p>
+	 */
+	public static final int		CLASSTYPE_LONG = 5;	
+	
+	/**
+	 * <p>This class is a primitive float</p>
+	 */
+	public static final int		CLASSTYPE_FLOAT = 6;	
+	
+	/**
+	 * <p>This class is a primitive double</p>
+	 */
+	public static final int		CLASSTYPE_DOUBLE = 7;	
+	
+	/**
+	 * <p>This class is a primitive boolean</p>
+	 */
+	public static final int		CLASSTYPE_BOOLEAN = 8;	
+	
+	/**
 	 * <p>Copy one byte stream to another</p>
 	 * @param is input stream to copy from
 	 * @param os output stream to copy to
@@ -139,73 +184,6 @@ public class Utils {
 	}
 	
 	/**
-	 * <p>Get class list from given packages and it's sub-packages. This method can be useful to process all classes from the given packages</p>
-	 * @param packages package list to load classes from
-	 * @return loaded class list. Can be empty but not null
-	 * @throws IOException if some exception was thrown
-	 */
-	public static List<Class<?>> loadClasses(final Package... packages) throws IOException {
-		if (packages == null) {
-			throw new IllegalArgumentException("Package list can't be null"); 
-		}
-		else {
-			final List<Class<?>>	result = new ArrayList<>();
-			
-			for (Package item : packages) {
-				for (Package sub : Package.getPackages()) {	// Seek sub-packages
-					if (sub.getName().startsWith(item.getName())) {
-						fillClasses(sub,result);
-					}
-				}
-			}
-			return result;
-		}
-	}
-
-	private static void fillClasses(final Package item, final List<Class<?>> result) throws IOException {
-		final URL	resource = ClassLoader.getSystemClassLoader().getResource(item.getName().replace('.','/')); 
-		
-		if (resource != null) {
-			switch (resource.getProtocol()) {
-				case "file" 	:
-					try(final InputStream		is = resource.openStream();
-						final Reader			rdr = new InputStreamReader(is);
-						final BufferedReader	brdr = new BufferedReader(rdr)) {
-						String	buffer;
-								
-						while ((buffer = brdr.readLine()) != null) {
-							if (buffer.endsWith(".class")) {
-								result.add(item.getClass().getClassLoader().loadClass(item.getName()+'.'+buffer.substring(0,buffer.lastIndexOf('.'))));
-							}
-						}						
-					} catch (ClassNotFoundException e) {
-						throw new IOException(e.getMessage());
-					}
-					break;
-				case "jar" 		:
-					try{final String[]	parts = resource.toURI().getSchemeSpecificPart().split("\\!");
-						try(final InputStream		is = new URL(parts[0]).openStream();
-							final JarInputStream	jis = new JarInputStream(is)) {
-							JarEntry	je;
-							
-							while ((je = jis.getNextJarEntry()) != null) {
-								final String	packageName = je.getName().substring(0,je.getName().lastIndexOf('/'));
-								
-								if (packageName.equals(parts[1].substring(1)) && je.getName().endsWith(".class")) {
-									result.add(item.getClass().getClassLoader().loadClass(je.getName().substring(0,je.getName().lastIndexOf('.')).replace('/','.')));
-								}
-							}
-						}
-					} catch (URISyntaxException | ClassNotFoundException e) {
-						throw new IOException(e.getMessage());
-					} 
-					break;
-				default : throw new UnsupportedOperationException("Resource URL ["+resource+"] is not supported for class loading");
-			}
-		}
-	}
-
-	/**
 	 * <p>Load resource content to string.</p>
 	 * @param resourceURL resource URL
 	 * @return string loaded
@@ -214,7 +192,6 @@ public class Utils {
 	public static String fromResource(final URL resourceURL) throws IOException {
 		return fromResource(resourceURL,"UTF-8");
 	}
-	
 	
 	/**
 	 * <p>Load resource content to string.</p>
@@ -243,6 +220,44 @@ public class Utils {
 				}
 			}
 			return sb.toString();
+		}
+	}
+	
+	/**
+	 * <p>Classify the given class by it's primitive type</p>
+	 * @param clazz class to classify
+	 * @return one of the CLASSTYPE_ZZZ constants (see description) 
+	 */
+	public static int defineClassType(final Class<?> clazz) {
+		if (clazz == null) {
+			throw new IllegalArgumentException("Class to define can't be null"); 
+		}
+		else if (!clazz.isPrimitive()) {
+			return CLASSTYPE_REFERENCE;
+		}
+		else if (clazz == byte.class) {
+			return CLASSTYPE_BYTE;
+		}
+		else if (clazz == short.class) {
+			return CLASSTYPE_SHORT;
+		}
+		else if (clazz == char.class) {
+			return CLASSTYPE_CHAR;
+		}
+		else if (clazz == int.class) {
+			return CLASSTYPE_INT;
+		}
+		else if (clazz == long.class) {
+			return CLASSTYPE_LONG;
+		}
+		else if (clazz == float.class) {
+			return CLASSTYPE_FLOAT;
+		}
+		else if (clazz == double.class) {
+			return CLASSTYPE_DOUBLE;
+		}
+		else {
+			return CLASSTYPE_BOOLEAN;
 		}
 	}
 }
