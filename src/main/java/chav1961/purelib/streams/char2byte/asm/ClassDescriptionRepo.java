@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 
@@ -19,10 +19,10 @@ class ClassDescriptionRepo {
 	private final SyntaxTreeInterface<Keeper>		repoShort = new AndOrTree<Keeper>(1,16);
 	private final SyntaxTreeInterface<Keeper>		repoLong = new AndOrTree<Keeper>(2,16);
 
-	ClassDescriptionRepo() throws AsmSyntaxException {
+	ClassDescriptionRepo() throws ContentException {
 	}
 	
-	void addDescription(final Class<?> clazz) throws AsmSyntaxException {
+	void addDescription(final Class<?> clazz) throws ContentException {
 		if (clazz == null) {
 			throw new IllegalArgumentException("Class to add can'tbe null");
 		}
@@ -31,24 +31,24 @@ class ClassDescriptionRepo {
 		}
 	}
 	
-	Class<?> getClassDescription(final char[] data, final int from, final int to) throws AsmSyntaxException {
+	Class<?> getClassDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_CLASS,KeeperContent.IsClass,Class.class);
 	}
 
-	Field getFieldDescription(final char[] data, final int from, final int to) throws AsmSyntaxException {
+	Field getFieldDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_FIELD,KeeperContent.IsField,Field.class);
 	}
 
-	Method getMethodDescription(final char[] data, final int from, final int to) throws AsmSyntaxException {
+	Method getMethodDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_METHOD,KeeperContent.IsMethod,Method.class);
 	}
 
-	Constructor<?> getConstructorDescription(final char[] data, final int from, final int to) throws AsmSyntaxException {
+	Constructor<?> getConstructorDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_CONSTRUCTOR,KeeperContent.isConstructor,Constructor.class);
 	}
 	
 	@SuppressWarnings("unchecked")
-	private <T> T getDescription(final char[] data, final int from, final int to, final String content, final KeeperContent type, final Class<T> result) throws AsmSyntaxException {
+	private <T> T getDescription(final char[] data, final int from, final int to, final String content, final KeeperContent type, final Class<T> result) throws ContentException {
 		if (data == null || data.length == 0) {
 			throw new IllegalArgumentException("Data char array cant be null or zero length");
 		}
@@ -64,14 +64,14 @@ class ClassDescriptionRepo {
 			if ((id = repoShort.seekName(data,from,to)) >= 0) {
 				if (repoShort.getCargo(id).content == type) {
 					if (repoShort.getCargo(id).useCounter > 1) {
-						throw new AsmSyntaxException("Short name ["+new String(data,from,to-from)+"] is ambigious, use qualified name instead!");
+						throw new ContentException("Short name ["+new String(data,from,to-from)+"] is ambigious, use qualified name instead!");
 					}
 					else {
 						return (T) repoShort.getCargo(id).data;
 					}
 				}
 				else {
-					throw new AsmSyntaxException("Short name ["+new String(data,from,to-from)+"] is not a "+content+", but ["+repoShort.getCargo(id).content+"]");
+					throw new ContentException("Short name ["+new String(data,from,to-from)+"] is not a "+content+", but ["+repoShort.getCargo(id).content+"]");
 				}
 			}
 			else if ((id = repoLong.seekName(data,from,to)) >= 0) {
@@ -79,46 +79,65 @@ class ClassDescriptionRepo {
 					return (T) repoLong.getCargo(id).data;
 				}
 				else {
-					throw new AsmSyntaxException("Qualified name ["+new String(data,from,to-from)+"] is not a "+content+", but ["+repoLong.getCargo(id).content+"]");
+					throw new ContentException("Qualified name ["+new String(data,from,to-from)+"] is not a "+content+", but ["+repoLong.getCargo(id).content+"]");
 				}
 			}
 			else {
-				throw new AsmSyntaxException(content+" name ["+new String(data,from,to-from)+"] is unknown, use import directive to load it's description");
+				throw new ContentException(content+" name ["+new String(data,from,to-from)+"] is unknown, use import directive to load it's description");
 			}
 		}
 	}
 
-	private static void addClassDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final Class<?> clazz) throws AsmSyntaxException {
-		addAnyDescription(shortTree,longTree,"class",clazz.getPackage() != null ? clazz.getPackage().getName() : "",clazz.getSimpleName(),KeeperContent.IsClass,clazz);
-		for (Field f : clazz.getFields()) {
-			addFieldDescription(shortTree,longTree,clazz.getCanonicalName(),f);
+	private static void addClassDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final Class<?> clazz) throws ContentException {
+		if (clazz.getName().contains("$")) {
+			final String	clazzName = clazz.getName();
+			final String	packageName = clazzName.contains(".") ? clazzName.substring(0,clazzName.lastIndexOf('.')) : "";
+			final String	simpleName = clazzName.contains(".") ? clazzName.substring(clazzName.lastIndexOf('.')+1).replace('$', '.') : clazzName.replace('$', '.');
+			final String	fullName = clazzName.replace('$', '.');			
+			
+			addAnyDescription(shortTree,longTree,"class",packageName,simpleName,KeeperContent.IsClass,clazz);
+			for (Field f : clazz.getFields()) {
+				addFieldDescription(shortTree,longTree,fullName,f);
+			}
+			for (Method m : clazz.getMethods()) {
+				addMethodDescription(shortTree,longTree,fullName,m);
+			}
+			for (Constructor<?> c : clazz.getConstructors()) {
+				addConstructorDescription(shortTree,longTree,fullName,c);
+			}
 		}
-		for (Method m : clazz.getMethods()) {
-			addMethodDescription(shortTree,longTree,clazz.getCanonicalName(),m);
-		}
-		for (Constructor<?> c : clazz.getConstructors()) {
-			addConstructorDescription(shortTree,longTree,clazz.getCanonicalName(),c);
+		else {
+			addAnyDescription(shortTree,longTree,"class",clazz.getPackage() != null ? clazz.getPackage().getName() : "",clazz.getSimpleName(),KeeperContent.IsClass,clazz);
+			for (Field f : clazz.getFields()) {
+				addFieldDescription(shortTree,longTree,clazz.getCanonicalName(),f);
+			}
+			for (Method m : clazz.getMethods()) {
+				addMethodDescription(shortTree,longTree,clazz.getCanonicalName(),m);
+			}
+			for (Constructor<?> c : clazz.getConstructors()) {
+				addConstructorDescription(shortTree,longTree,clazz.getCanonicalName(),c);
+			}
 		}
 	}
 
-	private static void addFieldDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String className, final Field f) throws AsmSyntaxException {
+	private static void addFieldDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String className, final Field f) throws ContentException {
 		addAnyDescription(shortTree,longTree,"field",className,f.getName(),KeeperContent.IsField,f);
 	}
 
-	private static void addMethodDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String className, final Method m) throws AsmSyntaxException {
+	private static void addMethodDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String className, final Method m) throws ContentException {
 		addAnyDescription(shortTree,longTree,"method",className,m.getName()+InternalUtils.buildSignature(m),KeeperContent.IsMethod,m);
 	}
 
-	private static void addConstructorDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String className, final Constructor<?> c) throws AsmSyntaxException {
+	private static void addConstructorDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String className, final Constructor<?> c) throws ContentException {
 		addAnyDescription(shortTree,longTree,"constructor",className,c.getDeclaringClass().getSimpleName()+InternalUtils.buildSignature(c),KeeperContent.isConstructor,c);
 	}
 
-	private static void addAnyDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String entityType, final String className, final String entityName, final KeeperContent context, final Object entity) throws AsmSyntaxException {
+	private static void addAnyDescription(final SyntaxTreeInterface<Keeper> shortTree, final SyntaxTreeInterface<Keeper> longTree, final String entityType, final String className, final String entityName, final KeeperContent context, final Object entity) throws ContentException {
 		final char[]	simpleName = entityName.toCharArray(), qualifiedName = (className+'.'+entityName).toCharArray();
 		long			id;
 		
 		if (longTree.seekName(qualifiedName,0,qualifiedName.length) >= 0) {
-			throw new AsmSyntaxException("Duplicate description for the "+entityType+" ["+new String(qualifiedName)+"] was detected during import");
+			throw new ContentException("Duplicate description for the "+entityType+" ["+new String(qualifiedName)+"] was detected during import");
 		}
 		else if ((id = shortTree.seekName(simpleName,0,simpleName.length)) >= 0) {
 			final Keeper	oldKeeper = shortTree.getCargo(id);

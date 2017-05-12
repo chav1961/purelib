@@ -20,7 +20,7 @@ import java.util.Map.Entry;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharsUtil;
 import chav1961.purelib.basic.LineByLineProcessor;
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -279,12 +279,12 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x07,1,"iconst_4");
 		placeStaticCommand(0x08,1,"iconst_5");
 		placeStaticCommand(0x6c,1,"idiv");
-		placeStaticCommand(0x9f,1,"if_acmpeq");
-		placeStaticCommand(0xa0,1,"if_acmpne");
-		placeStaticCommand(0xa1,1,"if_icmplt");
-		placeStaticCommand(0xa2,1,"if_icmpge");
-		placeStaticCommand(0x03,1,"if_icmpgt");
-		placeStaticCommand(0x04,1,"if_icmple");
+		placeStaticCommand(0x9f,1,"if_icmpeq",CommandFormat.shortBrunch);
+		placeStaticCommand(0xa0,1,"if_icmpne",CommandFormat.shortBrunch);
+		placeStaticCommand(0xa1,1,"if_icmplt",CommandFormat.shortBrunch);
+		placeStaticCommand(0xa2,1,"if_icmpge",CommandFormat.shortBrunch);
+		placeStaticCommand(0xa3,1,"if_icmpgt",CommandFormat.shortBrunch);
+		placeStaticCommand(0xa4,1,"if_icmple",CommandFormat.shortBrunch);
 		placeStaticCommand(0x99,1,"ifeq",CommandFormat.shortBrunch);
 		placeStaticCommand(0x9a,1,"ifne",CommandFormat.shortBrunch);
 		placeStaticCommand(0x9b,1,"iflt",CommandFormat.shortBrunch);
@@ -392,9 +392,10 @@ class LineParser implements LineByLineProcessorCallback {
 	private int										switchAddress;
 	private List<int[]>								tryList = new ArrayList<int[]>();
 	
-	LineParser(final ClassContainer cc) throws AsmSyntaxException {
+	LineParser(final ClassContainer cc) throws IOException, ContentException {
 		this.cc = cc;
-		this.tree = cc.getNameTree();				this.cdr = new ClassDescriptionRepo();
+		this.tree = cc.getNameTree();				
+		this.cdr = new ClassDescriptionRepo();
 		for (Class<?> item : PRELOADED_CLASSES) {
 			cdr.addDescription(item);
 		}
@@ -403,391 +404,404 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	@Override
-	public void processLine(int lineNo, char[] data, int from, int len) throws IOException {
+	public void processLine(final int lineNo, final char[] data, final int from, final int len) throws IOException {
 		int		start = from, end = Math.min(from+len,data.length);
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 		
-		if (data[start] > ' ') {
-			startName = start;
-			start = skipSimpleName(data,start);
-			endName = start;
-			id = tree.placeName(data,startName,endName,null);
-			
-			start = skipBlank(data,start);
-			if (data[start] == ':') {
-				switch (state) {
-					case insideClassBody :
-					case insideBegin :
-						putLabel(id);
-						break;
-					default :
-						throw new AsmSyntaxException("Branch label outside the method body!");
+		try{if (data[start] > ' ') {
+				startName = start;
+				start = skipSimpleName(data,start);
+				endName = start;
+				id = tree.placeName(data,startName,endName,null);
+				
+				start = skipBlank(data,start);
+				if (data[start] == ':') {
+					switch (state) {
+						case insideClassBody :
+						case insideBegin :
+							putLabel(id);
+							break;
+						default :
+							throw new ContentException("Branch label outside the method body!");
+					}
+					start++;
+					id = -1;
 				}
-				start++;
-				id = -1;
 			}
-		}
-		
-		startDir = start = skipBlank(data,start);
-		
-		switch (data[start]) {
-			case '.' :
-				endDir = start = skipSimpleName(data,start+1);
-
-				switch ((int)staticDirectiveTree.seekName(data,startDir,endDir)) {
-					case DIR_CLASS	:
-						checkLabel(id,true);
-						switch (state) {
-							case beforePackage :
-							case beforeImport :
-								processClassDir(id,data,skipBlank(data,start));
-								state = ParserState.insideClass;
-								break;
-							case afterCLass :
-								throw new AsmSyntaxException("Second class directive in the same stream. Use separate streams for each class/interface!");
-							default :
-								throw new AsmSyntaxException("Nested class directive!");
-						}						
-						break;
-					case DIR_INTERFACE:
-						checkLabel(id,true);
-						switch (state) {
-							case beforePackage :
-							case beforeImport :
-								processInterfaceDir(id,data,skipBlank(data,start));
-								state = ParserState.insideInterface;
-								break;
-							case afterCLass :
-								throw new AsmSyntaxException("Second interface directive in the same stream. Use separate streams for each class/interface!");
-							default :
-								throw new AsmSyntaxException("Nested interface directive!");
-						}						
-						break;
-					case DIR_FIELD	:
-						checkLabel(id,true);
-						switch (state) {
-							case insideClass :
-								processClassFieldDir(id,data,skipBlank(data,start));
-								break;
-							case insideInterface :
-								processInterfaceFieldDir(id,data,skipBlank(data,start));
-								break;
-							case beforePackage :
-							case beforeImport :
-							case afterCLass :
-								throw new AsmSyntaxException("Field directive outside the class/interface!");
-							default :
-								throw new AsmSyntaxException("Field directive inside the method!");
-						}
-						break;
-					case DIR_METHOD	:
-						checkLabel(id,true);
-						switch (state) {
-							case insideClass :
-								processClassMethodDir(id,data,skipBlank(data,start));
-								state = methodDescriptor.isAbstract() ? ParserState.insideClassAbstractMethod : ParserState.insideClassMethod;
-								break;
-							case insideInterface :
-								processInterfaceMethodDir(id,data,skipBlank(data,start));
-								state = ParserState.insideInterfaceAbstractMethod;
-								break;
-							case beforePackage :
-							case beforeImport :
-							case afterCLass :
-								throw new AsmSyntaxException("Method directive outside the class/interface!");
-							default :
-								throw new AsmSyntaxException("Nested method directive!");
-						}
-						break;
-					case DIR_PARAMETER	:
-						checkLabel(id,true);
-						switch (state) {
-							case insideClassAbstractMethod :
-							case insideInterfaceAbstractMethod :
-							case insideClassMethod :
-								processParameterDir(id,data,skipBlank(data,start));
-								break;
-							default :
-								throw new AsmSyntaxException("Parameter directive is used outside the method description!");
-						}
-						break;
-					case DIR_VAR	:
-						checkLabel(id,true);
-						switch (state) {
-							case insideClassBody :
-							case insideBegin :
-								processVarDir(id,data,skipBlank(data,start));
-								break;
-							default :
-								throw new AsmSyntaxException("Var directive is used outside the method description!");
-						}
-						break;
-					case DIR_BEGIN	:
-						switch (state) {
-							case insideBegin :
-							case insideClassMethod :
-								break;
-							default :
-								throw new AsmSyntaxException("Begin directive is valid in the method body only!");
-						}
-						break;
-					case DIR_END	:
-						switch (state) {
-							case insideClass :
-							case insideInterface :
-								checkLabel(id,true);
-								if (id != classNameId) {
-									throw new AsmSyntaxException("End directive closes class description, but it's label ["+tree.getName(id)+"] is differ from class name ["+tree.getName(classNameId)+"]");
-								}
-								else {
-									state = ParserState.afterCLass;
-								}
-								break;
-							case insideClassAbstractMethod :
-								checkLabel(id,true);
-								if (id != methodNameId) {
-									throw new AsmSyntaxException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
-								}
-								else {
-									methodDescriptor.complete();
-									state = ParserState.insideClass;
-								}
-								break;
-							case insideClassMethod :
-								throw new AsmSyntaxException("Class method body in not defined!");
-							case insideClassBody :
-								checkLabel(id,true);
-								if (id != methodNameId && id != classNameId) {
-									throw new AsmSyntaxException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
-								}
-								else if (!areTryBlocksClosed()) {
-									throw new AsmSyntaxException("Unclosed try blocks inside the method body ["+tree.getName(methodNameId)+"]");
-								}
-								else {
-									methodDescriptor.complete();
-									state = ParserState.insideClass;
-								}
-								break;
-							case insideInterfaceAbstractMethod :
-								checkLabel(id,true);
-								if (id != methodNameId) {
-									throw new AsmSyntaxException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
-								}
-								else {
-									methodDescriptor.complete();
-									state = ParserState.insideInterface;
-								}
-								break;
-							case insideBegin :
-								break;
-							case insideMethodLookup :
-								fillLookup();	jumps.clear();
-								state = ParserState.insideBegin; 
-								break;
-							case insideMethodTable :
-								fillTable();	jumps.clear();
-								state = ParserState.insideBegin; 
-								break;
-							default :
-								throw new AsmSyntaxException("End directive out of context!");
-						}
-						skip2line(data,start);
-						break;
-					case DIR_STACK	:
-						checkLabel(id,false);
-						switch (state) {
-							case insideClassMethod :
-								processStackDir(data,skipBlank(data,start));
-								state = ParserState.insideClassBody;
-								break;
-							case insideClassBody :
-							case insideBegin :
-								throw new AsmSyntaxException("Duplicate Stack directive detected!");
-							default :
-								throw new AsmSyntaxException("Stack directive is used outside the method description!");
-						}
-						break;
-					case DIR_PACKAGE:
-						checkLabel(id,false);
-						switch (state) {
-							case beforePackage :
-								processPackageDir(data,skipBlank(data,start));
-								state = ParserState.beforeImport;
-								break;
-							case beforeImport :
-								throw new AsmSyntaxException("Duplicate package directive!");
-							default :
-								throw new AsmSyntaxException("Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
-						}
-						break;
-					case DIR_IMPORT:
-						checkLabel(id,false);
-						switch (state) {
-							case beforePackage :
-							case beforeImport :
-								processImportDir(data,skipBlank(data,start));
-								break;
-							default :
-								throw new AsmSyntaxException("Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
-						}
-						break;
-					case DIR_INCLUDE:
-						checkLabel(id,false);
-						processIncludeDir(data,skipBlank(data,start),end);
-						break;
-					case DIR_TRY	:
-						switch (state) {
-							case insideClassBody :
-							case insideBegin :
-								pushTryBlock();
-								break;
-							default :
-								throw new AsmSyntaxException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
-						}
-						break;
-					case DIR_CATCH	:
-						switch (state) {
-							case insideClassBody :
-							case insideBegin :
-								processCatch(data,skipBlank(data,start),end);
-								break;
-							default :
-								throw new AsmSyntaxException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
-						}
-						break;
-					case DIR_END_TRY	:
-						switch (state) {
-							case insideClassBody :
-							case insideBegin :
-								popTryBlock(lineNo);
-								break;
-							default :
-								throw new AsmSyntaxException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
-						}
-						break;
-					case DIR_DEFAULT:
-						switch (state) {
-							case insideMethodLookup : 
-							case insideMethodTable : 
-								processJumps(data,skipBlank(data,start),end,false);
-								break;
-							default :
-								throw new AsmSyntaxException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside loowkuswitch/tableswitch command body only");
-						}
-						break;
-					default :
-						throw new AsmSyntaxException("Unknown directive : "+new String(data,startDir-1,endDir-startDir+1));
-				}
-				break;
-			case '*' :
-				switch (state) {
-					case insideClassBody : 
-					case insideBegin : 
-						endDir = start = skipSimpleName(data,start+1);
-		
-						switch ((int)staticDirectiveTree.seekName(data,startDir,endDir)) {
-							case CMD_LOAD	: processLoadAuto(data,skipBlank(data,start)); break;
-							case CMD_STORE	: processStoreAuto(data,skipBlank(data,start)); break;
-							case CMD_EVAL	: processEvalAuto(data,skipBlank(data,start)); break;
-							case CMD_CALL	: processCallAuto(data,skipBlank(data,start)); break;
-							default : throw new AsmSyntaxException("Unknown automation : "+new String(data,startDir-1,endDir-startDir+1));
-						}
-						break;
-					default :
-						throw new AsmSyntaxException("Automation can be used on the method body only!");
-				}
-				break;
-			default :
-				switch (state) {
-					case insideClassBody : 
-					case insideBegin : 
-						endDir = start = skipSimpleName(data,start);
-						final long	opCode = staticCommandTree.seekName(data,startDir,endDir);
+			
+			startDir = start = skipBlank(data,start);
+			
+			switch (data[start]) {
+				case '.' :
+					endDir = start = skipSimpleName(data,start+1);
 	
-						if (opCode != -1) {
-							final CommandDescriptor	desc = staticCommandTree.getCargo(opCode);
-
-							methodDescriptor.addLineNoRecord(lineNo);
-							switch (desc.commandFormat) {
-								case single					: processSingleCommand(desc,data,skipBlank(data,start)); break; 
-								case byteIndex				: processByteIndexCommand(desc,data,skipBlank(data,start),false); break;
-								case byteValue				: processByteValueCommand(desc,data,skipBlank(data,start),false); break;
-								case shortValue				: processShortValueCommand(desc,data,skipBlank(data,start),false); break;
-								case byteType				: processByteTypeCommand(desc,data,skipBlank(data,start)); break;
-								case byteIndexAndByteValue	: processByteIndexAndByteValueCommand(desc,data,skipBlank(data,start),false); break;
-								case shortIndexAndByteValue	: processShortIndexAndByteValueCommand(desc,data,skipBlank(data,start)); break;
-								case classShortIndex		: processClassShortIndexCommand(desc,data,skipBlank(data,start)); break;
-								case valueByteIndex			: processValueByteIndexCommand(desc,data,skipBlank(data,start)); break;
-								case valueShortIndex		: processValueShortIndexCommand(desc,data,skipBlank(data,start)); break;
-								case valueShortIndex2		: processValueShortIndex2Command(desc,data,skipBlank(data,start)); break;
-								case shortBrunch			: processShortBrunchCommand(desc,data,skipBlank(data,start),end); break;
-								case longBrunch				: processLongBrunchCommand(desc,data,skipBlank(data,start),end); break;
-								case shortGlobalIndex		: processShortGlobalIndexCommand(desc,data,skipBlank(data,start),end); break;
-								case call					: processCallCommand(desc,data,skipBlank(data,start),end); break;
-								case callDynamic			: processDynamicCallCommand(desc,data,skipBlank(data,start),end); break;
-								case callInterface			: processInterfaceCallCommand(desc,data,skipBlank(data,start),end); break;
-								case lookupSwitch			: switchAddress = getPC(); putCommand((byte)opCode); alignPC(); jumps.clear(); state = ParserState.insideMethodLookup; break;
-								case tableSwitch			: switchAddress = getPC(); putCommand((byte)opCode); alignPC(); jumps.clear(); state = ParserState.insideMethodTable; break;
-								case wide					: processWideCommand(desc,data,skipBlank(data,start),end); break;
-								default : throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
+					switch ((int)staticDirectiveTree.seekName(data,startDir,endDir)) {
+						case DIR_CLASS	:
+							checkLabel(id,true);
+							switch (state) {
+								case beforePackage :
+								case beforeImport :
+									processClassDir(id,data,skipBlank(data,start));
+									state = ParserState.insideClass;
+									break;
+								case afterCLass :
+									throw new ContentException("Second class directive in the same stream. Use separate streams for each class/interface!");
+								default :
+									throw new ContentException("Nested class directive!");
+							}						
+							break;
+						case DIR_INTERFACE:
+							checkLabel(id,true);
+							switch (state) {
+								case beforePackage :
+								case beforeImport :
+									processInterfaceDir(id,data,skipBlank(data,start));
+									state = ParserState.insideInterface;
+									break;
+								case afterCLass :
+									throw new ContentException("Second interface directive in the same stream. Use separate streams for each class/interface!");
+								default :
+									throw new ContentException("Nested interface directive!");
+							}						
+							break;
+						case DIR_FIELD	:
+							checkLabel(id,true);
+							switch (state) {
+								case insideClass :
+									processClassFieldDir(id,data,skipBlank(data,start));
+									break;
+								case insideInterface :
+									processInterfaceFieldDir(id,data,skipBlank(data,start));
+									break;
+								case beforePackage :
+								case beforeImport :
+								case afterCLass :
+									throw new ContentException("Field directive outside the class/interface!");
+								default :
+									throw new ContentException("Field directive inside the method!");
 							}
-						}
-						else {
-							throw new AsmSyntaxException("Unknown command : "+new String(data,startDir,endDir-startDir));
-						}
-						break;
-					case insideMethodLookup : 
-					case insideMethodTable : 
-						processJumps(data,startDir,end,true);
-						break;
-					default :
-						throw new AsmSyntaxException("Unknown line: "+new String(data,from,len));
-				}
+							break;
+						case DIR_METHOD	:
+							checkLabel(id,true);
+							switch (state) {
+								case insideClass :
+									processClassMethodDir(id,data,skipBlank(data,start));
+									state = methodDescriptor.isAbstract() ? ParserState.insideClassAbstractMethod : ParserState.insideClassMethod;
+									break;
+								case insideInterface :
+									processInterfaceMethodDir(id,data,skipBlank(data,start));
+									state = ParserState.insideInterfaceAbstractMethod;
+									break;
+								case beforePackage :
+								case beforeImport :
+								case afterCLass :
+									throw new ContentException("Method directive outside the class/interface!");
+								default :
+									throw new ContentException("Nested method directive!");
+							}
+							break;
+						case DIR_PARAMETER	:
+							checkLabel(id,true);
+							switch (state) {
+								case insideClassAbstractMethod :
+								case insideInterfaceAbstractMethod :
+								case insideClassMethod :
+									processParameterDir(id,data,skipBlank(data,start));
+									break;
+								default :
+									throw new ContentException("Parameter directive is used outside the method description!");
+							}
+							break;
+						case DIR_VAR	:
+							checkLabel(id,true);
+							switch (state) {
+								case insideClassBody :
+								case insideBegin :
+									processVarDir(id,data,skipBlank(data,start));
+									break;
+								default :
+									throw new ContentException("Var directive is used outside the method description!");
+							}
+							break;
+						case DIR_BEGIN	:
+							switch (state) {
+								case insideBegin :
+								case insideClassMethod :
+									break;
+								default :
+									throw new ContentException("Begin directive is valid in the method body only!");
+							}
+							break;
+						case DIR_END	:
+							switch (state) {
+								case insideClass :
+								case insideInterface :
+									checkLabel(id,true);
+									if (id != classNameId) {
+										throw new ContentException("End directive closes class description, but it's label ["+tree.getName(id)+"] is differ from class name ["+tree.getName(classNameId)+"]");
+									}
+									else {
+										state = ParserState.afterCLass;
+									}
+									break;
+								case insideClassAbstractMethod :
+									checkLabel(id,true);
+									if (id != methodNameId) {
+										throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+									}
+									else {
+										methodDescriptor.complete();
+										state = ParserState.insideClass;
+									}
+									break;
+								case insideClassMethod :
+									throw new ContentException("Class method body in not defined!");
+								case insideClassBody :
+									checkLabel(id,true);
+									if (id != methodNameId && id != classNameId) {
+										throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+									}
+									else if (!areTryBlocksClosed()) {
+										throw new ContentException("Unclosed try blocks inside the method body ["+tree.getName(methodNameId)+"]");
+									}
+									else {
+										methodDescriptor.complete();
+										state = ParserState.insideClass;
+									}
+									break;
+								case insideInterfaceAbstractMethod :
+									checkLabel(id,true);
+									if (id != methodNameId) {
+										throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+									}
+									else {
+										methodDescriptor.complete();
+										state = ParserState.insideInterface;
+									}
+									break;
+								case insideBegin :
+									checkLabel(id,true);
+									if (id != methodNameId) {
+										throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+									}
+									else {
+										methodDescriptor.complete();
+										state = ParserState.insideClass;
+									}
+									break;
+								case insideMethodLookup :
+									fillLookup();	jumps.clear();
+									state = ParserState.insideBegin; 
+									break;
+								case insideMethodTable :
+									fillTable();	jumps.clear();
+									state = ParserState.insideBegin; 
+									break;
+								default :
+									throw new ContentException("End directive out of context!");
+							}
+							skip2line(data,start);
+							break;
+						case DIR_STACK	:
+							checkLabel(id,false);
+							switch (state) {
+								case insideClassMethod :
+									processStackDir(data,skipBlank(data,start));
+									state = ParserState.insideClassBody;
+									break;
+								case insideClassBody :
+								case insideBegin :
+									throw new ContentException("Duplicate Stack directive detected!");
+								default :
+									throw new ContentException("Stack directive is used outside the method description!");
+							}
+							break;
+						case DIR_PACKAGE:
+							checkLabel(id,false);
+							switch (state) {
+								case beforePackage :
+									processPackageDir(data,skipBlank(data,start));
+									state = ParserState.beforeImport;
+									break;
+								case beforeImport :
+									throw new ContentException("Duplicate package directive!");
+								default :
+									throw new ContentException("Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
+							}
+							break;
+						case DIR_IMPORT:
+							checkLabel(id,false);
+							switch (state) {
+								case beforePackage :
+								case beforeImport :
+									processImportDir(data,skipBlank(data,start));
+									break;
+								default :
+									throw new ContentException("Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
+							}
+							break;
+						case DIR_INCLUDE:
+							checkLabel(id,false);
+							processIncludeDir(data,skipBlank(data,start),end);
+							break;
+						case DIR_TRY	:
+							switch (state) {
+								case insideClassBody :
+								case insideBegin :
+									pushTryBlock();
+									break;
+								default :
+									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+							}
+							break;
+						case DIR_CATCH	:
+							switch (state) {
+								case insideClassBody :
+								case insideBegin :
+									processCatch(data,skipBlank(data,start),end);
+									break;
+								default :
+									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+							}
+							break;
+						case DIR_END_TRY	:
+							switch (state) {
+								case insideClassBody :
+								case insideBegin :
+									popTryBlock(lineNo);
+									break;
+								default :
+									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+							}
+							break;
+						case DIR_DEFAULT:
+							switch (state) {
+								case insideMethodLookup : 
+								case insideMethodTable : 
+									processJumps(data,skipBlank(data,start),end,false);
+									break;
+								default :
+									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside loowkuswitch/tableswitch command body only");
+							}
+							break;
+						default :
+							throw new ContentException("Unknown directive : "+new String(data,startDir-1,endDir-startDir+1));
+					}
+					break;
+				case '*' :
+					switch (state) {
+						case insideClassBody : 
+						case insideBegin : 
+							endDir = start = skipSimpleName(data,start+1);
+			
+							switch ((int)staticDirectiveTree.seekName(data,startDir,endDir)) {
+								case CMD_LOAD	: processLoadAuto(data,skipBlank(data,start)); break;
+								case CMD_STORE	: processStoreAuto(data,skipBlank(data,start)); break;
+								case CMD_EVAL	: processEvalAuto(data,skipBlank(data,start)); break;
+								case CMD_CALL	: processCallAuto(data,skipBlank(data,start)); break;
+								default : throw new ContentException("Unknown automation : "+new String(data,startDir-1,endDir-startDir+1));
+							}
+							break;
+						default :
+							throw new ContentException("Automation can be used on the method body only!");
+					}
+					break;
+				default :
+					switch (state) {
+						case insideClassBody : 
+						case insideBegin : 
+							endDir = start = skipSimpleName(data,start);
+							final long	opCode = staticCommandTree.seekName(data,startDir,endDir);
+		
+							if (opCode >= 0) {
+								final CommandDescriptor	desc = staticCommandTree.getCargo(opCode);
+	
+								methodDescriptor.addLineNoRecord(lineNo);
+								switch (desc.commandFormat) {
+									case single					: processSingleCommand(desc,data,skipBlank(data,start)); break; 
+									case byteIndex				: processByteIndexCommand(desc,data,skipBlank(data,start),false); break;
+									case byteValue				: processByteValueCommand(desc,data,skipBlank(data,start),false); break;
+									case shortValue				: processShortValueCommand(desc,data,skipBlank(data,start),false); break;
+									case byteType				: processByteTypeCommand(desc,data,skipBlank(data,start)); break;
+									case byteIndexAndByteValue	: processByteIndexAndByteValueCommand(desc,data,skipBlank(data,start),false); break;
+									case shortIndexAndByteValue	: processShortIndexAndByteValueCommand(desc,data,skipBlank(data,start)); break;
+									case classShortIndex		: processClassShortIndexCommand(desc,data,skipBlank(data,start)); break;
+									case valueByteIndex			: processValueByteIndexCommand(desc,data,skipBlank(data,start)); break;
+									case valueShortIndex		: processValueShortIndexCommand(desc,data,skipBlank(data,start)); break;
+									case valueShortIndex2		: processValueShortIndex2Command(desc,data,skipBlank(data,start)); break;
+									case shortBrunch			: processShortBrunchCommand(desc,data,skipBlank(data,start),end); break;
+									case longBrunch				: processLongBrunchCommand(desc,data,skipBlank(data,start),end); break;
+									case shortGlobalIndex		: processShortGlobalIndexCommand(desc,data,skipBlank(data,start),end); break;
+									case call					: processCallCommand(desc,data,skipBlank(data,start),end); break;
+									case callDynamic			: processDynamicCallCommand(desc,data,skipBlank(data,start),end); break;
+									case callInterface			: processInterfaceCallCommand(desc,data,skipBlank(data,start),end); break;
+									case lookupSwitch			: switchAddress = getPC(); putCommand((byte)opCode); alignPC(); jumps.clear(); state = ParserState.insideMethodLookup; break;
+									case tableSwitch			: switchAddress = getPC(); putCommand((byte)opCode); alignPC(); jumps.clear(); state = ParserState.insideMethodTable; break;
+									case wide					: processWideCommand(desc,data,skipBlank(data,start),end); break;
+									default : throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
+								}
+							}
+							else {
+								throw new ContentException("Unknown command : "+new String(data,startDir,endDir-startDir));
+							}
+							break;
+						case insideMethodLookup : 
+						case insideMethodTable : 
+							processJumps(data,startDir,end,true);
+							break;
+						default :
+							throw new ContentException("Unknown line: "+new String(data,from,len));
+					}
+			}
+		} catch (ContentException exc) {
+			exc.printStackTrace();
+			final SyntaxException	synt = new SyntaxException(lineNo,start-from,exc.getMessage(),exc);
+			throw new IOException(synt.getMessage(),synt);
 		}
 	}
 
-	private void checkLabel(final long labelId, final boolean present) throws AsmSyntaxException {
+	private void checkLabel(final long labelId, final boolean present) throws ContentException {
 		if (present) {
 			if (labelId == -1) {
-				throw new AsmSyntaxException("Missing mandatory name before directive!");
+				throw new ContentException("Missing mandatory name before directive!");
 			}
 		}
 		else {
 			if (labelId != -1) {
-				throw new AsmSyntaxException("Name before this directive is not supported!");
+				throw new ContentException("Name before this directive is not supported!");
 			}
 		}
 	}
 	
-	private void putLabel(final long labelId) throws IOException {
+	private void putLabel(final long labelId) throws ContentException, IOException {
 		methodDescriptor.getBody().putLabel(labelId);
 	}
 
-	private int getPC() throws IOException {
+	private int getPC() throws ContentException, IOException {
 		return methodDescriptor.getBody().getPC();
 	}
 	
-	private void putCommand(final byte... command) throws IOException {
+	private void putCommand(final byte... command) throws ContentException, IOException {
 		methodDescriptor.getBody().putCommand(1,command);
 	}
 
-	private void alignPC() throws IOException {
+	private void alignPC() throws ContentException, IOException {
 		methodDescriptor.getBody().alignPC();
 	}
 
-	private void registerBranch(final long forResult, final boolean shortBrunch) throws IOException {
+	private void registerBranch(final long forResult, final boolean shortBrunch) throws ContentException, IOException {
 		methodDescriptor.getBody().registerBrunch(forResult,shortBrunch);
 	}
 
-	private void registerBranch(final int address, final int placement, final long forResult, final boolean shortBrunch) throws IOException {
+	private void registerBranch(final int address, final int placement, final long forResult, final boolean shortBrunch) throws ContentException, IOException {
 		methodDescriptor.getBody().registerBrunch(address,placement,forResult,shortBrunch);
 	}
 	
 	/*
 	 * Process directives
 	 */
-	private void processClassDir(final long id, final char[] data, int start) throws IOException {
+	private void processClassDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		int				startOption = start, endOption;
 		long			extendsId = -1;
 		List<Long>		implementsNames = null;
@@ -801,7 +815,7 @@ class LineParser implements LineByLineProcessorCallback {
 				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"synthetic","class"); break;
 				case OPTION_EXTENDS		:
 					if (extendsId != -1) {
-						throw new AsmSyntaxException("Duplicate option 'extends' in the 'class' directive!");
+						throw new ContentException("Duplicate option 'extends' in the 'class' directive!");
 					}
 					else {
 						int		startName = start = skipBlank(data,start), endName = start = skipQualifiedName(data,start);
@@ -809,7 +823,7 @@ class LineParser implements LineByLineProcessorCallback {
 						final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
 
 						if ((parent.getModifiers() & Constants.ACC_FINAL) != 0) {
-							throw new AsmSyntaxException("Attempt to extends final class ["+new String(data,startName,endName-startName)+"]!"); 
+							throw new ContentException("Attempt to extends final class ["+new String(data,startName,endName-startName)+"]!"); 
 						}
 						else {
 							extendsId = tree.placeName(parent.getName(),null);
@@ -818,7 +832,7 @@ class LineParser implements LineByLineProcessorCallback {
 					break;
 				case OPTION_IMPLEMENTS	:
 					if (implementsNames != null) {
-						throw new AsmSyntaxException("Duplicate option 'implements' in the 'class' directive!");
+						throw new ContentException("Duplicate option 'implements' in the 'class' directive!");
 					}
 					else {
 						implementsNames = new ArrayList<>();
@@ -829,7 +843,7 @@ class LineParser implements LineByLineProcessorCallback {
 							final Class<?>	member = cdr.getClassDescription(data,startName,endName);
 
 							if ((member.getModifiers() & Constants.ACC_INTERFACE) == 0) {
-								throw new AsmSyntaxException("Implements item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
+								throw new ContentException("Implements item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
 							}
 							else {
 								implementsNames.add(tree.placeName(member.getName(),null));
@@ -839,16 +853,16 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 					break;
 				default :
-					throw new AsmSyntaxException("'Class' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
+					throw new ContentException("'Class' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
 			}
 			startOption = start = skipBlank(data,start);
 		}
 		
 		if  (checkMutualPrivateProtectedPublic(classFlags)) {
-			throw new AsmSyntaxException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
+			throw new ContentException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
 		}
 		else if (checkMutualAbstractFinal(classFlags)) {
-			throw new AsmSyntaxException("Mutually exclusive options (abstract/final) in the 'class' directive!");
+			throw new ContentException("Mutually exclusive options (abstract/final) in the 'class' directive!");
 		}
 		else {
 			classNameId = id;
@@ -864,7 +878,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processInterfaceDir(final long id, final char[] data, int start) throws IOException {
+	private void processInterfaceDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		int				startOption = start, endOption;
 		List<Long>		implementsNames = null;
 
@@ -876,7 +890,7 @@ class LineParser implements LineByLineProcessorCallback {
 				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"synthetic","class"); break;
 				case OPTION_EXTENDS	:
 					if (implementsNames != null) {
-						throw new AsmSyntaxException("Duplicate option 'implements' in the 'class' directive!");
+						throw new ContentException("Duplicate option 'implements' in the 'class' directive!");
 					}
 					else {
 						implementsNames = new ArrayList<>();
@@ -887,7 +901,7 @@ class LineParser implements LineByLineProcessorCallback {
 							final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
 
 							if ((parent.getModifiers() & Constants.ACC_INTERFACE) == 0) {
-								throw new AsmSyntaxException("Extends item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
+								throw new ContentException("Extends item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
 							}
 							else {
 								implementsNames.add(tree.placeName(parent.getName(),null));
@@ -897,7 +911,7 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 					break;
 				default :
-					throw new AsmSyntaxException("'Interface' definition contains unknown or unsupported option ["+new String(data,startOption,endOption-startOption)+"]!");
+					throw new ContentException("'Interface' definition contains unknown or unsupported option ["+new String(data,startOption,endOption-startOption)+"]!");
 			}
 			startOption = start = skipBlank(data,start);
 		}
@@ -911,13 +925,13 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private void processClassFieldDir(final long id, final char[] data, int start) throws IOException {
+	private void processClassFieldDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		short			flags = 0;
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 		
 		if (type == void.class) {
-			throw new AsmSyntaxException("Type 'void' is invalid for using with fields"); 
+			throw new ContentException("Type 'void' is invalid for using with fields"); 
 		}
 		else {
 			final long	typeId = tree.placeName(InternalUtils.buildFieldSignature(tree,tree.placeName(type.getName(),null)),null);
@@ -934,12 +948,12 @@ class LineParser implements LineByLineProcessorCallback {
 					case OPTION_VOLATILE	: flags = addAndCheckDuplicates(flags,Constants.ACC_VOLATILE,"volatile","field"); break;
 					case OPTION_TRANSIENT	: flags = addAndCheckDuplicates(flags,Constants.ACC_TRANSIENT,"transient","field"); break;
 					case OPTION_SYNTHETIC	: flags = addAndCheckDuplicates(flags,Constants.ACC_SYNTHETIC,"synthetic","field"); break;
-					default : throw new AsmSyntaxException("'Field' definition for class field contains unknown or unsupported option ["+new String(data,startOption,endOption-startOption)+"]!");
+					default : throw new ContentException("'Field' definition for class field contains unknown or unsupported option ["+new String(data,startOption,endOption-startOption)+"]!");
 				}
 				startOption = start = skipBlank(data,start);
 			}
 			if  (checkMutualPrivateProtectedPublic(flags)) {
-				throw new AsmSyntaxException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
+				throw new ContentException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
 			}
 			else {
 				cc.addFieldDescription(flags,id,typeId);
@@ -948,13 +962,13 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processInterfaceFieldDir(final long id, final char[] data, int start) throws IOException {
+	private void processInterfaceFieldDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		short			flags = 0;
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 		
 		if (type == void.class) {
-			throw new AsmSyntaxException("Type 'void' is invalid for using with fields"); 
+			throw new ContentException("Type 'void' is invalid for using with fields"); 
 		}
 		else {
 			final long	typeId = tree.placeName(cdr.getClassDescription(data,startName,endName).getName(),null);
@@ -966,7 +980,7 @@ class LineParser implements LineByLineProcessorCallback {
 					case OPTION_PUBLIC		: flags = addAndCheckDuplicates(flags,Constants.ACC_PUBLIC,"public","field"); break;
 					case OPTION_STATIC		: flags = addAndCheckDuplicates(flags,Constants.ACC_STATIC,"static","field"); break;
 					case OPTION_FINAL		: flags = addAndCheckDuplicates(flags,Constants.ACC_FINAL,"final","field"); break;
-					default : throw new AsmSyntaxException("'Field' definition for class field contains unknown or unsupported option ["+new String(data,startOption,endOption-startOption)+"]!");
+					default : throw new ContentException("'Field' definition for class field contains unknown or unsupported option ["+new String(data,startOption,endOption-startOption)+"]!");
 				}
 				startOption = start = skipBlank(data,start);
 			}
@@ -974,7 +988,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private void processClassMethodDir(final long id, final char[] data, int start) throws IOException {
+	private void processClassMethodDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		short			flags = 0;
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
@@ -999,7 +1013,7 @@ class LineParser implements LineByLineProcessorCallback {
 				case OPTION_SYNTHETIC	: flags = addAndCheckDuplicates(flags,Constants.ACC_SYNTHETIC,"synthetic","method"); break;
 				case OPTION_THROWS	:
 					if (throwsNames != null) {
-						throw new AsmSyntaxException("Duplicate option 'throws' in the 'method' directive!");
+						throw new ContentException("Duplicate option 'throws' in the 'method' directive!");
 					}
 					else {
 						throwsNames = new ArrayList<>();
@@ -1010,7 +1024,7 @@ class LineParser implements LineByLineProcessorCallback {
 							final Class<?>	exception = cdr.getClassDescription(data,startException,endException);
 							
 							if (Throwable.class.isAssignableFrom(exception)) {
-								throw new AsmSyntaxException("Throws item ["+new String(data,startException,endException-startException)+"] - class referenced is not a Throwable or it's child!"); 
+								throw new ContentException("Throws item ["+new String(data,startException,endException-startException)+"] - class referenced is not a Throwable or it's child!"); 
 							}
 							else {
 								throwsNames.add(tree.placeName(exception.getName(),null));
@@ -1019,26 +1033,26 @@ class LineParser implements LineByLineProcessorCallback {
 						} while(data[start] == ',');
 					}
 					break;
-				default : throw new AsmSyntaxException("'Field' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
+				default : throw new ContentException("'Field' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
 			}
 			startOption = start = skipBlank(data,start);
 		}
 		if  (checkMutualPrivateProtectedPublic(flags)) {
-			throw new AsmSyntaxException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
+			throw new ContentException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
 		}
 		else if  (checkMutualAbstractFinal(flags)) {
-			throw new AsmSyntaxException("Mutually exclusive options (abstract/final) in the 'class' directive!");
+			throw new ContentException("Mutually exclusive options (abstract/final) in the 'class' directive!");
 		}
 		else if  (checkMutualStaticAbstract(flags)) {
-			throw new AsmSyntaxException("Mutually exclusive options (static/abstract) in the 'class' directive!");
+			throw new ContentException("Mutually exclusive options (static/abstract) in the 'class' directive!");
 		}
 		else if ((classFlags & Constants.ACC_ABSTRACT) == 0 && (flags & Constants.ACC_ABSTRACT) != 0) {
-			throw new AsmSyntaxException("Attempt to add abstract method to the non-abstract class!");
+			throw new ContentException("Attempt to add abstract method to the non-abstract class!");
 		}
 		else {
 			if (id == classNameId) {	// This is a constructor!
 				if (typeId != voidId) {
-					throw new AsmSyntaxException("Constructor method need return void type!");
+					throw new ContentException("Constructor method need return void type!");
 				}
 				else {
 					methodNameId = constructorId;
@@ -1061,7 +1075,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private void processInterfaceMethodDir(final long id, final char[] data, int start) throws IOException {
+	private void processInterfaceMethodDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		short			flags = 0;
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
@@ -1077,7 +1091,7 @@ class LineParser implements LineByLineProcessorCallback {
 				case OPTION_SYNTHETIC	: flags = addAndCheckDuplicates(flags,Constants.ACC_SYNTHETIC,"synthetic","method"); break;
 				case OPTION_THROWS	:
 					if (throwsNames != null) {
-						throw new AsmSyntaxException("Duplicate option 'throws' in the 'method' directive!");
+						throw new ContentException("Duplicate option 'throws' in the 'method' directive!");
 					}
 					else {
 						throwsNames = new ArrayList<>();
@@ -1088,7 +1102,7 @@ class LineParser implements LineByLineProcessorCallback {
 							final Class<?>	exception = cdr.getClassDescription(data,startException,endException);
 							
 							if (Throwable.class.isAssignableFrom(exception)) {
-								throw new AsmSyntaxException("Throws item ["+new String(data,startException,endException-startException)+"] - class referenced is not a Throwable or it's child!"); 
+								throw new ContentException("Throws item ["+new String(data,startException,endException-startException)+"] - class referenced is not a Throwable or it's child!"); 
 							}
 							else {
 								throwsNames.add(tree.placeName(exception.getName(),null));
@@ -1097,15 +1111,15 @@ class LineParser implements LineByLineProcessorCallback {
 						} while(data[start] == ',');
 					}
 					break;
-				default : throw new AsmSyntaxException("'Field' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
+				default : throw new ContentException("'Field' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
 			}
 			startOption = start = skipBlank(data,start);
 		}
 		if  (checkMutualPrivateProtectedPublic(flags)) {
-			throw new AsmSyntaxException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
+			throw new ContentException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
 		}
 		else if  (checkMutualAbstractFinal(flags)) {
-			throw new AsmSyntaxException("Mutually exclusive options (abstract/final) in the 'class' directive!");
+			throw new ContentException("Mutually exclusive options (abstract/final) in the 'class' directive!");
 		}
 		else {
 			flags |= Constants.ACC_ABSTRACT | Constants.ACC_PUBLIC; 
@@ -1124,13 +1138,13 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processParameterDir(final long id, final char[] data, int start) throws AsmSyntaxException {
+	private void processParameterDir(final long id, final char[] data, int start) throws ContentException {
 		short			flags = 0;
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedName(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 		
 		if (type == void.class) {
-			throw new AsmSyntaxException("Type 'void' is invalid for using with parameters"); 
+			throw new ContentException("Type 'void' is invalid for using with parameters"); 
 		}
 		else {
 			final long	typeId = tree.placeName(type.getName(),null);
@@ -1141,7 +1155,7 @@ class LineParser implements LineByLineProcessorCallback {
 				switch ((int)staticDirectiveTree.seekName(data,startOption,endOption)) {
 					case OPTION_FINAL		: flags = addAndCheckDuplicates(flags,Constants.ACC_FINAL,"final","parameter"); break;
 					case OPTION_SYNTHETIC	: flags = addAndCheckDuplicates(flags,Constants.ACC_SYNTHETIC,"synthetic","parameter"); break;
-					default : throw new AsmSyntaxException("'Parameter' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
+					default : throw new ContentException("'Parameter' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
 				}
 				startOption = start = skipBlank(data,start);
 			}
@@ -1149,13 +1163,13 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processVarDir(final long id, final char[] data, int start) throws IOException {
+	private void processVarDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		short			flags = 0;
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedName(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 		
 		if (type == void.class) {
-			throw new AsmSyntaxException("Type 'void' is invalid for using with parameters"); 
+			throw new ContentException("Type 'void' is invalid for using with parameters"); 
 		}
 		else {
 			final long	typeId = tree.placeName(type.getName(),null);
@@ -1166,7 +1180,7 @@ class LineParser implements LineByLineProcessorCallback {
 				switch ((int)staticDirectiveTree.seekName(data,startOption,endOption)) {
 					case OPTION_FINAL		: flags = addAndCheckDuplicates(flags,Constants.ACC_FINAL,"final","var"); break;
 					case OPTION_SYNTHETIC	: flags = addAndCheckDuplicates(flags,Constants.ACC_SYNTHETIC,"synthetic","var"); break;
-					default : throw new AsmSyntaxException("'Var' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
+					default : throw new ContentException("'Var' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
 				}
 				startOption = start = skipBlank(data,start);
 			}
@@ -1174,7 +1188,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processStackDir(final char[] data, int start) throws AsmSyntaxException {
+	private void processStackDir(final char[] data, int start) throws ContentException {
 		final  int	startName = start, endName = start = skipSimpleName(data, start);
 		
 		switch ((int)staticDirectiveTree.seekName(data,startName,endName)) {
@@ -1192,31 +1206,31 @@ class LineParser implements LineByLineProcessorCallback {
 					methodDescriptor.setStackSize((short) size[0]);
 				}
 				else {
-					throw new AsmSyntaxException("Stack size is not an integer constant (possibly it's size is long, float or double)");
+					throw new ContentException("Stack size is not an integer constant (possibly it's size is long, float or double)");
 				}
 				break;
 		}
 		skip2line(data,start);
 	}
 	
-	private void processPackageDir(final char[] data, int start) throws AsmSyntaxException {
+	private void processPackageDir(final char[] data, int start) throws ContentException {
 		final int	endPackage = skipQualifiedName(data,start);
 			
 		packageId = tree.placeName(data,start,endPackage,null);
 		skip2line(data,endPackage);
 	}
 
-	private void processImportDir(final char[] data, int start) throws AsmSyntaxException {
+	private void processImportDir(final char[] data, int start) throws ContentException {
 		final String	className = new String(data,start,skipQualifiedName(data,start) - start);  
 
 		try{cdr.addDescription(Class.forName(className));
 		} catch (ClassNotFoundException e) {
-			throw new AsmSyntaxException("Class description ["+className+"] is unknown in the actual class loader. Test the class name you want to import and/or make it aacessible for the class loader");
+			throw new ContentException("Class description ["+className+"] is unknown in the actual class loader. Test the class name you want to import and/or make it aacessible for the class loader");
 		}				
 		skip2line(data,start+className.length());
 	}
 
-	private void processIncludeDir(final char[] data, int start, final int end) throws AsmSyntaxException {
+	private void processIncludeDir(final char[] data, int start, final int end) throws ContentException {
 		if (start < end && data[start] == '\"') {
 			int	startQuoted = start + 1;
 			
@@ -1231,7 +1245,7 @@ class LineParser implements LineByLineProcessorCallback {
 				refUrl = this.getClass().getResource(ref);
 			}
 			if (refUrl == null) {
-				throw new AsmSyntaxException("Resource URL ["+ref+"] is missing or malformed!");
+				throw new ContentException("Resource URL ["+ref+"] is missing or malformed!");
 			}
 			else {
 				int lineNo = 0;
@@ -1243,12 +1257,12 @@ class LineParser implements LineByLineProcessorCallback {
 					lbl.write(rdr);
 				}
 				catch (IOException | SyntaxException exc) {
-					throw new AsmSyntaxException("Source ["+refUrl+"], line "+lineNo+": I/O error reading data ("+exc.getMessage()+")");
+					throw new ContentException("Source ["+refUrl+"], line "+lineNo+": I/O error reading data ("+exc.getMessage()+")");
 				}
 			}
 		}
 		else {
-			throw new AsmSyntaxException("Missing quota!");
+			throw new ContentException("Missing quota!");
 		}
 	}
 
@@ -1260,13 +1274,13 @@ class LineParser implements LineByLineProcessorCallback {
 		return tryList.size() == 0;
 	}
 
-	private void pushTryBlock() throws IOException {
+	private void pushTryBlock() throws IOException, ContentException {
 		tryList.add(0,new int[]{getPC(),-1});
 	}
 
-	private void processCatch(final char[] data, int from, final int to) throws IOException {
+	private void processCatch(final char[] data, int from, final int to) throws IOException, ContentException {
 		if (tryList.size() == 0) {
-			throw new AsmSyntaxException(".catch without .try");
+			throw new ContentException(".catch without .try");
 		}
 		else {
 			if (tryList.get(0)[1] == -1) {
@@ -1289,9 +1303,9 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void popTryBlock(int lineNo) throws AsmSyntaxException {
+	private void popTryBlock(int lineNo) throws ContentException {
 		if (tryList.size() == 0) {
-			throw new AsmSyntaxException(".endtry without .try");
+			throw new ContentException(".endtry without .try");
 		}
 		else {
 			tryList.remove(0);
@@ -1302,21 +1316,21 @@ class LineParser implements LineByLineProcessorCallback {
 	 * Process commands
 	 */
 	
-	private void processSingleCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException {
+	private void processSingleCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		putCommand((byte)desc.operation);
 		skip2line(data,start);
 	}
 
-	private void processByteIndexCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException {
+	private void processByteIndexCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException, ContentException {
 		final long	forResult[] = new long[2];
 		
 		start = calculateLocalAddress(data,start,forResult);
 		if (forResult[0] > methodDescriptor.getLocalFrameSize()) {
-			throw new AsmSyntaxException("Calculated address value ["+forResult[0]+"] is outside the method local frame size ["+methodDescriptor.getLocalFrameSize()+"]");
+			throw new ContentException("Calculated address value ["+forResult[0]+"] is outside the method local frame size ["+methodDescriptor.getLocalFrameSize()+"]");
 		}
 		else if (forResult[0] >= 256) {
 			if (!expandAddress) {
-				throw new AsmSyntaxException("Calculated address value ["+forResult[0]+"] occupies more tham 1 byte! Use 'wide' command for those addresses");
+				throw new ContentException("Calculated address value ["+forResult[0]+"] occupies more tham 1 byte! Use 'wide' command for those addresses");
 			}
 			else {
 				putCommand((byte)desc.operation,(byte)(forResult[0] >> 8),(byte)forResult[0]);
@@ -1328,13 +1342,13 @@ class LineParser implements LineByLineProcessorCallback {
 		skip2line(data,start);
 	}
 
-	private void processByteValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandValue) throws IOException {
+	private void processByteValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandValue) throws IOException, ContentException {
 		final long	forResult[] = new long[2];
 		
 		start = calculateValue(data,start,EvalState.additional,forResult);
 		if (forResult[0] < Byte.MIN_VALUE || forResult[0] >= 256) {
 			if (!expandValue) {
-				throw new AsmSyntaxException("Calculated value value ["+forResult[0]+"] occupies more tham 1 byte! Use 'wide' command for those values");
+				throw new ContentException("Calculated value value ["+forResult[0]+"] occupies more tham 1 byte! Use 'wide' command for those values");
 			}
 			else {
 				putCommand((byte)desc.operation,(byte)(forResult[0] >> 8),(byte)forResult[0]);
@@ -1346,7 +1360,7 @@ class LineParser implements LineByLineProcessorCallback {
 		skip2line(data,start);
 	}
 
-	private void processByteIndexAndByteValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException {
+	private void processByteIndexAndByteValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException, ContentException {
 		final long[]	forIndex= new long[2], forValue = new long[2];
 		
 		start = skipBlank(data, calculateLocalAddress(data,start,forIndex));
@@ -1355,16 +1369,16 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 
 		if (forIndex[0] > methodDescriptor.getLocalFrameSize()) {
-			throw new AsmSyntaxException("Calculated address value ["+forIndex[0]+"] is outside the method local frame size ["+methodDescriptor.getLocalFrameSize()+"]");
+			throw new ContentException("Calculated address value ["+forIndex[0]+"] is outside the method local frame size ["+methodDescriptor.getLocalFrameSize()+"]");
 		}
 		else if (forIndex[0] >= 256) {
 			if (!expandAddress) {
-				throw new AsmSyntaxException("Calculated address value ["+forIndex[0]+"] occupies more tham 1 byte! Use 'wide' command for those addresses");
+				throw new ContentException("Calculated address value ["+forIndex[0]+"] occupies more tham 1 byte! Use 'wide' command for those addresses");
 			}
 		}
 		if (forValue[0] < Byte.MIN_VALUE || forValue[0] >= 256) {
 			if (!expandAddress) {
-				throw new AsmSyntaxException("Calculated value value ["+forValue[0]+"] occupies more tham 1 byte! Use 'wide' command for those values");
+				throw new ContentException("Calculated value value ["+forValue[0]+"] occupies more tham 1 byte! Use 'wide' command for those values");
 			}
 		}
 		if (expandAddress) {
@@ -1376,7 +1390,7 @@ class LineParser implements LineByLineProcessorCallback {
 		skip2line(data,start);
 	}
 	
-	private void processByteTypeCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException {
+	private void processByteTypeCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		final int	startType = start, endType = start = skipSimpleName(data,start);
 		final long	typeId = staticDirectiveTree.seekName(data,startType,endType);
 
@@ -1385,11 +1399,11 @@ class LineParser implements LineByLineProcessorCallback {
 			skip2line(data,start);
 		}
 		else {
-			throw new AsmSyntaxException("Unknown primitive type ["+new String(data,startType,endType-startType)+"]"); 
+			throw new ContentException("Unknown primitive type ["+new String(data,startType,endType-startType)+"]"); 
 		}
 	}
 
-	private void processClassShortIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException {
+	private void processClassShortIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 		final long		typeId = tree.placeName(type.getName().replace('.','/'),null);
@@ -1399,13 +1413,13 @@ class LineParser implements LineByLineProcessorCallback {
 		skip2line(data,start);		
 	}
 
-	private void processValueByteIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException {
+	private void processValueByteIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		short		displ[] = new short[1];
 		
 		start = processValueShortIndexCommand(data,start,displ);
 
 		if (displ[0] < 0 || displ[0] > 2*Byte.MAX_VALUE) {
-			throw new AsmSyntaxException("Calculated value ["+displ[0]+"] is too long for byte index");
+			throw new ContentException("Calculated value ["+displ[0]+"] is too long for byte index");
 		}
 		else {
 			putCommand((byte)desc.operation,(byte)(displ[0] & 0xFF));
@@ -1413,13 +1427,13 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private void processValueShortIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException {
+	private void processValueShortIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		short		displ[] = new short[1];
 		
 		start = processValueShortIndexCommand(data,start,displ);
 
 		if (displ[0] < 0 || displ[0] > 2*Short.MAX_VALUE) {
-			throw new AsmSyntaxException("Calculated value ["+displ[0]+"] is too long for short index");
+			throw new ContentException("Calculated value ["+displ[0]+"] is too long for short index");
 		}
 		else {
 			putCommand((byte)desc.operation,(byte)((displ[0] >> 8) & 0xFF),(byte)(displ[0] & 0xFF));
@@ -1427,7 +1441,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private int processValueShortIndexCommand(final char[] data, int start, final short[] result) throws IOException {
+	private int processValueShortIndexCommand(final char[] data, int start, final short[] result) throws IOException, ContentException {
 		short		displ;
 
 		try{switch (data[start]) {
@@ -1448,7 +1462,7 @@ class LineParser implements LineByLineProcessorCallback {
 						displ = cc.getConstantPool().asIntegerDescription((int)(sign*forResult[0]));
 					}
 					else {
-						throw new AsmSyntaxException("Illegal numeric constant size (only int and float are available here)");
+						throw new ContentException("Illegal numeric constant size (only int and float are available here)");
 					}		
 					break;
 				case '\"' :
@@ -1466,16 +1480,16 @@ class LineParser implements LineByLineProcessorCallback {
 					displ = 0;
 					break;
 				default :
-					throw new AsmSyntaxException("Illegal lexema. Only int/float constant, string literal, class or method reference are available here");
+					throw new ContentException("Illegal lexema. Only int/float constant, string literal, class or method reference are available here");
 			}
 		} catch (NumberFormatException exc) {
-			throw new AsmSyntaxException("Illegal number: "+exc);
+			throw new ContentException("Illegal number: "+exc);
 		}
 		result[0] = displ;
 		return start;
 	}
 	
-	private void processValueShortIndex2Command(final CommandDescriptor desc, final char[] data, int start) throws IOException {
+	private void processValueShortIndex2Command(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		final long	forResult[] = new long[]{0,0};
 		int			sign = 1;
 		short		displ;
@@ -1492,27 +1506,27 @@ class LineParser implements LineByLineProcessorCallback {
 				displ = cc.getConstantPool().asLongDescription(sign*forResult[0]);
 			}
 			else {
-				throw new AsmSyntaxException("Illegal numeric constant size (only long and double are available here)");
+				throw new ContentException("Illegal numeric constant size (only long and double are available here)");
 			}
 			if (displ < 0 || displ > 2*Short.MAX_VALUE) {
-				throw new AsmSyntaxException("Calculated value ["+displ+"] is too long for short index");
+				throw new ContentException("Calculated value ["+displ+"] is too long for short index");
 			}
 			else {
 				putCommand((byte)desc.operation,(byte)((displ >> 8) & 0xFF),(byte)(displ & 0xFF));
 				skip2line(data,start);
 			}
 		} catch (NumberFormatException exc) {
-			throw new AsmSyntaxException("Illegal number: "+exc);
+			throw new ContentException("Illegal number: "+exc);
 		}
 	}
 	
-	private void processShortValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandValue) throws IOException {
+	private void processShortValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandValue) throws IOException, ContentException {
 		final long	forResult[] = new long[1];
 		
 		start = calculateValue(data,start,EvalState.additional,forResult);
 		if (forResult[0] < Short.MIN_VALUE || forResult[0] >= 65536) {
 			if (!expandValue) {
-				throw new AsmSyntaxException("Calculated value value ["+forResult[0]+"] occupies more than 2 byte! Use 'wide' command for those values");
+				throw new ContentException("Calculated value value ["+forResult[0]+"] occupies more than 2 byte! Use 'wide' command for those values");
 			}
 			else {
 				putCommand((byte)desc.operation,(byte)(forResult[0] >> 24),(byte)(forResult[0] >> 16),(byte)(forResult[0] >> 8),(byte)forResult[0]);
@@ -1524,7 +1538,7 @@ class LineParser implements LineByLineProcessorCallback {
 		skip2line(data,start);
 	}
 
-	private void processShortIndexAndByteValueCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException {
+	private void processShortIndexAndByteValueCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		final int		startName = start = skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 		final long		typeId = tree.placeName(type.getName().replace('.','/'),null);
@@ -1535,7 +1549,7 @@ class LineParser implements LineByLineProcessorCallback {
 		if (data[start] == ',') {
 			start = calculateValue(data,skipBlank(data,start+1),EvalState.additional,forValue);
 	 		if (forValue[0] <= 0 || forValue[0] >= 2 * Byte.MAX_VALUE) {
-				throw new AsmSyntaxException("Calculated value ["+forValue[0]+"] is too long for byte value");
+				throw new ContentException("Calculated value ["+forValue[0]+"] is too long for byte value");
 			}
 			else {
 				putCommand((byte)desc.operation,(byte)((typeDispl >> 8) & 0xFF),(byte)(typeDispl & 0xFF),(byte)forValue[0]);
@@ -1543,16 +1557,16 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		else {
-			throw new AsmSyntaxException("Missing comma and dimension parameter");
+			throw new ContentException("Missing comma and dimension parameter");
 		}
 	}
 
-	private void processShortGlobalIndexCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException {
+	private void processShortGlobalIndexCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
 		final int	forResult[] = new int[1];
 		
 		start = calculateFieldAddress(data,start,end,forResult);
 		if (forResult[0] <= 0 || forResult[0] > Short.MAX_VALUE) {
-			throw new AsmSyntaxException("Calculated value ["+forResult[0]+"] is too long for short index");
+			throw new ContentException("Calculated value ["+forResult[0]+"] is too long for short index");
 		}
 		else {
 			putCommand((byte)desc.operation,(byte)((forResult[0] >> 8) & 0xFF),(byte)(forResult[0] & 0xFF));
@@ -1560,7 +1574,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processShortBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException {
+	private void processShortBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
 		final long	forResult[] = new long[1];
 		
 		start = calculateBranchAddress(data,start,forResult);
@@ -1569,7 +1583,7 @@ class LineParser implements LineByLineProcessorCallback {
 		skip2line(data,start);
 	}
 
-	private void processLongBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException {
+	private void processLongBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
 		final long	forResult[] = new long[2];
 		
 		start = calculateBranchAddress(data,start,forResult);
@@ -1578,12 +1592,12 @@ class LineParser implements LineByLineProcessorCallback {
 		skip2line(data,start);
 	}
 
-	private void processCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException {
+	private void processCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
 		final int	forResult[] = new int[1];
 		
 		start = calculateMethodAddress(data,start,end,forResult);
 		if (forResult[0] <= 0 || forResult[0] > 2*Short.MAX_VALUE) {
-			throw new AsmSyntaxException("Calculated value ["+forResult[0]+"] is too long for short index");
+			throw new ContentException("Calculated value ["+forResult[0]+"] is too long for short index");
 		}
 		else {
 			putCommand((byte)desc.operation,(byte)((forResult[0] >> 8) & 0xFF),(byte)(forResult[0] & 0xFF));
@@ -1591,11 +1605,11 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}	
 
-	private void processDynamicCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException {
-		throw new AsmSyntaxException("Don't use invokedynamic connand! Use direct link to the methods you need instead"); 
+	private void processDynamicCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
+		throw new ContentException("Don't use invokedynamic connand! Use direct link to the methods you need instead"); 
 	}
 
-	private void processInterfaceCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException {
+	private void processInterfaceCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
 		processCallCommand(desc,data,start,end);
 		putCommand((byte)1,(byte)0);
 	}
@@ -1604,7 +1618,7 @@ class LineParser implements LineByLineProcessorCallback {
 		throw new UnsupportedOperationException("Wide command is not implemented yet!"); 
 	}
 
-	private void processJumps(final char[] data, int start, final int end, final boolean explicitValue) throws AsmSyntaxException {
+	private void processJumps(final char[] data, int start, final int end, final boolean explicitValue) throws ContentException {
 		final long[]	forLabel = new long[1];
 		final long[]	forValue = new long[1];
 		
@@ -1614,7 +1628,7 @@ class LineParser implements LineByLineProcessorCallback {
 				start = skipBlank(data, calculateBranchAddress(data,start+1,forLabel));
 			}
 			else {
-				throw new AsmSyntaxException("Missing comma in branch list");
+				throw new ContentException("Missing comma in branch list");
 			}
 		}
 		else {
@@ -1622,11 +1636,11 @@ class LineParser implements LineByLineProcessorCallback {
 			start = skipBlank(data, calculateBranchAddress(data,start,forLabel));
 		}
 		if ((forValue[0] < Integer.MIN_VALUE  || forValue[0] > Integer.MAX_VALUE) && forValue[0] != DEFAULT_MARK) {
-			throw new AsmSyntaxException("Calculated value ["+forValue[0]+"] is too long for byte value");
+			throw new ContentException("Calculated value ["+forValue[0]+"] is too long for byte value");
 		}
 		else {
 			if (jumps.containsKey(forValue[0])) {
-				throw new AsmSyntaxException("Duplicate switch value ["+(forValue[0] == DEFAULT_MARK ? "default" : ""+forValue[0])+"] in the lookupswitch/tableswitch command");
+				throw new ContentException("Duplicate switch value ["+(forValue[0] == DEFAULT_MARK ? "default" : ""+forValue[0])+"] in the lookupswitch/tableswitch command");
 			}
 			else {
 				jumps.put(forValue[0],forLabel[0]);
@@ -1635,12 +1649,12 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void fillTable() throws IOException {
+	private void fillTable() throws IOException, ContentException {
 		if (jumps.size() == 0) {
-			throw new AsmSyntaxException("No any jumps for the tableswitch command were defined!");
+			throw new ContentException("No any jumps for the tableswitch command were defined!");
 		}
 		else if (!jumps.containsKey(DEFAULT_MARK)) {
-			throw new AsmSyntaxException("No default jump for the tableswitch command was defined!");
+			throw new ContentException("No default jump for the tableswitch command was defined!");
 		}
 		else {
 			int		minValue = Integer.MAX_VALUE, maxValue = Integer.MIN_VALUE;
@@ -1652,7 +1666,7 @@ class LineParser implements LineByLineProcessorCallback {
 				}
 			}
 			if (minValue != maxValue && Math.abs((maxValue - minValue) / jumps.size()) > 20) {
-				throw new AsmSyntaxException("jump table utilizied less than 5%! Use lookupswitch instead of tableswitch command!");
+				throw new ContentException("jump table utilizied less than 5%! Use lookupswitch instead of tableswitch command!");
 			}
 			else {
 				final long					defaultLabel = jumps.remove(DEFAULT_MARK);
@@ -1680,12 +1694,12 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void fillLookup() throws IOException {
+	private void fillLookup() throws IOException, ContentException {
 		if (jumps.size() == 0) {
-			throw new AsmSyntaxException("No any jumps for the tableswitch command were defined!");
+			throw new ContentException("No any jumps for the tableswitch command were defined!");
 		}
 		else if (!jumps.containsKey(DEFAULT_MARK)) {
-			throw new AsmSyntaxException("No default jump for the tableswitch command was defined!");
+			throw new ContentException("No default jump for the tableswitch command was defined!");
 		}
 		else {
 			int	minValue = Integer.MAX_VALUE, maxValue = Integer.MIN_VALUE;
@@ -1745,7 +1759,7 @@ class LineParser implements LineByLineProcessorCallback {
 	 * Evaluation methods
 	 */
 
-	private int calculateLocalAddress(final char[] data, int start, final long[] result) throws AsmSyntaxException {
+	private int calculateLocalAddress(final char[] data, int start, final long[] result) throws ContentException {
 		if (data[start] >= '0' && data[start] <= '9') {
 			return CharsUtil.parseNumber(data,start,result,CharsUtil.PREF_INT,true);
 		}
@@ -1757,7 +1771,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private int calculateFieldAddress(final char[] data, int start, final int end, final int[] result) throws IOException {
+	private int calculateFieldAddress(final char[] data, int start, final int end, final int[] result) throws IOException, ContentException {
 		int	startName = start, endName = start = skipSimpleName(data,start);
 		
 		if (data[start] != '.') {
@@ -1766,17 +1780,19 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		endName = start = skipQualifiedName(data,start);
-		final Field	f = cdr.getFieldDescription(data,startName,endName);
-
+		
+		final Field		f = cdr.getFieldDescription(data,startName,endName);
+		final long		type = tree.placeName(f.getType().getName().replace('.','/'),null);
+		
 		result[0] = cc.getConstantPool().asFieldRefDescription(
-							tree.placeName(f.getDeclaringClass().getName(),null),
+							tree.placeName(f.getDeclaringClass().getName().replace('.','/'),null),
 							tree.placeName(f.getName(),null),
-							tree.placeName(f.getType().getName(),null)
+							tree.placeName(InternalUtils.buildFieldSignature(tree,type),null)
 					);	
 		return start;
 	}
 
-	private int calculateMethodAddress(final char[] data, int start, final int end, final int[] result) throws IOException {
+	private int calculateMethodAddress(final char[] data, int start, final int end, final int[] result) throws IOException, ContentException {
 		int			startName = start, endName = start = skipSimpleName(data,start);
 		
 		if (data[start] == '.') {
@@ -1801,7 +1817,7 @@ class LineParser implements LineByLineProcessorCallback {
 								tree.placeName(InternalUtils.buildSignature(m),null)
 						);
 					}
-				} catch (AsmSyntaxException exc) {
+				} catch (ContentException exc) {
 					final Constructor<?>	c = cdr.getConstructorDescription(data,startName,endSignature);
 					
 					result[0] = cc.getConstantPool().asMethodRefDescription(
@@ -1812,7 +1828,7 @@ class LineParser implements LineByLineProcessorCallback {
 				}
 			}
 			else {
-				throw new AsmSyntaxException("Missing method signature!");
+				throw new ContentException("Missing method signature!");
 			}
 		}
 		else {
@@ -1826,13 +1842,13 @@ class LineParser implements LineByLineProcessorCallback {
 				);
 			}
 			else {
-				throw new AsmSyntaxException("Missing method signature!");
+				throw new ContentException("Missing method signature!");
 			}
 		}
 		return start;
 	}
 	
-	private int calculateValue(final char[] data, int start, final EvalState state, final long[] result) throws AsmSyntaxException {
+	private int calculateValue(final char[] data, int start, final EvalState state, final long[] result) throws ContentException {
 		long		value[] = new long[]{0,0};
 		char		symbol;
 		
@@ -1848,13 +1864,13 @@ class LineParser implements LineByLineProcessorCallback {
 							return skipBlank(data,start+1);
 						}
 						else {
-							throw new AsmSyntaxException("Unclosed ')' in the expression");
+							throw new ContentException("Unclosed ')' in the expression");
 						}
 					default :
 						if (Character.isJavaIdentifierStart(data[start])) {
 							start = skipSimpleName(data,start);
 						}
-						throw new AsmSyntaxException("Non-constant value in the expression");
+						throw new ContentException("Non-constant value in the expression");
 				}
 			case unary				:
 				if (data[start] == '-') {
@@ -1900,9 +1916,9 @@ class LineParser implements LineByLineProcessorCallback {
 	/*
 	 * Utility methods
 	 */
-	private static short addAndCheckDuplicates(final short source, final short added, final String parameter, final String directive) throws AsmSyntaxException {
+	private static short addAndCheckDuplicates(final short source, final short added, final String parameter, final String directive) throws ContentException {
 		if ((source & added) != 0) {
-			throw new AsmSyntaxException("Duplicate option ["+parameter+"] in the ["+directive+"] directive");
+			throw new ContentException("Duplicate option ["+parameter+"] in the ["+directive+"] directive");
 		}
 		else {
 			return (short) (source | added);
@@ -1968,7 +1984,7 @@ class LineParser implements LineByLineProcessorCallback {
 		return from;
 	}
 
-	private static int skipQuoted(final char[] data, int from) throws AsmSyntaxException {
+	private static int skipQuoted(final char[] data, int from) throws ContentException {
 		while (data[from] != '\n' && data[from] != '\"' ) {
 			from++;
 		}
@@ -1976,11 +1992,11 @@ class LineParser implements LineByLineProcessorCallback {
 			return from;
 		}
 		else {
-			throw new AsmSyntaxException("Missing close quota!");
+			throw new ContentException("Missing close quota!");
 		}
 	}
 
-	private int skipSignature(final char[] data, int from) throws AsmSyntaxException {
+	private int skipSignature(final char[] data, int from) throws ContentException {
 		while (data[from] <= ' ' && data[from] != '\n') {
 			from++;
 		}
@@ -1995,7 +2011,7 @@ class LineParser implements LineByLineProcessorCallback {
 				return skipSignature(data,from+1);
 			}
 			else {
-				throw new AsmSyntaxException("Unclosed bracket ')' in the method signature");
+				throw new ContentException("Unclosed bracket ')' in the method signature");
 			}
 		}
 		else {
@@ -2015,15 +2031,15 @@ class LineParser implements LineByLineProcessorCallback {
 						return from + 1;
 					}
 					else {
-						throw new AsmSyntaxException("Missing ';' in the class signature descriptor");
+						throw new ContentException("Missing ';' in the class signature descriptor");
 					}
 				default :
-					throw new AsmSyntaxException("Illegal signature symbol '"+data[from]+"' in the method signature");
+					throw new ContentException("Illegal signature symbol '"+data[from]+"' in the method signature");
 			}
 		}
 	}
 
-	private static void skip2line(final char[] data, int from) throws AsmSyntaxException {
+	private static void skip2line(final char[] data, int from) throws ContentException {
 		while (data[from] <= ' ' && data[from] != '\n') {
 			from++;
 		}
@@ -2034,7 +2050,7 @@ class LineParser implements LineByLineProcessorCallback {
 			return;
 		}
 		else {
-			throw new AsmSyntaxException("Unparsed tail in the input string");
+			throw new ContentException("Unparsed tail in the input string");
 		}
 	}
 
@@ -2044,8 +2060,13 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private static void placeStaticDirective(final int code, final String mnemonics) {
 		final char[]	mnemonicsChar = mnemonics.toCharArray();
-		
-		staticDirectiveTree.placeName(mnemonicsChar,0,mnemonicsChar.length,code,null);
+
+		if (staticDirectiveTree.contains(code)) {
+			throw new IllegalArgumentException("Duplicate directive code ["+code+"]: "+mnemonics+", already exists "+staticDirectiveTree.getName(code));
+		}
+		else {
+			staticDirectiveTree.placeName(mnemonicsChar,0,mnemonicsChar.length,code,null);
+		}
 	}
 
 	private static void placeStaticCommand(final int operation, final int stackDelta, final String mnemonics) {
@@ -2054,8 +2075,13 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private static void placeStaticCommand(final int operation, final int stackDelta, final String mnemonics, final CommandFormat format) {
 		final char[]	mnemonicsChar = mnemonics.toCharArray();
-		
-		staticCommandTree.placeName(mnemonicsChar,0,mnemonicsChar.length,operation,new CommandDescriptor(operation,stackDelta,format));
+
+		if (staticCommandTree.contains(operation)) {
+			throw new IllegalArgumentException("Duplicate opcode ["+operation+"]: "+mnemonics+", already exists "+staticCommandTree.getName(operation));
+		}
+		else {
+			staticCommandTree.placeName(mnemonicsChar,0,mnemonicsChar.length,operation,new CommandDescriptor(operation,stackDelta,format));
+		}
 	}
 
 	private static class CommandDescriptor {
@@ -2067,6 +2093,11 @@ class LineParser implements LineByLineProcessorCallback {
 			this.operation = operation;
 			this.stackDelta = stackDelta;
 			this.commandFormat = commandFormat;
+		}
+
+		@Override
+		public String toString() {
+			return "CommandDescriptor [operation=" + operation + ", stackDelta=" + stackDelta + ", commandFormat=" + commandFormat + "]";
 		}
 	}
 }

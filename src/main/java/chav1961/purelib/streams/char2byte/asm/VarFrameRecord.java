@@ -1,6 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 class VarFrameRecord extends NestedEntity {
@@ -50,7 +50,7 @@ class VarFrameRecord extends NestedEntity {
 		return false;
 	}
 	
-	short getLocation(final long varId) throws AsmSyntaxException {
+	short getLocation(final long varId) throws ContentException {
 		short	result;
 		
 		for (VarStack actual = top; actual != null; actual = actual.prev) {
@@ -58,10 +58,10 @@ class VarFrameRecord extends NestedEntity {
 				return (short) (result-1);
 			}
 		}
-		throw new AsmSyntaxException("Variable ["+tree.getName(varId)+"] is not declared in the method");
+		throw new ContentException("Variable ["+tree.getName(varId)+"] is not declared in the method");
 	}
 	
-	long getType(final long varId) throws AsmSyntaxException {
+	long getType(final long varId) throws ContentException {
 		long	result;
 		
 		for (VarStack actual = top; actual != null; actual = actual.prev) {
@@ -69,7 +69,7 @@ class VarFrameRecord extends NestedEntity {
 				return result;
 			}
 		}
-		throw new AsmSyntaxException("Variable ["+tree.getName(varId)+"] is not declared in the method");
+		throw new ContentException("Variable ["+tree.getName(varId)+"] is not declared in the method");
 	}
 	
 	void processEnd() {

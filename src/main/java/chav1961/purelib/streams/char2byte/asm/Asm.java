@@ -5,7 +5,7 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 
@@ -15,9 +15,12 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	private final LineParser		lp;
 	private boolean					wasDump = false;
 	
-	public Asm(final OutputStream os) throws AsmSyntaxException {
+	public Asm(final OutputStream os) throws IOException {
 		this.os = os;
-		this.lp = new LineParser(cc);
+		try{this.lp = new LineParser(cc);
+		} catch (ContentException e) {
+			throw new IOException(e.getMessage(),e);
+		}
 	}
 	
 	@Override
@@ -29,7 +32,10 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	public void flush() throws IOException {
 		if (!wasDump) {
 			wasDump = true;
-			cc.dump(os);
+			try{cc.dump(os);
+			} catch (ContentException e) {
+				throw new IOException(e.getMessage());
+			}
 			os.flush();
 		}
 	}

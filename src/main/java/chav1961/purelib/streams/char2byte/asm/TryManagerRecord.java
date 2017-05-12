@@ -3,7 +3,7 @@ package chav1961.purelib.streams.char2byte.asm;
 import java.util.ArrayList;
 import java.util.List;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 
 class TryManagerRecord extends NestedEntity {
 	private final AbstractMethodBody	amb;
@@ -25,7 +25,7 @@ class TryManagerRecord extends NestedEntity {
 		}
 	}
 	
-	void processCatch(final short... classes) throws AsmSyntaxException {
+	void processCatch(final short... classes) throws ContentException {
 		if (classes == null || classes.length == 0) {
 			throw new IllegalArgumentException("Classes list can't be null or empty array");
 		}
@@ -36,7 +36,7 @@ class TryManagerRecord extends NestedEntity {
 			short	actualClass;
 			for (int index = 0, maxIndex = classes.length; index < maxIndex; index++) {
 				if ((exceptionIndex[(actualClass = classes[index]) >> 3] & (1 << (actualClass & 0x07))) != 0) {
-					throw new AsmSyntaxException("One of the exceptions was already assigned to process in the early or the same '.catch' directive");
+					throw new ContentException("One of the exceptions was already assigned to process in the early or the same '.catch' directive");
 				}
 				else {
 					exceptionIndex[actualClass >> 3] |= (1 << (actualClass & 0x07));
@@ -55,9 +55,9 @@ class TryManagerRecord extends NestedEntity {
 		}
 	}
 	
-	void processFinally() throws AsmSyntaxException {
+	void processFinally() throws ContentException {
 		if (labelWasPut) {
-			throw new AsmSyntaxException("Duplicate '.finally' for this try block was detected");
+			throw new ContentException("Duplicate '.finally' for this try block was detected");
 		}
 		else {
 			amb.putLabel(labelId);
@@ -71,9 +71,9 @@ class TryManagerRecord extends NestedEntity {
 		}
 	}
 	
-	short[][] processEnd() throws AsmSyntaxException {
+	short[][] processEnd() throws ContentException {
 		if (catches.size() == 0) {
-			throw new AsmSyntaxException("Neither '.catch' nor '.finally' for this try block was detected");
+			throw new ContentException("Neither '.catch' nor '.finally' for this try block was detected");
 		}
 		else {
 			int	count = 0, index = 0;

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 
@@ -53,23 +54,23 @@ class ClassContainer implements Closeable {
 		}
 	}
 	
-	long setClassName(final short modifiers, final long packageId, final long classId) throws IOException {
+	long setClassName(final short modifiers, final long packageId, final long classId) throws IOException, ContentException {
 		joinedClassName = joinClassName(packageId,classId); 
 		thisId = getConstantPool().asClassDescription(this.joinedClassName);
 		classModifiers = modifiers;
 		return joinedClassName; 
 	}
 	
-	void setExtendsClassName(final long classId) throws IOException {
+	void setExtendsClassName(final long classId) throws IOException, ContentException {
 		superId = getConstantPool().asClassDescription(convertTypeName(classId));
 	}
 
-	void addInterfaceName(final long interfaceId) throws IOException {
+	void addInterfaceName(final long interfaceId) throws IOException, ContentException {
 		interfDos.writeShort(getConstantPool().asClassDescription(convertTypeName(interfaceId)));
 		interfCount++;
 	}
 
-	void addFieldDescription(final short modifiers, final long fieldId, final long typeId) throws IOException {
+	void addFieldDescription(final short modifiers, final long fieldId, final long typeId) throws IOException, ContentException {
 		fieldsDos.writeShort(modifiers);
 		fieldsDos.writeShort(getConstantPool().asUTF(fieldId));
 		fieldsDos.writeShort(getConstantPool().asUTF(typeId));
@@ -77,7 +78,7 @@ class ClassContainer implements Closeable {
 		fieldCount++;
 	}
 
-	MethodDescriptor addMethodDescription(final short modifiers, final long methodId, final long typeId, final long... throwsId) throws IOException {
+	MethodDescriptor addMethodDescription(final short modifiers, final long methodId, final long typeId, final long... throwsId) throws IOException, ContentException {
 		if (joinedClassName == 0) {
 			throw new IllegalStateException("Call to addMethodDescription(...) before setClassName(...)!");
 		}
@@ -99,7 +100,7 @@ class ClassContainer implements Closeable {
 		methodBodyAwait = false;
 	}
 	
-	void dump(final OutputStream os) throws IOException {
+	void dump(final OutputStream os) throws IOException, ContentException {
 		if (methodBodyAwait) {
 			throw new IllegalStateException("Last call to addMethodDescription(...) not commited with addMethodBody(...)!");
 		}
@@ -159,7 +160,7 @@ class ClassContainer implements Closeable {
 		}
 	}
 	
-	private long joinClassName(final long packageId, final long classId) throws IOException {
+	private long joinClassName(final long packageId, final long classId) {
 		final int	packageLen = getNameTree().getNameLength(packageId), classLen = getNameTree().getNameLength(classId); 
 		
 		if (packageLen != -1) {

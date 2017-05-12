@@ -21,7 +21,9 @@ public class GrowableArraysTest {
 	private static final double[]	DOUBLE_33 = new double[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33};
 	private static final char[]		CHAR_31 = new char[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 	private static final char[]		CHAR_33 = new char[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33};
-	
+	private static final boolean[]	BOOL_31 = new boolean[]{true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true};
+	private static final boolean[]	BOOL_33 = new boolean[]{true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true};
+
 	@Test
 	public void byteArrayTest() {
 		GrowableByteArray	array;
@@ -176,6 +178,27 @@ public class GrowableArraysTest {
 		}
 	}
 
+	@Test
+	public void booleanArrayTest() {
+		GrowableBooleanArray	array;
+		
+		booleanArrayTest(array = new GrowableBooleanArray(true,5)); 		
+		Assert.assertTrue(array.toPlain() == array);
+//		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
+		
+		booleanArrayTest(array = new GrowableBooleanArray(false,5));
+		Assert.assertFalse(array.toPlain() == array);
+//		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
+
+		try{new GrowableBooleanArray(false,0);
+			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{new GrowableBooleanArray(false,100);
+			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
 	
 	private void byteArrayTest(final GrowableByteArray	gba) {
 		Assert.assertEquals(gba.length(),0);
@@ -627,6 +650,74 @@ public class GrowableArraysTest {
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}
 		try{gca.read(65,result10,10,5);
+			Assert.fail("Mandatory exception was not detected (target array end index less than target array strat index)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+	}
+
+	private void booleanArrayTest(final GrowableBooleanArray	gba) {
+		Assert.assertEquals(gba.length(),0);
+		gba.append(false);
+		gba.append(BOOL_31);
+		gba.append(BOOL_33);
+		Assert.assertEquals(gba.length(),65);
+		
+		Assert.assertFalse(gba.read(0));
+		Assert.assertTrue(gba.read(1));
+		Assert.assertTrue(gba.read(31));
+		Assert.assertTrue(gba.read(32));
+		Assert.assertTrue(gba.read(64));
+		try{gba.read(-1);
+			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(65);
+			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		
+		final boolean[]	result10 = new boolean[10];
+		
+		Assert.assertEquals(gba.read(0,result10),10);
+		Assert.assertFalse(result10[0]);
+		Assert.assertTrue(result10[1]);
+		Assert.assertEquals(gba.read(30,result10),10);
+		Assert.assertTrue(result10[0]);
+		Assert.assertTrue(result10[1]);
+		Arrays.fill(result10,false);
+		Assert.assertEquals(gba.read(60,result10),5);
+		Assert.assertTrue(result10[0]);
+		Assert.assertFalse(result10[9]);
+		
+		try{gba.read(-1,result10);
+			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(65,result10);
+			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(65,null);
+			Assert.fail("Mandatory exception was not detected (null target array)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{gba.read(65,result10,-1,10);
+			Assert.fail("Mandatory exception was not detected (target array start index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(65,result10,65,10);
+			Assert.fail("Mandatory exception was not detected (target array start index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(65,result10,0,-1);
+			Assert.fail("Mandatory exception was not detected (target array end index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(65,result10,0,20);
+			Assert.fail("Mandatory exception was not detected (target array end index out of bounds)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(65,result10,10,5);
 			Assert.fail("Mandatory exception was not detected (target array end index less than target array strat index)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}

@@ -9,12 +9,13 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 
 
 public class ClassContainerTest {
 	@Test
-	public void emptyClassTest() throws IOException {
+	public void emptyClassTest() throws IOException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final ClassContainer		cc = new ClassContainer()) {
 
@@ -47,7 +48,7 @@ public class ClassContainerTest {
 	}
 
 	@Test
-	public void extendsAndImplementsClassTest() throws IOException {
+	public void extendsAndImplementsClassTest() throws IOException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			final ClassContainer		cc = new ClassContainer();
 
@@ -82,7 +83,7 @@ public class ClassContainerTest {
 	}
 
 //	@Test
-	public void fieldClassTest() throws IOException, NoSuchFieldException, SecurityException {
+	public void fieldClassTest() throws IOException, NoSuchFieldException, SecurityException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			final ClassContainer		cc = new ClassContainer();
 
@@ -112,7 +113,7 @@ public class ClassContainerTest {
 	}	
 	
 	@Test
-	public void methodClassTest() throws IOException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void methodClassTest() throws IOException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			final ClassContainer		cc = new ClassContainer();
 

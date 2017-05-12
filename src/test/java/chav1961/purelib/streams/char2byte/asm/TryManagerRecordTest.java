@@ -6,12 +6,12 @@ import java.io.OutputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 
 
 public class TryManagerRecordTest {
 	@Test
-	public void lifeCycleTest() throws AsmSyntaxException {
+	public void lifeCycleTest() throws ContentException {
 		final PseudoMethodBody4TryManager	mgr = new PseudoMethodBody4TryManager();
 		final TryManagerRecord				tmr = new TryManagerRecord(mgr);
 		
@@ -29,19 +29,19 @@ public class TryManagerRecordTest {
 		}
 		try{new TryManagerRecord(mgr).processCatch((short)10,(short)10);
 			Assert.fail("Mandatory exception was not detected (duplicates in one catch)");
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}
 		try{final TryManagerRecord	temp = new TryManagerRecord(mgr);
 			temp.processCatch((short)10);
 			temp.processCatch((short)10);
 			Assert.fail("Mandatory exception was not detected (duplicates in different catch)");
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}
 		try{final TryManagerRecord	temp = new TryManagerRecord(mgr);
 			temp.processFinally();
 			temp.processFinally();
 			Assert.fail("Mandatory exception was not detected (duplicate finally)");
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}
 	}
 }

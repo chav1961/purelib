@@ -115,8 +115,8 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		else if (to < 0 || to > len) {
 			throw new IllegalArgumentException("'to' location ["+to+"] outside the range 0.."+len);
 		}
-		else if (to < from) {
-			throw new IllegalArgumentException("'to' location ["+to+"] less than 'from' ["+from+"]");
+		else if (to <= from) {
+			throw new IllegalArgumentException("'to' location ["+to+"] not greater than 'from' ["+from+"]");
 		}
 		else {
 			final TermNode	node = (TermNode) seekNameInternal(root,source,from,to,forPosition);
@@ -127,8 +127,8 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public boolean contains(final long id) {
-		if (id <= 0) {
-			throw new IllegalArgumentException("'id' ["+id+"] need be positive");
+		if (id < 0) {
+			throw new IllegalArgumentException("'id' ["+id+"] need be non-negtive");
 		}
 		else {
 			return getRevert(id) != null;
@@ -177,7 +177,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		final int	len;
 		
 		if (id < 0) {
-			throw new IllegalArgumentException("'id' ["+id+"] need be non-negtive");
+			throw new IllegalArgumentException("'id' ["+id+"] need be non-negative");
 		}
 		else if (where == null || (len = where.length) == 0) {
 			throw new IllegalArgumentException("where can't be null or empty array");
@@ -365,8 +365,8 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		else if (to < 0 || to > len) {
 			throw new IllegalArgumentException("'to' location ["+to+"] outside the range 0.."+len);
 		}
-		else if (to < from) {
-			throw new IllegalArgumentException("'to' location ["+to+"] less than 'from' ["+from+"]");
+		else if (to <= from) {
+			throw new IllegalArgumentException("'to' location ["+to+"] not greater than 'from' ["+from+"]");
 		}
 		else if (id < 0) {
 			throw new IllegalArgumentException("'id' ["+id+"] need be non-negtive");

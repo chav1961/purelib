@@ -1,18 +1,18 @@
 package chav1961.purelib.streams;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.interfaces.JsonSaxDeserializer;
 
 public class JsonSaxHandlerFactoryTest {
 
 	@Test
-	public void primitivesAndSingleValuesTest() throws IOException, SyntaxException {
+	public void primitivesAndSingleValuesTest() throws IOException, SyntaxException, ContentException {
 		final JsonSaxDeserializer<JsonPrimitives>	d = JsonSaxHandlerFactory.buildDeserializer(JsonPrimitives.class,false);
 		final JsonSaxParser							p = new JsonSaxParser(d);
 		
@@ -71,7 +71,67 @@ public class JsonSaxHandlerFactoryTest {
 	}
 
 	@Test
-	public void stringsAndReusableTest() throws IOException, SyntaxException {
+	public void compiledPrimitivesAndSingleValuesTest() throws IOException, SyntaxException, ContentException {
+		final JsonSaxDeserializer<JsonPrimitives>	d = JsonSaxHandlerFactory.buildDeserializer(JsonPrimitives.class,true);
+		final JsonSaxParser							p = new JsonSaxParser(d);
+		
+		p.parse("{\"x\":10,\"y\":20,\"z\":30.5,\"t\":40.5,\"a\":true,\"b\":100,\"c\":100,\"d\":48}".toCharArray());
+		Assert.assertEquals(d.getInstance().x,10);
+		Assert.assertEquals(d.getInstance().y,20);
+		Assert.assertEquals(d.getInstance().z,30.5,0.0001);
+		Assert.assertEquals(d.getInstance().t,40.5,0.0001);
+		Assert.assertTrue(d.getInstance().a);
+		Assert.assertEquals(d.getInstance().b,(byte)100);
+		Assert.assertEquals(d.getInstance().c,(short)100);
+		Assert.assertEquals(d.getInstance().d,'0');
+
+		try{p.parse("20".toCharArray());
+			Assert.fail("Mandatory exception was not detected (single value is not supported for class deserialization)");
+		} catch (SyntaxException exc) {
+		}
+		
+		try{p.parse("{\"unknown\":10}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (unknown field 'unknown')");
+		} catch (SyntaxException exc) {
+		}
+		
+		try{p.parse("{\"x\":true}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 'x' and 'true')");
+		} catch (SyntaxException exc) {
+		}
+		try{p.parse("{\"y\":true}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 'y' and 'true')");
+		} catch (SyntaxException exc) {
+		}
+		try{p.parse("{\"z\":true}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 'z' and 'true')");
+		} catch (SyntaxException exc) {
+		}
+		try{p.parse("{\"t\":true}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 't' and 'true')");
+		} catch (SyntaxException exc) {
+		}
+		try{p.parse("{\"a\":10}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 'a' and '10')");
+		} catch (SyntaxException exc) {
+		}
+		try{p.parse("{\"b\":true}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 'b' and 'true')");
+		} catch (SyntaxException exc) {
+		}
+		try{p.parse("{\"c\":true}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 'c' and 'true')");
+		} catch (SyntaxException exc) {
+		}
+		try{p.parse("{\"d\":true}".toCharArray());
+			Assert.fail("Mandatory exception was not detected (uncompatible types of 'd' and 'true')");
+		} catch (SyntaxException exc) {
+		}
+	}
+	
+	
+	@Test
+	public void stringsAndReusableTest() throws IOException, SyntaxException, ContentException {
 		final JsonSaxDeserializer<JsonStrings>	d = JsonSaxHandlerFactory.buildDeserializer(JsonStrings.class,false);
 		final JsonSaxParser						p = new JsonSaxParser(d);
 		
@@ -90,7 +150,7 @@ public class JsonSaxHandlerFactoryTest {
 	}
 
 	@Test
-	public void primitiveArraysTest() throws IOException, SyntaxException {
+	public void primitiveArraysTest() throws IOException, SyntaxException, ContentException {
 		final JsonSaxDeserializer<JsonPrimitiveArrays>	d = JsonSaxHandlerFactory.buildDeserializer(JsonPrimitiveArrays.class,false);
 		final JsonSaxParser								p = new JsonSaxParser(d);
 		
@@ -108,7 +168,7 @@ public class JsonSaxHandlerFactoryTest {
 	}
 
 	@Test
-	public void innerClassesTest() throws IOException, SyntaxException {
+	public void innerClassesTest() throws IOException, SyntaxException, ContentException {
 		final JsonSaxDeserializer<JsonOuterClass>	d = JsonSaxHandlerFactory.buildDeserializer(JsonOuterClass.class,false);
 		final JsonSaxParser							p = new JsonSaxParser(d);
 		
@@ -121,7 +181,7 @@ public class JsonSaxHandlerFactoryTest {
 	}
 
 	@Test
-	public void innerClassArraysTest() throws IOException, SyntaxException {
+	public void innerClassArraysTest() throws IOException, SyntaxException, ContentException {
 		final JsonSaxDeserializer<JsonOuterArrayClass>	d = JsonSaxHandlerFactory.buildDeserializer(JsonOuterArrayClass.class,false);
 		final JsonSaxParser								p = new JsonSaxParser(d);
 		
@@ -138,7 +198,7 @@ public class JsonSaxHandlerFactoryTest {
 	}
 
 	@Test
-	public void topPrimitiveArraysTest() throws IOException, SyntaxException {
+	public void topPrimitiveArraysTest() throws IOException, SyntaxException, ContentException {
 		final JsonSaxDeserializer<byte[]>	dByte = JsonSaxHandlerFactory.buildDeserializer(byte[].class,false);
 		final JsonSaxParser					pByte = new JsonSaxParser(dByte);
 		
@@ -207,7 +267,7 @@ public class JsonSaxHandlerFactoryTest {
 	}
 
 	@Test
-	public void theSameNamesTest() throws IOException, SyntaxException {
+	public void theSameNamesTest() throws IOException, SyntaxException, ContentException {
 		final JsonSaxDeserializer<JsonOuterTheSameClass>	d = JsonSaxHandlerFactory.buildDeserializer(JsonOuterTheSameClass.class,false);
 		final JsonSaxParser									p = new JsonSaxParser(d);
 		
@@ -217,93 +277,5 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(d.getInstance().y,"test string 1");
 		Assert.assertEquals(d.getInstance().in.x,20);
 		Assert.assertEquals(d.getInstance().in.y,"test string 2");
-	}
-}
-
-class JsonPrimitives {
-	int		x;
-	long	y;
-	float	z;
-	double	t;
-	boolean	a;
-	byte	b;
-	short	c;
-	char	d;
-	
-	@Override
-	public String toString() {
-		return "JsonPrimitives [x=" + x + ", y=" + y + ", z=" + z + ", t=" + t + ", a=" + a + "]";
-	}
-}
-
-class JsonStrings {
-	String	x;
-	String	y;
-	
-	@Override
-	public String toString() {return "JsonStrings [x=" + x + ", y=" + y + "]";}
-}
-
-class JsonPrimitiveArrays {
-	byte[]		a;	
-	short[]		b;	
-	int[]		c;	
-	long[]		d;	
-	float[]		e;	
-	double[]	f;	
-	boolean[]	g;
-	char[]		h;	
-	
-	@Override
-	public String toString() {
-		return "JsonPrimitiveArrays [a=" + Arrays.toString(a) + ", b="
-				+ Arrays.toString(b) + ", c=" + Arrays.toString(c) + ", d="
-				+ Arrays.toString(d) + ", e=" + Arrays.toString(e) + ", f="
-				+ Arrays.toString(f) + ", g=" + Arrays.toString(g) 
-				+ ", h=" + Arrays.toString(h) + "]";
-	}
-}
-
-class JsonInnerClass {
-	int		x;
-	String	y;
-	
-	@Override
-	public String toString() {
-		return "JsonInnerClass [x=" + x + ", y=" + y + "]";
-	}
-}
-
-class JsonOuterClass {
-	JsonInnerClass	in;
-	int		a;
-	String	b;
-	
-	@Override
-	public String toString() {
-		return "JsonOuterClass [in=" + in + ", a=" + a + ", b=" + b + "]";
-	}
-}
-
-class JsonOuterArrayClass {
-	JsonInnerClass[]	in1;
-	JsonInnerClass[]	in2;
-	int		a;
-	String	b;
-	
-	@Override
-	public String toString() {
-		return "JsonOuterArrayClass [in1=" + Arrays.toString(in1) + ", in2=" + Arrays.toString(in2) + ", a=" + a + ", b=" + b + "]";
-	}
-}
-
-class JsonOuterTheSameClass {
-	JsonInnerClass	in;
-	int		x;
-	String	y;
-	
-	@Override
-	public String toString() {
-		return "JsonOuterTheSameClass [in=" + in + ", x=" + x + ", y=" + y + "]";
 	}
 }

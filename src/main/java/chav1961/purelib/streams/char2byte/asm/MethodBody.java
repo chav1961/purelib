@@ -1,12 +1,14 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 
 class MethodBody extends AbstractMethodBody {
 	public static final short	STACK_CALCULATION_OPTIMISTIC = -1;
@@ -118,13 +120,13 @@ class MethodBody extends AbstractMethodBody {
 	}
 
 	@Override
-	int dump(final OutputStream os) throws IOException {
+	int dump(final OutputStream os) throws IOException, ContentException {
 		resolveBrunches(tree);
 		os.write(body, 0, getPC());
 		return pc;
 	}
 	
-	private void resolveBrunches(final SyntaxTreeInterface<?> tree) throws AsmSyntaxException {
+	private void resolveBrunches(final SyntaxTreeInterface<?> tree) throws ContentException {
 		StringBuilder	sb = null;
 		
 		Arrays.sort(labels,COMPARATOR);
@@ -147,7 +149,7 @@ loop:	for (ItemDescriptor item : brunches) {
 						delta = midVal.displ - item.displ;
 						
 						if (delta < Short.MIN_VALUE || delta > Short.MAX_VALUE) {
-							throw new AsmSyntaxException("Too long jump: ");
+							throw new ContentException("Too long jump: ");
 						}
 						else {
 							body[item.placement] = (byte) ((delta >> 8) & 0xFF);
@@ -168,13 +170,13 @@ loop:	for (ItemDescriptor item : brunches) {
 				if (sb == null) {
 					sb = new StringBuilder();
 				}
-				if (tree.getNameLength(item.id) >= 0) {
+				if (tree.getNameLength(item.id) > 0) {
 					sb.append(tree.getName(item.id)).append(' ');
 				}
 			}
 		}
 		if (sb != null) {
-			throw new AsmSyntaxException("Unresolved jumps: labels {"+sb.toString()+"} are not defined in the method body!");
+			throw new ContentException("Unresolved jumps: labels {"+sb.toString()+"} are not defined in the method body!");
 		}
 	}
 	

@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 
@@ -48,7 +48,7 @@ class ClassConstantsRepo implements Closeable {
 		return sequence;
 	}
 	
-	short asClassDescription(final long classId) throws IOException {
+	short asClassDescription(final long classId) throws IOException, ContentException {
 		short	result = classes.getRef(classId);
 		
 		if (result == 0) {
@@ -61,7 +61,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asFieldRefDescription(final long classId, final long fieldId, final long typeId) throws IOException {
+	short asFieldRefDescription(final long classId, final long fieldId, final long typeId) throws IOException, ContentException {
 		short	result = entityRefs.getRef(classId,fieldId,typeId);
 		
 		if (result == 0) {
@@ -76,11 +76,11 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asFieldRefDescription(final long classId, final long fieldId) throws IOException {
+	short asFieldRefDescription(final long classId, final long fieldId) throws IOException, ContentException {
 		return fieldRefs.getRef(classId,fieldId);
 	}
 
-	short asMethodRefDescription(final long classId, final long methodId, final long signatureId) throws IOException {
+	short asMethodRefDescription(final long classId, final long methodId, final long signatureId) throws IOException, ContentException {
 		short	result = entityRefs.getRef(classId,methodId,signatureId);
 		
 		if (result == 0) {
@@ -94,7 +94,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asInterfaceMethodRefDescription(final long classId, final long methodId, final long signatureId) throws IOException {
+	short asInterfaceMethodRefDescription(final long classId, final long methodId, final long signatureId) throws IOException, ContentException {
 		short	result = entityRefs.getRef(classId,methodId,signatureId);
 		
 		if (result == 0) {
@@ -108,7 +108,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 	
-	short asStringDescription(final long stringId) throws IOException {
+	short asStringDescription(final long stringId) throws IOException, ContentException {
 		short	result = strings.getRef(stringId);
 		
 		if (result == 0) {
@@ -121,7 +121,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}		
 
-	short asIntegerDescription(final int value) throws IOException {
+	short asIntegerDescription(final int value) throws IOException, ContentException {
 		short	result = integers.getRef(value);
 		
 		if (result == 0) {
@@ -132,7 +132,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asLongDescription(final long value) throws IOException {
+	short asLongDescription(final long value) throws IOException, ContentException {
 		short	result = longs.getRef(value);
 		
 		if (result == 0) {
@@ -144,7 +144,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asFloatDescription(final float value) throws IOException {
+	short asFloatDescription(final float value) throws IOException, ContentException {
 		int		bytes = Float.floatToIntBits(value);
 		short	result = floats.getRef(bytes);
 		
@@ -156,7 +156,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asDoubleDescription(final double value) throws IOException {
+	short asDoubleDescription(final double value) throws IOException, ContentException {
 		long	bytes = Double.doubleToLongBits(value);
 		short	result = doubles.getRef(bytes);
 		
@@ -169,7 +169,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asNameAndTypeDescription(final long fieldId, final long typeId) throws IOException {
+	short asNameAndTypeDescription(final long fieldId, final long typeId) throws IOException, ContentException {
 		short	result = nameAndType.getRef(fieldId,typeId);
 		
 		if (result == 0) {
@@ -183,7 +183,7 @@ class ClassConstantsRepo implements Closeable {
 		return result;
 	}
 
-	short asUTF(final long stringId) throws IOException {
+	short asUTF(final long stringId) throws IOException, ContentException {
 		short	result = utfs.getRef(stringId);
 		
 		if (result == 0) {
@@ -199,9 +199,9 @@ class ClassConstantsRepo implements Closeable {
 		return baos.size();
 	}
 	
-	private short nextVal() throws AsmSyntaxException {
+	private short nextVal() throws ContentException {
 		if (sequence == -1) {
-			throw new AsmSyntaxException("Class file restrictoin: constant pool is greater than 65536 items. Simplify your class code!");
+			throw new ContentException("Class file restrictoin: constant pool is greater than 65536 items. Simplify your class code!");
 		}
 		else {
 			return sequence++;

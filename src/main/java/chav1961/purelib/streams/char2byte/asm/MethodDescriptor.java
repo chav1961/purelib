@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+
 import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,8 +8,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
 
 class MethodDescriptor implements Closeable {
 	private static final char[]					THIS = "this".toCharArray(); 
@@ -33,7 +35,7 @@ class MethodDescriptor implements Closeable {
 	private short								signatureDispl;
 	private boolean								parametersEnded = false;
 	
-	MethodDescriptor(final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException {
+	MethodDescriptor(final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
 		final int	tLen = throwsList.length;
 		
 		this.tree = tree;						this.ccr = ccr;	
@@ -78,9 +80,9 @@ class MethodDescriptor implements Closeable {
 		body = new MethodBody(getNameTree(),stackSize);
 	}
 	
-	void addParameterDeclaration(final short accessFlags, final long parameterId, final long typeId) throws AsmSyntaxException {
+	void addParameterDeclaration(final short accessFlags, final long parameterId, final long typeId) throws ContentException {
 		if (parametersEnded) {
-			throw new AsmSyntaxException("Parameters declaration need be before any other declarations");
+			throw new ContentException("Parameters declaration need be before any other declarations");
 		}
 		else {
 			addVar(accessFlags,parameterId,typeId);
@@ -88,17 +90,17 @@ class MethodDescriptor implements Closeable {
 		}
 	}
 	
-	void push() throws IOException {
+	void push() throws IOException, ContentException {
 		markEndOfParameters();
 		pushStack.add(0,new StackLevel(varDispl,getBody().getPC()));
 	}
 
-	void addVarDeclaration(final short accessFlags, final long varId, final long typeId) throws IOException {
+	void addVarDeclaration(final short accessFlags, final long varId, final long typeId) throws ContentException, IOException {
 		markEndOfParameters();
 		addVar(accessFlags,varId,typeId);
 	}
 
-	short getVarDispl(final long varId) throws AsmSyntaxException {
+	short getVarDispl(final long varId) throws ContentException {
 		short	result = 0;
 		
 		for (int index = 0, maxIndex = pushStack.size(); index < maxIndex; index++) {
@@ -106,27 +108,37 @@ class MethodDescriptor implements Closeable {
 				return (short) (result-1);
 			}
 		}
-		throw new AsmSyntaxException("Variable ["+tree.getName(varId)+"] is not declared anywhere in this method");
+		throw new ContentException("Variable ["+tree.getName(varId)+"] is not declared anywhere in this method");
 	}
 	
-	void pop() throws IOException {
+	void pop() throws IOException, ContentException {
 		if (pushStack.size() == 0) {
-			throw new AsmSyntaxException("Pop stack exhausted");
+			throw new ContentException("Pop stack exhausted");
 		}
 		else {
 			final StackLevel 	removed = pushStack.remove(0);
 			
 			varDispl = removed.varDispl;
 			if (methodBodyAwait) {
-				removed.vars.walk(nodeTree -> varTable.add(new short[]{removed.pc,(short) (getBody().getPC()-removed.pc),nodeTree.cargo.nameRef,nodeTree.cargo.typeRef,nodeTree.ref}));
+				removed.vars.walk(
+						new LongIdTreeWalker<MethodDescriptor.VarDesc>() {
+							@Override
+							public void process(LongIdTreeNode<VarDesc> nodeTree) throws IOException {
+								try{varTable.add(new short[]{removed.pc,(short) (getBody().getPC()-removed.pc),nodeTree.cargo.nameRef,nodeTree.cargo.typeRef,nodeTree.ref});
+								} catch (ContentException e) {
+									throw new IOException(e.getMessage(),e);
+								}
+							}
+						}
+					);
 			}
 			removed.vars.clear();
 		}
 	}
 	
-	AbstractMethodBody getBody() throws IOException {
+	AbstractMethodBody getBody() throws IOException, ContentException {
 		if (!methodBodyAwait) {
-			throw new AsmSyntaxException("Attempt to define method body for abstract or native method");
+			throw new ContentException("Attempt to define method body for abstract or native method");
 		}
 		else {
 			markEndOfParameters();
@@ -142,15 +154,15 @@ class MethodDescriptor implements Closeable {
 		tryTable.add(new short[]{fromRange,toRange,branchAddress,exceptionDescriptor});
 	}
 	
-	void addLineNoRecord(final int lineNo) throws IOException {
+	void addLineNoRecord(final int lineNo) throws IOException, ContentException {
 		lineTable.add(new short[]{getBody().getPC(),(short)lineNo});
 	}
 	
-	void complete() throws IOException {
+	void complete() throws IOException, ContentException {
 		markEndOfParameters();
 	}
 	
-	void dump(final OutputStream os) throws IOException {
+	void dump(final OutputStream os) throws IOException, ContentException {
 		pop();
 		try(final DataOutputStream	dos = new DataOutputStream(os)) {
 			dos.writeShort(accessFlags);			// Access flags
@@ -209,9 +221,9 @@ class MethodDescriptor implements Closeable {
 		}
 	}
 	
-	private void addVar(final short accessFlags, final long varId, final long typeId) throws AsmSyntaxException {
+	private void addVar(final short accessFlags, final long varId, final long typeId) throws ContentException {
 		if (pushStack.get(0).vars.getRef(varId) != 0) {
-			throw new AsmSyntaxException("Duplicate variable name ["+tree.getName(varId)+"] in this block");
+			throw new ContentException("Duplicate variable name ["+tree.getName(varId)+"] in this block");
 		}
 		else {
 			final String	signature = InternalUtils.buildFieldSignature(tree,typeId);
@@ -224,12 +236,12 @@ class MethodDescriptor implements Closeable {
 			
 			try{pushStack.get(0).vars.setCargo(new VarDesc(ccr.asUTF(varId),ccr.asUTF(signatureId)),varId);
 			} catch (IOException e) {
-				throw new AsmSyntaxException(e);
+				throw new ContentException(e);
 			}
 		}
 	}
 
-	private void markEndOfParameters() throws IOException {
+	private void markEndOfParameters() throws IOException, ContentException {
 		if (!parametersEnded) {
 			final long[]	parm = new long[parametersList.size()];
 			

@@ -1,10 +1,37 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>chav1961.purelib</groupId>
-  <artifactId>core</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Pure lib</name>
-  <description>Pure lib with some useful classes</description>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.github.chav1961</groupId>
+	<artifactId>purelib</artifactId>
+	<version>0.0.1</version>
+	<name>Pure library</name>
+	<description>Pure Java library with some useful classes</description>
+	<url>https://github.com/chav1961/purelib</url>
+	<packaging>jar</packaging>
+	  
+	<developers>
+		<developer>
+			<name>Alexander Chernomyrdin aka chav1961</name>
+			<email>chav1961@mail.com</email>
+			<organization>Alexander Chernomyrdin aka chav1961</organization>
+			<organizationUrl>https://github.com/chav1961/</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git@github.com:chav1961/purelib.git</connection>
+		<developerConnection>scm:git:git@github.com:chav1961/purelib.git</developerConnection>
+		<url>git@github.com:chav1961/purelib.git</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/chav1961/purelib/issues</url>
+	</issueManagement>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://github.com/chav1961/funnypro/blob/master/LICENSE</url>
+		</license>
+	</licenses>
+  
   
 	<dependencies>
 		<dependency>
@@ -13,19 +40,10 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
-<!-- 		<dependency>
-			<groupId>com.sun</groupId>
-			<artifactId>tools</artifactId>
-			<version>1.6</version>
-			<scope>system</scope>
-			<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>		 
-   		</dependency>
- -->   				
-		
 	</dependencies>
   
      <build>
-       <finalName>purelib-0.0.1-SNAPSHOT</finalName>
+       <finalName>purelib-0.0.1</finalName>
        <plugins>
            <plugin>
                <groupId>org.apache.maven.plugins</groupId>

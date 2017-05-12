@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 public class MethodBodyTest {
@@ -34,8 +34,8 @@ public class MethodBodyTest {
 		}
 	}
 
-	//@Test
-	public void basicTest() throws IOException {
+//	@Test
+	public void basicTest() throws IOException, ContentException {
 		final SyntaxTreeInterface	aot = new AndOrTree(1,16);
 		final MethodBody	mb = new MethodBody(aot);
 		
@@ -88,7 +88,7 @@ public class MethodBodyTest {
 		try(final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 			mb.dump(baos);	baos.flush();
 			Assert.fail("Mandatory exception was not detected (unresolved jumps)");
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}
 	}
 }

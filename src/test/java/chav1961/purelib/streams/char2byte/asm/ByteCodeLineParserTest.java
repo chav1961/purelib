@@ -6,7 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 
 
@@ -14,7 +14,7 @@ public class ByteCodeLineParserTest {
 	public static int callTest() {return 666;}	// Do not remove - need for test purposes! 
 	
 	@Test
-	public void localAddressTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void localAddressTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -81,7 +81,7 @@ public class ByteCodeLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (too big index for frame size)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -101,12 +101,12 @@ public class ByteCodeLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (no-existent variable)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}	
 
 	@Test
-	public void localValueTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void localValueTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -262,7 +262,7 @@ public class ByteCodeLineParserTest {
 							+"Test4	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (too big value for frame size)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -281,12 +281,12 @@ public class ByteCodeLineParserTest {
 							+"Test4	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (unparsed tail in the string)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 
 	@Test
-	public void arrayOfPrimitiveTypeTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void arrayOfPrimitiveTypeTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -323,12 +323,12 @@ public class ByteCodeLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal type for the command)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 
 	@Test
-	public void arrayOfreferencedTypeTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void arrayOfreferencedTypeTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -365,7 +365,7 @@ public class ByteCodeLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal type for the command)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
@@ -392,7 +392,7 @@ public class ByteCodeLineParserTest {
 	}
 	
 	@Test
-	public void incrementTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void incrementTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -417,7 +417,7 @@ public class ByteCodeLineParserTest {
 	}
 
 	@Test
-	public void constantTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void constantTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -532,7 +532,7 @@ public class ByteCodeLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -548,7 +548,7 @@ public class ByteCodeLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -564,12 +564,12 @@ public class ByteCodeLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 
 	@Test
-	public void brunchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void brunchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -656,7 +656,7 @@ public class ByteCodeLineParserTest {
 	}
 
 	@Test
-	public void constructorTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
+	public void constructorTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -687,7 +687,7 @@ public class ByteCodeLineParserTest {
 	}
 	
 	@Test
-	public void fieldAccessTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
+	public void fieldAccessTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -762,7 +762,7 @@ public class ByteCodeLineParserTest {
 	}
 
 	@Test
-	public void invocationTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
+	public void invocationTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -834,7 +834,7 @@ public class ByteCodeLineParserTest {
 	}
 
 	@Test
-	public void switchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
+	public void switchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -905,7 +905,7 @@ public class ByteCodeLineParserTest {
 	}
 
 	@Test
-	public void tryCatchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException {
+	public void tryCatchTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 

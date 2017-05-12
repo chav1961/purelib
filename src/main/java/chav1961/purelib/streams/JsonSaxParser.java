@@ -386,6 +386,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 				}
 			}
 		} catch (ContentException exc) {
+			exc.printStackTrace();
 			throw new IOException(new SyntaxException(lineNo,(current-from),exc.getMessage(),exc));
 		}
 	}

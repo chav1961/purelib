@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 
 public class ClassDescriptionRepoTest {
 	public static final int		testField = 0;
@@ -16,7 +16,7 @@ public class ClassDescriptionRepoTest {
 	public ClassDescriptionRepoTest(){}
 
 //	@Test
-	public void basicTest() throws AsmSyntaxException, NoSuchFieldException, SecurityException, NoSuchMethodException {
+	public void basicTest() throws ContentException, NoSuchFieldException, SecurityException, NoSuchMethodException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final char[]				shortClassName = this.getClass().getSimpleName().toCharArray(), longClassName = this.getClass().getName().toCharArray();
 		
@@ -45,7 +45,7 @@ public class ClassDescriptionRepoTest {
 	}
 	
 	@Test
-	public void illegallArgumentsTest() throws AsmSyntaxException {
+	public void illegallArgumentsTest() throws ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
 		try{cdr.addDescription(null);
@@ -81,19 +81,19 @@ public class ClassDescriptionRepoTest {
 	
 		try{cdr.getClassDescription("unknown".toCharArray(),0,7);
 			Assert.fail("Mandatory exception was not detected (simple name not found)");			
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}
 		try{cdr.getClassDescription("test.unknown".toCharArray(),0,12);
 			Assert.fail("Mandatory exception was not detected (qualified name not found)");			
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}
 		try{cdr.getClassDescription("basicTest()V".toCharArray(),0,12);
 			Assert.fail("Mandatory exception was not detected (method instead of class)");			
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}		
 		try{cdr.getMethodDescription("basicTest()V".toCharArray(),0,12);
 			Assert.fail("Mandatory exception was not detected (ambigious name)");			
-		} catch (AsmSyntaxException exc) {
+		} catch (ContentException exc) {
 		}		
 	}
 }

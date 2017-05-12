@@ -11,13 +11,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.LineByLineProcessor;
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 
 public class ClassLineParserTest {
 	@Test
-	public void emptyClassTest() throws IOException {
+	public void emptyClassTest() throws IOException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -40,7 +40,7 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public & private)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -50,7 +50,7 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public & protected)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -60,7 +60,7 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive abstract & final)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -72,7 +72,7 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (nested classes)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -82,12 +82,12 @@ public class ClassLineParserTest {
 							+"		.end"
 							);
 			Assert.fail("Mandatory exception was not detected (non-labeled end directive)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 	
 	@Test
-	public void emptyExtendedClassTest() throws IOException {
+	public void emptyExtendedClassTest() throws IOException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -110,12 +110,12 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (attempt to extends final class)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 
 	@Test
-	public void emptyImplementedAndImportClassTest() throws IOException {
+	public void emptyImplementedAndImportClassTest() throws IOException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -142,7 +142,7 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (unknown class to import)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -152,7 +152,7 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (unknown class to implements)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -162,12 +162,12 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (implements references to class, not interface)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 
 	@Test
-	public void classWithFieldsTest() throws IOException {
+	public void classWithFieldsTest() throws IOException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -199,7 +199,7 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public/protected/private)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -210,12 +210,12 @@ public class ClassLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public/protected/private)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}	
 	
 	@Test
-	public void classWithMethodTest() throws IOException, NoSuchMethodException, SecurityException {
+	public void classWithMethodTest() throws IOException, NoSuchMethodException, SecurityException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -243,7 +243,7 @@ public class ClassLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (attempt to add abstract method to the non-abstract class)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -255,7 +255,7 @@ public class ClassLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public/protected/private)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -267,7 +267,7 @@ public class ClassLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive abstract/final)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
@@ -279,12 +279,12 @@ public class ClassLineParserTest {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (mutually exclusive abstract/static)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 
 	@Test
-	public void realClassMethodTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void realClassMethodTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -319,7 +319,7 @@ public class ClassLineParserTest {
 		}
 	}
 
-	static Class<?> checkClass(final ClassContainer cc, final String className) throws IOException {
+	static Class<?> checkClass(final ClassContainer cc, final String className) throws IOException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			
 			cc.dump(baos);

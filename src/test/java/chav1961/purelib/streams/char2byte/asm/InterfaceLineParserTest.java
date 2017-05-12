@@ -7,11 +7,11 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.exceptions.AsmSyntaxException;
+import chav1961.purelib.basic.exceptions.ContentException;
 
 public class InterfaceLineParserTest {
 	@Test
-	public void emptyInterfaceTest() throws IOException {
+	public void emptyInterfaceTest() throws IOException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -38,12 +38,12 @@ public class InterfaceLineParserTest {
 							+"Test 		.end"
 							);
 			Assert.fail("Mandatory exception was not detected (nested classes)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}	
 	
 	@Test
-	public void emptyEntendedAndImportInterfaceTest() throws IOException {
+	public void emptyEntendedAndImportInterfaceTest() throws IOException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -72,12 +72,12 @@ public class InterfaceLineParserTest {
 							+"Test	.end"
 							);
 			Assert.fail("Mandatory exception was not detected (implements references to class, not interface)");
-		} catch (AsmSyntaxException exc) {
+		} catch (IOException exc) {
 		}
 	}
 
 //	@Test
-	public void interfaceWithFieldsTest() throws IOException {
+	public void interfaceWithFieldsTest() throws IOException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
@@ -95,7 +95,7 @@ public class InterfaceLineParserTest {
 	}	
 
 	@Test
-	public void classWithMethodTest() throws IOException, NoSuchMethodException, SecurityException {
+	public void classWithMethodTest() throws IOException, NoSuchMethodException, SecurityException, ContentException {
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc);
 
