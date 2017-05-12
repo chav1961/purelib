@@ -28,10 +28,9 @@
 	<licenses>
 		<license>
 			<name>MIT License</name>
-			<url>https://github.com/chav1961/funnypro/blob/master/LICENSE</url>
+			<url>https://github.com/chav1961/purelib/blob/master/LICENSE</url>
 		</license>
 	</licenses>
-  
   
 	<dependencies>
 		<dependency>
