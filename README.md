@@ -1,14 +1,12 @@
 # Pure Library
 
-This project is a set of useful classes and packages, what I use in my projects. This library is used only and only JRE and **nothing** more, and it was one of the most important goals of this projects. The most important fuctionality is:
+This project is a set of useful classes and packages, what I use in my own projects. This library is used only and only JRE and **nothing** more, and it was one of the most important goals of this projects. The most important functionality is:
 
 * class loader for building pluggable applications
-* a set of facades fo different file systems
-* a set of streams to convert data format
+* a set of facades for different file systems
 * a Writer class, that implements **Java byte code assembler**
 * classes to use in quick data parsers (quick syntax tree, quick line parsers)
 * classes for simple building console command processors
-* classes for incapsulation data sources and data targets for parsers
 
 ## Getting Started
 
@@ -18,7 +16,7 @@ To use Pure library, you need installed Java 1.8 version 31 and later. Goto [ORA
 
 ### Installing
 
-Download project from [GitHub](https://github.com/chav1961/purelib) repository and place it to any directory you wish. Use maven to get access to the project
+Download project from [GitHub](https://github.com/chav1961/purelib) repository and place it to any directory you wish. Use [Maven](https://maven.apache.org/) to get access to the project:
 
 ```
 	<dependency>
@@ -30,7 +28,7 @@ Download project from [GitHub](https://github.com/chav1961/purelib) repository a
 
 ## Built With
 
-* [Eclipse](www.eclipse.org) - The Eclipse IDE
+* [Eclipse](http://www.eclipse.org) - The Eclipse IDE
 * [Maven](https://maven.apache.org/) - Dependency Management
 
 ## Documentation
