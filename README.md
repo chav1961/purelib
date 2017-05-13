@@ -20,7 +20,12 @@ To use Pure library, you need installed Java 1.8 version 31 and later. Goto [ORA
 
 Download project from [GitHub](https://github.com/chav1961/purelib) repository and place it to any directory you wish. Use maven to get access to the project
 
-```Java
+```
+	<dependency>
+		<groupId>com.github.chav1961</groupId>
+		<artifactId>purelib</artifactId>
+		<version>0.0.1</version>
+	<dependency>
 ```
 
 ## Built With

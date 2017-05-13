@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<root>
-	<static mountFileSystem="file://./src/test/resources/chav1961/purelib/examples/fs"/>
-	<rest mountFileSystem="rest:chav1961.purelib.examples"/>
-</root>
