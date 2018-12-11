@@ -1,0 +1,85 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.github.chav1961</groupId>
+	<artifactId>purelib</artifactId>
+	<version>0.0.1</version>
+	<description>Pure Java library with some useful classes</description>
+	<url>https://github.com/chav1961/purelib</url>
+	<packaging>jar</packaging>
+	<name>purelib</name>
+
+	<developers>
+		<developer>
+			<name>Alexander Chernomyrdin aka chav1961</name>
+			<email>chav1961@mail.com</email>
+			<organization>Alexander Chernomyrdin aka chav1961</organization>
+			<organizationUrl>https://github.com/chav1961/</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git@github.com:chav1961/purelib.git</connection>
+		<developerConnection>scm:git:git@github.com:chav1961/purelib.git</developerConnection>
+		<url>git@github.com:chav1961/purelib.git</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/chav1961/purelib/issues</url>
+	</issueManagement>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://github.com/chav1961/purelib/blob/master/LICENSE</url>
+		</license>
+	</licenses>
+
+	<properties>
+		<github.global.server>github</github.global.server>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<distributionManagement>
+		<repository>
+			<id>internal.repo</id>
+			<name>Temporary Staging Repository</name>
+			<url>file://${project.build.directory}/mvn-repo</url>
+		</repository>
+	</distributionManagement>
+
+	<build>
+		<finalName>purelib-0.0.1</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<inherited>true</inherited>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<inherited>true</inherited>
+				<configuration>
+					<archive>
+						<index>false</index>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>./</classpathPrefix>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

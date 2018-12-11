@@ -1,0 +1,730 @@
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticBoolean 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		boolean	public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	boolean final
+			.stack		7
+			iload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceBoolean 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		boolean	public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	boolean final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			iload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticByte 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		byte	public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	byte final
+			.stack		7
+			iload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceByte 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		byte public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	byte final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			iload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticChar 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		char public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	char final
+			.stack		7
+			iload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceChar 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		char public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	char final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			iload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticDouble 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		double public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			dreturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	double final
+			.stack		7
+			dload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceDouble 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		double public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			dreturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	double final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			dload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticFloat 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		float public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			freturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	float final
+			.stack		7
+			fload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceFloat 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		float public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			freturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	float final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			fload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticInt 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		int public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	int final
+			.stack		7
+			iload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceInt 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		int public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	int final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			iload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticLong 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		long public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			lreturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	long final
+			.stack		7
+			lload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceLong 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		long public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			lreturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	long final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			lload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticShort 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		short public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	short final
+			.stack		7
+			iload_2
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceShort 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		short public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			ireturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	short final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			iload_2
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+
+
+
+
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticRef 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		java.lang.Object public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			getstatic	&ownerClass..&fieldName
+			areturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	java.lang.Object final
+			.stack		7
+			aload_2
+			checkcast	&valueClass
+			putstatic	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+			
+buildPrimitiveInstanceRef 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(ownerClass)
+			.error		"mandatory parameter 'ownerClass' is missing"
+		.elseif		!exists(fieldName)
+			.error		"mandatory parameter 'fieldName' is missing"
+		.elseif		!exists(valueClass)
+			.error		"mandatory parameter 'valueClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter
+&className	.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter.<init>()V
+			return
+&className	.end
+get			.method		java.lang.Object public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+			.stack		5
+			aload_1
+			checkcast	&ownerClass
+			getfield	&ownerClass..&fieldName
+			areturn
+get			.end
+set			.method	void public throws chav1961.purelib.basic.exceptions.ContentException
+instance	.parameter	java.lang.Object final
+value		.parameter	java.lang.Object final
+			.stack		7
+			aload_1
+			checkcast	&ownerClass
+			aload_2
+			checkcast	&valueClass
+			putfield	&ownerClass..&fieldName
+			return
+set			.end
+&className	.end
+		.endif
+		.mend
+
+
+
+
+
+
+
+
+
+	.package	chav1961.purelib.streams.char2byte.asm
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$GetterAndSetter
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter	
+	.import		chav1961.purelib.basic.CharUtils	
+	.import		chav1961.purelib.basic.exceptions.ContentException	
+

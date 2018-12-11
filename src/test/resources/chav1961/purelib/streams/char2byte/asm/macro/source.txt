@@ -1,0 +1,22 @@
+CalcSub		.macro	sum:int=0
+			iload_1
+			iload_2
+			isub
+			ireturn
+			.mend
+			.package	chav1961.purelib.streams.char2byte.asm
+			.import		chav1961.purelib.streams.char2byte.asm.TestInterface
+MacroTest	.class		public implements chav1961.purelib.streams.char2byte.asm.TestInterface
+MacroTest	.method		void public 
+			.stack	1
+			aload_0
+			invokespecial	java.lang.Object.Object()V
+			return
+MacroTest	.end
+sub			.method		int public
+left		.parameter	int
+right		.parameter	int
+			.stack	3
+			CalcSub
+sub			.end
+MacroTest	.end

@@ -1,0 +1,900 @@
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:65:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:84:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:87:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:98:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:101:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:120:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:123:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:126:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:147:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:158:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:171:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractLoggerFacade.java:182:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:86:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:99:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:113:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:116:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:130:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:140:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:150:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:209:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:224:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:239:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:259:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:281:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:419:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:512:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:522:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngine.java:537:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AbstractScriptEngineFactory.java:108:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AndOrTree.java:371:	Avoid throwing raw exception types.
+src/main/java/chav1961/purelib/basic/AndOrTree.java:378:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AsmScriptEngine.java:30:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AsmScriptEngine.java:47:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:74:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:173:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:179:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:203:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:209:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:308:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:328:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:348:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:416:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/AssemblerTemplateRepo.java:451:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/BitCharSet.java:66:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/BitCharSet.java:84:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/BitCharSet.java:118:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/BitCharSet.java:166:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/BitCharSet.java:215:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/BitCharSet.java:234:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/BitCharSet.java:253:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:1070:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:1161:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:1298:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:1385:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:1415:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:1961:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:1992:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2105:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2129:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2132:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2159:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2188:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2194:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2213:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2216:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2245:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/CharUtils.java:2248:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/ClassLoaderWrapper.java:48:	Avoid throwing raw exception types.
+src/main/java/chav1961/purelib/basic/ClassLoaderWrapper.java:124:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/ClassLoaderWrapper.java:146:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/ConsoleCommandManager.java:187:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/ConsoleCommandManager.java:190:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/ExtendedBitCharSet.java:46:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:69:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:72:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:82:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:114:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:159:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:202:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:205:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:208:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FSM.java:211:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:44:	Variables that are final and static should be all capitals, 'BIT_i' is not all capitals.
+src/main/java/chav1961/purelib/basic/FastPattern.java:45:	Variables that are final and static should be all capitals, 'BIT_d' is not all capitals.
+src/main/java/chav1961/purelib/basic/FastPattern.java:46:	Variables that are final and static should be all capitals, 'BIT_m' is not all capitals.
+src/main/java/chav1961/purelib/basic/FastPattern.java:47:	Variables that are final and static should be all capitals, 'BIT_s' is not all capitals.
+src/main/java/chav1961/purelib/basic/FastPattern.java:48:	Variables that are final and static should be all capitals, 'BIT_u' is not all capitals.
+src/main/java/chav1961/purelib/basic/FastPattern.java:49:	Variables that are final and static should be all capitals, 'BIT_x' is not all capitals.
+src/main/java/chav1961/purelib/basic/FastPattern.java:66:	Variables that are final and static should be all capitals, 'uniqueClassId' is not all capitals.
+src/main/java/chav1961/purelib/basic/FastPattern.java:151:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:172:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:220:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:232:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:235:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:238:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:300:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:309:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:337:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:346:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/FastPattern.java:1274:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/FastPattern.java:1275:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/FastPattern.java:1276:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/FastPattern.java:1278:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/FastPattern.java:1279:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/FastPattern.java:1280:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/FastPattern.java:1298:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/FastPattern.java:1932:	Overridable method 'getArray' called during object construction
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:289:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:297:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:334:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:337:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:516:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:517:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:564:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:565:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:757:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:765:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:915:	Do not use the short type
+src/main/java/chav1961/purelib/basic/GettersAndSettersFactory.java:923:	Do not use the short type
+src/main/java/chav1961/purelib/basic/InternalUtils.java:19:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/InternalUtils.java:33:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/LineByLineProcessor.java:47:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/LineByLineProcessor.java:133:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/LongIdMap.java:26:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/LongIdMap.java:41:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/PluggableClassLoader.java:86:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/PureLibSettings.java:42:	A class which only has private constructors should be final
+src/main/java/chav1961/purelib/basic/PureLibSettings.java:46:	Variables that are final and static should be all capitals, 'logger' is not all capitals.
+src/main/java/chav1961/purelib/basic/PureLibSettings.java:212:	Variables that are final and static should be all capitals, 'defaults' is not all capitals.
+src/main/java/chav1961/purelib/basic/PureLibSettings.java:213:	Variables that are final and static should be all capitals, 'props' is not all capitals.
+src/main/java/chav1961/purelib/basic/PureLibSettings.java:292:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/ReusableInstances.java:48:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/ReusableInstances.java:68:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/SequenceIterator.java:23:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/SequenceIterator.java:28:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/SequenceIterator.java:37:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:79:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:82:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:92:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:129:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:195:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:259:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:262:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:265:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:268:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/StackedFSM.java:271:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/SubstitutableProperties.java:82:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/SubstitutableProperties.java:143:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/SubstitutableProperties.java:176:	Avoid instantiating FileInputStream, FileOutputStream, FileReader, or FileWriter
+src/main/java/chav1961/purelib/basic/TemporaryStore.java:112:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/TemporaryStore.java:115:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/TemporaryStore.java:191:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/TemporaryStore.java:233:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:115:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:118:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:143:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:146:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:174:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:177:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:199:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:229:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:232:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:254:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:284:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:318:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:346:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:354:	Do not use the short type
+src/main/java/chav1961/purelib/basic/Utils.java:404:	Do not use the short type
+src/main/java/chav1961/purelib/basic/Utils.java:556:	Do not use the short type
+src/main/java/chav1961/purelib/basic/Utils.java:561:	Do not use the short type
+src/main/java/chav1961/purelib/basic/Utils.java:561:	Do not use the short type
+src/main/java/chav1961/purelib/basic/Utils.java:694:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:723:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:729:	Do not use the short type
+src/main/java/chav1961/purelib/basic/Utils.java:767:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:770:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:814:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:817:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:820:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:855:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:871:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:905:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:942:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:981:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:1010:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:1044:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/Utils.java:1075:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/XMLBasedParser.java:45:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/XMLBasedParser.java:48:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/XMLBasedParser.java:51:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/XMLBasedParser.java:54:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/AbstractPlainContentManager.java:61:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableBooleanArray.java:79:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableBooleanArray.java:99:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableBooleanArray.java:161:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableBooleanArray.java:180:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableByteArray.java:81:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableByteArray.java:101:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableByteArray.java:145:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableByteArray.java:184:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableByteArray.java:203:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableCharArray.java:81:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableCharArray.java:101:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableCharArray.java:145:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableCharArray.java:166:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableCharArray.java:209:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableCharArray.java:250:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableCharArray.java:269:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableDoubleArray.java:80:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableDoubleArray.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableDoubleArray.java:162:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableDoubleArray.java:181:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableFloatArray.java:80:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableFloatArray.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableFloatArray.java:162:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableFloatArray.java:181:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableIntArray.java:80:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableIntArray.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableIntArray.java:162:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableIntArray.java:181:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableLongArray.java:80:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableLongArray.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableLongArray.java:162:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableLongArray.java:181:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:17:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:17:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:21:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:23:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:24:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:59:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:78:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:80:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:96:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:140:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:160:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:162:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:179:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:181:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:270:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:284:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:285:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:285:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:325:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:332:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:346:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:351:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:358:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:361:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/GrowableShortArray.java:376:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:88:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:99:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:182:	Do not use the short type
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:313:	Only variables that are final should contain underscores (except for underscores in standard prefix/suffix), 'chararr_count' is not final.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:381:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:398:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:508:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:541:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:571:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/growablearrays/InOutGrowableByteArray.java:654:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/basic/xsd/XSDConst.java:20:	No abstract method which means that the keyword is most likely used to prevent instantiation. Use a private or protected constructor instead.
+src/main/java/chav1961/purelib/concurrent/AbstractSyncSchemeControl.java:17:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/concurrent/LightWeightListenerList.java:52:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/concurrent/LightWeightListenerList.java:68:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/concurrent/LightWeightListenerList.java:92:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/concurrent/LightWeightListenerList.java:122:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/concurrent/ThreadPoolTaskWrapper.java:52:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/concurrent/XStream.java:89:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/concurrent/XStream.java:141:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:65:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:218:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:246:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:349:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:380:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:408:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:421:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:431:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:457:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:472:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:492:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:505:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:525:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:540:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/AbstractFileSystem.java:560:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/FileSystemFactory.java:73:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/FileSystemFactory.java:79:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/FileSystemInMemory.java:54:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/FileSystemOnCsvDb.java:298:	Return an empty array rather than null.
+src/main/java/chav1961/purelib/fsys/FileSystemOnCsvDb.java:384:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/fsys/FileSystemOnFile.java:108:	Avoid instantiating FileInputStream, FileOutputStream, FileReader, or FileWriter
+src/main/java/chav1961/purelib/fsys/FileSystemOnFile.java:113:	Avoid instantiating FileInputStream, FileOutputStream, FileReader, or FileWriter
+src/main/java/chav1961/purelib/fsys/FileSystemOnFile.java:145:	Avoid instantiating FileInputStream, FileOutputStream, FileReader, or FileWriter
+src/main/java/chav1961/purelib/fsys/FileSystemURLStreamHandler.java:48:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:84:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:208:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:211:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:325:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:354:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:400:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:460:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:473:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:486:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/AbstractLocalizer.java:534:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/DebuggingLocalizer.java:53:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/DebuggingLocalizer.java:56:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/FileSystemLocalizer.java:56:	Overridable method 'loadResource' called during object construction
+src/main/java/chav1961/purelib/i18n/LocaleSpecificTextWrapper.java:24:	A class which only has private constructors should be final
+src/main/java/chav1961/purelib/i18n/LocaleSpecificTextWrapper.java:45:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/LocalizerFactory.java:44:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/LocalizerFactory.java:71:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/LocalizerFactory.java:210:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/LocalizerFactory.java:213:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/LocalizerFactory.java:216:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/i18n/PropertiesLocalizer.java:56:	Overridable method 'loadResource' called during object construction
+src/main/java/chav1961/purelib/json/JsonSerializer.java:96:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:105:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:110:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:241:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:270:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:286:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:365:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:398:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:434:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:450:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:541:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:575:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:642:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:665:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:756:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:793:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:829:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:845:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:951:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:993:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1029:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1045:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1153:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1195:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1231:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1247:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1338:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1370:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1406:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1422:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1514:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1546:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1582:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1598:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1690:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1695:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1724:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1797:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1813:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1914:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:1965:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2026:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2042:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2118:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2158:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2226:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2252:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2393:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2441:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2514:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2540:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2686:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2735:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2832:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:2863:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3020:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3073:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3146:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3172:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3330:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3381:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3454:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3480:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3637:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3688:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3761:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3787:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3932:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:3980:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4053:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4198:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4224:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4261:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4270:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4272:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4282:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4295:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4310:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4343:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4345:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4354:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4369:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4371:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4450:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4513:	Do not use the short type
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4515:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4569:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4637:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4663:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4795:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4908:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4957:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:4991:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:5173:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/json/JsonSerializer.java:5252:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractCallableStatement.java:269:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractCallableStatement.java:346:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractCallableStatement.java:348:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractCallableStatement.java:352:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractCallableStatement.java:690:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractConnection.java:49:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractConnection.java:59:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractConnection.java:147:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractConnection.java:152:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractConnection.java:178:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractConnection.java:319:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractConnection.java:375:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractPreparedStatement.java:497:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:36:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:39:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:55:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:68:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:120:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:121:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:200:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:201:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:265:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:270:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:274:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:499:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:594:	Do not use the short type
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:689:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:693:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:702:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractReadOnlyResultSet.java:1118:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractResultSetMetaData.java:25:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractResultSetMetaData.java:38:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractStatement.java:32:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractStatement.java:56:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractStatement.java:66:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractStatement.java:69:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/AbstractStatement.java:87:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractStatement.java:97:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/AbstractStatement.java:361:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/sql/InMemoryLitteArray.java:21:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLitteArray.java:72:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLitteArray.java:127:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleBlob.java:35:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleBlob.java:70:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleBlob.java:99:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleBlob.java:109:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleBlob.java:119:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleBlob.java:215:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleClob.java:38:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleClob.java:51:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleClob.java:90:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleClob.java:119:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleClob.java:134:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleClob.java:270:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleSQLXML.java:28:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleSQLXML.java:31:	Overridable method 'setString' called during object construction
+src/main/java/chav1961/purelib/sql/InMemoryLittleSQLXML.java:68:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleSQLXML.java:83:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleSQLXML.java:97:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleSQLXML.java:150:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleStruct.java:24:	Overridable method 'addPairs' called during object construction
+src/main/java/chav1961/purelib/sql/InMemoryLittleStruct.java:29:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleStruct.java:34:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleStruct.java:53:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryLittleStruct.java:90:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryReadOnlyResultSet.java:20:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryReadOnlyResultSet.java:23:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InMemoryReadOnlyResultSet.java:39:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InternalUtils.java:80:	Do not use the short type
+src/main/java/chav1961/purelib/sql/InternalUtils.java:225:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/InternalUtils.java:1446:	Do not use the short type
+src/main/java/chav1961/purelib/sql/InternalUtils.java:1447:	Do not use the short type
+src/main/java/chav1961/purelib/sql/NullReadOnlyResultSet.java:19:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/NullReadOnlyResultSet.java:35:	Return an empty array rather than null.
+src/main/java/chav1961/purelib/sql/content/CsvContentParser.java:63:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/content/CsvContentParser.java:78:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/content/CsvContentParser.java:81:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/content/ResultSetFactory.java:22:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/fsys/FSysDriver.java:27:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/fsys/FSysDriver.java:30:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/sql/fsys/FSysDriver.java:63:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonSaxHandlerFactory.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonSaxHandlerFactory.java:640:	Do not use the short type
+src/main/java/chav1961/purelib/streams/JsonSaxHandlerFactory.java:640:	Do not use the short type
+src/main/java/chav1961/purelib/streams/JsonSaxParser.java:64:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonSaxParser.java:79:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonSaxParser.java:107:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonSaxParser.java:131:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonStaxParser.java:64:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonStaxPrinter.java:55:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/JsonStaxPrinter.java:406:	Do not use the short type
+src/main/java/chav1961/purelib/streams/JsonStaxPrinter.java:548:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/ReaderWrapper.java:18:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/StreamsUtil.java:42:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/StreamsUtil.java:45:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/StreamsUtil.java:61:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/StreamsUtil.java:64:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/WriterWrapper.java:18:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2byte/ZLibInputStream.java:27:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2byte/ZLibInputStream.java:45:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2byte/ZLibInputStream.java:55:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2byte/ZLibOutputStream.java:26:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2byte/ZLibOutputStream.java:41:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2byte/ZLibOutputStream.java:51:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2char/BufferedInputStreamReader.java:49:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/byte2char/BufferedInputStreamReader.java:55:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2byte/AsmWriter.java:71:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2byte/AsmWriter.java:83:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2byte/AsmWriter.java:86:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2byte/AsmWriter.java:98:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2byte/asm/AbstractMethodBody.java:10:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/AbstractMethodBody.java:16:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:26:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:41:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:45:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:46:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:49:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:60:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:61:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:64:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:75:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:79:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:80:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:83:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:93:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:94:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:97:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:107:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:108:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:111:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:120:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:121:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:131:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:132:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:143:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:145:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:155:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:157:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:168:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:169:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:172:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:182:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:183:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassConstantsRepo.java:198:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassContainer.java:25:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassContainer.java:55:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassContainer.java:59:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassContainer.java:75:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassContainer.java:83:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/ClassDescriptionRepo.java:33:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:16:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:17:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:18:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:19:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:20:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:21:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:22:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:23:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:24:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:25:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:26:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:27:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:28:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:29:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:30:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:31:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:32:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:33:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:39:	Variables that are final and static should be all capitals, 'CONSTANT_Class' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:40:	Variables that are final and static should be all capitals, 'CONSTANT_Fieldref' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:41:	Variables that are final and static should be all capitals, 'CONSTANT_Methodref' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:42:	Variables that are final and static should be all capitals, 'CONSTANT_InterfaceMethodref' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:43:	Variables that are final and static should be all capitals, 'CONSTANT_String' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:44:	Variables that are final and static should be all capitals, 'CONSTANT_Integer' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:45:	Variables that are final and static should be all capitals, 'CONSTANT_Float' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:46:	Variables that are final and static should be all capitals, 'CONSTANT_Long' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:47:	Variables that are final and static should be all capitals, 'CONSTANT_Double' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:48:	Variables that are final and static should be all capitals, 'CONSTANT_NameAndType' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:49:	Variables that are final and static should be all capitals, 'CONSTANT_Utf8' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:50:	Variables that are final and static should be all capitals, 'CONSTANT_MethodHandle' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:51:	Variables that are final and static should be all capitals, 'CONSTANT_MethodType' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:52:	Variables that are final and static should be all capitals, 'CONSTANT_InvokeDynamic' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:57:	Variables that are final and static should be all capitals, 'ATTRIBUTE_Exceptions' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:58:	Variables that are final and static should be all capitals, 'ATTRIBUTE_Code' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:59:	Variables that are final and static should be all capitals, 'ATTRIBUTE_StackMapTable' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:60:	Variables that are final and static should be all capitals, 'ATTRIBUTE_LocalVariableTable' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:61:	Variables that are final and static should be all capitals, 'ATTRIBUTE_LineNumberTable' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/Constants.java:62:	Variables that are final and static should be all capitals, 'ATTRIBUTE_Signature' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:119:	Variables that are final and static should be all capitals, 'staticDirectiveTree' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:120:	Variables that are final and static should be all capitals, 'staticCommandTree' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:414:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1473:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1484:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1506:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1506:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1520:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1520:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1533:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1534:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1610:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:1665:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2053:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2053:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2053:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2152:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2158:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2162:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2310:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2343:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2345:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LineParser.java:2350:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LongIdTree.java:20:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LongIdTree.java:29:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LongIdTree.java:73:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LongIdTree.java:98:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LongIdTree.java:211:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/LongIdTree.java:215:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodBody.java:15:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodBody.java:16:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodBody.java:34:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodBody.java:41:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodBody.java:57:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodBody.java:111:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:22:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:23:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:24:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:27:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:30:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:32:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:33:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:37:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:38:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:41:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:56:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:89:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:93:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:108:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:113:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:114:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:137:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:163:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:163:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:163:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:163:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:164:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:168:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:185:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:202:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:203:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:213:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:214:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:222:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:223:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:231:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:293:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:296:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:296:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:302:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:303:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:305:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/MethodDescriptor.java:305:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/NameDescriptor.java:6:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/NameDescriptor.java:6:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:10:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:12:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:12:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:14:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:28:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:36:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:45:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:45:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:67:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:74:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:81:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:85:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:85:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:87:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/TryManagerRecord.java:89:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:9:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:23:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:53:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:54:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:86:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:93:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:99:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/VarFrameRecord.java:103:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2byte/asm/macro/ExpressionNode.java:156:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/streams/char2byte/asm/macro/ExpressionNode.java:1129:	Variables that are final and static should be all capitals, 'callback' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/macro/ExpressionNode.java:1152:	Variables that are final and static should be all capitals, 'callback' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/macro/ExpressionNode.java:1177:	Variables that are final and static should be all capitals, 'callback' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/macro/ExpressionNode.java:1198:	Variables that are final and static should be all capitals, 'callback' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2byte/asm/macro/ExpressionNode.java:1226:	Variables that are final and static should be all capitals, 'callback' is not all capitals.
+src/main/java/chav1961/purelib/streams/char2char/CreoleWriter.java:97:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/CreoleWriter.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/CreoleWriter.java:103:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/CreoleWriter.java:106:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/CreoleWriter.java:117:	Overridable method 'automat' called during object construction
+src/main/java/chav1961/purelib/streams/char2char/CreoleWriter.java:126:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/CreoleWriter.java:131:	Overridable method 'automat' called during object construction
+src/main/java/chav1961/purelib/streams/char2char/PreprocessingReader.java:172:	Variables should start with a lowercase character, 'COMMANDS' starts with uppercase character.
+src/main/java/chav1961/purelib/streams/char2char/PreprocessingReader.java:203:	Do not use the short type
+src/main/java/chav1961/purelib/streams/char2char/PreprocessingReader.java:274:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/PreprocessingReader.java:277:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/PreprocessingReader.java:280:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/PreprocessingReader.java:343:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/PreprocessingReader.java:538:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/char2char/XMLEventWrapper.java:20:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/charsource/ReaderCharSource.java:33:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/ArrayCharTarget.java:54:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/ArrayCharTarget.java:66:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/ArrayCharTarget.java:82:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/ArrayCharTarget.java:94:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/StringBuilderCharTarget.java:25:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/WriterCharTarget.java:31:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/WriterCharTarget.java:47:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/WriterCharTarget.java:69:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/WriterCharTarget.java:82:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/WriterCharTarget.java:115:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/streams/chartarget/WriterCharTarget.java:148:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:50:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:53:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:85:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:88:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:94:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:121:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:140:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:163:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:166:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractInMemoryFormModel.java:263:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:102:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:105:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:108:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:111:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:114:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:122:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:354:	Do not use the short type
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:523:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractLowLevelFormFactory.java:526:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/AbstractWizardStep.java:30:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/AbstractWizardStep.java:35:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/AbstractWizardStep.java:55:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/AbstractWizardStep.java:64:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/ContentModelFactory.java:44:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/ContentModelFactory.java:92:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:44:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:53:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:62:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:77:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:80:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:83:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:94:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:97:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:100:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:111:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:120:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/FormFieldFormat.java:123:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/MutableContentNodeMetadata.java:22:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/MutableContentNodeMetadata.java:25:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/MutableContentNodeMetadata.java:28:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/MutableContentNodeMetadata.java:31:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/SimpleContentMetadata.java:17:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/SimpleContentMetadata.java:32:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/SimpleContentMetadata.java:58:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/SimpleContentMetadata.java:84:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/UIUtils.java:130:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/UIUtils.java:133:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/UIUtils.java:136:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/UIUtils.java:139:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/UIUtils.java:142:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/interfacers/FormModel.java:72:	Variables should start with a lowercase character, 'Id' starts with uppercase character.
+src/main/java/chav1961/purelib/ui/interfacers/FormModel.java:81:	Variables should start with a lowercase character, 'Id' starts with uppercase character.
+src/main/java/chav1961/purelib/ui/interfacers/FormModel.java:89:	Variables should start with a lowercase character, 'Id' starts with uppercase character.
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:72:	Variables that are final and static should be all capitals, 'typeMap' is not all capitals.
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:78:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:81:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:93:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:107:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:153:	Do not use the short type
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:212:	Do not use the short type
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:213:	Do not use the short type
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:213:	Do not use the short type
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:406:	Do not use the short type
+src/main/java/chav1961/purelib/ui/nanoservice/InternalUtils.java:429:	Do not use the short type
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:128:	Only variables that are final should contain underscores (except for underscores in standard prefix/suffix), 'NULL_INPUT' is not final.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:128:	Variables should start with a lowercase character, 'NULL_INPUT' starts with uppercase character.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:163:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:166:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:193:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:218:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:221:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:679:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:741:	Avoid instantiating FileInputStream, FileOutputStream, FileReader, or FileWriter
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:744:	Avoid instantiating FileInputStream, FileOutputStream, FileReader, or FileWriter
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceFactory.java:1005:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceManager.java:58:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceManager.java:61:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceManager.java:64:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/NanoServiceManager.java:86:	Overridable method 'redeploy' called during object construction
+src/main/java/chav1961/purelib/ui/nanoservice/TemplateCache.java:46:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/nanoservice/TemplateCache.java:131:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AnnotatedActionListener.java:41:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:119:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:122:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:125:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:128:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:180:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:183:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:256:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/AutoBuiltForm.java:267:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/LocalizedDialog.java:38:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/LocalizedDialog.java:61:	Overridable method 'localeChanged' called during object construction
+src/main/java/chav1961/purelib/ui/swing/LocalizedDialog.java:83:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/LocalizedDialog.java:89:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/LocalizedFileChooser.java:20:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/LocalizedFileChooser.java:50:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/LocalizedFrame.java:42:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/MicroTableEditor.java:47:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/MicroTableEditor.java:50:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/MicroTableEditorEditableContent.java:36:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/MicroTableEditorEditableContent.java:39:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/MicroTableEditorMarkableContent.java:31:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/MicroTableEditorMarkableContent.java:34:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleHelpComponent.java:64:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleLowLevelFormFactory.java:113:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleLowLevelFormFactory.java:141:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleLowLevelFormFactory.java:168:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleLowLevelFormFactory.java:445:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleLowLevelFormFactory.java:448:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleLowLevelFormFactory.java:647:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleLowLevelFormFactory.java:650:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleNavigatorTree.java:61:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleNavigatorTree.java:64:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleNavigatorTree.java:198:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleNavigatorTree.java:213:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleWizard.java:139:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleWizard.java:142:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleWizard.java:152:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleWizard.java:240:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleWizard.java:243:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleWizard.java:259:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SimpleWizard.java:262:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SmartToolTip.java:58:	Overridable method 'setTipText' called during object construction
+src/main/java/chav1961/purelib/ui/swing/StyledButton.java:51:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledButton.java:57:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledButton.java:60:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledButton.java:63:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledButton.java:66:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledButton.java:132:	Method names should not start with capital letters
+src/main/java/chav1961/purelib/ui/swing/StyledButton.java:134:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledCalendar.java:67:	Overridable method 'updateMonth' called during object construction
+src/main/java/chav1961/purelib/ui/swing/StyledPromptedTextField.java:32:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledPromptedTextField.java:35:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/StyledPromptedTextField.java:88:	Overridable method 'refill' called during object construction
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:912:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:935:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:958:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:989:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:992:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1017:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1020:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1050:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1053:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1113:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1136:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1155:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1193:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1196:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1205:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1208:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1211:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1233:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1355:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1369:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1383:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1387:	An empty method in an abstract class should be abstract instead
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1402:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1405:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1547:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1550:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1712:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1715:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1812:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1815:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1880:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/SwingUtils.java:1883:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/XMLDescribedApplication.java:92:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/XMLDescribedApplication.java:95:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/XMLDescribedApplication.java:162:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/XMLDescribedApplication.java:179:	Avoid throwing null pointer exceptions.
+src/main/java/chav1961/purelib/ui/swing/terminal/Term.java:68:	Do not use the short type
+src/main/java/chav1961/purelib/ui/swing/terminal/Term.java:72:	Do not use the short type

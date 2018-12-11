@@ -1,0 +1,49 @@
+{subclass}	-------------------------
+			.package 	${package}
+			.import		chav1961.purelib.basic.FastPattern
+			.import		chav1961.purelib.basic.FastPattern$Command
+			.import		chav1961.purelib.basic.FastPattern$CompiledCommand
+			.import		chav1961.purelib.basic.FastPattern$CommandType
+${subclass}	.class		extends chav1961.purelib.basic.FastPattern$CompiledCommand
+${subclass}	.method		void
+			.stack 		1
+			aload_0
+			invokespecial chav1961.purelib.basic.FastPattern$CompiledCommand.CompiledCommand()V
+			return
+${subclass}	.end
+clone		.method 	chav1961.purelib.basic.FastPattern$Command protected
+			.stack		1
+			aconst_null
+			areturn
+clone		.end
+getType		.method 	chav1961.purelib.basic.FastPattern$CommandType
+			.stack		1
+			getstatic	chav1961.purelib.basic.FastPattern$CommandType.SEQUENCE_COMMAND	
+			areturn
+getType		.end
+firstCall	.method 	int public
+content		.parameter	char[]	
+from		.parameter	int	
+length		.parameter	int
+flags		.parameter	int
+{compareChar}	-------------------------
+			.stack		2
+			aload_1
+			iload_2
+			caload
+			ldc			'${char}'
+			if_icmpne	label_1
+			iload_2
+			ldc			1
+			iadd
+			ireturn
+label_1:	iload_2
+			ineg
+			ireturn
+{firstCall}	-------------------------			
+firstCall	.end
+backtrace	.method 	boolean
+{backtrace}	-------------------------			
+backtrace	.end
+{theEnd}	-------------------------			
+${subclass}	.end

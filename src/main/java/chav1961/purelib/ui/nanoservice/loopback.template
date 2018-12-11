@@ -1,0 +1,19 @@
+<html>
+<head></head>
+<body>
+<h3>Loopback info:<h3>
+<p>Request method = ${method}</p>
+<p>Path = ${path}, fragment = ${fragment}</p>
+<p>Query string = ${query}</p>
+<p>Request headers:</p>
+<table>
+<tr><th>Header key</th><th>Value</th></tr>
+${inHeader}
+</table>
+<p>Response headers:</p>
+<table>
+<tr><th>Header key</th><th>Value</th></tr>
+${outHeader}
+</table>
+</body>
+</html>

@@ -1,0 +1,25 @@
+>>part1:caption1(iconURI1):tooltip1:help1
+=== Single form (page 1)
+
+line1
+
+line2 //before// &field1:20m; line2 //after//
+
+line 3
+>>part2:caption2(iconURI2):tooltip2:help2
+=== Single form (page 2)
+
+line1
+
+line2 **before** &field2:20L; line2 **after**
+
+line 3
+
+>>part3:caption3(iconURI3):tooltip3:help3
+=== Single form (page 3)
+
+line1
+
+line2 before &field3:1; line2 after
+
+line 3

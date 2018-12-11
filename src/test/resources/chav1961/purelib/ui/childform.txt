@@ -1,0 +1,9 @@
+>>part1:caption1(iconURI1):tooltip1:help1
+oooo line1
+oooo line2 before &field1:20m; line2 after
+oooo line 3
+>>part2:caption2(iconURI2):tooltip2:help2
+>>part4:caption3(iconURI3):tooltip3:help3
+oooo line1
+oooo line2 before &field3:20; line2 after
+oooo line 3

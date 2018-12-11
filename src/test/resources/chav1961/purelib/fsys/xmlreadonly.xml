@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xfs:root xmlns:xfs="http://www.fsys.purelib.chav1961.ru/">
+	<xfs:dir name="root">
+		<xfs:dir name="directory1" key1="value1">
+			<xfs:dir name="directory2" key2="value2" />
+			<xfs:file name="file1" key3="value3">file content</xfs:file>
+		</xfs:dir>
+		<xfs:link name="link1"
+			ref="fsys:file:./src/test/resources/chav1961/purelib/fsys/fsTest/" />
+	</xfs:dir>
+</xfs:root>

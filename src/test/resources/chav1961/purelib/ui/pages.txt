@@ -1,0 +1,22 @@
+>>part1:caption1:tooltip1:help1
+line1 &id:10Lp;
+line2 &checkbox:1;
+line3 &intvalue:10l;	// This is letter 'l', not digit
+line4 &realvalue:10n;
+line5 &bigDecimalValue:10z;
+>>part2:caption2(icon2):tooltip2:help2
+&dateValue:10m;
+&timeValue:10r;
+&timestampValue:10R;
+&textValue:10;
+>>part3:caption3:tooltip3
+line1 &formattedTextValue:10;
+line2 &formattedAreaValue:10;
+line3 &passwordValue:10;
+line4 &enumValue:10;
+line5 &stringArrayValue:10;
+>>part4:::help4
+&listArrayValue:10;
+&mapValue:10;
+&wizardValue:10;
+&keyValuePairValue:10;

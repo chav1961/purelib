@@ -1,0 +1,17 @@
+{subclass}	-------------------------
+			.package 	chav1961.purelib.basic
+			.import		chav1961.purelib.basic.PseudoTest
+Test		.class		public implements chav1961.purelib.basic.PseudoTest 
+Test		.method 	void public
+			.stack 		2
+			aload_0
+			invokespecial java.lang.Object.Object()V
+			return
+Test		.end
+add			.method		int public
+x1			.parameter	int	
+x2			.parameter	int
+{theEnd}	-------------------------			
+add			.end
+Test		.end
+{final}

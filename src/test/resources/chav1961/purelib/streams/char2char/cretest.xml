@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cre:root xmlns:cre="http://www.wikicreole.org/">
+	<cre:div>
+		<cre:caption depth="1"> Top-level heading (1)</cre:caption>
+		<cre:caption depth="2"> This a test for creole 0.1 (2)</cre:caption>
+		<cre:caption depth="3"> This is a Subheading (3)</cre:caption>
+		<cre:caption depth="4"> Subsub (4)</cre:caption>
+		<cre:caption depth="5"> Subsubsub (5)</cre:caption>
+		<cre:p>The ending equal signs should not be displayed:
+		</cre:p>
+		<cre:caption depth="1"> Top-level heading (1) </cre:caption>
+		<cre:caption depth="2"> This a test for creole 0.1 (2) </cre:caption>
+		<cre:caption depth="3"> This is a Subheading (3) </cre:caption>
+		<cre:caption depth="4"> Subsub (4) </cre:caption>
+		<cre:caption depth="5"> Subsubsub (5) </cre:caption>
+		<cre:p>
+			You can make things
+			<cre:bold>bold</cre:bold>
+			or
+			<cre:italic>italic</cre:italic>
+			or
+			<cre:bold>
+				<cre:italic>both</cre:italic>
+			</cre:bold>
+			or
+			<cre:italic>
+				<cre:bold>both</cre:bold>
+			</cre:italic>
+			.
+		</cre:p>
+		<cre:p>
+			Character formatting extends across line breaks:
+			<cre:bold>bold,
+				this is still bold. This line deliberately does not end in star-star.
+			</cre:bold>
+		</cre:p>
+		<cre:p>Not bold. Character formatting does not cross paragraph
+			boundaries.
+		</cre:p>
+		<cre:p>
+			You can use
+			<cre:link href="internal links">internal links</cre:link>
+			or
+			<cre:link href="http://www.wikicreole.org">external links</cre:link>
+			,
+			give the link a
+			<cre:link href="internal links">different</cre:link>
+			name.
+		</cre:p>
+		<cre:p>
+			Here's another sentence: This wisdom is taken from
+			<cre:link href="Ward Cunningham's">Ward Cunningham's</cre:link>
+			<cre:link href="http://www.c2.com/doc/wikisym/WikiSym2006.pdf">Presentation at the Wikisym 06</cre:link>
+			.
+		</cre:p>
+		<cre:p>
+			Here's a external link without a description:
+			<cre:link href="http://www.wikicreole.org">http://www.wikicreole.org</cre:link>
+		</cre:p>
+		<cre:p>
+			Be careful that italic links are rendered properly:
+			<cre:italic>
+				<cre:link href="http://my.book.example/">My Book Title</cre:link>
+			</cre:italic>
+		</cre:p>
+		<cre:p>
+			Free links without braces should be rendered as well, like
+			<cre:link href="http://www.wikicreole.org/">http://www.wikicreole.org/</cre:link>
+			and
+			<cre:link href="http://www.wikicreole.org/users/~example.">http://www.wikicreole.org/users/~example.</cre:link>
+		</cre:p>
+		<cre:p>
+			Creole1.0 specifies that
+			<cre:link href="http://bar">http://bar</cre:link>
+			and
+			<cre:link href="ftp://bar">ftp://bar</cre:link>
+			should not render italic,
+			something like foo:
+			<cre:italic>bar should render as italic.
+			</cre:italic>
+		</cre:p>
+		<cre:p>You can use this to draw a line to separate the page:
+		</cre:p>
+		<cre:hr></cre:hr>
+		<cre:p>You can use lists, start it at the first column for now,
+			please...
+		</cre:p>
+		<cre:p>unnumbered lists are like
+		</cre:p>
+		<cre:ul>
+			<cre:li> item a
+			</cre:li>
+			<cre:li> item b
+			</cre:li>
+			<cre:li>
+				<cre:bold>bold item c</cre:bold>
+			</cre:li>
+		</cre:ul>
+		<cre:p>blank space is also permitted before lists like:
+		</cre:p>
+		<cre:ul>
+			<cre:li> item a
+			</cre:li>
+			<cre:li> item b
+			</cre:li>
+			<cre:li> item c
+			</cre:li>
+			<cre:ul>
+				<cre:li> item c.a
+				</cre:li>
+			</cre:ul>
+		</cre:ul>
+		<cre:p>or you can number them
+		</cre:p>
+		<cre:ol>
+			<cre:li>
+				<cre:link href="item 1">item 1</cre:link>
+			</cre:li>
+			<cre:li> item 2
+			</cre:li>
+			<cre:li>
+				<cre:italic> italic item 3 </cre:italic>
+			</cre:li>
+			<cre:ol>
+				<cre:li> item 3.1
+				</cre:li>
+				<cre:li> item 3.2
+				</cre:li>
+			</cre:ol>
+		</cre:ol>
+		<cre:p>up to five levels
+		</cre:p>
+		<cre:ul>
+			<cre:li> 1
+			</cre:li>
+			<cre:ul>
+				<cre:li> 2
+				</cre:li>
+				<cre:ul>
+					<cre:li> 3
+					</cre:li>
+					<cre:ul>
+						<cre:li> 4
+						</cre:li>
+						<cre:ul>
+							<cre:li> 5
+							</cre:li>
+						</cre:ul>
+					</cre:ul>
+				</cre:ul>
+			</cre:ul>
+		</cre:ul>
+		<cre:ul>
+			<cre:li> You can have
+				multiline list items
+			</cre:li>
+			<cre:li> this is a second multiline
+				list item
+			</cre:li>
+		</cre:ul>
+		<cre:p>You can use nowiki syntax if you would like do stuff like this:
+		</cre:p>
+		<cre:p>
+			Guitar Chord C:
+
+			||---|---|---|
+			||-0-|---|---|
+			||---|---|---|
+			||---|-0-|---|
+			||---|---|-0-|
+			||---|---|---|
+
+		</cre:p>
+		<cre:p>You can also use it inline nowiki in a sentence like this.
+		</cre:p>
+		<cre:caption depth="1"> Escapes </cre:caption>
+		<cre:p>
+			Normal Link:
+			<cre:link href="http://wikicreole.org/">http://wikicreole.org/</cre:link>
+			- now same link, but escaped: http://wikicreole.org/
+		</cre:p>
+		<cre:p>Normal asterisks: **not bold**
+		</cre:p>
+		<cre:p>a tilde alone: ~
+		</cre:p>
+		<cre:p>a tilde escapes itself: ~xxx
+		</cre:p>
+		<cre:caption depth="3"> Creole 0.2 </cre:caption>
+		<cre:p>This should be a flower with the ALT text "this is a flower" if
+			your wiki supports ALT text on images:
+		</cre:p>
+		<cre:p>
+			<cre:img src="Red-Flower.jpg">here is a red flower</cre:img>
+		</cre:p>
+		<cre:caption depth="3"> Creole 0.4 </cre:caption>
+		<cre:p>Tables are done like this:
+		</cre:p>
+		<cre:table>
+			<cre:tableHeader>
+				<cre:tr>
+					<cre:th>header col1</cre:th>
+					<cre:th>header col2
+					</cre:th>
+				</cre:tr>
+			</cre:tableHeader>
+			<cre:tableBody>
+				<cre:tr>
+					<cre:td>col1</cre:td>
+					<cre:td>col2</cre:td>
+				</cre:tr>
+				<cre:tr>
+					<cre:td>you         </cre:td>
+					<cre:td>can         </cre:td>
+				</cre:tr>
+				<cre:tr>
+					<cre:td>also        </cre:td>
+					<cre:td>
+						align
+						<cre:br></cre:br>
+						it.
+					</cre:td>
+				</cre:tr>
+			</cre:tableBody>
+		</cre:table>
+		<cre:p>You can format an address by simply forcing linebreaks:
+		</cre:p>
+		<cre:p>
+			My contact dates:
+			<cre:br></cre:br>
+			Pone: xyz
+			<cre:br></cre:br>
+			Fax: +45
+			<cre:br></cre:br>
+			Mobile: abc
+		</cre:p>
+		<cre:caption depth="3"> Creole 0.5 </cre:caption>
+		<cre:table>
+			<cre:tableHeader>
+				<cre:tr>
+					<cre:th> Header title               </cre:th>
+					<cre:th> Another header title
+					</cre:th>
+				</cre:tr>
+			</cre:tableHeader>
+			<cre:tableBody>
+				<cre:tr>
+					<cre:td> //not italic text//  </cre:td>
+					<cre:td> **not bold text**  </cre:td>
+				</cre:tr>
+				<cre:tr>
+					<cre:td>
+						<cre:italic>italic text</cre:italic>
+					</cre:td>
+					<cre:td>
+						<cre:bold> bold text </cre:bold>
+					</cre:td>
+				</cre:tr>
+			</cre:tableBody>
+		</cre:table>
+		<cre:caption depth="3"> Creole 1.0 </cre:caption>
+		<cre:p>
+			If interwiki links are setup in your wiki, this links to the
+			WikiCreole page about Creole 1.0 test cases:
+			<cre:link href="WikiCreole:Creole1.0TestCases">WikiCreole:Creole1.0TestCases</cre:link>
+			.
+		</cre:p>
+	</cre:div>
+</cre:root>

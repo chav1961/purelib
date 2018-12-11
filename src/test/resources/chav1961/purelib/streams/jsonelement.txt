@@ -1,0 +1,12 @@
+{
+	"name1" : "value1",
+	"name2" : "escaped\u1234",
+	"name3" : -200,
+	"name4"	: 25.3e10,
+	"name5" : true,
+	"name6" : false,
+	"name7" : null,
+	"na\tme" : 1,
+	"arr" : [10 , 20, 30],
+	"str" : {"inner1" : "value1", "inner2" : "value2"}
+}	

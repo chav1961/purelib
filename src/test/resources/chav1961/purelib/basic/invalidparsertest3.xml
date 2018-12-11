@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<body>
+	<choises>
+		<choise type="T1">
+			<action type="A1" entity="z" />
+			<compare type="T1" subtype="ST1">err</compare>
+			<optional type="T2">
+				<action type="A1" entity="z" name="s" value="s" />
+			</optional>
+			<action type="unknown" entity="z" />
+			<builtin type="create" entity="z" />
+			<compare type="T2">err</compare>
+		</choise>
+		<otherwise>
+			<action type="A2" entity="z" />
+		</otherwise>
+	</choises>
+</body>

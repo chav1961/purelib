@@ -1,0 +1,136 @@
+{start} ---------------
+				.package 		chav1961.purelib.streams.char2byte.asm
+				.import			chav1961.purelib.streams.char2byte.asm.Asm
+				.import			chav1961.purelib.streams.char2byte.asm.MacroExecutorInterface
+				.import			chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor
+				.import			chav1961.purelib.basic.exceptions.CalculationException
+				.import			chav1961.purelib.basic.growablearrays.GrowableCharArray
+				.import			chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface
+				.import			chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface
+				.import			java.util.Arrays
+				.import			java.lang.System
+				.import			java.util.concurrent.atomic.AtomicInteger
+${shortClassName}	.class			public extends chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor implements chav1961.purelib.streams.char2byte.asm.MacroExecutorInterface 
+${shortClassName}	.method			void public
+repo			.parameter		char[] final
+				.stack			3
+				aload_0
+				aload_1
+				invokespecial	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.MacroExecutor([C)V
+				return
+${shortClassName}	.end
+exec			.method			void public throws chav1961.purelib.basic.exceptions.CalculationException
+memory			.parameter		chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface[]
+target			.parameter		chav1961.purelib.basic.growablearrays.GrowableCharArray
+				.stack			pessimistic
+				.begin
+length			.var			int
+result			.var			char[]
+temp			.var			int
+uniqueG			.var			int
+uniqueL			.var			int
+				getstatic		chav1961.purelib.streams.char2byte.asm.Asm.AI
+				invokevirtual	java.util.concurrent.atomic.AtomicInteger.incrementAndGet()I
+				istore			uniqueG
+				iconst_m1
+				istore			uniqueL
+{merrorBefore} ---------------
+				new 			chav1961.purelib.basic.exceptions.CalculationException
+				dup				
+				new 			java.lang.String
+				dup
+{merrorAfter} ---------------
+				invokespecial 	java.lang.String.String([C)V
+				invokespecial 	chav1961.purelib.basic.exceptions.CalculationException.CalculationException(Ljava/lang/String;)V
+				athrow
+{prepareWrapper} ---------------
+				aload_1
+				ldc				${varIndex}
+				aaload
+{storeInt} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(J)V
+{storeReal} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(D)V
+{storeString} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign([C)V
+{storeBoolean} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(Z)V
+{extractCharConst} ---------------
+				aload_0
+				getfield		chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.stringResource
+				ldc 			${fromIndex}
+				ldc 			${toIndex}
+				invokestatic 	java.util.Arrays.copyOfRange([CII)[C
+{substitutionConst} ---------------
+				aload_2
+				aload_0
+				getfield 		chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.stringResource
+				ldc 			${fromIndex}
+				ldc 			${toIndex}
+				invokevirtual 	chav1961.purelib.basic.growablearrays.GrowableCharArray.append([CII)Lchav1961/purelib/basic/growablearrays/GrowableCharArray;
+				pop
+{validateVarValue} ---------------
+				aload_1
+				ldc				${varIndex}
+				aaload
+				dup
+				invokestatic 	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.testInitialized(Lchav1961/purelib/streams/char2byte/asm/AssignableExpressionNodeInterface;)V
+{orTrue} ---------------
+				ifne			label${labelFalse}
+{orAfter} ---------------
+				iconst_0		
+				goto			label${labelTrue}
+label${labelFalse}:	iconst_1
+label${labelTrue}: 	nop
+{andFalse} ---------------
+				ifeq			label${labelFalse}
+{andAfter} ---------------
+				iconst_1		
+				goto			label${labelTrue}
+label${labelFalse}:	iconst_0
+label${labelTrue}: 	nop
+{comparison} ---------------
+				${skipCommand}	label${labelFalse}
+				iconst_1
+				goto			label${labelTrue}
+label${labelFalse}: iconst_0
+label${labelTrue}:	nop				
+{ternaryBefore} ---------------
+				iconst_1
+				if_icmpne		label${labelFalse}
+{ternaryFalse} ---------------
+				goto			label${labelTrue}
+label${labelFalse}:	nop
+{ternaryAfter} ---------------
+label${labelTrue}:	nop
+{concatBefore} ---------------
+				iconst_0
+				istore			length				
+{concatCalculateLength} ---------------
+				dup
+				arraylength
+				iload			length
+				iadd
+				istore			length
+{concatCreateArray} ---------------
+				iload			length
+				newarray		char
+				astore			result
+{concatAppend} ---------------
+				dup
+				arraylength
+				istore			temp
+				iconst_0
+				aload			result
+				iload			length
+				iload			temp
+				isub
+				dup
+				istore			length
+				iload			temp
+				invokestatic	java.lang.System.arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
+{finish} ---------------
+				return
+				.end
+exec			.end				
+${shortClassName}	.end

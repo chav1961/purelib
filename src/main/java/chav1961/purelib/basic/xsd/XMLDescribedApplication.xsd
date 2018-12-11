@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://ui.purelib.chav1961/" xmlns:app="http://ui.purelib.chav1961/"
+	elementFormDefault="qualified">
+	<xs:element name="root">
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="i18n" type="app:I18n" minOccurs="1"
+					maxOccurs="1" />
+				<xs:element name="menu" type="app:Menu" minOccurs="1"
+					maxOccurs="1" />
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="I18n">
+		<xs:attribute name="location" type="xs:anyURI" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="Menu">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="submenu" type="app:Submenu" />
+			<xs:element name="builtinSubmenu" type="app:BuiltinSubmenu" />
+			<xs:element name="item" type="app:Item" />
+			<xs:element name="separator" type="app:Separator" />
+		</xs:choice>
+		<xs:attribute name="id" type="xs:string" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="Submenu">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="submenu" type="app:Submenu" />
+			<xs:element name="builtinSubmenu" type="app:BuiltinSubmenu" />
+			<xs:element name="item" type="app:Item" />
+			<xs:element name="separator" type="app:Separator" />
+		</xs:choice>
+		<xs:attribute name="name" type="xs:string" use="optional" />
+		<xs:attribute name="caption" type="xs:string" use="required" />
+		<xs:attribute name="tooltip" type="xs:string" use="required" />
+		<xs:attribute name="icon" type="xs:anyURI" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="BuiltinSubmenu">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="caption" type="xs:string" use="required" />
+		<xs:attribute name="tooltip" type="xs:string" use="required" />
+		<xs:attribute name="icon" type="xs:anyURI" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="Item">
+		<xs:attribute name="name" type="xs:string" use="optional" />
+		<xs:attribute name="caption" type="xs:string" use="required" />
+		<xs:attribute name="enabled" type="xs:boolean" use="optional" />
+		<xs:attribute name="action" type="xs:string" use="required" />
+		<xs:attribute name="tooltip" type="xs:string" use="required" />
+		<xs:attribute name="icon" type="xs:anyURI" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="Separator" />
+</xs:schema>

@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.wikicreole.org/" xmlns:cre="http://www.wikicreole.org/"
+	elementFormDefault="qualified">
+	<xs:element name="root">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="div" type="cre:Div" minOccurs="1"
+					maxOccurs="1" />
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="Div">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="caption" type="cre:Caption" />
+			<xs:element name="p" type="cre:P" />
+			<xs:element name="ul" type="cre:Ul" />
+			<xs:element name="ol" type="cre:Ol" />
+			<xs:element name="img" type="cre:Image" />
+			<xs:element name="table" type="cre:Table" />
+			<xs:element name="hr" type="cre:Hr" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="Caption" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="bold" type="cre:Bold" />
+			<xs:element name="italic" type="cre:Italic" />
+			<xs:element name="link" type="cre:Link" />
+			<xs:element name="br" type="cre:Br" />
+		</xs:choice>
+		<xs:attribute name="depth" type="xs:positiveInteger" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="Image" mixed="true">
+		<xs:attribute name="src" type="xs:anyURI" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="P" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="bold" type="cre:Bold" />
+			<xs:element name="italic" type="cre:Italic" />
+			<xs:element name="link" type="cre:Link" />
+			<xs:element name="br" type="cre:Br" />
+			<xs:element name="img" type="cre:Image" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="Ul">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="li" type="cre:Li" />
+			<xs:element name="ul" type="cre:Ul" />
+			<xs:element name="ol" type="cre:Ol" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="Ol">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="li" type="cre:Li" />
+			<xs:element name="ul" type="cre:Ul" />
+			<xs:element name="ol" type="cre:Ol" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="Li" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="bold" type="cre:Bold" />
+			<xs:element name="italic" type="cre:Italic" />
+			<xs:element name="link" type="cre:Link" />
+			<xs:element name="br" type="cre:Br" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="Table">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="tableHeader" type="cre:TableHeader"
+				minOccurs="0" maxOccurs="1" />
+			<xs:element name="tableBody" type="cre:TableBody"
+				minOccurs="1" maxOccurs="1" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="TableHeader">
+		<xs:all>
+			<xs:element name="tr" type="cre:ThTr" minOccurs="1"
+				maxOccurs="1" />
+		</xs:all>
+	</xs:complexType>
+
+	<xs:complexType name="TableBody">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="tr" type="cre:TbTr" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="ThTr">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="th" type="cre:ThTd" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="TbTr">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="td" type="cre:TbTd" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="ThTd" mixed="true" />
+
+	<xs:complexType name="TbTd" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="bold" type="cre:Bold" />
+			<xs:element name="italic" type="cre:Italic" />
+			<xs:element name="link" type="cre:Link" />
+			<xs:element name="br" type="cre:Br" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="Link" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="bold" type="cre:Bold" />
+			<xs:element name="italic" type="cre:Italic" />
+		</xs:choice>
+		<xs:attribute name="href" type="xs:anyURI" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="Bold" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="italic" type="cre:Italic" />
+			<xs:element name="link" type="cre:Link" />
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="Italic" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="bold" type="cre:Bold" />
+			<xs:element name="link" type="cre:Link" />
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="Hr" />
+	<xs:complexType name="Br" />
+</xs:schema>

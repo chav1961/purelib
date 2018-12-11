@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<!-- <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://purelib" 
+		targetNamespace="http://purelib"> -->
+	<xs:element name="body" type="content" />
+
+	<xs:complexType name="content">
+		<xs:choice maxOccurs="unbounded">
+			<xs:element name="choises" type="choisesContent" />
+			<xs:element name="compare" type="compareContent" />
+			<xs:element name="action" type="actionContent" />
+			<xs:element name="optional" type="optionalContent" />
+			<xs:element name="builtin" type="builtinContent" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:complexType name="choisesContent">
+		<xs:sequence>
+			<xs:element name="choise" type="choiseContent" minOccurs="1"
+				maxOccurs="unbounded" />
+			<xs:element name="otherwise" type="otherwiseContent"
+				minOccurs="0" maxOccurs="1" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="compareContent" mixed="true">
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:attribute name="subtype" type="xs:string" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="optionalContent">
+		<xs:choice maxOccurs="unbounded">
+			<xs:element name="choises" type="choisesContent" />
+			<xs:element name="compare" type="compareContent" />
+			<xs:element name="optional" type="optionalContent" />
+			<xs:element name="action" type="actionContent" />
+			<xs:element name="builtin" type="builtinContent" />
+		</xs:choice>
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:attribute name="subtype" type="xs:string" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="actionContent">
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:anyAttribute processContents="skip" />
+	</xs:complexType>
+
+	<xs:complexType name="builtinContent">
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:anyAttribute processContents="skip" />
+	</xs:complexType>
+
+	<xs:complexType name="choiseContent">
+		<xs:choice maxOccurs="unbounded">
+			<xs:element name="choises" type="choisesContent"
+				minOccurs="0" />
+			<xs:element name="compare" type="compareContent"
+				minOccurs="0" />
+			<xs:element name="optional" type="optionalContent"
+				minOccurs="0" />
+			<xs:element name="action" type="actionContent" minOccurs="0" />
+			<xs:element name="builtin" type="builtinContent"
+				minOccurs="0" />
+		</xs:choice>
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:attribute name="subtype" type="xs:string" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="otherwiseContent">
+		<xs:choice maxOccurs="unbounded">
+			<xs:element name="choises" type="choisesContent"
+				minOccurs="0" />
+			<xs:element name="compare" type="compareContent"
+				minOccurs="0" />
+			<xs:element name="optional" type="optionalContent"
+				minOccurs="0" />
+			<xs:element name="action" type="actionContent" minOccurs="0" />
+			<xs:element name="builtin" type="builtinContent"
+				minOccurs="0" />
+		</xs:choice>
+	</xs:complexType>
+</xs:schema>

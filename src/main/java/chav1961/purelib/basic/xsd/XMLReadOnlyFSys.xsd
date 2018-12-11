@@ -1,0 +1,37 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.fsys.purelib.chav1961.ru/" xmlns:xfs="http://www.fsys.purelib.chav1961.ru/"
+	elementFormDefault="qualified">
+	<xs:element name="root">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="dir" type="xfs:Dir" />
+				<xs:element name="file" type="xfs:File" />
+				<xs:element name="link" type="xfs:Link" />
+				<xs:element name="comment" type="xs:string" />
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="Dir">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="dir" type="xfs:Dir" />
+			<xs:element name="file" type="xfs:File" />
+			<xs:element name="link" type="xfs:Link" />
+		</xs:choice>
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="id" type="xs:string" use="optional" />
+		<xs:anyAttribute processContents="skip" />
+	</xs:complexType>
+
+	<xs:complexType name="File" mixed="true">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="id" type="xs:string" use="optional" />
+		<xs:anyAttribute processContents="skip" />
+	</xs:complexType>
+
+	<xs:complexType name="Link">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="ref" type="xs:anyURI" use="required" />
+		<xs:attribute name="id" type="xs:string" use="optional" />
+	</xs:complexType>
+</xs:schema>

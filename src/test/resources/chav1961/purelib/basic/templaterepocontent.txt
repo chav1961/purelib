@@ -1,0 +1,4 @@
+{simple}
+before${key1}after
+{complex}
+before${key2}after
