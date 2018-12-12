@@ -43,7 +43,7 @@ public class SwingUtilsTest {
 		
 	}
 
-	@Test
+//	@Test
 	public void renderersTest() throws SyntaxException {
 		final Locale	locale = Locale.forLanguageTag("en");
 		FieldDescriptor	fd;
@@ -192,7 +192,7 @@ public class SwingUtilsTest {
 		Assert.assertEquals(((JLabel)comp).getText(),new SingleClass().toString());
 	}
 
-	@Test
+//	@Test
 	public void editorsTest() throws IllegalArgumentException, NullPointerException, SyntaxException, LocalizationException {
 		final Localizer	localizer = new DebuggingLocalizer(new HashMap<>());
 		

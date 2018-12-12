@@ -2247,10 +2247,10 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private static void skip2line(final char[] data, int from) throws ContentException {
-		while (data[from] <= ' ' && data[from] != '\n') {
+		while (data[from] <= ' ' && data[from] != '\n' && data[from] != '\r') {
 			from++;
 		}
-		if (data[from] == '\n') {
+		if (data[from] == '\n' || data[from] == '\r') {
 			return;
 		}
 		else if (data[from] == '/' && data[from+1] == '/') {

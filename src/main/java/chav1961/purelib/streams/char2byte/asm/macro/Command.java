@@ -632,6 +632,9 @@ class SubstitutionCommand extends Command {
 			}
 		}
 		if (from > startText) {
+			if (from < to && data[from] == '\r') {
+				from++;
+			}
 			subst[0].addOperand(new ConstantNode(Arrays.copyOfRange(data,startText,from+1)));
 		}
 		else if (wereAnyAdditions) {

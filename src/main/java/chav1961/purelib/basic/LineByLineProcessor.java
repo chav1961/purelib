@@ -194,8 +194,8 @@ public class LineByLineProcessor implements Closeable {
 		final char[]	data = new char[sb.length()];
 		
 		sb.getChars(0,data.length,data,0);
-		sb.setLength(0);
 		callback.processLine(lineNo++,data,0,data.length);
+		sb.setLength(0);
 	}
 	
 	private static class DataStack {

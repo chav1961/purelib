@@ -12,8 +12,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import org.hamcrest.core.IsSame;
-
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;

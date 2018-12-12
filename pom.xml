@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.chav1961</groupId>
 	<artifactId>purelib</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<description>Pure Java library with some useful classes</description>
 	<url>https://github.com/chav1961/purelib</url>
 	<packaging>jar</packaging>
@@ -55,7 +55,7 @@
 	</distributionManagement>
 
 	<build>
-		<finalName>purelib-0.0.1</finalName>
+		<finalName>purelib-0.0.2</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

@@ -715,7 +715,7 @@ public class NanoServiceFactoryTest {
 	}
 	
 	
-	@Test
+//	@Test
 	public void loopBackTest() throws IOException {
 		SimpleCaller	caller;
 		

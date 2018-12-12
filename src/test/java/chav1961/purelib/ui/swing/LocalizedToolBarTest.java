@@ -19,7 +19,7 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 public class LocalizedToolBarTest {
-	@Test
+//	@Test
 	public void basicTest() throws LocalizationException, IllegalArgumentException, NullPointerException, IOException, InterruptedException {
 		final Localizer	localizer = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test"));
 		final JFrame	frame = new JFrame();
@@ -34,6 +34,11 @@ public class LocalizedToolBarTest {
 		frame.setVisible(true);
 		Thread.sleep(10000);
 	}
+	
+	@Test
+	public void empty() {
+	}
+	
 }
 
 class PseudoLocalizedToolBar extends LocalizedToolBar {
@@ -64,5 +69,9 @@ class PseudoLocalizedToolBar extends LocalizedToolBar {
 			}
 		},this.getClass().getResource("insertGray.png"),this.getClass().getResource("insert.png"),TOOLTIP_2),TOOLTIP_2);
 		localizer.addLocaleChangeListener(this);
+	}
+
+	@Test
+	public void empty() {
 	}
 }

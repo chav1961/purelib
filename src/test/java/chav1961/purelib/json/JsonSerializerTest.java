@@ -27,6 +27,30 @@ public class JsonSerializerTest {
 	public static void prepare() {
 		System.err.println("before");
 	}
+
+//	Temporary disable performance tests @Test 
+	public void performanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
+		basicBytePerformanceTest();
+		basicShortPerformanceTest();
+		basicIntegerPerformanceTest();
+		basicLongPerformanceTest();
+		basicFloatPerformanceTest();
+		basicDoublePerformanceTest();
+		basicBooleanPerformanceTest();
+		basicCharPerformanceTest();
+		basicStringPerformanceTest() ;
+		basicEnumPerformanceTest();
+		basicBooleanArrayPerformanceTest();
+		basicByteArrayPerformanceTest();
+		basicCharArrayPerformanceTest();
+		basicDoubleArrayPerformanceTest();
+		basicFloatArrayPerformanceTest();
+		basicIntArrayPerformanceTest();
+		basicLongArrayPerformanceTest();
+		basicShortArrayPerformanceTest();
+		basicRefArrayPerformanceTest();
+		basicAnyClassPerformanceTest();		
+	}
 	
 	@Test
 	public void basicByteTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
@@ -83,7 +107,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()).intValue(),-100);
 	}
 
-	@Test
 	public void basicBytePerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -211,7 +234,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()).intValue(),-100);
 	}
 
-	@Test
 	public void basicShortPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -339,7 +361,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()).intValue(),-100);
 	}
 
-	@Test
 	public void basicIntegerPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -467,7 +488,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()).longValue(),-100L);
 	}
 
-	@Test
 	public void basicLongPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -595,7 +615,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()).floatValue(),-100f,0.0001);
 	}
 
-	@Test
 	public void basicFloatPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -723,7 +742,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()).doubleValue(),-100.0,0.0001);
 	}
 
-	@Test
 	public void basicDoublePerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -836,7 +854,6 @@ public class JsonSerializerTest {
 		Assert.assertFalse(ser.deserialize(collector.getParser()).booleanValue());
 	}
 
-	@Test
 	public void basicBooleanPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -937,7 +954,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()).charValue(),'\u2040');
 	}
 
-	@Test
 	public void basicCharPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1054,7 +1070,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()),"");
 	}
 
-	@Test
 	public void basicStringPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1139,7 +1154,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()),MarkupOutputFormat.TEXT);
 	}
 
-	@Test
 	public void basicEnumPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1209,7 +1223,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new boolean[]{true,false,false,true});
 	}
 
-	@Test
 	public void basicBooleanArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1280,7 +1293,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new byte[]{Byte.MIN_VALUE, -100, 0, 100, Byte.MAX_VALUE});
 	}
 
-	@Test
 	public void basicByteArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1351,7 +1363,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new char[]{Character.MIN_VALUE, ' ', '\u2040', Character.MAX_VALUE});
 	}
 
-	@Test
 	public void basicCharArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1422,7 +1433,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},0.001);
 	}
 
-	@Test
 	public void basicDoubleArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1493,7 +1503,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new float[]{Float.MIN_VALUE, -100, 0, 100, Float.MAX_VALUE},0.001f);
 	}
 
-	@Test
 	public void basicFloatArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1564,7 +1573,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new int[]{Integer.MIN_VALUE, -100, 0, 100, Integer.MAX_VALUE});
 	}
 
-	@Test
 	public void basicIntArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1635,7 +1643,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new long[]{Long.MIN_VALUE, -100, 0, 100, Long.MAX_VALUE});
 	}
 
-	@Test
 	public void basicLongArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1706,7 +1713,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new short[]{Short.MIN_VALUE, -100, 0, 100, Short.MAX_VALUE});
 	}
 
-	@Test
 	public void basicShortArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1777,7 +1783,6 @@ public class JsonSerializerTest {
 		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new String[]{"", "abcde", "abcde\u2040"});
 	}
 
-	@Test
 	public void basicRefArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		
@@ -1897,7 +1902,6 @@ public class JsonSerializerTest {
 		Assert.assertEquals(ser.deserialize(collector.getParser()),sourceChild);
 	}
 
-	@Test
 	public void basicAnyClassPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		System.gc();
 		

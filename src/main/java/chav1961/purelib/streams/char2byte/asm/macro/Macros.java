@@ -661,9 +661,6 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 	}
 
 	public Reader processCall(final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
-		if (new String(data).contains("CompareConstantPath")) {
-			int x = 0;
-		}
 		final MacroCommand		cmd = parseCall(lineNo,data,from,length);
 		final GrowableCharArray	gca = new GrowableCharArray(false);
 		

@@ -118,9 +118,9 @@ public class TemporaryStoreTest {
 		}
 	}
 
-	@Test
+//	@Test
 	public void multiThreadTest() throws IOException, InterruptedException {
-		final int				numThreads = 20, numLoops = 1000; 
+		final int				numThreads = 20, numLoops = 100; 
 		final CountDownLatch	start = new CountDownLatch(1), end = new CountDownLatch(numThreads);
 		final boolean[]			errors = new boolean[numThreads];
 		

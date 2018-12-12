@@ -49,7 +49,7 @@ public class SimpleLowLevelFormFactoryTest {
 	}
 
 
-	@Test
+//	@Test
 	public void listPresentationTest() throws IOException, SyntaxException, URISyntaxException, ContentException, LocalizationException, NullPointerException, InterruptedException {
 		final FormManager<Integer,SingleClass>			mgr = new FormManager<Integer,SingleClass>(){
 															final LoggerFacade logger = new SystemErrLoggerFacade();
@@ -103,7 +103,7 @@ public class SimpleLowLevelFormFactoryTest {
 			frame.getContentPane().add(f.prepareComponent(model,false),BorderLayout.CENTER);
 			frame.pack();
 			frame.setVisible(true);
-			Thread.sleep(100000);
+			Thread.sleep(10000);
 			System.err.println("SD");
 			frame.setVisible(false);
 		} finally {
@@ -172,5 +172,9 @@ public class SimpleLowLevelFormFactoryTest {
 		} finally {
 			root.pop();
 		}
+	}
+
+	@Test
+	public void empty() {
 	}
 }
