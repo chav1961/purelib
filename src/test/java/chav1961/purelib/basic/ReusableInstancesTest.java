@@ -25,10 +25,6 @@ public class ReusableInstancesTest {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
-			try(final ReusableInstances<PseudoInstance>	var = new ReusableInstances<PseudoInstance>(()->{return new PseudoInstance();},null)) {
-				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-			} catch (NullPointerException exc) {
-			}
 		}
 	}
 	

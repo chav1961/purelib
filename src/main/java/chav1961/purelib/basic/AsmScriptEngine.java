@@ -16,7 +16,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 class AsmScriptEngine extends AbstractScriptEngine {
-	private AsmWriter	writer = null;
+	private AsmWriter	asmWriter = null;
 	private byte[]		content = null;
 	private Class<?>	clazz = null;
 	
@@ -61,29 +61,29 @@ class AsmScriptEngine extends AbstractScriptEngine {
 	public void close() throws IOException {
 		content = null;
 		clazz = null;
-		if (writer != null) {
-			writer.close();
-			writer = null;
+		if (asmWriter != null) {
+			asmWriter.close();
+			asmWriter = null;
 		}
 		super.close();
 	}
 	
 	@Override
 	protected Reader beforeCompile(final Reader reader, final OutputStream os) throws NullPointerException, IOException {
-		writer = new AsmWriter(os);
+		asmWriter = new AsmWriter(os);
 		return reader;
 	}
 	
 	@Override
 	protected void processLineInternal(final int lineNo, final char[] data, final int from, final int length) throws IOException, SyntaxException {
-		writer.write(data,from,length);
+		asmWriter.write(data,from,length);
 	}
 
 	@Override
 	protected void afterCompile(final Reader reader, final OutputStream os) throws IOException {
-		writer.flush();
-		writer.close();
-		writer = null;
+		asmWriter.flush();
+		asmWriter.close();
+		asmWriter = null;
 	}
 
 	protected Object executeInternal(final String[] parameters, final Bindings bindings) throws ScriptException {

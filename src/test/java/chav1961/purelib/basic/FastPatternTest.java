@@ -31,7 +31,7 @@ public class FastPatternTest {
 			repo.append(gca,"complex".toCharArray(),(key,from,to)->{return "value2".toCharArray();});
 			repo.append(gca,"advanced %1$s","line");
 			
-			Assert.assertArrayEquals(gca.extract(),"beforevalue1after\nbeforevalue2after\n\nadvanced line".toCharArray());
+			Assert.assertEquals(new String(gca.extract()).replace("\r",""),"beforevalue1after\nbeforevalue2after\n\nadvanced line");
 			
 			try{repo.append(null,"simple".toCharArray(),(key,from,to)->{return "value1".toCharArray();});
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");

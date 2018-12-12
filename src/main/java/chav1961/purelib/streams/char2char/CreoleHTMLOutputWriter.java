@@ -66,7 +66,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 
 	@Override
 	void internalWrite(final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
-		try {nested.write(content,from,to-from);
+		try{nested.write(content,from,to-from);
 		} catch (IndexOutOfBoundsException exc) {
 			exc.printStackTrace();
 		}

@@ -65,6 +65,10 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptEngineController, Closeable {
 	private static final int			NON_EXISTENT = -1;
+
+	protected Writer					writer = new OutputStreamWriter(System.out);
+	protected Writer					errorWriter = new OutputStreamWriter(System.err);
+	protected Reader					reader = new InputStreamReader(System.in);
 	
 	private final ScriptEngineFactory	factory;
 	private final LineByLineProcessorCallback	callback = new LineByLineProcessorCallback() {
@@ -74,9 +78,6 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 													}
 												};
 	private final FileSystemInterface	fs = new FileSystemInMemory();
-	private Writer						writer = new OutputStreamWriter(System.out);
-	private Writer						errorWriter = new OutputStreamWriter(System.err);
-	private Reader						reader = new InputStreamReader(System.in);
 	private ScriptContext				currentContext = new DefaultScriptContext(reader,writer,errorWriter);
 	private InternalClassLoader			loader = null;
 	private String						mainClass = null;
@@ -371,8 +372,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 		try(final LineByLineProcessor		lblp = new LineByLineProcessor(callback)) {
 			
 			lblp.write(beforeCompile(reader,os));
-			afterCompile(reader,os);
 		}
+		afterCompile(reader,os);
 		
 	}
 

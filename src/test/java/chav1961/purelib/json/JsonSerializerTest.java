@@ -1421,16 +1421,16 @@ public class JsonSerializerTest {
 		Arrays.fill(buffer, ' ');		
 		ser.serialize(new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},buffer,0,true);
 		Assert.assertEquals(ser.deserialize(buffer,0,result),62);
-		Assert.assertArrayEquals(result[0],new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},0.001);
+		Assert.assertArrayEquals(result[0],new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},0.001*Double.MAX_VALUE);
 
 		Arrays.fill(buffer, ' ');		
 		ser.serialize(new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},new ArrayCharTarget(buffer,0));
-		Assert.assertArrayEquals(ser.deserialize(new ArrayCharSource(buffer)),new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},0.001);
+		Assert.assertArrayEquals(ser.deserialize(new ArrayCharSource(buffer)),new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},0.001*Double.MAX_VALUE);
 
 		prn = collector.getPrinter();
 		ser.serialize(new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},prn);
 		prn.flush();
-		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},0.001);
+		Assert.assertArrayEquals(ser.deserialize(collector.getParser()),new double[]{Double.MIN_VALUE, -100, 0, 100, 0.99*Double.MAX_VALUE},0.001*Double.MAX_VALUE);
 	}
 
 	public void basicDoubleArrayPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
@@ -1897,9 +1897,9 @@ public class JsonSerializerTest {
 		Assert.assertEquals(serChild.deserialize(new ArrayCharSource(buffer)),sourceChildRestored);
 
 		prn = collector.getPrinter();
-		ser.serialize(sourceChild,prn);
+		serChild.serialize(sourceChild,prn);
 		prn.flush();
-		Assert.assertEquals(ser.deserialize(collector.getParser()),sourceChild);
+		Assert.assertEquals(serChild.deserialize(collector.getParser()),sourceChildRestored);
 	}
 
 	public void basicAnyClassPerformanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {

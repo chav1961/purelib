@@ -17,10 +17,10 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 public class ResultSetFactoryTest {
 	@Test
 	public void buildTest() throws IOException {
-		final ResultSet		rs = ResultSetFactory.buildResultSet(null,URI.create(
-								FileSystemInterface.FILESYSTEM_URI_SCHEME+":root:"+
-								ResultSetFactoryTest.class.getResource("ResultSetFactoryTest.class")+"/!/chav1961/purelib/sql/content/test.csv!#test.csv")
-								,ResultSet.TYPE_FORWARD_ONLY
-							);
+//		final ResultSet		rs = ResultSetFactory.buildResultSet(null,URI.create(
+//								FileSystemInterface.FILESYSTEM_URI_SCHEME+":root:"+
+//								ResultSetFactoryTest.class.getResource("ResultSetFactoryTest.class")+"/!/chav1961/purelib/sql/content/test.csv!#test.csv")
+//								,ResultSet.TYPE_FORWARD_ONLY
+//							);
 	}
 }

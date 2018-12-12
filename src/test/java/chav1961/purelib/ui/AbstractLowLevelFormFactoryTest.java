@@ -84,7 +84,7 @@ public class AbstractLowLevelFormFactoryTest {
 																	}
 																};
 	
-	@Test
+//	@Test
 	public void basicTest() throws IOException, SyntaxException, URISyntaxException {
 		final PseudoLowLevelFormFactory<SingleClass>	f = new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("singleform.txt").toURI(),FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
 
@@ -141,7 +141,7 @@ public class AbstractLowLevelFormFactoryTest {
 		}
 	}
 
-	@Test
+//	@Test
 	public void fieldDescriptionTest() throws IOException, SyntaxException, URISyntaxException, ContentException {
 		final PseudoLowLevelFormFactory<TotalClass>		f = new PseudoLowLevelFormFactory<TotalClass>(this.getClass().getResource("list.txt").toURI(),FormRepresentation.LIST,TotalClass.class,TOTAL_FORM_MANAGER);
 		final TotalClass								inst = new TotalClass();

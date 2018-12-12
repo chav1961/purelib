@@ -142,7 +142,7 @@ public class JsonSaxHandlerFactory {
 					wr.write("				invokespecial java.lang.Object.Object()V\n");
 					wr.write("				return\n");
 					wr.write(extra.getSimpleName()+"_serv	.end\n");
-					wr.write("newInstance 	.method Object public\n");
+					wr.write("newInstance 	.method java.lang.Object public\n");
 					wr.write("classId		.parameter int\n");
 					wr.write("				.stack 10\n");
 					wr.write("				iload_1\n");
@@ -171,9 +171,9 @@ public class JsonSaxHandlerFactory {
 					collectSettingPairs(desc,preventDuplicates,settingPairs,lastTreeId = tree.placeName(" ",null));
 					
 					wr.write("setValue 			.method void public\n");
-					wr.write("instance			.parameter Object final\n");
+					wr.write("instance			.parameter java.lang.Object final\n");
 					wr.write("classAndFieldId	.parameter int final\n");
-					wr.write("value				.parameter Object final\n");
+					wr.write("value				.parameter java.lang.Object final\n");
 					wr.write("					.stack 5\n");
 					
 					if (settingPairs.size() > 0) {		// Class contains public fields

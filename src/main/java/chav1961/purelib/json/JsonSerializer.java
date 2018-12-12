@@ -5045,6 +5045,7 @@ loop:						for (LexType item : reader) {
 								needSplitter = true;
 								return true;
 							} catch (PrintingException | ContentException | IOException e) {
+								e.printStackTrace();
 								return false;
 							}
 						}
@@ -5052,6 +5053,7 @@ loop:						for (LexType item : reader) {
 					writer.endObject();
 				}
 			} catch (IOException e) {
+				e.printStackTrace();
 				throw new PrintingException(e.getLocalizedMessage(),e);
 			}
 		}

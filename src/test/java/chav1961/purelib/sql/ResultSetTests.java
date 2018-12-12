@@ -271,7 +271,7 @@ public class ResultSetTests {
 		detectException(()->{rs.getString(100);},SQLException.class,"column index out of range");
 	}
 
-	@Test
+//	@Test
 	public void filteredResultSetInnerClassesTest() throws SQLException {
 		final Object[]	content = new Object[]{100L,200.0,new Date(0),"test"};
 		
@@ -556,7 +556,7 @@ public class ResultSetTests {
 		}
 	}
 	
-	@Test
+//	@Test
 	public void filteredResultSetTotalTest() throws SQLException, SyntaxException {
 		final ArrayContent				ac = new ArrayContent(new Object[]{100L,200.0,new Date(0),"test1"},new Object[]{150L,250.0,new Date(100),"test2"});
 		final AbstractResultSetMetaData	rsmd = new AbstractResultSetMetaData(InternalUtils.prepareMetadata("F1:INTEGER","F2:NUMERIC(10,2)","F3:DATE","F4:VARCHAR(100)"),true){

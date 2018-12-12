@@ -175,7 +175,7 @@ public class JsonStaxPrinterTest {
 			
 			try{prn.endObject().startObject().name(null,0,0);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-			} catch (NullPointerException exc) {
+			} catch (IllegalArgumentException exc) {
 			}
 			try{prn.endObject().startObject().name(new char[0],0,0);
 				Assert.fail("Mandatory exception was not detected (empty 1-st argument)");

@@ -9,6 +9,8 @@ import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -167,6 +169,7 @@ public class InternalUtils {
 	public static <T> T convert(final int rowIndex, final int columnIndex, final Class<T> awaited, final Object value) throws SQLException {
 		try{return convert(awaited,value);
 		} catch (ContentException exc) {
+			exc.printStackTrace();
 			throw new SQLException("Row ["+rowIndex+"], col ["+columnIndex+"]: "+exc.getLocalizedMessage(),exc); 
 		}
 	}
@@ -364,6 +367,12 @@ public class InternalUtils {
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(Long.valueOf((source.toString())));});
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(source.toString().getBytes());});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(source.toString());});
+		toMap.put(URL.class,(source)->{
+			try{return new URL(source.toString());
+			} catch (MalformedURLException e) {
+				throw new ContentException("String ["+source.toString()+"] can't be converted to URL: "+e.getLocalizedMessage());
+			}
+		});
 		
 		return toMap;
 	}

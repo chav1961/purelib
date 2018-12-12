@@ -686,14 +686,14 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	 * @param content content containing field name
 	 * @param from start position inside the content
 	 * @param to end position inside the content
-	 * @return elf
+	 * @return self
 	 * @throws IOException on any I/O errors
 	 */
 	public JsonStaxPrinter name(final char[] content, final int from, final int to) throws IOException {
 		final int	nameLen;
 		
-		if (content == null) {
-			throw new NullPointerException("Content to write can't be null");
+		if (content == null || content.length == 0) {
+			throw new IllegalArgumentException("Content to write can't be null or zero-length array");
 		}
 		else if (from < 0 || from > (nameLen = content.length)) {
 			throw new IllegalArgumentException("From location ["+from+"] out of range 0.."+(content.length-1));
@@ -711,14 +711,16 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 			throw new IOException("Output structure failure: name is not awaiting here");
 		}
 		else {
-			if (bufferFill + nameLen >= bufferSize) {
+			final int 	contentLen = to - from;
+			
+			if (bufferFill + contentLen + 1>= bufferSize) {
 				flushBuffer();
 			}
 			buffer[bufferFill] = STRING_TERMINATOR;
-			System.arraycopy(content,from,buffer,bufferFill+1,nameLen);
-			buffer[bufferFill + 1 + nameLen] = STRING_TERMINATOR;
-			buffer[bufferFill + 2 + nameLen] = NAME_SPLITTER;
-			bufferFill += nameLen + 3;
+			System.arraycopy(content,from,buffer,bufferFill+1,contentLen);
+			buffer[bufferFill + 1 + contentLen] = STRING_TERMINATOR;
+			buffer[bufferFill + 2 + contentLen] = NAME_SPLITTER;
+			bufferFill += contentLen + 3;
 			pseudoStackState[pseudoStackFill] = VALUE_AWAITING;
 			return this;
 		}
@@ -769,6 +771,9 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 		else {
 			pseudoStackFill--;
 			splitter(OBJ_TERMINATOR);
+			if (pseudoStackFill >= 0) {
+				pseudoStackState[pseudoStackFill] = SPLITTER_AWAITING;
+			}
 			return this;
 		}
 	}
@@ -815,6 +820,9 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 		else {
 			pseudoStackFill--;
 			splitter(ARRAY_TERMINATOR);
+			if (pseudoStackFill >= 0) {
+				pseudoStackState[pseudoStackFill] = SPLITTER_AWAITING;
+			}
 			return this;
 		}
 	}
@@ -826,7 +834,7 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	 */
 	public JsonStaxPrinter splitter() throws IOException {
 		if (pseudoStackFill == 0 || pseudoStackState[pseudoStackFill] != SPLITTER_AWAITING) {
-			throw new IOException("Output structure failure: splitter is not awaiting here");
+			throw new IOException("Output structure failure: splitter is not awaiting here ("+(pseudoStackFill == 0 ? "none" : pseudoStackState[pseudoStackFill])+")");
 		}
 		else {
 			splitter(LIST_SPLITTER);

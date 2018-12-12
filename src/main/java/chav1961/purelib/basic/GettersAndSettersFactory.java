@@ -70,7 +70,7 @@ public class GettersAndSettersFactory {
 	}
 
 	private static void prepareStatic() {
-		if (PureLibSettings.instance().getProperty(PureLibSettings.ALLOW_UNSAFE,boolean.class)) {
+		if (PureLibSettings.instance().getProperty(PureLibSettings.ALLOW_UNSAFE,boolean.class,"false")) {
 			try{final Field	f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
 			
 				f.setAccessible(true);
@@ -79,7 +79,7 @@ public class GettersAndSettersFactory {
 				PureLibSettings.logger.log(Level.WARNING,"["+PureLibSettings.ALLOW_UNSAFE+"] property was typed for the Pure Library, but attempt to get access to Unsafe functionality failed: "+e.getMessage()+". This ability will be ignored", e);
 				unsafe = null;
 			}
-		}
+		} 
 		else {
 			unsafe = null;
 		}
