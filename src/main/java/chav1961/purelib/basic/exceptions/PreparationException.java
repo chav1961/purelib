@@ -3,22 +3,22 @@ package chav1961.purelib.basic.exceptions;
 /**
  * <p>This exception was developed especially for indicating problems in the static blocks of your classes. Template to fire it is:</p>
  * <code>
- * boolean errorsInStatic = false;
- * static {<br>
- * try{<br>
+ * <b>static boolean</b> errorsInStatic = <b>false</b>;<br>
+ * <b>static</b> {<br>
+ * &nbsp;<b>try</b> {<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;. . .<br>
+ * &nbsp;} <b>catch</b> (Exception exc) {<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;errorsInStatic = <b>true</b>;<br>
+ * &nbsp;}<br>
+ * }<br>
  * . . .<br>
- * } catch (Exception exc) {<br>
- * errorsInStatic = true;<br>
- * }<br>
- * }<br>
- * . . .<br>
- * public void myMethod(. . .) {<br>
- * if (errorsInStatic) {<br>
- * throw new PreparationException(. . .);<br>
- * }<br>
- * else {<br>
- * . . .<br>
- * }<br>
+ * <b>public void</b> myMethod(. . .) {<br>
+ * &nbsp;<b>if</b> (errorsInStatic) {<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;<b>throw new</b> PreparationException(. . .);<br>
+ * &nbsp;}<br>
+ * &nbsp;<b>else</b> {<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;. . .<br>
+ * &nbsp;}<br>
  * }<br>
  * </code>
  * @author Alexander Chernomyrdin aka chav1961

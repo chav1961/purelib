@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,6 +125,10 @@ public class ContentModelFactory {
 			}
 		}
 	}	
+
+	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema) throws NullPointerException, PreparationException {
+		return null;
+	}
 	
 	private static void collectFields(final Class<?> clazz, final List<Field> fields) {
 		if (clazz != null) {

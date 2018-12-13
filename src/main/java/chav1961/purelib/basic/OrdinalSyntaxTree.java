@@ -5,6 +5,18 @@ import java.util.TreeMap;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
+/**
+ * <p>This class is an ordinal implementation of {@link SyntaxTreeInterface} interface. It can be used everywhere when {@linkplain AndOrTree} can.</p>
+ * <p>This class is not thread-safe</p>
+ * 
+ * @param <Cargo> any king of data associated with the tree elements
+ * 
+ * @see SyntaxTreeInterface
+ * @see chav1961.purelib.basic JUnit tests
+ * 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 	private static final int					RANGE_STEP = 64;
 	

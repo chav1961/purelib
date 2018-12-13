@@ -8,7 +8,7 @@ package chav1961.purelib.basic.exceptions;
  * @since 0.0.1 last updated 0.0.3
  *
  */
-public class ConsoleCommandException extends Exception {
+public class ConsoleCommandException extends EnvironmentException {
 	private static final long serialVersionUID = 8876250986756751250L;
 
 	public ConsoleCommandException() {
