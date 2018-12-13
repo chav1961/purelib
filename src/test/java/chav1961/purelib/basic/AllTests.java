@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AndOrTreeTest.class, BitCharSetTest.class, CharUtilsTest.class,
+@SuiteClasses({ SyntaxTreeTest.class, BitCharSetTest.class, CharUtilsTest.class,
 		ConsoleCommandManagerTest.class, InternalUtilsTest.class,
 		LineByLineProcessorTest.class, LoggerFacadeTest.class,
 		PluggableClassLoaderTest.class, SequenceIteratorTest.class,  

@@ -91,7 +91,7 @@ public class NanoServiceManager implements Closeable {
 							public void run() {
 								System.err.println("Run deploy");
 								try{redeploy();
-								} catch (IOException | ContentException | SyntaxException e) {
+								} catch (IOException | ContentException e) {
 									getLogger().message(Severity.error,e,"Error redeploying plugins");
 								}
 							}

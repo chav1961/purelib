@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,19 +13,34 @@ import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.ConsoleCommandException;
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.exceptions.PreparationException;
 
-// Future development:
-// - create new basic class DebugAndTest. Locate all debugging and testing tools in it. Possibly features are:
-// -- findSimilarity method to find most similar string (pice of array) from available list
-// -- getTestResultSet method to make test result set from different sources. At least CSV and JSON format need be supported
-// - develop, debug and test ArgParser class
-// - develop, debug and test sql package for full support of the debugging features. Support at least CSV, JSON and filtering/ordering ResultSet
-// - develop, debug and test nanoservice tools
-// - develop, debug and test ui package to support low-level functionality. At least Swing and WEB need be supported
-// - create standalone JMA project and prepare documentation for it
-// - refactoring of FunnyPro project to use JMA abilities
-
+/**
+ * <p>This class is used to parse and access command line arguments for console-based applications. Recommended template to use it is produce
+ * child class for it:</p>
+ * <code>
+ * . . .<br>
+ * class ChildArgParser extends ArgParser {<br>
+ * public ChildArgParser(){<br>
+ * super(new ZZZarg(...),...);<br>
+ * }<br>
+ * }<br>
+ * . . .<br>
+ * static ChildArgParser parser = new ChildArgParser();<br>
+ * . . . <br>
+ * public static void main(String[] args) {<br>
+ * ChildArgParser currentList = parser.parse(args);<br>
+ * . . .<br>
+ * int value = currentList.getValue("intName",int.class);<br>
+ * . . .<br>
+ * }</br>
+ * </code>
+ * <p>This class can be used in multithreaded environment</p>
+ * 
+ * @see chav1961.purelib.basic JUnit tests
+ * 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 class ArgParser {
 	private final char					keyPrefix;
 	private final boolean				caseSensitive;
@@ -80,11 +96,11 @@ class ArgParser {
 		this.keyPrefix = keyPrefix;
 		this.caseSensitive = caseSensitive;
 		this.desc = desc;
-		this.pairs = pairs;
+		this.pairs = Collections.unmodifiableMap(pairs);
 	}
 	
 	public ArgParser parse(final String... args) throws ConsoleCommandException {
-		if (this.desc == null) {
+		if (this.pairs != null) {
 			throw new IllegalStateException("Attempt to call parse(...) on parsed instance. This method can be called on 'parent' instance only");
 		}
 		else if (args == null) {
@@ -99,7 +115,7 @@ class ArgParser {
 	}
 	
 	public <T> T getValue(final String key, final Class<T> awaited) throws ContentException {
-		if (this.desc == null) {
+		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call getValue(...) on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
 		else if (key == null || key.isEmpty()) {
@@ -123,7 +139,7 @@ class ArgParser {
 	}
 
 	public boolean isTyped(final String key) {
-		if (this.desc != null) {
+		if (this.pairs != null) {
 			throw new IllegalStateException("Attempt to call isTyped() on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
 		else if (key == null || key.isEmpty()) {
@@ -212,11 +228,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 				final ArgDescription	found = forKey(keyFind,desc,caseSensitive);
 				
 				if (found == null) {
-					throw new IllegalArgumentException("Key parameter [-"+key+"] is not supported for the parser");
+					throw new ConsoleCommandException("Key parameter [-"+key+"] is not supported for the parser");
 				}
 				else if (found.hasValue()) {
 					if (index == args.length-1) {
-						throw new IllegalArgumentException("Key parameter [-"+key+"] has no value awaited");
+						throw new ConsoleCommandException("Key parameter [-"+key+"] has no value awaited");
 					}
 					else if (found.isList()) {
 						final List<String>	collection = new ArrayList<>();
@@ -228,8 +244,8 @@ loop:	for (int index = 0; index < args.length; index++) {
 						pairs.put(found.getName(),collection.toArray(new String[collection.size()]));
 					}
 					else {
-						found.validate(args[index]);
-						pairs.put(found.getName(),new String[]{args[index]});
+						found.validate(args[index+1]);
+						pairs.put(found.getName(),new String[]{args[index+1]});
 						index++;
 					}
 				}
@@ -250,7 +266,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			}
 		}
 		if (sb.length() > 0) {
-			throw new IllegalArgumentException("Mandatory argument(s) ["+sb.toString().substring(1)+"] are missing in the parameters");
+			throw new ConsoleCommandException("Mandatory argument(s) ["+sb.toString().substring(1)+"] are missing in the parameters");
 		}
 	}
 
@@ -266,17 +282,22 @@ loop:	for (int index = 0; index < args.length; index++) {
 		return from;
 	}
 
-	static <T> T convert(final ArgDescription desc, final Class<T> awaited, final String[] value) {
-		if (awaited.isArray()) {
-			final Object[]	result = (Object[]) Array.newInstance(awaited.getComponentType(),value.length);
-			
-			for (int index = 0; index < value.length; index++) {
-				Array.set(result,index,desc.getValue(value[index],awaited.getComponentType()));
+	static <T> T convert(final ArgDescription desc, final Class<T> awaited, final String[] value) throws ContentException {
+		if (value != null) {
+			if (awaited.isArray()) {
+				final Object[]	result = (Object[]) Array.newInstance(awaited.getComponentType(),value.length);
+				
+				for (int index = 0; index < value.length; index++) {
+					Array.set(result,index,desc.getValue(value[index],awaited.getComponentType()));
+				}
+				return(T)result;
 			}
-			return(T)result;
-		}
-		else if (value.length > 0) {
-			return (T)desc.getValue(value[0],awaited);
+			else if (value.length > 0) {
+				return (T)desc.getValue(value[0],awaited);
+			}
+			else {
+				return null;
+			}
 		}
 		else {
 			return null;
@@ -295,7 +316,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 	protected interface ArgDescription {
 		String getName();
 		String getHelpDescriptor();
-		<T> T getValue(String value, Class<T> awaited);
+		<T> T getValue(String value, Class<T> awaited) throws ContentException;
 		String[] getDefaultValue();
 		boolean isMandatory();
 		boolean isPositional();
@@ -325,7 +346,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			}
 		}
 
-		@Override public abstract <T> T getValue(final String value, final Class<T> awaited);
+		@Override public abstract <T> T getValue(final String value, final Class<T> awaited) throws ContentException;
 		@Override public abstract String[] getDefaultValue();
 		@Override public abstract boolean isList();
 		@Override public abstract void validate(final String value) throws ConsoleCommandException;
@@ -366,7 +387,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		public BooleanArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = null;
+			this.defaults = new String[]{"false"};
 		}
 
 		public BooleanArg(final String name, final boolean isPositional, final String helpDescriptor, final boolean defaultValue) {
@@ -375,12 +396,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 		
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) {
+		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (boolean.class.isAssignableFrom(awaited) || Boolean.class.isAssignableFrom(awaited)) {
-				return (T)Boolean.valueOf(value);
+				return (T)Boolean.valueOf("true".equalsIgnoreCase(value));
 			}
 			else {
-				throw new IllegalArgumentException("Argument ["+getName()+"] can be converted to booleans only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new ContentException("Argument ["+getName()+"] can be converted to booleans only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -400,7 +421,9 @@ loop:	for (int index = 0; index < args.length; index++) {
 				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
-				Boolean.valueOf(value).booleanValue();
+				if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
+					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid boolean: "+value);
+				}
 			}
 		}
 		
@@ -415,12 +438,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 
-	protected class IntegerArg extends AbstractArg {
+	protected static class IntegerArg extends AbstractArg {
 		private final String[]	defaults;	
 
 		public IntegerArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = null;
+			this.defaults = new String[]{"0"};
 		}
 
 		public IntegerArg(final String name, final boolean isPositional, final String helpDescriptor, final long defaultValue) {
@@ -429,7 +452,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 		
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) {
+		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (long.class.isAssignableFrom(awaited) || Long.class.isAssignableFrom(awaited)) {
 				return (T)Long.valueOf(value);
 			}
@@ -443,7 +466,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				return (T)Byte.valueOf(value);
 			}
 			else {
-				throw new IllegalArgumentException("Argument ["+getName()+"] can be converted to integer type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new ContentException("Argument ["+getName()+"] can be converted to integer type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -463,7 +486,10 @@ loop:	for (int index = 0; index < args.length; index++) {
 				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
-				Long.valueOf(value).longValue();
+				try{Long.valueOf(value).longValue();
+				} catch (NumberFormatException exc) {
+					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid integer: "+value);
+				}
 			}
 		}
 
@@ -473,12 +499,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 	
-	protected class RealArg extends AbstractArg {
+	protected static class RealArg extends AbstractArg {
 		private final String[]	defaults;	
 
 		public RealArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = null;
+			this.defaults = new String[]{"0.0"};
 		}
 
 		public RealArg(final String name, final boolean isPositional, final String helpDescriptor, final double defaultValue) {
@@ -487,7 +513,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 		
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) {
+		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (double.class.isAssignableFrom(awaited) || Double.class.isAssignableFrom(awaited)) {
 				return (T)Double.valueOf(value);
 			}
@@ -495,7 +521,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				return (T)Float.valueOf(value);
 			}
 			else {
-				throw new IllegalArgumentException("Argument ["+getName()+"] can be converted to real type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new ContentException("Argument ["+getName()+"] can be converted to real type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -515,7 +541,10 @@ loop:	for (int index = 0; index < args.length; index++) {
 				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
-				Double.valueOf(value).doubleValue();
+				try{Double.valueOf(value).doubleValue();
+				} catch (NumberFormatException exc) {
+					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid real: "+value);
+				}
 			}
 		}
 
@@ -525,12 +554,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 	
-	protected class StringArg extends AbstractArg {
+	protected static class StringArg extends AbstractArg {
 		private final String[]	defaults;	
 
 		public StringArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = null;
+			this.defaults = new String[]{""};
 		}
 
 		public StringArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
@@ -539,12 +568,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 		
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) {
+		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (String.class.isAssignableFrom(awaited)) {
 				return (T)value;
 			}
 			else {
-				throw new IllegalArgumentException("Argument ["+getName()+"] can be converted to string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new ContentException("Argument ["+getName()+"] can be converted to string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -571,14 +600,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 
-	protected class EnumArg<Type extends Enum<?>> extends AbstractArg {
+	protected static class EnumArg<Type extends Enum<?>> extends AbstractArg {
 		private final String[]		defaults;
 		private final Class<Type>	enumType;
 
 		public EnumArg(final String name, final Class<Type> enumType, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
 			this.enumType = enumType;
-			this.defaults = null;
+			this.defaults = new String[]{enumType.getEnumConstants()[0].name()};
 		}
 
 		public EnumArg(final String name, final Class<Type> enumType, final boolean isPositional, final String helpDescriptor, final Type defaultValue) {
@@ -588,7 +617,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 		
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) {
+		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (enumType.isAssignableFrom(awaited)) {
 				try{return (T)enumType.getMethod("valueOf",String.class).invoke(null,value);
 				} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -596,7 +625,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				}
 			}
 			else {
-				throw new IllegalArgumentException("Argument ["+getName()+"] can be converted to enumeration type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new ContentException("Argument ["+getName()+"] can be converted to enumeration type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 

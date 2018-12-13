@@ -6,7 +6,7 @@ import org.junit.Test;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 
-public class AndOrTreeTest {
+public class SyntaxTreeTest {
 	private final int				PERF_AMOUNT = 20;
 	private final int[]				amount = new int[1];
 	private final Walker<Object>	PRINT = new Walker<Object>(){
@@ -21,8 +21,75 @@ public class AndOrTreeTest {
 	
 	@Test
 	public void basicFunctionalityTest() {
+		basicFunctionalityTest(new AndOrTree<Object>());
+		basicFunctionalityTest(new OrdinalSyntaxTree<Object>());
+	}
+
+	@Test
+	public void extendedFunctionalityTest() {
+		extendedFunctionalityTest(new AndOrTree<Object>());
+		extendedFunctionalityTest(new OrdinalSyntaxTree<Object>());
+	}
+
+//	@Test
+	public void performanceTest() throws InterruptedException {
 		final SyntaxTreeInterface<Object>	tt = new AndOrTree<>();
+		final char[][]						data = new char[(1 << PERF_AMOUNT)][];
 		
+		System.err.println("Start preparation...");
+		
+		for (int index = 0; index < data.length; index++) {
+			final char[]	element = new char[64];
+			
+			for (int curs = 0; curs < 63; curs++) {
+				element[curs] = (char) (Math.random()*65536);
+			}
+			data[index] = element;
+		}		
+
+		Thread.sleep(1000);		
+		System.gc();		
+		Thread.sleep(1000);		
+		
+		System.err.println("Start test...");
+		
+		final long	startTime1 = System.nanoTime();
+		final long	freeMem1 = Runtime.getRuntime().freeMemory();
+		
+		for (char[] item : data) {
+			tt.placeName(item,0,63,1,null);
+		}
+		
+		final long	startTime2 = System.nanoTime();
+		final long	freeMem2 = Runtime.getRuntime().freeMemory();
+
+		Thread.sleep(1000);		
+		System.gc();		
+		Thread.sleep(1000);		
+		
+		final long	startTime2A = System.nanoTime();
+		final long	freeMem2A = Runtime.getRuntime().freeMemory();
+		
+		for (char[] item : data) {
+			tt.placeName(item,0,63,1,null);
+		}
+		
+		final long	startTime3 = System.nanoTime();
+		final long	freeMem3 = Runtime.getRuntime().freeMemory();
+
+		for (char[] item : data) {
+			tt.seekName(item,0,63);
+		}
+
+		final long	startTime4 = System.nanoTime();
+		final long	freeMem4 = Runtime.getRuntime().freeMemory();
+		
+		System.err.println("Place new: time="+((startTime2-startTime1)/data.length)+", size="+((freeMem1-freeMem2)/(1 << PERF_AMOUNT))+", after GC="+((freeMem1-freeMem2A)/(1 << PERF_AMOUNT)));
+		System.err.println("Place existent: time="+((startTime3-startTime2A)/data.length)+", size="+((freeMem2A-freeMem3)/(1 << PERF_AMOUNT)));
+		System.err.println("Seek: time="+((startTime4-startTime3)/data.length)+", size="+((freeMem3-freeMem4)/(1 << PERF_AMOUNT)));
+	}
+
+	private void basicFunctionalityTest(final SyntaxTreeInterface<Object> tt) {
 		Assert.assertEquals(tt.size(),0);
 		
 		tt.placeName("abcde".toCharArray(),0,5,1,null);	// Only root node using
@@ -131,7 +198,7 @@ public class AndOrTreeTest {
 			Assert.fail("Mandatory exception was not detected (3-rd argument < 2-nd one)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{tt.placeName("12345".toCharArray(),0,5,-1,null);
+		try{tt.placeName("12345".toCharArray(),0,6,-1,null);
 			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -163,10 +230,7 @@ public class AndOrTreeTest {
 		}		
 	}
 
-	@Test
-	public void extendedFunctionalityTest() {
-		final SyntaxTreeInterface<Object>	tt = new AndOrTree<>();
-		
+	private void extendedFunctionalityTest(final SyntaxTreeInterface<Object> tt) {
 		Assert.assertEquals(tt.size(),0);
 		
 		tt.placeName("abcd".toCharArray(),0,4,1,null);
@@ -260,63 +324,5 @@ public class AndOrTreeTest {
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-	}
-
-	@Test
-	public void performanceTest() throws InterruptedException {
-		final SyntaxTreeInterface<Object>	tt = new AndOrTree<>();
-		final char[][]						data = new char[(1 << PERF_AMOUNT)][];
-		
-		System.err.println("Start preparation...");
-		
-		for (int index = 0; index < data.length; index++) {
-			final char[]	element = new char[64];
-			
-			for (int curs = 0; curs < 63; curs++) {
-				element[curs] = (char) (Math.random()*65536);
-			}
-			data[index] = element;
-		}		
-
-		Thread.sleep(1000);		
-		System.gc();		
-		Thread.sleep(1000);		
-		
-		System.err.println("Start test...");
-		
-		final long	startTime1 = System.nanoTime();
-		final long	freeMem1 = Runtime.getRuntime().freeMemory();
-		
-		for (char[] item : data) {
-			tt.placeName(item,0,63,1,null);
-		}
-		
-		final long	startTime2 = System.nanoTime();
-		final long	freeMem2 = Runtime.getRuntime().freeMemory();
-
-		Thread.sleep(1000);		
-		System.gc();		
-		Thread.sleep(1000);		
-		
-		final long	startTime2A = System.nanoTime();
-		final long	freeMem2A = Runtime.getRuntime().freeMemory();
-		
-		for (char[] item : data) {
-			tt.placeName(item,0,63,1,null);
-		}
-		
-		final long	startTime3 = System.nanoTime();
-		final long	freeMem3 = Runtime.getRuntime().freeMemory();
-
-		for (char[] item : data) {
-			tt.seekName(item,0,63);
-		}
-
-		final long	startTime4 = System.nanoTime();
-		final long	freeMem4 = Runtime.getRuntime().freeMemory();
-		
-		System.err.println("Place new: time="+((startTime2-startTime1)/data.length)+", size="+((freeMem1-freeMem2)/(1 << PERF_AMOUNT))+", after GC="+((freeMem1-freeMem2A)/(1 << PERF_AMOUNT)));
-		System.err.println("Place existent: time="+((startTime3-startTime2A)/data.length)+", size="+((freeMem2A-freeMem3)/(1 << PERF_AMOUNT)));
-		System.err.println("Seek: time="+((startTime4-startTime3)/data.length)+", size="+((freeMem3-freeMem4)/(1 << PERF_AMOUNT)));
 	}
 }

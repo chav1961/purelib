@@ -188,7 +188,7 @@ public interface SyntaxTreeInterface<T> {
 	 * <p>Compare two <i>names</i> represented by it's <i>identifiers</i></p>
 	 * @param first id of the first name
 	 * @param second id of the second name
-	 * @return code is the same as for Comparable interface
+	 * @return code is the same as for Comparable interface. If one or both of ids are missing in the tree, comparison result is unpredictable
 	 */
 	int compareNames(long first, long second);
 

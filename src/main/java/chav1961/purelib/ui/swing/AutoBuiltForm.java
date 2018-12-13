@@ -540,7 +540,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				else {
 					throw new UnsupportedOperationException("Field value not implements JComponentInterface: "+labelAndField);
 				}
-			} catch (SyntaxException | FlowException | ContentException | LocalizationException exc) {
+			} catch (FlowException | ContentException | LocalizationException exc) {
 				formMgr.getLogger().message(Severity.error,exc,exc.getLocalizedMessage());
 				try{labelAndField.fieldDesc.setFieldValue(instance,oldValue);
 				} catch (ContentException exc1) {

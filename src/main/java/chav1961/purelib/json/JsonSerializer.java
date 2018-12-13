@@ -4990,7 +4990,7 @@ loop:						for (LexType item : reader) {
 						try{writer.put(symbol).put('\"').put(name,0,len).put("\":");
 							cargo.getSerializer().serialize(cargo.getValue(instance),writer);
 							symbol = LIST_SPLITTER;
-						} catch (PrintingException | ContentException e) {
+						} catch (ContentException e) {
 							e.printStackTrace();
 						}
 						return true;
@@ -5044,7 +5044,7 @@ loop:						for (LexType item : reader) {
 								cargo.getSerializer().serialize(cargo.getValue(instance),writer);
 								needSplitter = true;
 								return true;
-							} catch (PrintingException | ContentException | IOException e) {
+							} catch (ContentException | IOException e) {
 								e.printStackTrace();
 								return false;
 							}
