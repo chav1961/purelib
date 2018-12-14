@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//src/main/java/chav1961/purelib/basic/gettersandsettersmacros.txt=UTF-8
+encoding//src/main/java/chav1961/purelib/model/macros.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/sql/util/sqlsubset.xml=UTF-8
 encoding//src/main/java/chav1961/purelib/streams/byte2char/BufferedInputStreamReader.java=UTF-8
 encoding//src/main/java/chav1961/purelib/streams/char2byte/BufferedOutputStreamWriter.java=UTF-8

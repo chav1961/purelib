@@ -1,11 +1,11 @@
-package chav1961.purelib.ui;
+package chav1961.purelib.model;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
 public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private final List<ContentNodeMetadata>	children = new ArrayList<>();

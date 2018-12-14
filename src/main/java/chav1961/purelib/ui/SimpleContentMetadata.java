@@ -6,7 +6,7 @@ import java.util.Map;
 
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 
 public class SimpleContentMetadata implements ContentMetadataInterface {
 	private final Map<URI,ContentMetadataInterface>	mountedEntities = new HashMap<>();

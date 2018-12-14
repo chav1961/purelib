@@ -1,6 +1,6 @@
 package chav1961.purelib.ui.interfacers;
 
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
 public interface Recommendations {
 	public enum Location {

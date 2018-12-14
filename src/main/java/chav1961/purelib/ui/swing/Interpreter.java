@@ -19,8 +19,8 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface;
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.interfacers.Recommendations;
 
 public class Interpreter extends JFrame implements LocaleChangeListener {
