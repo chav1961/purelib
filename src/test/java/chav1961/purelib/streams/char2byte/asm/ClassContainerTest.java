@@ -49,8 +49,8 @@ public class ClassContainerTest {
 
 	@Test
 	public void extendsAndImplementsClassTest() throws IOException, ContentException {
-		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
-			final ClassContainer		cc = new ClassContainer();
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			final ClassContainer		cc = new ClassContainer()) {
 
 			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
 			cc.setExtendsClassName(cc.getNameTree().placeName(this.getClass().getName(),new NameDescriptor()));
@@ -84,8 +84,8 @@ public class ClassContainerTest {
 
 //	@Test
 	public void fieldClassTest() throws IOException, NoSuchFieldException, SecurityException, ContentException {
-		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
-			final ClassContainer		cc = new ClassContainer();
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			final ClassContainer		cc = new ClassContainer()) {
 
 			cc.setClassName((short) 0x0001,-1,cc.getNameTree().placeName("Test",null));
 			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("byteField",null),cc.getNameTree().placeName("byte",new NameDescriptor()));
@@ -114,8 +114,8 @@ public class ClassContainerTest {
 	
 	@Test
 	public void methodClassTest() throws IOException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
-		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
-			final ClassContainer		cc = new ClassContainer();
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			final ClassContainer		cc = new ClassContainer()) {
 
 			cc.setClassName((short) 0x0401,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
 			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethod",new NameDescriptor()),cc.getNameTree().placeName("void",new NameDescriptor())).complete();
@@ -140,8 +140,8 @@ public class ClassContainerTest {
 			Assert.assertEquals(loaded.getMethod("voidMethodWithThrows").getReturnType(),void.class);
 		}
 
-		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
-			final ClassContainer		cc = new ClassContainer();
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			final ClassContainer		cc = new ClassContainer()) {
 
 			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
 			

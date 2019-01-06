@@ -127,7 +127,8 @@ public class NanoServiceManagerTest {
 				jar.delete();
 				
 				putClass(rootDir.getParentFile(),"PseudoPlugin.class");
-				try(final FileSystemInterface	cl = new FileSystemOnFile(rootDir.toURI()).open("/PseudoPlugin.class")) {
+				try(@SuppressWarnings("resource")
+				final FileSystemInterface	cl = new FileSystemOnFile(rootDir.toURI()).open("/PseudoPlugin.class")) {
 					final DeploymentDesc desc2 = NanoServiceManager.buildDeploymentDesc(cl,loader,"chav1961.purelib.ui.nanoservice.");
 					
 					Assert.assertEquals(cl.getPath(),desc2.path);

@@ -60,10 +60,10 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticBooleanObj = new StaticBooleanOwner();
 		final BooleanGetterAndSetter	booleanStaticGS = (BooleanGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticBooleanObj.getClass(),"value");
 
-		Assert.assertFalse(((StaticBooleanOwner)publicStaticBooleanObj).value);
+		Assert.assertFalse(StaticBooleanOwner.value);
 		Assert.assertFalse(booleanStaticGS.get(publicStaticBooleanObj));
 		booleanStaticGS.set(publicStaticBooleanObj,true);
-		Assert.assertTrue(((StaticBooleanOwner)publicStaticBooleanObj).value);
+		Assert.assertTrue(StaticBooleanOwner.value);
 		Assert.assertTrue(booleanStaticGS.get(publicStaticBooleanObj));
 
 		// byte test
@@ -79,10 +79,10 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticByteObj = new StaticByteOwner();
 		final ByteGetterAndSetter		byteStaticGS = (ByteGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticByteObj.getClass(),"value");
 
-		Assert.assertEquals(((StaticByteOwner)publicStaticByteObj).value,Byte.MIN_VALUE);
+		Assert.assertEquals(StaticByteOwner.value,Byte.MIN_VALUE);
 		Assert.assertEquals(byteStaticGS.get(publicStaticByteObj),Byte.MIN_VALUE);
 		byteStaticGS.set(publicStaticByteObj,Byte.MAX_VALUE);
-		Assert.assertEquals(((StaticByteOwner)publicStaticByteObj).value,Byte.MAX_VALUE);
+		Assert.assertEquals(StaticByteOwner.value,Byte.MAX_VALUE);
 		Assert.assertEquals(byteStaticGS.get(publicStaticByteObj),Byte.MAX_VALUE);
 		
 		// char test
@@ -98,10 +98,10 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticCharObj = new StaticCharOwner();
 		final CharGetterAndSetter		charStaticGS = (CharGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticCharObj.getClass(),"value");
 
-		Assert.assertEquals(((StaticCharOwner)publicStaticCharObj).value,Character.MIN_VALUE);
+		Assert.assertEquals(StaticCharOwner.value,Character.MIN_VALUE);
 		Assert.assertEquals(charStaticGS.get(publicStaticCharObj),Character.MIN_VALUE);
 		charStaticGS.set(publicStaticCharObj,Character.MAX_VALUE);
-		Assert.assertEquals(((StaticCharOwner)publicStaticCharObj).value,Character.MAX_VALUE);
+		Assert.assertEquals(StaticCharOwner.value,Character.MAX_VALUE);
 		Assert.assertEquals(charStaticGS.get(publicStaticCharObj),Character.MAX_VALUE);
 		
 		// double test
@@ -117,10 +117,10 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticDoubleObj = new StaticDoubleOwner();
 		final DoubleGetterAndSetter		doubleStaticGS = (DoubleGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticDoubleObj.getClass(),"value");
 
-		Assert.assertEquals(((StaticDoubleOwner)publicStaticDoubleObj).value,Double.MIN_VALUE,0.0001);
+		Assert.assertEquals(StaticDoubleOwner.value,Double.MIN_VALUE,0.0001);
 		Assert.assertEquals(doubleStaticGS.get(publicStaticDoubleObj),Double.MIN_VALUE,0.0001);
 		doubleStaticGS.set(publicStaticDoubleObj,Double.MAX_VALUE);
-		Assert.assertEquals(((StaticDoubleOwner)publicStaticDoubleObj).value,Double.MAX_VALUE,0.0001);
+		Assert.assertEquals(StaticDoubleOwner.value,Double.MAX_VALUE,0.0001);
 		Assert.assertEquals(doubleStaticGS.get(publicStaticDoubleObj),Double.MAX_VALUE,0.0001);
 
 		// float test
@@ -136,10 +136,10 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticFloatObj = new StaticFloatOwner();
 		final FloatGetterAndSetter		floatStaticGS = (FloatGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticFloatObj.getClass(),"value");
 
-		Assert.assertEquals(((StaticFloatOwner)publicStaticFloatObj).value,Float.MIN_VALUE,0.0001);
+		Assert.assertEquals(StaticFloatOwner.value,Float.MIN_VALUE,0.0001);
 		Assert.assertEquals(floatStaticGS.get(publicStaticFloatObj),Float.MIN_VALUE,0.0001);
 		floatStaticGS.set(publicStaticFloatObj,Float.MAX_VALUE);
-		Assert.assertEquals(((StaticFloatOwner)publicStaticFloatObj).value,Float.MAX_VALUE,0.0001);
+		Assert.assertEquals(StaticFloatOwner.value,Float.MAX_VALUE,0.0001);
 		Assert.assertEquals(floatStaticGS.get(publicStaticFloatObj),Float.MAX_VALUE,0.0001);
 
 		// int test
@@ -155,10 +155,10 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticIntObj = new StaticIntOwner();
 		final IntGetterAndSetter		intStaticGS = (IntGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticIntObj.getClass(),"value");
 
-		Assert.assertEquals(((StaticIntOwner)publicStaticIntObj).value,Integer.MIN_VALUE);
+		Assert.assertEquals(StaticIntOwner.value,Integer.MIN_VALUE);
 		Assert.assertEquals(intStaticGS.get(publicStaticIntObj),Integer.MIN_VALUE);
 		intStaticGS.set(publicStaticIntObj,Integer.MAX_VALUE);
-		Assert.assertEquals(((StaticIntOwner)publicStaticIntObj).value,Integer.MAX_VALUE);
+		Assert.assertEquals(StaticIntOwner.value,Integer.MAX_VALUE);
 		Assert.assertEquals(intStaticGS.get(publicStaticIntObj),Integer.MAX_VALUE);
 
 		// long test
@@ -174,10 +174,10 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticLongObj = new StaticLongOwner();
 		final LongGetterAndSetter		longStaticGS = (LongGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticLongObj.getClass(),"value");
 
-		Assert.assertEquals(((StaticLongOwner)publicStaticLongObj).value,Long.MIN_VALUE);
+		Assert.assertEquals(StaticLongOwner.value,Long.MIN_VALUE);
 		Assert.assertEquals(longStaticGS.get(publicStaticLongObj),Long.MIN_VALUE);
 		longStaticGS.set(publicStaticLongObj,Long.MAX_VALUE);
-		Assert.assertEquals(((StaticLongOwner)publicStaticLongObj).value,Long.MAX_VALUE);
+		Assert.assertEquals(StaticLongOwner.value,Long.MAX_VALUE);
 		Assert.assertEquals(longStaticGS.get(publicStaticLongObj),Long.MAX_VALUE);
 
 		// short test
@@ -193,16 +193,17 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticShortObj = new StaticShortOwner();
 		final ShortGetterAndSetter		shortStaticGS = (ShortGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticShortObj.getClass(),"value");
 
-		Assert.assertEquals(((StaticShortOwner)publicStaticShortObj).value,Short.MIN_VALUE);
+		Assert.assertEquals(StaticShortOwner.value,Short.MIN_VALUE);
 		Assert.assertEquals(shortStaticGS.get(publicStaticShortObj),Short.MIN_VALUE);
 		shortStaticGS.set(publicStaticShortObj,Short.MAX_VALUE);
-		Assert.assertEquals(((StaticShortOwner)publicStaticShortObj).value,Short.MAX_VALUE);
+		Assert.assertEquals(StaticShortOwner.value,Short.MAX_VALUE);
 		Assert.assertEquals(shortStaticGS.get(publicStaticShortObj),Short.MAX_VALUE);
 	}
 
 	@Test
 	public void referencedPublicTest() throws IllegalArgumentException, NullPointerException, ContentException {
 		final Object						publicRefObj = new ReferencedOwner();
+		@SuppressWarnings("unchecked")
 		final ObjectGetterAndSetter<String>	refGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicRefObj.getClass(),"value");
 
 		Assert.assertNull(((ReferencedOwner)publicRefObj).value);
@@ -212,15 +213,17 @@ public class GettersAndSettersFactoryTest {
 		Assert.assertEquals(refGS.get(publicRefObj),"test");
 
 		final Object						publicStaticRefObj = new StaticReferencedOwner();
+		@SuppressWarnings("unchecked")
 		final ObjectGetterAndSetter<String>	refStaticGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicStaticRefObj.getClass(),"value");
 
-		Assert.assertNull(((StaticReferencedOwner)publicStaticRefObj).value);
+		Assert.assertNull(StaticReferencedOwner.value);
 		Assert.assertNull(refStaticGS.get(publicStaticRefObj));
 		refStaticGS.set(publicStaticRefObj,"test");
-		Assert.assertEquals(((StaticReferencedOwner)publicStaticRefObj).value,"test");
+		Assert.assertEquals(StaticReferencedOwner.value,"test");
 		Assert.assertEquals(refStaticGS.get(publicStaticRefObj),"test");
 
 		final Object						publicArrayRefObj = new ArrayReferencedOwner();
+		@SuppressWarnings("unchecked")
 		final ObjectGetterAndSetter<int[]>	arrayRefGS = (ObjectGetterAndSetter<int[]>) GettersAndSettersFactory.buildGetterAndSetter(publicArrayRefObj.getClass(),"value");
 
 		Assert.assertNull(((ArrayReferencedOwner)publicArrayRefObj).value);
@@ -230,12 +233,13 @@ public class GettersAndSettersFactoryTest {
 		Assert.assertArrayEquals(arrayRefGS.get(publicArrayRefObj),new int[]{1,2,3});
 
 		final Object						publicStaticArrayRefObj = new StaticArrayReferencedOwner();
+		@SuppressWarnings("unchecked")
 		final ObjectGetterAndSetter<int[]>	arrayRefStaticGS = (ObjectGetterAndSetter<int[]>) GettersAndSettersFactory.buildGetterAndSetter(publicStaticArrayRefObj.getClass(),"value");
 
-		Assert.assertNull(((StaticArrayReferencedOwner)publicStaticArrayRefObj).value);
+		Assert.assertNull(StaticArrayReferencedOwner.value);
 		Assert.assertNull(arrayRefStaticGS.get(publicStaticArrayRefObj));
 		arrayRefStaticGS.set(publicStaticArrayRefObj,new int[]{1,2,3});
-		Assert.assertArrayEquals(((StaticArrayReferencedOwner)publicStaticArrayRefObj).value,new int[]{1,2,3});
+		Assert.assertArrayEquals(StaticArrayReferencedOwner.value,new int[]{1,2,3});
 		Assert.assertArrayEquals(arrayRefStaticGS.get(publicStaticArrayRefObj),new int[]{1,2,3});
 	}
 
@@ -412,6 +416,7 @@ public class GettersAndSettersFactoryTest {
 			m.invoke(null);
 			
 			final Object						publicRefObj = new ReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<String>	refGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicRefObj.getClass(),"privateValue");
 	
 			Assert.assertNull(((ReferencedOwner)publicRefObj).getPrivateValue());
@@ -421,6 +426,7 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertEquals(refGS.get(publicRefObj),"test");
 	
 			final Object						publicStaticRefObj = new StaticReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<String>	refStaticGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicStaticRefObj.getClass(),"privateValue");
 	
 			Assert.assertNull(((StaticReferencedOwner)publicStaticRefObj).getPrivateValue());
@@ -430,6 +436,7 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertEquals(refStaticGS.get(publicStaticRefObj),"test");
 	
 			final Object						publicArrayRefObj = new ArrayReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<int[]>	arrayRefGS = (ObjectGetterAndSetter<int[]>) GettersAndSettersFactory.buildGetterAndSetter(publicArrayRefObj.getClass(),"privateValue");
 	 
 			Assert.assertNull(((ArrayReferencedOwner)publicArrayRefObj).getPrivateValue());
@@ -439,6 +446,7 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertArrayEquals(arrayRefGS.get(publicArrayRefObj),new int[]{1,2,3});
 	
 			final Object						publicStaticArrayRefObj = new StaticArrayReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<int[]>	arrayRefStaticGS = (ObjectGetterAndSetter<int[]>) GettersAndSettersFactory.buildGetterAndSetter(publicStaticArrayRefObj.getClass(),"privateValue");
 	
 			Assert.assertNull(((StaticArrayReferencedOwner)publicStaticArrayRefObj).getPrivateValue());
@@ -623,6 +631,7 @@ public class GettersAndSettersFactoryTest {
 			m.invoke(null);
 			
 			final Object						publicRefObj = new ReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<String>	refGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicRefObj.getClass(),"privateValue");
 	
 			Assert.assertNull(((ReferencedOwner)publicRefObj).getPrivateValue());
@@ -632,6 +641,7 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertEquals(refGS.get(publicRefObj),"test");
 	
 			final Object						publicStaticRefObj = new StaticReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<String>	refStaticGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicStaticRefObj.getClass(),"privateValue");
 	
 			Assert.assertNull(((StaticReferencedOwner)publicStaticRefObj).getPrivateValue());
@@ -641,6 +651,7 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertEquals(refStaticGS.get(publicStaticRefObj),"test");
 	
 			final Object						publicArrayRefObj = new ArrayReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<int[]>	arrayRefGS = (ObjectGetterAndSetter<int[]>) GettersAndSettersFactory.buildGetterAndSetter(publicArrayRefObj.getClass(),"privateValue");
 	 
 			Assert.assertNull(((ArrayReferencedOwner)publicArrayRefObj).getPrivateValue());
@@ -650,6 +661,7 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertArrayEquals(arrayRefGS.get(publicArrayRefObj),new int[]{1,2,3});
 	
 			final Object						publicStaticArrayRefObj = new StaticArrayReferencedOwner();
+			@SuppressWarnings("unchecked")
 			final ObjectGetterAndSetter<int[]>	arrayRefStaticGS = (ObjectGetterAndSetter<int[]>) GettersAndSettersFactory.buildGetterAndSetter(publicStaticArrayRefObj.getClass(),"privateValue");
 	
 			Assert.assertNull(((StaticArrayReferencedOwner)publicStaticArrayRefObj).getPrivateValue());

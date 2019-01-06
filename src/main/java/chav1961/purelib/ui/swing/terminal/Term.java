@@ -379,11 +379,11 @@ class Term extends PseudoConsole implements Closeable {
 	
 	private void scroll(boolean up) {
 		Rectangle	rect;
-		Color[][][]	attrs;
+//		Color[][][]	attrs;
 		char[]		content;
 		
 		if (up) {
-			attrs = readAttibute(rect = new Rectangle(1,2,width,height-1));
+			readAttibute(rect = new Rectangle(1,2,width,height-1));
 			content = readContent(rect);
 //			writeAttribute(rect = new Rectangle(1,1,width,height-1),attrs);
 			writeContent(rect = new Rectangle(1,1,width,height-1),content);
@@ -393,7 +393,7 @@ class Term extends PseudoConsole implements Closeable {
 			popCursor();
 		}
 		else {
-			attrs = readAttibute(rect = new Rectangle(1,1,width,height-1));
+			readAttibute(rect = new Rectangle(1,1,width,height-1));
 			content = readContent(rect);
 //			writeAttribute(rect = new Rectangle(1,1,width,height-1),attrs);
 			writeContent(rect = new Rectangle(1,2,width,height-1),content);

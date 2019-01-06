@@ -18,6 +18,7 @@ import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.PureLibLocalizer;
@@ -36,7 +37,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @see SubstitutableProperties
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
 public class PureLibSettings {
@@ -204,7 +205,12 @@ public class PureLibSettings {
 	/**
 	 * <p>Common-accessible localizer for the Pure Library</p> 
 	 */
-	public static final Localizer	PURELIB_LOCALIZER = createPureLibLocalizer();
+	public static final Localizer		PURELIB_LOCALIZER = createPureLibLocalizer();
+	
+	/**
+	 * <p>Null logger facade for any purposes</p>
+	 */
+	public static final LoggerFacade	NULL_LOGGER = new NullLoggerFacade();
 	
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 

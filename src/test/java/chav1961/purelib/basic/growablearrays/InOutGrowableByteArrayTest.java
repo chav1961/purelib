@@ -21,6 +21,7 @@ public class InOutGrowableByteArrayTest {
 	}
 
 	// InOutGrowableByteArray class functionality must be identical to DataOutputStream/DataInputStream.
+	@SuppressWarnings("deprecation")
 	private void internalTest(final InOutGrowableByteArray gba) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final DataOutputStream		dos = new DataOutputStream(baos)) {

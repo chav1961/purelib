@@ -1,7 +1,5 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 
 import org.junit.Assert;

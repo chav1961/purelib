@@ -1,14 +1,11 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
 import java.io.IOException;
-import java.util.Arrays;
 
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2byte.asm.macro.MacroCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 
 public class MacrosTest {
 	@Test
@@ -167,7 +164,8 @@ public class MacrosTest {
 		}
 	}
 
-	private void errorAwaiting(final TestMacros macros, final String content, final String problemDescription, final Class<? extends Throwable>... problems) {
+	@SafeVarargs
+	private final void errorAwaiting(final TestMacros macros, final String content, final String problemDescription, final Class<? extends Throwable>... problems) {
 		try{macros.processLine(content);
 			Assert.fail("Mandatory exception was not detected ("+problemDescription+")");
 		} catch (Throwable t) {
@@ -188,7 +186,8 @@ public class MacrosTest {
 		}
 	}
 
-	private void errorCall(final TestMacros macros, final String content, final String problemDescription, final Class<? extends Throwable>... problems) {
+	@SafeVarargs
+	private final void errorCall(final TestMacros macros, final String content, final String problemDescription, final Class<? extends Throwable>... problems) {
 		try{macros.parseCall(content);
 			Assert.fail("Mandatory exception was not detected ("+problemDescription+")");
 		} catch (Throwable t) {

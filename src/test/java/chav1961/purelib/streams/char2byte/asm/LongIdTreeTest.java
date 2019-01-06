@@ -33,16 +33,16 @@ public class LongIdTreeTest {
 
 	@Test
 	public void illegalParametersTest() {
-		try{new LongIdTree(0);
+		try{new LongIdTree<Object>(0);
 			Assert.fail("Mandatory exception was not detected (initial parameter outsize the bounds)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new LongIdTree(100);
+		try{new LongIdTree<Object>(100);
 			Assert.fail("Mandatory exception was not detected (initial parameter outsize the bounds)");
 		} catch (IllegalArgumentException exc) {
 		}
 
-		final LongIdTree	lit = new LongIdTree(3);
+		final LongIdTree<Object>	lit = new LongIdTree<Object>(3);
 		try{lit.getRef(1);
 			Assert.fail("Mandatory exception was not detected (different amount of parameters and initial parameter size)");
 		} catch (IllegalArgumentException exc) {

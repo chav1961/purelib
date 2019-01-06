@@ -19,7 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.CharUtils;
@@ -384,9 +383,9 @@ loop:		do {if (cursor.child != null) {
 								System.arraycopy(cursor.child,index+1,cursor.child,index,cursor.child.length-index-1);
 								cursor.child = Arrays.copyOf(cursor.child,cursor.child.length-1);
 							}
+							deleted = true;
+							break loop;
 						}
-						deleted = true;
-						break loop;
 					}				
 				}
 				if (cursor.sibling.item == localizer) {

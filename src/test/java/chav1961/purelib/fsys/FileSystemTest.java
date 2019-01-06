@@ -18,7 +18,6 @@ import java.rmi.server.ExportException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.jar.JarOutputStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -150,16 +149,16 @@ public class FileSystemTest {
 		}
 		
 		// Test RMI connection to the file system
-		Registry	r;
-		try{r = java.rmi.registry.LocateRegistry.createRegistry(Registry.REGISTRY_PORT);	// Start RMI registry
+		try{java.rmi.registry.LocateRegistry.createRegistry(Registry.REGISTRY_PORT);	// Start RMI registry
 		} catch (ExportException ex) {
-			r = java.rmi.registry.LocateRegistry.getRegistry(Registry.REGISTRY_PORT);
+			java.rmi.registry.LocateRegistry.getRegistry(Registry.REGISTRY_PORT);
 		}
 		try(final FileSystemInterface	fsNest = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").toURI());
 			final RMIFileSystemServer	fss = new RMIFileSystemServer(URI.create("rmi://localhost:"+Registry.REGISTRY_PORT+"/testRMI"),fsNest);  
 			final FileSystemInterface	fs = new FileSystemOnRMI(URI.create("rmi://localhost:"+Registry.REGISTRY_PORT+"/testRMI"))) {
 			test(fs,false);
 		}
+		
 	}
 	
 	private void test(final FileSystemInterface fs, boolean testMetadata) throws Exception {
@@ -216,8 +215,8 @@ public class FileSystemTest {
 		}
 		
 													// Get directory content
-		final Set<String> content = new HashSet<String>(){{addAll(Arrays.asList(fs.open("../").list()));}}
-						, awaited = new HashSet<String>(){{addAll(Arrays.asList("newFile.txt","nestedDir"));}}; 
+		final Set<String> content = new HashSet<String>(){private static final long serialVersionUID = 1L; {addAll(Arrays.asList(fs.open("../").list()));}}
+						, awaited = new HashSet<String>(){private static final long serialVersionUID = 1L; {addAll(Arrays.asList("newFile.txt","nestedDir"));}}; 
 		Assert.assertTrue(content.equals(awaited));
 		
 													// Writing and reading files

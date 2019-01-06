@@ -1,6 +1,5 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.Assert;
@@ -37,7 +36,7 @@ public class MethodBodyTest {
 
 //	@Test
 	public void basicTest() throws IOException, ContentException {
-		final SyntaxTreeInterface	aot = new AndOrTree(1,16);
+		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
 		final MethodBody	mb = new MethodBody(0,0,aot);
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1, null);
@@ -66,7 +65,7 @@ public class MethodBodyTest {
 
 	@Test
 	public void unresolvedLabelsTest() throws IOException {
-		final SyntaxTreeInterface	aot = new AndOrTree(1,16);
+		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
 		final MethodBody	mb = new MethodBody(3,4,aot);
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1,null);

@@ -29,7 +29,7 @@ public class LocalizerTest {
 		
 		Assert.assertEquals(pl.currentLocale().getLanguage(),Locale.getDefault().getLanguage());
 		count = 0;
-		for (LocaleDescriptor item : pl.supportedLocales()) {
+		for (@SuppressWarnings("unused") LocaleDescriptor item : pl.supportedLocales()) {
 			count++;
 		}
 		Assert.assertEquals(count, 2);
@@ -38,7 +38,7 @@ public class LocalizerTest {
 		pl.setCurrentLocale(new Locale("ru"));
 		pl.setCurrentLocale(new Locale("en"));
 		count = 0;
-		for (String item : pl.availableKeys()) {
+		for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 			count++;
 		}
 		Assert.assertEquals(count, 3);
@@ -61,7 +61,7 @@ public class LocalizerTest {
 
 		pl.setCurrentLocale(new Locale("ru"));
 		count = 0;
-		for (String item : pl.availableKeys()) {
+		for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 			count++;
 		}
 		Assert.assertEquals(count, 3);
@@ -243,55 +243,57 @@ public class LocalizerTest {
 
 	@Test
 	public void walkingTest() throws LocalizationException, IOException {
-		final Localizer		root = new SingleKeyLocalizer("root","rootEn","rootRu");
+//		final Localizer		root = new SingleKeyLocalizer("root","rootEn","rootRu");
 	}
 
 	@Test
 	public void fileSystemLocalizerTest() throws LocalizationException, IOException {
-		final FileSystemLocalizer	fsl = new FileSystemLocalizer("fsys:file:./src/test/resources/chav1961/purelib/i18n#/test");
-		int		count;
-		
-		fsl.setCurrentLocale(new Locale("en"));
-		count = 0;
-		for (String item : fsl.availableKeys()) {
-			count++;
+		try(final FileSystemLocalizer	fsl = new FileSystemLocalizer("fsys:file:./src/test/resources/chav1961/purelib/i18n#/test")) {
+			int		count;
+			
+			fsl.setCurrentLocale(new Locale("en"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : fsl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals(fsl.getValue("key1"),"value1");
+			Assert.assertEquals(fsl.getValue("key2"),"value2");
+			
+			fsl.setCurrentLocale(new Locale("ru"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : fsl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals(fsl.getValue("key1"),"значение1");
+			Assert.assertEquals(fsl.getValue("key2"),"значение2");
 		}
-		Assert.assertEquals(count, 3);
-		Assert.assertEquals(fsl.getValue("key1"),"value1");
-		Assert.assertEquals(fsl.getValue("key2"),"value2");
-		
-		fsl.setCurrentLocale(new Locale("ru"));
-		count = 0;
-		for (String item : fsl.availableKeys()) {
-			count++;
-		}
-		Assert.assertEquals(count, 3);
-		Assert.assertEquals(fsl.getValue("key1"),"значение1");
-		Assert.assertEquals(fsl.getValue("key2"),"значение2");
 	}
 
 	@Test
 	public void propertiesLocalizerTest() throws LocalizationException, IOException {
-		final PropertiesLocalizer	pl = new PropertiesLocalizer("chav1961/purelib/i18n/test");
-		int		count;
-		
-		pl.setCurrentLocale(new Locale("en"));
-		count = 0;
-		for (String item : pl.availableKeys()) {
-			count++;
+		try(final PropertiesLocalizer	pl = new PropertiesLocalizer("chav1961/purelib/i18n/test")) {
+			int		count;
+			
+			pl.setCurrentLocale(new Locale("en"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals(pl.getValue("key1"),"value1");
+			Assert.assertEquals(pl.getValue("key2"),"value2");
+			
+			pl.setCurrentLocale(new Locale("ru"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals(pl.getValue("key1"),"значение1");
+			Assert.assertEquals(pl.getValue("key2"),"значение2");
 		}
-		Assert.assertEquals(count, 3);
-		Assert.assertEquals(pl.getValue("key1"),"value1");
-		Assert.assertEquals(pl.getValue("key2"),"value2");
-		
-		pl.setCurrentLocale(new Locale("ru"));
-		count = 0;
-		for (String item : pl.availableKeys()) {
-			count++;
-		}
-		Assert.assertEquals(count, 3);
-		Assert.assertEquals(pl.getValue("key1"),"значение1");
-		Assert.assertEquals(pl.getValue("key2"),"значение2");
 	}
 }
 

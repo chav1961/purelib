@@ -15,7 +15,6 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.DebuggingLocalizer;
-import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.ui.interfacers.Format;
@@ -135,5 +134,6 @@ class TestForFieldExtraction {
 @LocaleResource(value="name2",tooltip="tooltip2")
 	private final float	value2 = 2.0f;
 
+	@SuppressWarnings("unused")
 	private final float	value3 = 0.0f;
 }

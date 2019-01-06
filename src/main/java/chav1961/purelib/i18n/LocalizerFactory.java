@@ -3,7 +3,6 @@ package chav1961.purelib.i18n;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,8 +14,8 @@ import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
+import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;
 import chav1961.purelib.i18n.interfaces.Localizer;
 

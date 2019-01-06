@@ -20,7 +20,6 @@ public class ZLibInputStream extends InputStream {
 	protected final InputStream		nested;
 	private final Inflater			inflater = new Inflater(true);
 	private final byte[]			buffer = new byte[DEFAULT_INNER_BUFFER];
-	private int						received = 0;
 	
 	/**
 	 * <p>Constructor of the class</p>

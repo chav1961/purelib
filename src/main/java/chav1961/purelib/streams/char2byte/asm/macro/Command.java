@@ -3,10 +3,8 @@ package chav1961.purelib.streams.char2byte.asm.macro;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2byte.asm.Asm;
 

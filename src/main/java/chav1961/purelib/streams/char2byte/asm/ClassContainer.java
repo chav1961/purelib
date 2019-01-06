@@ -92,8 +92,8 @@ class ClassContainer implements Closeable {
 		}
 		else {
 			final MethodDescriptor	md = new MethodDescriptor(getNameTree(),getConstantPool(),modifiers,joinedClassName,methodId,typeId,throwsId);
-			final long				fullMethodId = joinClassName(joinedClassName,methodId);
-			
+
+			joinClassName(joinedClassName,methodId);
 			methods.add(md);
 			return md;  
 		}

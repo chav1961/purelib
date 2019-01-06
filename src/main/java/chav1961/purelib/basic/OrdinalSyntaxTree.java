@@ -21,6 +21,7 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 	private static final int					RANGE_STEP = 64;
 	
 	private final TreeMap<String,Node<Cargo>>	map = new TreeMap<>();
+	@SuppressWarnings("rawtypes")
 	private final LongIdMap<Node>				invMap = new LongIdMap<Node>(Node.class);
 	private final long							step;
 	private long								actualId = 0;
@@ -180,6 +181,7 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean removeName(final long id) {
 		final Node<Cargo>	node = seekNode(id);
@@ -336,6 +338,7 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 	}
 
 	private Node<Cargo> seekNode(final long nodeId) {
+		@SuppressWarnings("unchecked")
 		final Node<Cargo>	cargo = invMap.get(nodeId);
 		
 		return cargo;
@@ -343,10 +346,9 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 
 	private int difference(final String first, final String second) {
 		final int	len = Math.min(first.length(),second.length());
-		int			diff;
 		
 		for (int index = 0; index < len; index++) {
-			if ((diff = first.charAt(index) - second.charAt(index)) != 0) {
+			if (first.charAt(index) - second.charAt(index) != 0) {
 				return index;
 			}
 		}

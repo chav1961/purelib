@@ -195,6 +195,7 @@ public abstract class AbstractInMemoryFormModel<Id,Instance> implements FormMode
 					
 					try(final ByteArrayInputStream	bais = new ByteArrayInputStream(baos.toByteArray());
 						final ObjectInputStream		ois = new ObjectInputStream(bais)) {
+						@SuppressWarnings("unchecked")
 						final Instance				newInstance = (Instance)ois.readObject();
 						
 						idSetter.invoke(newInstance,newId);
@@ -316,6 +317,7 @@ public abstract class AbstractInMemoryFormModel<Id,Instance> implements FormMode
 
 	@Override
 	public Iterable<Id> contentIds() throws ContentException {
+		@SuppressWarnings("unchecked")
 		final Id[]	result = (Id[]) Array.newInstance(idClass,size());
 		
 		for (int index = 0, maxIndex = content.size(); index < maxIndex; index++) {
@@ -333,6 +335,7 @@ public abstract class AbstractInMemoryFormModel<Id,Instance> implements FormMode
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
+	@SuppressWarnings("unchecked")
 	public Instance[] toArray() {
 		return content.toArray((Instance[])Array.newInstance(instanceClass,content.size()));
 	}

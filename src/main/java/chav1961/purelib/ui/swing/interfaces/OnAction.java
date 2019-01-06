@@ -6,8 +6,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import chav1961.purelib.basic.ConsoleCommandManager;
-
 /**
  * <p>This annotation is used to mark a method for call thru Swing Action listeners. The only parameter of the annotation is a string associated 
  * with Action event. This annotation is used by {@linkplain}</p>

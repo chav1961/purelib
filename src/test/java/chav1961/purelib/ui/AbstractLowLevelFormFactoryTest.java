@@ -9,9 +9,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Currency;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -22,18 +20,12 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
 import chav1961.purelib.ui.AbstractLowLevelFormFactory.FormPage;
-import chav1961.purelib.ui.interfacers.ControllerAction;
 import chav1961.purelib.ui.interfacers.FieldRepresentation;
 import chav1961.purelib.ui.interfacers.FormManager;
-import chav1961.purelib.ui.interfacers.FormModel;
 import chav1961.purelib.ui.interfacers.FormRepresentation;
-import chav1961.purelib.ui.interfacers.Format;
 import chav1961.purelib.ui.interfacers.RefreshMode;
-import chav1961.purelib.ui.interfacers.Wizard;
 
 public class AbstractLowLevelFormFactoryTest {
 	private static final FormManager<String,SingleClass>		FORM_MANAGER = new FormManager<String,SingleClass>(){
@@ -86,7 +78,7 @@ public class AbstractLowLevelFormFactoryTest {
 	
 //	@Test
 	public void basicTest() throws IOException, SyntaxException, URISyntaxException {
-		final PseudoLowLevelFormFactory<SingleClass>	f = new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("singleform.txt").toURI(),FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
+		final PseudoLowLevelFormFactory<String,SingleClass>	f = new PseudoLowLevelFormFactory<String,SingleClass>(this.getClass().getResource("singleform.txt").toURI(),FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
 
 		Assert.assertEquals(f.getPages().length,3);
 		Assert.assertEquals(f.getPages()[0].formName,"part1");
@@ -104,19 +96,19 @@ public class AbstractLowLevelFormFactoryTest {
 		Assert.assertEquals(f.getFieldDescriptors()[0].fieldRepresentation,FieldRepresentation.INTVALUE);
 		Assert.assertEquals(f.getFieldDescriptors()[0].fieldType,int.class);
 		
-		try{new PseudoLowLevelFormFactory<SingleClass>(null,FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
+		try{new PseudoLowLevelFormFactory<String,SingleClass>(null,FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("singleform.txt").toURI(),null,SingleClass.class,FORM_MANAGER);
+		try{new PseudoLowLevelFormFactory<String,SingleClass>(this.getClass().getResource("singleform.txt").toURI(),null,SingleClass.class,FORM_MANAGER);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("singleform.txt").toURI(),FormRepresentation.SINGLE_RECORD,null,FORM_MANAGER);
+		try{new PseudoLowLevelFormFactory<String,SingleClass>(this.getClass().getResource("singleform.txt").toURI(),FormRepresentation.SINGLE_RECORD,null,FORM_MANAGER);
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("singleform.txt").toURI(),FormRepresentation.SINGLE_RECORD,SingleClass.class,null);
+		try{new PseudoLowLevelFormFactory<String,SingleClass>(this.getClass().getResource("singleform.txt").toURI(),FormRepresentation.SINGLE_RECORD,SingleClass.class,null);
 			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
 		} catch (NullPointerException exc) {
 		}
@@ -124,26 +116,27 @@ public class AbstractLowLevelFormFactoryTest {
 
 	@Test
 	public void inheritanceTest() throws IOException, SyntaxException, URISyntaxException {
-		final PseudoLowLevelFormFactory<SingleClass>	f = new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("childform.txt").toURI(), new URI[]{this.getClass().getResource("singleform.txt").toURI()},FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
+		final PseudoLowLevelFormFactory<String,SingleClass>	f = new PseudoLowLevelFormFactory<String,SingleClass>(this.getClass().getResource("childform.txt").toURI(), new URI[]{this.getClass().getResource("singleform.txt").toURI()},FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
 		
 		Assert.assertEquals(f.getPages().length,3);
 		Assert.assertEquals(f.getPages()[0].formName,"part4");
 		Assert.assertEquals(f.getPages()[1].formName,"part1");
 		Assert.assertEquals(f.getPages()[2].formName,"part3");
 
-		try{new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("childform.txt").toURI(),null,FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
+		try{new PseudoLowLevelFormFactory<String,SingleClass>(this.getClass().getResource("childform.txt").toURI(),null,FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new PseudoLowLevelFormFactory<SingleClass>(this.getClass().getResource("childform.txt").toURI(),new URI[]{null},FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
+		try{new PseudoLowLevelFormFactory<String,SingleClass>(this.getClass().getResource("childform.txt").toURI(),new URI[]{null},FormRepresentation.SINGLE_RECORD,SingleClass.class,FORM_MANAGER);
 			Assert.fail("Mandatory exception was not detected (null item in the 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
 	}
 
 //	@Test
+	@SuppressWarnings("unchecked")
 	public void fieldDescriptionTest() throws IOException, SyntaxException, URISyntaxException, ContentException {
-		final PseudoLowLevelFormFactory<TotalClass>		f = new PseudoLowLevelFormFactory<TotalClass>(this.getClass().getResource("list.txt").toURI(),FormRepresentation.LIST,TotalClass.class,TOTAL_FORM_MANAGER);
+		final PseudoLowLevelFormFactory<String,TotalClass>		f = new PseudoLowLevelFormFactory<String,TotalClass>(this.getClass().getResource("list.txt").toURI(),FormRepresentation.LIST,TotalClass.class,TOTAL_FORM_MANAGER);
 		final TotalClass								inst = new TotalClass();
 		final SingleClass								assign = new SingleClass();
 		
@@ -297,7 +290,7 @@ public class AbstractLowLevelFormFactoryTest {
 					Assert.assertEquals(item.fieldTemplate,"ANNNNNNN");
 					Assert.assertEquals(item.fieldTooltip,"listArrayValue");
 					item.setFieldValue(inst,Arrays.asList("test string"));
-					Assert.assertEquals((Collection)item.getFieldValue(inst),Arrays.asList("test string"));
+					Assert.assertEquals((Collection<String>)item.getFieldValue(inst),Arrays.asList("test string"));
 					break;
 				case "mapValue"				:
 					Assert.assertTrue(Map.class.isAssignableFrom(item.fieldType));
@@ -306,8 +299,8 @@ public class AbstractLowLevelFormFactoryTest {
 					Assert.assertEquals(item.fieldFormat,new FormFieldFormat());
 					Assert.assertNull(item.fieldTemplate);
 					Assert.assertEquals(item.fieldTooltip,"mapValue");
-					item.setFieldValue(inst,new HashMap());
-					Assert.assertEquals((Map)item.getFieldValue(inst),new HashMap());
+					item.setFieldValue(inst,new HashMap<Object,Object>());
+					Assert.assertEquals((Map<Object,Object>)item.getFieldValue(inst),new HashMap<Object,Object>());
 					break;
 				case "wizardValue"			:
 					Assert.assertEquals(item.fieldRepresentation,FieldRepresentation.WIZARDVALUE);
@@ -334,7 +327,7 @@ public class AbstractLowLevelFormFactoryTest {
 
 	@Test
 	public void pageDescriptionTest() throws IOException, SyntaxException, URISyntaxException {
-		final PseudoLowLevelFormFactory<TotalClass>		f = new PseudoLowLevelFormFactory<TotalClass>(this.getClass().getResource("pages.txt").toURI(),FormRepresentation.SINGLE_RECORD,TotalClass.class,TOTAL_FORM_MANAGER);
+		final PseudoLowLevelFormFactory<String,TotalClass>		f = new PseudoLowLevelFormFactory<String,TotalClass>(this.getClass().getResource("pages.txt").toURI(),FormRepresentation.SINGLE_RECORD,TotalClass.class,TOTAL_FORM_MANAGER);
 
 		for (FormPage item : f.getPages()) {
 			switch (item.formName) {
@@ -368,12 +361,12 @@ public class AbstractLowLevelFormFactoryTest {
 	}
 }
 
-class PseudoLowLevelFormFactory<T> extends AbstractLowLevelFormFactory {
-	public PseudoLowLevelFormFactory(URI formDescription, FormRepresentation representation, Class<T> rootClass, FormManager<?, T> manager) throws IOException, SyntaxException {
+class PseudoLowLevelFormFactory<Id,T> extends AbstractLowLevelFormFactory<Id,T> {
+	public PseudoLowLevelFormFactory(URI formDescription, FormRepresentation representation, Class<T> rootClass, FormManager<Id, T> manager) throws IOException, SyntaxException {
 		super(formDescription, representation, rootClass, manager);
 	}
 
-	public PseudoLowLevelFormFactory(URI formDescription, URI[] inherited, FormRepresentation representation, Class<T> rootClass, FormManager<?, T> manager) throws IOException, SyntaxException {
+	public PseudoLowLevelFormFactory(URI formDescription, URI[] inherited, FormRepresentation representation, Class<T> rootClass, FormManager<Id, T> manager) throws IOException, SyntaxException {
 		super(formDescription, inherited, representation, rootClass, manager);
 	}
 

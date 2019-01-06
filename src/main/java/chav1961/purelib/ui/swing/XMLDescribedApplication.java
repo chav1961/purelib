@@ -2,6 +2,8 @@ package chav1961.purelib.ui.swing;
 
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,13 +11,17 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -25,6 +31,10 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.JToolTip;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -310,7 +320,7 @@ public class XMLDescribedApplication {
 				
 				switch (root.getAttributes().getNamedItem(ATTR_NAME).getNodeValue()) {
 					case BUILTIN_LANGUAGES		:
-						final ButtonGroup	group = new ButtonGroup();
+						final ButtonGroup	langGroup = new ButtonGroup();
 						
 						for (LocaleDescriptor desc : localizer.supportedLocales()) {
 							final JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem() {private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip() {return new SmartToolTip(localizer,this);}};
@@ -320,11 +330,24 @@ public class XMLDescribedApplication {
 							menuItem.setIcon(desc.getIcon());
 							menuItem.setSelected(desc.getLanguage().equals(localizer.currentLocale().getLanguage()));
 							menuItem.setActionCommand(BUILTIN_LANGUAGES+":"+desc.getLanguage());
-							group.add(menuItem);
+							langGroup.add(menuItem);
 							stdMenu.add(menuItem);
 						}
 						return stdMenu;
 					case BUILTIN_LOOK_AND_FEEL	:
+						final String		currentLAF = UIManager.getLookAndFeel().getName(); 
+						final ButtonGroup	lafGroup = new ButtonGroup();
+						
+						for (LookAndFeelInfo lafItem : UIManager.getInstalledLookAndFeels()) {
+							final String				name = lafItem.getName();
+							final JRadioButtonMenuItem	menuItem = new JRadioButtonMenuItem(name){private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip() {return new SmartToolTip(localizer,this);}};
+							
+							menuItem.setToolTipText(lafItem.getClassName());
+							menuItem.setSelected(name.equals(currentLAF));
+							menuItem.setActionCommand(BUILTIN_LOOK_AND_FEEL+":"+name);
+							lafGroup.add(menuItem);
+							stdMenu.add(menuItem);
+						}
 						return stdMenu;
 					default : throw new UnsupportedOperationException("Unsupported standard menu type ["+root.getAttributes().getNamedItem(ATTR_NAME).getNodeValue()+"]");
 				}
@@ -491,5 +514,31 @@ public class XMLDescribedApplication {
 				default :
 			}
 		}
+	}
+
+	private static class CargoCheckBoxMenuItem<T> extends JCheckBoxMenuItem {
+		private static final long serialVersionUID = 7391015352976487237L;
+
+		final T	cargo;
+		
+		public CargoCheckBoxMenuItem(final T cargo) {
+			super();
+			this.cargo = cargo;
+		}
+	}
+	
+	private static class LookAndFeelUI {
+		String		lookAndFeelClassName;
+		String		tooltip;
+		
+//		@Override
+//		public int execute(final FrameTemplate parent) {
+//			try{UIManager.setLookAndFeel(lookAndFeelClassName);
+//				SwingUtilities.updateComponentTreeUI(parent);
+//			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+//				parent.message(Severity.error,"Selected Look &amp; feel can't be set: %1$s",e.getMessage());
+//			}
+//			return 0;
+//		}
 	}
 }

@@ -5,7 +5,9 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 
 import org.junit.Assert;
@@ -63,12 +65,12 @@ public class ZLibStreamTest {
 				}
 			}
 			
-			try {new ZLibOutputStream(null);
+			try(final OutputStream os = new ZLibOutputStream(null)) {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			
-			try {new ZLibInputStream(null);
+			try(final InputStream os = new ZLibInputStream(null)) {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}

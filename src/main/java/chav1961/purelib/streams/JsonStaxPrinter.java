@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.JsonStaxParser.LexType;
 
 /**
  * <p>This class implements a StAX-styled JSON printer to use in the in-stream JSON uploading application.</p>

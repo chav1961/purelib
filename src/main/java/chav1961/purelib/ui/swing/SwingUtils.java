@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -77,19 +78,25 @@ import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.MaskFormatter;
 import javax.swing.text.NumberFormatter;
+import javax.swing.text.html.parser.ContentModel;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
 import chav1961.purelib.ui.FormFieldFormat;
+import chav1961.purelib.ui.interfacers.ContentMetadataInterface;
 import chav1961.purelib.ui.interfacers.FieldRepresentation;
 import chav1961.purelib.ui.interfacers.FormManager;
+import chav1961.purelib.ui.interfacers.RefreshMode;
+import chav1961.purelib.ui.interfacers.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 
@@ -186,6 +193,14 @@ public abstract class SwingUtils {
 	public static URL url(final String resource) {
 		return SwingUtils.class.getResource(resource);	
 	}
+	
+	public static JMenu toMenuBar(final ContentMetadataInterface model) {
+		model.walkDown((NodeEnterMode mode, URI applicationPath, URI uiPath, ContentNodeMetadata node)->{
+						return ContinueMode.CONTINUE;
+						},URI.create(""));
+		return null;
+	}
+	
 	
 	public static JComponent prepareInputComponent(final FieldRepresentation controlRepresentation, final String controlName, final String controlTooltip, final int controlLen, final FormFieldFormat controlFormat) throws ParseException {
 		JComponent		result;

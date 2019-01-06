@@ -41,6 +41,7 @@ class AsmScriptEngine extends AbstractScriptEngine {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	public void download(final InputStream source) throws ScriptException {
 		if (source == null) {

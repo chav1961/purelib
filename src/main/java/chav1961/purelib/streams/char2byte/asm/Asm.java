@@ -8,7 +8,6 @@ import java.io.Writer;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;

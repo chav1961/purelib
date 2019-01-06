@@ -34,6 +34,7 @@ class ClassDescriptionRepo {
 
 	
 	private final List<RepoStack>				stack = new ArrayList<>();
+	@SuppressWarnings("unused")
 	private final Writer						diagnostics;
 
 	@FunctionalInterface
@@ -271,9 +272,10 @@ class ClassDescriptionRepo {
 	}
 
 	private static void addAnyDescription(/*final SyntaxTreeInterface<Keeper> shortTree,*/ final SyntaxTreeInterface<Keeper> longTree, final String entityType, final String qualifiedName, final String simpleName, final KeeperContent context, final Object entity) throws ContentException {
-		long			id;
+//		long			id;
 		
-		if ((id = longTree.seekName(qualifiedName)) >= 0) {
+		if (longTree.seekName(qualifiedName) >= 0) {
+//		if ((id = longTree.seekName(qualifiedName)) >= 0) {
 //			throw new ContentException("Duplicate description for the "+entityType+" ["+new String(qualifiedName)+"] was detected during import");
 		}
 //		else if ((id = shortTree.seekName(simpleName)) >= 0) {
@@ -395,7 +397,7 @@ class ClassDescriptionRepo {
 	private static class Keeper {
 		final KeeperContent	content;
 		final Object		data;
-		int					useCounter = 1;
+//		int					useCounter = 1;
 
 		public Keeper(final Object data, final KeeperContent content) {
 			this.content = content;

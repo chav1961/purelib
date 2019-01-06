@@ -1,6 +1,5 @@
 package chav1961.purelib.basic.growablearrays;
 
-import chav1961.purelib.basic.growablearrays.AbstractArrayContentManager.Walker;
 
 abstract class AbstractSlicedContentManager<T> extends AbstractArrayContentManager<T> {
 	protected final int		initialPow, initialSize;

@@ -122,7 +122,7 @@ public class FileSystemURLConnectionTest {
 		} catch (IllegalStateException exc) {
 		}
 		
-		final URL	urlF = new URL(null,FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:/src/test/resources/chav1961/purelib/fsys#content.txt",new FileSystemURLStreamHandler());
+	//	final URL	urlF = new URL(null,FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:/src/test/resources/chav1961/purelib/fsys#content.txt",new FileSystemURLStreamHandler());
 
 		try{final URLConnection	conn = url.openConnection();
 

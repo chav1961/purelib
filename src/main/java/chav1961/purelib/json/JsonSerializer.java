@@ -129,6 +129,7 @@ public abstract class JsonSerializer<T> {
 		PRIMITIVE_ARRAY_WRAPPERS.put(short.class,new ShortArraySerializer());
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static <Type> JsonSerializer<Type> buildSerializer(final Class<Type> awaited) throws EnvironmentException {
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");
@@ -220,6 +221,7 @@ public abstract class JsonSerializer<T> {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	private static <Type> JsonSerializer<Type> buildEnumSerialier(final Class<Type> awaited) throws EnvironmentException {
 		synchronized(ENUM_WRAPPERS) {
 			if (!ENUM_WRAPPERS.containsKey(awaited)) {
@@ -229,6 +231,7 @@ public abstract class JsonSerializer<T> {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static <Type> JsonSerializer<Type> buildArraySerializer(final Class<Type> awaited) throws EnvironmentException {
 		if (awaited.getComponentType().isPrimitive()) {
 			return (JsonSerializer<Type>) PRIMITIVE_ARRAY_WRAPPERS.get(awaited.getComponentType());
@@ -4728,6 +4731,7 @@ loop:						for (LexType item : reader) {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public T deserialize(final CharacterSource reader) throws ContentException, SyntaxException {
 			if (reader == null) {
@@ -4789,6 +4793,7 @@ loop:						for (LexType item : reader) {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public int deserialize(final char[] content, final int from, final T[] result) throws SyntaxException {
 			if (content == null || content.length == 0) {
@@ -4860,6 +4865,7 @@ loop:						for (LexType item : reader) {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public T deserialize(final JsonStaxParser reader) throws ContentException, SyntaxException {
 			if (reader == null) {
@@ -4950,6 +4956,7 @@ loop:						for (LexType item : reader) {
 			}
 		}
 		
+		@SuppressWarnings("unchecked")
 		private <T> JsonSerializer<T> getSerializer() {
 			return (JsonSerializer<T>) serializer;
 		}
@@ -5182,7 +5189,8 @@ loop:						for (LexType item : reader) {
 					}
 				}
 				
-				try{final T		instance = (T) result.getClass().getComponentType().newInstance();
+				try{@SuppressWarnings("unchecked")
+				final T		instance = (T) result.getClass().getComponentType().newInstance();
 					
 					do{	newFrom++;		// The same first loop skips '}', all next - ','
 						

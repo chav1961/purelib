@@ -11,6 +11,7 @@ import chav1961.purelib.basic.AssemblerTemplateRepo.NameKeeper;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 
+@SuppressWarnings("deprecation")
 public class AssemblerTemplateRepoTest {
 	private static final byte[]		content = "{PART1}\nline1\n${subst1}\nline3\n${subst2}\nline5\n{PART2}\nLINE1\n${subst1}\nLINE3\n${subst2}\nLINE5".getBytes(); 
 	

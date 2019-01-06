@@ -1,10 +1,9 @@
 package chav1961.purelib.basic;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.junit.Test;
-import org.junit.Assert;
+//import org.junit.Assert;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 

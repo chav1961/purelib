@@ -24,7 +24,7 @@ public class AsmWriterTest {
 			wr.write("Test		.end\n");
 			wr.flush();
 			
-			final Class			clazz = ClassContainerTest.loadClass("chav1961.purelib.streams.char2byte.asm.Test",baos);
+			final Class<?>		clazz = ClassContainerTest.loadClass("chav1961.purelib.streams.char2byte.asm.Test",baos);
 			clazz.getMethod("call").invoke(null);
 		}
 	}

@@ -15,9 +15,9 @@ class MethodBody extends AbstractMethodBody {
 	public static final short	STACK_CALCULATION_OPTIMISTIC = -1;
 	public static final short	STACK_CALCULATION_PESSIMISTIC = -2;
 	
-	private static final int	INITIAL_REFS = 32;
+//	private static final int	INITIAL_REFS = 32;
 	private static final int	INITIAL_BODY = 512;
-	private static final ItemDescriptor	EMPTY_DESCRIPTOR = new ItemDescriptor(0,0);
+//	private static final ItemDescriptor	EMPTY_DESCRIPTOR = new ItemDescriptor(0,0);
 	private static final Comparator<ItemDescriptor>	COMPARATOR = new Comparator<ItemDescriptor>(){
 													@Override
 													public int compare(final ItemDescriptor first, final ItemDescriptor second) {
@@ -184,15 +184,15 @@ loop:	for (ItemDescriptor item : brunches) {
 		}
 	}
 	
-	private ItemDescriptor[] expandItems(final ItemDescriptor[] source) {
-		final int				len = source.length, maxLen = len + INITIAL_REFS;
-		final ItemDescriptor[]	result = Arrays.copyOf(source,maxLen);
-		
-		for (int index = len; index < maxLen; index++) {
-			result[index] = EMPTY_DESCRIPTOR; 
-		}
-		return result;
-	}
+//	private ItemDescriptor[] expandItems(final ItemDescriptor[] source) {
+//		final int				len = source.length, maxLen = len + INITIAL_REFS;
+//		final ItemDescriptor[]	result = Arrays.copyOf(source,maxLen);
+//		
+//		for (int index = len; index < maxLen; index++) {
+//			result[index] = EMPTY_DESCRIPTOR; 
+//		}
+//		return result;
+//	}
 
 	private static class ItemDescriptor {
 		long	id;

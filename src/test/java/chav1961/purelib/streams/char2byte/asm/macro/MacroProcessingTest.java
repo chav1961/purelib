@@ -29,6 +29,7 @@ public class MacroProcessingTest {
 					Utils.copyStream(rdr,asm);
 				}
 				
+				@SuppressWarnings("unchecked")
 				final Class<TestInterface>	cl = (Class<TestInterface>) new ClassLoaderWrapper().createClass("chav1961.purelib.streams.char2byte.asm.MacroTest",baos.toByteArray());
 				final TestInterface			inst = cl.newInstance();
 				

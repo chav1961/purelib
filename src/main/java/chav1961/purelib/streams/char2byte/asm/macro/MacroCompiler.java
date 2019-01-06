@@ -12,21 +12,8 @@ import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
-import chav1961.purelib.streams.char2byte.asm.macro.BreakCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.ChoiseConditionCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.ChoiseContainer;
-import chav1961.purelib.streams.char2byte.asm.macro.Command;
-import chav1961.purelib.streams.char2byte.asm.macro.CommandType;
-import chav1961.purelib.streams.char2byte.asm.macro.ContinueCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.ElseCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.ForCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.IfConditionCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.MErrorCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.OtherwiseCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.SetCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.SubstitutionCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.WhileCommand;
 
+@SuppressWarnings("deprecation")
 public class MacroCompiler {
 	private static final String		MACROCOMPILER_RESOURCE = "macrocompiler.txt";
 	

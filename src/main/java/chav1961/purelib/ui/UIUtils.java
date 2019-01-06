@@ -9,9 +9,6 @@ import java.io.Writer;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -22,7 +19,6 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
 import chav1961.purelib.ui.interfacers.Format;
-import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
  * <p>This is utility class to support useful methods for UI.</p>  

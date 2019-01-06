@@ -26,34 +26,27 @@ public class ClassDescriptionRepoTest {
 		internalTest(InnerFakeClass.class,new Class[]{this.getClass()});
 	}
 
-	private void internalTest(final Class<?> clazz, final Class[] constr) throws ContentException, NoSuchFieldException, SecurityException, NoSuchMethodException {
+	private void internalTest(final Class<?> clazz, final Class<?>[] constr) throws ContentException, NoSuchFieldException, SecurityException, NoSuchMethodException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
-		final char[]				shortClassName = clazz.getSimpleName().toCharArray(), longClassName = clazz.getName().toCharArray();
+		final char[]				longClassName = clazz.getName().toCharArray();
 		
 		cdr.addDescription(clazz);
 		
-//		Assert.assertEquals(cdr.getClassDescription(shortClassName,0,shortClassName.length),clazz);
 		Assert.assertEquals(cdr.getClassDescription(longClassName,0,longClassName.length),clazz);
 		
 		final Field					f = clazz.getField("testField");
-		final char[]				shortFieldName = f.getName().toCharArray();
 		final char[]				longFieldName = (clazz.getName()+'.'+f.getName()).toCharArray();
 		
-//		Assert.assertEquals(cdr.getFieldDescription(shortFieldName,0,shortFieldName.length),f);
 		Assert.assertEquals(cdr.getFieldDescription(longFieldName,0,longFieldName.length),f);
 		
 		final Method				m = clazz.getMethod("basicTest");	// It's a name of THIS method!
-		final char[]				shortMethodName = (m.getName()+InternalUtils.buildSignature(m)).toCharArray();
 		final char[]				longMethodName = (clazz.getName()+'.'+m.getName()+InternalUtils.buildSignature(m)).toCharArray();
 		
-//		Assert.assertEquals(cdr.getMethodDescription(shortMethodName,0,shortMethodName.length),m);
 		Assert.assertEquals(cdr.getMethodDescription(longMethodName,0,longMethodName.length),m);
 
 		final Constructor<?>		c = clazz.getConstructor(constr);
-		final char[]				shortConstructorName = (clazz.getSimpleName()+InternalUtils.buildSignature(c)).toCharArray();
 		final char[]				longConstructorName = (clazz.getName()+'.'+clazz.getSimpleName()+InternalUtils.buildSignature(c)).toCharArray();
 
-//		Assert.assertEquals(cdr.getConstructorDescription(shortConstructorName,0,shortConstructorName.length),c);
 		Assert.assertEquals(cdr.getConstructorDescription(longConstructorName,0,longConstructorName.length),c);
 	}
 	
@@ -119,6 +112,7 @@ public class ClassDescriptionRepoTest {
 }
 
 class FakeClass {
+	@SuppressWarnings("unused")
 	private final int	testField = 20;
 	
 	public void basicTest(){}

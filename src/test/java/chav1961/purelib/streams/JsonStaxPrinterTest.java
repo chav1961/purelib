@@ -156,11 +156,11 @@ public class JsonStaxPrinterTest {
 
 	@Test
 	public void exceptionsTest() throws IOException {
-		try{new JsonStaxPrinter(null);
+		try(final JsonStaxPrinter p = new JsonStaxPrinter(null)){
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new JsonStaxPrinter(new StringWriter(),0);
+		try(final JsonStaxPrinter p = new JsonStaxPrinter(new StringWriter(),0)) {
 			Assert.fail("Mandatory exception was not detected (too short buffer)");
 		} catch (IllegalArgumentException exc) {
 		}

@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 class TemplateCache<T> implements Closeable {
+	@SuppressWarnings("unchecked")
 	volatile CacheRecord<T>[]		content = new CacheRecord[0];
 	final ReentrantReadWriteLock	lock = new ReentrantReadWriteLock();
 
@@ -116,6 +117,7 @@ class TemplateCache<T> implements Closeable {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	void clear() {
 		final WriteLock 	writeLock = lock.writeLock();
 		

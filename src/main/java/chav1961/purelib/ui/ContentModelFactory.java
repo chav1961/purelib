@@ -6,22 +6,20 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -29,9 +27,9 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
+import chav1961.purelib.ui.interfacers.Action;
 import chav1961.purelib.ui.interfacers.ContentMetadataInterface;
 import chav1961.purelib.ui.interfacers.Format;
-import chav1961.purelib.ui.interfacers.Action;
 import chav1961.purelib.ui.interfacers.MultiAction;
 
 public class ContentModelFactory {
@@ -98,10 +96,10 @@ public class ContentModelFactory {
 			final XPathFactory 				xPathfactory = XPathFactory.newInstance();
 			final XPath 					xpath = xPathfactory.newXPath();
 			
-			dbFactory.setValidating(true);
 			dbFactory.setNamespaceAware(true);
-			dbFactory.setAttribute(XSDConst.SCHEMA_LANGUAGE,"http://www.w3.org/2001/XMLSchema");
-			dbFactory.setAttribute(XSDConst.SCHEMA_SOURCE,XSDConst.class.getResource("XMLDescribedApplication.xsd"));
+			dbFactory.setValidating(true);
+			dbFactory.setAttribute(XSDConst.SCHEMA_LANGUAGE, XMLConstants.W3C_XML_SCHEMA_NS_URI);
+			dbFactory.setAttribute(XSDConst.SCHEMA_SOURCE, XSDConst.class.getResource("XMLDescribedApplication.xsd").toString());
 			
 			try{final DocumentBuilder 		dBuilder = dbFactory.newDocumentBuilder();
 				final Document 				doc = dBuilder.parse(contentDescription);

@@ -1040,6 +1040,7 @@ public class GettersAndSettersFactory {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static GetterAndSetter buildCode(final AsmWriter writer, final Class<?> owner, final Class<?> type, final String className, final String format, final Object... parameters) throws IOException {
 		if (!type.isPrimitive()) {
 			Class<?>	currentType = type;

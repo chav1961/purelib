@@ -35,7 +35,6 @@ public abstract class LocaleSpecificTextWrapper<T extends JComponent> implements
 	 * <p>Get access to wrapped instance</p>
 	 * @return instance wrapped. Can't be null
 	 */
-	@SuppressWarnings("unchecked")
 	public T getComponent() {
 		return (T)component;
 	}

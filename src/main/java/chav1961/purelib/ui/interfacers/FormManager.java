@@ -1,7 +1,6 @@
 package chav1961.purelib.ui.interfacers;
 
 import chav1961.purelib.basic.exceptions.FlowException;
-import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**

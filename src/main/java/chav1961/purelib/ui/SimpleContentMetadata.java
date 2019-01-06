@@ -1,15 +1,12 @@
 package chav1961.purelib.ui;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.ui.interfacers.ContentMetadataInterface;
 
 public class SimpleContentMetadata implements ContentMetadataInterface {
-	private final Map<URI,ContentMetadataInterface>	mountedEntities = new HashMap<>();
 	private final ContentNodeMetadata	root;
 	
 	public SimpleContentMetadata(final ContentNodeMetadata root) {

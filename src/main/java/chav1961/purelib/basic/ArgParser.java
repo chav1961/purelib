@@ -282,6 +282,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		return from;
 	}
 
+	@SuppressWarnings("unchecked")
 	static <T> T convert(final ArgDescription desc, final Class<T> awaited, final String[] value) throws ContentException {
 		if (value != null) {
 			if (awaited.isArray()) {
@@ -395,6 +396,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{String.valueOf(defaultValue)};
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (boolean.class.isAssignableFrom(awaited) || Boolean.class.isAssignableFrom(awaited)) {
@@ -451,6 +453,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{String.valueOf(defaultValue)};
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (long.class.isAssignableFrom(awaited) || Long.class.isAssignableFrom(awaited)) {
@@ -512,6 +515,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{String.valueOf(defaultValue)};
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (double.class.isAssignableFrom(awaited) || Double.class.isAssignableFrom(awaited)) {
@@ -567,6 +571,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{defaultValue};
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (String.class.isAssignableFrom(awaited)) {
@@ -616,6 +621,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{defaultValue.name()};
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
 			if (enumType.isAssignableFrom(awaited)) {

@@ -68,6 +68,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @since 0.0.2
  *
  */
+@SuppressWarnings("restriction")
 public class InternalUtils {
 	private static final MimetypesFileTypeMap	typeMap = new MimetypesFileTypeMap();
 	private static final char[]					TRUE = "true".toCharArray();
@@ -349,8 +350,9 @@ public class InternalUtils {
 	}
 
 	public static void dumpToJsonOutputStream(final Object source, final OutputStream os, final Headers requestHeaders) throws IOException, EnvironmentException, PrintingException {
-		final Writer				wr = buildWriter(os,requestHeaders);
-		final JsonSerializer		ser = JsonSerializer.buildSerializer(source.getClass());
+		final Writer					wr = buildWriter(os,requestHeaders);
+		@SuppressWarnings("unchecked")
+		final JsonSerializer<Object>	ser = (JsonSerializer<Object>) JsonSerializer.buildSerializer(source.getClass());
 		
 		try(final JsonStaxPrinter	prn = new JsonStaxPrinter(wr)) {
 			ser.serialize(source, prn);
@@ -358,8 +360,9 @@ public class InternalUtils {
 	}
 
 	public static Object loadFromJsonInputStream(final String sourceClass, final InputStream is, final Headers requestHeaders) throws IOException, EnvironmentException, PrintingException, ContentException, SyntaxException, ClassNotFoundException {
-		final Reader				rdr = buildReader(is,requestHeaders);
-		final JsonSerializer		ser = JsonSerializer.buildSerializer(Class.forName(sourceClass));
+		final Reader					rdr = buildReader(is,requestHeaders);
+		@SuppressWarnings("unchecked")
+		final JsonSerializer<Object>	ser = (JsonSerializer<Object>) JsonSerializer.buildSerializer(Class.forName(sourceClass));
 		
 		try(final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
 			parser.next();

@@ -189,6 +189,11 @@ public class UtilsTest {
 		Assert.assertFalse(Utils.containsNestedURI(URI.create("scheme:subscheme:/path")));
 		Assert.assertTrue(Utils.containsNestedURI(URI.create("scheme:subscheme:/path1/!/path2")));
 		Assert.assertTrue(Utils.containsNestedURI(URI.create("scheme:subscheme:/path1/!/path2#fragment")));
+
+		try{Utils.containsNestedURI(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
 		
 		Assert.assertNull(Utils.extractNestedURI(URI.create("scheme:/")));
 		Assert.assertNull(Utils.extractNestedURI(URI.create("scheme:/path")));
@@ -196,10 +201,38 @@ public class UtilsTest {
 		Assert.assertEquals(Utils.extractNestedURI(URI.create("scheme:subscheme:/path1/!/path2")),URI.create("subscheme:/path1/"));
 		Assert.assertEquals(Utils.extractNestedURI(URI.create("scheme:subscheme:/path1/!/path2#fragment")),URI.create("subscheme:/path1/"));
 
+		try{Utils.extractNestedURI(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+				
 		Assert.assertNull(Utils.extractPathInNestedURI(URI.create("scheme:/")));
 		Assert.assertNull(Utils.extractPathInNestedURI(URI.create("scheme:/path")));
 		Assert.assertNull(Utils.extractPathInNestedURI(URI.create("scheme:subscheme:/path")));
 		Assert.assertEquals(Utils.extractPathInNestedURI(URI.create("scheme:subscheme:/path1/!/path2")),URI.create("/path2"));
 		Assert.assertEquals(Utils.extractPathInNestedURI(URI.create("scheme:subscheme:/path1/!/path2#fragment")),URI.create("/path2"));
+
+		try{Utils.extractPathInNestedURI(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+	
+	@Test
+	public void fileMask2RegexTest() throws IOException, NullPointerException, URISyntaxException {
+		Assert.assertEquals("q1\\_",Utils.fileMask2Regex("q1_"));
+		Assert.assertEquals("q1\\_\\ q2",Utils.fileMask2Regex("q1_ q2"));
+		Assert.assertEquals(".*",Utils.fileMask2Regex("*"));
+		Assert.assertEquals("..*",Utils.fileMask2Regex("?*"));
+		Assert.assertEquals(".*\\.txt",Utils.fileMask2Regex("*.txt"));
+		
+		try{Utils.fileMask2Regex(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{Utils.fileMask2Regex("");
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
 }

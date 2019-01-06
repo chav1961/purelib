@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -100,6 +99,7 @@ import chav1961.purelib.ui.nanoservice.interfaces.RootPath;
 import chav1961.purelib.ui.nanoservice.interfaces.ToBody;
 import chav1961.purelib.ui.nanoservice.interfaces.ToHeader;
 
+@SuppressWarnings("restriction")
 public class NanoServiceFactory implements Closeable, NanoService, HttpHandler   {
 	public static final String 		NANOSERVICE_PORT = "nanoservicePort";
 	public static final String 		NANOSERVICE_ROOT = "nanoserviceRoot";

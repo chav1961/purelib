@@ -57,7 +57,7 @@ public class AsmWriter extends Writer {
 												}
 										);
 	private final Asm					asm;
-	private final Writer				diagnostics;
+//	private final Writer				diagnostics;
 	private final boolean				cloned;
 
 	/**
@@ -73,7 +73,7 @@ public class AsmWriter extends Writer {
 		else {
 			this.os = os;
 			this.asm = new Asm(os);
-			this.diagnostics = null;
+//			this.diagnostics = null;
 			this.cloned = false;
 		}
 	}
@@ -88,7 +88,7 @@ public class AsmWriter extends Writer {
 		else {
 			this.os = os;
 			this.asm = new Asm(os,diagnostics);
-			this.diagnostics = diagnostics;
+//			this.diagnostics = diagnostics;
 			this.cloned = false;
 		}
 	}
@@ -100,7 +100,7 @@ public class AsmWriter extends Writer {
 		else {
 			this.os = os;
 			this.asm = asm;
-			this.diagnostics = null;
+//			this.diagnostics = null;
 			this.cloned = true;
 		}
 	}

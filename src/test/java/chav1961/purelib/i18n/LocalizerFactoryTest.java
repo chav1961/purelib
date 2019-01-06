@@ -19,7 +19,7 @@ public class LocalizerFactoryTest {
 
 	@Test
 	public void getLocalizerTest() throws NullPointerException, IOException {
-		final Localizer		l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test"));
+		Assert.assertNotNull(LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")));
 		
 		try {LocalizerFactory.getLocalizer(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

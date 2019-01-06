@@ -5,7 +5,6 @@ import java.io.InputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.ArgParser.IntegerArg;
 import chav1961.purelib.basic.exceptions.ConsoleCommandException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -193,15 +192,15 @@ public class ArgParserTest {
 	
 	@Test
 	public void enumArgTest() throws ConsoleCommandException, ContentException {
-		ArgParser	parser = new ArgParser(new ArgParser.EnumArg("key",NodeEnterMode.class,false,"help",NodeEnterMode.ENTER));
+		ArgParser	parser = new ArgParser(new ArgParser.EnumArg<NodeEnterMode>("key",NodeEnterMode.class,false,"help",NodeEnterMode.ENTER));
 		
 		Assert.assertEquals(NodeEnterMode.EXIT,parser.parse("-key","EXIT").getValue("key",NodeEnterMode.class));
 		Assert.assertEquals(NodeEnterMode.ENTER,parser.parse().getValue("key",NodeEnterMode.class));
 		
-		parser = new ArgParser(new ArgParser.EnumArg("key",NodeEnterMode.class,true,true,"help"));
+		parser = new ArgParser(new ArgParser.EnumArg<NodeEnterMode>("key",NodeEnterMode.class,true,true,"help"));
 		Assert.assertEquals(NodeEnterMode.EXIT,parser.parse("EXIT").getValue("key",NodeEnterMode.class));
 
-		parser = new ArgParser(new ArgParser.EnumArg("key",NodeEnterMode.class,false,true,"help"));
+		parser = new ArgParser(new ArgParser.EnumArg<NodeEnterMode>("key",NodeEnterMode.class,false,true,"help"));
 		Assert.assertEquals(NodeEnterMode.ENTER,parser.parse().getValue("key",NodeEnterMode.class));
 
 		try{parser.parse().getValue("key",InputStream.class);
@@ -209,16 +208,16 @@ public class ArgParserTest {
 		} catch (ContentException exc) {
 		}		
 		
-		try{new ArgParser(new ArgParser.EnumArg("key",NodeEnterMode.class,true,true,"help")).parse();
+		try{new ArgParser(new ArgParser.EnumArg<NodeEnterMode>("key",NodeEnterMode.class,true,true,"help")).parse();
 			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
 		} catch (ConsoleCommandException exc) {
 		}
-		try{new ArgParser(new ArgParser.EnumArg("key",NodeEnterMode.class,true,true,"help")).parse("illegal");
+		try{new ArgParser(new ArgParser.EnumArg<NodeEnterMode>("key",NodeEnterMode.class,true,true,"help")).parse("illegal");
 			Assert.fail("Mandatory exception was not detected (illegal argument value)");
 		} catch (ConsoleCommandException exc) {
 		}
 		
-		try{new ArgParser(new ArgParser.EnumArg("key",NodeEnterMode.class,true,false,"help")).parse();
+		try{new ArgParser(new ArgParser.EnumArg<NodeEnterMode>("key",NodeEnterMode.class,true,false,"help")).parse();
 			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
 		} catch (ConsoleCommandException exc) {
 		}

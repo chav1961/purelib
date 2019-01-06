@@ -4,58 +4,30 @@ package chav1961.purelib.ui.nanoservice;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
-import java.net.UnknownHostException;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
-
-import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.SubstitutableProperties;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
-import chav1961.purelib.basic.Utils;
-import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.exceptions.EnvironmentException;
-import chav1961.purelib.basic.exceptions.FlowException;
-import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.growablearrays.GrowableCharArray;
-import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.streams.byte2byte.ZLibInputStream;
-import chav1961.purelib.ui.nanoservice.NanoServiceFactory;
-import chav1961.purelib.ui.nanoservice.NanoServiceFactory.MethodDescriptor;
-import chav1961.purelib.ui.nanoservice.NanoServiceFactory.PathParser;
-import chav1961.purelib.ui.nanoservice.NanoServiceFactory.QueryParser;
-import chav1961.purelib.ui.nanoservice.NanoServiceFactory.RequestHeadParser;
-import chav1961.purelib.ui.nanoservice.NanoServiceFactory.ResponseHeadSetter;
-import chav1961.purelib.ui.nanoservice.interfaces.MethodExecutor;
-import chav1961.purelib.ui.nanoservice.interfaces.QueryType;
 
 import com.sun.net.httpserver.Authenticator;
 import com.sun.net.httpserver.Filter;
@@ -66,6 +38,25 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpPrincipal;
 import com.sun.net.httpserver.HttpServer;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.SystemErrLoggerFacade;
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.streams.byte2byte.ZLibInputStream;
+import chav1961.purelib.ui.nanoservice.NanoServiceFactory.MethodDescriptor;
+import chav1961.purelib.ui.nanoservice.NanoServiceFactory.PathParser;
+import chav1961.purelib.ui.nanoservice.NanoServiceFactory.QueryParser;
+import chav1961.purelib.ui.nanoservice.NanoServiceFactory.RequestHeadParser;
+import chav1961.purelib.ui.nanoservice.NanoServiceFactory.ResponseHeadSetter;
+import chav1961.purelib.ui.nanoservice.interfaces.MethodExecutor;
+import chav1961.purelib.ui.nanoservice.interfaces.QueryType;
+
+@SuppressWarnings("restriction")
 public class NanoServiceFactoryTest {
 	private static final String			LOOPBACK_RESPONSE = 
 											"<html>\n"+
@@ -455,6 +446,7 @@ public class NanoServiceFactoryTest {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void responseHeaderSetterTest() throws SyntaxException {
 		final ResponseHeadSetter 	rhs1 = factory.buildResponseHeadSetter(unique++,new String[]{"parm1","parm2",""},new Class[]{StringBuilder.class,List.class,ForJson.class});
@@ -467,7 +459,7 @@ public class NanoServiceFactoryTest {
 		Assert.assertTrue(content[2] instanceof ForJson);
 		
 		((StringBuilder)content[0]).append("value1");
-		((List)content[1]).add("value2");
+		((List<String>)content[1]).add("value2");
 		((ForJson)content[2]).content = "value3";
 		
 		rhs1.commit(headers,content);
@@ -763,6 +755,7 @@ public class NanoServiceFactoryTest {
 }
 
 
+@SuppressWarnings("restriction")
 class SimpleCaller extends HttpExchange {
 	private final URI					request;
 	private final QueryType				type;

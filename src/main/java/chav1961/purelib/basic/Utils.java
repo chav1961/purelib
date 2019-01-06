@@ -1093,4 +1093,36 @@ public class Utils {
 			return dir.delete();
 		}
 	}
+	
+	/**
+	 * <p>Convert file mask to appropriative regular expression</p> 
+	 * @param fileMask file mask to convert (for example *.txt)
+	 * @return appropriative regular expression. Can't be null or empty
+	 * @throws IllegalArgumentException when file mask to convert is null or empty
+	 * @since 0.0.3
+	 */
+	public static String fileMask2Regex(final String fileMask) throws IllegalArgumentException {
+		if (fileMask == null || fileMask.isEmpty()) {
+			throw new IllegalArgumentException("File mask to convert can't be null or empty");
+		}
+		else {
+			final StringBuilder	result = new StringBuilder();
+			
+			for (char item : fileMask .toCharArray()) {
+				if (Character.isLetterOrDigit(item)) {
+					result.append(item);
+				}
+				else if (item == '*') {
+					result.append('.').append('*');
+				}
+				else if (item == '?') {
+					result.append('.');
+				}
+				else {
+					result.append('\\').append(item);
+				}
+			}
+			return result.toString();
+		}
+	}
 }

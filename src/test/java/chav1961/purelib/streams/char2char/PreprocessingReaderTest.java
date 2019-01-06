@@ -7,8 +7,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
 
-import javax.rmi.CORBA.Util;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -68,8 +66,8 @@ public class PreprocessingReaderTest {
 	private static final String			INCLUDE_RESULT = "line1\ninclude line 1\nline3\n"; 
 	private static final String			SUBSTITUTE_STRING = "line1\n#define x 10\nx inside x inside x\nline3"; 
 	private static final String			SUBSTITUTE_RESULT = "line1\n10 inside 10 inside 10\nline3\n"; 
-	private static final String			SUBSTITUTE_NESTED_STRING = "line1\n#define x y\n#define y 10\nx inside x inside x\nline3"; 
-	private static final String			SUBSTITUTE_NESTED_RESULT = "line1\n10 inside 10 inside 10\nline3\n"; 
+//	private static final String			SUBSTITUTE_NESTED_STRING = "line1\n#define x y\n#define y 10\nx inside x inside x\nline3"; 
+//	private static final String			SUBSTITUTE_NESTED_RESULT = "line1\n10 inside 10 inside 10\nline3\n"; 
 
 	@Test
 	public void basicTest() throws IOException {
@@ -110,15 +108,15 @@ public class PreprocessingReaderTest {
 		}
 		Assert.assertEquals(sb.toString(),BASIC_STRING+'\n');
 		
-		try{new PreprocessingReader(null);
+		try(final Reader rdr = new PreprocessingReader(null)) {
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new PreprocessingReader(new StringReader(""),null);
+		try(final Reader rdr = new PreprocessingReader(new StringReader(""),null)) {
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new PreprocessingReader(new StringReader(""),new HashMap<>(),null);
+		try(final Reader rdr = new PreprocessingReader(new StringReader(""),new HashMap<>(),null)) {
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
@@ -267,16 +265,17 @@ public class PreprocessingReaderTest {
 		Assert.assertEquals(sb.toString(),"true\n/*false\n*/\n");
 		
 		
-		try{new PreprocessingReader(new StringReader(""),
+		try(final Reader rdr = new PreprocessingReader(new StringReader(""),
 												Utils.mkMap(PreprocessingReader.HIDING_METHOD,PreprocessingReader.HidingMethod.SINGLE_LINE_COMMENTED
-												));
+												))) {
 			Assert.fail("Mandatory exception was not detected (mandatory key PreprocessingReader.COMMENT_SEQUENCE is required for PreprocessingReader.HIDING_METHOD)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new PreprocessingReader(new StringReader(""),
+		
+		try(final Reader rdr = new PreprocessingReader(new StringReader(""),
 												Utils.mkMap(PreprocessingReader.HIDING_METHOD,PreprocessingReader.HidingMethod.MULTILINE_COMMENTED
-												));
-		Assert.fail("Mandatory exception was not detected (mandatory key PreprocessingReader.COMMENT_SEQUENCE is required for PreprocessingReader.HIDING_METHOD)");
+												))) {
+			Assert.fail("Mandatory exception was not detected (mandatory key PreprocessingReader.COMMENT_SEQUENCE is required for PreprocessingReader.HIDING_METHOD)");
 		} catch (IllegalArgumentException exc) {
 		}
 	}

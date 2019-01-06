@@ -8,19 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
-
-import javax.xml.XMLConstants;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xml.sax.SAXException;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.FSM;
@@ -28,7 +19,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
@@ -123,7 +113,7 @@ public class CreoleWriterTest {
 	}
 	
 	private void testLoop(final MarkupOutputFormat type, final String extension) throws IOException {
-		final String	processed;
+//		final String	processed;
 		
 		try(final CharArrayWriter	wr = new CharArrayWriter()) { // It's an official WikiCreole test case
 			try(final InputStream	is = new FileInputStream("./src/test/resources/chav1961/purelib/streams/char2char/cretest.cre"); // It's an official WikiCreole test case
@@ -132,7 +122,8 @@ public class CreoleWriterTest {
 	
 				Utils.copyStream(rdr,cwr);
 			}
-			processed = wr.toString().replace("\r","").replace("\n","").replace("\t","");
+//			processed = 
+			wr.toString().replace("\r","").replace("\n","").replace("\t","");
 		}
 
 		try(final InputStream	is = new FileInputStream("./src/test/resources/chav1961/purelib/streams/char2char/cretest."+extension);

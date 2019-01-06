@@ -1,12 +1,10 @@
 package chav1961.purelib.ui;
 
+import java.io.Serializable;
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.Serializable;
-import java.lang.Integer;
-import java.util.Arrays;
-import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 
@@ -225,14 +223,15 @@ public class AbstractInMemoryFormModelTest {
 		Assert.assertNull(pmm.removeInstance(-1));
 		
 		final Integer		newPdKey = pmm.createUniqueId();
-		final PseudoData	pdInserted = pmm.duplicateInstance(pdKey,newPdKey);
+//		final PseudoData	pdInserted = 
+				pmm.duplicateInstance(pdKey,newPdKey);
 		
 		Assert.assertEquals(pmm.size(),2);
 		Assert.assertEquals(pmm.getIdByIndex(1),newPdKey);
 		Assert.assertEquals(pmm.getIndexById(newPdKey),1);
 		
 		int	count = 0;
-		for (int id : pmm.contentIds()) {
+		for (@SuppressWarnings("unused") int id : pmm.contentIds()) {
 			count++;
 		}
 		Assert.assertEquals(count,2);
