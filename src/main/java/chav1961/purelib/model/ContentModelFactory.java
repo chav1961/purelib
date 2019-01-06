@@ -1,4 +1,4 @@
-package chav1961.purelib.ui;
+package chav1961.purelib.model;
 
 
 import java.io.IOException;
@@ -27,8 +27,9 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.ui.SimpleContentMetadata;
 import chav1961.purelib.ui.interfacers.Action;
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface;
 import chav1961.purelib.ui.interfacers.Format;
 import chav1961.purelib.ui.interfacers.MultiAction;
 

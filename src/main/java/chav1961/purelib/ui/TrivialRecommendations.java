@@ -1,6 +1,6 @@
 package chav1961.purelib.ui;
 
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.interfacers.Recommendations;
 
 public class TrivialRecommendations implements Recommendations {
@@ -58,4 +58,5 @@ public class TrivialRecommendations implements Recommendations {
 	public static TrivialRecommendations getInstance() {
 		return singleton;
 	}
+
 }

@@ -90,13 +90,13 @@ import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
 import chav1961.purelib.ui.FormFieldFormat;
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface;
 import chav1961.purelib.ui.interfacers.FieldRepresentation;
 import chav1961.purelib.ui.interfacers.FormManager;
 import chav1961.purelib.ui.interfacers.RefreshMode;
-import chav1961.purelib.ui.interfacers.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 

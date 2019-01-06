@@ -1,4 +1,4 @@
-package chav1961.purelib.ui;
+package chav1961.purelib.model;
 
 import java.io.IOException;
 import java.io.InputStream;
