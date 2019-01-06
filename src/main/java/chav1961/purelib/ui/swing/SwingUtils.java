@@ -194,14 +194,6 @@ public abstract class SwingUtils {
 		return SwingUtils.class.getResource(resource);	
 	}
 	
-	public static JMenu toMenuBar(final ContentMetadataInterface model) {
-		model.walkDown((NodeEnterMode mode, URI applicationPath, URI uiPath, ContentNodeMetadata node)->{
-						return ContinueMode.CONTINUE;
-						},URI.create(""));
-		return null;
-	}
-	
-	
 	public static JComponent prepareInputComponent(final FieldRepresentation controlRepresentation, final String controlName, final String controlTooltip, final int controlLen, final FormFieldFormat controlFormat) throws ParseException {
 		JComponent		result;
 		
