@@ -18,7 +18,7 @@ public class SequenceIterator<T> implements Iterator<T> {
 	private final Iterator<T>[]	list;
 	private int					current = 0;
 
-	SequenceIterator(@SuppressWarnings("unchecked") final Iterator<T>... list) {
+	public SequenceIterator(@SuppressWarnings("unchecked") final Iterator<T>... list) {
 		if (list == null) {
 			throw new NullPointerException("List of iterators can't be null");
 		}
