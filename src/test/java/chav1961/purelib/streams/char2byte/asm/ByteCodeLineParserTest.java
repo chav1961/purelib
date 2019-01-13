@@ -27,6 +27,7 @@ public class ByteCodeLineParserTest {
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
+							+"		.source \"file:./x\"\n"
 							+"Test 	.class public\n"
 							+"add	.method int public static\n"
 							+"p1	.parameter int final\n"

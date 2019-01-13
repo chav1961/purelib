@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +42,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */
-class ArgParser {
+public class ArgParser {
 	private final char					keyPrefix;
 	private final boolean				caseSensitive;
 	private final ArgDescription[]		desc;
@@ -605,6 +606,65 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 
+	protected static class URIArg extends AbstractArg {
+		private final String[]	defaults;	
+
+		public URIArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
+			super(name, isMandatory, isPositional, helpDescriptor);
+			this.defaults = new String[]{""};
+		}
+
+		public URIArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
+			super(name, false, isPositional, helpDescriptor);
+			this.defaults = new String[]{defaultValue};
+		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
+			if (URI.class.isAssignableFrom(awaited)) {
+				try{return (T)URI.create(value);
+				} catch (IllegalArgumentException exc) {
+					throw new ContentException("Argument ["+getName()+"] has invalid URI value ("+exc.getLocalizedMessage()+")"); 
+				}
+			}
+			else if (String.class.isAssignableFrom(awaited)) {
+				return (T)value;
+			}
+			else {
+				throw new ContentException("Argument ["+getName()+"] can be converted to string or URI type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+			}
+		}
+
+		@Override
+		public String[] getDefaultValue() {
+			return defaults;
+		}
+
+		@Override
+		public boolean isList() {
+			return false;
+		}
+
+		@Override
+		public void validate(final String value) throws ConsoleCommandException {
+			if (value == null || value.isEmpty()) {
+				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
+			}
+			else {
+				try{URI.create(value);
+				} catch (IllegalArgumentException exc) {
+					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid URI: "+value+" ("+exc.getLocalizedMessage()+")");
+				}
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "StringArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
+		}
+	}
+	
 	protected static class EnumArg<Type extends Enum<?>> extends AbstractArg {
 		private final String[]		defaults;
 		private final Class<Type>	enumType;

@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +24,10 @@ class ClassContainer implements Closeable {
 	private final List<MethodDescriptor>		methods = new ArrayList<>();
 	
 	private short	classModifiers = 0, thisId = 0, superId = 0, interfCount = 0, fieldCount = 0;
+	private short	currentMajor = Constants.MAJOR_1_7, currentMinor = Constants.MINOR_1_7;  
 	private long	joinedClassName = 0;
 	private boolean methodBodyAwait = false;
+	private URL		sourceRef = null;
 	
 	public ClassContainer() {
 	}
@@ -37,6 +40,11 @@ class ClassContainer implements Closeable {
 			item.close();
 		}
 		methods.clear();
+	}
+	
+	void changeClassFormatVersion(final short newMajor, final short newMinor) {
+		this.currentMajor = newMajor;
+		this.currentMinor = newMinor;
 	}
 	
 	String getClassName() {
@@ -80,6 +88,10 @@ class ClassContainer implements Closeable {
 		fieldCount++;
 	}
 
+	void setSourceAttribute(final URL source) {
+		sourceRef = source;
+	}
+	
 	MethodDescriptor addMethodDescription(final short modifiers, final long methodId, final long typeId, final long... throwsId) throws IOException, ContentException {
 		if (joinedClassName == 0) {
 			throw new IllegalStateException("Call to addMethodDescription(...) before setClassName(...)!");
@@ -111,11 +123,18 @@ class ClassContainer implements Closeable {
 			superId = getConstantPool().asClassDescription(tree.placeOrChangeName(Constants.OBJECT_NAME,0,Constants.OBJECT_NAME.length,new NameDescriptor()));
 		}
 		
+		short	attr_sourcefile = 0, attr_sourcefile_text = 0; 
+		
+		if (sourceRef != null) {
+			attr_sourcefile = ccr.asUTF(tree.placeName("SourceFile",null));
+			attr_sourcefile_text = ccr.asUTF(tree.placeName(sourceRef.toExternalForm(),null));
+		}		
+		
 		final InOutGrowableByteArray	result = new InOutGrowableByteArray(false); 
 		
 		result.writeInt(Constants.MAGIC);		// Magic
-		result.writeShort(Constants.MINOR);		// File minor version
-		result.writeShort(Constants.MAJOR);		// File major version
+		result.writeShort(currentMinor);		// File minor version
+		result.writeShort(currentMajor);		// File major version
 		result.writeShort(getConstantPool().getPoolSize());	// Constant pool size
 		getConstantPool().dump(result);			// Constant pool
 		result.writeShort(classModifiers);		// access_flags;
@@ -135,7 +154,15 @@ class ClassContainer implements Closeable {
 		for (MethodDescriptor item : methods) {
 			item.dump(result);
 		}
-		result.writeShort(0);					// attributes_count;
+		if (sourceRef == null) {
+			result.writeShort(0);				// attributes_count;
+		}
+		else {
+			result.writeShort(1);				// attributes_count;
+			result.writeShort(attr_sourcefile);
+			result.writeInt(2);
+			result.writeShort(attr_sourcefile_text);
+		}
 
 		try(final InputStream	is = result.getInputStream()) {
 			Utils.copyStream(is, os);

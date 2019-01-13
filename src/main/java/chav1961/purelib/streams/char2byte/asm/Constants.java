@@ -5,8 +5,10 @@ class Constants {
 	 * <p>Class file header constants</p>
 	 */
 	public static final int				MAGIC = 0xCAFEBABE;
-	public static final int				MINOR = 0x0000;
-	public static final int				MAJOR = 0x0031;
+	public static final short			MINOR_1_7 = 0x0000;
+	public static final short			MAJOR_1_7 = 0x0031;
+	public static final short			MINOR_1_8 = 0x0000;
+	public static final short			MAJOR_1_8 = 0x0032;
 	public static final char[]			OBJECT_NAME = "java/lang/Object".toCharArray();
 
 	

@@ -65,6 +65,9 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final int						DIR_DEFAULT = 15;
 	private static final int						DIR_END_TRY = 16;
 	private static final int						DIR_MACRO = 17;
+	private static final int						DIR_VERSION = 18;
+	private static final int						DIR_SOURCE = 19;
+	private static final int						DIR_LINE = 20;
 	
 	private static final int						OPTION_PUBLIC = 101;
 	private static final int						OPTION_FINAL = 102;
@@ -103,6 +106,10 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final int						CMD_STORE = 401;
 	private static final int						CMD_EVAL = 402;
 	private static final int						CMD_CALL = 403;
+
+	private static final int						LINE_NONE = 500;
+	private static final int						LINE_AUTO = 501;
+	private static final int						LINE_MANUAL = 502;
 	
 	private static final String[]					ALOAD_SPECIAL = {"aload_0","aload_1","aload_2","aload_3"}; 
 	private static final String[]					ASTORE_SPECIAL = {"astore_0","astore_1","astore_2","astore_3"}; 
@@ -157,6 +164,9 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticDirective(DIR_DEFAULT,m,".default");
 		placeStaticDirective(DIR_END_TRY,m,".endtry");
 		placeStaticDirective(DIR_MACRO,m,".macro");
+		placeStaticDirective(DIR_VERSION,m,".version");
+		placeStaticDirective(DIR_SOURCE,m,".source");
+		placeStaticDirective(DIR_LINE,m,".line");
 		
 		placeStaticDirective(OPTION_PUBLIC,new DirectiveOption(Constants.ACC_PUBLIC),"public");
 		placeStaticDirective(OPTION_FINAL,new DirectiveOption(Constants.ACC_FINAL),"final");
@@ -193,6 +203,10 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticDirective(CMD_STORE,m,"*store");	
 		placeStaticDirective(CMD_EVAL,m,"*eval");	
 		placeStaticDirective(CMD_CALL,m,"*call");	
+
+		placeStaticDirective(LINE_NONE,m,"none");	
+		placeStaticDirective(LINE_AUTO,m,"auto");	
+		placeStaticDirective(LINE_MANUAL,m,"manual");	
 		
 		placeStaticCommand(0x32,1,"aaload");
 		placeStaticCommand(0x53,-1,"aastore");
@@ -418,6 +432,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private ParserState									beforeBegin;
 	private List<int[]>									tryList = new ArrayList<int[]>();
 	private Macros										currentMacros = null;
+	private boolean										addLines2Class = true;
+	private boolean										addLines2ClassManually = false;
 	
 	LineParser(final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
 		this.cc = cc;
@@ -786,6 +802,18 @@ class LineParser implements LineByLineProcessorCallback {
 									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside loowkuswitch/tableswitch command body only");
 							}
 							break;
+						case DIR_VERSION	:
+							checkLabel(id,false);
+							processVersionDir(data,InternalUtils.skipBlank(data,start),end);
+							break;
+						case DIR_LINE	:
+							checkLabel(id,false);
+							processLineDir(lineNo,data,InternalUtils.skipBlank(data,start),end);
+							break;
+						case DIR_SOURCE	:
+							checkLabel(id,false);
+							processSourceDir(data,InternalUtils.skipBlank(data,start),end);
+							break;
 						default :
 							throw new ContentException("Unknown directive : "+new String(data,startDir-1,endDir-startDir+1));
 					}
@@ -855,8 +883,10 @@ class LineParser implements LineByLineProcessorCallback {
 		
 							if (opCode >= 0) {
 								final CommandDescriptor	desc = staticCommandTree.getCargo(opCode);
-	
-								methodDescriptor.addLineNoRecord(lineNo);
+								
+								if (addLines2Class) {
+									methodDescriptor.addLineNoRecord(lineNo);
+								}
 								start = InternalUtils.skipBlank(data,start);
 								switch (desc.commandFormat) {
 									case single					: processSingleCommand(desc,data,start); break; 
@@ -1295,6 +1325,99 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
+	private void processVersionDir(final char[] data, int start, final int end) throws ContentException {
+		int		parm[] = new int[1], from = start, major = 0, minor = 0;
+		
+		if (start < end && data[start] >= '0' && data[start] <= '9') {
+			start = CharUtils.parseInt(data,from,parm,true);
+			major = parm[0];
+			if (data[start] == '.') {
+				start = CharUtils.parseInt(data,from = start + 1,parm,true);
+				minor = parm[0];
+			}
+			if (major == 1 && minor == 7) {
+				cc.changeClassFormatVersion(Constants.MAJOR_1_7,Constants.MINOR_1_7);
+			}
+			else if (major == 1 && minor == 8) {
+				cc.changeClassFormatVersion(Constants.MAJOR_1_8,Constants.MINOR_1_8);
+			}
+			else {
+				throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available!");
+			}
+		}
+		else {
+			throw new ContentException("Missing version number!");
+		}
+	}
+	
+	private void processLineDir(final int lineNo, final char[] data, int start, final int end) throws ContentException, IOException {
+		int		parm[] = new int[1], from = start;
+		
+		if (start < end && data[start] >= '0' && data[start] <= '9') {
+			start = CharUtils.parseInt(data,from,parm,true);
+			if (addLines2ClassManually) {
+				if (state == ParserState.insideClassBody || state == ParserState.insideBegin) {
+					methodDescriptor.addLineNoRecord(parm[0]);
+				}
+				else {
+					throw new ContentException(".lines <NNN> command is available inside the method body only!");
+				}
+			}
+			else {
+				throw new ContentException("To control lines manually, set '.lines manual' firstly!");
+			}
+		}
+		else if (Character.isLetter(data[start])) {
+			start = skipSimpleName(data,from);
+			
+			switch ((int)staticDirectiveTree.seekName(data,from,start)) {
+				case LINE_NONE	:
+					addLines2Class = false;
+					addLines2ClassManually = false;
+					break;
+				case LINE_AUTO	:
+					addLines2Class = true;
+					addLines2ClassManually = false;
+					break;
+				case LINE_MANUAL:
+					addLines2Class = true;
+					addLines2ClassManually = true;
+					break;
+				default :
+					throw new ContentException("Unknown option in pseudocommant. Only (none, auto, manual) area available!");
+			}
+		}
+		else {
+			throw new ContentException("Missing line number or one of the options (none, auto, manual)!");
+		}
+	}
+
+	private void processSourceDir(final char[] data, int start, final int end) throws ContentException {
+		int		from = start;
+		
+		if (data[start] == '\"') {
+			start = skipQuoted(data,start+1,'\"');
+			skip2line(data,start+1);
+			
+			final String	ref = new String(data,from+1,start-from);
+			URL		refUrl;
+			
+			try{refUrl = new URL(ref);
+			} catch (MalformedURLException exc) {
+				refUrl = this.getClass().getResource(ref);
+			}
+			if (refUrl == null) {
+				throw new ContentException("Resource URL ["+ref+"] is missing or malformed!");
+			}
+			else {
+				cc.setSourceAttribute(refUrl);
+			}
+		}
+		else {
+			throw new ContentException("Missing quoted source URL!");
+		}
+	}
+	
 	/*
 	 * Process try blocks
 	 */
@@ -1870,7 +1993,6 @@ class LineParser implements LineByLineProcessorCallback {
 		// TODO Auto-generated method stub
 		
 	}
-	
 	
 	/*
 	 * Evaluation methods

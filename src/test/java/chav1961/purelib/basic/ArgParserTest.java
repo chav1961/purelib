@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.io.InputStream;
+import java.net.URI;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -180,6 +181,35 @@ public class ArgParserTest {
 		}		
 		
 		try{new ArgParser(new ArgParser.StringArg("key",true,true,"help")).parse();
+			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
+		} catch (ConsoleCommandException exc) {
+		}
+		
+		try{new ArgParser(new ArgParser.StringArg("key",true,false,"help")).parse();
+			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
+		} catch (ConsoleCommandException exc) {
+		}
+	}
+
+	@Test
+	public void URIArgTest() throws ConsoleCommandException, ContentException {
+		ArgParser	parser = new ArgParser(new ArgParser.URIArg("key",false,"help","100"));
+		
+		Assert.assertEquals("200",parser.parse("-key","200").getValue("key",String.class));
+		Assert.assertEquals("100",parser.parse().getValue("key",String.class));
+		
+		parser = new ArgParser(new ArgParser.URIArg("key",true,true,"help"));
+		Assert.assertEquals(URI.create("file:/x"),parser.parse("file:/x").getValue("key",URI.class));
+
+		parser = new ArgParser(new ArgParser.URIArg("key",false,true,"help"));
+		Assert.assertEquals("",parser.parse().getValue("key",String.class));
+
+		try{parser.parse().getValue("key",InputStream.class);
+			Assert.fail("Mandatory exception was not detected (unsupported conversion)");
+		} catch (ContentException exc) {
+		}		
+		
+		try{new ArgParser(new ArgParser.URIArg("key",true,true,"help")).parse();
 			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
 		} catch (ConsoleCommandException exc) {
 		}

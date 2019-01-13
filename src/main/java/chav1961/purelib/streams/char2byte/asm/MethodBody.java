@@ -214,5 +214,4 @@ loop:	for (ItemDescriptor item : brunches) {
 			return "ItemDescriptor [id=" + id + ", displ=" + displ + ", placement=" + placement + ", shortBrunch=" + shortBrunch + "]";
 		}
 	}
-
 }
