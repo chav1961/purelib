@@ -60,7 +60,15 @@ public class CreoleWriter extends Writer {
 		TERM_BR
 	}
 	
-	
+	public enum CreoleLexema {
+		Plain, Bold, Italic, ItalicBold, 
+		Paragraph, Header1, Header2, Header3, Header4, Header5, Header6,
+		OrderedList, UnorderedList,
+		LinkRef, ImageRef,
+		HorizontalLine,
+		TableHeader, TableBodyEven, TableBodyOdd,
+		NonCreoleContent,
+	}
 
 	private static final char[]		LF = {'\n'};
 	private static final char[]		CRLF = {'\r','\n'};
@@ -112,6 +120,7 @@ public class CreoleWriter extends Writer {
 				case XML2TEXT	: writer = new CreoleTextOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)epilogue); break;
 				case XML2HTML	: writer = new CreoleHTMLOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)epilogue); break;
 				case XML2PDF	: writer = new CreoleFOPOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)epilogue); break;
+				case PARSEDCSV	: writer = new CreoleHighlighterWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)epilogue); break;
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
 			try{automat(0,0,CreoleTerminals.TERM_SOD,0);

@@ -34,5 +34,10 @@ public enum MarkupOutputFormat {
 	 * <p>XML format to use with <a href="https://xmlgraphics.apache.org/fop/">Apache FOP</a></p>
 	 * 
 	 */
-	XML2PDF
+	XML2PDF,
+	
+	/**
+	 * <p>Parsed CSV format to use in the Creole syntax highlighters.</p>
+	 */
+	PARSEDCSV
 }

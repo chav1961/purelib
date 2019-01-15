@@ -28,8 +28,14 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 										@Override public void insertUpdate(final DocumentEvent e) {highlight(doc,getText());}
 										@Override public void changedUpdate(final DocumentEvent e) {highlight(doc,getText());}
 									}; 
+	private final boolean			useNestedLexemas; 
 	
 	protected JTextPaneHighlighter() {
+		this(false);
+	}
+	
+	protected JTextPaneHighlighter(final boolean useNestedLexemas) {
+		this.useNestedLexemas = useNestedLexemas;
 		setDocument(doc);
 		doc.addDocumentListener(listener);
 	}
@@ -41,11 +47,12 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 			int	lastEnd = 0;
 			
 			doc.removeDocumentListener(listener);
+			doc.setCharacterAttributes(0,text.length(),ORDINAL_STYLE,false);
 			for (HighlightItem<LexemaType> item : parseString(text)) {
 				if (item.from - lastEnd > 1) {
 					doc.setCharacterAttributes(lastEnd,item.from - lastEnd,ORDINAL_STYLE,true);
 				}
-				doc.setCharacterAttributes(item.from,item.length,styles.get(item.type),true);
+				doc.setCharacterAttributes(item.from,item.length,styles.get(item.type),useNestedLexemas);
 				lastEnd = item.from + item.length;
 			}
 			doc.addDocumentListener(listener);
