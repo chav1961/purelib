@@ -61,12 +61,13 @@ public class CreoleWriter extends Writer {
 	}
 	
 	public enum CreoleLexema {
-		Plain, Bold, Italic, ItalicBold, 
+		Plain, Bold, Italic, 
 		Paragraph, Header1, Header2, Header3, Header4, Header5, Header6,
-		OrderedList, UnorderedList,
+		OrderedList1, OrderedList2, OrderedList3, OrderedList4, OrderedList5,
+		UnorderedList1, UnorderedList2, UnorderedList3, UnorderedList4, UnorderedList5,
 		LinkRef, ImageRef,
 		HorizontalLine,
-		TableHeader, TableBodyEven, TableBodyOdd,
+		TableHeader, TableBody, 
 		NonCreoleContent,
 	}
 
@@ -718,6 +719,7 @@ loop:		for (;from < to; from++) {
 			case XML2TEXT	: return (PrologueEpilogueMaster<Wr, T>) CreoleTextOutputWriter.getPrologue();
 			case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getPrologue();
 			case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getPrologue();
+			case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getPrologue();
 			default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 		}
 	}
@@ -729,6 +731,7 @@ loop:		for (;from < to; from++) {
 			case XML2TEXT	: return (PrologueEpilogueMaster<Wr, T>) CreoleTextOutputWriter.getEpilogue();
 			case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getEpilogue();
 			case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getEpilogue();
+			case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getEpilogue();
 			default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 		}
 	}
