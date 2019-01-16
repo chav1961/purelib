@@ -40,7 +40,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	private final List<int[]>		sectionStack = new ArrayList<>();
 	private final List<CreoleLexema>	listStack = new ArrayList<>();
 	private final List<int[]>		fontStack = new ArrayList<>();
-	private int						currentRow = 0, currentCol = 0, totalLen = 0;
+	private int						currentRow = 0, currentCol = 0, totalLen = 0, lastNL = 0;
 	
 	
 	CreoleHighlighterWriter(final Writer nested, final PrologueEpilogueMaster<Writer,CreoleHighlighterWriter> prologue, final PrologueEpilogueMaster<Writer,CreoleHighlighterWriter> epilogue) throws IOException {
@@ -58,9 +58,13 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	@Override
 	void internalWrite(final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		for (int index = from; index < to; index++) {
-			if (content[index] != '\r') {
+			System.err.print(content[index]);
+//			if (content[index] != '\r') {
+				if (content[index] == '\n') {
+					lastNL = totalLen;
+				}
 				totalLen++;
-			}
+//			}
 		}
 	}
 
@@ -120,19 +124,24 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 				switch (item) {
 					case P_OPEN		:
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
+						System.err.print("<<<");
 						break;
 					case P_CLOSE	:
 						forItem = sectionStack.remove(0);
-						putLexema(CreoleLexema.Paragraph,forItem[2],totalLen-forItem[2]);
+						System.err.print(">>>");
+						putLexema(CreoleLexema.Paragraph,forItem[2],(lastNL <= forItem[2] ? totalLen : lastNL)-forItem[2]);
 						break;
 					case H_OPEN	: 
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
+						System.err.print("<<<");
 						internalWrite(H[parameter]); 
 						break;
 					case H_CLOSE		: 
+						System.err.print("!!!");
 						internalWrite(H[parameter]); 
 						forItem = sectionStack.remove(0);
 						putLexema(H_LEX[parameter],forItem[2],totalLen-forItem[2]);
+						System.err.print(">>>");
 						break;
 					case HR				:
 						sectionStack.add(new int[] {currentRow,currentCol,totalLen});
@@ -142,26 +151,25 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 						break;
 					case UL_OPEN : 
 						listStack.add(0,UL_LEX[parameter]);
-						internalWrite(UL[parameter]); 
 						break;
 					case UL_CLOSE	:
-						internalWrite(UL[parameter]); 
 						listStack.remove(0);
 						break;
 					case OL_OPEN : 
 						listStack.add(0,OL_LEX[parameter]);
-						internalWrite(OL[parameter]); 
 						break;
 					case OL_CLOSE	:
-						internalWrite(OL[parameter]); 
 						listStack.remove(0);
 						break;
 					case LI_OPEN	:
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
+						internalWrite(UL[listStack.size()-1]);
 						break;
 					case LI_CLOSE	:
-						forItem = sectionStack.remove(0);
-						putLexema(listStack.get(0),forItem[2],totalLen-forItem[2]);
+						if (sectionStack.size() > 0) {
+							forItem = sectionStack.remove(0);
+							putLexema(listStack.get(0),forItem[2],(lastNL <= forItem[2] ? totalLen : lastNL)-forItem[2]);
+						}
 						break;
 					case TH_OPEN : 
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
@@ -169,8 +177,10 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 						break;
 					case TH_CLOSE : 
 						internalWrite(TH);
-						forItem = sectionStack.remove(0);
-						putLexema(CreoleLexema.TableHeader,forItem[2],totalLen-forItem[2]);
+						if (sectionStack.size() > 0) {
+							forItem = sectionStack.remove(0);
+							putLexema(CreoleLexema.TableHeader,forItem[2],totalLen-forItem[2]);
+						}
 						break;
 					case TD_OPEN :
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
@@ -178,8 +188,10 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 						break;
 					case TD_CLOSE :
 						internalWrite(TD);
-						forItem = sectionStack.remove(0);
-						putLexema(CreoleLexema.TableBody,forItem[2],totalLen-forItem[2]);
+						if (sectionStack.size() > 0) {
+							forItem = sectionStack.remove(0);
+							putLexema(CreoleLexema.TableBody,forItem[2],totalLen-forItem[2]);
+						}
 						break;
 					default :
 				}

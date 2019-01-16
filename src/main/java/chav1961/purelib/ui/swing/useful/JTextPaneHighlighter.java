@@ -9,6 +9,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -73,28 +74,30 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 		return ORDINAL_PARAGRAPH_STYLE;
 	}
 	
+	protected HighlightItem<LexemaType> preprocessLexema(final HighlightItem<LexemaType> source) {
+		return source;
+	}
+	
 	private void highlight(final StyledDocument doc, final String text) {
 		SwingUtilities.invokeLater(()->{
-			int	lastEnd = 0;
-			
 			try{doc.removeDocumentListener(listener);
-				doc.setCharacterAttributes(0,text.length(),getOrdinalCharacterStyle(),false);
-				doc.setParagraphAttributes(0,text.length(),getOrdinalParagraphStyle(),false);
+				doc.setCharacterAttributes(0,doc.getLength(),getOrdinalCharacterStyle(),false);
+				doc.setParagraphAttributes(0,doc.getLength(),getOrdinalParagraphStyle(),false);
 				
-				for (HighlightItem<LexemaType> item : parseString(text)) {
-//					if (item.from - lastEnd > 1) {
-//						doc.setCharacterAttributes(lastEnd,item.from - lastEnd,getOrdinalCharacterStyle(),false);
-//						doc.setParagraphAttributes(lastEnd,item.from - lastEnd,getOrdinalParagraphStyle(),false);
-//						System.err.println("Set "+lastEnd+"--"+(item.from - lastEnd));
-//					}
-					if (characterStyles.containsKey(item.type)) {
-						doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
+				System.err.println("***");
+				for (HighlightItem<LexemaType> currentItem : parseString(text)) {
+					final HighlightItem<LexemaType>	item = preprocessLexema(currentItem); 
+					System.err.println(item);
+					if (item.length > 0) {
+						if (characterStyles.containsKey(item.type)) {
+							doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
+						}
+						if (paragraphStyles.containsKey(item.type)) {
+							doc.setParagraphAttributes(item.from,item.length,paragraphStyles.get(item.type),useNestedLexemas);
+						}
 					}
-					if (paragraphStyles.containsKey(item.type)) {
-						doc.setParagraphAttributes(item.from,item.length,paragraphStyles.get(item.type),useNestedLexemas);
-					}
-					lastEnd = item.from + item.length;
 				}
+				System.err.println("///");
 			} finally {
 				doc.addDocumentListener(listener);
 			}

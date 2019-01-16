@@ -1255,12 +1255,15 @@ class LineParser implements LineByLineProcessorCallback {
 			default :
 				final long[]	size = new long[]{0,0};
 				
-				start = CharUtils.parseNumber(data,startName,size,CharUtils.PREF_INT,true);
-				if (size[1] == CharUtils.PREF_INT) {
-					methodDescriptor.setStackSize((short) size[0]);
-				}
-				else {
-					throw new ContentException("Stack size is not an integer constant (possibly it's size is long, float or double)");
+				try{start = CharUtils.parseNumber(data,startName,size,CharUtils.PREF_INT,true);
+					if (size[1] == CharUtils.PREF_INT) {
+						methodDescriptor.setStackSize((short) size[0]);
+					}
+					else {
+						throw new ContentException("Stack size is neither integer constant nor 'optimistic'/'pessimistic' (possibly it's size is long, float or double)");
+					}
+				} catch (NumberFormatException exc) {
+					throw new ContentException("Stack size is neither integer constant nor 'optimistic'/'pessimistic' (possibly it's size is long, float or double)");
 				}
 				break;
 		}

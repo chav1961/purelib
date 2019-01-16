@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -15,8 +17,23 @@ import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.ui.HighlightItem;
 
 public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
-	private static final long 	serialVersionUID = 1068656384609061286L;
+	private static final long 				serialVersionUID = 1068656384609061286L;
+	private static final Set<CreoleLexema>	NEED_PREPROCESS = new HashSet<>();
 
+	static {
+		NEED_PREPROCESS.add(CreoleLexema.OrderedList1);
+		NEED_PREPROCESS.add(CreoleLexema.OrderedList2);
+		NEED_PREPROCESS.add(CreoleLexema.OrderedList3);
+		NEED_PREPROCESS.add(CreoleLexema.OrderedList4);
+		NEED_PREPROCESS.add(CreoleLexema.OrderedList5);
+		NEED_PREPROCESS.add(CreoleLexema.UnorderedList1);
+		NEED_PREPROCESS.add(CreoleLexema.UnorderedList2);
+		NEED_PREPROCESS.add(CreoleLexema.UnorderedList3);
+		NEED_PREPROCESS.add(CreoleLexema.UnorderedList4);
+		NEED_PREPROCESS.add(CreoleLexema.UnorderedList5);
+		NEED_PREPROCESS.add(CreoleLexema.Paragraph);
+	}
+	
 	{	SimpleAttributeSet	sas = new SimpleAttributeSet();
 	
 		characterStyles.put(CreoleLexema.Plain,sas);
@@ -39,6 +56,13 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setSpaceBelow(sas,0.0f);
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.Paragraph,sas);
+
+		sas = new SimpleAttributeSet();
+		
+		StyleConstants.setForeground(sas, Color.CYAN);
+		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
+		StyleConstants.setBold(sas, true);
+		characterStyles.put(CreoleLexema.Paragraph,sas);		
 		
 		sas = new SimpleAttributeSet();
 		
@@ -157,6 +181,7 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.UnorderedList4,sas);
 
+		
 		sas = new SimpleAttributeSet();
 		
 		StyleConstants.setFirstLineIndent(sas,60.0f);
@@ -165,6 +190,24 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setSpaceBelow(sas,0.0f);
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.UnorderedList5,sas);
+
+		sas = new SimpleAttributeSet();
+		
+		StyleConstants.setForeground(sas, Color.GREEN);
+		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
+		StyleConstants.setBold(sas, true);
+		characterStyles.put(CreoleLexema.OrderedList1,sas);		
+		characterStyles.put(CreoleLexema.OrderedList2,sas);
+		characterStyles.put(CreoleLexema.OrderedList3,sas);
+		characterStyles.put(CreoleLexema.OrderedList4,sas);
+		characterStyles.put(CreoleLexema.OrderedList5,sas);
+		characterStyles.put(CreoleLexema.UnorderedList1,sas);
+		characterStyles.put(CreoleLexema.UnorderedList2,sas);
+		characterStyles.put(CreoleLexema.UnorderedList3,sas);
+		characterStyles.put(CreoleLexema.UnorderedList4,sas);
+		characterStyles.put(CreoleLexema.UnorderedList5,sas);
+		
+		
 		
 		sas = new SimpleAttributeSet();
 		
@@ -174,7 +217,7 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		
 		sas = new SimpleAttributeSet();
 		
-		StyleConstants.setForeground(sas, Color.GREEN);
+		StyleConstants.setForeground(sas, Color.ORANGE);
 		StyleConstants.setUnderline(sas, true);
 		characterStyles.put(CreoleLexema.ImageRef,sas);
 		
@@ -206,6 +249,15 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 	public JCreoleEditor() {
 		super(true);
 	}
+
+	protected HighlightItem<CreoleLexema> preprocessLexema(final HighlightItem<CreoleLexema> source) {
+//		if (NEED_PREPROCESS.contains(source.type)) {
+//			return new HighlightItem<CreoleLexema>(source.from,source.length-1,source.type);
+//		}
+//		else {
+			return source;
+//		}
+	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -217,16 +269,13 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 			}
 			final List<HighlightItem<CreoleLexema>>	result = new ArrayList<>();
 			
-			System.err.println("-----");
 			for (String item : writer.toString().split("\n")) {
 				final String[]	parts = item.split(",");
 				
 				if (parts.length == 3) {
-					System.err.println(item);
 					result.add(new HighlightItem<CreoleLexema>(Integer.valueOf(parts[1]),Integer.valueOf(parts[2]),CreoleLexema.valueOf(parts[0])));
 				}
 			}
-			System.err.println("=====");
 			return result.toArray(new HighlightItem[result.size()]);
 		} catch (IOException e) {
 			return new HighlightItem[0];

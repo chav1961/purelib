@@ -30,6 +30,8 @@ class ClassContainer implements Closeable {
 	private URL		sourceRef = null;
 	
 	public ClassContainer() {
+		tree.placeName("long",null);	// To use in LocalVarTable descriptors
+		tree.placeName("double",null);
 	}
 
 	@Override
