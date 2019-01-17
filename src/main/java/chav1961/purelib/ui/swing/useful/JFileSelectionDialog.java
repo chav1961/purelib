@@ -8,14 +8,11 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.HeadlessException;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,7 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -39,24 +35,19 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpringLayout;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.NullLoggerFacade;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.fsys.FileSystemOnFile;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -469,7 +460,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		for (String item : content.getSelectedValuesList()) {
 			try (final FileSystemInterface	fsi = currentNode.clone().open(item)) {
 				if (fsi.isDirectory() && canSelectDir || fsi.isFile() && canSelectFile) {
-					selected.add(item);
+					selected.add(fsi.getPath());
 				}
 			} catch (IOException e) {
 				logger.message(Severity.error,e,"Error getting current file system node ["+item+"] state: "+e.getLocalizedMessage());
@@ -481,6 +472,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public static Iterable<String> select(final Dialog window, final Localizer localizer, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
 		final JDialog				dlg = new JDialog(window,true);
 		final JFileSelectionDialog	select = new JFileSelectionDialog(localizer);
+		@SuppressWarnings("unchecked")
 		final Iterable<String>[]	result = new Iterable[] {null}; 
 		
 		try(final FileSystemInterface	fsi = node.clone()) {
@@ -488,6 +480,9 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					(accept)->{
 						if (accept) {
 							result[0] = select.getSelection();
+						}
+						else {
+							result[0] = Arrays.asList();
 						}
 						dlg.setVisible(false);
 						dlg.dispose();
@@ -505,6 +500,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public static Iterable<String> select(final Frame window, final Localizer localizer, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
 		final JDialog				dlg = new JDialog(window,true);
 		final JFileSelectionDialog	select = new JFileSelectionDialog(localizer);
+		@SuppressWarnings("unchecked")
 		final Iterable<String>[]	result = new Iterable[] {null}; 
 		
 		try(final FileSystemInterface	fsi = node.clone()) {
@@ -512,6 +508,9 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					(accept)->{
 						if (accept) {
 							result[0] = select.getSelection();
+						}
+						else {
+							result[0] = Arrays.asList();
 						}
 						dlg.setVisible(false);
 						dlg.dispose();

@@ -50,19 +50,19 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		
 		sas = new SimpleAttributeSet();
 		
-		StyleConstants.setFirstLineIndent(sas,10.0f);
+		StyleConstants.setFirstLineIndent(sas,12.0f);
 		StyleConstants.setLeftIndent(sas,0.0f);
 		StyleConstants.setRightIndent(sas,0.0f);
 		StyleConstants.setSpaceBelow(sas,0.0f);
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.Paragraph,sas);
 
-		sas = new SimpleAttributeSet();
-		
-		StyleConstants.setForeground(sas, Color.CYAN);
-		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
-		StyleConstants.setBold(sas, true);
-		characterStyles.put(CreoleLexema.Paragraph,sas);		
+//		sas = new SimpleAttributeSet();
+//		
+//		StyleConstants.setForeground(sas, Color.CYAN);
+//		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
+//		StyleConstants.setBold(sas, true);
+//		characterStyles.put(CreoleLexema.Paragraph,sas);		
 		
 		sas = new SimpleAttributeSet();
 		
@@ -191,21 +191,21 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.UnorderedList5,sas);
 
-		sas = new SimpleAttributeSet();
-		
-		StyleConstants.setForeground(sas, Color.GREEN);
-		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
-		StyleConstants.setBold(sas, true);
-		characterStyles.put(CreoleLexema.OrderedList1,sas);		
-		characterStyles.put(CreoleLexema.OrderedList2,sas);
-		characterStyles.put(CreoleLexema.OrderedList3,sas);
-		characterStyles.put(CreoleLexema.OrderedList4,sas);
-		characterStyles.put(CreoleLexema.OrderedList5,sas);
-		characterStyles.put(CreoleLexema.UnorderedList1,sas);
-		characterStyles.put(CreoleLexema.UnorderedList2,sas);
-		characterStyles.put(CreoleLexema.UnorderedList3,sas);
-		characterStyles.put(CreoleLexema.UnorderedList4,sas);
-		characterStyles.put(CreoleLexema.UnorderedList5,sas);
+//		sas = new SimpleAttributeSet();
+//		
+//		StyleConstants.setForeground(sas, Color.GREEN);
+//		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
+//		StyleConstants.setBold(sas, true);
+//		characterStyles.put(CreoleLexema.OrderedList1,sas);		
+//		characterStyles.put(CreoleLexema.OrderedList2,sas);
+//		characterStyles.put(CreoleLexema.OrderedList3,sas);
+//		characterStyles.put(CreoleLexema.OrderedList4,sas);
+//		characterStyles.put(CreoleLexema.OrderedList5,sas);
+//		characterStyles.put(CreoleLexema.UnorderedList1,sas);
+//		characterStyles.put(CreoleLexema.UnorderedList2,sas);
+//		characterStyles.put(CreoleLexema.UnorderedList3,sas);
+//		characterStyles.put(CreoleLexema.UnorderedList4,sas);
+//		characterStyles.put(CreoleLexema.UnorderedList5,sas);
 		
 		
 		
