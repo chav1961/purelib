@@ -1,4 +1,4 @@
-package chav1961.purelib.ui.swing;
+package chav1961.purelib.ui;
 
 
 import java.awt.Component;
@@ -66,6 +66,7 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
+import chav1961.purelib.ui.swing.SmartToolTip;
 
 public class XMLDescribedApplication {
 	private static final String		NAMESPACE_PREFIX = "app";
@@ -254,22 +255,23 @@ public class XMLDescribedApplication {
 	}
 
 	private JToolBar convert2JToolBar(final Node root) throws LocalizationException, IllegalArgumentException, DOMException, IOException {
-		final JLocalizedToolBar	result = new JLocalizedToolBar(localizer);
-		final NodeList			children = root.getChildNodes();
-		
-		for (int index = 0; index < children.getLength(); index++) {
-			final Node		child = children.item(index);
-			
-			switch (child.getNodeName()) {
-				case TAG_MENUITEM		:
-					result.add(child);
-					break;
-				case TAG_MENUSEPARATOR	:
-					result.addSeparator();
-					break;
-				default : 
-			}
-		}
+		final JToolBar	result = new JToolBar();
+//		final JLocalizedToolBar	result = new JLocalizedToolBar(localizer);
+//		final NodeList			children = root.getChildNodes();
+//		
+//		for (int index = 0; index < children.getLength(); index++) {
+//			final Node		child = children.item(index);
+//			
+//			switch (child.getNodeName()) {
+//				case TAG_MENUITEM		:
+//					result.add(child);
+//					break;
+//				case TAG_MENUSEPARATOR	:
+//					result.addSeparator();
+//					break;
+//				default : 
+//			}
+//		}
 		return result;
 	}
 
@@ -480,41 +482,41 @@ public class XMLDescribedApplication {
 		}
 	}
 
-	private class JLocalizedToolBar extends LocalizedToolBar {
-		private static final long serialVersionUID = 1L;
-		
-		private JLocalizedToolBar(final Localizer localizer) throws LocalizationException {
-			super(localizer);
-		}
-		
-		public void add(final Node node) throws LocalizationException, DOMException, MalformedURLException {
-			switch (node.getNodeName()) {
-				case TAG_MENUITEM		:
-					final JButton		item;
-					
-					if (node.getAttributes().getNamedItem(ATTR_ICON) != null) {
-						item = createButton(null,node.getAttributes().getNamedItem(ATTR_ACTION).getNodeValue(),new URL(node.getAttributes().getNamedItem(ATTR_ICON).getNodeValue()),new URL(node.getAttributes().getNamedItem(ATTR_ICON).getNodeValue()),node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue());
-					}
-					else {
-						item = new JButton();
-						
-						item.setText(localizer.getValue(node.getAttributes().getNamedItem(ATTR_CAPTION).getNodeValue()));
-						item.setToolTipText(localizer.getValue(node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue()));
-						item.setActionCommand(node.getAttributes().getNamedItem(ATTR_ACTION).getNodeValue());
-					}
-					if (node.getAttributes().getNamedItem(ATTR_NAME) != null) {
-						item.setName(node.getAttributes().getNamedItem(ATTR_NAME).getNodeValue());
-					}
-					
-					if (node.getAttributes().getNamedItem(ATTR_ENABLED) != null) {
-						item.setEnabled(Boolean.valueOf(node.getAttributes().getNamedItem(ATTR_ENABLED).getNodeValue()));
-					}
-					add(item,node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue());
-					break;
-				default :
-			}
-		}
-	}
+//	private class JLocalizedToolBar extends LocalizedToolBar {
+//		private static final long serialVersionUID = 1L;
+//		
+//		private JLocalizedToolBar(final Localizer localizer) throws LocalizationException {
+//			super(localizer);
+//		}
+//		
+//		public void add(final Node node) throws LocalizationException, DOMException, MalformedURLException {
+//			switch (node.getNodeName()) {
+//				case TAG_MENUITEM		:
+//					final JButton		item;
+//					
+//					if (node.getAttributes().getNamedItem(ATTR_ICON) != null) {
+//						item = createButton(null,node.getAttributes().getNamedItem(ATTR_ACTION).getNodeValue(),new URL(node.getAttributes().getNamedItem(ATTR_ICON).getNodeValue()),new URL(node.getAttributes().getNamedItem(ATTR_ICON).getNodeValue()),node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue());
+//					}
+//					else {
+//						item = new JButton();
+//						
+//						item.setText(localizer.getValue(node.getAttributes().getNamedItem(ATTR_CAPTION).getNodeValue()));
+//						item.setToolTipText(localizer.getValue(node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue()));
+//						item.setActionCommand(node.getAttributes().getNamedItem(ATTR_ACTION).getNodeValue());
+//					}
+//					if (node.getAttributes().getNamedItem(ATTR_NAME) != null) {
+//						item.setName(node.getAttributes().getNamedItem(ATTR_NAME).getNodeValue());
+//					}
+//					
+//					if (node.getAttributes().getNamedItem(ATTR_ENABLED) != null) {
+//						item.setEnabled(Boolean.valueOf(node.getAttributes().getNamedItem(ATTR_ENABLED).getNodeValue()));
+//					}
+//					add(item,node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue());
+//					break;
+//				default :
+//			}
+//		}
+//	}
 
 	private static class CargoCheckBoxMenuItem<T> extends JCheckBoxMenuItem {
 		private static final long serialVersionUID = 7391015352976487237L;

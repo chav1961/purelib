@@ -30,6 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -44,6 +45,7 @@ import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.NullLoggerFacade;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -52,6 +54,21 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 
+/**
+ * <p>Standard file selection dialog (see {@linkplain JFileChooser}). Main differences from (see {@linkplain JFileChooser}) are:</p>
+ * <ul>
+ * <li>This class supports any {@linkplain FileSystemInterface} available, not only local disks</li>  
+ * <li>This class is localized and will change all locale-specific information on locale changes</li>  
+ * </ul>  
+ * <p>Differ to {@linkplain JFileChooser}, this class is a child of the {@linkplain JPanel} and can be embedded into any Swing forms
+ * as the part of them. To use it as ordinal dialog window, call it's static methods {@linkplain JFileSelectionDialog#select(Dialog, Localizer, FileSystemInterface, int, FilterCallback...)} and 
+ * {@linkplain JFileSelectionDialog#select(Window, Localizer, FileSystemInterface, int, FilterCallback...)}.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see JFileChooser
+ * @see FileSystemInterface
+ * @see Localizer
+ * @since 0.0.3
+ */
 public class JFileSelectionDialog extends JPanel implements LocaleChangeListener {
 	private static final long 	serialVersionUID = 4285629141818684880L;
 	private static final int	ICON_BORDER_WIDTH = 2;
@@ -97,14 +114,44 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public static final int		OPTIONS_FOR_SAVE  = 1 << 6; 
 	public static final int		OPTIONS_FOR_OPEN  = 1 << 7; 
 	
+	/**
+	 * <p>This interface is called when user presses 'accept' or 'cancel' buttons in the dialog.
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface AcceptAndCancelCallback {
+		/**
+		 * <p>Process pressing button</p>
+		 * @param accept true if the 'accept' button was pressed, false otherwise
+		 */
 		void process(boolean accept);
 	}
-	
+
+	/**
+	 * <p>This interface is analog of {@linkplain   
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	public interface FilterCallback {
+		/**
+		 * <p>Get filter masks
+		 * @return filter masks. Can be empty, but not null
+		 */
 		String[] getFileMask();
+		
+		/**
+		 * <p>Get filter name. String will be used 'as-is', you should make yourself any localization you need</p> 
+		 * @return
+		 */
 		String getFilterName();
+		
+		/**
+		 * <p>Accept file system interface item with the given filter.</p>
+		 * @param item file system item to test
+		 * @return true if the item must be include into the list, false otherwise
+		 * @throws IOException
+		 */
 		boolean accept(final FileSystemInterface item) throws IOException;
 	}
 	
@@ -140,11 +187,26 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	private FileSystemInterface 	currentNode = null;
 	private AcceptAndCancelCallback callback;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use with the class. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} 
+	 * localizer to call the constructor</p>
+	 * @throws LocalizationException in any localization errors
+	 * @throws NullPointerException if any parameter is null
+	 */
 	public JFileSelectionDialog(final Localizer localizer) throws LocalizationException {
 		this(localizer,new NullLoggerFacade());
 	}
 
-	public JFileSelectionDialog(final Localizer localizer, final LoggerFacade logger) throws LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use with the class. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} 
+	 * localizer to call the constructor</p>
+	 * @param logger logger to print errors into. Can't be null. Toy can use this parameter to build total log with the rest of your application 
+	 * @throws LocalizationException in any localization errors
+	 * @throws NullPointerException if any parameter is null
+	 */
+	public JFileSelectionDialog(final Localizer localizer, final LoggerFacade logger) throws LocalizationException, NullPointerException {
 		super(new BorderLayout());
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -363,7 +425,17 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		fillLocalizedStrings();
 	}
 
-	public boolean select(final FileSystemInterface node, final int options, final AcceptAndCancelCallback callback, final FilterCallback... filters) throws IOException {
+	/**
+	 * <p>Select file(s) or directory(ies) from the current file system</p>
+	 * @param node filesystem to select from. Can't be null. Selection always begins from the current file system point. If user press 'accept', current file system point is committed, else remains unchanged.
+	 * @param options options to select (see class constants). All the constants you need must be ORed with '|'
+	 * @param callback process pressing of the 'accept' and 'cancel' buttons. Can't be null.  
+	 * @param filters file filters.
+	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException if any of the parameters is null
+	 * @throws IllegalArgumentException if options contains incompatible flags
+	 */
+	public void select(final FileSystemInterface node, final int options, final AcceptAndCancelCallback callback, final FilterCallback... filters) throws IOException, NullPointerException, IllegalArgumentException {
 		if (node == null) {
 			throw new NullPointerException("Current file system node can't be null");
 		}
@@ -448,12 +520,14 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					}
 				});
 			}
-			
 			fillCurrentState(currentNode);
-			return false;
 		}
 	}
 
+	/**
+	 * <p>Get selected list. Can be called for pressing 'accept' only, otherwise returned content is unpredictable  
+	 * @return selected content. Can be empty, but not null
+	 */
 	public Iterable<String> getSelection() {
 		final List<String>	selected = new ArrayList<>();
 		
@@ -469,6 +543,17 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		return selected;
 	}
 
+	/**
+	 * <p>Show modal dialog to select files and return selected list</p>
+	 * @param window parent window to use. Can be null
+	 * @param localizer localizer to use (see {@linkplain #JFileSelectionDialog(Localizer)}
+	 * @param node file system to select file from (see {@linkplain #select(FileSystemInterface, int, AcceptAndCancelCallback, FilterCallback...)}
+	 * @param options options to select
+	 * @param filter file filter
+	 * @return selected files. If the 'cancel' was pressed, will be empty
+	 * @throws IOException on any I/O errors
+	 * @throws LocalizationException on any localization errors
+	 */
 	public static Iterable<String> select(final Dialog window, final Localizer localizer, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
 		final JDialog				dlg = new JDialog(window,true);
 		final JFileSelectionDialog	select = new JFileSelectionDialog(localizer);
@@ -497,6 +582,17 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		return result[0];
 	}
 
+	/**
+	 * <p>Show modal dialog to select files and return selected list</p>
+	 * @param window parent window to use. Can be null
+	 * @param localizer localizer to use (see {@linkplain #JFileSelectionDialog(Localizer)}
+	 * @param node file system to select file from (see {@linkplain #select(FileSystemInterface, int, AcceptAndCancelCallback, FilterCallback...)}
+	 * @param options options to select
+	 * @param filter file filter
+	 * @return selected files. If the 'cancel' was pressed, will be empty
+	 * @throws IOException on any I/O errors
+	 * @throws LocalizationException on any localization errors
+	 */
 	public static Iterable<String> select(final Frame window, final Localizer localizer, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
 		final JDialog				dlg = new JDialog(window,true);
 		final JFileSelectionDialog	select = new JFileSelectionDialog(localizer);

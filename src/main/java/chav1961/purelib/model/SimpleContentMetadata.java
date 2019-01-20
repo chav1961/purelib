@@ -1,4 +1,4 @@
-package chav1961.purelib.ui;
+package chav1961.purelib.model;
 
 import java.net.URI;
 
@@ -100,6 +100,11 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 	public ContentMetadataInterface unmount(final URI uiPath) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String toString() {
+		return "SimpleContentMetadata [root=" + root + "]";
 	}
 
 	private static ContinueMode walkDown(final ContentWalker walker, final ContentNodeMetadata node) {

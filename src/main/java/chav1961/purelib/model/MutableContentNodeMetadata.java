@@ -141,4 +141,14 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	protected void setParent(final ContentNodeMetadata parent) {
 		this.parent = parent;
 	}
+
+	@Override
+	public String toString() {
+		return "MutableContentNodeMetadata [children=" + children + ", name=" + name + ", type=" + type + ", labelId="
+				+ labelId + ", tooltipId=" + tooltipId + ", helpId=" + helpId + ", formatAssociated=" + formatAssociated
+				+ ", relativeUIPath=" + relativeUIPath + ", applicationPath=" + applicationPath + ", mounted=" + mounted
+				+ "]";
+	}
+	
+	
 }

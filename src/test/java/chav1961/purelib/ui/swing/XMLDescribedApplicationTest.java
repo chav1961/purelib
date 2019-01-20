@@ -17,6 +17,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.xsd.XSDConst;
+import chav1961.purelib.ui.XMLDescribedApplication;
 
 public class XMLDescribedApplicationTest {
 //	@Test

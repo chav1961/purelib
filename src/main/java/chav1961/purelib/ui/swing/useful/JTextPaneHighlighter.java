@@ -16,9 +16,19 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
+import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.ui.HighlightItem;
+import chav1961.purelib.ui.interfacers.FormModel;
 
+/**
+ * <p>This is a simple syntax highlighter for the Swing applications. Use it instead of {@linkplain JTextPane} component.</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see CreoleWriter 
+ * @see FormModel 
+ * @since 0.0.3
+ * @param <LexemaType> any marker for the text pieces. It's strongly recommended to use enumerations for it
+ */
 public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private static final long 					serialVersionUID = -1205048630967887904L;
 	private static final SimpleAttributeSet		ORDINAL_CHARACTER_STYLE = new SimpleAttributeSet();
@@ -53,27 +63,55 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 										@Override public void changedUpdate(final DocumentEvent e) {highlight(doc,getText());}
 									}; 
 	private final boolean			useNestedLexemas; 
-	
+
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	protected JTextPaneHighlighter() {
 		this(false);
 	}
-	
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param useNestedLexemas allow different content attributes to overlap
+	 */
 	protected JTextPaneHighlighter(final boolean useNestedLexemas) {
 		this.useNestedLexemas = useNestedLexemas;
 		setDocument(doc);
 		doc.addDocumentListener(listener);
 	}
 	
+	/**
+	 * <p>The most important method to implement. Get current content of the control, parse it and return array of parsed text pieces with their's marks.
+	 * if you typed true on the {@linkplain #JTextPaneHighlighter(boolean)} constructor, ranges of the parsed pieces can overlaps. All non-marked text pieces
+	 * will have default text attributes on the screen. When calculate offsets and lengths of the pieces, pay attention, that character <b>'\r'</b> in the 
+	 * string parsing must be counted as missing (has zero length).</p> 
+	 * @param program program to parse
+	 * @return array of pieces and it's marks in the program 
+	 */
 	protected abstract HighlightItem<LexemaType>[] parseString(final String program);
 
+	/**
+	 * <p>Get default paragraph style for non-marked content</p> 
+	 * @return ordinal paragraph style (alignment, margins etc)
+	 */
 	protected SimpleAttributeSet getOrdinalCharacterStyle() {
 		return ORDINAL_CHARACTER_STYLE;
 	}
 
+	/**
+	 * <p>Get default character style for non-marked content.</p>
+	 * @return ordinal character style (color, font, text style etc)
+	 */
 	protected SimpleAttributeSet getOrdinalParagraphStyle() {
 		return ORDINAL_PARAGRAPH_STYLE;
 	}
 	
+	/**
+	 * <p>Preprocess current lexema. Yoy can make advanced processing in this method. 
+	 * @param source souce lexema
+	 * @return preprocessed lexema
+	 */
 	protected HighlightItem<LexemaType> preprocessLexema(final HighlightItem<LexemaType> source) {
 		return source;
 	}

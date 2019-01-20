@@ -168,6 +168,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 					case LI_CLOSE	:
 						if (sectionStack.size() > 0) {
 							forItem = sectionStack.remove(0);
+							putLexema(CreoleLexema.ListMark,forItem[2],listStack.size());
 							putLexema(listStack.get(0),forItem[2],(lastNL <= forItem[2] ? totalLen : lastNL)-forItem[2]);
 						}
 						break;

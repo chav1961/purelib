@@ -5,18 +5,19 @@
 	<xs:element name="root">
 		<xs:complexType>
 			<xs:choice minOccurs="1" maxOccurs="unbounded">
-				<xs:element name="i18n" type="app:I18n" minOccurs="1"
-					maxOccurs="1" />
-				<xs:element name="menu" type="app:Menu" minOccurs="1"
-					maxOccurs="1" />
+				<xs:element name="i18n" type="app:I18n" minOccurs="1" maxOccurs="1" />
+				<xs:element name="menu" type="app:Menu" minOccurs="1" maxOccurs="unbounded" />
+				<xs:element name="keyset" type="app:KeySet" minOccurs="1" maxOccurs="unbounded" />
 			</xs:choice>
 		</xs:complexType>
 	</xs:element>
 
+<!-- Localization descriptor: references to application-wide localizer resource--> 
 	<xs:complexType name="I18n">
 		<xs:attribute name="location" type="xs:anyURI" use="required" />
 	</xs:complexType>
 
+<!-- Menu descriptor: can be more than one menu set in application... --> 
 	<xs:complexType name="Menu">
 		<xs:choice minOccurs="1" maxOccurs="unbounded">
 			<xs:element name="submenu" type="app:Submenu" />
@@ -25,6 +26,7 @@
 			<xs:element name="separator" type="app:Separator" />
 		</xs:choice>
 		<xs:attribute name="id" type="xs:string" use="required" />
+		<xs:attribute name="keyset" type="xs:string" use="optional" />
 	</xs:complexType>
 
 	<xs:complexType name="Submenu">
@@ -57,4 +59,22 @@
 	</xs:complexType>
 
 	<xs:complexType name="Separator" />
+	
+<!-- Key set descriptor: references to hot keys --> 
+	<xs:complexType name="KeySet">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="key" type="app:Key" />
+		</xs:choice>
+		<xs:attribute name="id" type="xs:string" use="required" />
+	</xs:complexType>
+
+<!-- Key set descriptor: hot key description --> 
+	<xs:complexType name="Key">
+		<xs:attribute name="id" type="xs:string" use="optional" />
+		<xs:attribute name="code" type="xs:string" use="required" />
+		<xs:attribute name="action" type="xs:string" use="required" />
+		<xs:attribute name="ctrl" type="xs:boolean" use="optional" />
+		<xs:attribute name="shift" type="xs:boolean" use="optional" />
+		<xs:attribute name="alt" type="xs:boolean" use="optional" />
+	</xs:complexType>	
 </xs:schema>

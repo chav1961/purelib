@@ -40,8 +40,6 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.swing.SmartToolTip;
-import chav1961.purelib.ui.swing.XMLDescribedApplication.JLocalizedMenu;
-import chav1961.purelib.ui.swing.XMLDescribedApplication.JLocalizedMenuItem;
 
 public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 	private static final long 			serialVersionUID = -978827310276837317L;
@@ -246,18 +244,18 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 	}
 
 	private static MutableTreeNode menuBar2Tree(final JMenuItem menu) throws LocalizationException {
-		if (menu instanceof JLocalizedMenu) {
-			final JLocalizedMenuItem		item = new JLocalizedMenuItem(((JLocalizedMenu)menu).localizer,((JLocalizedMenu)menu).textId,((JLocalizedMenu)menu).tooltipId);
-			final DefaultMutableTreeNode	node = new DefaultMutableTreeNode(item,true);
-
-			for (int index = 0; index < ((JMenu)menu).getMenuComponentCount(); index++) {
-				node.add(menuBar2Tree(((JMenu)menu).getItem(index)));
-			}
-			return node;
-		}
-		else {
+//		if (menu instanceof JLocalizedMenu) {
+//			final JLocalizedMenuItem		item = new JLocalizedMenuItem(((JLocalizedMenu)menu).localizer,((JLocalizedMenu)menu).textId,((JLocalizedMenu)menu).tooltipId);
+//			final DefaultMutableTreeNode	node = new DefaultMutableTreeNode(item,true);
+//
+//			for (int index = 0; index < ((JMenu)menu).getMenuComponentCount(); index++) {
+//				node.add(menuBar2Tree(((JMenu)menu).getItem(index)));
+//			}
+//			return node;
+//		}
+//		else {
 			return new DefaultMutableTreeNode(menu,false);
-		}
+//		}
 	}
 	
 	private void processAction(final JMenuItem item, final ActionEvent event) {

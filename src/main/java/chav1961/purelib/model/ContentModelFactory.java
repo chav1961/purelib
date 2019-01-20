@@ -18,6 +18,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -28,7 +29,6 @@ import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.ui.SimpleContentMetadata;
 import chav1961.purelib.ui.interfacers.Action;
 import chav1961.purelib.ui.interfacers.Format;
 import chav1961.purelib.ui.interfacers.MultiAction;
@@ -143,14 +143,15 @@ public class ContentModelFactory {
 	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) {
 		MutableContentNodeMetadata	child;
 		
-		if (document.getNodeType() == Document.ENTITY_NODE) {
+//		if (document.getNodeType() == Document.ENTITY_NODE) {
 			switch (document.getTagName()) {
-				case "menu" 			:
-					final String	menuId = document.getAttributeNode("id").getValue();
+				case "app:menu" 			:
+					final String	menuId = getAttribute(document,"id");
+					final String	keySet = getAttribute(document,"keyset");
 					
 					child = new MutableContentNodeMetadata(menuId
 							, String.class
-							, "navigation.top."+menuId
+							, "navigation.top."+menuId+(keySet == null ? "" : "?keyset="+keySet)
 							, null
 							, menuId
 							, null 
@@ -158,10 +159,10 @@ public class ContentModelFactory {
 							, null
 							, null);
 					break;
-				case "submenu"			:
-					final String	submenuName = document.getAttributeNode("name").getValue();
-					final String	submenuCaption = document.getAttributeNode("caption").getValue();
-					final String	submenuTooltip = document.getAttributeNode("tooltip").getValue();
+				case "app:submenu"			:
+					final String	submenuName = getAttribute(document,"name");
+					final String	submenuCaption = getAttribute(document,"caption");
+					final String	submenuTooltip = getAttribute(document,"tooltip");
 					
 					child = new MutableContentNodeMetadata(submenuName
 							, String.class
@@ -173,11 +174,11 @@ public class ContentModelFactory {
 							, null
 							, null);
 					break;
-				case "item"				:
-					final String	itemName = document.getAttributeNode("name").getValue();
-					final String	itemCaption = document.getAttributeNode("caption").getValue();
-					final String	itemTooltip = document.getAttributeNode("tooltip").getValue();
-					final String	itemAction = document.getAttributeNode("action").getValue();
+				case "app:item"				:
+					final String	itemName = getAttribute(document,"name");
+					final String	itemCaption = getAttribute(document,"caption");
+					final String	itemTooltip = getAttribute(document,"tooltip");
+					final String	itemAction = getAttribute(document,"action");
 					
 					child = new MutableContentNodeMetadata(itemName
 							, String.class
@@ -189,15 +190,92 @@ public class ContentModelFactory {
 							, null
 							, URI.create(APPLICATION_SCHEME_ACTION+":/"+itemAction));
 					break;
-//				case "separator"		:
-//				case "builtinSubmenu"	:
+				case "app:separator"		:
+					final String	separatorName = "_";
+					
+					child = new MutableContentNodeMetadata(separatorName
+							, String.class
+							, "navigation.leaf."+separatorName
+							, null
+							, separatorName
+							, null 
+							, null
+							, null
+							, null);
+					break;
+				case "app:builtinSubmenu"	:
+					final String	builtinName = getAttribute(document,"name");
+					final String	builtinCaption = getAttribute(document,"caption");
+					final String	builtinTooltip = getAttribute(document,"tooltip");
+					final String	builtinAction = getAttribute(document,"name");
+					
+					child = new MutableContentNodeMetadata(builtinName
+							, String.class
+							, "navigation.node."+builtinName
+							, null
+							, builtinCaption
+							, builtinTooltip 
+							, null
+							, null
+							, URI.create(APPLICATION_SCHEME_ACTION+":/"+builtinAction));
+					break;
+				case "app:keyset"		:
+					final String	keysetName = getAttribute(document,"id");
+					
+					child = new MutableContentNodeMetadata(keysetName
+							, String.class
+							, "navigation.keyset."+keysetName
+							, null
+							, keysetName 
+							, null
+							, null
+							, null
+							, null);
+					break;
+				case "app:key"			:
+					final String	keyName = getAttribute(document,"id");
+					final String	keyAction = getAttribute(document,"action");
+					final String	keyCode = getAttribute(document,"code");
+					final String	keyCtrl = getAttribute(document,"ctrl");
+					final String	keyShift = getAttribute(document,"shift");
+					final String	keyAlt = getAttribute(document,"alt");
+					final String	keyLabel = keyCode+","+(keyCtrl != null || "true".equals(keyCtrl))+","+(keyShift != null || "true".equals(keyShift))+","+(keyAlt != null || "true".equals(keyAlt)); 
+					
+					child = new MutableContentNodeMetadata(keyName == null ? keyLabel : keyName
+							, String.class
+							, "keyset.key."+(keyName == null ? keyLabel : keyName)
+							, null
+							, keyLabel
+							, null 
+							, null
+							, null
+							, URI.create(APPLICATION_SCHEME_ACTION+":/"+keyAction));
+					break;
+				case "app:root"	:	// Top level
+					for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
+						if (((NodeList)document).item(index) instanceof Element) {
+							buildSubtree((Element) ((NodeList)document).item(index),node);
+						}
+					}
+					return;
+				case "app:i18n"	:	// Was processed at the top
+					return;
 				default :
+					System.err.println("Tag="+document.getTagName());
 					return;
 			}
 			for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
-				buildSubtree((Element) ((NodeList)document).item(index),child);
+				if (((NodeList)document).item(index) instanceof Element) {
+					buildSubtree((Element) ((NodeList)document).item(index),child);
+				}
 			}
 			node.addChild(child);
-		}
+//		}
+	}
+
+	private static String getAttribute(final Element document, final String attribute) {
+		final Attr 	attr = document.getAttributeNode(attribute);
+		
+		return attr == null ? null : attr.getValue();
 	}
 }

@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <app:root xmlns:app="http://ui.purelib.chav1961/">
 	<app:i18n location="i18n:prop:chav1961/purelib/i18n/i18n"/>
-	<app:menu id="mainMenu">
+	<app:menu id="mainMenu" keyset="mainMenuKeyset">
 		<app:submenu name="submenu" caption="submenuCaption" tooltip="submenuTooltip">
 			<app:separator/>
 			<app:item name="menuItem1" caption="menuItem1Caption" tooltip="menuItem1Tooltip" action="menuItem1Action"/>
 			<app:builtinSubmenu name="menuItem2" caption="menuItem1Caption" tooltip="menuItem1Tooltip"/>
 		</app:submenu>
 	</app:menu>
+	<app:keyset id="mainMenuKeyset">
+		<app:key code="INSERT" ctrl="true" action="menuItem1Action"/>
+	</app:keyset>
 </app:root>

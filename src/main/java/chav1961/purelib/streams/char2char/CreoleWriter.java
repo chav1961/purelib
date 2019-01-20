@@ -65,6 +65,7 @@ public class CreoleWriter extends Writer {
 		Paragraph, Header1, Header2, Header3, Header4, Header5, Header6,
 		OrderedList1, OrderedList2, OrderedList3, OrderedList4, OrderedList5,
 		UnorderedList1, UnorderedList2, UnorderedList3, UnorderedList4, UnorderedList5,
+		ListMark,
 		LinkRef, ImageRef,
 		HorizontalLine,
 		TableHeader, TableBody, 

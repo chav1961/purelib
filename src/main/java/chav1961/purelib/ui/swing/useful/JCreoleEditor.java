@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JTextPane;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
@@ -15,6 +16,15 @@ import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.ui.HighlightItem;
+import chav1961.purelib.ui.interfacers.FormModel;
+
+/**
+ * <p>This is a swing component for Creole editor with syntax highlighting and paragraph formatting. Use it as usual {@linkplain JTextPane} control.</p>  
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see CreoleWriter 
+ * @see FormModel 
+ * @since 0.0.3
+ */
 
 public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 	private static final long 				serialVersionUID = 1068656384609061286L;
@@ -191,11 +201,12 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.UnorderedList5,sas);
 
-//		sas = new SimpleAttributeSet();
-//		
-//		StyleConstants.setForeground(sas, Color.GREEN);
+		sas = new SimpleAttributeSet();
+		
+		StyleConstants.setForeground(sas, Color.GREEN);
 //		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
-//		StyleConstants.setBold(sas, true);
+		StyleConstants.setBold(sas, true);
+		characterStyles.put(CreoleLexema.ListMark,sas);		
 //		characterStyles.put(CreoleLexema.OrderedList1,sas);		
 //		characterStyles.put(CreoleLexema.OrderedList2,sas);
 //		characterStyles.put(CreoleLexema.OrderedList3,sas);
