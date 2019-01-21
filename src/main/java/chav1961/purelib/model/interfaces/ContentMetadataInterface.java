@@ -6,6 +6,8 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 
 public interface ContentMetadataInterface {
+	String		APPLICATION_SCHEME = "app";	
+	
 	public interface ContentNodeMetadata extends Iterable<ContentNodeMetadata> {
 		String getName();
 		boolean mounted();
@@ -19,7 +21,7 @@ public interface ContentMetadataInterface {
 		URI getRelativeUIPath();
 		URI getLocalizerAssociated();
 		ContentNodeMetadata getParent();
-		int getChildCount();
+		int getChildrenCount();
 	}
 
 	@FunctionalInterface

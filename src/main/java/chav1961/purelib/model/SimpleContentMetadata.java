@@ -9,7 +9,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 
 public class SimpleContentMetadata implements ContentMetadataInterface {
 	private final ContentNodeMetadata	root;
-	
+
 	public SimpleContentMetadata(final ContentNodeMetadata root) {
 		if (root == null) {
 			throw new NullPointerException("Root node can't be null"); 
@@ -51,16 +51,16 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 	}
 
 	@Override
-	public ContentNodeMetadata byUIPath(URI userInterfaceiPath) {
-		if (userInterfaceiPath == null) {
+	public ContentNodeMetadata byUIPath(final URI userInterfacePath) {
+		if (userInterfacePath == null) {
 			throw new NullPointerException("Application path can't be null"); 
 		}
 		else {
 			final ContentNodeMetadata[]	result = new ContentNodeMetadata[1];
 			
-			walkDown((mode,appPath,uiPath,node)->{
+			walkDownInternal((mode,appPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (uiPath.equals(userInterfaceiPath)) {
+					if (uiPath.equals(userInterfacePath)) {
 						result[0] = node;
 						return ContinueMode.STOP;
 					}
@@ -71,7 +71,7 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 				else {
 					return ContinueMode.CONTINUE;
 				}
-			},getRoot().getUIPath());
+			},getRoot());
 			return result[0];
 		}
 	}
@@ -85,7 +85,7 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 			final ContentNodeMetadata	startNode = byUIPath(uiPath);
 			
 			if (startNode != null) {
-				walkDown(walker,startNode);
+				walkDownInternal(walker,startNode);
 			}
 		}
 	}
@@ -107,18 +107,23 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 		return "SimpleContentMetadata [root=" + root + "]";
 	}
 
-	private static ContinueMode walkDown(final ContentWalker walker, final ContentNodeMetadata node) {
+	private static ContinueMode walkDownInternal(final ContentWalker walker, final ContentNodeMetadata node) {
 		final ContinueMode	enterRC = walker.process(NodeEnterMode.ENTER,node.getApplicationPath(),node.getUIPath(),node);
 		ContinueMode		childRC = null;
 		
 		if (enterRC == ContinueMode.CONTINUE) {
-			for (ContentNodeMetadata child : node) {
-				if ((childRC = walkDown(walker,child)) != ContinueMode.CONTINUE) {
-					break;
+			if (node.getChildrenCount() == 0) {
+				childRC = ContinueMode.CONTINUE;
+			}
+			else {
+				for (ContentNodeMetadata child : node) {
+					if ((childRC = walkDownInternal(walker,child)) != ContinueMode.CONTINUE) {
+						break;
+					}
 				}
 			}
 		}
-		final ContinueMode	exitRC = walker.process(NodeEnterMode.ENTER,node.getApplicationPath(),node.getUIPath(),node);
+		final ContinueMode	exitRC = walker.process(NodeEnterMode.EXIT,node.getApplicationPath(),node.getUIPath(),node);
 		
 		if (enterRC == ContinueMode.STOP || exitRC == ContinueMode.STOP || (childRC == null || childRC == ContinueMode.STOP)) {
 			return ContinueMode.STOP;
