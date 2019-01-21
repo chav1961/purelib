@@ -7,9 +7,11 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,9 +38,12 @@ import chav1961.purelib.ui.interfacers.MultiAction;
 public class ContentModelFactory {
 	public static final String		APPLICATION_SCHEME_CLASS = "class";	
 	public static final String		APPLICATION_SCHEME_FIELD = "field";	
-	public static final String		APPLICATION_SCHEME_TOP = "top";	
 	public static final String		APPLICATION_SCHEME_NAVIGATOR = "navigator";	
 	public static final String		APPLICATION_SCHEME_ACTION = "action";	
+
+	private static final String		NAMESPACE_PREFIX = "app";
+	private static final String		NAMESPACE_VALUE = "http://ui.purelib.chav1961/";
+	private static final String		TAG_I18N = NAMESPACE_PREFIX+":i18n";
 	
 	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException {
 		if (clazz == null) {
@@ -96,6 +101,28 @@ public class ContentModelFactory {
 			final DocumentBuilderFactory 	dbFactory = DocumentBuilderFactory.newInstance();
 			final XPathFactory 				xPathfactory = XPathFactory.newInstance();
 			final XPath 					xpath = xPathfactory.newXPath();
+			final NamespaceContext			nsc = new NamespaceContext() {
+												@Override
+												public Iterator<?> getPrefixes(final String namespaceURI) {
+													return null;
+												}
+												
+												@Override
+												public String getPrefix(final String namespaceURI) {
+													return null;
+												}
+												
+												@Override
+												public String getNamespaceURI(final String prefix) {
+													if (prefix.equals(NAMESPACE_PREFIX)) {
+														return NAMESPACE_VALUE;
+													}
+													else {
+														return null;
+													}
+												}
+											};
+			xpath.setNamespaceContext(nsc);			
 			
 			dbFactory.setNamespaceAware(true);
 			dbFactory.setValidating(true);
@@ -107,7 +134,7 @@ public class ContentModelFactory {
 				
 				doc.getDocumentElement().normalize();
 				
-				final String						localizerResource = (String)xpath.compile("/app/i18n/@location").evaluate(doc,XPathConstants.STRING);
+				final String						localizerResource = (String)xpath.compile("//"+TAG_I18N+"/@location").evaluate(doc,XPathConstants.STRING);
 				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("root"
 														, Document.class
 														, "model"
@@ -116,7 +143,7 @@ public class ContentModelFactory {
 														, null 
 														, null
 														, null
-														, URI.create(APPLICATION_SCHEME_TOP+":/"));
+														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"));
 				buildSubtree(doc.getDocumentElement(),root);
 				return new SimpleContentMetadata(root);
 			} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
@@ -188,16 +215,14 @@ public class ContentModelFactory {
 							, itemTooltip 
 							, null
 							, null
-							, URI.create(APPLICATION_SCHEME_ACTION+":/"+itemAction));
+							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+itemAction));
 					break;
 				case "app:separator"		:
-					final String	separatorName = "_";
-					
-					child = new MutableContentNodeMetadata(separatorName
+					child = new MutableContentNodeMetadata("_"
 							, String.class
-							, "navigation.leaf."+separatorName
+							, "navigation.separator"
 							, null
-							, separatorName
+							, "_"
 							, null 
 							, null
 							, null
@@ -217,7 +242,7 @@ public class ContentModelFactory {
 							, builtinTooltip 
 							, null
 							, null
-							, URI.create(APPLICATION_SCHEME_ACTION+":/"+builtinAction));
+							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+builtinAction));
 					break;
 				case "app:keyset"		:
 					final String	keysetName = getAttribute(document,"id");
@@ -270,6 +295,7 @@ public class ContentModelFactory {
 				}
 			}
 			node.addChild(child);
+			child.setParent(node);
 //		}
 	}
 

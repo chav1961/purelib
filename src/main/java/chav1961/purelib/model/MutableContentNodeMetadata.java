@@ -112,7 +112,7 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	@Override
 	public URI getUIPath() {
 		if (getParent() == null) {
-			return URI.create("ui:/").resolve(getRelativeUIPath());
+			return URI.create(ContentMetadataInterface.UI_SCHEME+":/").resolve(getRelativeUIPath());
 		}
 		else {
 			final URI	parentPath = getParent().getUIPath(); 

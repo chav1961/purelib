@@ -6,6 +6,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 
 public interface ContentMetadataInterface {
+	String		UI_SCHEME = "ui";	
 	String		APPLICATION_SCHEME = "app";	
 	
 	public interface ContentNodeMetadata extends Iterable<ContentNodeMetadata> {
