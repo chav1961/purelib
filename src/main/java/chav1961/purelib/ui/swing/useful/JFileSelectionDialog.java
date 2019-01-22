@@ -572,6 +572,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 						dlg.setVisible(false);
 						dlg.dispose();
 					}, filter);
+			dlg.setTitle((options & OPTIONS_FOR_OPEN) != 0 ? localizer.getValue(CAPTION_OPEN) : localizer.getValue(CAPTION_SAVE));
 			dlg.getContentPane().add(select);
 			dlg.pack();
 			dlg.setLocationRelativeTo(window);
@@ -611,6 +612,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 						dlg.setVisible(false);
 						dlg.dispose();
 					}, filter);
+			dlg.setTitle((options & OPTIONS_FOR_OPEN) != 0 ? localizer.getValue(CAPTION_OPEN) : localizer.getValue(CAPTION_SAVE));
 			dlg.getContentPane().add(select);
 			dlg.pack();
 			dlg.setLocationRelativeTo(window);

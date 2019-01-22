@@ -1,12 +1,15 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -17,6 +20,8 @@ import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
+import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
+import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 
@@ -66,11 +71,13 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private final JProgressBar		stage = new JProgressBar();
 	private final JProgressBar		step = new JProgressBar();
 	private final JProgressBar		common = new JProgressBar();
-	private final JButton			historyView = new JButton("V");
-	private final JButton			cancelStaged = new JButton("C");
-	private final JButton			cancelCommon = new JButton("C");
+	private final Icon				viewIcon = new ImageIcon(this.getClass().getResource("levelUp.png"));
+	private final JButton			historyView = new JButton(viewIcon);
+	private final Icon				cancelIcon = new ImageIcon(this.getClass().getResource("delete.png"));
+	private final JButton			cancelStaged = new JButton(cancelIcon);
+	private final JButton			cancelCommon = new JButton(cancelIcon);
 	private final JPanel			rightPanel = new JPanel(new CardLayout());
-	private final Object			currentCallbackSync = new Object();
+	private final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
 	private int 					currentState = STATE_PLAIN; 
 	private volatile CancelCallback	currentCallback = null;
 	private volatile boolean		canceled = false;
@@ -175,7 +182,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	 * @param callback. Null turned off canceling
 	 */
 	public void assignCancelCallback(final CancelCallback callback) {
-		synchronized (currentCallbackSync) {
+		try(final Locker item = locker.lock(false)) {
 			this.currentCallback = callback;
 		}
 	}
@@ -439,6 +446,10 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		final SpringLayout	springCommon = new SpringLayout();
 		final JPanel		commonPanel = new JPanel(springCommon);
 		
+		historyView.setPreferredSize(new Dimension(viewIcon.getIconWidth()+2,viewIcon.getIconHeight()+2));
+		cancelCommon.setPreferredSize(new Dimension(cancelIcon.getIconWidth()+2,cancelIcon.getIconHeight()+2));
+		cancelStaged.setPreferredSize(new Dimension(cancelIcon.getIconWidth()+2,cancelIcon.getIconHeight()+2));
+		
 		commonPanel.add(common);
 		commonPanel.add(cancelCommon);
 		
@@ -468,6 +479,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		rightPanel.add(commonPanel, COMMON_PANEL);
 		rightPanel.add(stagedPanel, STAGED_PANEL);
 		
+		setPreferredSize(new Dimension(20,20));
 		setLayout(spring);
 
 		if (maxCapacity > 0) {
@@ -500,7 +512,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		
 		cancelCommon.addActionListener((e)->{
-			synchronized (currentCallbackSync) {
+			try(final Locker item = locker.lock(true)) {
 				if (currentCallback != null) {
 					canceled = currentCallback.cancel(currentState == STATE_COMMON ? 0 : stage.getValue()
 								,currentState == STATE_COMMON ? common.getMaximum() : step.getMaximum()
@@ -509,7 +521,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			}
 		});
 		cancelStaged.addActionListener((e)->{
-			synchronized (currentCallbackSync) {
+			try(final Locker item = locker.lock(true)) {
 				if (currentCallback != null) {
 					canceled = currentCallback.cancel(currentState == STATE_COMMON ? 0 : stage.getValue()
 								,currentState == STATE_COMMON ? common.getMaximum() : step.getMaximum()
@@ -583,6 +595,28 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			}
 			if (dump != null) {
 				dump.message(level, throwable, text);
+			}
+			switch (level) {
+				case debug	:
+					state.setText("<html><body><font color='gray'>"+text+"</font></body></html>");
+					break;
+				case error	:
+					state.setText("<html><body><font color='red'><b>"+text+"</b></font></body></html>");
+					break;
+				case info	:
+					state.setText("<html><body><font color='black'>"+text+"</font></body></html>");
+					break;
+				case severe	:
+					state.setText("<html><body><font color='red'><b><u>"+text+"</u></b></font></body></html>");
+					break;
+				case trace	:
+					state.setText("<html><body><font color='lightgray'>"+text+"</font></body></html>");
+					break;
+				case warning:
+					state.setText("<html><body><font color='blue'>"+text+"</font></body></html>");
+					break;
+				default:
+					break;
 			}
 		}
 	}

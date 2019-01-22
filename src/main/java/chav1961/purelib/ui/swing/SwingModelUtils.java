@@ -8,6 +8,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -87,6 +88,9 @@ public class SwingModelUtils {
 		} 
 		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.leaf.")) {
 			menu.add(new JMenuItemWithMeta(node));
+		}
+		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.separator")) {
+			menu.add(new JSeparator());
 		}
 	}
 
