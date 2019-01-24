@@ -14,7 +14,7 @@ import chav1961.purelib.basic.AndOrTree;
  * @see AndOrTree
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1
+ * @since 0.0.1 last update 0.0.3
  */
 
 public interface SyntaxTreeInterface<T> {
@@ -208,4 +208,15 @@ public interface SyntaxTreeInterface<T> {
 	 * <p>Clear tree content</p>
 	 */
 	void clear();
+	
+	/**
+	 * <p>Push default tree into current one. Default tree will be used for search when no data found in the search-related methods. Default tree is always read-only.</p>
+	 * @param defaultTree tree to use as default. Can't be null
+	 */
+	default void pushDefault(SyntaxTreeInterface<T> defaultTree) {}
+	
+	/**
+	 * <p>Pop default tree from current one.</p>
+	 */
+	default void popDefault() {}
 }

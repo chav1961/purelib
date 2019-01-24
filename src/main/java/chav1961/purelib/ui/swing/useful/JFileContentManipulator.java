@@ -12,6 +12,7 @@ import java.awt.Dialog;
 import java.awt.event.ActionListener;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
@@ -43,6 +44,8 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
  * @since 0.0.3
  */
 public class JFileContentManipulator implements Closeable, LocaleChangeListener {
+	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
+	private static final String				UNSAVED_BODY = "JFileContentManipulator.unsaved.body";
 	private static final ProgressIndicator	DUMMY = new ProgressIndicator() {
 												@Override public void start(String caption) {}
 												@Override public void start(String caption, long total) {}
@@ -135,8 +138,17 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	@Override
 	public void close() throws IOException {
 		if (wasChanged) {
-			if (saveFile()) {
-				clearModificationFlag();
+			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_BODY, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+					case  JOptionPane.YES_OPTION :
+						if (saveFile()) {
+							clearModificationFlag();
+						}
+						break;
+					case  JOptionPane.NO_OPTION : case  JOptionPane.CANCEL_OPTION :
+						break;
+				}
+			} catch (LocalizationException e) {
+				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
 	}
@@ -158,8 +170,19 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public boolean newFile(final ProgressIndicator progress) throws IOException {
 		if (wasChanged) {
-			if (!saveFile(progress)) {
-				return false;
+			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_BODY, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+					case  JOptionPane.YES_OPTION :
+						if (!saveFile(progress)) {
+							return false;
+						}
+						break;
+					case  JOptionPane.NO_OPTION : 
+						break;
+					case  JOptionPane.CANCEL_OPTION :
+						return false;
+				}
+			} catch (LocalizationException e) {
+				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
 		try(final OutputStream	os = getterOut.getContent()) {
@@ -186,8 +209,19 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public boolean openFile(final ProgressIndicator progress) throws IOException {
 		if (wasChanged) {
-			if (!saveFile(progress)) {
-				return false;
+			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_BODY, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+					case  JOptionPane.YES_OPTION :
+						if (!saveFile(progress)) {
+							return false;
+						}
+						break;
+					case  JOptionPane.NO_OPTION : 
+						break;
+					case  JOptionPane.CANCEL_OPTION :
+						return false;
+				}
+			} catch (LocalizationException e) {
+				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
 		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS)) {
