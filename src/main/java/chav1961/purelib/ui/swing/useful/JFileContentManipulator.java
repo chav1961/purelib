@@ -1,5 +1,8 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.awt.Dialog;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowListener;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -8,10 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Locale;
 
-import java.awt.Dialog;
-import java.awt.event.ActionListener;
-
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
@@ -138,7 +137,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	@Override
 	public void close() throws IOException {
 		if (wasChanged) {
-			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_BODY, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 					case  JOptionPane.YES_OPTION :
 						if (saveFile()) {
 							clearModificationFlag();
@@ -170,7 +169,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public boolean newFile(final ProgressIndicator progress) throws IOException {
 		if (wasChanged) {
-			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_BODY, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 					case  JOptionPane.YES_OPTION :
 						if (!saveFile(progress)) {
 							return false;
@@ -209,7 +208,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public boolean openFile(final ProgressIndicator progress) throws IOException {
 		if (wasChanged) {
-			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_BODY, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 					case  JOptionPane.YES_OPTION :
 						if (!saveFile(progress)) {
 							return false;

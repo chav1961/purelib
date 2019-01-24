@@ -2,19 +2,27 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
+import javax.swing.table.DefaultTableModel;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -24,6 +32,7 @@ import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
  * <p>This is a swing component for state string at the bottom of the application window. It can show any messages, view short history of them and indicate some
@@ -38,6 +47,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 
 public class JStateString extends JPanel implements LoggerFacade, ProgressIndicator, LocaleChangeListener {
 	private static final long 		serialVersionUID = 5199220144621261938L;
+	private static final String		STATESTRING_HISTORY = "JStateString.history";
 	private static final Object[]	EMPTY_LIST = new Object[0];
 	private static final String		COMMON_PANEL = "commonPanel";
 	private static final String		STAGED_PANEL = "stagedPanel";
@@ -78,6 +88,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private final JButton			cancelCommon = new JButton(cancelIcon);
 	private final JPanel			rightPanel = new JPanel(new CardLayout());
 	private final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
+	private final HistoryTableModel	model;
 	private int 					currentState = STATE_PLAIN; 
 	private volatile CancelCallback	currentCallback = null;
 	private volatile boolean		canceled = false;
@@ -93,6 +104,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else {
 			this.localizer = localizer;
+			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = 0;
 			this.dump = null;
 			prepareControls();
@@ -116,6 +128,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else {
 			this.localizer = localizer;
+			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = historyDepth;
 			this.dump = null;
 			prepareControls();
@@ -139,6 +152,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else {
 			this.localizer = localizer;
+			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = 0;
 			this.dump = dumpedTo;
 			prepareControls();
@@ -165,6 +179,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else {
 			this.localizer = localizer;
+			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = historyDepth;
 			this.dump = dumpedTo;
 			prepareControls();
@@ -547,8 +562,23 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 	
 	private void viewHistory() {
-		// TODO Auto-generated method stub
+		final JTable		table = new JTable(model);
+		final Point			location = historyView.getLocationOnScreen();
+		final JScrollPane	pane = new JScrollPane(table);
+		final Dimension		parentSize = getParent() != null ? getParent().getSize() : new Dimension(400,200); 
 		
+		pane.setPreferredSize(new Dimension(parentSize.width/2,parentSize.height/2));
+		
+		final Popup 		window = PopupFactory.getSharedInstance().getPopup(this.getParent(),pane,location.x-parentSize.width/2,location.y-parentSize.height/2);
+
+		table.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).put(SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
+		table.getActionMap().put(SwingUtils.ACTION_EXIT,new AbstractAction() {private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				window.hide();
+			}
+		});
+		window.show();
 	}
 
 	private static class Message {
@@ -617,6 +647,65 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 					break;
 				default:
 					break;
+			}
+		}
+	}
+
+	private static class HistoryTableModel extends DefaultTableModel implements LocaleChangeListener {
+		private static final long serialVersionUID = 8285270537680442874L;
+		
+		private final Localizer 		localizer;
+		private final List<Message> 	history;
+		
+		HistoryTableModel(final Localizer localizer, final List<Message> history) {
+			this.localizer = localizer;
+			this.history = history;
+		}
+
+		@Override
+		public void localeChanged(Locale oldLocale, Locale newLocale) throws LocalizationException {
+			fireTableStructureChanged();
+		}
+		
+		@Override
+		public int getRowCount() {
+			if (history != null) {
+				synchronized (history) {
+					return history.size();
+				}
+			}
+			else {
+				return 0;
+			}
+		}
+
+		@Override
+		public int getColumnCount() {
+			return 1;
+		}
+
+		@Override
+		public String getColumnName(int columnIndex) {
+			try{return localizer.getValue(STATESTRING_HISTORY);
+			} catch (LocalizationException e) {
+				return STATESTRING_HISTORY;
+			}
+		}
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			return String.class;
+		}
+
+		@Override
+		public boolean isCellEditable(int rowIndex, int columnIndex) {
+			return false;
+		}
+
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			synchronized (history) {
+				return history.get(rowIndex).message;
 			}
 		}
 	}

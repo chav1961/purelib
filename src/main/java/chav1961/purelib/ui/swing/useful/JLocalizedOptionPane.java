@@ -78,38 +78,22 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 	}
 
 	private static Icon extractIcon(final Icon[] icons, final int options) {
-		if ((options & JOptionPane.ERROR_MESSAGE) != 0) {
-			return icons[0];
-		}
-		else if ((options & JOptionPane.WARNING_MESSAGE) != 0) {
-			return icons[1];
-		}
-		else if ((options & JOptionPane.QUESTION_MESSAGE) != 0) {
-			return icons[2];
-		}
-		else if ((options & JOptionPane.INFORMATION_MESSAGE) != 0) {
-			return icons[3];
-		}
-		else {
-			return null;
+		switch (options) {
+			case JOptionPane.ERROR_MESSAGE		: return icons[0];
+			case JOptionPane.WARNING_MESSAGE 	: return icons[1];
+			case JOptionPane.QUESTION_MESSAGE	: return icons[2];
+			case JOptionPane.INFORMATION_MESSAGE: return icons[3];
+			default : return null;
 		}
 	}
 
 	private static Object[] buildButtons(final int options, final Localizer localizer) throws LocalizationException {
-		if ((options & JOptionPane.DEFAULT_OPTION) != 0) {
-			return new String[]{localizer.getValue(LOCALIZED_PANE_OK)};
-		}
-		else if ((options & JOptionPane.YES_NO_OPTION) != 0) {
-			return new String[]{localizer.getValue(LOCALIZED_PANE_YES),localizer.getValue(LOCALIZED_PANE_NO)};
-		}
-		else if ((options & JOptionPane.YES_NO_CANCEL_OPTION) != 0) {
-			return new String[]{localizer.getValue(LOCALIZED_PANE_YES),localizer.getValue(LOCALIZED_PANE_NO),localizer.getValue(LOCALIZED_PANE_CANCEL)};
-		}
-		else if ((options & JOptionPane.OK_CANCEL_OPTION) != 0) {
-			return new String[]{localizer.getValue(LOCALIZED_PANE_OK),localizer.getValue(LOCALIZED_PANE_CANCEL)};
-		}
-		else {
-			return new String[]{localizer.getValue(LOCALIZED_PANE_OK)};
+		switch (options) {
+			case JOptionPane.DEFAULT_OPTION			: return new String[]{localizer.getValue(LOCALIZED_PANE_OK)};
+			case JOptionPane.YES_NO_OPTION			: return new String[]{localizer.getValue(LOCALIZED_PANE_YES),localizer.getValue(LOCALIZED_PANE_NO)};
+			case JOptionPane.YES_NO_CANCEL_OPTION	: return new String[]{localizer.getValue(LOCALIZED_PANE_YES),localizer.getValue(LOCALIZED_PANE_NO),localizer.getValue(LOCALIZED_PANE_CANCEL)};
+			case JOptionPane.OK_CANCEL_OPTION		: return new String[]{localizer.getValue(LOCALIZED_PANE_OK),localizer.getValue(LOCALIZED_PANE_CANCEL)};
+			default : return new String[]{localizer.getValue(LOCALIZED_PANE_OK)}; 
 		}
 	}
 }
