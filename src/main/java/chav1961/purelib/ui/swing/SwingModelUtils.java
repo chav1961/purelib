@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Locale;
 
 import javax.swing.JComponent;
@@ -9,6 +10,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
 
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -87,7 +89,9 @@ public class SwingModelUtils {
 			menu.add(submenu);
 		} 
 		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.leaf.")) {
-			menu.add(new JMenuItemWithMeta(node));
+			final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
+			
+			menu.add(item);
 		}
 		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.separator")) {
 			menu.add(new JSeparator());
@@ -164,6 +168,12 @@ public class SwingModelUtils {
 		private JMenuItemWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
 			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
+			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
+				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+					this.setAccelerator(KeyStroke.getKeyStroke(item.getLabelId()));
+					break;
+				}
+			}
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();

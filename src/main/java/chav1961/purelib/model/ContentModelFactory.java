@@ -145,7 +145,11 @@ public class ContentModelFactory {
 														, null
 														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"));
 				buildSubtree(doc.getDocumentElement(),root);
-				return new SimpleContentMetadata(root);
+				
+				final SimpleContentMetadata result = new SimpleContentMetadata(root);
+				
+				root.setOwner(result);
+				return result;
 			} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
 				throw new PreparationException("Error preparing xml metadata: "+e.getLocalizedMessage(),e);
 			}
@@ -264,17 +268,17 @@ public class ContentModelFactory {
 					final String	keyCtrl = getAttribute(document,"ctrl");
 					final String	keyShift = getAttribute(document,"shift");
 					final String	keyAlt = getAttribute(document,"alt");
-					final String	keyLabel = keyCode+","+(keyCtrl != null || "true".equals(keyCtrl))+","+(keyShift != null || "true".equals(keyShift))+","+(keyAlt != null || "true".equals(keyAlt)); 
+					final String	keyLabel = (keyCtrl != null || "true".equals(keyCtrl) ? "ctrl " : "")+(keyShift != null || "true".equals(keyShift) ? "shift " : "")+(keyAlt != null || "true".equals(keyAlt) ? "alt " : "") + keyCode; 
 					
 					child = new MutableContentNodeMetadata(keyName == null ? keyLabel : keyName
 							, String.class
-							, "keyset.key."+(keyName == null ? keyLabel : keyName)
+							, "keyset.key."+(keyName == null ? keyLabel.replace(' ','_') : keyName)
 							, null
 							, keyLabel
 							, null 
 							, null
 							, null
-							, URI.create(APPLICATION_SCHEME_ACTION+":/"+keyAction));
+							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+keyAction));
 					break;
 				case "app:root"	:	// Top level
 					for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {

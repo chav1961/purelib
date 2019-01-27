@@ -10,16 +10,24 @@ import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 
-class PseudoConsole extends JComponent {
+import chav1961.purelib.streams.char2char.CreoleWriter;
+import chav1961.purelib.ui.interfacers.FormManager;
+import chav1961.purelib.ui.interfacers.FormModel;
+
+/**
+ * <p>This class emulates old-style alphanumeric screen.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
+public class PseudoConsole extends JComponent {
 	private static final long 	serialVersionUID = -5613033288319056138L;
-	private static final int	CUBE_X = 8;
-	private static final int	CUBE_Y = 16;
 	
 	private final int			width, height;
 	private final char[][]		content;
 	private final Color[][][]	attributes;
-	private final Font			font = new Font("Courier",Font.PLAIN,10);
+	private final Font			font = new Font("Courier",Font.PLAIN,1);
 	
 	public PseudoConsole(final int width, final int height) {
 		if (width <= 0) {
@@ -33,6 +41,8 @@ class PseudoConsole extends JComponent {
 			this.height = height;
 			this.content = new char[width][height];
 			this.attributes = new Color[width][height][2];
+			clear(Color.GREEN,Color.BLACK);
+			writeContent(1,1,'*');
 		}
 	}
 
@@ -50,7 +60,7 @@ class PseudoConsole extends JComponent {
 			throw new IllegalArgumentException("Colors attribute contains null values "+Arrays.toString(colors));
 		}
 		else {
-			attributes[x][y] = colors.clone();
+			attributes[x-1][y-1] = colors.clone();
 			refresh();
 			return this;
 		}
@@ -75,15 +85,15 @@ class PseudoConsole extends JComponent {
 		else if (rect.y < 1 || rect.y > width) {
 			throw new IllegalArgumentException("Rectangle Y coordinate ["+rect.y+"] out of range 1.."+height);
 		}
-		else if (rect.width < 1 || rect.x+rect.width > width) {
+		else if (rect.width < 1 || rect.x+rect.width > width + 1) {
 			throw new IllegalArgumentException("Rectangle X+width ["+(rect.x+rect.width)+"] out of range 1.."+width);
 		}
-		else if (rect.height < 1 || rect.y + rect.height > height) {
+		else if (rect.height < 1 || rect.y + rect.height > height + 1) {
 			throw new IllegalArgumentException("Rectangle Y+height ["+(rect.y+rect.height)+"] out of range 1.."+height);
 		}
 		else {
-			for (int x = rect.x; x <= rect.x+rect.width; x++) {
-				for (int y = rect.y; y <= rect.y+rect.height; y++) {
+			for (int x = rect.x; x < rect.x+rect.width; x++) {
+				for (int y = rect.y; y < rect.y+rect.height; y++) {
 					writeAttribute(x,y,colors);
 				}
 			}
@@ -145,11 +155,11 @@ class PseudoConsole extends JComponent {
 		if (x < 1 || x > width) {
 			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+width);
 		}
-		else if (y < 1 || y > width) {
+		else if (y < 1 || y > height) {
 			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+height);
 		}
 		else {
-			this.content[x][y] = content;
+			this.content[x-1][y-1] = content;
 			refresh();
 			return this;
 		}
@@ -186,8 +196,8 @@ class PseudoConsole extends JComponent {
 		else if (content.length > 0) {
 			int		index = 0;
 			
-loop:		for (int x = rect.x; x <= rect.x+rect.width; x++) {
-				for (int y = rect.y; y <= rect.y+rect.height; y++) {
+loop:		for (int x = rect.x; x < rect.x+rect.width; x++) {
+				for (int y = rect.y; y < rect.y+rect.height; y++) {
 					if (index < content.length) {
 						writeContent(x,y,content[index++]);
 					}
@@ -278,22 +288,35 @@ loop:		for (int x = rect.x; x <= rect.x+rect.width; x++) {
 	@Override
 	protected void paintComponent(final Graphics g) {
 	    final Graphics2D		g2d = (Graphics2D)g;
-	    final AffineTransform	at = new AffineTransform();
+	    final AffineTransform	oldAt = g2d.getTransform();
+	    final Color				oldColor = g2d.getColor();
+	    final Font				oldFont = g2d.getFont();
+	    final AffineTransform	at = new AffineTransform(oldAt);
 	    final char[]			temp = new char[1];
 	    
-	    at.scale(CUBE_X*(getWidth()/width),CUBE_Y*(getHeight()/height));
+	    at.scale(1.0*getWidth()/width,1.0*getHeight()/height);
 	    g2d.setTransform(at);
-	    g2d.setFont(font);
 	    
+	    for (int indexX = 0; indexX < width; indexX++) {
+		    for (int indexY = 0; indexY < height; indexY++) {
+		    	g2d.setColor(attributes[indexX][indexY][1]);
+		    	g2d.fillRect(indexX,indexY,1,1);
+		    }
+	    }
+	    
+	    g2d.setFont(font);
+	    at.translate(0.5,1);
+	    g2d.setTransform(at);
 	    for (int indexX = 0; indexX < width; indexX++) {
 		    for (int indexY = 0; indexY < height; indexY++) {
 		    	temp[0] = content[indexX][indexY];
 		    	g2d.setColor(attributes[indexX][indexY][0]);
-		    	g2d.setBackground(attributes[indexX][indexY][0]);
-		    	g2d.fillRect(CUBE_X*indexX,CUBE_Y*indexY,CUBE_X,CUBE_Y);
-		    	g2d.drawChars(temp,0,1,CUBE_X*indexX,CUBE_Y*indexY);
+		    	g2d.drawChars(temp,0,1,indexX,indexY);
 		    }
 	    }
+	    g2d.setFont(oldFont);
+	    g2d.setColor(oldColor);
+	    g2d.setTransform(oldAt);
 	}  
 
 	private void refresh() {

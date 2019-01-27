@@ -21,6 +21,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -1172,6 +1174,44 @@ public abstract class SwingUtils {
 			dialog.setLocation(location);
 			dialog.setSize(size);
 			dialog.setPreferredSize(size);
+		}
+	}
+	
+	@FunctionalInterface
+	public interface ExitMethodCallback {
+		void processExit() throws Exception;
+	}
+
+	/**
+	 * <p>Assign exit method for the window when pressed close button on the title</p>
+	 * @param frame window to assign method to
+	 * @param callback callback to execute
+	 */
+	public static void assignExitMethod4MainWindow(final JFrame frame, final ExitMethodCallback callback) {
+		if (frame == null) {
+			throw new NullPointerException("Window to assign exit method can't be null");
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Callback to assign to window can't be null");
+		}
+		else {
+			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			frame.addWindowListener(new WindowListener() {
+				@Override public void windowOpened(WindowEvent e) {}
+				@Override public void windowIconified(WindowEvent e) {}
+				@Override public void windowDeiconified(WindowEvent e) {}
+				@Override public void windowDeactivated(WindowEvent e) {}
+				@Override public void windowClosed(WindowEvent e) {}
+				@Override public void windowActivated(WindowEvent e) {}
+				
+				@Override 
+				public void windowClosing(WindowEvent e) {
+					try{callback.processExit();
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}				
+			});
 		}
 	}
 	

@@ -1,6 +1,8 @@
 package chav1961.purelib.model;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -24,28 +26,25 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 	}
 
 	@Override
-	public ContentNodeMetadata byApplicationPath(final URI applicationPath) {
+	public ContentNodeMetadata[] byApplicationPath(final URI applicationPath) {
 		if (applicationPath == null) {
 			throw new NullPointerException("Application path can't be null"); 
 		}
 		else {
-			final ContentNodeMetadata[]	result = new ContentNodeMetadata[1];
+			final List<ContentNodeMetadata>	result = new ArrayList<>();
 			
 			walkDown((mode,appPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (appPath.equals(applicationPath)) {
-						result[0] = node;
-						return ContinueMode.STOP;
+					if (applicationPath.equals(appPath)) {
+						result.add(node);
 					}
-					else {
-						return ContinueMode.CONTINUE;
-					}
+					return ContinueMode.CONTINUE;
 				}
 				else {
 					return ContinueMode.CONTINUE;
 				}
 			},getRoot().getUIPath());
-			return result[0];
+			return result.toArray(new ContentNodeMetadata[result.size()]);
 		}
 	}
 

@@ -23,6 +23,7 @@ public interface ContentMetadataInterface {
 		URI getLocalizerAssociated();
 		ContentNodeMetadata getParent();
 		int getChildrenCount();
+		ContentMetadataInterface getOwner();
 	}
 
 	@FunctionalInterface
@@ -31,7 +32,7 @@ public interface ContentMetadataInterface {
 	}
 	
 	ContentNodeMetadata getRoot();
-	ContentNodeMetadata byApplicationPath(URI applicationPath);
+	ContentNodeMetadata[] byApplicationPath(URI applicationPath);
 	ContentNodeMetadata byUIPath(URI uiPath);
 
 	void walkDown(ContentWalker walker, URI uiPath);

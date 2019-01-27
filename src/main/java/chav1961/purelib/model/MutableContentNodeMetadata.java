@@ -11,13 +11,14 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 
 public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private final List<ContentNodeMetadata>	children = new ArrayList<>();
-	private final String		name;
-	private final Class<?>		type;
-	private final String		labelId, tooltipId, helpId, formatAssociated, relativeUIPath;
-	private final URI			localizerAssociated, applicationPath;
+	private final String				name;
+	private final Class<?>				type;
+	private final String				labelId, tooltipId, helpId, formatAssociated, relativeUIPath;
+	private final URI					localizerAssociated, applicationPath;
 
-	private ContentNodeMetadata	parent = null;
-	private boolean 			mounted = false;	
+	private ContentMetadataInterface	owner = null;
+	private ContentNodeMetadata			parent = null;
+	private boolean 					mounted = false;	
 	
 	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final String formatAssociated, final URI applicationPath) {
 		if (name == null || name.isEmpty()) {
@@ -135,6 +136,19 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	public int getChildrenCount() {
 		return children.size();
 	}
+
+	@Override
+	public ContentMetadataInterface getOwner() {
+		if (owner != null) {
+			return owner;
+		}
+		else if (parent != null) {
+			return parent.getOwner();
+		}
+		else {
+			return null;
+		}
+	}
 	
 	protected void setMounted(final boolean mounted) {
 		this.mounted = mounted;
@@ -152,6 +166,10 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 		this.parent = parent;
 	}
 
+	protected void setOwner(final ContentMetadataInterface owner) {
+		this.owner = owner;
+	}
+	
 	@Override
 	public String toString() {
 		return "MutableContentNodeMetadata [children=" + children + ", name=" + name + ", type=" + type + ", labelId="
@@ -159,6 +177,4 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 				+ ", relativeUIPath=" + relativeUIPath + ", applicationPath=" + applicationPath + ", mounted=" + mounted
 				+ "]";
 	}
-	
-	
 }
