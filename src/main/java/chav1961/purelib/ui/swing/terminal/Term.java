@@ -32,9 +32,13 @@ class Term extends PseudoConsole implements Closeable {
 	private int						x = 1, y = 1, escaping = 0;
 	private boolean					on = false, blinkNow = false;
 	private Color[]					colors = new Color[]{Color.GREEN,Color.BLACK};
-	
+
 	public Term(){
-		super(80,25);
+		this(80,25);
+	}
+	
+	public Term(final int width, final int height){
+		super(width,height);
 		t.schedule(tt,BLINK_INTERVAL,BLINK_INTERVAL);
 	}
 

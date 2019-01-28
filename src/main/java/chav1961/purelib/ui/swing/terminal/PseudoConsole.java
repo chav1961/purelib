@@ -23,6 +23,10 @@ import chav1961.purelib.ui.interfacers.FormModel;
  */
 public class PseudoConsole extends JComponent {
 	private static final long 	serialVersionUID = -5613033288319056138L;
+
+//	U+2500 - U+257F - символы рамок
+//	U+2580 - U+259F - символы заполнения
+	
 	
 	private final int			width, height;
 	private final char[][]		content;

@@ -328,9 +328,6 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 	}
 	
 	
-//	U+2500 - U+257F - символы рамок
-//	U+2580 - U+259F - символы заполнения
-	
 	private static Dimension calculatePairSize(final Component label, final Component content, final int minContentWidth) {
 		final Dimension	labelSize = extractSize(label), contentSize = extractSize(content);
 		int				totalHeight = Math.max(labelSize.height,contentSize.height);
