@@ -1,6 +1,7 @@
 package chav1961.purelib.model;
 
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -26,7 +27,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
@@ -45,51 +49,52 @@ public class ContentModelFactory {
 	private static final String		NAMESPACE_VALUE = "http://ui.purelib.chav1961/";
 	private static final String		TAG_I18N = NAMESPACE_PREFIX+":i18n";
 	
-	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException {
+	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (clazz == null) {
 			throw new NullPointerException("Clazz to build model for can't be null"); 
 		}
+		else if (!clazz.isAnnotationPresent(LocaleResource.class)) {
+			throw new IllegalArgumentException("Class ["+clazz+"] is not annotated with @LocaleResource");
+		}
 		else {
-			final String			localizerResource = clazz.isAnnotationPresent(LocaleResourceLocation.class) ? clazz.getAnnotation(LocaleResourceLocation.class).value() : null;
-			final LocaleResource	localeResource = clazz.getAnnotation(LocaleResource.class);
-			final List<Action>		actions = new ArrayList<>();
+			final URI				localizerResource = clazz.isAnnotationPresent(LocaleResourceLocation.class) ? URI.create(clazz.getAnnotation(LocaleResourceLocation.class).value()) : null;
 			final List<Field>		fields = new ArrayList<>();
-			
-			if (clazz.isAnnotationPresent(MultiAction.class)) {
-				for (Action item : clazz.getAnnotation(MultiAction.class).value()) {
-					actions.add(item);
-				}
-			}
-			else if (clazz.isAnnotationPresent(Action.class)) {
-				actions.add(clazz.getAnnotation(Action.class));
-			}
-			collectFields(clazz,fields);
-			
+			final LocaleResource	localeResource = clazz.getAnnotation(LocaleResource.class);
 			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(clazz.getSimpleName()
 														, clazz
 														, clazz.getCanonicalName()
-														, localizerResource == null ? null : URI.create(localizerResource)
-														, localeResource != null ? localeResource.value() : clazz.getSimpleName()
-														, localeResource != null ? localeResource.tooltip() : null 
-														, localeResource != null ? localeResource.help() : null
+														, localizerResource
+														, localeResource.value()
+														, localeResource.tooltip() 
+														, localeResource.help()
 														, null
-														, URI.create(APPLICATION_SCHEME_CLASS+":/"+clazz.getCanonicalName()));
-			for (Field f : fields) {
-				final Class<?>			type = f.getType();
-				final LocaleResource	fieldLocaleResource = f.getAnnotation(LocaleResource.class);
-				
-				root.addChild(new MutableContentNodeMetadata(clazz.getSimpleName()
-								, type
-								, type.getCanonicalName()
-								, null
-								, fieldLocaleResource.value()
-								, fieldLocaleResource.tooltip() 
-								, fieldLocaleResource.help()
-								, f.getAnnotation(Format.class).value()
-								, URI.create(APPLICATION_SCHEME_FIELD+":/"+clazz.getCanonicalName()+"/"+f.getName()+":"+APPLICATION_SCHEME_CLASS+":/"+type.getCanonicalName()))
-				);
+														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+APPLICATION_SCHEME_CLASS+":/"+clazz.getCanonicalName()));
+			
+			collectFields(clazz,fields);
+			if (fields.size() == 0) {
+				throw new IllegalArgumentException("Class ["+clazz+"] doesn't contain any fields annotated with @LocaleResource or @Format");
 			}
-			return new SimpleContentMetadata(root);
+			else {
+				for (Field f : fields) {
+					final Class<?>			type = f.getType();
+					final LocaleResource	fieldLocaleResource = f.getAnnotation(LocaleResource.class);
+					
+					root.addChild(new MutableContentNodeMetadata(clazz.getSimpleName()+"."+f.getName()
+									, type
+									, type.getCanonicalName()
+									, null
+									, fieldLocaleResource.value()
+									, fieldLocaleResource.tooltip() 
+									, fieldLocaleResource.help()
+									, f.isAnnotationPresent(Format.class) ? f.getAnnotation(Format.class).value() : null
+									, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+APPLICATION_SCHEME_FIELD+":/"+clazz.getCanonicalName()+"/"+f.getName()))
+					);
+				}
+				if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
+					collectActions(clazz,root);
+				}
+				return new SimpleContentMetadata(root);
+			}
 		}
 	}
 
@@ -160,17 +165,6 @@ public class ContentModelFactory {
 		return null;
 	}
 	
-	private static void collectFields(final Class<?> clazz, final List<Field> fields) {
-		if (clazz != null) {
-			for (Field f : clazz.getDeclaredFields()) {
-				if (f.isAnnotationPresent(LocaleResource.class) || f.isAnnotationPresent(Format.class)) {
-					fields.add(f);
-				}
-			}
-			collectFields(clazz.getSuperclass(),fields);
-		}		
-	}
-
 	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) {
 		MutableContentNodeMetadata	child;
 		
@@ -308,4 +302,40 @@ public class ContentModelFactory {
 		
 		return attr == null ? null : attr.getValue();
 	}
+
+	private static void collectFields(final Class<?> clazz, final List<Field> fields) {
+		if (clazz != null) {
+			for (Field f : clazz.getDeclaredFields()) {
+				if (f.isAnnotationPresent(LocaleResource.class) || f.isAnnotationPresent(Format.class)) {
+					fields.add(f);
+				}
+			}
+			collectFields(clazz.getSuperclass(),fields);
+		}		
+	}
+
+	private static void collectActions(final Class<?> clazz, final MutableContentNodeMetadata root) throws IllegalArgumentException, NullPointerException, SyntaxException, LocalizationException, ContentException {
+		if (clazz != null) {
+			if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
+				for (Action item : clazz.isAnnotationPresent(MultiAction.class) 
+								 	? clazz.getAnnotation(MultiAction.class).value() 
+								 	: new Action[] {clazz.getAnnotation(Action.class)}) {
+					root.addChild(
+							new MutableContentNodeMetadata(item.actionString()
+											, ActionEvent.class
+											, "./"+clazz.getSimpleName()+"."+item.actionString()
+											, null
+											, item.resource().value()
+											, item.resource().tooltip()
+											, item.resource().help()
+											, null
+											, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"."+item.actionString())
+							)
+					);
+				}
+			}
+			collectActions(clazz.getSuperclass(),root);
+		}
+	}
+
 }
