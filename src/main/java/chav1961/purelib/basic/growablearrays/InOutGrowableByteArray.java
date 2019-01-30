@@ -7,6 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.Flushable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UTFDataFormatException;
@@ -38,7 +39,7 @@ import java.io.UTFDataFormatException;
  * @since 0.0.2
  */
 
-public class InOutGrowableByteArray extends GrowableByteArray implements DataOutput, DataInput, Closeable {
+public class InOutGrowableByteArray extends GrowableByteArray implements DataOutput, DataInput, Flushable, Closeable {
 	private final StringBuilder	sb = new StringBuilder();
 	private int					displ = 0;
 	private byte[]				forLong = new byte[8];
@@ -65,6 +66,10 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		super(usePlain, initialPow);
 	}
 
+	@Override
+	public void flush() throws IOException {
+	}
+	
 	@Override
 	public void close() throws IOException {
 		reset();

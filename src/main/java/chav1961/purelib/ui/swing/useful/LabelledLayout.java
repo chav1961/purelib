@@ -7,9 +7,11 @@ import java.awt.Insets;
 import java.awt.LayoutManager2;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JLabel;
+import javax.swing.SizeRequirements;
 
 public class LabelledLayout implements LayoutManager2, Serializable {
 	public static final String		LABEL_AREA = "labelArea";
@@ -18,8 +20,9 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 	public static final int			VERTICAL_FILLING = 2;
 	
 	private static final int		MIN_CONTENT_WIDTH = 10;
-	
 	private static final long 		serialVersionUID = 5377169415875489416L;
+	private static final JLabel		NULL_LABEL = new JLabel();
+	private static final SizeRequirements	NULL_SIZE = new SizeRequirements(0, 0, 0, 0.0f);
 	
 	private final int				numberOfBars, hGap, vGap, filling;
 	private final List<Component>	labels = new ArrayList<>();
@@ -66,7 +69,7 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 				case CONTENT_AREA	:
 					content.add(comp);
 					break;
-				default : throw new UnsupportedOperationException("Unknown constraint name ["+name+"]. Only 'LABEL_AREA' or 'CONTENT_AREA' are available");
+				default : throw new IllegalArgumentException("Unknown constraint name ["+name+"]. Only 'LABEL_AREA' or 'CONTENT_AREA' are available");
 			}
 			invalidateLayout(comp.getParent());
 		}
@@ -102,24 +105,18 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		if (parent == null) {
 			throw new NullPointerException("Parent container can't be null");
 		}
+		else if (parent.getComponentCount() == 0) {
+			return new Dimension(0,0);
+		}
+		else if (numberOfBars == 1) {
+			final SizeRequirements[]	size = calculateAreaSize(toPairs(labels,content));
+			
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].minimum),Math.min(Short.MAX_VALUE,size[1].minimum),parent.getInsets());
+		}
 		else {
-			int 	labelWidth = Integer.MAX_VALUE, labelHeight = 0;
-			int 	contentWidth = Integer.MAX_VALUE, contentHeight = 0;
+			final SizeRequirements[]	size = calculateAreaSize(split(toPairs(labels,content),numberOfBars,filling));
 			
-			for (Component item : labels) {
-				if (item.getMinimumSize() != null) {
-					labelWidth = Math.min(labelWidth, item.getMinimumSize().width);
-					labelHeight += item.getMinimumSize().height;
-				}
-			}
-			for (Component item : content) {
-				if (item.getMinimumSize() != null) {
-					contentWidth = Math.min(labelWidth, item.getMinimumSize().width);
-					contentHeight += item.getMinimumSize().height;
-				}
-			}
-			
-			return addInsets(labelWidth + contentWidth,Math.max(labelHeight, contentHeight), parent.getInsets()); 
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].minimum),Math.min(Short.MAX_VALUE,size[1].minimum),parent.getInsets());
 		}
 	}
 
@@ -128,24 +125,18 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		if (parent == null) {
 			throw new NullPointerException("Parent container can't be null");
 		}
+		else if (parent.getComponentCount() == 0) {
+			return new Dimension(0,0);
+		}
+		else if (numberOfBars == 1) {
+			final SizeRequirements[]	size = calculateAreaSize(toPairs(labels,content));
+			
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].preferred),Math.min(Short.MAX_VALUE,size[1].preferred),parent.getInsets());
+		}
 		else {
-			int 	labelWidth = 0, labelHeight = 0;
-			int 	contentWidth = 0, contentHeight = 0;
+			final SizeRequirements[]	size = calculateAreaSize(split(toPairs(labels,content),numberOfBars,filling));
 			
-			for (Component item : labels) {
-				if (item.getMinimumSize() != null) {
-					labelWidth = Math.max(labelWidth, item.getMaximumSize().width);
-					labelHeight += item.getMaximumSize().height;
-				}
-			}
-			for (Component item : content) {
-				if (item.getMinimumSize() != null) {
-					contentWidth = Math.max(contentWidth, item.getMaximumSize().width);
-					contentHeight += item.getMaximumSize().height;
-				}
-			}
-			
-			return addInsets(labelWidth + contentWidth,Math.max(labelHeight, contentHeight), parent.getInsets()); 
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].preferred),Math.min(Short.MAX_VALUE,size[1].preferred),parent.getInsets());
 		}
 	}
 
@@ -154,24 +145,18 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		if (parent == null) {
 			throw new NullPointerException("Parent container can't be null");
 		}
+		else if (parent.getComponentCount() == 0) {
+			return new Dimension(0,0);
+		}
+		else if (numberOfBars == 1) {
+			final SizeRequirements[]	size = calculateAreaSize(toPairs(labels,content));
+			
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].maximum),Math.min(Short.MAX_VALUE,size[1].maximum),parent.getInsets());
+		}
 		else {
-			int 	labelWidth = 0, labelHeight = 0;
-			int 	contentWidth = 0, contentHeight = 0;
+			final SizeRequirements[]	size = calculateAreaSize(split(toPairs(labels,content),numberOfBars,filling));
 			
-			for (Component item : labels) {
-				if (item.getMinimumSize() != null) {
-					labelWidth = Math.max(labelWidth, item.getMaximumSize().width);
-					labelHeight += item.getMaximumSize().height;
-				}
-			}
-			for (Component item : content) {
-				if (item.getMinimumSize() != null) {
-					contentWidth = Math.max(contentWidth, item.getMaximumSize().width);
-					contentHeight += item.getMaximumSize().height;
-				}
-			}
-			
-			return addInsets(labelWidth + contentWidth,Math.max(labelHeight, contentHeight), parent.getInsets()); 
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].maximum),Math.min(Short.MAX_VALUE,size[1].maximum),parent.getInsets());
 		}
 	}
 	
@@ -180,55 +165,98 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		if (parent == null) {
 			throw new NullPointerException("Parent container can't be null");
 		}
-		else {
-			final List<Component>[][]	splittedContent = splitContent(numberOfBars,filling,labels,content);
-			final Dimension[][]			sizes = new Dimension[numberOfBars][];
-			final int					minContentWidth = calculateMinContentWidth(content);
+		else if (numberOfBars == 1) {
+			final Dimension	parentSize = parent.getSize();
+			final Dimension preferredSize = preferredLayoutSize(parent);
+			final Pair[]	pairs = toPairs(labels,content);
+			final Insets	ins = parent.getInsets();
 			
-	        for (int index = 0; index < splittedContent.length; index++) {
-	        	sizes[index] = new Dimension[]{calculateAreaSize(splittedContent[0][0]), calculateAreaSize(splittedContent[0][1])};
-	        }
-	        int		totalWidth = 0, totalTruncedWidth = 0, totalLabelWidth = 0, totalHeight = 0;
-	        double	xScale = 1.0, xContentScale = 1.0, yScale = 1.0;
-	        
-	        for (Dimension[] item : sizes) {
-	        	totalWidth += item[0].width + item[1].width;
-	        	totalLabelWidth += item[0].width;
-	        	totalTruncedWidth += item[0].width + minContentWidth;
-	        	totalHeight = Math.max(Math.max(totalHeight,item[0].height),item[1].height);
-	        }
-	        
-	        final Dimension				alloc = parent.getSize();
-	        final Insets 				in = parent.getInsets();
-	        
-	        alloc.width -= in.left + in.right;
-	        alloc.height -= in.top + in.bottom;
+			parentSize.width -= ins.left + ins.right + (2 * pairs.length * hGap);
+			parentSize.height -= ins.top + ins.bottom + ((pairs.length + 1)* vGap);
 			
-	        if (alloc.height < totalHeight) {
-	        	yScale = 1.0 * alloc.height / totalHeight;  
-	        }
-	        if (alloc.width < totalWidth) {
-	        	if (alloc.width < totalTruncedWidth) {
-	        		xScale = 1.0 * alloc.width / totalWidth; 
-	        	}
-	        	else {
-	        		xContentScale = 1.0 * (alloc.width - totalLabelWidth) / (totalWidth - totalLabelWidth);
-	        	}
-	        }
-	        else {
-        		xContentScale = 1.0 * (alloc.width - totalLabelWidth) / (totalWidth - totalLabelWidth);
-	        }
-	        
-//	        for (int i = 0; i < nChildren; i++) {
-//	            final Component 	c = parent.getComponent(i);
-//	            
-//	            c.setBounds((int) Math.min((long) in.left + (long) xOffsets[i], Integer.MAX_VALUE),
-//	                        (int) Math.min((long) in.top + (long) yOffsets[i], Integer.MAX_VALUE),
-//	                        xSpans[i], ySpans[i]);
-//	
-//	        }
-	
+			final float		yScale = preferredSize.height > parentSize.height 
+								? 1.0f * parentSize.height / preferredSize.height 
+								: 1.0f; 
+			final float		xScale = preferredSize.width > parentSize.width 
+								? 1.0f * parentSize.width / preferredSize.width
+								: 1.0f;
+			int		maxLabelWidth = 0, minContentWidth = parentSize.width;
+			
+			for (int index = 0; index < pairs.length; index++) {
+				final int 	labelWidth = pairs[index].label.getPreferredSize().width > parentSize.width 
+									? (int)(xScale * pairs[index].label.getPreferredSize().width)
+									: pairs[index].label.getPreferredSize().width;
+				final int	contentWidth = parentSize.width - labelWidth;
+				
+				maxLabelWidth = Math.max(maxLabelWidth,labelWidth);
+				minContentWidth = Math.min(minContentWidth, contentWidth);
+			}
+
+			for (int index = 0, yPos = vGap; index < pairs.length; index++) {
+				final int 	labelHeight = (int) (yScale * pairs[index].label.getPreferredSize().height);
+				final int	contentHeight = (int) (yScale * pairs[index].label.getPreferredSize().height);
+				final int	cellHeight = Math.max(labelHeight, contentHeight);
+				
+				pairs[index].label.setBounds(hGap,yPos,maxLabelWidth,cellHeight);
+				pairs[index].content.setBounds(2*hGap+maxLabelWidth,yPos,minContentWidth,cellHeight);
+				yPos += cellHeight + vGap;
+			}
 		}
+		else {
+			final Dimension	parentSize = parent.getSize();
+			final Dimension preferredSize = preferredLayoutSize(parent);
+			final Pair[]	pairs = toPairs(labels,content);
+			final Pair[][]	splits = split(pairs, numberOfBars, filling);
+			final Insets	ins = parent.getInsets();
+			final int		barWidth = parentSize.width /numberOfBars; 
+			
+			parentSize.width -= ins.left + ins.right + (2 * (splits.length + 1) * hGap);
+			parentSize.height -= ins.top + ins.bottom + ((pairs.length + 1)* vGap / numberOfBars);
+			
+			final float		yScale = preferredSize.height > parentSize.height 
+								? 1.0f * parentSize.height / preferredSize.height 
+								: 1.0f; 
+			final float		xScale = preferredSize.width > barWidth 
+								? 1.0f * parentSize.width / barWidth
+								: 1.0f;
+			int		maxLabelWidth = 0, minContentWidth = parentSize.width;
+			
+			for (int index = 0; index < pairs.length; index++) {
+				final int 	labelWidth = pairs[index].label.getPreferredSize().width > barWidth 
+									? (int)(xScale * pairs[index].label.getPreferredSize().width)
+									: pairs[index].label.getPreferredSize().width;
+				final int	contentWidth = barWidth - labelWidth;
+				
+				maxLabelWidth = Math.max(maxLabelWidth,labelWidth);
+				minContentWidth = Math.min(minContentWidth, contentWidth);
+			}
+
+			for (int bar = 0; bar < splits.length; bar++) {
+				for (int index = 0, yPos = vGap; index < splits[bar].length; index++) {
+					final int 	labelHeight = (int) (yScale * splits[bar][index].label.getPreferredSize().height);
+					final int	contentHeight = (int) (yScale * splits[bar][index].label.getPreferredSize().height);
+					final int	cellHeight = Math.max(labelHeight, contentHeight);
+					
+					splits[bar][index].label.setBounds(bar*barWidth+hGap,yPos,maxLabelWidth,cellHeight);
+					splits[bar][index].content.setBounds(bar*barWidth+2*hGap+maxLabelWidth,yPos,minContentWidth,cellHeight);
+					yPos += cellHeight + vGap;
+				}
+			}
+		}
+	}
+
+	@Override
+	public float getLayoutAlignmentX(final Container target) {
+		return 0;
+	}
+
+	@Override
+	public float getLayoutAlignmentY(final Container target) {
+		return 0;
+	}
+
+	@Override
+	public synchronized void invalidateLayout(final Container target) {
 	}
 
 	private static List<Component>[][] splitContent(final int numberOfBars, final int filling, final List<Component> labels, final List<Component> content) {
@@ -246,10 +274,10 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 					result[index % numberOfBars][0].add(new JLabel(""));
 				}
 				if (index < content.size()) {
-					result[index % numberOfBars][0].add(content.get(index));
+					result[index % numberOfBars][1].add(content.get(index));
 				}
 				else {
-					result[index % numberOfBars][0].add(new JLabel(""));
+					result[index % numberOfBars][1].add(new JLabel(""));
 				}
 			}
 		}
@@ -262,36 +290,41 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 					result[index / numberOfBars][0].add(new JLabel(""));
 				}
 				if (index < content.size()) {
-					result[index / numberOfBars][0].add(content.get(index));
+					result[index / numberOfBars][1].add(content.get(index));
 				}
 				else {
-					result[index / numberOfBars][0].add(new JLabel(""));
+					result[index / numberOfBars][1].add(new JLabel(""));
 				}
 			}
 		}
 		return result;
 	}
 
-	@Override
-	public float getLayoutAlignmentX(final Container target) {
-		return 0;
-	}
-
-	@Override
-	public float getLayoutAlignmentY(final Container target) {
-		return 0;
-	}
-
-	@Override
-	public synchronized void invalidateLayout(final Container target) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	private Dimension addInsets(final int width, final int height, final Insets insets) {
 		return new Dimension((int)Math.min((long)width + insets.left + insets.right, Integer.MAX_VALUE)
 							,(int)Math.min((long)height + insets.top + insets.bottom, Integer.MAX_VALUE)
 						);
+	}
+
+	private static SizeRequirements[] calculateSize(final List<Component> labels, final List<Component> content) {
+		final int	maxSize = Math.max(labels.size(),content.size());
+		final SizeRequirements[]	labelsX = new SizeRequirements[maxSize], labelsY = new SizeRequirements[maxSize]; 
+		final SizeRequirements[]	contentX = new SizeRequirements[maxSize], contentY = new SizeRequirements[maxSize]; 
+		
+		for (int index = 0; index < maxSize; index++) {
+			labelsX[index] = index < labels.size() ? toXSizeRequirements(labels.get(index)) : NULL_SIZE;
+			labelsY[index] = index < labels.size() ? toYSizeRequirements(labels.get(index)) : NULL_SIZE;
+		}
+		for (int index = 0; index < maxSize; index++) {
+			contentX[index] = index < content.size() ? toXSizeRequirements(content.get(index)) : NULL_SIZE;
+			contentY[index] = index < content.size() ? toYSizeRequirements(content.get(index)) : NULL_SIZE;
+		}
+		final SizeRequirements	xLabel = SizeRequirements.getAlignedSizeRequirements(labelsX)
+								, xContent = SizeRequirements.getAlignedSizeRequirements(contentX);
+		final SizeRequirements	yLabel = SizeRequirements.getTiledSizeRequirements(labelsY)
+								, yContent = SizeRequirements.getTiledSizeRequirements(contentY);
+
+		return new SizeRequirements[]{xLabel,yLabel,xContent,yContent}; 
 	}
 	
 	private static Dimension extractSize(final Component comp) {
@@ -327,34 +360,112 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		}
 	}
 	
-	
-	private static Dimension calculatePairSize(final Component label, final Component content, final int minContentWidth) {
-		final Dimension	labelSize = extractSize(label), contentSize = extractSize(content);
-		int				totalHeight = Math.max(labelSize.height,contentSize.height);
+	private static final SizeRequirements[] calculateAreaSize(final Pair[] list) {
+		final SizeRequirements[]	x = new SizeRequirements[list.length], y = new SizeRequirements[list.length]; 
 		
-		if (contentSize.width == 0) {
-			contentSize.width = minContentWidth;
+		for (int index = 0; index < list.length; index++) {
+			x[index] = list[index].totalX;
+			y[index] = list[index].totalY;
 		}
-		if (labelSize.width == 0) {
-			labelSize.width = minContentWidth;
-		}
-		if (totalHeight == 0) {
-			totalHeight = minContentWidth;
-		}
-		return new Dimension(labelSize.width+contentSize.width, totalHeight);
+		
+		return new SizeRequirements[]{SizeRequirements.getTiledSizeRequirements(x),SizeRequirements.getAlignedSizeRequirements(y)};
 	}
-	
-	private static final Dimension calculateAreaSize(final List<Component> list) {
-		int		listWidth = 0, listHeight = 0;
+
+	private static final SizeRequirements[] calculateAreaSize(final Pair[][] list) {
+		final SizeRequirements[]	totalX = new SizeRequirements[list.length], totalY = new SizeRequirements[list.length];
 		
-		for (Component item : list) {
-			final Dimension	itemSize = extractSize(item);
+		for (int bar = 0; bar < list.length; bar++) {
+			final SizeRequirements[]	x = new SizeRequirements[list[bar].length], y = new SizeRequirements[list[bar].length]; 
 			
-			listWidth = Math.max(listWidth,itemSize.width);
-			listHeight += itemSize.width;
+			for (int index = 0; index < list[bar].length; index++) {
+				x[index] = list[bar][index].totalX;
+				y[index] = list[bar][index].totalY;
+			}
+			
+			totalX[bar] = SizeRequirements.getTiledSizeRequirements(x);
+			totalY[bar] = SizeRequirements.getAlignedSizeRequirements(y);
 		}
-		return new Dimension(listWidth,listHeight);
+		return new SizeRequirements[]{SizeRequirements.getTiledSizeRequirements(totalX),SizeRequirements.getAlignedSizeRequirements(totalY)};
 	}
 	
+	private static SizeRequirements toXSizeRequirements(final Component comp) {
+		final Dimension		min = comp.getMinimumSize(), pref = comp.getPreferredSize(), max = comp.getMaximumSize();
+		
+		if (comp.isVisible()) {
+			return new SizeRequirements(min != null ? min.width : 0
+					,pref != null ? pref.width : 0
+					,max != null ? max.width : 0
+					,comp.getAlignmentX());
+		}
+		else {
+			return new SizeRequirements(0,0,0,comp.getAlignmentX());
+		}
+	}
+
+	private static SizeRequirements toYSizeRequirements(final Component comp) {
+		final Dimension		min = comp.getMinimumSize(), pref = comp.getPreferredSize(), max = comp.getMaximumSize();
+		
+		if (comp.isVisible()) {
+			return new SizeRequirements(min != null ? min.height : 0
+					,pref != null ? pref.height : 0
+					,max != null ? max.height : 0
+					,comp.getAlignmentY());
+		}
+		else {
+			return new SizeRequirements(0,0,0,comp.getAlignmentY());
+		}
+	}
+
+	private static Pair[] toPairs(final List<Component> labels, final List<Component> content) {
+		final int		maxSize = Math.max(labels.size(), content.size());
+		final Pair[]	result = new Pair[maxSize];
+		
+		for (int index = 0; index < maxSize; index++) {
+			result[index] = new Pair(index < labels.size() ? labels.get(index) : NULL_LABEL
+									, index < content.size() ? content.get(index) : NULL_LABEL);
+		}
+		return result;
+	}
 	
+	private static Pair[][] split(Pair[] source, int numberOfBars, int filling) {
+		final Pair[][]	result = new Pair[numberOfBars][];
+		final int		pieceSize =  (source.length + numberOfBars - 1) / numberOfBars; 
+		
+		if (filling == HORIZONTAL_FILLING) {
+			for (int index = 0, tail = source.length; index < result.length; index++, tail -= pieceSize) {
+				result[index] = new Pair[Math.min(pieceSize, tail)];
+			}
+			for (int index = 0; index < source.length; index++) {
+				result[index % numberOfBars][index / numberOfBars] = source[index];
+			}
+		}
+		else {
+			for (int index = 0, tail = source.length; index < result.length; index++, tail -= pieceSize) {
+				result[index] = Arrays.copyOfRange(source,index*pieceSize,Math.min(pieceSize, tail));
+			}
+		}
+		return result;
+	}
+	
+	private static class Pair {
+		final Component		label;
+		final Component		content;
+		SizeRequirements	labelX;
+		SizeRequirements	labelY;
+		SizeRequirements	contentX;
+		SizeRequirements	contentY;
+		SizeRequirements	totalX;
+		SizeRequirements	totalY;
+		
+		public Pair(final Component label, final Component content) {
+			this.label = label;
+			this.content = content;
+			this.labelX = toXSizeRequirements(label); 
+			this.labelY = toYSizeRequirements(label); 
+			this.contentX = toXSizeRequirements(content); 
+			this.contentY = toYSizeRequirements(content);
+			this.totalX = SizeRequirements.getTiledSizeRequirements(new SizeRequirements[]{this.labelX,this.contentX}); 
+			this.totalY = SizeRequirements.getAlignedSizeRequirements(new SizeRequirements[]{this.labelY,this.contentY}); 
+		}
+	}
 }

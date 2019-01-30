@@ -5,17 +5,25 @@ import java.awt.Rectangle;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-class Term extends PseudoConsole implements Closeable {
+import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.exceptions.PrintingException;
+import chav1961.purelib.basic.interfaces.CharStreamPrinter;
+
+class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private static final long 		serialVersionUID = 4321066125437646937L;
 	
 	private static final long		BLINK_INTERVAL = 500;
 	private static final int		TAB_SIZE = 8;
 	private static final char[]		CRLF = new char[]{'\r','\n'};
+	private static final char[]		TRUE = "true".toCharArray();
+	private static final char[]		FALSE = "false".toCharArray();
 	private static final String		NULL = "null";
+	private static final int		INITIAL_SIZE = 32;
 	
 	private final int				width = 80, height = 25;
 	private final boolean			emulateBell = false;
@@ -28,6 +36,7 @@ class Term extends PseudoConsole implements Closeable {
 									};
 	private final StringBuilder		sb = new StringBuilder();
 	private final List<int[]>		stack = new ArrayList<>();
+	private char[]					buffer = new char[INITIAL_SIZE]; 
 							
 	private int						x = 1, y = 1, escaping = 0;
 	private boolean					on = false, blinkNow = false;
@@ -43,109 +52,153 @@ class Term extends PseudoConsole implements Closeable {
 	}
 
 	@Override
+	public void flush() throws IOException {
+	}
+	
+	@Override
 	public void close() throws IOException {
 		tt.cancel();
 		t.cancel();
 	}
 	
+	@Override
 	public Term println() {
 		return print(CRLF);
 	}
 	
+	@Override
 	public Term print(final char data) {
 		internalPrintChar(data);
 		return this;
 	}
 
+	@Override
 	public Term println(final char data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final byte data) {
-		return print(Byte.valueOf(data).toString());
+		return print((long)data);
 	}
 
+	@Override
 	public Term println(final byte data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final short data) {
-		return print(Short.valueOf(data).toString());
+		return print((long)data);
 	}
 
+	@Override
 	public Term println(final short data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final int data) {
-		return print(Integer.valueOf(data).toString());
+		return print((long)data);
 	}
 
+	@Override
 	public Term println(final int data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final long data) {
-		return print(Long.valueOf(data).toString());
+		final int	len = CharUtils.printLong(buffer, 0, data, true);
+		
+		if (len < 0) {
+			buffer = Arrays.copyOf(buffer,2*buffer.length);
+			return print(data);
+		}
+		else {
+			return print(buffer,0,len);
+		}
 	}
 
+	@Override
 	public Term println(final long data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final float data) {
-		return print(Float.valueOf(data).toString());
+		return print((double)data);
 	}
 
+	@Override
 	public Term println(final float data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final double data) {
-		return print(Double.valueOf(data).toString());
+		final int	len = CharUtils.printDouble(buffer, 0, data, true);
+		
+		if (len < 0) {
+			buffer = Arrays.copyOf(buffer,2*buffer.length);
+			return print(data);
+		}
+		else {
+			return print(buffer,0,len);
+		}
 	}
 
+	@Override
 	public Term println(final double data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final boolean data) {
-		return print(Boolean.valueOf(data).toString());
+		return print(data ? TRUE : FALSE);
 	}
 
+	@Override
 	public Term println(final boolean data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final String data) {
 		return print((data == null ? NULL : data).toCharArray());
 	}
 
+	@Override
 	public Term println(final String data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final Object data) {
 		return print(data == null ? NULL : data.toString()).println();
 	}
 
+	@Override
 	public Term println(final Object data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final char[] data) {
 		if (data == null) {
-			throw new IllegalArgumentException("Data can't be null");
+			return print(NULL);
 		}
 		else {
 			return print(data,0,data.length);
 		}
 	}
 
+	@Override
 	public Term println(final char[] data) {
 		return print(data).println();
 	}
 	
+	@Override
 	public Term print(final char[] data, final int from, final int len) {
 		if (data == null) {
 			throw new IllegalArgumentException("Data can't be null");
@@ -167,7 +220,23 @@ class Term extends PseudoConsole implements Closeable {
 		}
 	}
 
+	@Override
 	public Term println(final char[] data, final int from, final int len) {
+		return print(data,from,len).println();
+	}
+
+	@Override
+	public Term print(final String data, final int from, final int len) throws PrintingException, StringIndexOutOfBoundsException {
+		if (data == null) {
+			return print(NULL);
+		}
+		else {
+			return print(data.substring(from,from+len));
+		}
+	}
+
+	@Override
+	public Term println(String data, int from, int len) throws PrintingException, StringIndexOutOfBoundsException {
 		return print(data,from,len).println();
 	}
 	
@@ -407,7 +476,6 @@ class Term extends PseudoConsole implements Closeable {
 			popCursor();
 		}
 	}
-
 	
 	private String nvl(final String source, final String defaulValue) {
 		return source == null || source.isEmpty() ? defaulValue : source;

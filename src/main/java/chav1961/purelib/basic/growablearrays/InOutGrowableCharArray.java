@@ -1,179 +1,239 @@
 package chav1961.purelib.basic.growablearrays;
 
+import java.io.IOException;
+import java.util.Arrays;
+
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
 
+/**
+ * <p>This class implements {@linkplain CharStreamPrinter} interface for {@linkplain GrowableCharArray} class. It allow the class 
+ * use print and println methods to put data into</p> 
+ * <p>This class is not thread-safe.</p>
+ * 
+ * @see chav1961.purelib.basic.growablearrays JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class InOutGrowableCharArray extends GrowableCharArray implements CharStreamPrinter<InOutGrowableCharArray> {
+	static final char[]			CRNL = System.getProperty("line.separator").toCharArray();
+	static final char[]			NULL = "null".toCharArray();
+	static final char[]			TRUE = "true".toCharArray();
+	static final char[]			FALSE = "false".toCharArray();
+	private static final int	INITIAL_BUFFER_SIZE = 32;
 
-	public InOutGrowableCharArray(boolean usePlain) {
+	private char[]	buffer = new char[INITIAL_BUFFER_SIZE];
+	
+	public InOutGrowableCharArray(final boolean usePlain) {
 		super(usePlain);
-		// TODO Auto-generated constructor stub
 	}
 
-	public InOutGrowableCharArray(boolean usePlain, int initialPow) {
+	public InOutGrowableCharArray(final boolean usePlain, final int initialPow) {
 		super(usePlain, initialPow);
-		// TODO Auto-generated constructor stub
 	}
 
+	@Override
+	public void flush() throws IOException {
+	}
+
+	@Override
+	public void close() throws IOException {
+	}
+	
 	@Override
 	public InOutGrowableCharArray println() throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+		append(CRNL);
+		return this;
 	}
 
 	@Override
-	public InOutGrowableCharArray print(char data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final char data) throws PrintingException {
+		append(data);
+		return this;
 	}
 
 	@Override
-	public InOutGrowableCharArray println(char data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final char data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(byte data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final byte data) throws PrintingException {
+		return print((long)data);
 	}
 
 	@Override
-	public InOutGrowableCharArray println(byte data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final byte data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(short data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final short data) throws PrintingException {
+		return print((long)data);
 	}
 
 	@Override
-	public InOutGrowableCharArray println(short data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final short data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(int data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final int data) throws PrintingException {
+		return print((long)data);
 	}
 
 	@Override
-	public InOutGrowableCharArray println(int data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final int data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(long data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final long data) throws PrintingException {
+		final int	len = CharUtils.printLong(buffer, 0, data, true);
+		
+		if (len < 0) {
+			buffer = Arrays.copyOf(buffer,2*buffer.length);
+			return print(data);
+		}
+		else {
+			return print(buffer,0,len);
+		}
 	}
 
 	@Override
-	public InOutGrowableCharArray println(long data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final long data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(float data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final float data) throws PrintingException {
+		return print((double)data);
 	}
 
 	@Override
-	public InOutGrowableCharArray println(float data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final float data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(double data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final double data) throws PrintingException {
+		final int	len = CharUtils.printDouble(buffer, 0, data, true);
+		
+		if (len < 0) {
+			buffer = Arrays.copyOf(buffer,2*buffer.length);
+			return print(data);
+		}
+		else {
+			return print(buffer,0,len);
+		}
 	}
 
 	@Override
-	public InOutGrowableCharArray println(double data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final double data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(boolean data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final boolean data) throws PrintingException {
+		print(data ? TRUE : FALSE);
+		return this;
 	}
 
 	@Override
-	public InOutGrowableCharArray println(boolean data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final boolean data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(String data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final String data) throws PrintingException {
+		if (data == null) {
+			return printNull();
+		}
+		else {
+			append(data);
+			return this;
+		}
 	}
 
 	@Override
-	public InOutGrowableCharArray println(String data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final String data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(String data, int from, int len) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final String data, int from, int len) throws PrintingException {
+		if (data == null) {
+			return printNull();
+		}
+		else {
+			append(data,from,len);
+			return this;
+		}
 	}
 
 	@Override
-	public InOutGrowableCharArray println(String data, int from, int len) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final String data, int from, int len) throws PrintingException {
+		print(data,from,len);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(char[] data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final char[] data) throws PrintingException {
+		if (data == null) {
+			return printNull();
+		}
+		else {
+			append(data);
+			return this;
+		}
 	}
 
 	@Override
-	public InOutGrowableCharArray println(char[] data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final char[] data) throws PrintingException {
+		print(data);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(char[] data, int from, int len) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final char[] data, final int from, final int len) throws PrintingException {
+		if (data == null) {
+			return printNull();
+		}
+		else {
+			append(data,from,len);
+			return this;
+		}
 	}
 
 	@Override
-	public InOutGrowableCharArray println(char[] data, int from, int len) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final char[] data, final int from, final int len) throws PrintingException {
+		print(data,from,len);
+		return println();
 	}
 
 	@Override
-	public InOutGrowableCharArray print(Object data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray print(final Object data) throws PrintingException {
+		return data == null ? printNull() : print(data.toString());
 	}
 
 	@Override
-	public InOutGrowableCharArray println(Object data) throws PrintingException {
-		// TODO Auto-generated method stub
-		return null;
+	public InOutGrowableCharArray println(final Object data) throws PrintingException {
+		print(data);
+		return println();
+	}
+	
+	private InOutGrowableCharArray printNull() {
+		append(NULL);
+		return this;
 	}
 }

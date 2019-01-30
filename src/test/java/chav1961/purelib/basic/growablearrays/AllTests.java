@@ -5,7 +5,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({GrowableArraysTest.class, ManagersTest.class, CharSequenceTest.class})
+@SuiteClasses({GrowableArraysTest.class, ManagersTest.class, CharSequenceTest.class
+	, InOutGrowableByteArrayTest.class, InOutGrowableCharArrayTest.class})
 public class AllTests {
 
 }
