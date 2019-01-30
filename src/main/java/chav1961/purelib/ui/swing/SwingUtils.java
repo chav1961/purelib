@@ -195,6 +195,34 @@ public abstract class SwingUtils {
 	public static URL url(final String resource) {
 		return SwingUtils.class.getResource(resource);	
 	}
+
+	public static Container findComponentByName(final Container node, final String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Name to find can't be null or empty");
+		}
+		else if (node != null) {
+			if (name.equals(node.getName())) {
+				return node;
+			}
+			else {
+				if (node.getComponentCount() > 0) {
+					for (int index = 0, maxIndex = node.getComponentCount(); index < maxIndex; index++) {
+						if (node.getComponent(index) instanceof Container) {
+							final Container	child = findComponentByName((Container)node.getComponent(index),name);
+							
+							if (child != null) {
+								return child;
+							}
+						}
+					}
+				}
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
 	
 	public static JComponent prepareInputComponent(final FieldRepresentation controlRepresentation, final String controlName, final String controlTooltip, final int controlLen, final FormFieldFormat controlFormat) throws ParseException {
 		JComponent		result;

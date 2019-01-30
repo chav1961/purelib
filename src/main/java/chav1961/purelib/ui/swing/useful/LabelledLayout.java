@@ -19,8 +19,8 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 	public static final int			HORIZONTAL_FILLING = 1;
 	public static final int			VERTICAL_FILLING = 2;
 	
-	private static final int		MIN_CONTENT_WIDTH = 10;
 	private static final long 		serialVersionUID = 5377169415875489416L;
+	private static final int		MIN_CONTENT_WIDTH = 10;
 	private static final JLabel		NULL_LABEL = new JLabel();
 	private static final SizeRequirements	NULL_SIZE = new SizeRequirements(0, 0, 0, 0.0f);
 	
@@ -30,6 +30,10 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 
 	public LabelledLayout() {
 		this(1,0,0,VERTICAL_FILLING);
+	}
+
+	public LabelledLayout(final int hGap, final int vGap) {
+		this(1,hGap,vGap,VERTICAL_FILLING);
 	}
 	
 	public LabelledLayout(final int numberOfBars, final int hGap, final int vGap, final int filling) throws IllegalArgumentException {
@@ -111,12 +115,12 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		else if (numberOfBars == 1) {
 			final SizeRequirements[]	size = calculateAreaSize(toPairs(labels,content));
 			
-			return addInsets(Math.min(Short.MAX_VALUE,size[0].minimum),Math.min(Short.MAX_VALUE,size[1].minimum),parent.getInsets());
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].minimum+3*hGap),Math.min(Short.MAX_VALUE,size[1].minimum+vGap*(size.length+1)),parent.getInsets());
 		}
 		else {
 			final SizeRequirements[]	size = calculateAreaSize(split(toPairs(labels,content),numberOfBars,filling));
 			
-			return addInsets(Math.min(Short.MAX_VALUE,size[0].minimum),Math.min(Short.MAX_VALUE,size[1].minimum),parent.getInsets());
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].minimum+2*numberOfBars*hGap),Math.min(Short.MAX_VALUE,size[1].minimum+2*numberOfBars*vGap),parent.getInsets());
 		}
 	}
 
@@ -131,12 +135,12 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		else if (numberOfBars == 1) {
 			final SizeRequirements[]	size = calculateAreaSize(toPairs(labels,content));
 			
-			return addInsets(Math.min(Short.MAX_VALUE,size[0].preferred),Math.min(Short.MAX_VALUE,size[1].preferred),parent.getInsets());
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].preferred+2*hGap),Math.min(Short.MAX_VALUE,size[1].preferred+vGap*(size.length+1)),parent.getInsets());
 		}
 		else {
 			final SizeRequirements[]	size = calculateAreaSize(split(toPairs(labels,content),numberOfBars,filling));
 			
-			return addInsets(Math.min(Short.MAX_VALUE,size[0].preferred),Math.min(Short.MAX_VALUE,size[1].preferred),parent.getInsets());
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].preferred+2*numberOfBars*hGap),Math.min(Short.MAX_VALUE,size[1].preferred+2*numberOfBars*vGap),parent.getInsets());
 		}
 	}
 
@@ -151,12 +155,12 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		else if (numberOfBars == 1) {
 			final SizeRequirements[]	size = calculateAreaSize(toPairs(labels,content));
 			
-			return addInsets(Math.min(Short.MAX_VALUE,size[0].maximum),Math.min(Short.MAX_VALUE,size[1].maximum),parent.getInsets());
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].maximum+2*hGap),Math.min(Short.MAX_VALUE,size[1].maximum+vGap*(size.length+1)),parent.getInsets());
 		}
 		else {
 			final SizeRequirements[]	size = calculateAreaSize(split(toPairs(labels,content),numberOfBars,filling));
 			
-			return addInsets(Math.min(Short.MAX_VALUE,size[0].maximum),Math.min(Short.MAX_VALUE,size[1].maximum),parent.getInsets());
+			return addInsets(Math.min(Short.MAX_VALUE,size[0].maximum+2*numberOfBars*hGap),Math.min(Short.MAX_VALUE,size[1].maximum+2*numberOfBars*vGap),parent.getInsets());
 		}
 	}
 	
@@ -194,7 +198,7 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 
 			for (int index = 0, yPos = vGap; index < pairs.length; index++) {
 				final int 	labelHeight = (int) (yScale * pairs[index].label.getPreferredSize().height);
-				final int	contentHeight = (int) (yScale * pairs[index].label.getPreferredSize().height);
+				final int	contentHeight = (int) (yScale * pairs[index].content.getPreferredSize().height);
 				final int	cellHeight = Math.max(labelHeight, contentHeight);
 				
 				pairs[index].label.setBounds(hGap,yPos,maxLabelWidth,cellHeight);
@@ -234,7 +238,7 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 			for (int bar = 0; bar < splits.length; bar++) {
 				for (int index = 0, yPos = vGap; index < splits[bar].length; index++) {
 					final int 	labelHeight = (int) (yScale * splits[bar][index].label.getPreferredSize().height);
-					final int	contentHeight = (int) (yScale * splits[bar][index].label.getPreferredSize().height);
+					final int	contentHeight = (int) (yScale * splits[bar][index].content.getPreferredSize().height);
 					final int	cellHeight = Math.max(labelHeight, contentHeight);
 					
 					splits[bar][index].label.setBounds(bar*barWidth+hGap,yPos,maxLabelWidth,cellHeight);

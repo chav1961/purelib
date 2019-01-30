@@ -121,22 +121,22 @@ public class LocalizedDialog extends JDialog implements LocaleChangeListener {
 				}
 			};
 			
-			if (!form.hasActions()) {
-				final JButton			okButton = new JButton("\uF0FE OK"){private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip(){return new SmartToolTip(localizer,this);}};
-				final JButton			cancelButton = new JButton("\uF0FD Cancel"){private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip(){return new SmartToolTip(localizer,this);}};
-				
-				buttonPanel.add(okButton);
-				buttonPanel.add(cancelButton);
-				dialog.getContentPane().add(buttonPanel,BorderLayout.SOUTH);
-				
-				okButton.addActionListener(listener);
-				okButton.setActionCommand(OK_ACTION);
-				cancelButton.addActionListener(listener);
-				cancelButton.setActionCommand(CANCEL_ACTION);
-			}
-			else {
-				form.addActionListener(listener);
-			}
+//			if (!form.hasActions()) {
+//				final JButton			okButton = new JButton("\uF0FE OK"){private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip(){return new SmartToolTip(localizer,this);}};
+//				final JButton			cancelButton = new JButton("\uF0FD Cancel"){private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip(){return new SmartToolTip(localizer,this);}};
+//				
+//				buttonPanel.add(okButton);
+//				buttonPanel.add(cancelButton);
+//				dialog.getContentPane().add(buttonPanel,BorderLayout.SOUTH);
+//				
+//				okButton.addActionListener(listener);
+//				okButton.setActionCommand(OK_ACTION);
+//				cancelButton.addActionListener(listener);
+//				cancelButton.setActionCommand(CANCEL_ACTION);
+//			}
+//			else {
+//				form.addActionListener(listener);
+//			}
 			
 			SwingUtils.assignActionKey(form,KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),listener,OK_ACTION);
 			SwingUtils.assignActionKey(form,KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),listener,CANCEL_ACTION);

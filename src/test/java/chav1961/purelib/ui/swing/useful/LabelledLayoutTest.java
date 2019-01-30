@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.junit.Assert;
@@ -146,17 +148,17 @@ public class LabelledLayoutTest {
 		
 		parent.setSize(800, 600);
 		layout.layoutContainer(parent);
-		Assert.assertEquals(new Rectangle(0,0,25,16),left1.getBounds());
-		Assert.assertEquals(new Rectangle(25,0,775,16),right1.getBounds());
-		Assert.assertEquals(new Rectangle(0,16,25,16),left2.getBounds());
-		Assert.assertEquals(new Rectangle(25,16,775,16),right2.getBounds());
+		Assert.assertEquals(new Rectangle(0,0,25,20),left1.getBounds());
+		Assert.assertEquals(new Rectangle(25,0,775,20),right1.getBounds());
+		Assert.assertEquals(new Rectangle(0,20,25,20),left2.getBounds());
+		Assert.assertEquals(new Rectangle(25,20,775,20),right2.getBounds());
 
 		parent.setSize(20, 20);
 		layout.layoutContainer(parent);
-		Assert.assertEquals(new Rectangle(0,0,8,16),left1.getBounds());
-		Assert.assertEquals(new Rectangle(8,0,12,16),right1.getBounds());
-		Assert.assertEquals(new Rectangle(0,16,8,16),left2.getBounds());
-		Assert.assertEquals(new Rectangle(8,16,12,16),right2.getBounds());
+		Assert.assertEquals(new Rectangle(0,0,8,20),left1.getBounds());
+		Assert.assertEquals(new Rectangle(8,0,12,20),right1.getBounds());
+		Assert.assertEquals(new Rectangle(0,20,8,20),left2.getBounds());
+		Assert.assertEquals(new Rectangle(8,20,12,20),right2.getBounds());
 	}
 
 	@Test
@@ -174,9 +176,29 @@ public class LabelledLayoutTest {
 		
 		parent.setSize(800, 600);
 		layout.layoutContainer(parent);
-		Assert.assertEquals(new Rectangle(0,0,25,16),left1.getBounds());
-		Assert.assertEquals(new Rectangle(25,0,375,16),right1.getBounds());
-		Assert.assertEquals(new Rectangle(400,0,25,16),left2.getBounds());
-		Assert.assertEquals(new Rectangle(425,0,375,16),right2.getBounds());
+		Assert.assertEquals(new Rectangle(0,0,25,20),left1.getBounds());
+		Assert.assertEquals(new Rectangle(25,0,375,20),right1.getBounds());
+		Assert.assertEquals(new Rectangle(400,0,25,20),left2.getBounds());
+		Assert.assertEquals(new Rectangle(425,0,375,20),right2.getBounds());
 	}
+
+//	@Test
+	public void visualTest() {
+		final LabelledLayout	layout = new LabelledLayout(1,5,5,LabelledLayout.VERTICAL_FILLING);
+		final JPanel			panel = new JPanel(layout);
+		final JLabel			left1 = new JLabel("left1"), left2 = new JLabel("left2 text");
+		final JTextField		right1 = new JTextField(), right2 = new JTextField();  
+		
+		right1.setColumns(20);
+		right2.setColumns(30);
+		panel.add(left1,LabelledLayout.LABEL_AREA);
+		panel.add(right1,LabelledLayout.CONTENT_AREA);
+		panel.add(left2,LabelledLayout.LABEL_AREA);
+		panel.add(right2,LabelledLayout.CONTENT_AREA);
+		panel.setPreferredSize(new Dimension(800,600));
+		panel.setSize(800,600);
+		
+		JOptionPane.showMessageDialog(null,panel);
+	}
+
 }

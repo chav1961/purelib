@@ -1,5 +1,6 @@
 package arcan;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,6 +8,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -57,12 +59,13 @@ class ArcanField extends JComponent {
 	
 	private Timer		t = null;
 	private TimerTask	tt = null;
-	private boolean		paused = false;
 	private float		currentBallX, currentBallY; 
 	private float		deltaBallX, deltaBallY; 
 	private float		currentShieldX, currentShieldY; 
 	
 	ArcanField() {
+		setFocusable(true);
+		initVariables();
 		addMouseWheelListener(new MouseWheelListener() {
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
@@ -70,10 +73,10 @@ class ArcanField extends JComponent {
 				
 				if (state == STATE_STARTED) {
 					if (rots < 0) {
-						shieldDown(- 0.1f * rots);
+						shieldDown(- 1.0f * rots);
 					}
 					else if (rots > 0) {
-						shieldUp(0.1f * rots);
+						shieldUp(1.0f * rots);
 					}
 				}
 			}
@@ -127,36 +130,30 @@ class ArcanField extends JComponent {
 	}
 
 	void start() {
-		t = new Timer(true);
-		currentBallX = 2.0f * WALL_THICKNESS + BALL_SIZE / 2;
-		currentBallY = 0.5f * WINDOW_HEIGHT;
-		deltaBallX = 0.5f;
-		deltaBallY = 0.5f;
-		currentShieldX = 1.0f * WINDOW_WIDTH - SHIELD_THICKNESS / 2;
-		currentShieldY = 0.5f * WINDOW_HEIGHT;
+		initVariables();
 		resume();
 	}
 	
 	void pause() {
-		tt.cancel();
+		t.purge();
+		t.cancel();
 	}
 
 	void resume() {
+		t = new Timer(true);
 		tt = new TimerTask() {
 				@Override
 				public void run() {
 					tick();
 				}
 			};
-		t.schedule(tt, TICK_DELAY, TICK_DELAY);
+		t.scheduleAtFixedRate(tt, TICK_DELAY, TICK_DELAY);
 	}
 	
 	void stop() {
 		pause();
-		t.purge();
-		t.cancel();
 	}
-	
+
 	@Override
 	protected void paintComponent(final Graphics g) {
 		final Graphics2D		g2d = (Graphics2D)g;
@@ -187,8 +184,7 @@ class ArcanField extends JComponent {
 	private void normalizeWindow(final Graphics2D g2d) {
 		final AffineTransform	at = new AffineTransform(g2d.getTransform());
 		
-		at.scale(1.0f * getWidth() / WINDOW_WIDTH, -1.0f * getHeight() / WINDOW_HEIGHT);
-//		at.translate(0.5 * WINDOW_WIDTH, -0.5 * WINDOW_HEIGHT);
+		at.scale(1.0f * getWidth() / WINDOW_WIDTH, 1.0f * getHeight() / WINDOW_HEIGHT);
 		g2d.setTransform(at);
 	}
 
@@ -203,42 +199,51 @@ class ArcanField extends JComponent {
 	private void drawBall(final Graphics2D g2d) {
 		final Color		oldColor = g2d.getColor();
 		final Shape		sh = new Ellipse2D.Float(currentBallX,currentBallY,BALL_SIZE,BALL_SIZE);
-		
+		final Stroke	oldStroke = g2d.getStroke();
+
+		g2d.setStroke(new BasicStroke(0.05f));
 		g2d.setColor(Color.white);
 		g2d.fill(sh);
 		g2d.setColor(Color.red);
 		g2d.draw(sh);
+		g2d.setStroke(oldStroke);
 		g2d.setColor(oldColor);
 	}
 
 	private void drawWall(final Graphics2D g2d) {
 		for (int x = 0; x < WINDOW_WIDTH; x+= WALL_THICKNESS) {
 			drawBrick(g2d,x,0);
+			drawBrick(g2d,x,WINDOW_HEIGHT-WALL_THICKNESS);
 		}
 		for (int y = WALL_THICKNESS; y < WINDOW_HEIGHT; y+= WALL_THICKNESS) {
 			drawBrick(g2d,0,y);
-			drawBrick(g2d,WINDOW_WIDTH-WALL_THICKNESS,y);
 		}
 	}
 
 	private void drawBrick(final Graphics2D g2d, final int x, final int y) {
 		final Color		oldColor = g2d.getColor();
+		final Stroke	oldStroke = g2d.getStroke();
 
+		g2d.setStroke(new BasicStroke(0.05f));
 		g2d.setColor(Color.RED);
 		g2d.fillRect(x,y,WALL_THICKNESS,WALL_THICKNESS);
 		g2d.setColor(Color.LIGHT_GRAY);
 		g2d.drawRect(x,y,WALL_THICKNESS,WALL_THICKNESS);
+		g2d.setStroke(oldStroke);
 		g2d.setColor(oldColor);
 	}
 
 	private void drawShield(Graphics2D g2d) {
 		final Color		oldColor = g2d.getColor();
 		final Shape		sh = new Rectangle2D.Float(currentShieldX-SHIELD_THICKNESS/2,currentShieldY-SHIELD_HEIGHT/2,SHIELD_THICKNESS,SHIELD_HEIGHT);
+		final Stroke	oldStroke = g2d.getStroke();
 
+		g2d.setStroke(new BasicStroke(0.05f));
 		g2d.setColor(Color.BLUE);
 		g2d.fill(sh);
 		g2d.setColor(Color.CYAN);
 		g2d.draw(sh);
+		g2d.setStroke(oldStroke);
 		g2d.setColor(oldColor);
 	}
 
@@ -247,31 +252,36 @@ class ArcanField extends JComponent {
 		final Font		oldFont = g2d.getFont();
 		
 		g2d.setColor(Color.GREEN);
-		g2d.setFont(new Font("Courier",Font.PLAIN,1));
-		g2d.drawChars(message.toCharArray(),0,message.length(), WINDOW_WIDTH / 2 - message.length() / 2, WINDOW_HEIGHT/2);
+		g2d.setFont(new Font("Courier",Font.PLAIN,2));
+		g2d.drawChars(message.toCharArray(),0,message.length(), WINDOW_WIDTH / 2 - message.length() / 2, WINDOW_HEIGHT/2 + 1);
 		g2d.setFont(oldFont);
 		g2d.setColor(oldColor);
 	}
 	
 	private void tick() {
-		if (!paused) {
+		if (state == STATE_STARTED) {
 			if (deltaBallY > 0 && currentBallY + deltaBallY >= WINDOW_HEIGHT - WALL_THICKNESS) {
 				deltaBallY = -deltaBallY;
 			}
 			else if (deltaBallY < 0 && currentBallY + deltaBallY <= WALL_THICKNESS) {
-				deltaBallX = -deltaBallX;
+				deltaBallY = -deltaBallY;
 			}
 			if (deltaBallX > 0) {
-				if (currentBallX + deltaBallX >= WINDOW_WIDTH - SHIELD_THICKNESS && currentBallY + deltaBallY >= currentShieldY - SHIELD_HEIGHT / 2 && currentBallY + deltaBallY <= currentShieldY + SHIELD_HEIGHT / 2) {
-					deltaBallY = -deltaBallY;
-				}
-				else {
-					stop();
+				if (currentBallX + deltaBallX >= WINDOW_WIDTH - SHIELD_THICKNESS) {
+					if (currentBallY + deltaBallY >= currentShieldY - SHIELD_HEIGHT / 2 && currentBallY + deltaBallY <= currentShieldY + SHIELD_HEIGHT / 2) {
+						deltaBallX = -deltaBallX;
+					}
+					else {
+						state = STATE_CRUSHED;
+						stop();
+					}
 				}
 			}
 			else if (deltaBallX < 0 && currentBallX + deltaBallX <= WALL_THICKNESS) {
 				deltaBallX = -deltaBallX;
 			}
+			currentBallX += deltaBallX;
+			currentBallY += deltaBallY;
 			repaint();
 		}
 	}
@@ -288,5 +298,14 @@ class ArcanField extends JComponent {
 			currentShieldY -= delta;
 		}
 		repaint();
+	}
+	
+	private void initVariables() {
+		currentBallX = 2.0f * WALL_THICKNESS + BALL_SIZE / 2;
+		currentBallY = 0.5f * WINDOW_HEIGHT;
+		deltaBallX = 0.5f;
+		deltaBallY = 0.5f;
+		currentShieldX = 1.0f * WINDOW_WIDTH - SHIELD_THICKNESS / 2;
+		currentShieldY = 0.5f * WINDOW_HEIGHT;
 	}
 }

@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.JToolTip;
 import javax.swing.SpringLayout;
 
@@ -29,11 +30,19 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.ConvertorInterface;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.concurrent.LightWeightListenerList;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.LocalizerFactory.FillLocalizedContentCallback;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.SimpleContentMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
 import chav1961.purelib.ui.FormFieldFormat;
 import chav1961.purelib.ui.LabelAndField;
@@ -44,6 +53,7 @@ import chav1961.purelib.ui.interfacers.Format;
 import chav1961.purelib.ui.interfacers.MultiAction;
 import chav1961.purelib.ui.interfacers.RefreshMode;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
+import chav1961.purelib.ui.swing.useful.LabelledLayout;
 
 /**
  * <p>This class is a simplest for builder for any class. It supports the {@linkplain FormManager} interface to process user actions in the generated form.</p>
@@ -64,16 +74,14 @@ import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 
 
 public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable {
-	private static final long serialVersionUID = 4920624779261769348L;
+	private static final long 				serialVersionUID = 4920624779261769348L;
+	private static final int				GAP_SIZE = 5; 
 	
-//	private static final ItemDistributor	MULTICOLUMN_DISTRIBUTOR = null;  
-
 	private final Localizer					localizer, personalLocalizer;
 	private final FormManager<Object,T>		formManager;
-	private final List<LabelAndField<JLabel,JComponent>>	fieldList = new ArrayList<>();
-	private final List<ActionButton>		actionList = new ArrayList<>();
-	private final List<ActionListener>		actionListeners = new ArrayList<>();
-	private boolean							closed = false;
+	private final ContentMetadataInterface	mdi;
+	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
+	private boolean							closed = false, localizerPushed = false;
 
 	@FunctionalInterface
 	/**
@@ -110,11 +118,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		this(localizer, leftIcon, instance, formMgr, 1);
 	}
 
-	public AutoBuiltForm(final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(localizer,leftIcon,instance,formMgr,buildSimpleItemDistributor(instance,columns));
-	}
-	
-	public AutoBuiltForm(final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final ItemDistributor distributor) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -124,27 +128,28 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		else if (formMgr == null) {
 			throw new NullPointerException("Form manager can't be null");
 		}
-		else if (distributor == null) {
-			throw new NullPointerException("Column distributor can't be null");
+		else if (numberOfBars < 1) {
+			throw new IllegalArgumentException("Bars count must be positive");
 		}
 		else {
-			final BorderLayout			totalLayout = new BorderLayout(5,5);
-			final SpringLayout			layout = new SpringLayout();
-			final JPanel				childPanel = new JPanel(layout);
-			final Class<?>				instanceClass = instance.getClass(); 
-
+			final BorderLayout				totalLayout = new BorderLayout(GAP_SIZE, GAP_SIZE);
+			final JPanel					childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
+			final Class<?>					instanceClass = instance.getClass();
+			
+			this.mdi = ContentModelFactory.forAnnotatedClass(instanceClass);
 			this.formManager = formMgr;
-			if (instanceClass.isAnnotationPresent(LocaleResourceLocation.class)) {
-				if (!localizer.containsLocalizerHere(instanceClass.getAnnotation(LocaleResourceLocation.class).value())) {
-					try{this.personalLocalizer = LocalizerFactory.getLocalizer(URI.create(instanceClass.getAnnotation(LocaleResourceLocation.class).value()));
+			if (mdi.getRoot().getLocalizerAssociated() != null) {
+				if (!localizer.containsLocalizerHere(mdi.getRoot().getLocalizerAssociated().toString())) {
+					try{this.personalLocalizer = LocalizerFactory.getLocalizer(mdi.getRoot().getLocalizerAssociated());
 						this.localizer = localizer.push(this.personalLocalizer);
+						this.localizerPushed = true;
 					} catch (IOException e) {
 						throw new LocalizationException(e.getLocalizedMessage(),e);
 					}
 				}
 				else {
 					this.localizer = localizer;
-					this.personalLocalizer = localizer.getLocalizerById(instanceClass.getAnnotation(LocaleResourceLocation.class).value());
+					this.personalLocalizer = localizer.getLocalizerById(mdi.getRoot().getLocalizerAssociated().toString());
 				}
 			}
 			else {
@@ -152,17 +157,18 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				this.personalLocalizer = null;
 			}
 
-			UIUtils.collectFields(this.personalLocalizer != null ? this.personalLocalizer : this.localizer,instanceClass,instance,fieldList,
-					(loc,id)->{return new JLabel(loc.getValue(id));},
-					(loc,desc,tooltip,initialValue)->{
-						final JComponent	editor = SwingUtils.prepareCellEditorComponent(loc,desc,initialValue); 
-						
-						editor.setToolTipText(loc.getValue(tooltip));
-						return editor;
-					});
-			collectActions(this.personalLocalizer,instanceClass,instance,actionList);
-			placeCollectedFields(childPanel,layout,fieldList,instance,formMgr,distributor);
-			placeCollectedActions(childPanel,layout,actionList,instance,formMgr);
+			mdi.walkDown((mode,applicationPath,uiPath,node)->{
+				if (mode == NodeEnterMode.ENTER) {
+					final JLabel		label = new JLabel();
+					final JTextField	field = new JTextField();
+					
+					label.setName(node.getUIPath().toString()+"/label");
+					label.add(childPanel,LabelledLayout.LABEL_AREA);
+					field.setName(node.getUIPath().toString()+"/field");
+					label.add(childPanel,LabelledLayout.CONTENT_AREA);
+				}
+				return ContinueMode.CONTINUE;
+			}, mdi.getRoot().getUIPath());
 
 			setLayout(totalLayout);
 			childPanel.validate();
@@ -171,8 +177,10 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			if (leftIcon != null) {
 				add(new JLabel(new ImageIcon(leftIcon)),BorderLayout.WEST);
 			}
+			fillLocalizedStrings();
 		}
 	}
+
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException, NullPointerException {
@@ -183,14 +191,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			throw new NullPointerException("New locale can't be null");
 		}
 		else {
-			for (LabelAndField<JLabel,JComponent> item : fieldList) {
-				item.label.setText(localizer.getValue(item.labelId));
-				item.field.setToolTipText(localizer.getValue(item.labelToolTipId));
-			}
-			for(ActionButton item : actionList) {
-				item.button.setText(localizer.getValue(item.captionId));
-				item.button.setToolTipText(localizer.getValue(item.tooltipId));
-			}
+			fillLocalizedStrings();
 		}
 	}
 
@@ -198,9 +199,6 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	public void close() {
 		if (!closed){
 			closed = true;
-			synchronized(actionListeners) {
-				actionListeners.clear();
-			}
 		}
 	}
 	
@@ -212,41 +210,17 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		return formManager;
 	}
 	
-	public String[] getLabelIds() throws NullPointerException {
-		final List<String>	result = new ArrayList<>();
-		
-		for (LabelAndField item : fieldList) {
-			result.add(item.labelId);
-		}
-		return result.toArray(new String[result.size()]);
-	}
-
-	public String[] getModifiableLabelIds() throws NullPointerException {
-		final List<String>	result = new ArrayList<>();
-		
-		for (LabelAndField item : fieldList) {
-			if (!item.fieldDesc.fieldFormat.isReadOnly()) {
-				result.add(item.labelId);
-			}
-		}
-		return result.toArray(new String[result.size()]);
-	}
-	
-	public boolean hasActions() {
-		return actionList.size() > 0;
-	}
-
 	public boolean doClick(final String actionCommand) {
 		if (actionCommand == null || actionCommand.isEmpty()) {
 			throw new IllegalArgumentException("Action command string can't be null or empty");
 		}
 		else {
-			for (ActionButton item : actionList) {
-				if (actionCommand.equals(item.button.getActionCommand())) {
-					item.button.doClick();
-					return true;
-				}
-			}
+//			for (ActionButton item : actionList) {
+//				if (actionCommand.equals(item.button.getActionCommand())) {
+//					item.button.doClick();
+//					return true;
+//				}
+//			}
 			return false;
 		}
 	}
@@ -256,9 +230,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			throw new NullPointerException("Listener can't be null"); 
 		}
 		else {
-			synchronized(actionListeners) {
-				actionListeners.add(listener);
-			}
+			listeners.addListener(listener);
 		}
 	}
 	
@@ -267,192 +239,25 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			throw new NullPointerException("Listener can't be null"); 
 		}
 		else {
-			synchronized(actionListeners) {
-				actionListeners.remove(listener);
-			}
+			listeners.removeListener(listener);
 		}
 	}
 
-	private void placeCollectedFields(final JPanel container, final SpringLayout chooseLayout, final List<LabelAndField<JLabel,JComponent>> list, final T instance, final FormManager<Object,T> formMgr, final ItemDistributor distr) throws ContentException {
-		final int					columns = distr.getXY(list.size()-1,list.get(list.size()-1).fieldDesc)[1]+1; 
-		final ConvertorInterface	conv = new DefaultDataConvertor();
-		final int 					linesInColumn = (list.size() + columns - 1) / columns;
-		final List<LabelAndField>[]	splittedList = new List[columns]; 
-		
-		for (int index = 0; index < list.size(); index++) {		// Split total list into parts
-			final int	splittedIndex = index / linesInColumn;
-			
-			if (splittedList[splittedIndex] == null) {
-				splittedList[splittedIndex] = new ArrayList<>();
-			}
-			splittedList[splittedIndex].add(list.get(index));
-		}
-		for (List<LabelAndField> item : splittedList) {			// Make parts size the same
-			while (item.size() < linesInColumn) {
-				item.add(null);
-			}
-		}
+	private void fillLocalizedStrings() {
+		mdi.walkDown((mode,applicationPath,uiPath,node)->{
+			if (mode == NodeEnterMode.ENTER) {
+				final JLabel		label = (JLabel) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/label");
+				final JTextField	field = (JTextField) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/field");
 
-		JComponent		leftBound = container;
-		JPanel			leftPanel = null, rightPanel = null;
-		
-		for (int splittedIndex = 0; splittedIndex < splittedList.length; splittedIndex++) {
-			leftPanel = new JPanel(new GridLayout(linesInColumn,1));
-			rightPanel = new JPanel(new GridLayout(linesInColumn,1));
-	
-			for (LabelAndField<JLabel,JComponent> item : splittedList[splittedIndex]) {
-				if (item != null) {
-					final FieldProcessor<T>	processor = new FieldProcessor<>(item,instance,conv,formMgr);
-					final InputVerifier		oldVerifier = item.field.getInputVerifier();
-					
-					leftPanel.add(item.label);
-					rightPanel.add(item.field);
-					item.field.setInputVerifier(new InputVerifier() {
-						@Override
-						public boolean shouldYieldFocus(JComponent input) {
-							return (oldVerifier == null || oldVerifier.shouldYieldFocus(input)) && super.shouldYieldFocus(input);
-						}
-						
-						@Override
-						public boolean verify(final JComponent input) {
-							return (oldVerifier == null || oldVerifier.verify(input)) && processor.processFieldValueChanging((inst)->{refreshRecord(instance,list);});
-						}
-					});
-				}
-				else {
-					leftPanel.add(new JLabel(" "));
-					rightPanel.add(new JLabel(" "));
+				try{label.setText(localizer.getValue(node.getLabelId()));
+					field.setToolTipText(localizer.getValue(node.getTooltipId()));
+				} catch (LocalizationException e) {
 				}
 			}
-			
-			container.add(leftPanel);
-			container.add(rightPanel);
-			
-			if (leftBound == container) {
-				chooseLayout.putConstraint(SpringLayout.WEST,leftPanel,0,SpringLayout.WEST,leftBound);
-			}
-			else {
-				chooseLayout.putConstraint(SpringLayout.WEST,leftPanel,5,SpringLayout.EAST,leftBound);
-			}
-			chooseLayout.putConstraint(SpringLayout.WEST,rightPanel,5,SpringLayout.EAST,leftPanel);
-			chooseLayout.putConstraint(SpringLayout.NORTH,leftPanel,0,SpringLayout.NORTH,rightPanel);
-			chooseLayout.putConstraint(SpringLayout.SOUTH,leftPanel,0,SpringLayout.SOUTH,rightPanel);
-			leftBound = rightPanel;
-		}
-		chooseLayout.putConstraint(SpringLayout.EAST,leftBound,0,SpringLayout.EAST,container);
-	}
-
-	private void placeCollectedActions(final JPanel container, final SpringLayout chooseLayout, final List<ActionButton> actions, final T instance, final FormManager<Object, T> formMgr) {
-		final JPanel				panel = new JPanel();
-		
-		for (ActionButton item : actions) {
-			final boolean			simulateCheck = item.simulateCheck;
-			
-			final ActionListener 	listener = new ActionListener() {
-										@Override
-										public void actionPerformed(final ActionEvent e) {
-											RefreshMode	mode;
-
-											if (simulateCheck) {
-												try{switch (mode = formMgr.onRecord(FormManager.Action.CHECK,instance,null,null,null)) {
-														case REJECT	:  
-															return;
-														case NONE	:  
-															break;
-														case FIELD_ONLY : case RECORD_ONLY : case TOTAL :
-															refreshRecord(instance,fieldList);
-															break;
-														default : throw new UnsupportedOperationException("Refresh mode ["+mode+"] is not supported yet"); 
-													}
-												} catch (FlowException | ContentException | LocalizationException exc) {
-													formMgr.getLogger().message(Severity.error,exc,exc.getLocalizedMessage());
-												}
-											}
-											
-											try{switch (mode = formMgr.onAction(instance,null,item.button.getActionCommand(),null)) {
-													case DEFAULT :
-														final ActionListener[]	refs;
-														
-														synchronized(actionListeners) {
-															refs = actionListeners.toArray(new ActionListener[actionListeners.size()]);
-														}
-														for (ActionListener item : refs) {
-															try {item.actionPerformed(e);																
-															} catch (Exception exc) {
-															}
-														}
-														break;
-													case REJECT	: case NONE :
-														break;
-													case FIELD_ONLY : case RECORD_ONLY : case TOTAL :
-														refreshRecord(instance,fieldList);
-														break;
-													default : throw new UnsupportedOperationException("Refresh mode ["+mode+"] is not supported yet"); 
-												}
-											} catch (FlowException | ContentException | LocalizationException exc) {
-												formMgr.getLogger().message(Severity.error,exc,exc.getLocalizedMessage());
-											}
-										}
-									};
-			panel.add(item.button);
-			item.button.addActionListener(listener);
-		}
-		container.add(panel);
-		chooseLayout.putConstraint(SpringLayout.WEST,panel,0,SpringLayout.WEST,container);
-		chooseLayout.putConstraint(SpringLayout.EAST,panel,0,SpringLayout.EAST,container);
-		chooseLayout.putConstraint(SpringLayout.SOUTH,panel,0,SpringLayout.SOUTH,container);
+			return ContinueMode.CONTINUE;
+		}, mdi.getRoot().getUIPath());
 	}
 	
-	private void refreshRecord(final T instance,final List<LabelAndField<JLabel,JComponent>> list) throws ContentException {
-		for (LabelAndField<JLabel,JComponent> item : list) {
-			SwingUtils.assignValueToComponent(item.field,item.fieldDesc.getFieldValue(instance));
-		}
-	}
-
-	private static void collectActions(final Localizer localizer, final Class<?> clazz, final Object instance, final List<ActionButton> actions) throws IllegalArgumentException, NullPointerException, SyntaxException, LocalizationException, ContentException {
-		if (clazz != null) {
-			if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
-				for (Action item : clazz.isAnnotationPresent(MultiAction.class) 
-								 	? clazz.getAnnotation(MultiAction.class).value() 
-								 	: new Action[] {clazz.getAnnotation(Action.class)}) {
-					final JButton	button = new JButton(localizer.getValue(item.resource().value())) { private static final long serialVersionUID = 1L;
-										@Override
-										public JToolTip createToolTip() {
-											return new SmartToolTip(localizer,this);
-										}
-									};
-					
-					button.setToolTipText(localizer.getValue(item.resource().tooltip()));
-					button.setActionCommand(item.actionString());
-					actions.add(new ActionButton(button,item.resource().value(),item.resource().tooltip(),item.simulateCheck()));
-				}
-			}
-			collectActions(localizer,clazz.getSuperclass(),instance,actions);
-		}
-	}
-
-	private static ItemDistributor buildSimpleItemDistributor(Object obj, final int columnCount) {
-		if (columnCount <= 0 ) {
-			throw new IllegalArgumentException("Column count ["+columnCount+"] must be positive");
-		}
-		else if (obj != null) {
-			Class<?>	clazz = obj.getClass();
-			int			totalCount = 0;
-			
-			while (clazz != null) {
-				for (Field item : clazz.getDeclaredFields()) {
-					if (item.isAnnotationPresent(LocaleResource.class)) {
-						totalCount++;
-					}
-				}
-				clazz = clazz.getSuperclass();
-			}
-			return new SimpleFieldDistributor(totalCount,columnCount);
-		}
-		else {
-			return new SimpleFieldDistributor(0,0);
-		}
-	}
 	
 	private static class ActionButton {
 		final JButton			button;
@@ -550,25 +355,4 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		}
 	}
 	
-	private static class SimpleFieldDistributor implements ItemDistributor {
-		private final int	totalCount;
-		private final int	columnCount;
-		private final int	itemsInColumn;
-		
-		private SimpleFieldDistributor(final int totalCount, final int columnCount) {
-			this.totalCount = totalCount;
-			this.columnCount = columnCount;
-			this.itemsInColumn = (totalCount + columnCount - 1) / columnCount; 
-		}
-
-		@Override
-		public int[] getXY(final int sequential, final FieldDescriptor desc) {
-			return new int[]{sequential % itemsInColumn,sequential/itemsInColumn,1,1};
-		}
-
-		@Override
-		public String toString() {
-			return "FieldDistributor [totalCount=" + totalCount + ", columnCount=" + columnCount + ", itemsInColumn=" + itemsInColumn + "]";
-		}
-	}
 }
