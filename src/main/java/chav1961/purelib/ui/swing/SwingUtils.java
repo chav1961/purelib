@@ -224,6 +224,17 @@ public abstract class SwingUtils {
 		}
 	}
 	
+	public static JComponent prepareRenderer(final ContentNodeMetadata metadata) {
+		return null;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	public static JComponent prepareInputComponent(final FieldRepresentation controlRepresentation, final String controlName, final String controlTooltip, final int controlLen, final FormFieldFormat controlFormat) throws ParseException {
 		JComponent		result;
 		
