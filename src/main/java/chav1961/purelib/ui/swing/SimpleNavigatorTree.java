@@ -39,7 +39,6 @@ import javax.swing.tree.TreeSelectionModel;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.ui.swing.SmartToolTip;
 
 public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 	private static final long 			serialVersionUID = -978827310276837317L;
@@ -177,11 +176,6 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 			
 			return comp.getToolTipText();					
 		}
-	}
-	
-	@Override
-	public JToolTip createToolTip() {
-		return new SmartToolTip(localizer,this);
 	}
 	
 	public JPopupMenu getPopupMenu(final TreePath path) {

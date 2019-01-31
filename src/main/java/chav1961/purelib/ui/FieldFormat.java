@@ -1,19 +1,28 @@
 package chav1961.purelib.ui;
 
-import java.awt.Color;
+import java.io.File;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class FieldFormat {
 	public enum ContentType {
 		StringContent,
 		FormattedStringContent,
+		IntegerContent,
 		NumericContent,
 		DateContent,
 		TimestampContent,
 		BooleanContent,
 		EnumContent,
 		FileContent,
+		ArrayContent,
 		NestedContent,
 		Unclassified
 	}
@@ -177,14 +186,56 @@ public class FieldFormat {
 	}
 
 	private ContentType defineContentType(final Class<?> clazz) {
-		// TODO Auto-generated method stub
-		if (clazz.isPrimitive()) {
-			
+		switch (Utils.defineClassType(clazz)) {
+			case Utils.CLASSTYPE_REFERENCE	:
+				if (clazz.isEnum()) {
+					return ContentType.EnumContent;
+				}
+				else if (clazz.isArray()) {
+					return ContentType.ArrayContent;
+				}
+				else if (clazz.isAssignableFrom(String.class) || clazz == Character.class) {
+					return ContentType.StringContent;
+				}
+				else if (clazz.isAssignableFrom(BigInteger.class) || clazz == Byte.class || clazz == Short.class || clazz == Integer.class || clazz == Long.class) {
+					return ContentType.IntegerContent;
+				}
+				else if (clazz.isAssignableFrom(BigDecimal.class) || clazz == Float.class || clazz == Double.class) {
+					return ContentType.NumericContent;
+				}
+				else if (clazz.isAssignableFrom(Date.class) || clazz.isAssignableFrom(Calendar.class)) {
+					return ContentType.DateContent;
+				}
+				else if (clazz.isAssignableFrom(Timestamp.class)) {
+					return ContentType.TimestampContent;
+				}
+				else if (clazz.isAssignableFrom(Boolean.class)) {
+					return ContentType.BooleanContent;
+				}
+				else if (clazz.isAssignableFrom(File.class) || clazz.isAssignableFrom(FileSystemInterface.class)) {
+					return ContentType.FileContent;
+				}
+				else  {
+					return ContentType.Unclassified;
+				}
+			case Utils.CLASSTYPE_BYTE : case Utils.CLASSTYPE_SHORT : case Utils.CLASSTYPE_INT : case Utils.CLASSTYPE_LONG :	
+				return ContentType.IntegerContent;
+			case Utils.CLASSTYPE_FLOAT : case Utils.CLASSTYPE_DOUBLE	:	
+				return ContentType.NumericContent;
+			case Utils.CLASSTYPE_CHAR	:	
+				return ContentType.StringContent;
+			case Utils.CLASSTYPE_BOOLEAN:	
+				return ContentType.BooleanContent;
+			default : throw new UnsupportedOperationException("Class type ["+Utils.defineClassType(clazz)+"] is not supported yet");
 		}
-		else {
-			
-		}
-		return null;
 	}
 
+	@Override
+	public String toString() {
+		return "FieldFormat [contentType=" + contentType + ", alignment=" + alignment + ", length=" + length + ", frac="
+				+ frac + ", mask=" + mask + ", isMandatory=" + isMandatory + ", isReadOnly=" + isReadOnly
+				+ ", isReadOnlyOnExistent=" + isReadOnlyOnExistent + ", negativeHighlight=" + negativeHighlight
+				+ ", zeroHighlight=" + zeroHighlight + ", positiveHighlight=" + positiveHighlight + ", needSelect="
+				+ needSelect + ", useInList=" + useInList + ", useInListAnchored=" + useInListAnchored + "]";
+	}
 }

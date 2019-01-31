@@ -66,7 +66,6 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
-import chav1961.purelib.ui.swing.SmartToolTip;
 
 public class XMLDescribedApplication {
 	private static final String		NAMESPACE_PREFIX = "app";
@@ -325,7 +324,7 @@ public class XMLDescribedApplication {
 						final ButtonGroup	langGroup = new ButtonGroup();
 						
 						for (LocaleDescriptor desc : localizer.supportedLocales()) {
-							final JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem() {private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip() {return new SmartToolTip(localizer,this);}};
+							final JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem();
 							
 							menuItem.setText(desc.getLanguage());
 							menuItem.setToolTipText(desc.getDescription());
@@ -342,7 +341,7 @@ public class XMLDescribedApplication {
 						
 						for (LookAndFeelInfo lafItem : UIManager.getInstalledLookAndFeels()) {
 							final String				name = lafItem.getName();
-							final JRadioButtonMenuItem	menuItem = new JRadioButtonMenuItem(name){private static final long serialVersionUID = 1L; @Override public JToolTip createToolTip() {return new SmartToolTip(localizer,this);}};
+							final JRadioButtonMenuItem	menuItem = new JRadioButtonMenuItem(name);
 							
 							menuItem.setToolTipText(lafItem.getClassName());
 							menuItem.setSelected(name.equals(currentLAF));
@@ -398,11 +397,6 @@ public class XMLDescribedApplication {
 			fillLocalizedString(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 		}
 		
-		@Override 
-		public JToolTip createToolTip() {
-			return new SmartToolTip(localizer,this);
-		}
-
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 			fillLocalizedString(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
@@ -438,11 +432,6 @@ public class XMLDescribedApplication {
 			fillLocalizedString(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 		}
 		
-		@Override 
-		public JToolTip createToolTip() {
-			return new SmartToolTip(localizer,this);
-		}
-
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 			fillLocalizedString(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
@@ -465,11 +454,6 @@ public class XMLDescribedApplication {
 			this.localizer = localizer;
 		}
 		
-		@Override 
-		public JToolTip createToolTip() {
-			return new SmartToolTip(localizer,this);
-		}
-
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 			for (int index = 0, maxIndex = getComponentCount(); index < maxIndex; index++) {
@@ -482,41 +466,6 @@ public class XMLDescribedApplication {
 		}
 	}
 
-//	private class JLocalizedToolBar extends LocalizedToolBar {
-//		private static final long serialVersionUID = 1L;
-//		
-//		private JLocalizedToolBar(final Localizer localizer) throws LocalizationException {
-//			super(localizer);
-//		}
-//		
-//		public void add(final Node node) throws LocalizationException, DOMException, MalformedURLException {
-//			switch (node.getNodeName()) {
-//				case TAG_MENUITEM		:
-//					final JButton		item;
-//					
-//					if (node.getAttributes().getNamedItem(ATTR_ICON) != null) {
-//						item = createButton(null,node.getAttributes().getNamedItem(ATTR_ACTION).getNodeValue(),new URL(node.getAttributes().getNamedItem(ATTR_ICON).getNodeValue()),new URL(node.getAttributes().getNamedItem(ATTR_ICON).getNodeValue()),node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue());
-//					}
-//					else {
-//						item = new JButton();
-//						
-//						item.setText(localizer.getValue(node.getAttributes().getNamedItem(ATTR_CAPTION).getNodeValue()));
-//						item.setToolTipText(localizer.getValue(node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue()));
-//						item.setActionCommand(node.getAttributes().getNamedItem(ATTR_ACTION).getNodeValue());
-//					}
-//					if (node.getAttributes().getNamedItem(ATTR_NAME) != null) {
-//						item.setName(node.getAttributes().getNamedItem(ATTR_NAME).getNodeValue());
-//					}
-//					
-//					if (node.getAttributes().getNamedItem(ATTR_ENABLED) != null) {
-//						item.setEnabled(Boolean.valueOf(node.getAttributes().getNamedItem(ATTR_ENABLED).getNodeValue()));
-//					}
-//					add(item,node.getAttributes().getNamedItem(ATTR_TOOLTIP).getNodeValue());
-//					break;
-//				default :
-//			}
-//		}
-//	}
 
 	private static class CargoCheckBoxMenuItem<T> extends JCheckBoxMenuItem {
 		private static final long serialVersionUID = 7391015352976487237L;

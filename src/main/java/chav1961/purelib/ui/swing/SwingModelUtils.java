@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.Component;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Locale;
@@ -13,6 +14,7 @@ import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.interfaces.UITestInterface;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.LocalizerFactory.FillLocalizedContentCallback;
@@ -50,6 +52,19 @@ public class SwingModelUtils {
 			throw new IllegalArgumentException("Illegal awaited class ["+awaited.getCanonicalName()+"], only JMenuBar and JPopupMenu are available"); 
 		}
 	}
+	
+	public static UITestInterface buildTestInterface(final ContentNodeMetadata metadata, final Component uiRoot) {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (uiRoot == null) {
+			throw new NullPointerException("UI root can't be null");
+		}
+		else {
+			return new SwingTestManager((Class<Component>)uiRoot.getClass(), uiRoot, metadata);
+		}
+	}
+	
 	
 	private static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./navigation.node.")) {
