@@ -46,5 +46,5 @@ public interface JComponentInterface {
 	 * <p>Get field descriptor for the component</p>
 	 * @return field descriptor for the component. Can't be null
 	 */
-	FieldDescriptor getFieldDescriptor();
+	default FieldDescriptor getFieldDescriptor() {return null;}
 }

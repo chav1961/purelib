@@ -89,6 +89,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.LocalizerFactory.FillLocalizedContentCallback;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -101,6 +102,7 @@ import chav1961.purelib.ui.interfacers.FieldRepresentation;
 import chav1961.purelib.ui.interfacers.FormManager;
 import chav1961.purelib.ui.interfacers.RefreshMode;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
+import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 
 /**
@@ -225,13 +227,53 @@ public abstract class SwingUtils {
 		}
 	}
 	
-	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final FieldFormat format) {
-		return null;
+	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws NullPointerException, LocalizationException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (format == null) {
+			throw new NullPointerException("Field format can't be null");
+		}
+		else if (monitor == null) {
+			throw new NullPointerException("Monitor can't be null");
+		}
+		else {
+			JComponent	result = null;
+			
+			switch (format.getContentType()) {
+				case ArrayContent	:
+					break;
+				case BooleanContent	:
+					result = new JCheckBoxWithMeta(metadata,monitor);
+					break;
+				case DateContent	:
+					break;
+				case EnumContent	:
+					break;
+				case FileContent	:
+					break;
+				case FormattedStringContent	:
+					break;
+				case IntegerContent	:
+					break;
+				case NestedContent	:
+					break;
+				case NumericContent	:
+					break;
+				case StringContent	:
+					break;
+				case TimestampContent	:
+					break;
+				case Unclassified	:
+					result = new JLabelWithMeta(metadata);
+					break;
+				default:
+					throw new UnsupportedOperationException("Content type ["+format.getContentType()+"] is not supported yet");
+			}
+			result.setName(metadata.getUIPath().toString());
+			return null;
+		}
 	}
-	
-	
-	
-	
 	
 	private static void setContentColor(final JTextComponent item, final Object value, final FormFieldFormat format) {
 		final double 	content;
@@ -1299,6 +1341,5 @@ public abstract class SwingUtils {
 			return desc;
 		}
 	}
-
 }
 	

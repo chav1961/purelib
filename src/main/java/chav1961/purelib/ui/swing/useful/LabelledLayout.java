@@ -310,60 +310,6 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 						);
 	}
 
-	private static SizeRequirements[] calculateSize(final List<Component> labels, final List<Component> content) {
-		final int	maxSize = Math.max(labels.size(),content.size());
-		final SizeRequirements[]	labelsX = new SizeRequirements[maxSize], labelsY = new SizeRequirements[maxSize]; 
-		final SizeRequirements[]	contentX = new SizeRequirements[maxSize], contentY = new SizeRequirements[maxSize]; 
-		
-		for (int index = 0; index < maxSize; index++) {
-			labelsX[index] = index < labels.size() ? toXSizeRequirements(labels.get(index)) : NULL_SIZE;
-			labelsY[index] = index < labels.size() ? toYSizeRequirements(labels.get(index)) : NULL_SIZE;
-		}
-		for (int index = 0; index < maxSize; index++) {
-			contentX[index] = index < content.size() ? toXSizeRequirements(content.get(index)) : NULL_SIZE;
-			contentY[index] = index < content.size() ? toYSizeRequirements(content.get(index)) : NULL_SIZE;
-		}
-		final SizeRequirements	xLabel = SizeRequirements.getAlignedSizeRequirements(labelsX)
-								, xContent = SizeRequirements.getAlignedSizeRequirements(contentX);
-		final SizeRequirements	yLabel = SizeRequirements.getTiledSizeRequirements(labelsY)
-								, yContent = SizeRequirements.getTiledSizeRequirements(contentY);
-
-		return new SizeRequirements[]{xLabel,yLabel,xContent,yContent}; 
-	}
-	
-	private static Dimension extractSize(final Component comp) {
-		if (comp.getPreferredSize() != null) {
-			return comp.getPreferredSize(); 
-		}
-		else if (comp.getMinimumSize() != null) {
-			return comp.getMinimumSize(); 
-		}
-		else if (comp.getMaximumSize() != null) {
-			return comp.getMaximumSize(); 
-		}
-		else {
-			return new Dimension(0,0);
-		}
-	}
-	
-	private static int calculateMinContentWidth(final List<Component> content) {
-		int 	minHeight = Integer.MAX_VALUE;
-		
-		for (Component item : content) {
-			final Dimension	itemSize = extractSize(item);
-			
-			if (itemSize.height > 0) {
-				minHeight = Math.min(minHeight, itemSize.height);
-			}
-		}
-		if (minHeight == Integer.MAX_VALUE) {
-			return MIN_CONTENT_WIDTH; 
-		}
-		else {
-			return minHeight;
-		}
-	}
-	
 	private static final SizeRequirements[] calculateAreaSize(final Pair[] list) {
 		final SizeRequirements[]	x = new SizeRequirements[list.length], y = new SizeRequirements[list.length]; 
 		

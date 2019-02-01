@@ -4,8 +4,11 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+
+import javax.swing.text.MaskFormatter;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -13,13 +16,13 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class FieldFormat {
 	public enum ContentType {
+		BooleanContent,
 		StringContent,
 		FormattedStringContent,
 		IntegerContent,
 		NumericContent,
 		DateContent,
 		TimestampContent,
-		BooleanContent,
 		EnumContent,
 		FileContent,
 		ArrayContent,
@@ -66,8 +69,25 @@ public class FieldFormat {
 			boolean			isMandatory = false, isReadOnly = false, isReadOnlyOnExistent = false;
 			boolean			negativeHighlight = false, zeroHighlight = false, positiveHighlight = false;
 			boolean			useInList = false, useInListAnchored = false, needSelect = false;
+			String			mask = null;
 			Alignment		alignment = Alignment.NoMatter;
 			int				pos = 0, len = 0, frac = 0, value;
+			
+			if (data[pos] == '(') {	// Parse format mask
+				int	depth = 0, start = pos, count = 0;
+				
+				do {switch (data[pos++]) {
+						case '(' :	depth++; break;
+						case ')' :	depth++; break;
+					}
+					count++;
+				} while (data[pos] != '\n' && depth > 0);
+				mask = new String(data,start+1,count-1);
+				try{new MaskFormatter(mask);
+				} catch (ParseException e) {
+					throw new SyntaxException(0,0,"Format mask ["+mask+"]: "+e.getLocalizedMessage()); 
+				}
+			}			
 			
 			while (data[pos] != '\n') {
 				switch (data[pos]) {
@@ -131,61 +151,56 @@ public class FieldFormat {
 			this.alignment = alignment;
 			this.length = len;
 			this.frac = frac;
-			this.contentType = defineContentType(clazz);
-			this.mask = buildFormatMask();
+			this.contentType = defineContentType(clazz,mask);
+			this.mask = mask;
 		}
 	}
 	
 	public ContentType getContentType() {
-		return null;
+		return contentType;
 	}
 	
 	public int getLength() {
-		return 0;
+		return length;
 	}
 	
 	public int getPrecision() {
-		return 0;
+		return frac;
 	}
 	
 	public Alignment getAlignment() {
-		return null;
+		return alignment;
 	}
 	
 	public String getFormatMask() {
-		return null;
+		return mask;
 	}
 	
 	public boolean isMandatory() {
-		return false;
+		return isMandatory;
 	}
 
 	public boolean isReadOnly(boolean onCreation) {
-		return false;
+		return onCreation ? isReadOnlyOnExistent : isReadOnly;
 	}
 	
 	public boolean isHighlighted(int sign) {
-		return false;
+		return sign < 0 ? negativeHighlight : (sign > 0 ? positiveHighlight : zeroHighlight);
 	}
 
 	public boolean needSelectOnFocus() {
-		return false;
+		return needSelect;
 	}
 	
 	public boolean isUsedInList() {
-		return false;
+		return useInList;
 	}
 
 	public boolean isAnchored() {
-		return false;
+		return useInListAnchored;
 	}
 
-	private String buildFormatMask() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private ContentType defineContentType(final Class<?> clazz) {
+	private ContentType defineContentType(final Class<?> clazz, final String mask) {
 		switch (Utils.defineClassType(clazz)) {
 			case Utils.CLASSTYPE_REFERENCE	:
 				if (clazz.isEnum()) {
@@ -195,7 +210,12 @@ public class FieldFormat {
 					return ContentType.ArrayContent;
 				}
 				else if (clazz.isAssignableFrom(String.class) || clazz == Character.class) {
-					return ContentType.StringContent;
+					if (mask == null) {
+						return ContentType.StringContent;
+					}
+					else {
+						return ContentType.FormattedStringContent;
+					}
 				}
 				else if (clazz.isAssignableFrom(BigInteger.class) || clazz == Byte.class || clazz == Short.class || clazz == Integer.class || clazz == Long.class) {
 					return ContentType.IntegerContent;
