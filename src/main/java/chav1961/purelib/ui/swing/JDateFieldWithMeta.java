@@ -1,6 +1,6 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -9,9 +9,9 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.text.DecimalFormat;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -20,7 +20,12 @@ import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.text.NumberFormatter;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+import javax.swing.SwingUtilities;
+import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.text.DateFormatter;
+import javax.swing.text.MaskFormatter;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -28,21 +33,25 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.FieldFormat;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
+import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
+import chav1961.purelib.ui.swing.useful.JDateSelectionDialog;
 
-public class JNumericFieldWithMetadata extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
 	private final ContentNodeMetadata	metadata;
-	private final FieldFormat			format;
-	private Object						currentValue;
+	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
+	private	Popup 						window;
+	private Date						currentValue = new Date(System.currentTimeMillis());
 	
-	public JNumericFieldWithMetadata(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+		super();
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
@@ -54,23 +63,16 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 		}
 		else {
 			this.metadata = metadata;
-			this.format = format;
-			final StringBuilder	sb = new StringBuilder("0");
 			
-			for (int index = 1, maxIndex = format.getLength() == 0 ? 15 : format.getLength()-format.getPrecision()-1; index < maxIndex; index++) {
-				sb.insert(0,"#");
+			if (format.getFormatMask() != null) {
+				try{setFormatter(new MaskFormatter(format.getFormatMask()));
+				} catch (ParseException e) {
+				}
 			}
-			sb.append('.');
-			for (int index = 0, maxIndex = format.getPrecision() == 0 ? 2 : format.getPrecision(); index < maxIndex; index++) {
-				sb.append("#");
+			else {
+				setFormatter(new DateFormatter(DateFormat.getDateInstance(DateFormat.SHORT)));
 			}
-			
-			setFormatter(new NumberFormatter(new DecimalFormat(sb.toString()+";-"+sb.toString())));
-			setAlignmentX(JTextField.RIGHT_ALIGNMENT);
-			setFont(new Font(getFont().getFontName(),Font.BOLD,getFont().getSize()));
-			setColumns(sb.length()+1);
-			setAutoscrolls(false);
-			
+			setValue(this.currentValue);
 			addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
 				@Override public void componentMoved(ComponentEvent e) {}
@@ -78,8 +80,8 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 				
 				@Override
 				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JNumericFieldWithMetadata.this);
-						currentValue = getText();
+					try{monitor.process(MonitorEvent.Loading,metadata,JDateFieldWithMeta.this);
+						currentValue = (Date) getValue();
 					} catch (ContentException exc) {
 					}					
 				}				
@@ -87,24 +89,27 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getText().equals(currentValue)) {
-							monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMetadata.this);
-							currentValue = getText();
+					if (window != null) {
+						window.hide();
+						window = null;
+					}
+					try{if (!getValue().equals(currentValue)) {
+							monitor.process(MonitorEvent.Saving,metadata,JDateFieldWithMeta.this);
+							currentValue = (Date) getValue();
 						}
-						monitor.process(MonitorEvent.FocusLost,metadata,JNumericFieldWithMetadata.this);
+						monitor.process(MonitorEvent.FocusLost,metadata,JDateFieldWithMeta.this);
 					} catch (ContentException exc) {
-					}					
+					}
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					currentValue = getText();
+					currentValue = (Date) getValue();
 					if (format.needSelectOnFocus()) {
 						selectAll();
 					}
-					setCaretPosition(getDocument().getLength()-1);
 					try{
-						monitor.process(MonitorEvent.FocusGained,metadata,JNumericFieldWithMetadata.this);
+						monitor.process(MonitorEvent.FocusGained,metadata,JDateFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
 				}
@@ -112,7 +117,7 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 			addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JNumericFieldWithMetadata.this,e.getActionCommand());
+					try{monitor.process(MonitorEvent.Action,metadata,JDateFieldWithMeta.this,e.getActionCommand());
 					} catch (ContentException exc) {
 					}
 				}
@@ -123,28 +128,26 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JNumericFieldWithMetadata.this)) {
+					try{if (monitor.process(MonitorEvent.Rollback,metadata,JDateFieldWithMeta.this)) {
 							assignValueToComponent(currentValue);
 						}
 					} catch (ContentException exc) {
 					}
 				}
 			});
+			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,KeyEvent.ALT_MASK),"show-dropdown");
+			getActionMap().put("show-dropdown", new AbstractAction(){
+				private static final long serialVersionUID = -6372550433958089237L;
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					callSelect.doClick();
+				}
+			});
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
-					try{final boolean	validated = monitor.process(MonitorEvent.Validation,metadata,JNumericFieldWithMetadata.this);
-
-						if (getValue() instanceof BigDecimal) {
-							setFieldColor(((BigDecimal)getValue()).signum());
-						}
-						else if (getValue() instanceof Float) {
-							setFieldColor((int)Math.signum(((Float)getValue()).doubleValue()));
-						}
-						else if (getValue() instanceof Double) {
-							setFieldColor((int)Math.signum(((Double)getValue()).doubleValue()));
-						}
-						return validated;
+					try{return monitor.process(MonitorEvent.Validation,metadata,JDateFieldWithMeta.this);
 					} catch (ContentException e) {
 						return false;
 					}
@@ -160,7 +163,11 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 			}
 			if (format.isReadOnly(false)) {
 				setEditable(false);
+				callSelect.setEnabled(false);
 			}
+			setColumns(format.getLength() == 0 ? 10 : format.getLength());
+			callSelect.addActionListener((e)->{selectDate();});
+			new ComponentKeepedBorder(0,callSelect).install(this);
 			fillLocalizedStrings();
 		}		
 	}
@@ -205,18 +212,22 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 		return String.class;
 	}
 
-	private void setFieldColor(final int signum) {
-		if (format.isHighlighted(signum)) {
-			if (signum < 0) {
-				setForeground(SwingUtils.NEGATIVEMARK_FOREGROUND);
-			}
-			else if (signum > 0) {
-				setForeground(SwingUtils.POSITIVEMARK_FOREGROUND);
-			}
-			else {
-				setForeground(SwingUtils.ZEROMARK_FOREGROUND);
-			}
-		}
+	@Override
+	public String standardValidation(final String value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setInvalid(boolean invalid) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isInvalid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
@@ -227,4 +238,32 @@ public class JNumericFieldWithMetadata extends JFormattedTextField implements No
 			throw new LocalizationException(e);
 		}
 	}
+
+	private void selectDate() {
+		if (window != null) {
+			window.hide();
+			window = null;
+		}
+		
+		try{final Localizer				localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
+			final JDateSelectionDialog	dsd = new JDateSelectionDialog(localizer
+											,new Date(System.currentTimeMillis())
+											,(newDate,needExit)->{
+												System.err.println("New date="+newDate+", exit="+needExit);
+												assignValueToComponent(newDate);
+												if (needExit) {
+													window.hide();
+													window = null;
+												}												
+											}
+											);
+			final Point					callSelectLocation = callSelect.getLocationOnScreen();
+			
+			window = PopupFactory.getSharedInstance().getPopup(this,dsd,callSelectLocation.x+callSelect.getWidth()-dsd.getPreferredSize().width,callSelectLocation.y+callSelect.getHeight());
+			window.show();
+		} catch (IOException | LocalizationException  e) {
+//			throw new LocalizationException(e);
+		}
+	}
+
 }

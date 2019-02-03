@@ -4,6 +4,7 @@ import java.net.URI;
 
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.model.FieldFormat;
 
 public interface ContentMetadataInterface {
 	String		UI_SCHEME = "ui";	
@@ -16,7 +17,7 @@ public interface ContentMetadataInterface {
 		String getLabelId();
 		String getTooltipId();
 		String getHelpId();
-		String getFormatAssociated();
+		FieldFormat getFormatAssociated();
 		URI getApplicationPath();
 		URI getUIPath();
 		URI getRelativeUIPath();

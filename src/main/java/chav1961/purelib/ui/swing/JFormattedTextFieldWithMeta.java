@@ -25,14 +25,14 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.FieldFormat;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
-public class JFormattedTextFieldWithMeta  extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JFormattedTextFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
 	private final ContentNodeMetadata	metadata;
@@ -179,6 +179,24 @@ public class JFormattedTextFieldWithMeta  extends JFormattedTextField implements
 		return String.class;
 	}
 
+	@Override
+	public String standardValidation(final String value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setInvalid(boolean invalid) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isInvalid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		

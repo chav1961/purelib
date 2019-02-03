@@ -155,6 +155,24 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 		return Boolean.class;
 	}
 
+	@Override
+	public String standardValidation(final String value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setInvalid(boolean invalid) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isInvalid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 			
@@ -164,4 +182,5 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 			throw new LocalizationException(e);
 		}
 	}
+
 }

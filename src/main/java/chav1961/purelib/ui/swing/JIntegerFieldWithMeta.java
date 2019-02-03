@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -28,8 +29,8 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
-import chav1961.purelib.ui.FieldFormat;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -54,15 +55,23 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 		else {
 			this.metadata = metadata;
 			this.format = format;
-			final StringBuilder	sb = new StringBuilder("0");
 			
-			for (int index = 1, maxIndex = format.getLength() == 0 ? 18 : format.getLength(); index < maxIndex; index++) {
-				sb.insert(0,"#");
+			if (metadata.getFormatAssociated().getFormatMask() != null) {
+				setFormatter(new NumberFormatter(new DecimalFormat(metadata.getFormatAssociated().getFormatMask())));
 			}
-			setFormatter(new NumberFormatter(new DecimalFormat(sb.toString()+";-"+sb.toString())));
-			setAlignmentX(JTextField.RIGHT_ALIGNMENT);
+			else {
+				final StringBuilder	sb = new StringBuilder("0");
+				final int 			len = format.getLength() == 0 ? 15 : format.getLength();
+				
+				for (int index = 1, maxIndex = len; index < maxIndex; index++) {
+					sb.insert(0,"#");
+				}
+				setFormatter(new NumberFormatter(new DecimalFormat(sb.toString()+";-"+sb.toString(),new DecimalFormatSymbols())));
+				setColumns(len+1);
+			}
+			
+			setHorizontalAlignment(JTextField.RIGHT);
 			setFont(new Font(getFont().getFontName(),Font.BOLD,getFont().getSize()));
-			setColumns(sb.length()+1);
 			setAutoscrolls(false);
 			
 			addComponentListener(new ComponentListener() {
@@ -96,7 +105,9 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 					if (format.needSelectOnFocus()) {
 						selectAll();
 					}
-					setCaretPosition(getDocument().getLength()-1);
+					if (getDocument().getLength() > 0) {
+						setCaretPosition(getDocument().getLength()-1);
+					}
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JIntegerFieldWithMeta.this);
 					} catch (ContentException exc) {
@@ -205,6 +216,24 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 		return String.class;
 	}
 
+	@Override
+	public String standardValidation(final String value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setInvalid(boolean invalid) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isInvalid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
 	private void setFieldColor(final int signum) {
 		if (format.isHighlighted(signum)) {
 			if (signum < 0) {

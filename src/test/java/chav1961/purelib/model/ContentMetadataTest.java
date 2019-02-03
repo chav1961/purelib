@@ -20,7 +20,7 @@ public class ContentMetadataTest {
 												"label", 
 												"tooltip", 
 												"help", 
-												"format", 
+												null, 
 												URI.create("app:test"));
 		final MutableContentNodeMetadata	child1 = new MutableContentNodeMetadata(
 												"child1Name", 
@@ -30,7 +30,7 @@ public class ContentMetadataTest {
 												"childLabel1", 
 												"childTooltip1", 
 												"childHelp1", 
-												"childFormat1", 
+												null, 
 												URI.create("app:child1Test"));
 		final MutableContentNodeMetadata	child2 = new MutableContentNodeMetadata(
 												"child2Name", 
@@ -40,7 +40,7 @@ public class ContentMetadataTest {
 												"childLabel2", 
 												"childTooltip2", 
 												"childHelp2", 
-												"childFormat2", 
+												null, 
 												URI.create("app:child2Test"));
 		final MutableContentNodeMetadata	child11 = new MutableContentNodeMetadata(
 												"child11Name", 
@@ -50,7 +50,7 @@ public class ContentMetadataTest {
 												"childLabel11", 
 												"childTooltip11", 
 												"childHelp11", 
-												"childFormat11", 
+												null, 
 												URI.create("app:child11Test"));
 		final MutableContentNodeMetadata	child12 = new MutableContentNodeMetadata(
 												"child12Name", 
@@ -60,7 +60,7 @@ public class ContentMetadataTest {
 												"childLabel12", 
 												"childTooltip12", 
 												"childHelp12", 
-												"childFormat12", 
+												null, 
 												URI.create("app:child12Test"));
 		final MutableContentNodeMetadata	child21 = new MutableContentNodeMetadata(
 												"child21Name", 
@@ -70,7 +70,7 @@ public class ContentMetadataTest {
 												"childLabel21", 
 												"childTooltip21", 
 												"childHelp21", 
-												"childFormat21", 
+												null, 
 												URI.create("app:child21Test"));
 		final MutableContentNodeMetadata	child22 = new MutableContentNodeMetadata(
 												"child22Name", 
@@ -80,7 +80,7 @@ public class ContentMetadataTest {
 												"childLabel22", 
 												"childTooltip22", 
 												"childHelp22", 
-												"childFormat22", 
+												null, 
 												URI.create("app:child22Test"));
 		
 		root.addChild(child1);		child1.setParent(root);
@@ -109,7 +109,7 @@ public class ContentMetadataTest {
 		metadata.walkDown((mode,appPath,uiPath,node)->{counter[0]++; return ContinueMode.CONTINUE;}, URI.create("ui:/root/child1"));
 		Assert.assertEquals(6,counter[0]);
 		
-		Assert.assertEquals(child11,metadata.byApplicationPath(URI.create("app:child11Test")));
+		Assert.assertEquals(child11,metadata.byApplicationPath(URI.create("app:child11Test"))[0]);
 		
 		try{new SimpleContentMetadata(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

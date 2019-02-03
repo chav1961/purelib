@@ -6,7 +6,11 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -15,6 +19,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import chav1961.purelib.basic.GettersAndSettersFactory;
+import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
@@ -30,9 +36,9 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.FieldFormat;
 import chav1961.purelib.ui.LabelAndField;
 import chav1961.purelib.ui.interfacers.Action;
 import chav1961.purelib.ui.interfacers.FormManager;
@@ -62,11 +68,15 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
 public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor {
 	private static final long 				serialVersionUID = 4920624779261769348L;
 	private static final int				GAP_SIZE = 5; 
+
 	
 	private final Localizer					localizer, personalLocalizer;
 	private final FormManager<Object,T>		formManager;
 	private final ContentMetadataInterface	mdi;
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
+	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
+	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
+	private final JLabel					messages = new JLabel("",JLabel.LEFT);
 	private boolean							closed = false, localizerPushed = false;
 
 	public AutoBuiltForm(final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
@@ -121,13 +131,14 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				this.personalLocalizer = null;
 			}
 
+			buttonPanel.add(messages);
 			mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if (node.getApplicationPath() != null){ 
 						if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
 							final JButton		button = new JButton();
 							
-							button.setName(node.getUIPath().toString()+"/action");
+							button.setName(node.getUIPath().toString());
 
 							button.setActionCommand(node.getApplicationPath().toString());
 							button.addActionListener((e)->{
@@ -141,13 +152,19 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						}
 						if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
 							try{final JLabel		label = new JLabel();
-								final JComponent 	field = SwingUtils.prepareRenderer(node,new FieldFormat(node.getType(),node.getFormatAssociated()), this);
+								final FieldFormat	ff = node.getFormatAssociated();
+								final JComponent 	field = SwingUtils.prepareRenderer(node, ff, this);
 							
 								label.setName(node.getUIPath().toString()+"/label");
 								childPanel.add(label,LabelledLayout.LABEL_AREA);
-								field.setName(node.getUIPath().toString()+"/field");
+								field.setName(node.getUIPath().toString());
 								childPanel.add(field,LabelledLayout.CONTENT_AREA);
-							} catch (LocalizationException | SyntaxException e) {
+								labelIds.add(node.getLabelId());
+								if (!ff.isReadOnly(false) && !ff.isReadOnly(true)) {
+									modifiableLabelIds.add(node.getLabelId());
+								}
+								accessors.put(node.getUIPath().toString(),GettersAndSettersFactory.buildGetterAndSetter(instance.getClass(),node.getName()));
+							} catch (LocalizationException | ContentException e) {
 								e.printStackTrace();
 							}
 						}
@@ -159,14 +176,16 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			setLayout(totalLayout);
 			childPanel.validate();
 			add(childPanel,BorderLayout.CENTER);
+			add(buttonPanel,BorderLayout.SOUTH);
 			
 			if (leftIcon != null) {
 				add(new JLabel(new ImageIcon(leftIcon)),BorderLayout.WEST);
 			}
+			
+			
 			fillLocalizedStrings();
 		}
 	}
-
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException, NullPointerException {
@@ -242,15 +261,57 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	@Override
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) throws ContentException {
 		// TODO Auto-generated method stub
+		switch (event) {
+			case Action:
+				break;
+			case FocusGained:
+				try{messages.setText(SwingUtils.prepareMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
+				} catch (LocalizationException  e) {
+					messages.setText("");
+				}
+				break;
+			case FocusLost:
+				final String	val = ((JComponentInterface)component).getValueFromComponent().toString();
+				messages.setText("Val="+val);
+				break;
+			case Loading:
+				break;
+			case Rollback:
+				messages.setText("");
+				break;
+			case Saving:
+				break;
+			case Validation:
+				final String	error = ((JComponentInterface)component).standardValidation(((JComponentInterface)component).getChangedValueFromComponent().toString());
+				
+				if (error != null) {
+					messages.setText(SwingUtils.prepareMessage(Severity.error, error));
+					return false;
+				}
+				else {
+					messages.setText("");
+					return true;
+				}
+			default:
+				break;
+		}
 		return true;
 	}
 	
+	public String[] getLabelIds() {
+		return labelIds.toArray(new String[labelIds.size()]); 
+	}
+
+	public String[] getModifiableLabelIds() {
+		return modifiableLabelIds.toArray(new String[labelIds.size()]); 
+	}
+
 	private void fillLocalizedStrings() {
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				if(node.getApplicationPath() != null) {
 					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
-						final JButton		button = (JButton) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/action");
+						final JButton		button = (JButton) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{button.setText(localizer.getValue(node.getLabelId()));
 						button.setToolTipText(localizer.getValue(node.getTooltipId()));
@@ -259,7 +320,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					}
 					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
 						final JLabel		label = (JLabel) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/label");
-						final JTextField	field = (JTextField) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/field");
+						final JComponent	field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{label.setText(localizer.getValue(node.getLabelId()));
 							field.setToolTipText(localizer.getValue(node.getTooltipId()));

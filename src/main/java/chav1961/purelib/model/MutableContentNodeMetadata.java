@@ -13,14 +13,15 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private final List<ContentNodeMetadata>	children = new ArrayList<>();
 	private final String				name;
 	private final Class<?>				type;
-	private final String				labelId, tooltipId, helpId, formatAssociated, relativeUIPath;
+	private final String				labelId, tooltipId, helpId, relativeUIPath;
+	private final FieldFormat			formatAssociated;
 	private final URI					localizerAssociated, applicationPath;
 
 	private ContentMetadataInterface	owner = null;
 	private ContentNodeMetadata			parent = null;
 	private boolean 					mounted = false;	
 	
-	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final String formatAssociated, final URI applicationPath) {
+	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final FieldFormat formatAssociated, final URI applicationPath) {
 		if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Node name can't be null or empty");
 		}
@@ -88,7 +89,7 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	}
 
 	@Override
-	public String getFormatAssociated() {
+	public FieldFormat getFormatAssociated() {
 		return formatAssociated;
 	}
 

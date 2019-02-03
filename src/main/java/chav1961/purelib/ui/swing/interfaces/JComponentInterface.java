@@ -7,7 +7,7 @@ import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
  * <p>This interface associated with all swing components in the application form.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
 public interface JComponentInterface {
@@ -43,8 +43,21 @@ public interface JComponentInterface {
 	Class<?> getValueType();
 	
 	/**
-	 * <p>Get field descriptor for the component</p>
-	 * @return field descriptor for the component. Can't be null
+	 * <p>Perform standard validation of the content</p>  
+	 * @param value String representation of the content to validate
+	 * @return null on success, otherwise error description 
 	 */
-	default FieldDescriptor getFieldDescriptor() {return null;}
+	String standardValidation(String value);
+	
+	/**
+	 * <p>Mark content as valid/invalid</p>
+	 * @param invalid true means invalid content
+	 */
+	void setInvalid(boolean invalid);
+	
+	/**
+	 * <p>Is current content invalid</p>
+	 * @return true if the content is invalid
+	 */
+	boolean isInvalid();
 }

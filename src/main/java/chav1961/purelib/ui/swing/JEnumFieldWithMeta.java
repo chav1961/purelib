@@ -29,11 +29,12 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.FieldFormat;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -59,6 +60,10 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 		else {
 			this.metadata = metadata;
 			this.clazz = (Class<Enum<?>>) metadata.getType();
+			
+			for (Enum<?> item : clazz.getEnumConstants()) {
+				addItem(item);
+			}
 			addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
 				@Override public void componentMoved(ComponentEvent e) {}
@@ -78,7 +83,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getSelectedItem().equals(currentValue)) {
+					try{if (getSelectedItem() != null && !getSelectedItem().equals(currentValue)) {
 							monitor.process(MonitorEvent.Saving,metadata,JEnumFieldWithMeta.this);
 							currentValue = (Enum<?>) getSelectedItem();
 						}
@@ -136,17 +141,31 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 						final JLabel	label = new JLabel();
 
 						label.setOpaque(true);
-						label.setText(value.name());
 						label.setBackground(isSelected ? SwingUtils.MANDATORY_SELECTION_BACKGROUND : (format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND));
 						label.setForeground(isSelected ? SwingUtils.MANDATORY_SELECTION_FOREGROUND : (format.isMandatory() ? SwingUtils.MANDATORY_FOREGROUND : SwingUtils.OPTIONAL_FOREGROUND));
 						if (cellHasFocus) {
 							label.setBorder(new LineBorder(SwingUtils.MANDATORY_SELECTION_FOREGROUND));
+						}
+						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
+								final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);
+								final Localizer			localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
+							
+								label.setText(localizer.getValue(res.value()));
+								label.setToolTipText(localizer.getValue(res.tooltip()));
+							}
+							else {
+								label.setText(value.name());
+							}
+						} catch (NoSuchFieldException | LocalizationException | IOException  e) {
+							label.setText(value.name());
 						}
 						return label;
 					}
 				}
 			});
 
+			setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
+			setForeground(format.isMandatory() ? SwingUtils.MANDATORY_FOREGROUND : SwingUtils.OPTIONAL_FOREGROUND);
 			switch (format.getAlignment()) {
 				case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
 				case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
@@ -203,6 +222,24 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 		return String.class;
 	}
 
+	@Override
+	public String standardValidation(final String value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setInvalid(boolean invalid) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isInvalid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		

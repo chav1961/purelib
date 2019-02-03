@@ -78,17 +78,20 @@ public class ContentModelFactory {
 				for (Field f : fields) {
 					final Class<?>			type = f.getType();
 					final LocaleResource	fieldLocaleResource = f.getAnnotation(LocaleResource.class);
-					
-					root.addChild(new MutableContentNodeMetadata(clazz.getSimpleName()+"."+f.getName()
-									, type
-									, type.getCanonicalName()
-									, null
-									, fieldLocaleResource.value()
-									, fieldLocaleResource.tooltip() 
-									, fieldLocaleResource.help()
-									, f.isAnnotationPresent(Format.class) ? f.getAnnotation(Format.class).value() : null
-									, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+APPLICATION_SCHEME_FIELD+":/"+clazz.getCanonicalName()+"/"+f.getName()))
-					);
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(f.getName()
+																	, type
+																	, f.getName()+"/"+type.getCanonicalName()
+																	, null
+																	, fieldLocaleResource.value()
+																	, fieldLocaleResource.tooltip() 
+																	, fieldLocaleResource.help()
+																	, f.isAnnotationPresent(Format.class) 
+																			? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
+																			: null
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+clazz.getCanonicalName()+"/"+f.getName())
+																);
+					root.addChild(metadata);
+					metadata.setParent(root);
 				}
 				if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
 					collectActions(clazz,root);

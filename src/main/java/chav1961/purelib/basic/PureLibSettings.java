@@ -152,6 +152,14 @@ public class PureLibSettings {
 	 */
 	public static final String		UI_SWING_ZEROMARK_FOREGROUND = "purelib.settings.ui.swing.zeromark_foreground";
 	
+	// TODO:
+	public static final String		UI_SWING_DATEPICKER_DAY_NAME_COLOR = "purelib.settings.ui.swing.datepicker_day_name_color";
+	public static final String		UI_SWING_DATEPICKER_WEEKEND_NAME_COLOR = "purelib.settings.ui.swing.datepicker_weekend_name_color";
+	public static final String		UI_SWING_DATEPICKER_DAY_VALUE_COLOR = "purelib.settings.ui.swing.datepicker_day_value_color";
+	public static final String		UI_SWING_DATEPICKER_WEEKEND_VALUE_COLOR = "purelib.settings.ui.swing.datepicker_weekend_name_color";
+	
+	
+	
 	/**
 	 * <p>Default border color for clicked toolbar button in the UI forms</p>
 	 */

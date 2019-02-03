@@ -64,6 +64,24 @@ public class JLabelWithMeta extends JLabel implements NodeMetadataOwner, LocaleC
 		return String.class;
 	}
 
+	@Override
+	public String standardValidation(final String value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setInvalid(boolean invalid) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isInvalid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
 		} catch (IOException e) {
