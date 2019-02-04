@@ -101,14 +101,6 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					}					
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JEnumFieldWithMeta.this,e.getActionCommand());
-					} catch (ContentException exc) {
-					}
-				}
-			});
 			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
 			getActionMap().put("rollback-value", new AbstractAction(){
 				private static final long serialVersionUID = -6372550433958089237L;
@@ -160,6 +152,14 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 							label.setText(value.name());
 						}
 						return label;
+					}
+				}
+			});
+			addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try{monitor.process(MonitorEvent.Action,metadata,JEnumFieldWithMeta.this,e.getActionCommand());
+					} catch (ContentException exc) {
 					}
 				}
 			});

@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.NullLoggerFacade;
+import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -90,7 +91,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	}
 
 	public AutoBuiltForm(final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(localizer,new NullLoggerFacade(),leftIcon,instance,formMgr,numberOfBars);
+		this(localizer,new SystemErrLoggerFacade(),leftIcon,instance,formMgr,numberOfBars);
+//		this(localizer,new NullLoggerFacade(),leftIcon,instance,formMgr,numberOfBars);
 	}
 	
 	public AutoBuiltForm(final Localizer localizer, final LoggerFacade logger, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
@@ -185,7 +187,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 										modifiableLabelIds.add(node.getLabelId());
 									}
 									accessors.put(node.getUIPath().toString(),GettersAndSettersFactory.buildGetterAndSetter(instance.getClass(),node.getName()));
-									process(MonitorEvent.Loading,node,field);
+//									process(MonitorEvent.Loading,node,field);
 								} catch (LocalizationException | ContentException exc) {
 									logger.message(Severity.error,exc,"Control [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 								}
@@ -197,14 +199,15 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	
 				setLayout(totalLayout);
 				childPanel.validate();
-				add(childPanel,BorderLayout.CENTER);
-				add(buttonPanel,BorderLayout.SOUTH);
 				
 				if (leftIcon != null) {
 					add(new JLabel(new ImageIcon(leftIcon)),BorderLayout.WEST);
 				}
-				
+
+				add(childPanel,BorderLayout.CENTER);
+				add(buttonPanel,BorderLayout.SOUTH);
 				fillLocalizedStrings();
+				
 				trans.rollback();
 			}
 		}
@@ -313,15 +316,27 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				messages.setText("");
 				break;
 			case Loading:
-				((JComponentInterface)component).assignValueToComponent(ModelUtils.getValueByGetter(instance, accessors.get(metadata.getName()), metadata));
+				final GetterAndSetter	gas = accessors.get(metadata.getUIPath().toString());
+				
+				if (gas == null) {
+					System.err.println("SD1");
+				}
+				else {
+					final Object			value = ModelUtils.getValueByGetter(instance, gas, metadata);
+					
+					if (value == null || component == null) {
+						System.err.println("SD2");
+					}
+					((JComponentInterface)component).assignValueToComponent(value);
+				}
 				break;
 			case Rollback:
 				messages.setText("");
 				break;
 			case Saving:
-				try{final Object	oldValue = ((JComponentInterface)component).getChangedValueFromComponent();
+				try{final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
 				
-					ModelUtils.setValueBySetter(instance, ((JComponentInterface)component).getValueFromComponent(), accessors.get(metadata.getName()), metadata);
+					ModelUtils.setValueBySetter(instance, ((JComponentInterface)component).getChangedValueFromComponent(), accessors.get(metadata.getUIPath().toString()), metadata);
 					switch (formManager.onField(instance,null,metadata.getName(),oldValue)) {
 						case FIELD_ONLY : case DEFAULT : case NONE :
 							break;
@@ -333,7 +348,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 							}
 							break;
 						case REJECT		:
-							ModelUtils.setValueBySetter(instance, oldValue, accessors.get(metadata.getName()), metadata);
+							ModelUtils.setValueBySetter(instance, oldValue, accessors.get(metadata.getUIPath().toString()), metadata);
 							((JComponentInterface)component).assignValueToComponent(oldValue);
 							break;
 						default	:

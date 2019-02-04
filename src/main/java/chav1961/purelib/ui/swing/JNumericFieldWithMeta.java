@@ -69,6 +69,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 	private final FieldFormat			format;
 	private String						charsSupported;
 	private boolean						invalid = false, inFocusNow = false;
+	private String						currentText;
 	private Object						currentValue;
 	
 	public JNumericFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
@@ -124,6 +125,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				public void componentShown(ComponentEvent e) {
 					try{monitor.process(MonitorEvent.Loading,metadata,JNumericFieldWithMeta.this);
 						currentValue = getValue();
+						currentText = getText();
 					} catch (ContentException exc) {
 					}					
 				}				
@@ -131,13 +133,14 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getText().equals(getChangedValueFromComponent())) {
+					try{if (!getText().equals(currentText)) {
 							commitEdit();
 							monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMeta.this);
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JNumericFieldWithMeta.this);
 						prepareContent(currentValue = getValue(),false);
-					} catch (ContentException | ParseException exc) {
+						currentText = getText();
+					} catch (ContentException | ParseException  exc) {
 					}
 					inFocusNow = false;
 				}
@@ -145,6 +148,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				@Override
 				public void focusGained(final FocusEvent e) {
 					prepareContent(currentValue = getValue(),true);
+					currentText = getText();
 					try{monitor.process(MonitorEvent.FocusGained,metadata,JNumericFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
@@ -168,6 +172,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 					try{if (monitor.process(MonitorEvent.Rollback,metadata,JNumericFieldWithMeta.this)) {
 							setInvalid(false);
 							assignValueToComponent(currentValue);
+							currentText = getText();
 						}
 					} catch (ContentException exc) {
 					}
@@ -231,7 +236,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 	
 	@Override
 	public String getRawDataFromComponent() {
-		return currentValue == null ? null : currentValue.toString();
+		return currentText == null ? null : currentText;
 	}
 
 	@Override
@@ -241,7 +246,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return getText();
+		return getValue();
 	}
 
 	@Override
@@ -326,6 +331,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 		else {
 			super.setValue(value);
 			prepareContent(currentValue = value,inFocusNow);
+			currentText = getText();
 			invalid = false;
 		}
 	}

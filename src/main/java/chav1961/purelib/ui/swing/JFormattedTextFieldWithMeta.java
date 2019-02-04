@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.AWTEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -54,6 +55,8 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			try{setFormatter(new MaskFormatter(format.getFormatMask()));
 			} catch (ParseException e) {
 			}
+			setFocusable(true);
+			enableEvents(AWTEvent.FOCUS_EVENT_MASK|AWTEvent.COMPONENT_EVENT_MASK);
 			addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
 				@Override public void componentMoved(ComponentEvent e) {}
@@ -70,17 +73,21 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getText().equals(currentValue)) {
+					System.err.println("LOST=====");
+					try{commitEdit();
+						if (!getText().equals(currentValue)) {
 							monitor.process(MonitorEvent.Saving,metadata,JFormattedTextFieldWithMeta.this);
 							currentValue = getText();
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JFormattedTextFieldWithMeta.this);
-					} catch (ContentException exc) {
+					} catch (ContentException | ParseException exc) {
+						exc.printStackTrace();
 					}					
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
+					System.err.println("Gained=====");
 					currentValue = getText();
 					if (format.needSelectOnFocus()) {
 						selectAll();
