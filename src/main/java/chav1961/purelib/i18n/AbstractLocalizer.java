@@ -5,11 +5,13 @@ import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -19,13 +21,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.activation.MimeType;
+import javax.activation.MimeTypeParseException;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.streams.StreamsUtil;
 
 /**
@@ -35,7 +40,7 @@ import chav1961.purelib.streams.StreamsUtil;
  * @see Localizer
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
 public abstract class AbstractLocalizer implements Localizer {
@@ -190,14 +195,39 @@ public abstract class AbstractLocalizer implements Localizer {
 			final Matcher	m = URI_PATTERN.matcher(result);
 		
 			if (m.matches()) {
-				final String	uriName = m.group("uri"); 
-				final URI		uriRef = URI.create(uriName);		
+				final String		uriName = m.group("uri"); 
+				final URI			uriRef = URI.create(uriName);		
 				
 				if (uriRef.getScheme() == null) {
-					return getHelp(uriName);
+					final String	temp = getHelp(uriRef.getPath()); 
+					
+					if (uriRef.getQuery() != null) {
+						try{final Hashtable<String,String[]>	mimes = NanoServiceFactory.parseQuery(uriRef.getQuery());
+							final MimeType		fromMime = mimes.containsKey("mime") ? PureLibSettings.MIME_PLAIN_TEXT : new MimeType(mimes.get("sourceMime")[0]);
+							final MimeType 		toMime = mimes.containsKey("mime") ? new MimeType(mimes.get("mime")[0]) : new MimeType(mimes.get("targetMime")[0]);
+						
+							try(final StringWriter	wr = new StringWriter();
+								final Writer		nested = StreamsUtil.getStreamClassForOutput(wr, fromMime, toMime)) {
+
+								nested.write(temp);
+								nested.flush();
+								return wr.toString(); 
+							} catch (IOException exc) {
+								return temp; 
+							}
+						} catch (MimeTypeParseException exc) {
+							return temp; 
+						}
+					}
+					else {
+						return temp; 
+					}
 				}
 				else {
-					return result;
+					try{return Utils.fromResource(uriRef.toURL());
+					} catch (IOException e) {
+						return "URL ["+uriRef.toString()+"]: I/O error ("+e.getLocalizedMessage()+")";
+					}
 				}
 			}
 			else {

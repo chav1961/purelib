@@ -45,6 +45,7 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 
+import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;

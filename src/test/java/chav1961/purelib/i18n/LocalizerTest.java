@@ -41,10 +41,11 @@ public class LocalizerTest {
 		for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 			count++;
 		}
-		Assert.assertEquals(count, 3);
+		Assert.assertEquals(count, 4);
 		Assert.assertEquals(pl.getValue("key1"),"value1");
 		Assert.assertEquals(pl.getValue("key2"),"value2");
 		Assert.assertEquals(pl.getValue("key3"),"HELP_test");
+		Assert.assertEquals(pl.getValue("key4"),"HELP_test");
 		
 		try {pl.getValue("");
 			Assert.fail("Mandatory exception was not detected (null or empty 1-st argument)");
@@ -64,10 +65,11 @@ public class LocalizerTest {
 		for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 			count++;
 		}
-		Assert.assertEquals(count, 3);
+		Assert.assertEquals(count, 4);
 		Assert.assertEquals(pl.getValue("key1"),"значение1");
 		Assert.assertEquals(pl.getValue("key2"),"значение2");
 		Assert.assertEquals(pl.getValue("key3"),"HELP_проверка");
+		Assert.assertEquals(pl.getValue("key4"),"HELP_проверка");
 		
 		try(final Reader	content = pl.getContent("key3");
 			final Writer	wr = new StringWriter()) {
@@ -334,11 +336,13 @@ class PseudoLocalizer extends AbstractLocalizer {
 				content.put("key1","value1");
 				content.put("key2","value2");
 				content.put("key3","uri(test)");
+				content.put("key4","uri(test?mime=text/html)");
 				break;
 			case "ru"	:
 				content.put("key1","значение1");
 				content.put("key2","значение2");
 				content.put("key3","uri(проверка)");
+				content.put("key4","uri(проверка?mime=text/html)");
 				break;
 		}
 		

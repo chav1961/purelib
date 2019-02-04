@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -15,6 +16,7 @@ import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
@@ -22,6 +24,7 @@ import javax.swing.border.Border;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -32,6 +35,7 @@ import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
 
 public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 			serialVersionUID = 8167088888478756141L;
@@ -39,7 +43,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	private final ContentNodeMetadata	metadata;
 	private final JButton				callSelect = new JButton("...");
 	private final Class<?>				contentClass;
-	private String						currentValue;
+	private Object						currentValue, newValue;
 	
 	public JFileFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
@@ -158,7 +162,10 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	
 	@Override
 	public String getRawDataFromComponent() {
-		return currentValue;
+		try{return currentValue == null ? null : ((currentValue instanceof File) ? ((File)currentValue).getAbsolutePath() : ((FileSystemInterface)currentValue).getPath());
+		} catch (IOException e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -168,7 +175,10 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return getText();
+		try{return newValue == null ? null : ((newValue instanceof File) ? ((File)newValue).getAbsolutePath() : ((FileSystemInterface)newValue).getPath());
+		} catch (IOException e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -176,7 +186,11 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		if (value == null) {
 			throw new NullPointerException("Value to assign can't be null");
 		}
-		else {
+		else if (value instanceof File) {
+			newValue = value; 
+			setText(((File)value).getName());
+		}
+		else if (value instanceof FileSystemInterface) {
 			setText(value.toString());
 		}
 	}
@@ -214,12 +228,37 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 
 	private void selectFile() {
-		// TODO Auto-generated method stub
 		if (getValueType().isAssignableFrom(File.class)) {
+			final JFileChooser	chooser = new JFileChooser();
 			
+			if (!getText().isEmpty()) {
+				final File		currentPath = new File(getText());
+				
+				if (currentPath.exists()) {
+					if (currentPath.isFile()) {
+						chooser.setCurrentDirectory(currentPath.getParentFile());
+						chooser.setSelectedFile(currentPath);
+					}
+					else {
+						chooser.setCurrentDirectory(currentPath);
+					}
+				}
+				if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+					assignValueToComponent(chooser.getSelectedFile());
+				}
+			}
 		}
 		else {
 			
+			try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
+			
+				for(String item : JFileSelectionDialog.select((Dialog)null, localizer, (FileSystemInterface)getValueFromComponent(), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
+					((FileSystemInterface)getValueFromComponent()).open(item);
+					assignValueToComponent(getValueFromComponent());
+					break;
+				}
+			} catch (IOException | LocalizationException e) {
+			} 
 		}
 	}
 }

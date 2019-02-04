@@ -869,7 +869,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 	
-	private static Hashtable<String,String[]> parseQuery(final String query) {
+	public static Hashtable<String,String[]> parseQuery(final String query) {
 		final Hashtable<String,String[]>	result = new Hashtable<>();
 		
 		if (query != null && !query.isEmpty()) {
