@@ -9,7 +9,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -17,7 +16,6 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
 import chav1961.purelib.streams.char2char.CreoleWriter;
-import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.ui.HighlightItem;
 import chav1961.purelib.ui.interfacers.FormModel;
 

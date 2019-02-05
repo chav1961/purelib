@@ -30,8 +30,6 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.DebuggingLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
-import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
-import chav1961.purelib.ui.FormFieldFormat;
 import chav1961.purelib.ui.SingleClass;
 import chav1961.purelib.ui.interfacers.FormRepresentation;
 

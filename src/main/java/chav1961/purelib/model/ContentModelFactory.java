@@ -96,7 +96,10 @@ public class ContentModelFactory {
 				if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
 					collectActions(clazz,root);
 				}
-				return new SimpleContentMetadata(root);
+				final SimpleContentMetadata	result = new SimpleContentMetadata(root); 
+				
+				root.setOwner(result);
+				return result;
 			}
 		}
 	}

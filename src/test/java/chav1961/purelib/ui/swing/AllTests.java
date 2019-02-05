@@ -5,8 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ SimpleWizardTest.class, SwingUtilsTest.class,
-		XMLDescribedApplicationTest.class })
+@SuiteClasses({ SimpleWizardTest.class, SwingUtilsTest.class})
 public class AllTests {
 
 }

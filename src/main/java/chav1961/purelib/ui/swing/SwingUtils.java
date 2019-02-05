@@ -199,7 +199,7 @@ public abstract class SwingUtils {
 					result = new JTextFieldWithMeta(metadata,format,monitor);
 					break;
 				case Unclassified	:
-					result = new JLabelWithMeta(metadata);
+					result = null;
 					break;
 				case ArrayContent	:
 				case NestedContent	:

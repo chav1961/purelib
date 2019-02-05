@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Locale;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
@@ -52,6 +54,35 @@ public class SwingModelUtils {
 			throw new IllegalArgumentException("Illegal awaited class ["+awaited.getCanonicalName()+"], only JMenuBar and JPopupMenu are available"); 
 		}
 	}
+
+	public static <T extends JComponent> T toToolbar(final ContentNodeMetadata node, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
+		if (node == null) {
+			throw new NullPointerException("Model node can't be null"); 
+		}
+		else if (awaited == null) {
+			throw new NullPointerException("Awaited class can't be null"); 
+		}
+		else if (!node.getRelativeUIPath().getPath().startsWith("./navigation.top")) {
+			throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
+		}
+		else if (awaited.isAssignableFrom(JToolBar.class)) {
+			final JToolBar	result = new JToolBarWithMeta(node);
+			
+			for (ContentNodeMetadata child : node) {
+				if (child.getRelativeUIPath().toString().startsWith("./navigation.leaf.")) {
+					result.add(new JButtonWithMeta(child));
+				}
+				else if (URI.create("./navigation.separator").equals(child.getRelativeUIPath())) {
+					result.addSeparator();
+				}
+			}
+			return (T) result;
+		}
+		else {
+			throw new IllegalArgumentException("Illegal awaited class ["+awaited.getCanonicalName()+"], only JMenuBar and JPopupMenu are available"); 
+		}
+	}
+	
 	
 	public static UITestInterface buildTestInterface(final ContentNodeMetadata metadata, final Component uiRoot) {
 		if (metadata == null) {
@@ -220,6 +251,69 @@ public class SwingModelUtils {
 		private final ContentNodeMetadata	metadata;
 		
 		private JMenuWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+
+	private static class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = 366031204608808220L;
+		
+		private final ContentNodeMetadata	metadata;
+		
+		private JToolBarWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+
+	private static class JButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = 366031204608808220L;
+		
+		private final ContentNodeMetadata	metadata;
+		
+		private JButtonWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {

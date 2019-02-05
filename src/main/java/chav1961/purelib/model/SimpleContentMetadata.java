@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -41,7 +42,7 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 					return ContinueMode.CONTINUE;
 				}
 				else {
-					return ContinueMode.CONTINUE;
+					return ContinueMode.CONTINUE; 
 				}
 			},getRoot().getUIPath());
 			return result.toArray(new ContentNodeMetadata[result.size()]);
@@ -58,7 +59,7 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 			
 			walkDownInternal((mode,appPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (uiPath.equals(userInterfacePath)) {
+					if (Utils.removeQueryFromURI(uiPath).equals(userInterfacePath)) {
 						result[0] = node;
 						return ContinueMode.STOP;
 					}

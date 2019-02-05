@@ -20,9 +20,9 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 	public static final int			VERTICAL_FILLING = 2;
 	
 	private static final long 		serialVersionUID = 5377169415875489416L;
-	private static final int		MIN_CONTENT_WIDTH = 10;
+//	private static final int		MIN_CONTENT_WIDTH = 10;
 	private static final JLabel		NULL_LABEL = new JLabel();
-	private static final SizeRequirements	NULL_SIZE = new SizeRequirements(0, 0, 0, 0.0f);
+//	private static final SizeRequirements	NULL_SIZE = new SizeRequirements(0, 0, 0, 0.0f);
 	
 	private final int				numberOfBars, hGap, vGap, filling;
 	private final List<Component>	labels = new ArrayList<>();
@@ -263,46 +263,46 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 	public synchronized void invalidateLayout(final Container target) {
 	}
 
-	private static List<Component>[][] splitContent(final int numberOfBars, final int filling, final List<Component> labels, final List<Component> content) {
-		final List<Component>[][]	result = new List[numberOfBars][];
-
-		for (int index = 0; index < result.length; index++) {
-			result[index] = new List[]{new ArrayList<>(),new ArrayList<>()};
-		}
-		if (filling == HORIZONTAL_FILLING) {
-			for (int index = 0, maxIndex = Math.max(labels.size(), content.size()); index < maxIndex; index++) {
-				if (index < labels.size()) {
-					result[index % numberOfBars][0].add(labels.get(index));
-				}
-				else {
-					result[index % numberOfBars][0].add(new JLabel(""));
-				}
-				if (index < content.size()) {
-					result[index % numberOfBars][1].add(content.get(index));
-				}
-				else {
-					result[index % numberOfBars][1].add(new JLabel(""));
-				}
-			}
-		}
-		else {
-			for (int index = 0, maxIndex = Math.max(labels.size(), content.size()); index < maxIndex; index++) {
-				if (index < labels.size()) {
-					result[index / numberOfBars][0].add(labels.get(index));
-				}
-				else {
-					result[index / numberOfBars][0].add(new JLabel(""));
-				}
-				if (index < content.size()) {
-					result[index / numberOfBars][1].add(content.get(index));
-				}
-				else {
-					result[index / numberOfBars][1].add(new JLabel(""));
-				}
-			}
-		}
-		return result;
-	}
+//	private static List<Component>[][] splitContent(final int numberOfBars, final int filling, final List<Component> labels, final List<Component> content) {
+//		final List<Component>[][]	result = new List[numberOfBars][];
+//
+//		for (int index = 0; index < result.length; index++) {
+//			result[index] = new List[]{new ArrayList<>(),new ArrayList<>()};
+//		}
+//		if (filling == HORIZONTAL_FILLING) {
+//			for (int index = 0, maxIndex = Math.max(labels.size(), content.size()); index < maxIndex; index++) {
+//				if (index < labels.size()) {
+//					result[index % numberOfBars][0].add(labels.get(index));
+//				}
+//				else {
+//					result[index % numberOfBars][0].add(new JLabel(""));
+//				}
+//				if (index < content.size()) {
+//					result[index % numberOfBars][1].add(content.get(index));
+//				}
+//				else {
+//					result[index % numberOfBars][1].add(new JLabel(""));
+//				}
+//			}
+//		}
+//		else {
+//			for (int index = 0, maxIndex = Math.max(labels.size(), content.size()); index < maxIndex; index++) {
+//				if (index < labels.size()) {
+//					result[index / numberOfBars][0].add(labels.get(index));
+//				}
+//				else {
+//					result[index / numberOfBars][0].add(new JLabel(""));
+//				}
+//				if (index < content.size()) {
+//					result[index / numberOfBars][1].add(content.get(index));
+//				}
+//				else {
+//					result[index / numberOfBars][1].add(new JLabel(""));
+//				}
+//			}
+//		}
+//		return result;
+//	}
 
 	private Dimension addInsets(final int width, final int height, final Insets insets) {
 		return new Dimension((int)Math.min((long)width + insets.left + insets.right, Integer.MAX_VALUE)

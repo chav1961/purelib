@@ -21,6 +21,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.NullLoggerFacade;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -155,7 +156,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
 								final JButton		button = new JButton();
 								
-								button.setName(node.getUIPath().toString());
+								button.setName(Utils.removeQueryFromURI(node.getUIPath()).toString());
 								trans.message(Severity.trace,"Append button [%1$s]",node.getApplicationPath());
 	
 								button.setActionCommand(node.getApplicationPath().toString());
@@ -177,9 +178,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 									final FieldFormat	ff = node.getFormatAssociated();
 									final JComponent 	field = SwingUtils.prepareRenderer(node, ff, this);
 								
-									label.setName(node.getUIPath().toString()+"/label");
+									label.setName(Utils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
 									childPanel.add(label,LabelledLayout.LABEL_AREA);
-									field.setName(node.getUIPath().toString());
+									field.setName(Utils.removeQueryFromURI(node.getUIPath()).toString());
 									childPanel.add(field,LabelledLayout.CONTENT_AREA);
 									trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",node.getUIPath(),field.getClass().getCanonicalName());
 									labelIds.add(node.getLabelId());
@@ -187,7 +188,6 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 										modifiableLabelIds.add(node.getLabelId());
 									}
 									accessors.put(node.getUIPath().toString(),GettersAndSettersFactory.buildGetterAndSetter(instance.getClass(),node.getName()));
-//									process(MonitorEvent.Loading,node,field);
 								} catch (LocalizationException | ContentException exc) {
 									logger.message(Severity.error,exc,"Control [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 								}

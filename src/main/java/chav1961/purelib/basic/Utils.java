@@ -755,6 +755,60 @@ public class Utils {
 			throw new IllegalArgumentException("Class ["+clazz+"] is not a wrapper to primitive type"); 
 		}
 	}
+
+	public static long extractLongValue(final Object obj) {
+		if (obj == null) {
+			throw new NullPointerException("Object to extract value can't be null");
+		}
+		else if (obj instanceof Byte) {
+			return ((Byte)obj).longValue();
+		}
+		else if (obj instanceof Short) {
+			return ((Short)obj).longValue();
+		}
+		else if (obj instanceof Integer) {
+			return ((Integer)obj).longValue();
+		}
+		else if (obj instanceof Long) {
+			return ((Long)obj).longValue();
+		}
+		else if (obj instanceof Float) {
+			return ((Float)obj).longValue();
+		}
+		else if (obj instanceof Double) {
+			return ((Double)obj).longValue();
+		}
+		else {
+			throw new IllegalArgumentException("Object to extract long value has invalid type ["+obj.getClass().getCanonicalName()+"]");
+		}
+	}
+
+	public static double extractDoubleValue(final Object obj) {
+		if (obj == null) {
+			throw new NullPointerException("Object to extract value can't be null");
+		}
+		else if (obj instanceof Byte) {
+			return ((Byte)obj).doubleValue();
+		}
+		else if (obj instanceof Short) {
+			return ((Short)obj).doubleValue();
+		}
+		else if (obj instanceof Integer) {
+			return ((Integer)obj).doubleValue();
+		}
+		else if (obj instanceof Long) {
+			return ((Long)obj).doubleValue();
+		}
+		else if (obj instanceof Float) {
+			return ((Float)obj).doubleValue();
+		}
+		else if (obj instanceof Double) {
+			return ((Double)obj).doubleValue();
+		}
+		else {
+			throw new IllegalArgumentException("Object to extract double value has invalid type ["+obj.getClass().getCanonicalName()+"]");
+		}
+	}
 	
 	/**
 	 * <p>Does the resource URI can be served by the given URI resource template</p> 
@@ -1064,6 +1118,68 @@ public class Utils {
 		}
 		else {
 			return null;
+		}
+	}
+
+	/**
+	 * <p>Append relative path to path inside URI.</p>
+	 * @param uri uri to append relative path to
+	 * @param relativePath path to append
+	 * @return new resolved uri
+	 * @throws NullPointerException if uri is null
+	 * @throws IllegalArgumentException if relative path is null or empty
+	 * @see https://tools.ietf.org/html/rfc3986
+	 * @since 0.0.3
+	 */
+	public static URI appendRelativePath2URI(final URI uri, final String relativePath) throws NullPointerException, IllegalArgumentException {
+		if (uri == null) {
+			throw new NullPointerException("Uri to append path to can't be null");
+		}
+		else if (relativePath == null || relativePath.isEmpty()) {
+			throw new IllegalArgumentException("Uri to append path to can't be null");
+		}
+		else {
+			final String	newPath = URI.create(uri.getPath()+(relativePath.charAt(0) == '/' ? "" : "/")+relativePath).normalize().toString();
+			String			temp = uri.resolve(newPath).toString();
+			
+			if (uri.getRawQuery() != null) {
+				temp += '?' + uri.getRawQuery();
+			}
+			if (uri.getRawFragment() != null) {
+				temp += '#' + uri.getRawFragment();
+			}
+			return URI.create(temp);
+		}
+	}
+	
+	/**
+	 * <p>Remove query string from URI</p>
+	 * @param uri uri to remove query from
+	 * @return uri with query removed. If query is missing, returns source uri
+	 * @throws NullPointerException if uri is null
+	 * @see https://tools.ietf.org/html/rfc3986
+	 * @since 0.0.3
+	 */
+	public static URI removeQueryFromURI(final URI uri) throws NullPointerException {
+		if (uri == null) {
+			throw new NullPointerException("Uri to remove query from can't be null");
+		}
+		else {
+			if (uri.getQuery() != null) {
+				final String		str = uri.toString();
+				
+				if (uri.getFragment() != null) {
+					final String	frag = str.substring(str.lastIndexOf('#'));
+					
+					return URI.create(str.substring(0,str.lastIndexOf('?'))+frag);
+				}
+				else {
+					return URI.create(str.substring(0,str.lastIndexOf('?')));
+				}
+			}
+			else {
+				return uri;
+			}
 		}
 	}
 

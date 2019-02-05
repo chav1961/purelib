@@ -1,7 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.Component;
-import java.awt.HeadlessException;
 import java.util.Locale;
 
 import javax.swing.Icon;
@@ -13,7 +12,6 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 
 public class JLocalizedOptionPane implements LocaleChangeListener {
-	private static final long 	serialVersionUID = 1L;
 	private static final String	LOCALIZED_PANE_YES = "JLocalizedOptionPane.yesButton";
 	private static final String	LOCALIZED_PANE_NO = "JLocalizedOptionPane.noButton";
 	private static final String	LOCALIZED_PANE_OK = "JLocalizedOptionPane.okButton";

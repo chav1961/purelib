@@ -183,7 +183,7 @@ public class UtilsTest {
 	}
 
 	@Test
-	public void nestedURITest() throws IOException, NullPointerException, URISyntaxException {
+	public void uriManagingTest() throws IOException, NullPointerException, URISyntaxException {
 		Assert.assertFalse(Utils.containsNestedURI(URI.create("scheme:/")));
 		Assert.assertFalse(Utils.containsNestedURI(URI.create("scheme:/path")));
 		Assert.assertFalse(Utils.containsNestedURI(URI.create("scheme:subscheme:/path")));
@@ -213,6 +213,32 @@ public class UtilsTest {
 		Assert.assertEquals(Utils.extractPathInNestedURI(URI.create("scheme:subscheme:/path1/!/path2#fragment")),URI.create("/path2"));
 
 		try{Utils.extractPathInNestedURI(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		Assert.assertEquals(URI.create("scheme:/path1/path2?query=value#fragment"),Utils.appendRelativePath2URI(URI.create("scheme:/path1?query=value#fragment"),"path2"));
+		Assert.assertEquals(URI.create("scheme:/path1/path2?query=value#fragment"),Utils.appendRelativePath2URI(URI.create("scheme:/path1?query=value#fragment"),"/path2"));
+		Assert.assertEquals(URI.create("scheme:/path2?query=value#fragment"),Utils.appendRelativePath2URI(URI.create("scheme:/path1?query=value#fragment"),"../path2"));
+
+		try{Utils.appendRelativePath2URI(null,"../path2");
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{Utils.appendRelativePath2URI(URI.create("scheme:/path1?query=value#fragment"),null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{Utils.appendRelativePath2URI(URI.create("scheme:/path1?query=value#fragment"),"");
+			Assert.fail("Mandatory exception was not detected (empty 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		Assert.assertEquals(URI.create("scheme:/path1#fragment"),Utils.removeQueryFromURI(URI.create("scheme:/path1?query=value#fragment")));
+		Assert.assertEquals(URI.create("scheme:/path1"),Utils.removeQueryFromURI(URI.create("scheme:/path1?query=value")));
+		Assert.assertEquals(URI.create("scheme:/path1"),Utils.removeQueryFromURI(URI.create("scheme:/path1")));
+
+		try{Utils.removeQueryFromURI(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}

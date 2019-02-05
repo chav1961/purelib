@@ -96,7 +96,7 @@ public class ContentMetadataTest {
 		Assert.assertEquals(child1,metadata.byUIPath(URI.create("ui:/root/child1")));
 		Assert.assertEquals(child22,metadata.byUIPath(URI.create("ui:/root/child2/child22")));
 		
-		final int[]		counter = new int[]{0};
+		final int[]		counter = new int[]{0}; 
 		
 		metadata.walkDown((mode,appPath,uiPath,node)->{counter[0]++; return ContinueMode.CONTINUE;}, URI.create("ui:/root"));
 		Assert.assertEquals(14,counter[0]);

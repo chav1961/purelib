@@ -1,7 +1,6 @@
 package chav1961.purelib.ui.swing.interfaces;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.ui.AbstractLowLevelFormFactory.FieldDescriptor;
 
 /**
  * <p>This interface associated with all swing components in the application form.</p>
