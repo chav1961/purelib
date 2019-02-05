@@ -45,8 +45,8 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * <p>This class contains implementation of the useful actions in the system</p> 
  * 
  * @see chav1961.purelib.basic JUnit tests
- * @author chav1961@mail.ru
- * @since 0.0.1 last update 0.0.2
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.1 last update 0.0.3
  */
 
 public class Utils {
