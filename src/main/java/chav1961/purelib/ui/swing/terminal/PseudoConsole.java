@@ -24,22 +24,10 @@ import chav1961.purelib.ui.interfacers.FormModel;
  */
 public class PseudoConsole extends JComponent {
 	private static final long 	serialVersionUID = -5613033288319056138L;
-	private static final char[]	SINGLE_BOX= "".toCharArray();
-	private static final char[]	DOUBLE_BOX= "".toCharArray();
-	private static final char[]	SEMIDOUBLE_BOX= "".toCharArray();
-
-//	U+2500 - U+257F - символы рамок
-//	U+2580 - U+259F - символы заполнения
-	
-	public enum BoxStype {
-		Single, Double, SemiDouble
-	}
-	
-	
-	private final int			width, height;
 	private final char[][]		content;
 	private final Color[][][]	attributes;
 	private final Font			font = new Font("Courier",Font.PLAIN,1);
+	final int					width, height;
 	
 	public PseudoConsole(final int width, final int height) {
 		if (width <= 0) {
@@ -53,11 +41,28 @@ public class PseudoConsole extends JComponent {
 			this.height = height;
 			this.content = new char[width][height];
 			this.attributes = new Color[width][height][2];
-			clear(Color.GREEN,Color.BLACK);
-			writeContent(1,1,'*');
+			TermUtils.clear(this,Color.GREEN,Color.BLACK);
 		}
 	}
 
+	public PseudoConsole writeAttribute(final int x, final int y, final Color color, final Color bkGnd) {
+		if (x < 1 || x > width) {
+			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+width);
+		}
+		else if (y < 1 || y > width) {
+			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+height);
+		}
+		else if (color == null) {
+			throw new NullPointerException("Color can't be null");
+		}
+		else if (bkGnd == null) {
+			throw new NullPointerException("Background color can't be null");
+		}
+		else {
+			return writeAttribute(x, y, new Color[]{color,bkGnd});
+		}
+	}
+	
 	public PseudoConsole writeAttribute(final int x, final int y, final Color[] colors) {
 		if (x < 1 || x > width) {
 			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+width);
@@ -69,7 +74,7 @@ public class PseudoConsole extends JComponent {
 			throw new IllegalArgumentException("Colors attribute can't be null and must have exactly two elements");
 		}
 		else if (colors[0] == null || colors[1] == null) {
-			throw new IllegalArgumentException("Colors attribute contains null values "+Arrays.toString(colors));
+			throw new NullPointerException("Colors attribute contains null values "+Arrays.toString(colors));
 		}
 		else {
 			attributes[x-1][y-1] = colors.clone();
@@ -77,19 +82,49 @@ public class PseudoConsole extends JComponent {
 			return this;
 		}
 	}
-	
-	public PseudoConsole writeAttibute(final Point point, final Color[] colors) {
+
+	public PseudoConsole writeAttribute(final Point point, final Color color, final Color bkGnd) {
 		if (point == null) {
-			throw new IllegalArgumentException("Point coordinate can't be null");
+			throw new NullPointerException("Point coordinate can't be null");
+		}
+		else if (color == null) {
+			throw new NullPointerException("Color can't be null");
+		}
+		else if (bkGnd == null) {
+			throw new NullPointerException("Background color can't be null");
+		}
+		else {
+			return writeAttribute(point,new Color[]{color,bkGnd});
+		}
+	}
+	
+	public PseudoConsole writeAttribute(final Point point, final Color[] colors) {
+		if (point == null) {
+			throw new NullPointerException("Point coordinate can't be null");
 		}
 		else {
 			return writeAttribute(point.x,point.y,colors);
 		}
 	}
+
+	public PseudoConsole writeAttribute(final Rectangle rect, final Color color, final Color bkGnd) {
+		if (rect == null) {
+			throw new NullPointerException("Rectangle can't be null");
+		}
+		else if (color == null) {
+			throw new NullPointerException("Color can't be null");
+		}
+		else if (bkGnd == null) {
+			throw new NullPointerException("Background color can't be null");
+		}
+		else {
+			return writeAttribute(rect, new Color[]{color, bkGnd});
+		}
+	}
 	
 	public PseudoConsole writeAttribute(final Rectangle rect, final Color[] colors) {
 		if (rect == null) {
-			throw new IllegalArgumentException("Rectangle can't be null");
+			throw new NullPointerException("Rectangle can't be null");
 		}
 		else if (rect.x < 1 || rect.x > width) {
 			throw new IllegalArgumentException("Rectangle X coordinate ["+rect.x+"] out of range 1.."+width);
@@ -122,22 +157,22 @@ public class PseudoConsole extends JComponent {
 			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+height);
 		}
 		else {
-			return attributes[x][y].clone();
+			return attributes[x-1][y-1].clone();
 		}
 	}
 	
 	public Color[] readAttribute(final Point point) {
 		if (point == null) {
-			throw new IllegalArgumentException("Point coordinate can't be null");
+			throw new NullPointerException("Point coordinate can't be null");
 		}
 		else {
 			return readAttribute(point.x,point.y);
 		}
 	}
 	
-	public Color[][][] readAttibute(final Rectangle rect) {
+	public Color[][][] readAttribute(final Rectangle rect) {
 		if (rect == null) {
-			throw new IllegalArgumentException("Rectangle can't be null");
+			throw new NullPointerException("Rectangle can't be null");
 		}
 		else if (rect.x < 1 || rect.x > width) {
 			throw new IllegalArgumentException("Rectangle X coordinate ["+rect.x+"] out of range 1.."+width);
@@ -154,8 +189,8 @@ public class PseudoConsole extends JComponent {
 		else {
 			final Color[][][]	result = new Color[rect.width][rect.height][];
 			
-			for (int x = rect.x; x <= rect.x+rect.width; x++) {
-				for (int y = rect.y; y <= rect.y+rect.height; y++) {
+			for (int x = rect.x; x < rect.x+rect.width; x++) {
+				for (int y = rect.y; y < rect.y+rect.height; y++) {
 					result[x-rect.x][y-rect.y] = readAttribute(x,y);
 				}
 			}
@@ -179,16 +214,43 @@ public class PseudoConsole extends JComponent {
 	
 	public PseudoConsole writeContent(final Point point, final char content) {
 		if (point == null) {
-			throw new IllegalArgumentException("Point coordinate can't be null");
+			throw new NullPointerException("Point coordinate can't be null");
 		}
 		else {
 			return writeContent(point.x,point.y,content);
 		}
 	}
+
+	public PseudoConsole writeContent(final Rectangle rect, final char content) {
+		if (rect == null) {
+			throw new IllegalArgumentException("Rectangle can't be null");
+		}
+		else if (rect.x < 1 || rect.x > width) {
+			throw new IllegalArgumentException("Rectangle X coordinate ["+rect.x+"] out of range 1.."+width);
+		}
+		else if (rect.y < 1 || rect.y > width) {
+			throw new IllegalArgumentException("Rectangle Y coordinate ["+rect.y+"] out of range 1.."+height);
+		}
+		else if (rect.width < 1 || rect.x+rect.width-1 > width) {
+			throw new IllegalArgumentException("Rectangle X+width ["+(rect.x+rect.width-1)+"] out of range 1.."+width);
+		}
+		else if (rect.height < 1 || rect.y + rect.height-1 > height) {
+			throw new IllegalArgumentException("Rectangle Y+height ["+(rect.y+rect.height-1)+"] out of range 1.."+height);
+		}
+		else {
+			for (int x = rect.x; x < rect.x+rect.width; x++) {
+				for (int y = rect.y; y < rect.y+rect.height; y++) {
+					writeContent(x,y,content);
+				}
+			}
+			refresh();
+		}
+		return this;
+	}
 	
 	public PseudoConsole writeContent(final Rectangle rect, final char[] content) {
 		if (rect == null) {
-			throw new IllegalArgumentException("Rectangle can't be null");
+			throw new NullPointerException("Rectangle can't be null");
 		}
 		else if (rect.x < 1 || rect.x > width) {
 			throw new IllegalArgumentException("Rectangle X coordinate ["+rect.x+"] out of range 1.."+width);
@@ -203,7 +265,7 @@ public class PseudoConsole extends JComponent {
 			throw new IllegalArgumentException("Rectangle Y+height ["+(rect.y+rect.height)+"] out of range 1.."+height);
 		}
 		else if (content == null) {
-			throw new IllegalArgumentException("Content can't be null");
+			throw new NullPointerException("Content can't be null");
 		}
 		else if (content.length > 0) {
 			int		index = 0;
@@ -225,7 +287,7 @@ loop:		for (int x = rect.x; x < rect.x+rect.width; x++) {
 
 	public PseudoConsole writeContent(final Rectangle rect, final String content) {
 		if (content == null) {
-			throw new IllegalArgumentException("Content can't be null");
+			throw new NullPointerException("Content can't be null");
 		}
 		else if (content.length() != 0) {
 			return writeContent(rect,content.toCharArray());
@@ -243,7 +305,7 @@ loop:		for (int x = rect.x; x < rect.x+rect.width; x++) {
 			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+height);
 		}
 		else {
-			return content[x][y];
+			return content[x-1][y-1];
 		}
 	}
 	
@@ -276,101 +338,34 @@ loop:		for (int x = rect.x; x < rect.x+rect.width; x++) {
 			final char[]	result = new char[rect.width*rect.height];
 			int				index = 0;
 			
-			for (int x = rect.x; x <= rect.x+rect.width; x++) {
-				for (int y = rect.y; y <= rect.y+rect.height; y++) {
-					result[index++] = content[x][y];
+			for (int x = rect.x; x < rect.x+rect.width; x++) {
+				for (int y = rect.y; y < rect.y+rect.height; y++) {
+					result[index++] = content[x-1][y-1];
 				}
 			}
 			return result;
 		}
 	}
 	
-	public PseudoConsole clear(final Color color, final Color bkGnd) {
-		if (color  == null) {
-			throw new IllegalArgumentException("Color can't be null");
+	public void scrollUp(final Color color, final Color bkGnd) {
+		if (color == null) {
+			throw new NullPointerException("Color can't be null");
 		}
-		else if (bkGnd  == null) {
-			throw new IllegalArgumentException("Background color can't be null");
-		}
-		else {
-			return writeAttribute(new Rectangle(1,1,width,height),new Color[]{color,bkGnd});
-		}
-	}
-	
-	public static final void box(final PseudoConsole console, final int x, final int y, final int width, final int height) {
-		box(console, x, y, width, height, BoxStype.SemiDouble);
-	}
-
-	public static final void box(final PseudoConsole console, final int x, final int y, final int width, final int height, final BoxStype style) {
-		if (style == null) {
-			throw new NullPointerException("Box style can't be null"); 
+		else if (bkGnd == null) {
+			throw new NullPointerException("Background color can't be null");
 		}
 		else {
-			switch (style) {
-				case Double		: box(console, x, y, width, height, DOUBLE_BOX); break;
-				case SemiDouble	: box(console, x, y, width, height, SEMIDOUBLE_BOX); break;
-				case Single		: box(console, x, y, width, height, SINGLE_BOX); break;
-				default	: throw new UnsupportedOperationException("Box style ["+style+"] is not supported yet"); 
-			}
-		}
-	}
-	
-	public static final void box(final PseudoConsole console, final int x, final int y, final int width, final int height, final char[] fillers) {
-		if (console == null) {
-			throw new NullPointerException("Console to fill can't be null");
-		}
-		else if (x < 1 || x > console.width) {
-			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+console.width);
-		}
-		else if (y < 1 || y > console.height) {
-			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+console.height);
-		}
-		else if (x+width < 1 || x+width > console.width) {
-			throw new IllegalArgumentException("X coordinate + width ["+(x+width)+"] out of range 1.."+console.width);
-		}
-		else if (y+height < 1 || y+height > console.height) {
-			throw new IllegalArgumentException("Y coordinate + height ["+(y+height)+"] out of range 1.."+console.height);
-		}
-		else if (fillers == null || !(fillers.length == 8 || fillers.length == 9)) {
-			throw new IllegalArgumentException("Fillers array can't be null and must contain either 8 or 9 elements");
-		}
-		else {
-			for (int xIndex = x; xIndex <= x+width; xIndex++) {
-				for (int yIndex = y; yIndex <= y+height; yIndex++) {
-					if (xIndex == x && yIndex == y) {
-						console.writeContent(xIndex, yIndex, fillers[0]);
-					}
-					else if (xIndex == x && yIndex == y+height) {
-						console.writeContent(xIndex, yIndex, fillers[1]);
-					}
-					else if (xIndex == x+width && yIndex == y) {
-						console.writeContent(xIndex, yIndex, fillers[2]);
-					}
-					else if (xIndex == x+width && yIndex == y+height) {
-						console.writeContent(xIndex, yIndex, fillers[3]);
-					}
-					else if (xIndex == x) {
-						console.writeContent(xIndex, yIndex, fillers[4]);
-					}
-					else if (xIndex == x+width) {
-						console.writeContent(xIndex, yIndex, fillers[5]);
-					}
-					else if (yIndex == y) {
-						console.writeContent(xIndex, yIndex, fillers[6]);
-					}
-					else if (yIndex == y+height) {
-						console.writeContent(xIndex, yIndex, fillers[7]);
-					}
-					else if (fillers.length == 9) {
-						console.writeContent(xIndex, yIndex, fillers[8]);
-					}
-				}
-			}
+			final Rectangle	lastLine = new Rectangle(1,height,width,1); 
+			
+			System.arraycopy(content,1,content,0,content.length-1);
+			System.arraycopy(attributes,1,attributes,0,attributes.length-1);
+			writeAttribute(lastLine,new Color[]{color,bkGnd});
+			writeContent(lastLine,' ');
 		}
 	}
 	
 	@Override
-	protected void paintComponent(final Graphics g) {
+	protected void paintComponent(final Graphics g) { 
 	    final Graphics2D		g2d = (Graphics2D)g;
 	    final AffineTransform	oldAt = g2d.getTransform();
 	    final Color				oldColor = g2d.getColor();

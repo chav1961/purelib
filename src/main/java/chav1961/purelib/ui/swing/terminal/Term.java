@@ -31,7 +31,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private final TimerTask			tt = new TimerTask(){
 										@Override
 										public void run() {
-											blink();
+											blink(); 
 										}
 									};
 	private final StringBuilder		sb = new StringBuilder();
@@ -236,7 +236,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	}
 
 	@Override
-	public Term println(String data, int from, int len) throws PrintingException, StringIndexOutOfBoundsException {
+	public Term println(final String data, final int from, final int len) throws PrintingException, StringIndexOutOfBoundsException {
 		return print(data,from,len).println();
 	}
 	
@@ -456,7 +456,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		char[]		content;
 		
 		if (up) {
-			readAttibute(rect = new Rectangle(1,2,width,height-1));
+			readAttribute(rect = new Rectangle(1,2,width,height-1));
 			content = readContent(rect);
 //			writeAttribute(rect = new Rectangle(1,1,width,height-1),attrs);
 			writeContent(rect = new Rectangle(1,1,width,height-1),content);
@@ -466,7 +466,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 			popCursor();
 		}
 		else {
-			readAttibute(rect = new Rectangle(1,1,width,height-1));
+			readAttribute(rect = new Rectangle(1,1,width,height-1));
 			content = readContent(rect);
 //			writeAttribute(rect = new Rectangle(1,1,width,height-1),attrs);
 			writeContent(rect = new Rectangle(1,2,width,height-1),content);
