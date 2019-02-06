@@ -9,18 +9,20 @@ import java.net.URL;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
+import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.AbstractContent;
 import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.InternalUtils;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
 
-class CsvContentParser implements ResultSetContentParser {
+public class CsvContentParser implements ResultSetContentParser {
 	private static final String		DATA_SUFFIX = ":VARCHAR(32768)";
 
 	private final char				splitter;
@@ -66,9 +68,7 @@ class CsvContentParser implements ResultSetContentParser {
 			throw new IllegalArgumentException("Request ["+request+"] is not absolute (scheme is missing)");
 		}
 		else {
-			final String	path = request.getPath();
-			
-			return path != null && path.toUpperCase().endsWith(".CSV");
+			return "csv".equalsIgnoreCase(request.getScheme());
 		}
 	}
 
@@ -82,8 +82,11 @@ class CsvContentParser implements ResultSetContentParser {
 		}
 		else {
 			try(final InputStream	is = access.openStream()) {
-				
-				return new CsvContentParser(is,"",splitter); 
+				final Hashtable<String,String[]> 	queries = NanoServiceFactory.parseQuery(request.getQuery()); 
+						
+				return new CsvContentParser(is
+						,queries.containsKey("encoding") ? queries.get("encoding")[0] : "UTF-8"
+						,queries.containsKey("splitter") ? queries.get("splitter")[0].charAt(0) : splitter); 
 			} catch (SyntaxException e) {
 				throw new IOException("Syntax error in content: "+e.getLocalizedMessage());
 			}

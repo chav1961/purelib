@@ -546,9 +546,9 @@ public class InternalUtilsTest {
 		for (ConversionPairTest item : PAIRS) {
 			System.err.println("Test["+index+"]: "+item);
 			for (Object value : item.values) {
-				if (index == 277) {
-					int x = 0;
-				}
+//				if (index == 277) {
+//					int x = 0;
+//				}
 				try{if (Comparable.class.isAssignableFrom(item.source)) {
 						Assert.assertTrue(((Comparable<Object>)InternalUtils.convert(item.source,InternalUtils.convert(item.target,value))).compareTo(value) == 0);
 					}

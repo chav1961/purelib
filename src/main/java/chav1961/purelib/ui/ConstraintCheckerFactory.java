@@ -23,6 +23,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.sql.InternalUtils;
 import chav1961.purelib.ui.interfacers.Constraint;
 import chav1961.purelib.ui.interfacers.ConstraintChecker;
 
@@ -38,7 +39,6 @@ public class ConstraintCheckerFactory {
 	static final int	PRTY_TERM = 0;
 
 	private static final Map<Class<?>,Map<Class<?>,Class<?>>>	RESOLVER = new HashMap<>();
-	private static final Map<Class<?>,Map<Class<?>,Convertor>>	CONVERTOR = new HashMap<>();
 	
 	static {
 		Map<Class<?>,Class<?>>	toMapResolved = new HashMap<>();
@@ -58,38 +58,6 @@ public class ConstraintCheckerFactory {
 		RESOLVER.put(Float.class,toMapResolved); 
 		RESOLVER.put(Double.class,toMapResolved);
 		RESOLVER.put(String.class,toMapResolved);
-
-		CONVERTOR.put(Byte.class, new HashMap<>());
-		CONVERTOR.put(Short.class, new HashMap<>());
-		CONVERTOR.put(Integer.class, new HashMap<>());
-		CONVERTOR.put(Long.class, new HashMap<>());
-		CONVERTOR.put(Float.class, new HashMap<>());
-		CONVERTOR.put(Double.class, new HashMap<>());
-		CONVERTOR.put(String.class, new HashMap<>());
-		
-		CONVERTOR.get(Byte.class).put(Long.class,(obj)->{return ((Byte)obj).longValue();});
-		CONVERTOR.get(Short.class).put(Long.class,(obj)->{return ((Short)obj).longValue();});
-		CONVERTOR.get(Integer.class).put(Long.class,(obj)->{return ((Integer)obj).longValue();});
-		CONVERTOR.get(Long.class).put(Long.class,(obj)->{return obj;});
-		CONVERTOR.get(Float.class).put(Long.class,(obj)->{return ((Float)obj).longValue();});
-		CONVERTOR.get(Double.class).put(Long.class,(obj)->{return ((Double)obj).longValue();});
-		CONVERTOR.get(String.class).put(Long.class,(obj)->{return Long.valueOf(((String)obj));});
-
-		CONVERTOR.get(Byte.class).put(Double.class,(obj)->{return ((Byte)obj).doubleValue();});
-		CONVERTOR.get(Short.class).put(Double.class,(obj)->{return ((Byte)obj).doubleValue();});
-		CONVERTOR.get(Integer.class).put(Double.class,(obj)->{return ((Integer)obj).doubleValue();});
-		CONVERTOR.get(Long.class).put(Double.class,(obj)->{return ((Long)obj).doubleValue();});
-		CONVERTOR.get(Float.class).put(Double.class,(obj)->{return ((Float)obj).doubleValue();});
-		CONVERTOR.get(Double.class).put(Double.class,(obj)->{return obj;});
-		CONVERTOR.get(String.class).put(Double.class,(obj)->{return Double.valueOf(((String)obj));});
-
-		CONVERTOR.get(Byte.class).put(String.class,(obj)->{return obj.toString();});
-		CONVERTOR.get(Short.class).put(String.class,(obj)->{return obj.toString();});
-		CONVERTOR.get(Integer.class).put(String.class,(obj)->{return obj.toString();});
-		CONVERTOR.get(Long.class).put(String.class,(obj)->{return obj.toString();});
-		CONVERTOR.get(Float.class).put(String.class,(obj)->{return obj.getClass();});
-		CONVERTOR.get(Double.class).put(String.class,(obj)->{return obj.toString();});
-		CONVERTOR.get(String.class).put(String.class,(obj)->{return obj;});
 	}
 	
 	@FunctionalInterface
@@ -574,7 +542,7 @@ public class ConstraintCheckerFactory {
 	}
 
 	private static <T> T convert2Class(final Object value, final Class<T> target) throws ContentException {
-		return (T)CONVERTOR.get(value.getClass()).get(target).convert(value);
+		return InternalUtils.convert(target, value);
 	}
 
 	static class SyntaxNode {

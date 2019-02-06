@@ -39,7 +39,7 @@ public class InternalUtils {
 	private static final JDBCTypeDescriptor[]		TYPE_DECODER;
 	private static final ConversionDescriptor[]		CONVERSION_PAIRS;
 	private static final char[]						ESCAPES = {'%', '_'};
-	private static final char[]						RUE = {'r', 'u', 'e'};
+	private static final char[]						RUE = {'r', 'u', 'e'};	// NOT 'true', but 'rue'!!!
 	private static final char[]						ALSE = {'a', 'l', 's', 'e'};
 	
 	

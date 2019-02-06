@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ServiceLoader;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.sql.AbstractContent;
@@ -21,19 +22,15 @@ public class ResultSetFactory {
 		if (resource == null) {
 			throw new NullPointerException("Resource URI can't be null");
 		}
-		else if (!resource.getScheme().equalsIgnoreCase(FileSystemInterface.FILESYSTEM_URI_SCHEME)) {
-			throw new IllegalArgumentException("Resource scheme ["+resource.getScheme()+"] is not supported. Only ["+FileSystemInterface.FILESYSTEM_URI_SCHEME+"] can be used");
-		}
-		else if (resource.getFragment() == null || resource.getFragment().isEmpty()) {
-			throw new IllegalArgumentException("Resource ["+resource+"]: mandatory fragment part is missing!");
+		else if (!RESULTSET_PARSERS_SCHEMA.equals(resource.getScheme())) {
+			throw new IllegalArgumentException("Resource scheme ["+resource.getScheme()+"] is not ["+RESULTSET_PARSERS_SCHEMA+"]");
 		}
 		else {
-			final URL	url = new URL((URL)null,resource.toString(),new FileSystemURLStreamHandler());
-			final URI	resourceParser = URI.create(RESULTSET_PARSERS_SCHEMA+":"+resource.getFragment());
-
+			final URI	source = URI.create(resource.getRawSchemeSpecificPart()); 
+			
 			for (ResultSetContentParser item : ServiceLoader.load(ResultSetContentParser.class)) {
-				if (item.canServe(resourceParser)) {
-					final ResultSetContentParser	parser = item.newInstance(url,resourceParser);
+				if (item.canServe(source)) {
+					final ResultSetContentParser	parser = item.newInstance(URI.create(source.getRawSchemeSpecificPart()).toURL(),source);
 
 					return new AbstractReadOnlyResultSet(parser.getMetaData(),resultSetType) {
 						@Override
@@ -48,7 +45,7 @@ public class ResultSetFactory {
 					};
 				}
 			}
-			throw new IOException("No any parser were found for ["+resourceParser+"] request");
+			throw new IOException("No any parser were found for ["+resource+"] request");
 		}
 	}
 }
