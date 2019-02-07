@@ -1,6 +1,6 @@
 package chav1961.purelib.sql;
 
-class RsMetaDataElement {
+public class RsMetaDataElement {
 	private final String	name;
 	private final String	description;
 	private final String	typeName;
