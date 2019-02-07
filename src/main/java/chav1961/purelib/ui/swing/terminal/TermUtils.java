@@ -11,7 +11,7 @@ public class TermUtils {
 //	U+2500 - U+257F - символы рамок
 //	U+2580 - U+259F - символы заполнения
 	
-	public enum BoxStype {
+	public enum LineStyle {
 		Single, Double, SemiDouble
 	}
 	
@@ -26,16 +26,28 @@ public class TermUtils {
 			throw new NullPointerException("Background color can't be null");
 		}
 		else {
-			console.writeAttribute(new Rectangle(1,1,console.width,console.height),new Color[]{color,bkGnd});
-			console.writeContent(new Rectangle(1,1,console.width,console.height),' ');
+			console.writeAttribute(new Rectangle(1,1,console.getWidth(),console.getHeight()),new Color[]{color,bkGnd});
+			console.writeContent(new Rectangle(1,1,console.getWidth(),console.getHeight()),' ');
 		}
 	}
 	
-	public static void box(final PseudoConsole console, final int x, final int y, final int width, final int height) {
-		box(console, x, y, width, height, BoxStype.SemiDouble);
+	public static void line(final PseudoConsole console, final int xFrom, final int yFrom, final int xTo, final int yTo) {
+		
 	}
 
-	public static void box(final PseudoConsole console, final int x, final int y, final int width, final int height, final BoxStype style) {
+	public static void line(final PseudoConsole console, final int xFrom, final int yFrom, final int xTo, final int yTo, final LineStyle style) {
+		
+	}
+
+	public static void line(final PseudoConsole console, final int xFrom, final int yFrom, final int xTo, final int yTo, final char[] fillers) {
+		
+	}
+	
+	public static void box(final PseudoConsole console, final int x, final int y, final int width, final int height) {
+		box(console, x, y, width, height, LineStyle.SemiDouble);
+	}
+
+	public static void box(final PseudoConsole console, final int x, final int y, final int width, final int height, final LineStyle style) {
 		if (style == null) {
 			throw new NullPointerException("Box style can't be null"); 
 		}
@@ -53,17 +65,17 @@ public class TermUtils {
 		if (console == null) {
 			throw new NullPointerException("Console to fill can't be null");
 		}
-		else if (x < 1 || x > console.width) {
-			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+console.width);
+		else if (x < 1 || x > console.getWidth()) {
+			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+console.getWidth());
 		}
-		else if (y < 1 || y > console.height) {
-			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+console.height);
+		else if (y < 1 || y > console.getHeight()) {
+			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+console.getHeight());
 		}
-		else if (x+width < 1 || x+width > console.width) {
-			throw new IllegalArgumentException("X coordinate + width ["+(x+width)+"] out of range 1.."+console.width);
+		else if (x+width < 1 || x+width > console.getWidth()) {
+			throw new IllegalArgumentException("X coordinate + width ["+(x+width)+"] out of range 1.."+console.getWidth());
 		}
-		else if (y+height < 1 || y+height > console.height) {
-			throw new IllegalArgumentException("Y coordinate + height ["+(y+height)+"] out of range 1.."+console.height);
+		else if (y+height < 1 || y+height > console.getHeight()) {
+			throw new IllegalArgumentException("Y coordinate + height ["+(y+height)+"] out of range 1.."+console.getHeight());
 		}
 		else if (fillers == null || !(fillers.length == 8 || fillers.length == 9)) {
 			throw new IllegalArgumentException("Fillers array can't be null and must contain either 8 or 9 elements");

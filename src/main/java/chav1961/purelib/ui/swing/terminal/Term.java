@@ -25,7 +25,6 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private static final String		NULL = "null";
 	private static final int		INITIAL_SIZE = 32;
 	
-	private final int				width = 80, height = 25;
 	private final boolean			emulateBell = false;
 	private final Timer				t = new Timer(true);
 	private final TimerTask			tt = new TimerTask(){
@@ -39,7 +38,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private char[]					buffer = new char[INITIAL_SIZE]; 
 							
 	private int						x = 1, y = 1, escaping = 0;
-	private boolean					on = false, blinkNow = false;
+	private boolean					on = true, blinkNow = false;
 	private Color[]					colors = new Color[]{Color.GREEN,Color.BLACK};
 
 	public Term(){
@@ -59,6 +58,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	public void close() throws IOException {
 		tt.cancel();
 		t.cancel();
+		stack.clear();
 	}
 	
 	@Override
@@ -206,10 +206,10 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		else if (from < 0 || from >= data.length) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(data.length-1));
 		}
-		else if (len < 0 || len >= data.length) {
+		else if (len < 0 || len > data.length) {
 			throw new IllegalArgumentException("Length ["+from+"] out of range 0.."+(data.length-1));
 		}
-		else if (from+len < 0 || from+len >= data.length) {
+		else if (from+len < 0 || from+len > data.length) {
 			throw new IllegalArgumentException("From position + length ["+(from+len)+"] out of range 0.."+(data.length-1));
 		}
 		else {
@@ -239,6 +239,14 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	public Term println(final String data, final int from, final int len) throws PrintingException, StringIndexOutOfBoundsException {
 		return print(data,from,len).println();
 	}
+
+	public Color getForeground() {
+		return colors[0];
+	}
+
+	public Color getBackground() {
+		return colors[1];
+	}
 	
 	public int getCursorX() {
 		return x;
@@ -248,18 +256,24 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		return y;
 	}
 
-	public Term setCursor(int x, int y) {
+	public Term setCursor(final int x, final int y) {
 		if (x < 1) {
-			x = 1;
+			this.x = 1;
 		}
-		else if (x > width) {
-			x = width;
+		else if (x > getWidth()) {
+			this.x = getWidth();
+		}
+		else {
+			this.x = x;
 		}
 		if (y < 1) {
-			y = 1;
+			this.y = 1;
 		}
-		else if (y > height) {
-			y = height;
+		else if (y > getHeight()) {
+			this.y = getHeight();
+		}
+		else {
+			this.y = y;
 		}
 		return this;
 	}
@@ -279,9 +293,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	}
 	
 	public Term clear() {
-		for (int index = 0; index < height; index++) {
-			println();
-		}
+		TermUtils.clear(this,Color.GREEN,Color.black);
 		setCursor(1,1);
 		return this;
 	}
@@ -297,8 +309,8 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 			case '\f'	: clear(); break;
 			case '\b'	: bell(); break;
 			case '\n'	:
-				if (getCursorY() == height) {
-					scroll(true);
+				if (getCursorY() == getHeight()) {
+					scrollUp(getForeground(),getBackground());
 				}
 				else {
 					setCursor(getCursorX(),getCursorY()+1);
@@ -313,10 +325,10 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 					case 0 :
 						writeAttribute(getCursorX(),getCursorY(),colors);
 						writeContent(getCursorX(),getCursorY(),symbol);
-						if (++x > width) {
+						if (++x > getWidth()) {
 							x = 1;
-							if (++y > height) {
-								scroll(true);
+							if (++y > getHeight()) {
+								scrollUp(getForeground(),getBackground());
 								y--;
 							}
 						}
@@ -335,6 +347,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 						if (Character.isJavaIdentifierStart(symbol)) {
 							escaping = 0;
 							processEsc(symbol,sb.toString());
+							sb.setLength(0);
 						}
 						else {
 							sb.append(symbol);
@@ -366,11 +379,13 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 				pushCursor();
 				switch (nvl(parameters,"0").charAt(0)) {
 					case '0' :
-						fill(width*height - getCursorY()*height - getCursorX());	
+						fill(getWidth()-getCursorX()+1 + (getHeight()-getCursorY())*getWidth());
 						break;
 					case '1' :
+						final int	oldCursorX = getCursorX(), oldCursorY = getCursorY();
+						
 						setCursor(1,1);
-						fill(getCursorY()*height + getCursorX());	
+						fill((oldCursorY-1)*getHeight() + oldCursorX);	
 						break;
 					case '2' :
 						clear();
@@ -382,27 +397,29 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 				pushCursor();
 				switch (nvl(parameters,"0").charAt(0)) {
 					case '0' :
-						fill(width-getCursorX());	
+						fill(getWidth()-getCursorX()+1);	
 						break;
 					case '1' :
+						final int	oldCursor = getCursorX(); 
+						
 						setCursor(1,getCursorY());
-						fill(getCursorX());	
+						fill(oldCursor);	
 						break;
 					case '2' :
 						setCursor(1,getCursorY());
-						fill(width);	
+						fill(getWidth());	
 						break;
 				}
 				popCursor();
 				break;
 			case 'S' :
 				for (int index = 0, maxIndex = Integer.valueOf(nvl(parameters,"1")); index < maxIndex; index++) {
-					scroll(true);
+					scrollDown(getForeground(),getBackground());
 				}
 				break;
 			case 'T' :
 				for (int index = 0, maxIndex = Integer.valueOf(nvl(parameters,"1")); index < maxIndex; index++) {
-					scroll(false);
+					scrollUp(getForeground(),getBackground());
 				}
 				break;
 			case 'm' :
@@ -450,33 +467,6 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		}
 	}
 	
-	private void scroll(boolean up) {
-		Rectangle	rect;
-//		Color[][][]	attrs;
-		char[]		content;
-		
-		if (up) {
-			readAttribute(rect = new Rectangle(1,2,width,height-1));
-			content = readContent(rect);
-//			writeAttribute(rect = new Rectangle(1,1,width,height-1),attrs);
-			writeContent(rect = new Rectangle(1,1,width,height-1),content);
-			pushCursor();
-			setCursor(1,height);
-			fill(width);
-			popCursor();
-		}
-		else {
-			readAttribute(rect = new Rectangle(1,1,width,height-1));
-			content = readContent(rect);
-//			writeAttribute(rect = new Rectangle(1,1,width,height-1),attrs);
-			writeContent(rect = new Rectangle(1,2,width,height-1),content);
-			pushCursor();
-			setCursor(1,1);
-			fill(width);
-			popCursor();
-		}
-	}
-	
 	private String nvl(final String source, final String defaulValue) {
 		return source == null || source.isEmpty() ? defaulValue : source;
 	}
@@ -494,8 +484,9 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	}
 	
 	private void fill(int length) {
-		for (int index = 0; index < length; index++) {
+		for (int index = 0; index < length-1; index++) {
 			internalPrintChar(' ');
 		}
+		writeContent(getCursorX(),getCursorY(),' ');
 	}
 }

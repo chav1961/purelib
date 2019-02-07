@@ -13,8 +13,8 @@ public class PseudoConsoleTest {
 	public void basicTest() {
 		final PseudoConsole	pc = new PseudoConsole(10,10);
 		
-		Assert.assertEquals(10,pc.width);
-		Assert.assertEquals(10,pc.height); 
+		Assert.assertEquals(10,pc.getWidth());
+		Assert.assertEquals(10,pc.getHeight()); 
 
 		pc.writeAttribute(1,1,Color.RED,Color.BLUE);
 		Assert.assertArrayEquals(new Color[]{Color.RED,Color.BLUE},pc.readAttribute(1,1));
@@ -143,5 +143,9 @@ public class PseudoConsoleTest {
 		}
 		
 		pc.scrollUp(Color.YELLOW,Color.WHITE);
+		Assert.assertArrayEquals(new Color[]{Color.YELLOW,Color.WHITE},pc.readAttribute(1, 10));
+		Assert.assertArrayEquals(new Color[]{Color.GREEN,Color.BLACK},pc.readAttribute(1, 9));
+		Assert.assertArrayEquals(new Color[]{Color.YELLOW,Color.WHITE},pc.readAttribute(10, 10));
+		Assert.assertArrayEquals(new Color[]{Color.GREEN,Color.BLACK},pc.readAttribute(10, 9));
 	}
 }

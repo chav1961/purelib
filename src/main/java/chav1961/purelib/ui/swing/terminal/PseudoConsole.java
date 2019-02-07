@@ -27,7 +27,7 @@ public class PseudoConsole extends JComponent {
 	private final char[][]		content;
 	private final Color[][][]	attributes;
 	private final Font			font = new Font("Courier",Font.PLAIN,1);
-	final int					width, height;
+	private final int			width, height;
 	
 	public PseudoConsole(final int width, final int height) {
 		if (width <= 0) {
@@ -45,6 +45,14 @@ public class PseudoConsole extends JComponent {
 		}
 	}
 
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+	
 	public PseudoConsole writeAttribute(final int x, final int y, final Color color, final Color bkGnd) {
 		if (x < 1 || x > width) {
 			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+width);
@@ -270,8 +278,8 @@ public class PseudoConsole extends JComponent {
 		else if (content.length > 0) {
 			int		index = 0;
 			
-loop:		for (int x = rect.x; x < rect.x+rect.width; x++) {
-				for (int y = rect.y; y < rect.y+rect.height; y++) {
+loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
+				for (int x = rect.x; x < rect.x+rect.width; x++) {
 					if (index < content.length) {
 						writeContent(x,y,content[index++]);
 					}
@@ -328,18 +336,18 @@ loop:		for (int x = rect.x; x < rect.x+rect.width; x++) {
 		else if (rect.y < 1 || rect.y > width) {
 			throw new IllegalArgumentException("Rectangle Y coordinate ["+rect.y+"] out of range 1.."+height);
 		}
-		else if (rect.width < 1 || rect.x+rect.width > width) {
+		else if (rect.width < 1 || rect.x+rect.width-1 > width) {
 			throw new IllegalArgumentException("Rectangle X+width ["+(rect.x+rect.width)+"] out of range 1.."+width);
 		}
-		else if (rect.height < 1 || rect.y + rect.height > height) {
+		else if (rect.height < 1 || rect.y + rect.height-1 > height) {
 			throw new IllegalArgumentException("Rectangle Y+height ["+(rect.y+rect.height)+"] out of range 1.."+height);
 		}
 		else {
 			final char[]	result = new char[rect.width*rect.height];
 			int				index = 0;
 			
-			for (int x = rect.x; x < rect.x+rect.width; x++) {
-				for (int y = rect.y; y < rect.y+rect.height; y++) {
+			for (int y = rect.y; y < rect.y+rect.height; y++) {
+				for (int x = rect.x; x < rect.x+rect.width; x++) {
 					result[index++] = content[x-1][y-1];
 				}
 			}
@@ -357,12 +365,38 @@ loop:		for (int x = rect.x; x < rect.x+rect.width; x++) {
 		else {
 			final Rectangle	lastLine = new Rectangle(1,height,width,1); 
 			
-			System.arraycopy(content,1,content,0,content.length-1);
-			System.arraycopy(attributes,1,attributes,0,attributes.length-1);
+			for (char[] item : content) {
+				System.arraycopy(item,1,item,0,item.length-1);
+			}
+			for (Color[][] item : attributes) {
+				System.arraycopy(item,1,item,0,item.length-1);
+			}
 			writeAttribute(lastLine,new Color[]{color,bkGnd});
 			writeContent(lastLine,' ');
 		}
 	}
+
+	public void scrollDown(final Color color, final Color bkGnd) {
+		if (color == null) {
+			throw new NullPointerException("Color can't be null");
+		}
+		else if (bkGnd == null) {
+			throw new NullPointerException("Background color can't be null");
+		}
+		else {
+			final Rectangle	firstLine = new Rectangle(1,1,width,1); 
+			
+			for (char[] item : content) {
+				System.arraycopy(item,0,item,1,item.length-1);
+			}
+			for (Color[][] item : attributes) {
+				System.arraycopy(item,0,item,1,item.length-1);
+			}
+			writeAttribute(firstLine,new Color[]{color,bkGnd});
+			writeContent(firstLine,' ');
+		}
+	}
+	
 	
 	@Override
 	protected void paintComponent(final Graphics g) { 
