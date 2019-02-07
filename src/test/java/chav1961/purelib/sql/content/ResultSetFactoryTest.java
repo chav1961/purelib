@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class ResultSetFactoryTest {
 	@Test
-	public void buildTest() throws IOException, SQLException {
+	public void csvTest() throws IOException, SQLException {
 		try(final ResultSet		rs = ResultSetFactory.buildResultSet(null,URI.create(
 									 ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":csv:"+ResultSetFactoryTest.class.getResource("test.csv"))
 									,ResultSet.TYPE_FORWARD_ONLY)) {

@@ -260,8 +260,8 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		if (x < 1) {
 			this.x = 1;
 		}
-		else if (x > getWidth()) {
-			this.x = getWidth();
+		else if (x > getConsoleWidth()) {
+			this.x = getConsoleWidth();
 		}
 		else {
 			this.x = x;
@@ -269,8 +269,8 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		if (y < 1) {
 			this.y = 1;
 		}
-		else if (y > getHeight()) {
-			this.y = getHeight();
+		else if (y > getConsoleHeight()) {
+			this.y = getConsoleHeight();
 		}
 		else {
 			this.y = y;
@@ -309,7 +309,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 			case '\f'	: clear(); break;
 			case '\b'	: bell(); break;
 			case '\n'	:
-				if (getCursorY() == getHeight()) {
+				if (getCursorY() == getConsoleHeight()) {
 					scrollUp(getForeground(),getBackground());
 				}
 				else {
@@ -325,9 +325,9 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 					case 0 :
 						writeAttribute(getCursorX(),getCursorY(),colors);
 						writeContent(getCursorX(),getCursorY(),symbol);
-						if (++x > getWidth()) {
+						if (++x > getConsoleWidth()) {
 							x = 1;
-							if (++y > getHeight()) {
+							if (++y > getConsoleHeight()) {
 								scrollUp(getForeground(),getBackground());
 								y--;
 							}
@@ -379,13 +379,13 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 				pushCursor();
 				switch (nvl(parameters,"0").charAt(0)) {
 					case '0' :
-						fill(getWidth()-getCursorX()+1 + (getHeight()-getCursorY())*getWidth());
+						fill(getConsoleWidth()-getCursorX()+1 + (getConsoleHeight()-getCursorY())*getConsoleWidth());
 						break;
 					case '1' :
 						final int	oldCursorX = getCursorX(), oldCursorY = getCursorY();
 						
 						setCursor(1,1);
-						fill((oldCursorY-1)*getHeight() + oldCursorX);	
+						fill((oldCursorY-1)*getConsoleHeight() + oldCursorX);	
 						break;
 					case '2' :
 						clear();
@@ -397,7 +397,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 				pushCursor();
 				switch (nvl(parameters,"0").charAt(0)) {
 					case '0' :
-						fill(getWidth()-getCursorX()+1);	
+						fill(getConsoleWidth()-getCursorX()+1);	
 						break;
 					case '1' :
 						final int	oldCursor = getCursorX(); 
@@ -407,7 +407,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 						break;
 					case '2' :
 						setCursor(1,getCursorY());
-						fill(getWidth());	
+						fill(getConsoleWidth());	
 						break;
 				}
 				popCursor();

@@ -67,8 +67,8 @@ public class TermTest {
 			Assert.assertEquals(1,term.getCursorY());
 	
 			term.setCursor(100, 100);
-			Assert.assertEquals(term.getWidth(),term.getCursorX());
-			Assert.assertEquals(term.getHeight(),term.getCursorY());
+			Assert.assertEquals(term.getConsoleWidth(),term.getCursorX());
+			Assert.assertEquals(term.getConsoleHeight(),term.getCursorY());
 		}
 	}
 	
@@ -161,12 +161,12 @@ public class TermTest {
 	private void printAndTest(final Term term, final LambdaPrint action, final String result) throws PrintingException {
 		final StringBuilder	sb = new StringBuilder(result);
 		
-		while (sb.length() < term.getWidth()) {
+		while (sb.length() < term.getConsoleWidth()) {
 			sb.append(' ');
 		}
 		term.clear();
 		action.process(term);
-		final char[]	content = term.readContent(new Rectangle(1,1,term.getWidth(),1));
+		final char[]	content = term.readContent(new Rectangle(1,1,term.getConsoleWidth(),1));
 		
 		Assert.assertArrayEquals(sb.toString().toCharArray(),content);
 	}

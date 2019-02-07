@@ -7,12 +7,18 @@ import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import chav1961.purelib.basic.BitCharSet;
 import chav1961.purelib.basic.FSM;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -20,6 +26,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.AbstractContent;
+import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
@@ -29,7 +36,7 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 public class JsonContentParser implements ResultSetContentParser {
 	private enum Terminal {
 		StartDoc, EndDoc, StartObj, EndObj, StartArr, EndArr,
-		Startname, EndName, StartIndex, EndIndex, Value
+		StartName, EndName, StartIndex, EndIndex, Value
 	}
 
 	private enum NonTerminal {
@@ -37,13 +44,23 @@ public class JsonContentParser implements ResultSetContentParser {
 	}
 	
 	private enum Exit {
-		PrepareRowOfData, StoreName, StoreRowOfData, StoreNameValuePair, CalculatAmountOfNames, StoreNameDescriptor, 
+		PrepareRowOfData, StoreName, StoreRowOfData, StoreNameValuePair, CalculatAmountOfNames, 
 		PrepareArray, Store2Array, StoreNameArrayPair, JoinNameDescritors, ReformatValues 
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private static final FSM.FSMLine<Terminal, NonTerminal, Exit>[]	STATES = new FSM.FSMLine[]{
-									new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.BeforeDoc,Terminal.StartDoc,NonTerminal.BeforeArray)
+									 new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.BeforeDoc,Terminal.StartDoc,NonTerminal.BeforeArray)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.BeforeArray,Terminal.StartArr,NonTerminal.InArray)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.InArray,Terminal.EndArr,NonTerminal.AfterArray)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.InArray,Terminal.StartObj,NonTerminal.BeforeName,Exit.PrepareRowOfData)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.BeforeName,Terminal.StartName,NonTerminal.AfterName,Exit.StoreName)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.BeforeName,Terminal.EndObj,NonTerminal.InArray,Exit.StoreRowOfData)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.AfterName,Terminal.Value,NonTerminal.BeforeName,Exit.StoreNameValuePair,Exit.CalculatAmountOfNames)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.AfterName,Terminal.StartArr,NonTerminal.LocalArray,Exit.PrepareArray)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.LocalArray,Terminal.Value,NonTerminal.LocalArray,Exit.Store2Array)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.LocalArray,Terminal.EndArr,NonTerminal.LocalArray,Exit.StoreNameArrayPair,Exit.CalculatAmountOfNames)
+									,new FSM.FSMLine<Terminal, NonTerminal, Exit>(NonTerminal.AfterArray,Terminal.EndDoc,NonTerminal.AfterDoc,Exit.JoinNameDescritors,Exit.ReformatValues)
 									}; 
 	
 	
@@ -117,13 +134,16 @@ public class JsonContentParser implements ResultSetContentParser {
 	}
 
 	private static class SaxHandler implements JsonSaxHandler {
-		private final Map<String,RsMetaDataElement>			meta = new HashMap<>();
 		private final List<Object[]> 						content;
-		private final List<Object> 							row = new ArrayList<>(), innerArray = new ArrayList<>(); 
+		private final List<Object> 							row = new ArrayList<>(), innerArray = new ArrayList<>();
+		private final Map<String,NameDescriptor>			names = new HashMap<>();
 		private final FSM<Terminal,NonTerminal,Exit,Object>	fsm = new FSM<>(
 										(current,terminal,fromState,toState,actions,parameter)->{
 											process(fromState,terminal,toState,parameter,actions);
 										}, NonTerminal.BeforeDoc, STATES);
+		
+		private ResultSetMetaData	metadata;
+		private int		nameLocation = 0, totalNames = 0;
 		private String	name;
 		
 		private SaxHandler(final List<Object[]> forContent) {
@@ -180,7 +200,7 @@ public class JsonContentParser implements ResultSetContentParser {
 
 		@Override
 		public void startName(final char[] data, final int from, final int len) throws ContentException {
-			try{fsm.processTerminal(Terminal.Startname,new String(data,from,len));
+			try{fsm.processTerminal(Terminal.StartName,new String(data,from,len));
 			} catch (FlowException e) {
 				throw new ContentException(e);
 			}
@@ -188,7 +208,7 @@ public class JsonContentParser implements ResultSetContentParser {
 
 		@Override
 		public void startName(final String name) throws ContentException {
-			try{fsm.processTerminal(Terminal.Startname,name);
+			try{fsm.processTerminal(Terminal.StartName,name);
 			} catch (FlowException e) {
 				throw new ContentException(e);
 			}
@@ -196,7 +216,7 @@ public class JsonContentParser implements ResultSetContentParser {
 
 		@Override
 		public void startName(final long id) throws ContentException {
-			try{fsm.processTerminal(Terminal.Startname,id);
+			try{fsm.processTerminal(Terminal.StartName,id);
 			} catch (FlowException e) {
 				throw new ContentException(e);
 			}
@@ -274,41 +294,51 @@ public class JsonContentParser implements ResultSetContentParser {
 			}
 		}
 		
-//		-before doc
-//		-- startDoc --> before array
-//		-before array
-//		-- startArray --> in array
-//		-in array
-//		--endArray --> after array
-//		-- startObj --> before name, {prepare row of data}
-//		-before name
-//		-- name --> after name, {store name}
-//		-- endObj --> in array, {store row of data into common list}
-//		-after name
-//		-- value --> before name, {store name/value pair, calculate maximun amount of names, build and store name descriptor}
-//		-- startArray --> local array, {prepare array for storing}
-//		-local array
-//		-- value --> local array, {store value}
-//		-- endArray --> before name, {store name/value pair (from array), calculate maximun amount of names, build and store name descriptor}
-//		-after array
-//		-- endDoc --> after doc, {join name descriptors, reformat values with filling nulls}
-//		All names are placed into syntax tree. Each of them is associated with bit mask for predefined types, available in json, and location in the target array.
 		
 		private void process(final NonTerminal fromState, final Terminal terminal, final NonTerminal toState, final Object parameter, final Exit... actions) {
-			// TODO Auto-generated method stub
 			for (Exit item : actions) {
 				switch (item) {
 					case CalculatAmountOfNames	:
+						totalNames = names.size();
 						break;
 					case JoinNameDescritors		:
+						final List<RsMetaDataElement>	meta = new ArrayList<>();
+						
+						for (Entry<String, NameDescriptor> entity : names.entrySet()) {
+							if (entity.getValue().dataTypes.contains(NameDescriptor.TYPE_STRING)) {
+								meta.add(new RsMetaDataElement(entity.getKey(),"", "VARCHAR", Types.VARCHAR, entity.getValue().contentLength, 0));
+							}
+							else if (entity.getValue().dataTypes.contains(NameDescriptor.TYPE_BOOLEAN)) {
+								meta.add(new RsMetaDataElement(entity.getKey(),"", "BOOLEAN", Types.BOOLEAN, 1, 0));
+							}
+							else if (entity.getValue().dataTypes.contains(NameDescriptor.TYPE_REAL)) {
+								meta.add(new RsMetaDataElement(entity.getKey(),"", "NUMERIC", Types.NUMERIC, 18, 2));
+							}
+							else {
+								meta.add(new RsMetaDataElement(entity.getKey(),"", "BIGINT", Types.BIGINT, 18, 0));
+							}
+						}
+						metadata = new AbstractResultSetMetaData(meta.toArray(new RsMetaDataElement[meta.size()]),true) {
+										@Override public String getTableName(int column) throws SQLException {return "table";}
+										@Override public String getSchemaName(int column) throws SQLException {return "schema";}
+										@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
+									};
+						meta.clear();
 						break;
 					case PrepareArray			:
 						innerArray.clear();
 						break;
 					case PrepareRowOfData		:
-						row.clear();
+						for (int index = 0; index < totalNames; index++) {
+							row.add(null);
+						}
 						break;
 					case ReformatValues			:
+						for (int index = 0, maxIndex = content.size(); index < maxIndex; index++) {
+							if (content.get(index).length < totalNames) {
+								content.set(index,Arrays.copyOf(content.get(index),totalNames));
+							}
+						}
 						break;
 					case Store2Array			:
 						innerArray.add(parameter);
@@ -317,10 +347,24 @@ public class JsonContentParser implements ResultSetContentParser {
 						name = parameter.toString();
 						break;
 					case StoreNameArrayPair		:
-						break;
-					case StoreNameDescriptor	:
+						if (names.containsKey(name)) {
+							row.set(names.get(name).location, innerArray.toArray());
+						}
+						else {
+							names.put(name,new NameDescriptor(nameLocation++));
+							row.add(innerArray.toArray());
+						}
+						names.get(name).markDataType(parameter);
 						break;
 					case StoreNameValuePair		:
+						if (names.containsKey(name)) {
+							row.set(names.get(name).location, parameter);
+						}
+						else {
+							names.put(name,new NameDescriptor(nameLocation++));
+							row.add(parameter);
+						}
+						names.get(name).markDataType(parameter);
 						break;
 					case StoreRowOfData			:
 						content.add(row.toArray(new Object[row.size()]));
@@ -332,4 +376,38 @@ public class JsonContentParser implements ResultSetContentParser {
 		}
 	}
 
+	private static class NameDescriptor {
+		private static final char	TYPE_INT = 1;
+		private static final char	TYPE_REAL = 2;
+		private static final char	TYPE_STRING = 3;
+		private static final char	TYPE_BOOLEAN = 4;
+		private static final char	TYPE_ARRAY = 5;
+		
+		final int			location;
+		final BitCharSet	dataTypes = new BitCharSet();
+		int					contentLength = 0;
+		
+		NameDescriptor(int location) {
+			this.location = location;
+		}
+		
+		void markDataType(final Object value) {
+			if (value instanceof Long) {
+				dataTypes.add(TYPE_INT);
+			}
+			else if (value instanceof Double) {
+				dataTypes.add(TYPE_REAL);
+			}
+			else if (value instanceof String) {
+				dataTypes.add(TYPE_STRING);
+				contentLength = Math.max(contentLength, value.toString().length());
+			}
+			else if (value instanceof Boolean) {
+				dataTypes.add(TYPE_BOOLEAN);
+			}
+			else if (value != null && value.getClass().isArray()) {
+				dataTypes.add(TYPE_ARRAY);
+			}
+		}
+	}
 }

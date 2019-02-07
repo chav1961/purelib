@@ -13,8 +13,8 @@ public class PseudoConsoleTest {
 	public void basicTest() {
 		final PseudoConsole	pc = new PseudoConsole(10,10);
 		
-		Assert.assertEquals(10,pc.getWidth());
-		Assert.assertEquals(10,pc.getHeight()); 
+		Assert.assertEquals(10,pc.getConsoleWidth());
+		Assert.assertEquals(10,pc.getConsoleHeight()); 
 
 		pc.writeAttribute(1,1,Color.RED,Color.BLUE);
 		Assert.assertArrayEquals(new Color[]{Color.RED,Color.BLUE},pc.readAttribute(1,1));

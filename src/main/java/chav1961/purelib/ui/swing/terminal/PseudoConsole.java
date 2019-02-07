@@ -45,11 +45,11 @@ public class PseudoConsole extends JComponent {
 		}
 	}
 
-	public int getWidth() {
+	public int getConsoleWidth() {
 		return width;
 	}
 
-	public int getHeight() {
+	public int getConsoleHeight() {
 		return height;
 	}
 	
@@ -140,10 +140,10 @@ public class PseudoConsole extends JComponent {
 		else if (rect.y < 1 || rect.y > width) {
 			throw new IllegalArgumentException("Rectangle Y coordinate ["+rect.y+"] out of range 1.."+height);
 		}
-		else if (rect.width < 1 || rect.x+rect.width > width + 1) {
+		else if (rect.width < 1 || rect.x+rect.width-1 > width) {
 			throw new IllegalArgumentException("Rectangle X+width ["+(rect.x+rect.width)+"] out of range 1.."+width);
 		}
-		else if (rect.height < 1 || rect.y + rect.height > height + 1) {
+		else if (rect.height < 1 || rect.y + rect.height-1 > height) {
 			throw new IllegalArgumentException("Rectangle Y+height ["+(rect.y+rect.height)+"] out of range 1.."+height);
 		}
 		else {
@@ -407,21 +407,21 @@ loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
 	    final AffineTransform	at = new AffineTransform(oldAt);
 	    final char[]			temp = new char[1];
 	    
-	    at.scale(1.0*getWidth()/width,1.0*getHeight()/height);
+	    at.scale(1.0*getWidth()/getConsoleWidth(),1.0*getHeight()/getConsoleHeight());
 	    g2d.setTransform(at);
 	    
-	    for (int indexX = 0; indexX < width; indexX++) {
-		    for (int indexY = 0; indexY < height; indexY++) {
+	    for (int indexX = 0; indexX < getConsoleWidth(); indexX++) {
+		    for (int indexY = 0; indexY < getConsoleHeight(); indexY++) {
 		    	g2d.setColor(attributes[indexX][indexY][1]);
 		    	g2d.fillRect(indexX,indexY,1,1);
 		    }
 	    }
 	    
 	    g2d.setFont(font);
-	    at.translate(0.5,1);
+	    at.translate(0,1);
 	    g2d.setTransform(at);
-	    for (int indexX = 0; indexX < width; indexX++) {
-		    for (int indexY = 0; indexY < height; indexY++) {
+	    for (int indexX = 0; indexX < getConsoleWidth(); indexX++) {
+		    for (int indexY = 0; indexY < getConsoleHeight(); indexY++) {
 		    	temp[0] = content[indexX][indexY];
 		    	g2d.setColor(attributes[indexX][indexY][0]);
 		    	g2d.drawChars(temp,0,1,indexX,indexY);
