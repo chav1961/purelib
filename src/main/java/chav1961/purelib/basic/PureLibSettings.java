@@ -11,6 +11,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,7 +33,8 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * static method. Content got from <b>-D{@value #SETTINGS_KEY}</b> source will be joined with the default settings from <b>purelib.default.properties</b> and has higher priority related to <b>purelib.default.properties</b>.
  * This class also contains few static useful methods to process settings</p>
  * <p>Inner logger in the class is used to print out any internal problems in the Pure Library. It uses standard {@linkplain Logger} functionality. Logger name is <b>"chav1961.purelib"</b>. You can
- * control it by the standard Java logging mechanism</p>  
+ * control it by the standard Java logging mechanism</p>
+ * <p>Inner {@linkplain Timer} in the class is used to process different sorts of maintenance, required by Pure Library components. Timer works with a daemon thread and needs no action on application terminating</p>    
  * 
  * @see SubstitutableProperties
  * @see chav1961.purelib.basic JUnit tests
@@ -204,6 +206,16 @@ public class PureLibSettings {
 	 * <p>MIME for JSON</p>
 	 */
 	public static final MimeType	MIME_JSON_TEXT = buildMime("application","json");
+
+	/**
+	 * <p>MIME for CSS</p>
+	 */
+	public static final MimeType	MIME_CSS_TEXT = buildMime("text","css");
+
+	/**
+	 * <p>MIME for CSS</p>
+	 */
+	public static final MimeType	MIME_FAVICON = buildMime("image","webp");
 	
 	/**
 	 * <p>MIME for octet stream</p>
@@ -219,6 +231,12 @@ public class PureLibSettings {
 	 * <p>Null logger facade for any purposes</p>
 	 */
 	public static final LoggerFacade	NULL_LOGGER = new NullLoggerFacade();
+	
+	/**
+	 * <p>Shared timer to process common maintenance for any pure library consumers</p>
+	 */
+	public static final Timer			COMMON_MAINTENANCE_TIMER = new Timer("PureLibMaintenanceTimer",true);
+	
 	
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 

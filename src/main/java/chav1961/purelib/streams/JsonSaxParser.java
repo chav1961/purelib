@@ -164,7 +164,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	}
 
 	@Override
-	public void processLine(final int lineNo, final char[] data, final int from, final int length) throws IOException {
+	public void processLine(final long displacement, final int lineNo, final char[] data, final int from, final int length) throws IOException {
 		final JsonSaxHandler	h = handler;	
 		StackTop				topStack = stack[stackTop];
 		int						current = from;

@@ -41,7 +41,7 @@ public class CsvContentParser implements ResultSetContentParser {
 		this.splitter = splitter;
 		try(final LineByLineProcessor	lblp = new LineByLineProcessor(new LineByLineProcessorCallback() {
 											@Override
-											public void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
+											public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
 												processLineInternal(lineNo,data,from,length,values);
 											}
 										}

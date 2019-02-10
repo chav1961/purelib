@@ -57,27 +57,27 @@ public class CreoleWriterTest {
 					}
 
 					@Override
-					void internalWrite(final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+					void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 						System.err.print(new String(content,from,to-from));
 					}
 
 					@Override
-					void insertImage(final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+					void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 						System.err.print("<IMAGE: "+new String(data,startLink,endLink-startLink)+">");
 					}
 
 					@Override
-					void insertLink(final boolean localRef, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+					void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 						System.err.print("<LINK: "+new String(data,startLink,endLink-startLink)+">");
 					}
 
 					@Override
-					protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Integer> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Integer parameter) throws FlowException {
+					protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
 						System.err.print("<Section: "+fromState+"->"+toState+">");
 					}
 
 					@Override
-					protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Integer> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Integer parameter) throws FlowException {
+					protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
 						System.err.print("<Font: "+fromState+"->"+toState+">");
 					}
 				}; 

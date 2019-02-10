@@ -45,6 +45,8 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 public class JFileContentManipulator implements Closeable, LocaleChangeListener {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
 	private static final String				UNSAVED_BODY = "JFileContentManipulator.unsaved.body";
+	private static final String				PROGRESS_LOADING = "JFileContentManipulator.progress.loading";
+	private static final String				PROGRESS_SAVING = "JFileContentManipulator.progress.saving";
 	private static final ProgressIndicator	DUMMY = new ProgressIndicator() {
 												@Override public void start(String caption) {}
 												@Override public void start(String caption, long total) {}
@@ -166,28 +168,34 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @param progress progress indicator to show progress
 	 * @return true if processing was successful
 	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException if progress indicator is null
 	 */
-	public boolean newFile(final ProgressIndicator progress) throws IOException {
-		if (wasChanged) {
-			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
-					case  JOptionPane.YES_OPTION :
-						if (!saveFile(progress)) {
-							return false;
-						}
-						break;
-					case  JOptionPane.NO_OPTION : 
-						break;
-					case  JOptionPane.CANCEL_OPTION :
-						return false;
-				}
-			} catch (LocalizationException e) {
-				throw new IOException(e.getLocalizedMessage(),e);
-			}
+	public boolean newFile(final ProgressIndicator progress) throws IOException, NullPointerException {
+		if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null"); 
 		}
-		try(final OutputStream	os = getterOut.getContent()) {
-			os.flush();
-			clearModificationFlag();
-			return true;
+		else {
+			if (wasChanged) {
+				try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+						case  JOptionPane.YES_OPTION :
+							if (!saveFile(progress)) {
+								return false;
+							}
+							break;
+						case  JOptionPane.NO_OPTION : 
+							break;
+						case  JOptionPane.CANCEL_OPTION :
+							return false;
+					}
+				} catch (LocalizationException e) {
+					throw new IOException(e.getLocalizedMessage(),e);
+				}
+			}
+			try(final OutputStream	os = getterOut.getContent()) {
+				os.flush();
+				clearModificationFlag();
+				return true;
+			}
 		}
 	}
 
@@ -205,38 +213,49 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @param progress progress indicator to show progress
 	 * @return true if processing was successful
 	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException if progress indicator is null
 	 */
-	public boolean openFile(final ProgressIndicator progress) throws IOException {
-		if (wasChanged) {
-			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
-					case  JOptionPane.YES_OPTION :
-						if (!saveFile(progress)) {
-							return false;
-						}
-						break;
-					case  JOptionPane.NO_OPTION : 
-						break;
-					case  JOptionPane.CANCEL_OPTION :
-						return false;
-				}
-			} catch (LocalizationException e) {
-				throw new IOException(e.getLocalizedMessage(),e);
-			}
+	public boolean openFile(final ProgressIndicator progress) throws IOException, NullPointerException {
+		if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null"); 
 		}
-		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS)) {
-				try(final FileSystemInterface	current = fsi.clone().open(item);
-					final InputStream			is = current.read();
-					final OutputStream			os = getterOut.getContent()) {
-
-					Utils.copyStream(is, os);
-					clearModificationFlag();
-					currentName = item;
-					return true;
+		else {
+			if (wasChanged) {
+				try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+						case  JOptionPane.YES_OPTION :
+							if (!saveFile(progress)) {
+								return false;
+							}
+							break;
+						case  JOptionPane.NO_OPTION : 
+							break;
+						case  JOptionPane.CANCEL_OPTION :
+							return false;
+					}
+				} catch (LocalizationException e) {
+					throw new IOException(e.getLocalizedMessage(),e);
 				}
 			}
-			return false;
-		} catch (LocalizationException e) {
-			throw new IOException(e);
+			try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS)) {
+					try(final FileSystemInterface	current = fsi.clone().open(item)) {
+						
+						progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
+						try(final InputStream			is = current.read();
+							final OutputStream			os = getterOut.getContent()) {
+		
+							Utils.copyStream(is, os, progress);
+							clearModificationFlag();
+							currentName = item;
+							return true;
+						}
+					} finally {
+						progress.end();
+					}
+				}
+				return false;
+			} catch (LocalizationException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
@@ -254,19 +273,37 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @param progress progress indicator to show progress
 	 * @return true if processing was successful
 	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException if progress indicator is null
 	 */
-	public boolean saveFile(final ProgressIndicator progress) throws IOException {
-		if (currentName.isEmpty()) {
-			return saveFileAs(progress);
+	public boolean saveFile(final ProgressIndicator progress) throws IOException, NullPointerException {
+		if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null"); 
 		}
 		else {
-			try(final FileSystemInterface	current = fsi.clone().open(currentName);
-				final InputStream			is = getterIn.getContent();
-				final OutputStream			os = current.write()) {
-
-				Utils.copyStream(is, os);
-				clearModificationFlag();
-				return true;
+			if (currentName.isEmpty()) {
+				return saveFileAs(progress);
+			}
+			else {
+				try(final FileSystemInterface	current = fsi.clone().open(currentName)) {
+					
+					if (current.exists()) {
+						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()), current.size());
+					}
+					else {
+						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
+					}
+					try(final InputStream			is = getterIn.getContent();
+						final OutputStream			os = current.write()) {
+		
+						Utils.copyStream(is, os, progress);
+						clearModificationFlag();
+						return true;
+					}
+				} catch (LocalizationException | IllegalArgumentException e) {
+					throw new IOException(e);
+				} finally {
+					progress.end();
+				}
 			}
 		}
 	}
@@ -288,14 +325,25 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public boolean saveFileAs(final ProgressIndicator progress) throws IOException {
 		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
-				try(final FileSystemInterface	current = fsi.clone().open(item);
-					final InputStream			is = current.read();
-					final OutputStream			os = getterOut.getContent()) {
+				try(final FileSystemInterface	current = fsi.clone().open(item)) {
+				
+					if (current.exists()) {
+						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()), current.size());
+					}
+					else {
+						current.create();
+						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
+					}
+					try(final InputStream			is = getterIn.getContent();
+						final OutputStream			os = current.write()) {
 	
-					Utils.copyStream(is, os);
-					clearModificationFlag();
-					currentName = item;
-					return true;
+						Utils.copyStream(is, os, progress);
+						clearModificationFlag();
+						currentName = item;
+						return true;
+					}
+				} finally {
+					progress.end();
 				}
 			}
 			return false;

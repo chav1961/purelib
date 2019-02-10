@@ -68,8 +68,8 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	}
 
 	@Override
-	public void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-		try{lp.processLine(lineNo, data, from, length);
+	public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
+		try{lp.processLine(displacement,lineNo, data, from, length);
 		} catch (Exception exc) {
 			if (diagnostics != null) {
 				diagnostics.flush();

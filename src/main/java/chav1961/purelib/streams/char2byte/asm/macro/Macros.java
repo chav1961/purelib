@@ -134,7 +134,7 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 	}
 	
 	@Override
-	public void processLine(final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
+	public void processLine(final long displacement, final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
 		final int		to = from+length, begin = from;
 		char[]			name;
 		int				start = from;

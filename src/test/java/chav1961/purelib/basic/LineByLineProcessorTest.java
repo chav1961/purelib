@@ -19,7 +19,7 @@ public class LineByLineProcessorTest {
 	public void basicTest() throws IOException, SyntaxException {
 		lineCount = 0;		result = "";
 		
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->{lineCount++; result += new String(data,from,len);})) {
+		try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement,lineNo,data,from,len)->{lineCount++; result += new String(data,from,len);})) {
 			for (String item : SOURCE) {
 				final char[]	data = item.toCharArray();
 				
@@ -30,7 +30,7 @@ public class LineByLineProcessorTest {
 		Assert.assertEquals(result,"123\n456\n789\nABC\nDEF\n");
 
 		lineCount = 0;		result = "";
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->{lineCount++; result += new String(data,from,len);});
+		try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement,lineNo,data,from,len)->{lineCount++; result += new String(data,from,len);});
 			final Reader				rdr = new StringReader("123\n456\n789\nABC\nDEF");) {
 			lblp.write(rdr);
 		}
@@ -42,7 +42,7 @@ public class LineByLineProcessorTest {
 		} catch (NullPointerException exc){
 		}
 		
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->{lineCount++; result += new String(data,from,len);})) {
+		try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement,lineNo,data,from,len)->{lineCount++; result += new String(data,from,len);})) {
 			try{lblp.write(null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc){
@@ -73,7 +73,7 @@ public class LineByLineProcessorTest {
 		final char[]		line1 = "line1\nline3".toCharArray(), line2 = "line2".toCharArray(), line1a = "line".toCharArray(), line1b = "1\nline3".toCharArray(); 
 
 		lineCount = 0;		result = "";
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->{
+		try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement,lineNo,data,from,len)->{
 															final String	put = new String(data,from,len);
 															
 															lineCount++; 
@@ -96,7 +96,7 @@ public class LineByLineProcessorTest {
 		Assert.assertEquals(result,"line1\nline2\nline3\n");
 		
 		lineCount = 0;		result = "";
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->{
+		try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement,lineNo,data,from,len)->{
 															final String	put = new String(data,from,len);
 															
 															lineCount++; 

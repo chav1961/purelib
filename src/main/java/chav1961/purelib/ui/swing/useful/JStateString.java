@@ -1,6 +1,9 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.awt.BorderLayout;
+
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -11,6 +14,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -22,6 +26,7 @@ import javax.swing.JTable;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
@@ -366,7 +371,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	
 	@Override
 	public void end() {
-		rightPanel.setVisible(true);
+		rightPanel.setVisible(false);
 		currentState = STATE_PLAIN;
 	}
 	
@@ -455,7 +460,6 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	private void prepareControls() {
-		final SpringLayout	spring = new SpringLayout();
 		final SpringLayout	springStaged = new SpringLayout();
 		final JPanel		stagedPanel = new JPanel(springStaged);
 		final SpringLayout	springCommon = new SpringLayout();
@@ -464,9 +468,14 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		historyView.setPreferredSize(new Dimension(viewIcon.getIconWidth()+2,viewIcon.getIconHeight()+2));
 		cancelCommon.setPreferredSize(new Dimension(cancelIcon.getIconWidth()+2,cancelIcon.getIconHeight()+2));
 		cancelStaged.setPreferredSize(new Dimension(cancelIcon.getIconWidth()+2,cancelIcon.getIconHeight()+2));
+		common.setPreferredSize(new Dimension(100,cancelIcon.getIconHeight()+2));
+		stage.setPreferredSize(new Dimension(100,cancelIcon.getIconHeight()+2));
 		
 		commonPanel.add(common);
 		commonPanel.add(cancelCommon);
+		
+		commonPanel.setPreferredSize(new Dimension(100,20));
+		stagedPanel.setPreferredSize(new Dimension(100,20));
 		
 		springCommon.putConstraint(SpringLayout.NORTH, common, 0, SpringLayout.NORTH, commonPanel);
 		springCommon.putConstraint(SpringLayout.SOUTH, common, 0, SpringLayout.SOUTH, commonPanel);
@@ -493,39 +502,40 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 
 		rightPanel.add(commonPanel, COMMON_PANEL);
 		rightPanel.add(stagedPanel, STAGED_PANEL);
-		
-		setPreferredSize(new Dimension(20,20));
-		setLayout(spring);
+		((CardLayout)rightPanel.getLayout()).show(rightPanel,COMMON_PANEL);
+		rightPanel.setVisible(false);
 
 		if (maxCapacity > 0) {
-			add(state);
-			add(historyView);
-			add(rightPanel);
+			final JPanel		innerPanel = new JPanel();
+			final GroupLayout 	layout = new GroupLayout(innerPanel);
 
-			spring.putConstraint(SpringLayout.NORTH, state, 0, SpringLayout.NORTH, this);
-			spring.putConstraint(SpringLayout.SOUTH, state, 0, SpringLayout.SOUTH, this);
-			spring.putConstraint(SpringLayout.WEST, state, 0, SpringLayout.WEST, this);
-			spring.putConstraint(SpringLayout.NORTH, rightPanel, 0, SpringLayout.NORTH, this);
-			spring.putConstraint(SpringLayout.SOUTH, rightPanel, 0, SpringLayout.SOUTH, this);
-			spring.putConstraint(SpringLayout.EAST, rightPanel, 0, SpringLayout.EAST, this);
-			spring.putConstraint(SpringLayout.NORTH, historyView, 0, SpringLayout.NORTH, this);
-			spring.putConstraint(SpringLayout.SOUTH, historyView, 0, SpringLayout.SOUTH, this);
-			spring.putConstraint(SpringLayout.EAST, historyView, 0, SpringLayout.WEST, rightPanel);
-			spring.putConstraint(SpringLayout.EAST, state, 0, SpringLayout.WEST, historyView);
+			innerPanel.setLayout(layout);
+			layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(state).addComponent(rightPanel));
+			layout.setVerticalGroup(
+			   layout.createSequentialGroup()
+			      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+			           .addComponent(state)
+			           .addComponent(rightPanel)
+			           )
+			);
+			
+			setLayout(new BorderLayout(2,2));
+			add(innerPanel,BorderLayout.CENTER);
+			add(historyView,BorderLayout.EAST);
 		}
 		else {
-			add(state);
-			add(rightPanel);
-
-			spring.putConstraint(SpringLayout.NORTH, state, 0, SpringLayout.NORTH, this);
-			spring.putConstraint(SpringLayout.SOUTH, state, 0, SpringLayout.SOUTH, this);
-			spring.putConstraint(SpringLayout.WEST, state, 0, SpringLayout.WEST, this);
-			spring.putConstraint(SpringLayout.NORTH, rightPanel, 0, SpringLayout.NORTH, this);
-			spring.putConstraint(SpringLayout.SOUTH, rightPanel, 0, SpringLayout.SOUTH, this);
-			spring.putConstraint(SpringLayout.EAST, rightPanel, 0, SpringLayout.EAST, this);
-			spring.putConstraint(SpringLayout.EAST, state, 0, SpringLayout.WEST, rightPanel);
+			final GroupLayout 	layout = new GroupLayout(this);
+			
+			setLayout(layout);
+			layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(state).addComponent(rightPanel));
+			layout.setVerticalGroup(
+			   layout.createSequentialGroup()
+			      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+			           .addComponent(state)
+			           .addComponent(rightPanel)
+			           )
+			);
 		}
-		
 		cancelCommon.addActionListener((e)->{
 			try(final Locker item = locker.lock(true)) {
 				if (currentCallback != null) {

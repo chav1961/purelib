@@ -51,8 +51,8 @@ public class AsmWriter extends Writer {
 	private final OutputStream			os;
 	private final LineByLineProcessor	lblp = new LineByLineProcessor(new LineByLineProcessorCallback() {
 													@Override
-													public void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-														process(lineNo,data,from,length);
+													public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
+														process(displacement,lineNo,data,from,length);
 													}
 												}
 										);
@@ -160,8 +160,8 @@ public class AsmWriter extends Writer {
 		asm.importClass(clazz);
 	}
 	
-	private void process(final int lineNo, final char[] data, final int from, final int length) throws IOException {
-		try{asm.processLine(lineNo, data, from, length);
+	private void process(final long displacement, final int lineNo, final char[] data, final int from, final int length) throws IOException {
+		try{asm.processLine(displacement, lineNo, data, from, length);
 		} catch (SyntaxException e) {
 			throw new IOException(e.getMessage(),e);
 		}

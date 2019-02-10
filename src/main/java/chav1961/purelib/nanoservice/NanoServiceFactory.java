@@ -1,9 +1,5 @@
 package chav1961.purelib.nanoservice;
 
-
-
-
-
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.FileInputStream;
@@ -37,7 +33,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -76,6 +71,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.nanoservice.interfaces.FromBody;
@@ -98,6 +94,29 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
+import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+
+/**
+ * <p>This class is an embedded light-weight WEB server to use in the Java applications. Ordinal, but not the only, use case for it is to support web-styled help
+ * system for your application.</p>
+ * <p>The most important features of the class are:</p>
+ * <ul>
+ * <li>support all the six HTLP requests (GET, POST, PUT, DELETE, HEADER and OPTIONS)</li>
+ * <li>support static content based on {@linkplain FileSystemInterface} functionality</li>
+ * <li>support of embedded Creole/HTML converter to use <b>Creole</b> content for your "site" directly</li>
+ * <li>support light-weight <b>RESTFul-styled</b> services for your "site"</li>
+ * <li>support <b>https</b> connections</li>
+ * <li>support <b>loopback</b> functionality to check your "site" requests</li>
+ * </ul>
+ * <p>This class functionality is based on the {@linkplain com.sun.net.httpserver.HttpServer}. Web-server can be started, stopper, paused and resumed. With conjunction
+ * to {@linkplain NanoServiceManager} it can make hot deployment of your RESTful services. To increase performance, every class deployed wraps with compiled stub 
+ * (see {@linkplain AsmWriter}) and doesn't use reflections on service calls in many cases</p> 
+ * <p>This class is not thread-safe.</p>
+ * @see com.sun.net.httpserver.HttpServer
+ * @see http://www.wikicreole.org
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 
 @SuppressWarnings("restriction")
 public class NanoServiceFactory implements Closeable, NanoService, HttpHandler   {
@@ -107,6 +126,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	public static final String 		NANOSERVICE_USE_SSL = "nanoserviceUseSSL";
 	public static final String 		NANOSERVICE_DISABLE_LOOPBACK = "nanoserviceDisableLoopback";
 	public static final String 		NANOSERVICE_TEMPORARY_CACHE_SIZE = "nanoserviceTemporaryCacheSize";
+	public static final String 		NANOSERVICE_CREOLE_PROLOGUE_URI = "nanoserviceCreolePrologueURI";
+	public static final String 		NANOSERVICE_CREOLE_EPILOGUE_URI = "nanoserviceCreoleEpilogueURI";
 
 	public static final String 		SERVER_PWD = "aaaaaa";
 	public static final String 		KST_SERVER = "keys/server.jks";
@@ -126,7 +147,10 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 																		  ,String.class,CharacterSource.class,JsonStaxParser.class,Reader.class,InputStream.class));
 
 	public static final InputStream	NULL_INPUT = new InputStream(){@Override public int read() throws IOException {return -1;}};
-	public static final String 		DEFAULT_MICROSERVICE_EXECUTOR_POOL_SIZE = "10";
+	public static final String 		DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE = "10";
+
+	private static final MimeType[]	CREOLE_DETECTED = new MimeType[] {PureLibSettings.MIME_CREOLE_TEXT};
+	private static final MimeType[]	HTML_DETECTED = new MimeType[] {PureLibSettings.MIME_HTML_TEXT};
 	
 	public interface NanoServiceEnvironment {
 		Connection getConnection() throws SQLException;
@@ -143,7 +167,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	private final FileSystemInterface 				serviceRoot;
 	private final HttpServer						server;
 	private final SyntaxTreeInterface<ClassDescriptor>	deployed = new AndOrTree<>();
-	private final ReentrantReadWriteLock			deployedLock = new ReentrantReadWriteLock();
 	private final TemplateCache<PathParser>			pathCache = new TemplateCache<>();
 	private final TemplateCache<QueryParser>		queryCache = new TemplateCache<>();
 	private final TemplateCache<RequestHeadParser>	requestHeaderCache = new TemplateCache<>();
@@ -155,6 +178,9 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	private final ClassLoaderWrapper				internalLoader = new ClassLoaderWrapper(urlClassLoader);
 	private final AsmWriter							writer;
 	private final AtomicInteger						uniqueNumber = new AtomicInteger(0);
+	@SuppressWarnings("rawtypes")
+	private final PrologueEpilogueMaster			prologue, epilogue;
+	
 	private volatile boolean						started = false, paused = false;
 	
 	public NanoServiceFactory(final LoggerFacade facade, final SubstitutableProperties props) throws NullPointerException, IOException, ContentException, SyntaxException {
@@ -179,6 +205,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					wereErrors = true;
 					check.message(Severity.error, "Mandatory parameter [%1$s] is missing in the configuration",NANOSERVICE_PORT);
 				}
+				
 				if (!props.containsKey(NANOSERVICE_ROOT)) {
 					wereErrors = true;
 					check.message(Severity.error, "Mandatory parameter [%1$s] is missing in the configuration",NANOSERVICE_ROOT);
@@ -186,6 +213,20 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				}
 				else {
 					serviceRoot = FileSystemFactory.createFileSystem(props.getProperty(NANOSERVICE_ROOT,URI.class));
+				}
+				
+				if (props.containsKey(NANOSERVICE_CREOLE_PROLOGUE_URI)) {
+					this.prologue = CreoleWriter.getPrologue(MarkupOutputFormat.XML2HTML,props.getProperty(NANOSERVICE_CREOLE_PROLOGUE_URI, URI.class));
+				}
+				else {
+					this.prologue = CreoleWriter.getPrologue(MarkupOutputFormat.XML2HTML);
+				}
+				
+				if (props.containsKey(NANOSERVICE_CREOLE_EPILOGUE_URI)) {
+					this.epilogue = CreoleWriter.getEpilogue(MarkupOutputFormat.XML2HTML,props.getProperty(NANOSERVICE_CREOLE_EPILOGUE_URI, URI.class));
+				}
+				else {
+					this.epilogue = CreoleWriter.getEpilogue(MarkupOutputFormat.XML2HTML);
 				}
 				
 				if (!wereErrors) {
@@ -253,7 +294,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					else {
 						server = HttpServer.create(new InetSocketAddress(props.getProperty(NANOSERVICE_PORT,int.class)),0);
 					}
-					server.setExecutor(Executors.newFixedThreadPool(props.getProperty(NANOSERVICE_EXECUTOR_POOL_SIZE,int.class,DEFAULT_MICROSERVICE_EXECUTOR_POOL_SIZE)));
+					server.setExecutor(Executors.newFixedThreadPool(props.getProperty(NANOSERVICE_EXECUTOR_POOL_SIZE,int.class,DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE)));
 					server.createContext("/",this);
 					check.rollback();
 				}
@@ -381,24 +422,38 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								final MimeType[]			detected = InternalUtils.defineMimeByExtension(fsi.getName());
 								final String				streamType = defineStreamType(call.getRequestHeaders().get(HEAD_ACCEPT_ENCODING));  
 	
-								call.getResponseHeaders().set(HEAD_CONTENT_TYPE,detected[0].toString());
 								call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,streamType);
 								if (call.getRequestHeaders().containsKey(HEAD_ACCEPT)) {
 									final List<String>		accepts = call.getRequestHeaders().get(HEAD_ACCEPT);
-									
-									if (intersects(detected,InternalUtils.buildMime(accepts.toArray(new String[accepts.size()])))) {
+									final MimeType[]		awaited = InternalUtils.buildMime(accepts.toArray(new String[accepts.size()])); 
+
+									if (Arrays.deepEquals(detected,CREOLE_DETECTED) && intersects(HTML_DETECTED,awaited)) {
+										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,HTML_DETECTED[0].toString()+"; charset=UTF8");
+										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
+										
+										try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType);
+											final Writer		wr = new OutputStreamWriter(os,"UTF-8");
+											final CreoleWriter	cre = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML,prologue,epilogue)) {
+											
+											fsi.copy(cre);
+										}
+									}
+									else if (intersects(detected,awaited)) {
+										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,detected[0].toString());
 										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
 										try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType)) {
+											
 											fsi.copy(os);
 										}
 									}
 									else {
-										getEnvironment().fail(call,HttpURLConnection.HTTP_UNSUPPORTED_TYPE,"Target content %1$s is not compatible with awaited [%2$s]",Arrays.toString(detected),call.getRequestHeaders().getFirst(HEAD_ACCEPT));
+										getEnvironment().fail(call,HttpURLConnection.HTTP_UNSUPPORTED_TYPE,"URI [%1$s]: Target content %2$s is not compatible with awaited [%3$s]",new String(path),Arrays.toString(detected),call.getRequestHeaders().getFirst(HEAD_ACCEPT));
 									}
 								}
 								else {
 									getEnvironment().success(call,HttpURLConnection.HTTP_OK);
 									try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType)) {
+										
 										fsi.copy(os);
 									}
 								}
@@ -775,18 +830,16 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 
-	private static Reader getReader(final InputStream sourceStream, final List<String> encodings) throws IOException {
-		return new InputStreamReader(sourceStream);
-	}
-	
-	private static Writer getWriter(final OutputStream targetStream, final List<String> encodings) throws IOException {
-		return new OutputStreamWriter(targetStream);
-	}
-	
 	private boolean intersects(final MimeType[] left, final MimeType[] right) {
 		for (MimeType fromLeft : left) {
 			for (MimeType fromRight : right) {
-				if (fromLeft.getPrimaryType().equals(fromRight.getPrimaryType()) && fromLeft.getSubType().equals(fromRight.getSubType())) {
+				if ((fromLeft.getPrimaryType().equals(fromRight.getPrimaryType())
+					 || "*".equals(fromRight.getPrimaryType())
+					)
+					&& 
+					(fromLeft.getSubType().equals(fromRight.getSubType()) 
+					 || "*".equals(fromRight.getSubType())
+					)) {
 					return true;
 				}
 			}

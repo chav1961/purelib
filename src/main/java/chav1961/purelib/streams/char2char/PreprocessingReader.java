@@ -216,8 +216,8 @@ public class PreprocessingReader extends Reader {
 	private final SyntaxTreeInterface<char[]>	definitions = new AndOrTree<>();
 	private final LineByLineProcessor		lblp = new LineByLineProcessor(new LineByLineProcessorCallback() {
 													@Override
-													public void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-														internalProcessLine(lineNo,data,from,length);
+													public void processLine(final long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
+														internalProcessLine(displacement,lineNo,data,from,length);
 													}
 												}
 											); 
@@ -405,7 +405,7 @@ public class PreprocessingReader extends Reader {
 		targetBuffer = null;
 	}
 	
-	protected void internalProcessLine(final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
+	protected void internalProcessLine(final long displacement, final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
 		final int	to = from + length;
 		
 		System.err.println(new String(data,from,length));

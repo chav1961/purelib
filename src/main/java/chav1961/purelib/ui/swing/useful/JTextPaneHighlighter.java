@@ -1,8 +1,12 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.Color;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimerTask;
 
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -15,15 +19,15 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.HighlightItem;
-import chav1961.purelib.ui.interfacers.FormModel;
 
 /**
- * <p>This is a simple syntax highlighter for the Swing applications. Use it instead of {@linkplain JTextPane} component.</p> 
+ * <p>This is a simple syntax highlighter for the Swing applications. Use it instead of {@linkplain JTextPane} component where you wish.</p>
+ * <p>This class is not thread-safe</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @see CreoleWriter 
- * @see FormModel 
  * @since 0.0.3
  * @param <LexemaType> any marker for the text pieces. It's strongly recommended to use enumerations for it
  */
@@ -31,7 +35,7 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private static final long 					serialVersionUID = -1205048630967887904L;
 	private static final SimpleAttributeSet		ORDINAL_CHARACTER_STYLE = new SimpleAttributeSet();
 	private static final SimpleAttributeSet		ORDINAL_PARAGRAPH_STYLE = new SimpleAttributeSet();
-	
+
 	static {
 		StyleConstants.setBold(ORDINAL_CHARACTER_STYLE,false);
 		StyleConstants.setItalic(ORDINAL_CHARACTER_STYLE,false);
@@ -56,11 +60,24 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private final StyleContext		content = new StyleContext();
 	private final StyledDocument	doc = new DefaultStyledDocument(content);
 	private final DocumentListener	listener = new DocumentListener() {
-										@Override public void removeUpdate(final DocumentEvent e) {highlight(doc,getText());}
-										@Override public void insertUpdate(final DocumentEvent e) {highlight(doc,getText());}
-										@Override public void changedUpdate(final DocumentEvent e) {highlight(doc,getText());}
+										@Override public void removeUpdate(final DocumentEvent e) {highlight();}
+										@Override public void insertUpdate(final DocumentEvent e) {highlight();}
+										@Override public void changedUpdate(final DocumentEvent e) {highlight();}
 									}; 
-	private final boolean			useNestedLexemas; 
+	private final Comparator<HighlightItem<LexemaType>>	sorter = new Comparator<HighlightItem<LexemaType>>() {	// Order to exclude attributes overlapping 
+										@Override
+										public int compare(HighlightItem<LexemaType> o1, HighlightItem<LexemaType> o2) {
+											if (o1.from == o2.from) {
+												return o2.length - o1.length;
+											}
+											else {
+												return o1.from - o2.from;
+											}
+										}
+									};
+	private final boolean			useNestedLexemas;
+	
+	private volatile TimerTask		tt = null;	// Timer is used to reduce parser calls because JTextPane always fills it's content line-by-line!
 
 	/**
 	 * <p>Constructor of the class</p>
@@ -110,21 +127,29 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	 * @param source souce lexema
 	 * @return preprocessed lexema
 	 */
-	protected HighlightItem<LexemaType> preprocessLexema(final HighlightItem<LexemaType> source) {
+	protected HighlightItem<LexemaType> preprocessLexema(final HighlightItem<LexemaType> source, final String text) {
 		return source;
 	}
-	
-	private void highlight(final StyledDocument doc, final String text) {
+
+	private void callHighlighter() {
 		SwingUtilities.invokeLater(()->{
 			try{doc.removeDocumentListener(listener);
 				doc.setCharacterAttributes(0,doc.getLength(),getOrdinalCharacterStyle(),false);
 				doc.setParagraphAttributes(0,doc.getLength(),getOrdinalParagraphStyle(),false);
 				
-				System.err.println("***");
-				for (HighlightItem<LexemaType> currentItem : parseString(text)) {
-					final HighlightItem<LexemaType>	item = preprocessLexema(currentItem); 
-					System.err.println(item);
+				final String						text = getText().replace("\r","");
+				final HighlightItem<LexemaType>[]	lexList = parseString(text);
+
+				Arrays.sort(lexList,sorter);
+				for (HighlightItem<LexemaType> currentItem : lexList) {
+					final HighlightItem<LexemaType>	item = preprocessLexema(currentItem,text);
+					
 					if (item.length > 0) {
+//						try {
+//							System.err.println("Item: "+item.type+" for <<<"+text.substring(item.from,item.from+item.length)+">>>, from="+item.from+", to="+(item.from+item.length));
+//						} catch (Exception exc) {
+//							exc.printStackTrace();
+//						}
 						if (characterStyles.containsKey(item.type)) {
 							doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
 						}
@@ -133,10 +158,24 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 						}
 					}
 				}
-				System.err.println("///");
 			} finally {
 				doc.addDocumentListener(listener);
 			}
 		});
+	}
+	
+	private void highlight() {
+		synchronized(this) {
+			if (tt != null) {
+				tt.cancel();
+			}
+			tt = new TimerTask() {
+				@Override
+				public void run() {
+					callHighlighter();
+				}
+			};
+		}
+		PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,100);
 	}
 }

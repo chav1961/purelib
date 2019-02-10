@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import chav1961.purelib.basic.exceptions.CommandLineParametersException;
 import chav1961.purelib.basic.exceptions.ConsoleCommandException;
-import chav1961.purelib.basic.exceptions.ContentException;
 
 /**
  * <p>This class is used to parse and access command line arguments for console-based applications. Recommended template to use it is produce
@@ -115,7 +115,7 @@ public class ArgParser {
 		}
 	}
 	
-	public <T> T getValue(final String key, final Class<T> awaited) throws ContentException {
+	public <T> T getValue(final String key, final Class<T> awaited) throws CommandLineParametersException {
 		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call getValue(...) on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
@@ -140,7 +140,7 @@ public class ArgParser {
 	}
 
 	public boolean isTyped(final String key) {
-		if (this.pairs != null) {
+		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call isTyped() on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
 		else if (key == null || key.isEmpty()) {
@@ -284,7 +284,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 	}
 
 	@SuppressWarnings("unchecked")
-	static <T> T convert(final ArgDescription desc, final Class<T> awaited, final String[] value) throws ContentException {
+	static <T> T convert(final ArgDescription desc, final Class<T> awaited, final String[] value) throws CommandLineParametersException {
 		if (value != null) {
 			if (awaited.isArray()) {
 				final Object[]	result = (Object[]) Array.newInstance(awaited.getComponentType(),value.length);
@@ -318,7 +318,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 	protected interface ArgDescription {
 		String getName();
 		String getHelpDescriptor();
-		<T> T getValue(String value, Class<T> awaited) throws ContentException;
+		<T> T getValue(String value, Class<T> awaited) throws CommandLineParametersException;
 		String[] getDefaultValue();
 		boolean isMandatory();
 		boolean isPositional();
@@ -348,7 +348,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			}
 		}
 
-		@Override public abstract <T> T getValue(final String value, final Class<T> awaited) throws ContentException;
+		@Override public abstract <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException;
 		@Override public abstract String[] getDefaultValue();
 		@Override public abstract boolean isList();
 		@Override public abstract void validate(final String value) throws ConsoleCommandException;
@@ -399,12 +399,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (boolean.class.isAssignableFrom(awaited) || Boolean.class.isAssignableFrom(awaited)) {
 				return (T)Boolean.valueOf("true".equalsIgnoreCase(value));
 			}
 			else {
-				throw new ContentException("Argument ["+getName()+"] can be converted to booleans only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to booleans only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -456,7 +456,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (long.class.isAssignableFrom(awaited) || Long.class.isAssignableFrom(awaited)) {
 				return (T)Long.valueOf(value);
 			}
@@ -470,7 +470,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				return (T)Byte.valueOf(value);
 			}
 			else {
-				throw new ContentException("Argument ["+getName()+"] can be converted to integer type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to integer type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -518,7 +518,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (double.class.isAssignableFrom(awaited) || Double.class.isAssignableFrom(awaited)) {
 				return (T)Double.valueOf(value);
 			}
@@ -526,7 +526,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				return (T)Float.valueOf(value);
 			}
 			else {
-				throw new ContentException("Argument ["+getName()+"] can be converted to real type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to real type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -574,12 +574,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (String.class.isAssignableFrom(awaited)) {
 				return (T)value;
 			}
 			else {
-				throw new ContentException("Argument ["+getName()+"] can be converted to string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -621,18 +621,18 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (URI.class.isAssignableFrom(awaited)) {
 				try{return (T)URI.create(value);
 				} catch (IllegalArgumentException exc) {
-					throw new ContentException("Argument ["+getName()+"] has invalid URI value ("+exc.getLocalizedMessage()+")"); 
+					throw new CommandLineParametersException("Argument ["+getName()+"] has invalid URI value ("+exc.getLocalizedMessage()+")"); 
 				}
 			}
 			else if (String.class.isAssignableFrom(awaited)) {
 				return (T)value;
 			}
 			else {
-				throw new ContentException("Argument ["+getName()+"] can be converted to string or URI type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to string or URI type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 
@@ -683,7 +683,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T getValue(final String value, final Class<T> awaited) throws ContentException {
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (enumType.isAssignableFrom(awaited)) {
 				try{return (T)enumType.getMethod("valueOf",String.class).invoke(null,value);
 				} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -691,7 +691,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				}
 			}
 			else {
-				throw new ContentException("Argument ["+getName()+"] can be converted to enumeration type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to enumeration type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 

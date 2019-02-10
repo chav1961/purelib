@@ -458,7 +458,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	@Override
-	public void processLine(final int lineNo, final char[] data, final int from, final int len) throws IOException {
+	public void processLine(final long displacement, final int lineNo, final char[] data, final int from, final int len) throws IOException {
 		int		start = from, end = Math.min(from+len,data.length);
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
@@ -468,7 +468,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		
 		try{if (state == ParserState.insideMacros) {	// Redirect macros code into macros
-				currentMacros.processLine(lineNo,data,from,len);
+				currentMacros.processLine(displacement,lineNo,data,from,len);
 				if (currentMacros.isPrepared()) {
 					final String	macroName = new String(currentMacros.getName());
 					
@@ -786,7 +786,7 @@ class LineParser implements LineByLineProcessorCallback {
 								case beforePackage :
 									state = ParserState.insideMacros;
 									currentMacros = new Macros();
-									currentMacros.processLine(lineNo,data,from,len);
+									currentMacros.processLine(displacement,lineNo,data,from,len);
 									break;
 								default :
 									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used before package description only");
@@ -848,9 +848,9 @@ class LineParser implements LineByLineProcessorCallback {
 						try(final LineByLineProcessor	lbl = new LineByLineProcessor(diagnostics != null && PureLibSettings.instance().getProperty(PureLibSettings.PRINT_EXPANDED_MACROS,boolean.class,"false") 
 																? new LineByLineProcessorCallback(){
 																		@Override
-																		public void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
+																		public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
 																			diagnostics.write("\t> "+new String(data,from,length));
-																			try{LineParser.this.processLine(lineNo, data, from, len);
+																			try{LineParser.this.processLine(displacement,lineNo, data, from, len);
 																			} catch (Exception  exc) {
 																				diagnostics.flush();
 																				throw exc;

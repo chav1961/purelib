@@ -2,6 +2,7 @@ package chav1961.purelib.streams.char2char;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLEventFactory;
@@ -10,7 +11,11 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
 import chav1961.purelib.basic.FSM;
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
@@ -74,7 +79,7 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		try{writer.add(eventFactory.createCharacters(new String(content,from,to-from)));
 		} catch (XMLStreamException e) {
 			throw new IOException("I/O error writing content: "+e.getLocalizedMessage());
@@ -83,7 +88,7 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 
 
 	@Override
-	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Integer> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Integer parameter) throws FlowException {
+	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
 		try{for (SectionActions item : action) {
 				switch (item) {
 					case DIV_OPEN		: writeStartTag(TAG_DIV); break;
@@ -92,7 +97,7 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 					case P_CLOSE		: writeEndTag(TAG_P); break;
 					case H_OPEN			: 
 						writeStartTag(TAG_CAPTION);
-						writeAttr(ATTR_DEPTH,CAPTION_DEPTH[parameter]);
+						writeAttr(ATTR_DEPTH,CAPTION_DEPTH[parameter.intValue()]);
 						break;
 					case H_CLOSE		: 
 						writeEndTag(TAG_CAPTION);
@@ -125,7 +130,7 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Integer> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Integer parameter) throws FlowException { 
+	protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException { 
 		try{for (FontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN		: writeStartTag(TAG_BOLD); break;
@@ -143,26 +148,26 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	
 	
 	@Override
-	void insertImage(final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		writeStartTag(TAG_IMG);
 		writeAttr(ATTR_SRC,new String(data,startLink,endLink-startLink));
-		internalWrite(data,startCaption,endCaption,false);
+		internalWrite(displacement,data,startCaption,endCaption,false);
 		writeEndTag(TAG_IMG);
 	}
 
 	@Override
-	void insertLink(final boolean localRef, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (localRef) {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startLink,endLink,false);
+				internalWrite(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startCaption,endCaption,false);
+				internalWrite(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}
@@ -170,13 +175,13 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startLink,endLink,false);
+				internalWrite(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startCaption,endCaption,false);
+				internalWrite(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}
@@ -211,7 +216,7 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 					writer.add(instance.eventFactory.createStartDocument());
 					instance.writeStartTag(TAG_ROOT);
 					writer.add(instance.eventFactory.createNamespace(PREFIX,NAMESPACE)); 					
-					return false;
+					return true;
 				} catch (XMLStreamException e) {
 					throw new IOException(e.getLocalizedMessage(),e);
 				}
@@ -224,8 +229,60 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 			@Override
 			public boolean writeContent(XMLEventWriter writer, CreoleXMLOutputWriter instance) throws IOException {
 				instance.writeEndTag(TAG_ROOT);
-				return false;
+				return true;
 			}
 		};
 	}
+
+	static PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter> getPrologue(final URI source) throws ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>(){
+					@Override
+					public boolean writeContent(XMLEventWriter writer, CreoleXMLOutputWriter instance) throws IOException {
+						try{writer.setDefaultNamespace(NAMESPACE);
+							writer.add(instance.eventFactory.createStartDocument());
+							instance.writeStartTag(TAG_ROOT);
+							writer.add(instance.eventFactory.createNamespace(PREFIX,NAMESPACE));
+							writer.add(instance.eventFactory.createCharacters(content));
+							return true;
+						} catch (XMLStreamException e) {
+							throw new IOException(e.getLocalizedMessage(),e);
+						}
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}
+
+	static PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter> getEpilogue(final URI source) throws ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>(){
+					@Override
+					public boolean writeContent(XMLEventWriter writer, CreoleXMLOutputWriter instance) throws IOException {
+						try{writer.add(instance.eventFactory.createCharacters(content));
+							instance.writeEndTag(TAG_ROOT);
+							return true;
+						} catch (XMLStreamException e) {
+							throw new IOException(e.getLocalizedMessage(),e);
+						}
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}
+
 }

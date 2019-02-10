@@ -5,7 +5,6 @@ package chav1961.purelib.basic.exceptions;
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- *
  */
 public class TestException extends ContentException {
 	private static final long serialVersionUID = -4537967619964315186L;

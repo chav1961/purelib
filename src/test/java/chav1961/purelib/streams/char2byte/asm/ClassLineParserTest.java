@@ -330,7 +330,7 @@ public class ClassLineParserTest {
 	
 	static void processString(final LineParser lp, final String source) throws IOException {
 		try(final Reader				rdr = new StringReader(source);
-			final LineByLineProcessor	lblp = new LineByLineProcessor((lineNo,data,from,len)->lp.processLine(lineNo, data, from, len))) {
+			final LineByLineProcessor	lblp = new LineByLineProcessor((displacement,lineNo,data,from,len)->lp.processLine(displacement, lineNo, data, from, len))) {
 			
 			lblp.write(rdr);
 		} catch (SyntaxException e) {

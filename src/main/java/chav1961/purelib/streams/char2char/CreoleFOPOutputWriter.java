@@ -2,6 +2,7 @@ package chav1961.purelib.streams.char2char;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
 import java.util.Arrays;
 
 import javax.xml.stream.FactoryConfigurationError;
@@ -11,6 +12,8 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
 import chav1961.purelib.basic.FSM;
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
@@ -105,7 +108,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		try{String	value = new String(content,from,to-from);
 			
 			if (!keepNewLines && value.endsWith("\r\n")) {
@@ -123,25 +126,25 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void insertImage(final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		writeStartTag(TAG_IMG);
 		writeAttr(ATTR_SRC,new String(data,startLink,endLink-startLink));
 		writeEndTag(TAG_IMG);
 	}
 
 	@Override
-	void insertLink(final boolean localRef, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (localRef) {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_LOCAL,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startLink,endLink,false);
+				internalWrite(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_LOCAL,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startCaption,endCaption,false);
+				internalWrite(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}
@@ -149,20 +152,20 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_EXTERNAL,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startLink,endLink,false);
+				internalWrite(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_EXTERNAL,new String(data,startLink,endLink-startLink));
-				internalWrite(data,startCaption,endCaption,false);
+				internalWrite(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}
 	}
 
 	@Override
-	protected void processSection(FSM<CreoleTerminals, SectionState, SectionActions, Integer> fsm, CreoleTerminals terminal, SectionState fromState, SectionState toState, SectionActions[] action, Integer parameter) throws FlowException {
+	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
 		try{for (SectionActions item : action) {
 				switch (item) {
 					case DIV_OPEN		: 
@@ -175,8 +178,8 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 						writeAttr(ATTR_LINEFEED,VALUE_LINEFEED_PRESERVE);
 						break;
 					case P_CLOSE		: writeEndTag(TAG_P); break;
-					case H_OPEN			: writeStartTag(TAG_CAPTIONS[parameter]); break;
-					case H_CLOSE		: writeEndTag(TAG_CAPTIONS[parameter]); break;
+					case H_OPEN			: writeStartTag(TAG_CAPTIONS[parameter.intValue()]); break;
+					case H_CLOSE		: writeEndTag(TAG_CAPTIONS[parameter.intValue()]); break;
 					case HR				: writeStartTag(TAG_HR); writeEndTag(TAG_HR); break;
 					case UL_OPEN : case OL_OPEN : 
 						if (listDepth++ > 0) {
@@ -221,7 +224,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	protected void processFont(FSM<CreoleTerminals, FontState, FontActions, Integer> fsm, CreoleTerminals terminal, FontState fromState, FontState toState, FontActions[] action, Integer parameter) throws FlowException {
+	protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
 		try{for (FontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN		: writeStartTag(TAG_BOLD); break;
@@ -282,7 +285,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 		writeStartTag(TAG_LI_ITEM);
 		writeStartTag(TAG_LI_ITEM_LABEL);
 		writeStartTag(TAG_DIV);
-		internalWrite(mark,0,mark.length,false);
+		internalWrite(currentDispl,mark,0,mark.length,false);
 		writeEndTag(TAG_DIV);
 		writeEndTag(TAG_LI_ITEM_LABEL);
 		writeStartTag(TAG_LI_ITEM_BODY);
@@ -354,6 +357,67 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 			}
 		};
 	}
+	
+	static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>(){
+					@Override
+					public boolean writeContent(XMLEventWriter writer, CreoleFOPOutputWriter instance) throws IOException {
+						final String	masterRef;
+						
+						try{writer.setDefaultNamespace(NAMESPACE);
+							writer.add(instance.eventFactory.createStartDocument());
+							instance.writeStartTag(TAG_ROOT);
+							writer.add(instance.eventFactory.createNamespace(PREFIX,NAMESPACE));
+							masterRef = instance.writePrologue();
+							instance.writeStartTag(TAG_PAGE_SEQUENCE);
+							instance.writeAttr(ATTR_MASTER_REFERENCE,masterRef);
+							instance.writeStartTag(TAG_FLOW);
+							instance.writeAttr(ATTR_FLOW_NAME,"xsl-region-body");
+							writer.add(instance.eventFactory.createCharacters(content));
+							return false;
+						} catch (XMLStreamException e) {
+							throw new IOException(e.getLocalizedMessage(),e);
+						}
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}
+
+	static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>(){
+					@Override
+					public boolean writeContent(XMLEventWriter writer, CreoleFOPOutputWriter instance) throws IOException {
+						try{writer.add(instance.eventFactory.createCharacters(content));
+							instance.writeEndTag(TAG_FLOW); 
+						    instance.writeEndTag(TAG_PAGE_SEQUENCE); 
+						    instance.writeEndTag(TAG_ROOT); 
+							return false;
+						} catch (XMLStreamException e) {
+							throw new IOException(e.getLocalizedMessage(),e);
+						}
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}
+	
 	
 	private static class TagContentDescriptor {
 		private final String		tagName;

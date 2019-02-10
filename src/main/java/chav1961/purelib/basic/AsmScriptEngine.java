@@ -76,7 +76,7 @@ class AsmScriptEngine extends AbstractScriptEngine {
 	}
 	
 	@Override
-	protected void processLineInternal(final int lineNo, final char[] data, final int from, final int length) throws IOException, SyntaxException {
+	protected void processLineInternal(final long displacement, final int lineNo, final char[] data, final int from, final int length) throws IOException, SyntaxException {
 		asmWriter.write(data,from,length);
 	}
 

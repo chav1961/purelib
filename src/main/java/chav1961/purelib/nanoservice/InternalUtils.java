@@ -120,12 +120,8 @@ public class InternalUtils {
 				else {
 					final String	temp = source[index];
 					
-					if ((end = temp.indexOf(';')) == -1) {
-						end = temp.length();
-					}
-
 					pos = 0;
-					while ((pos = temp.indexOf(',',pos)) != -1 && pos < end) {
+					while ((pos = temp.indexOf(',',pos)) != -1) {
 						counter++;
 						pos++;
 					}
@@ -138,17 +134,24 @@ public class InternalUtils {
 			try{counter = 0;
 				for (int index = 0; index < source.length; index++) {
 					final String	temp = source[index];
+					int				semicolon;
 					
-					if ((end = temp.indexOf(';')) == -1) {
-						end = temp.length();
-					}
-
 					pos = start = 0;
-					while ((pos = temp.indexOf(',',start)) != -1 && pos < end) {
-						result[counter++] = new MimeType(temp.substring(start,pos));
+					while ((pos = temp.indexOf(',',start)) != -1) {
+						String	currentMime = temp.substring(start,pos);
+						
+						if ((semicolon = currentMime.indexOf(';')) >= 0) {
+							currentMime = currentMime.substring(0,semicolon); 
+						}
+						result[counter++] = new MimeType(currentMime);
 						start = pos + 1;
 					}
-					result[counter++] = new MimeType(temp.substring(start,end));
+					String	currentMime = temp.substring(start);
+					
+					if ((semicolon = currentMime.indexOf(';')) >= 0) {
+						currentMime = currentMime.substring(0,semicolon); 
+					}
+					result[counter++] = new MimeType(currentMime);
 				}
 			} catch (MimeTypeParseException e) {
 				throw new IOException(e);
@@ -158,9 +161,20 @@ public class InternalUtils {
 	}
 
 	static MimeType[] defineMimeByExtension(final String fileName) {
-		try{return new MimeType[]{new MimeType(typeMap.getContentType(fileName))};
-		} catch (MimeTypeParseException e) {
-			return new MimeType[]{PureLibSettings.MIME_OCTET_STREAM};
+		if (fileName.endsWith(".cre")) {
+			return new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT};
+		}
+		if (fileName.endsWith(".css")) {
+			return new MimeType[]{PureLibSettings.MIME_CSS_TEXT};
+		}
+		if (fileName.contains("favicon.")) {
+			return new MimeType[]{PureLibSettings.MIME_FAVICON};
+		}
+		else {
+			try{return new MimeType[]{new MimeType(typeMap.getContentType(fileName))};
+			} catch (MimeTypeParseException e) {
+				return new MimeType[]{PureLibSettings.MIME_OCTET_STREAM};
+			}
 		}
 	}
 

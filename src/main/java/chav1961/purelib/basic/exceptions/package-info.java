@@ -3,23 +3,21 @@
  * {@link java.lang.Exception}. They are used in all the packages of the library.</p>
  * <p>Hierarchy of exceptions in the package is:</p>
  * <ul>
- * <li>{@linkplain java.lang.Exception}</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.PureLibException} - root of all checked exceptions in the Pure Library</li>
  * <ul>
  * <li>{@linkplain chav1961.purelib.basic.exceptions.CalculationException} - fires on any calculation errors</li>
  * <li>{@linkplain chav1961.purelib.basic.exceptions.ContentException} - fires on any content errors</li>
  * <ul>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.CommandLineParametersException} - fires on any errors in commands typed</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.ConsoleCommandException} - fires on any errors in command lines</li>
  * <li>{@linkplain chav1961.purelib.basic.exceptions.SyntaxException} - fires on any errors when parsing from string representation</li>
  * <li>{@linkplain chav1961.purelib.basic.exceptions.PrintingException} - fires on any errors when building string representation</li>
  * </ul>
  * <li>{@linkplain chav1961.purelib.basic.exceptions.EnvironmentException} - fires on any errors in the application environment</li>
- * <ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.CommandLineParametersException} - fires on any errors in commands typed</li>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.ConsoleCommandException} - fires on any errors in command lines</li>
- * </ul>
  * <li>{@linkplain chav1961.purelib.basic.exceptions.FlowException} - fires on any errors on data flow processing</li>
- * <li>{@linkplain java.lang.RuntimeException}</li>
+ * <li>{@linkplain java.lang.RuntimeException} - root of all runtime exceptions in the Pure Library</li>
  * <ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.PreparationException} - fires on any initialization errors in any classes</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.PreparationException} - fires on any initialization errors in any classes (especially in static initializers)</li>
  * </ul>
  * </ul>
  * </ul>

@@ -28,35 +28,36 @@ import chav1961.purelib.ui.interfacers.FormModel;
 
 public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 	private static final long 				serialVersionUID = 1068656384609061286L;
-	private static final Set<CreoleLexema>	NEED_PREPROCESS = new HashSet<>();
-
-	static {
-		NEED_PREPROCESS.add(CreoleLexema.OrderedList1);
-		NEED_PREPROCESS.add(CreoleLexema.OrderedList2);
-		NEED_PREPROCESS.add(CreoleLexema.OrderedList3);
-		NEED_PREPROCESS.add(CreoleLexema.OrderedList4);
-		NEED_PREPROCESS.add(CreoleLexema.OrderedList5);
-		NEED_PREPROCESS.add(CreoleLexema.UnorderedList1);
-		NEED_PREPROCESS.add(CreoleLexema.UnorderedList2);
-		NEED_PREPROCESS.add(CreoleLexema.UnorderedList3);
-		NEED_PREPROCESS.add(CreoleLexema.UnorderedList4);
-		NEED_PREPROCESS.add(CreoleLexema.UnorderedList5);
-		NEED_PREPROCESS.add(CreoleLexema.Paragraph);
-	}
 	
 	{	SimpleAttributeSet	sas = new SimpleAttributeSet();
 	
+		StyleConstants.setBold(sas,false);
+		StyleConstants.setItalic(sas,false);
 		characterStyles.put(CreoleLexema.Plain,sas);
 		
 		sas = new SimpleAttributeSet();
 		
 		StyleConstants.setBold(sas,true);
+		StyleConstants.setItalic(sas,false);
 		characterStyles.put(CreoleLexema.Bold,sas);
 		
 		sas = new SimpleAttributeSet();
 		
+		StyleConstants.setBold(sas,false);
 		StyleConstants.setItalic(sas,true);
 		characterStyles.put(CreoleLexema.Italic,sas);
+
+		sas = new SimpleAttributeSet();
+		
+		StyleConstants.setBold(sas,true);
+		StyleConstants.setItalic(sas,true);
+		characterStyles.put(CreoleLexema.BoldItalic,sas);
+		
+		sas = new SimpleAttributeSet();
+
+		StyleConstants.setFontSize(sas,12);
+
+		characterStyles.put(CreoleLexema.Paragraph,sas);
 		
 		sas = new SimpleAttributeSet();
 		
@@ -190,7 +191,6 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setSpaceBelow(sas,0.0f);
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.UnorderedList4,sas);
-
 		
 		sas = new SimpleAttributeSet();
 		
@@ -204,21 +204,8 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		sas = new SimpleAttributeSet();
 		
 		StyleConstants.setForeground(sas, Color.GREEN);
-//		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
 		StyleConstants.setBold(sas, true);
 		characterStyles.put(CreoleLexema.ListMark,sas);		
-//		characterStyles.put(CreoleLexema.OrderedList1,sas);		
-//		characterStyles.put(CreoleLexema.OrderedList2,sas);
-//		characterStyles.put(CreoleLexema.OrderedList3,sas);
-//		characterStyles.put(CreoleLexema.OrderedList4,sas);
-//		characterStyles.put(CreoleLexema.OrderedList5,sas);
-//		characterStyles.put(CreoleLexema.UnorderedList1,sas);
-//		characterStyles.put(CreoleLexema.UnorderedList2,sas);
-//		characterStyles.put(CreoleLexema.UnorderedList3,sas);
-//		characterStyles.put(CreoleLexema.UnorderedList4,sas);
-//		characterStyles.put(CreoleLexema.UnorderedList5,sas);
-		
-		
 		
 		sas = new SimpleAttributeSet();
 		
@@ -246,6 +233,7 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 
 		sas = new SimpleAttributeSet();
 		
+		StyleConstants.setForeground(sas, Color.BLACK);
 		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
 		characterStyles.put(CreoleLexema.TableBody,sas); 
 		
@@ -254,28 +242,18 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setForeground(sas, Color.WHITE);
 		StyleConstants.setBackground(sas, Color.BLACK);
 		characterStyles.put(CreoleLexema.NonCreoleContent,sas);
-		
 	}
 	
 	public JCreoleEditor() {
 		super(true);
 	}
 
-	protected HighlightItem<CreoleLexema> preprocessLexema(final HighlightItem<CreoleLexema> source) {
-//		if (NEED_PREPROCESS.contains(source.type)) {
-//			return new HighlightItem<CreoleLexema>(source.from,source.length-1,source.type);
-//		}
-//		else {
-			return source;
-//		}
-	}
-	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected HighlightItem<CreoleLexema>[] parseString(final String text) {
 		try(final StringWriter	writer = new StringWriter()){
 			try(final CreoleWriter	cre = new CreoleWriter(writer,MarkupOutputFormat.PARSEDCSV)) {
-				cre.write(text+(text.endsWith("\n") ? "" : "\n"));
+				cre.write((text+(text.endsWith("\n") ? "" : "\n")));
 				cre.flush();
 			}
 			final List<HighlightItem<CreoleLexema>>	result = new ArrayList<>();

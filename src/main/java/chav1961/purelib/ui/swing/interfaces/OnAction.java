@@ -11,11 +11,12 @@ import java.lang.annotation.Target;
  * with Action event. This annotation is used by {@linkplain}</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface OnAction {
 	String value();
+	boolean async() default false;
 }

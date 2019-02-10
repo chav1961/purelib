@@ -63,6 +63,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
  * <p>Differ to {@linkplain JFileChooser}, this class is a child of the {@linkplain JPanel} and can be embedded into any Swing forms
  * as the part of them. To use it as ordinal dialog window, call it's static methods {@linkplain JFileSelectionDialog#select(Dialog, Localizer, FileSystemInterface, int, FilterCallback...)} and 
  * {@linkplain JFileSelectionDialog#select(Window, Localizer, FileSystemInterface, int, FilterCallback...)}.</p>
+ * <p>This class is not thread-safe</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @see JFileChooser
  * @see FileSystemInterface
@@ -326,10 +327,16 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				}
 			});
 			accept.addActionListener((e)->{
-				callback.process(true);
+				if (callback != null) {
+					callback.process(true);
+					callback = null;
+				}
 			});
 			cancel.addActionListener((e)->{
-				callback.process(false);
+				if (callback != null) {
+					callback.process(false);
+					callback = null;
+				}				
 			});
 			
 			bottomPanel.setMinimumSize(new Dimension(MIN_WIDTH,4*MIN_HEIGHT/16));
@@ -393,6 +400,10 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 								
 								if (fsi.isDirectory()) {
 									newLocation = fsi.getName();
+								}
+								else {
+									content.setSelectedIndex(index);
+									selectAndAccept();
 								}
 							} catch (IOException e1) {
 								logger.message(Severity.error,e1,"Error querying file system node ["+content.getModel().getElementAt(index)+"]: "+e1.getLocalizedMessage());
@@ -540,7 +551,21 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				logger.message(Severity.error,e,"Error getting current file system node ["+item+"] state: "+e.getLocalizedMessage());
 			}
 		}
-		return selected;
+		if (selected.size() == 0) {
+			final String	item = fileName.getText().trim(); 
+			
+			if (!item.isEmpty()) {
+				try(final FileSystemInterface	fsi = currentNode.clone().open(item)) {
+					selected.add(fsi.getPath());
+				} catch (IOException e) {
+					logger.message(Severity.error,e,"Error getting current file system node ["+item+"] state: "+e.getLocalizedMessage());
+				}
+			}
+			return selected;
+		}
+		else {
+			return selected;
+		}
 	}
 
 	/**
@@ -621,6 +646,13 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			localizer.removeLocaleChangeListener(select);
 		}
 		return result[0];
+	}
+
+	private void selectAndAccept() {
+		if (callback != null) {
+			callback.process(true);
+			callback = null; 
+		}
 	}
 	
 	private void fillCurrentState(final FileSystemInterface current) {

@@ -73,8 +73,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 	private final ScriptEngineFactory	factory;
 	private final LineByLineProcessorCallback	callback = new LineByLineProcessorCallback() {
 													@Override
-													public void processLine(int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-														processLineInternal(lineNo,data,from,length);
+													public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
+														processLineInternal(displacement,lineNo,data,from,length);
 													}
 												};
 	private final FileSystemInterface	fs = new FileSystemInMemory();
@@ -91,7 +91,7 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 		}
 	}
 
-	protected abstract void processLineInternal(final int lineNo, final char[] data, final int from, final int length) throws IOException, SyntaxException;
+	protected abstract void processLineInternal(final long displacement, final int lineNo, final char[] data, final int from, final int length) throws IOException, SyntaxException;
 	protected abstract void afterCompile(final Reader reader, final OutputStream os) throws IOException;
 	
 	@Override

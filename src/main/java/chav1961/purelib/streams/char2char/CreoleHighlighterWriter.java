@@ -2,10 +2,13 @@ package chav1961.purelib.streams.char2char;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import chav1961.purelib.basic.FSM;
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2char.CreoleOutputWriter.FontActions;
@@ -40,7 +43,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	private final List<int[]>		sectionStack = new ArrayList<>();
 	private final List<CreoleLexema>	listStack = new ArrayList<>();
 	private final List<int[]>		fontStack = new ArrayList<>();
-	private int						currentRow = 0, currentCol = 0, totalLen = 0, lastNL = 0;
+	private int						currentRow = 0, currentCol = 0, totalLen = 0;
 	
 	
 	CreoleHighlighterWriter(final Writer nested, final PrologueEpilogueMaster<Writer,CreoleHighlighterWriter> prologue, final PrologueEpilogueMaster<Writer,CreoleHighlighterWriter> epilogue) throws IOException {
@@ -56,128 +59,103 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
-		for (int index = from; index < to; index++) {
-			System.err.print(content[index]);
-//			if (content[index] != '\r') {
-				if (content[index] == '\n') {
-					lastNL = totalLen;
-				}
-				totalLen++;
-//			}
-		}
+	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+		totalLen = (int)currentDispl;
 	}
 
+	void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
+		internalWrite(displacement, content, from, to, keepNewLines);
+		putLexema(CreoleLexema.NonCreoleContent, (int)displacement, to-from);
+	}
+	
+	
 	@Override
-	void insertImage(final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		int[]		forItem;
 		
 		if (startCaption < endCaption) {
-			fontStack.add(new int[] {currentRow,currentCol,totalLen});
-			internalWrite(IMAGE_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(IMAGE_PART);
-			internalWrite(data,startCaption,endCaption,false);
-			internalWrite(IMAGE_END);
-			forItem = fontStack.remove(0);
-			putLexema(CreoleLexema.ImageRef,forItem[2],totalLen-forItem[2]);
+			putLexema(CreoleLexema.ImageRef,(int)displacement,IMAGE_START.length+(endLink-startLink)+IMAGE_PART.length+(endCaption-startCaption)+IMAGE_END.length);
 		}
 		else {
-			fontStack.add(new int[] {currentRow,currentCol,totalLen});
-			internalWrite(IMAGE_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(IMAGE_END);
-			forItem = fontStack.remove(0);
-			putLexema(CreoleLexema.ImageRef,forItem[2],totalLen-forItem[2]);
+			putLexema(CreoleLexema.ImageRef,(int)displacement,IMAGE_START.length+(endLink-startLink)+IMAGE_END.length);
 		}
 	}
 
 	@Override
-	void insertLink(final boolean localRef, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		int[]		forItem;
 		
 		if (startCaption < endCaption) {
-			fontStack.add(new int[] {currentRow,currentCol,totalLen});
-			internalWrite(LINK_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(LINK_PART);
-			internalWrite(data,startCaption,endCaption,false);
-			internalWrite(LINK_END);
-			forItem = fontStack.remove(0);
-			putLexema(CreoleLexema.LinkRef,forItem[2],totalLen-forItem[2]);
+			putLexema(CreoleLexema.LinkRef,(int)displacement,LINK_START.length+(endLink-startLink)+LINK_PART.length+(endCaption-startCaption)+LINK_END.length);
 		}
 		else {
-			fontStack.add(new int[] {currentRow,currentCol,totalLen});
-			internalWrite(LINK_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(LINK_END);
-			forItem = fontStack.remove(0);
-			putLexema(CreoleLexema.LinkRef,forItem[2],totalLen-forItem[2]);
+			if (data[endLink+1] != ']') {
+				putLexema(CreoleLexema.LinkRef,(int)displacement,endLink-startLink);
+			}
+			else {
+				putLexema(CreoleLexema.LinkRef,(int)displacement,LINK_START.length+(endLink-startLink)+LINK_END.length);
+			}
 		}
 	}
 
 	@Override
-	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Integer> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Integer parameter) throws FlowException {
+	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
 		int[]		forItem;
 		
 		try{for (SectionActions item : action) {
 				switch (item) {
 					case P_OPEN		:
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
-						System.err.print("<<<");
 						break;
 					case P_CLOSE	:
 						forItem = sectionStack.remove(0);
-						System.err.print(">>>");
-						putLexema(CreoleLexema.Paragraph,forItem[2],(lastNL <= forItem[2] ? totalLen : lastNL)-forItem[2]);
+						putLexema(CreoleLexema.Paragraph,forItem[2],totalLen-forItem[2]+1);
+						totalLen += (int)(parameter.longValue() >> 32);
 						break;
-					case H_OPEN	: 
+					case H_OPEN	:
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
-						System.err.print("<<<");
-						internalWrite(H[parameter]); 
+						totalLen += (int)(parameter.longValue() >> 32);
 						break;
 					case H_CLOSE		: 
-						System.err.print("!!!");
-						internalWrite(H[parameter]); 
+		//				totalLen += (int)(parameter.longValue() >> 32);
 						forItem = sectionStack.remove(0);
-						putLexema(H_LEX[parameter],forItem[2],totalLen-forItem[2]);
-						System.err.print(">>>");
+						putLexema(H_LEX[parameter.intValue()],forItem[2],totalLen-forItem[2]+1);
 						break;
 					case HR				:
 						sectionStack.add(new int[] {currentRow,currentCol,totalLen});
-						internalWrite(HR); 
+						internalWrite(currentDispl,HR); 
 						forItem = sectionStack.remove(0);
-						putLexema(CreoleLexema.HorizontalLine,forItem[2],totalLen-forItem[2]);
+						putLexema(CreoleLexema.HorizontalLine,forItem[2],totalLen-forItem[2]+1);
 						break;
 					case UL_OPEN : 
-						listStack.add(0,UL_LEX[parameter]);
+						listStack.add(0,UL_LEX[parameter.intValue()]);
 						break;
 					case UL_CLOSE	:
 						listStack.remove(0);
 						break;
 					case OL_OPEN : 
-						listStack.add(0,OL_LEX[parameter]);
+						listStack.add(0,OL_LEX[parameter.intValue()]);
 						break;
 					case OL_CLOSE	:
 						listStack.remove(0);
 						break;
 					case LI_OPEN	:
-						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
-						internalWrite(UL[listStack.size()-1]);
+						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen,(int)(parameter.longValue() >> 32)});
+						internalWrite(currentDispl,UL[listStack.size()-1]);
 						break;
 					case LI_CLOSE	:
 						if (sectionStack.size() > 0) {
 							forItem = sectionStack.remove(0);
-							putLexema(CreoleLexema.ListMark,forItem[2],listStack.size());
-							putLexema(listStack.get(0),forItem[2],(lastNL <= forItem[2] ? totalLen : lastNL)-forItem[2]);
+							putLexema(CreoleLexema.ListMark,forItem[2],forItem[3]+1);
+							putLexema(listStack.get(0),forItem[2],totalLen-forItem[2]);
 						}
 						break;
 					case TH_OPEN : 
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
-						internalWrite(TH);
+						internalWrite(currentDispl,TH);
 						break;
 					case TH_CLOSE : 
-						internalWrite(TH);
+						internalWrite(currentDispl,TH);
 						if (sectionStack.size() > 0) {
 							forItem = sectionStack.remove(0);
 							putLexema(CreoleLexema.TableHeader,forItem[2],totalLen-forItem[2]);
@@ -185,10 +163,10 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 						break;
 					case TD_OPEN :
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
-						internalWrite(TD);
+						internalWrite(currentDispl,TD);
 						break;
 					case TD_CLOSE :
-						internalWrite(TD);
+						internalWrite(currentDispl,TD);
 						if (sectionStack.size() > 0) {
 							forItem = sectionStack.remove(0);
 							putLexema(CreoleLexema.TableBody,forItem[2],totalLen-forItem[2]);
@@ -203,31 +181,31 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Integer> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Integer parameter) throws FlowException {
+	protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
 		int[]		forItem;
 		
 		try{for (FontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN :
 						fontStack.add(0,new int[] {currentRow,currentCol,totalLen});
-						internalWrite(B); 
+						internalWrite(currentDispl,B); 
 						break;
 					case BOLD_CLOSE : 
-						internalWrite(B); 
+						internalWrite(currentDispl,B); 
 						forItem = fontStack.remove(0);
-						putLexema(CreoleLexema.Bold,forItem[2],totalLen-forItem[2]);
+						putLexema(fontStack.size() > 0 ? CreoleLexema.BoldItalic : CreoleLexema.Bold,forItem[2],totalLen-forItem[2]+2);
 						break;
 					case ITALIC_OPEN : 
 						fontStack.add(0,new int[] {currentRow,currentCol,totalLen});
-						internalWrite(I);
+						internalWrite(currentDispl,I);
 						break;
 					case ITALIC_CLOSE :
-						internalWrite(I);
+						internalWrite(currentDispl,I);
 						forItem = fontStack.remove(0);
-						putLexema(CreoleLexema.Italic,forItem[2],totalLen-forItem[2]);
+						putLexema(fontStack.size() > 0 ? CreoleLexema.BoldItalic : CreoleLexema.Italic,forItem[2],totalLen-forItem[2]+2);
 						break;
 					case BR	: 
-						internalWrite(BR); 
+						internalWrite(currentDispl,BR); 
 						break;
 					default :
 				}
@@ -257,5 +235,45 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 				return false;
 			}
 		};
+	}
+
+	static PrologueEpilogueMaster<Writer,CreoleHighlighterWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>(){
+					@Override
+					public boolean writeContent(Writer writer, CreoleHighlighterWriter instance) throws IOException {
+						writer.write(content);
+						return true;
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}
+
+	static PrologueEpilogueMaster<Writer,CreoleHighlighterWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>(){
+					@Override
+					public boolean writeContent(Writer writer, CreoleHighlighterWriter instance) throws IOException {
+						writer.write(content);
+						return true;
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
 	}
 }

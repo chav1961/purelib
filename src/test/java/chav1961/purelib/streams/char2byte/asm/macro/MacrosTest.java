@@ -205,7 +205,7 @@ class TestMacros extends Macros {
 	public void processLine(final String line) throws IOException, SyntaxException {
 		final char[]	content = (line+"\n").toCharArray();
 		
-		processLine(0,content,0,content.length);
+		processLine(0,0,content,0,content.length);
 	}
 
 	MacroCommand parseCall(final String line) throws IOException, SyntaxException {

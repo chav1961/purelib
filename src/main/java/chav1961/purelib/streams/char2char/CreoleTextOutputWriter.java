@@ -2,8 +2,11 @@ package chav1961.purelib.streams.char2char;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
 
 import chav1961.purelib.basic.FSM;
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
@@ -42,64 +45,64 @@ class CreoleTextOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final char[] content, final int from, final int to, final boolean keedNewLines) throws IOException, SyntaxException {
+	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keedNewLines) throws IOException, SyntaxException {
 		nested.write(content,from,to-from);
 	}
 
 
 	@Override
-	void insertImage(char[] data, int startLink, int endLink, int startCaption, int endCaption) throws IOException, SyntaxException {
+	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (startCaption < endCaption) {
-			internalWrite(IMAGE_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(IMAGE_PART);
-			internalWrite(data,startCaption,endCaption,false);
-			internalWrite(IMAGE_END);
+			internalWrite(displacement,IMAGE_START);
+			internalWrite(displacement,data,startLink,endLink,false);
+			internalWrite(displacement,IMAGE_PART);
+			internalWrite(displacement,data,startCaption,endCaption,false);
+			internalWrite(displacement,IMAGE_END);
 		}
 		else {
-			internalWrite(IMAGE_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(IMAGE_END);
+			internalWrite(displacement,IMAGE_START);
+			internalWrite(displacement,data,startLink,endLink,false);
+			internalWrite(displacement,IMAGE_END);
 		}
 	}
 
 	@Override
-	void insertLink(final boolean localRef, char[] data, int startLink, int endLink, int startCaption, int endCaption) throws IOException, SyntaxException {
+	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (startCaption < endCaption) {
-			internalWrite(LINK_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(LINK_PART);
-			internalWrite(data,startCaption,endCaption,false);
-			internalWrite(LINK_END);
+			internalWrite(displacement,LINK_START);
+			internalWrite(displacement,data,startLink,endLink,false);
+			internalWrite(displacement,LINK_PART);
+			internalWrite(displacement,data,startCaption,endCaption,false);
+			internalWrite(displacement,LINK_END);
 		}
 		else {
-			internalWrite(LINK_START);
-			internalWrite(data,startLink,endLink,false);
-			internalWrite(LINK_END);
+			internalWrite(displacement,LINK_START);
+			internalWrite(displacement,data,startLink,endLink,false);
+			internalWrite(displacement,LINK_END);
 		}
 	}
 
 	@Override
-	protected void processSection(FSM<CreoleTerminals, SectionState, SectionActions, Integer> fsm, CreoleTerminals terminal, SectionState fromState, SectionState toState, SectionActions[] action, Integer parameter) throws FlowException {
+	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
 		try{for (SectionActions item : action) {
 				switch (item) {
 					case H_OPEN	: case H_CLOSE		: 
-						internalWrite(H[parameter]); 
+						internalWrite(currentDispl,H[parameter.intValue()]); 
 						break;
 					case HR				:
-						internalWrite(HR); 
+						internalWrite(currentDispl,HR); 
 						break;
 					case UL_OPEN : case UL_CLOSE	:
-						internalWrite(UL[parameter]); 
+						internalWrite(currentDispl,UL[parameter.intValue()]); 
 						break;
 					case OL_OPEN : case OL_CLOSE	:
-						internalWrite(OL[parameter]); 
+						internalWrite(currentDispl,OL[parameter.intValue()]); 
 						break;
 					case TH_OPEN : 
-						internalWrite(TH);
+						internalWrite(currentDispl,TH);
 						break;
 					case TD_OPEN :
-						internalWrite(TD);
+						internalWrite(currentDispl,TD);
 						break;
 					default :
 				}
@@ -110,17 +113,17 @@ class CreoleTextOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	protected void processFont(FSM<CreoleTerminals, FontState, FontActions, Integer> fsm, CreoleTerminals terminal, FontState fromState, FontState toState, FontActions[] action, Integer parameter) throws FlowException {
+	protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
 		try{for (FontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN : case BOLD_CLOSE : 
-						internalWrite(B); 
+						internalWrite(currentDispl,B); 
 						break;
 					case ITALIC_OPEN : case ITALIC_CLOSE :
-						internalWrite(I);
+						internalWrite(currentDispl,I);
 						break;
 					case BR	: 
-						internalWrite(BR); 
+						internalWrite(currentDispl,BR); 
 						break;
 					default :
 				}
@@ -134,7 +137,7 @@ class CreoleTextOutputWriter extends CreoleOutputWriter {
 		return new PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>(){
 			@Override
 			public boolean writeContent(Writer writer, CreoleTextOutputWriter instance) throws IOException {
-				return false;
+				return true;
 			}
 		};
 	}
@@ -143,8 +146,48 @@ class CreoleTextOutputWriter extends CreoleOutputWriter {
 		return new PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>(){
 			@Override
 			public boolean writeContent(Writer writer, CreoleTextOutputWriter instance) throws IOException {
-				return false;
+				return true;
 			}
 		};
 	}
+
+	static PrologueEpilogueMaster<Writer,CreoleTextOutputWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>(){
+					@Override
+					public boolean writeContent(Writer writer, CreoleTextOutputWriter instance) throws IOException {
+						writer.write(content);
+						return true;
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}
+	
+	static PrologueEpilogueMaster<Writer,CreoleTextOutputWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>(){
+					@Override
+					public boolean writeContent(Writer writer, CreoleTextOutputWriter instance) throws IOException {
+						writer.write(content);
+						return true;
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}	
 }

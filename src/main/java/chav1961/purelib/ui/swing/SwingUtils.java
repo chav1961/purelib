@@ -11,8 +11,6 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -40,12 +38,10 @@ import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 
-import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -61,7 +57,7 @@ import chav1961.purelib.ui.swing.interfaces.OnAction;
  * <p>This utility class contains a set of useful methods to use in the Swing-based applications.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last update 0.0.3
+ * @since 0.0.3
  */
 
 public abstract class SwingUtils {
@@ -525,13 +521,13 @@ public abstract class SwingUtils {
 				throw new IllegalArgumentException("No any methods in the entity object are annotated with ["+OnAction.class+"] annotation"); 
 			}
 			else {
-				final Map<String,MethodHandle>	calls = new HashMap<>();
+				final Map<String,MethodHandleAndAsync>	calls = new HashMap<>();
 				
 				for (Entry<String, Method> item : annotatedMethods.entrySet()) {
 					final Method	m = item.getValue();
 					
 					m.setAccessible(true);
-					try{calls.put(item.getKey(),MethodHandles.lookup().unreflect(m));
+					try{calls.put(item.getKey(),new MethodHandleAndAsync(MethodHandles.lookup().unreflect(m),m.getAnnotation(OnAction.class).async()));
 					} catch (IllegalAccessException exc) {
 						throw new IllegalArgumentException("Can't get access to annotated method ["+m+"]: "+exc.getLocalizedMessage()); 
 					}
@@ -541,7 +537,19 @@ public abstract class SwingUtils {
 					@Override
 					public void actionPerformed(final ActionEvent e) {
 						if (calls.containsKey(e.getActionCommand())) {
-							try{calls.get(e.getActionCommand()).invoke(entity);
+							try{final MethodHandleAndAsync	mha = calls.get(e.getActionCommand());
+							
+								if (mha.async) {
+									new Thread(()->{
+										try{mha.handle.invoke(entity);
+										} catch (Throwable t) {
+											t.printStackTrace();
+										}
+									}).start();
+								}
+								else {
+									mha.handle.invoke(entity);
+								}
 							} catch (Throwable t) {
 								t.printStackTrace();
 							}
@@ -614,5 +622,14 @@ public abstract class SwingUtils {
 		// TODO:
 	}
 
+	private static class MethodHandleAndAsync {
+		final MethodHandle	handle;
+		final boolean		async;
+		
+		public MethodHandleAndAsync(MethodHandle handle, boolean async) {
+			this.handle = handle;
+			this.async = async;
+		}
+	}
 }
 	

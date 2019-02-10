@@ -571,7 +571,7 @@ class PseudoMacros extends Macros {
 		for (String item : macros.split("\\n")) {
 			final char[]	data = (item+'\n').toCharArray();
 			
-			processLine(lineNo++,data,0,data.length);
+			processLine(0,lineNo++,data,0,data.length);
 		}
 		return getRoot();
 	}

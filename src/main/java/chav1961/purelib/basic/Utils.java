@@ -33,6 +33,7 @@ import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
@@ -51,6 +52,13 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
 
 public class Utils {
 	private static final String 	W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+	
+	private static final ProgressIndicator	NULL_PROGRESS = new ProgressIndicator() {
+												@Override public void start(String caption, long total) {}
+												@Override public void start(String caption) {}
+												@Override public boolean processed(long processed) {return true;}
+												@Override public void end() {}
+											}; 
 	
 	/**
 	 * <p>This class is a reference class</p>
@@ -111,14 +119,31 @@ public class Utils {
 	 * @param os output stream to copy to
 	 * @return length transferred (in bytes)
 	 * @throws IOException if any I/O exception was thrown
-	 * @throws IllegalArgumentException when any problems with parameters
+	 * @throws NullPointerException when any problems with parameters
 	 */
-	public static long copyStream(final InputStream is, final OutputStream os) throws IOException {
+	public static long copyStream(final InputStream is, final OutputStream os) throws IOException, NullPointerException {
+		return Math.abs(copyStream(is, os, NULL_PROGRESS));
+	}
+
+	/**
+	 * <p>Copy one byte stream to another with progress indicator</p>
+	 * @param is input stream to copy from
+	 * @param os output stream to copy to
+	 * @param progress progress indicator to use
+	 * @return length transferred (in bytes). If copying was interrupted, returns negative value of partially transferred data
+	 * @throws IOException if any I/O exception was thrown
+	 * @throws NullPointerException when any problems with parameters
+	 * @since 0.0.3
+	 */
+	public static long copyStream(final InputStream is, final OutputStream os, final ProgressIndicator progress) throws IOException, NullPointerException {
 		if (is == null) {
 			throw new NullPointerException("Input stream can't be null");
 		}
 		else if (os == null) {
 			throw new NullPointerException("Output stream can't be null");
+		}
+		else if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null");
 		}
 		else {
 			final byte[]	buffer = new byte[8192];
@@ -127,6 +152,10 @@ public class Utils {
 			for (int len = is.read(buffer); len > 0; len = is.read(buffer)) {
 				os.write(buffer,0,len);
 				common += len;
+				if (!progress.processed(common)) {
+					os.flush();
+					return -common;
+				}
 			}
 			os.flush();
 			return common;
@@ -142,11 +171,27 @@ public class Utils {
 	 * @throws NullPointerException when any problems with parameters
 	 */
 	public static int copyStream(final Reader is, final Writer os) throws IOException {
+		return Math.abs(copyStream(is, os, NULL_PROGRESS));
+	}
+
+	/**
+	 * <p>Copy one character stream to another</p>
+	 * @param is input stream to copy from
+	 * @param os output stream to copy to
+	 * @return length transferred (in chars). If copying was interrupted, returns negative value of partially transferred data
+	 * @throws IOException if any I/O exception was thrown
+	 * @throws NullPointerException when any problems with parameters
+	 * @since 0.0.3
+	 */
+	public static int copyStream(final Reader is, final Writer os, final ProgressIndicator progress) throws IOException, NullPointerException {
 		if (is == null) {
 			throw new NullPointerException("Input stream can't be null");
 		}
 		else if (os == null) {
 			throw new NullPointerException("Output stream can't be null");
+		}
+		else if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null");
 		}
 		else {
 			final char[]	buffer = new char[8192];
@@ -155,12 +200,17 @@ public class Utils {
 			while ((len = is.read(buffer)) > 0) {
 				os.write(buffer,0,len);
 				common += len;
+				if (!progress.processed(common)) {
+					os.flush();
+					return -common;
+				}
 			}
 			os.flush();
 			return common;
 		}
 	}
-
+	
+	
 	/**
 	 * <p>Copy one character source stream to another</p>
 	 * @param is input source stream to copy from

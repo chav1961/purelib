@@ -304,7 +304,9 @@ public class SwingModelUtils {
 		}
 
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
-			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			if (getNodeMetadata().getTooltipId() != null) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			}
 		}
 	}
 

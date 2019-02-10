@@ -2,8 +2,14 @@ package chav1961.purelib.streams.char2char;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
+
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLStreamException;
 
 import chav1961.purelib.basic.FSM;
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
@@ -42,7 +48,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	private static final char[]		BR = "<br/>".toCharArray();
 	private static final char[]		HR = "<hr/>".toCharArray();
 	private static final char[]		A_START = "<a href=\"".toCharArray();
-	private static final char[]		A_START_LOCAL = "<a href=\"http://www.examplewiki.com/".toCharArray();
+	private static final char[]		A_START_LOCAL = "<a href=\"".toCharArray();
 	private static final char[]		A_END = "\">".toCharArray();
 	private static final char[]		A_CLOSE = "</a>".toCharArray();
 	private static final char[]		IMG_START = "<img src=\"".toCharArray();
@@ -65,7 +71,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		try{nested.write(content,from,to-from);
 		} catch (IndexOutOfBoundsException exc) {
 			exc.printStackTrace();
@@ -74,34 +80,34 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 
 
 	@Override
-	protected void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Integer> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Integer parameter) throws FlowException {
+	protected void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Long> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Long parameter) throws FlowException {
 		try{for (SectionActions item : action) {
 				switch (item) {
-					case DIV_OPEN		: internalWrite(DIV_OPEN); break;
-					case DIV_CLOSE		: internalWrite(DIV_CLOSE); break;
-					case P_OPEN			: internalWrite(P_OPEN); break;
-					case P_CLOSE		: internalWrite(P_CLOSE); break;
-					case H_OPEN			: internalWrite(H_OPEN[parameter]); break;
-					case H_CLOSE		: internalWrite(H_CLOSE[parameter]); break;
-					case HR				: internalWrite(HR); break;
-					case UL_OPEN		: internalWrite(UL_OPEN); break;
-					case UL_CLOSE		: internalWrite(UL_CLOSE); break;
-					case OL_OPEN		: internalWrite(OL_OPEN); break;
-					case OL_CLOSE		: internalWrite(OL_CLOSE); break;
-					case LI_OPEN		: internalWrite(LI_OPEN); break;	
-					case LI_CLOSE		: internalWrite(LI_CLOSE); break;
-					case TABLE_OPEN		: internalWrite(TABLE_OPEN); break;
-					case TABLE_CLOSE	: internalWrite(TABLE_CLOSE); break;
-					case THEAD_OPEN		: internalWrite(THEAD_OPEN); break;
-					case THEAD_CLOSE	: internalWrite(THEAD_CLOSE); break;
-					case TBODY_OPEN		: internalWrite(TBODY_OPEN); break;
-					case TBODY_CLOSE	: internalWrite(TBODY_CLOSE); break;
-					case TR_OPEN		: internalWrite(TR_OPEN); break;
-					case TR_CLOSE		: internalWrite(TR_CLOSE); break;
-					case TH_OPEN		: internalWrite(TH_OPEN); break;
-					case TH_CLOSE		: internalWrite(TH_CLOSE); break;
-					case TD_OPEN		: internalWrite(TD_OPEN); break;
-					case TD_CLOSE		: internalWrite(TD_CLOSE); break;
+					case DIV_OPEN		: internalWrite(currentDispl, DIV_OPEN); break;
+					case DIV_CLOSE		: internalWrite(currentDispl, DIV_CLOSE); break;
+					case P_OPEN			: internalWrite(currentDispl, P_OPEN); break;
+					case P_CLOSE		: internalWrite(currentDispl, P_CLOSE); break;
+					case H_OPEN			: internalWrite(currentDispl, H_OPEN[parameter.intValue()]); break;
+					case H_CLOSE		: internalWrite(currentDispl, H_CLOSE[parameter.intValue()]); break;
+					case HR				: internalWrite(currentDispl, HR); break;
+					case UL_OPEN		: internalWrite(currentDispl, UL_OPEN); break;
+					case UL_CLOSE		: internalWrite(currentDispl, UL_CLOSE); break;
+					case OL_OPEN		: internalWrite(currentDispl, OL_OPEN); break;
+					case OL_CLOSE		: internalWrite(currentDispl, OL_CLOSE); break;
+					case LI_OPEN		: internalWrite(currentDispl, LI_OPEN); break;	
+					case LI_CLOSE		: internalWrite(currentDispl, LI_CLOSE); break;
+					case TABLE_OPEN		: internalWrite(currentDispl, TABLE_OPEN); break;
+					case TABLE_CLOSE	: internalWrite(currentDispl, TABLE_CLOSE); break;
+					case THEAD_OPEN		: internalWrite(currentDispl, THEAD_OPEN); break;
+					case THEAD_CLOSE	: internalWrite(currentDispl, THEAD_CLOSE); break;
+					case TBODY_OPEN		: internalWrite(currentDispl, TBODY_OPEN); break;
+					case TBODY_CLOSE	: internalWrite(currentDispl, TBODY_CLOSE); break;
+					case TR_OPEN		: internalWrite(currentDispl, TR_OPEN); break;
+					case TR_CLOSE		: internalWrite(currentDispl, TR_CLOSE); break;
+					case TH_OPEN		: internalWrite(currentDispl, TH_OPEN); break;
+					case TH_CLOSE		: internalWrite(currentDispl, TH_CLOSE); break;
+					case TD_OPEN		: internalWrite(currentDispl, TD_OPEN); break;
+					case TD_CLOSE		: internalWrite(currentDispl, TD_CLOSE); break;
 					default :
 				}
 			}
@@ -111,14 +117,14 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 	
 	@Override
-	protected void processFont(final FSM<CreoleTerminals,FontState,FontActions,Integer> fsm,final CreoleTerminals terminal,final FontState fromState,final FontState toState,final FontActions[] action,final Integer parameter) throws FlowException {
+	protected void processFont(final FSM<CreoleTerminals,FontState,FontActions,Long> fsm,final CreoleTerminals terminal,final FontState fromState,final FontState toState,final FontActions[] action,final Long parameter) throws FlowException {
 		try{for (FontActions item : action) {
 				switch (item) {
-					case BOLD_OPEN		: internalWrite(BOLD_OPEN); break;
-					case BOLD_CLOSE		: internalWrite(BOLD_CLOSE); break;
-					case ITALIC_OPEN	: internalWrite(ITALIC_OPEN); break;
-					case ITALIC_CLOSE	: internalWrite(ITALIC_CLOSE); break;
-					case BR				: internalWrite(BR); break;
+					case BOLD_OPEN		: internalWrite(currentDispl, BOLD_OPEN); break;
+					case BOLD_CLOSE		: internalWrite(currentDispl, BOLD_CLOSE); break;
+					case ITALIC_OPEN	: internalWrite(currentDispl, ITALIC_OPEN); break;
+					case ITALIC_CLOSE	: internalWrite(currentDispl, ITALIC_CLOSE); break;
+					case BR				: internalWrite(currentDispl, BR); break;
 					default :
 				}
 			}
@@ -128,71 +134,50 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void insertImage(final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-		internalWrite(IMG_START);
-		internalWrite(data,startLink,endLink,false);
-		internalWrite(IMG_END);
-		internalWrite(data,startCaption,endCaption,false);
-		internalWrite(IMG_CLOSE);
+	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+		internalWrite(displacement,IMG_START);
+		internalWrite(displacement,data,startLink,endLink,false);
+		internalWrite(displacement,IMG_END);
+		internalWrite(displacement,data,startCaption,endCaption,false);
+		internalWrite(displacement,IMG_CLOSE);
 	}
 
 	@Override
-	void insertLink(final boolean localRef, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (localRef) {
 			if (startCaption == endCaption) {
-				internalWrite(A_START_LOCAL);
-				internalWrite(data,startLink,endLink,false);
-				internalWrite(A_END);
-				internalWrite(data,startLink,endLink,false);
-				internalWrite(A_CLOSE);
+				internalWrite(displacement,A_START_LOCAL);
+				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,A_END);
+				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,A_CLOSE);
 			}
 			else {
-				internalWrite(A_START_LOCAL);
-				internalWrite(data,startLink,endLink,false);
-				internalWrite(A_END);
-				internalWrite(data,startCaption,endCaption,false);
-				internalWrite(A_CLOSE);
+				internalWrite(displacement,A_START_LOCAL);
+				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,A_END);
+				internalWrite(displacement,data,startCaption,endCaption,false);
+				internalWrite(displacement,A_CLOSE);
 			}
 		}
 		else {
 			if (startCaption == endCaption) {
-				internalWrite(A_START);
-				internalWrite(data,startLink,endLink,false);
-				internalWrite(A_END);
-				internalWrite(data,startLink,endLink,false);
-				internalWrite(A_CLOSE);
+				internalWrite(displacement,A_START);
+				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,A_END);
+				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,A_CLOSE);
 			}
 			else {
-				internalWrite(A_START);
-				internalWrite(data,startLink,endLink,false);
-				internalWrite(A_END);
-				internalWrite(data,startCaption,endCaption,false);
-				internalWrite(A_CLOSE);
+				internalWrite(displacement,A_START);
+				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,A_END);
+				internalWrite(displacement,data,startCaption,endCaption,false);
+				internalWrite(displacement,A_CLOSE);
 			}
 		}
 	}
 	
-//	private String asPState(final int state) {
-//		switch (state) {
-//			case PS_INITIAL					: return "PS_INITIAL";
-//			case PS_CANBE_PARAGRAPH			: return "PS_CANBE_PARAGRAPH"; 
-//			case PS_PARAGRAPH				: return "PS_PARAGRAPH"; 
-//			case PS_AFTER_PARAGRAPH			: return "PS_AFTER_PARAGRAPH"; 
-//			case PS_CANBE_NEXT_PARAGRAPH	: return "PS_CANBE_NEXT_PARAGRAPH"; 
-//			case PS_SKIP_LINES				: return "PS_SKIP_LINES"; 
-//			case PS_CAPTION					: return "PS_CAPTION"; 
-//			case PS_AFTER_CAPTION			: return "PS_AFTER_CAPTION"; 
-//			case PS_LIST					: return "PS_LIST"; 
-//			case PS_LIST_ITEM				: return "PS_LIST_ITEM"; 
-//			case PS_AFTER_LIST_ITEM			: return "PS_AFTER_LIST_ITEM"; 
-//			case PS_TABLE_HEADER			: return "PS_TABLE_HEADER"; 
-//			case PS_AFTER_TABLE_HEADER		: return "PS_AFTER_TABLE_HEADER"; 
-//			case PS_TABLE_DATA				: return "PS_TABLE_DATA"; 
-//			case PS_AFTER_TABLE_DATA		: return "PS_AFTER_TABLE_DATA"; 
-//			default :  return "PS_UNKNOWN";
-//		}
-//	}
-
 	static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getPrologue() {
 		return new PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>(){
 			@Override
@@ -211,5 +196,45 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 				return false;
 			}
 		};
+	}
+
+	static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>(){
+					@Override
+					public boolean writeContent(Writer writer, CreoleHTMLOutputWriter instance) throws IOException {
+						writer.write(content);
+						return false;
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
+	}
+
+	static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null"); 
+		}
+		else {
+			try{final String	content = Utils.fromResource(source.toURL());
+			
+				return new PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>(){
+					@Override
+					public boolean writeContent(Writer writer, CreoleHTMLOutputWriter instance) throws IOException {
+						writer.write(content);
+						return false;
+					}
+				};
+			} catch (IOException e) {
+				throw new ContentException("I/O error loading content from ["+source+"]: "+e.getLocalizedMessage());
+			}
+		}
 	}
 }

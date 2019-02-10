@@ -36,6 +36,7 @@ public class LineByLineProcessor implements Closeable {
 	private final LineByLineProcessorCallback	callback;
 	private boolean								interruptProcessing = false, insideReaderProcessing = false;
 	private int									lineNo = 1;
+	private int									displacement = 0;
 	
 	/**
 	 * <p>Create line-by-line processor instance</p>
@@ -105,7 +106,8 @@ public class LineByLineProcessor implements Closeable {
 			
 			for (int index = off, maxIndex = Math.min(cbuf.length,off+len); index < maxIndex; index++) {
 				if (cbuf[index] == '\n') {
-					callback.processLine(lineNo++,cbuf,start,index-start+1);
+					callback.processLine(displacement,lineNo++,cbuf,start,index-start+1);
+					displacement += index-start+1;
 					if (interruptProcessing) {
 						interruptProcessing = false;
 						pushes.add(0,new DataStack(lineNo,cbuf,index+1,off+len-index-1));
@@ -194,7 +196,8 @@ public class LineByLineProcessor implements Closeable {
 		final char[]	data = new char[sb.length()];
 		
 		sb.getChars(0,data.length,data,0);
-		callback.processLine(lineNo++,data,0,data.length);
+		callback.processLine(displacement,lineNo++,data,0,data.length);
+		displacement += data.length;
 		sb.setLength(0);
 	}
 	
