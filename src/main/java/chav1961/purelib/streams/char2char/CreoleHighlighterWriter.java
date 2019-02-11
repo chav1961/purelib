@@ -11,16 +11,14 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2char.CreoleOutputWriter.FontActions;
-import chav1961.purelib.streams.char2char.CreoleOutputWriter.SectionActions;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 
 public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	private static final char[][]	UL = {"*".toCharArray(),"**".toCharArray(),"***".toCharArray(),"****".toCharArray(),"*****".toCharArray()};
-	private static final char[][]	OL = {"#".toCharArray(),"##".toCharArray(),"##".toCharArray(),"##".toCharArray(),"##".toCharArray()};
-	private static final char[][]	H = {"=".toCharArray(),"==".toCharArray(),"===".toCharArray(),"====".toCharArray(),"=====".toCharArray(),"======".toCharArray()};
+//	private static final char[][]	OL = {"#".toCharArray(),"##".toCharArray(),"##".toCharArray(),"##".toCharArray(),"##".toCharArray()};
+//	private static final char[][]	H = {"=".toCharArray(),"==".toCharArray(),"===".toCharArray(),"====".toCharArray(),"=====".toCharArray(),"======".toCharArray()};
 	private static final char[]		HR = "----".toCharArray();
 	private static final char[]		B = "**".toCharArray();
 	private static final char[]		I = "//".toCharArray();
@@ -71,7 +69,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	
 	@Override
 	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-		int[]		forItem;
+//		int[]		forItem;
 		
 		if (startCaption < endCaption) {
 			putLexema(CreoleLexema.ImageRef,(int)displacement,IMAGE_START.length+(endLink-startLink)+IMAGE_PART.length+(endCaption-startCaption)+IMAGE_END.length);
@@ -83,7 +81,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 
 	@Override
 	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-		int[]		forItem;
+//		int[]		forItem;
 		
 		if (startCaption < endCaption) {
 			putLexema(CreoleLexema.LinkRef,(int)displacement,LINK_START.length+(endLink-startLink)+LINK_PART.length+(endCaption-startCaption)+LINK_END.length);

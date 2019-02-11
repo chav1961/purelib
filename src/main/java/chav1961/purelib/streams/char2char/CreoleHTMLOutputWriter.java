@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
 
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLStreamException;
-
 import chav1961.purelib.basic.FSM;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;

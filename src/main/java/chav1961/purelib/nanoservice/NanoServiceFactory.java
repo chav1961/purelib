@@ -427,7 +427,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 									final List<String>		accepts = call.getRequestHeaders().get(HEAD_ACCEPT);
 									final MimeType[]		awaited = InternalUtils.buildMime(accepts.toArray(new String[accepts.size()])); 
 
-									if (Arrays.deepEquals(detected,CREOLE_DETECTED) && intersects(HTML_DETECTED,awaited)) {
+									if (Arrays.deepEquals(detected,CREOLE_DETECTED) && InternalUtils.intersects(HTML_DETECTED,awaited)) {
 										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,HTML_DETECTED[0].toString()+"; charset=UTF8");
 										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
 										
@@ -438,7 +438,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 											fsi.copy(cre);
 										}
 									}
-									else if (intersects(detected,awaited)) {
+									else if (InternalUtils.intersects(detected,awaited)) {
 										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,detected[0].toString());
 										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
 										try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType)) {
@@ -458,6 +458,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 									}
 								}
 							}
+						} catch (MimeTypeParseException e) {
+							throw new IOException(e.getLocalizedMessage(),e); 
 						}
 					}
 					else {
@@ -830,23 +832,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 
-	private boolean intersects(final MimeType[] left, final MimeType[] right) {
-		for (MimeType fromLeft : left) {
-			for (MimeType fromRight : right) {
-				if ((fromLeft.getPrimaryType().equals(fromRight.getPrimaryType())
-					 || "*".equals(fromRight.getPrimaryType())
-					)
-					&& 
-					(fromLeft.getSubType().equals(fromRight.getSubType()) 
-					 || "*".equals(fromRight.getSubType())
-					)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	private String seekPluginRoot(final char[] charPath, final HttpExchange call) {
 		final QueryType			qType = QueryType.valueOf(call.getRequestMethod());
 		final ClassDescriptor	desc;
@@ -950,13 +935,17 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	
 			collectAnnotatedMethods(clazz,annotatedMethods);
 			
-			for (Method m : annotatedMethods) {
-				final Path				path = m.getAnnotation(Path.class);
-				final MimeType[]		source = InternalUtils.buildMime(collectSourceMimeType(m));
-				final MimeType[]		target = InternalUtils.buildMime(collectTargetMimeType(m));
-				final MethodExecutor	caller = buildMethodExecutor(instance, m, path.value(), path.type(), source, target);
-	
-				collection.add(new MethodDescriptor(path.value(),path.type(),source,target,caller));
+			try{for (Method m : annotatedMethods) {
+					final Path				path = m.getAnnotation(Path.class);
+					final MimeType[]		source = InternalUtils.buildMime(collectSourceMimeType(m));
+					MimeType[] target;
+						target = InternalUtils.buildMime(collectTargetMimeType(m));
+					final MethodExecutor	caller = buildMethodExecutor(instance, m, path.value(), path.type(), source, target);
+		
+					collection.add(new MethodDescriptor(path.value(),path.type(),source,target,caller));
+				}
+			} catch (MimeTypeParseException e) {
+				throw new IOException(e.getLocalizedMessage(),e);
 			}
 			
 			return new ClassDescriptor(rootPath.toCharArray(), clazz, collection.toArray(new MethodDescriptor[collection.size()]));
@@ -1945,27 +1934,30 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		final StringBuilder	sb = new StringBuilder("; ------- Additional imports\n");
 		
 		for (Parameter parm : m.getParameters()) {
-			if (parm.isAnnotationPresent(FromBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(parm.getAnnotation(FromBody.class).mimeType()),PureLibSettings.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
-				try{if (!Modifier.isPublic(parm.getType().getConstructor().getModifiers())) {
+			try{if (parm.isAnnotationPresent(FromBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(parm.getAnnotation(FromBody.class).mimeType()),PureLibSettings.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
+					try{if (!Modifier.isPublic(parm.getType().getConstructor().getModifiers())) {
+							throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
+						}
+						else {
+							sb.append(" .import ").append(parm.getType().getCanonicalName()).append('\n');
+						}
+					} catch (NoSuchMethodException | SecurityException e) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 					}
-					else {
-						sb.append(" .import ").append(parm.getType().getCanonicalName()).append('\n');
-					}
-				} catch (NoSuchMethodException | SecurityException e) {
-					throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 				}
-			}
-			else if (parm.isAnnotationPresent(ToBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(new String[]{parm.getAnnotation(ToBody.class).mimeType()}),PureLibSettings.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
-				try{if (!Modifier.isPublic(parm.getType().getConstructor().getModifiers())) {
+				else if (parm.isAnnotationPresent(ToBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(new String[]{parm.getAnnotation(ToBody.class).mimeType()}),PureLibSettings.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
+					try{if (!Modifier.isPublic(parm.getType().getConstructor().getModifiers())) {
+							throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
+						}
+						else {
+							sb.append(" .import ").append(parm.getType().getCanonicalName()).append('\n');
+						}
+					} catch (NoSuchMethodException | SecurityException e) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 					}
-					else {
-						sb.append(" .import ").append(parm.getType().getCanonicalName()).append('\n');
-					}
-				} catch (NoSuchMethodException | SecurityException e) {
-					throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 				}
+			} catch (MimeTypeParseException e) {
+				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
 		return sb.toString();

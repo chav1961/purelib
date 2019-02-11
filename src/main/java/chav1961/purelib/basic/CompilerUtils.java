@@ -262,7 +262,7 @@ public class CompilerUtils {
 			throw new NullPointerException("Parameter names can't be null array"); 
 		}
 		else if (method.getParameterCount() != parameterNames.length) {
-			throw new IllegalArgumentException("Parameter names can't be null array"); 
+			throw new IllegalArgumentException("Parameters count ["+parameterNames.length+"] differ to required ["+method.getParameterCount()+"] for the given method"); 
 		}
 		else {
 			final StringBuilder	sb = new StringBuilder();
@@ -297,7 +297,12 @@ public class CompilerUtils {
 			sb.append("\n");
 			
 			for (int index = 0; index < method.getParameterCount(); index++) {
-				sb.append(parameterNames[index]).append(" .parameter ").append(buildClassPath(method.getParameterTypes()[index])).append(" final\n");
+				if (parameterNames[index] == null || parameterNames[index].isEmpty()) {
+					throw new IllegalArgumentException("Parameter names contins null or empty string at index ["+index+"]"); 
+				}
+				else {
+					sb.append(parameterNames[index]).append(" .parameter ").append(buildClassPath(method.getParameterTypes()[index])).append(" final\n");
+				}
 			}
 			return sb.toString();
 		}
@@ -321,15 +326,15 @@ public class CompilerUtils {
 			final int			methodFlags = method.getModifiers();
 			
 			if (Modifier.isStatic(methodFlags)) {
-				sb.append(" invokestatic ");
+				sb.append(" invokestatic ").append(buildMethodPath(method));
 			}
 			else if (interfaceClass.isInterface()) {
-				sb.append(" invokeinterface ");
+				sb.append(" invokeinterface ").append(buildClassPath(interfaceClass)).append('.').append(method.getName());
 			}
 			else {
-				sb.append(" invokevirtual ");
+				sb.append(" invokevirtual ").append(buildMethodPath(method));
 			}
-			return sb.append(buildMethodPath(method)).append(buildMethodSignature(method)).append("\n").toString();
+			return sb.append(buildMethodSignature(method)).append("\n").toString();
 		}
 	}
 
@@ -358,7 +363,7 @@ public class CompilerUtils {
 			else {
 				sb.append(" getfield ");
 			}
-			return sb.append(buildClassPath(field.getDeclaringClass())).append(field.getName()).append("\n").toString();
+			return sb.append(buildClassPath(field.getDeclaringClass())).append('.').append(field.getName()).append("\n").toString();
 		}
 	}
 
@@ -376,7 +381,7 @@ public class CompilerUtils {
 			else {
 				sb.append(" putfield ");
 			}
-			return sb.append(buildClassPath(field.getDeclaringClass())).append(field.getName()).append("\n").toString();
+			return sb.append(buildClassPath(field.getDeclaringClass())).append('.').append(field.getName()).append("\n").toString();
 		}
 	}
 }

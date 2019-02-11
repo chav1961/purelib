@@ -19,7 +19,7 @@ public class ContentMetadataFilter implements ContentMetadataInterface {
 	
 	public ContentMetadataFilter(final ContentMetadataInterface nested, final String whiteListRegExp, final String blackListRegExp) {
 		
-	}
+	} 
 	
 	@Override
 	public ContentNodeMetadata getRoot() {

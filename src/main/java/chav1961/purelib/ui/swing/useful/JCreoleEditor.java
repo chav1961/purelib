@@ -4,9 +4,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.JTextPane;
 import javax.swing.text.SimpleAttributeSet;
@@ -68,13 +66,6 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		StyleConstants.setSpaceAbove(sas,0.0f);
 		paragraphStyles.put(CreoleLexema.Paragraph,sas);
 
-//		sas = new SimpleAttributeSet();
-//		
-//		StyleConstants.setForeground(sas, Color.CYAN);
-//		StyleConstants.setBackground(sas, Color.LIGHT_GRAY);
-//		StyleConstants.setBold(sas, true);
-//		characterStyles.put(CreoleLexema.Paragraph,sas);		
-		
 		sas = new SimpleAttributeSet();
 		
 		StyleConstants.setFontSize(sas,24);

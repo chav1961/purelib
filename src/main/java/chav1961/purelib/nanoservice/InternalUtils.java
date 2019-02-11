@@ -65,17 +65,18 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
 /**
  * <p>This class is used for support of some internal operations of the {@linkplain NanoServiceFactory} class.</p>
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  *
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings("restriction") 
 public class InternalUtils {
 	private static final MimetypesFileTypeMap	typeMap = new MimetypesFileTypeMap();
 	private static final char[]					TRUE = "true".toCharArray();
 	private static final char[]					FALSE = "false".toCharArray();
+	private static final MimeType[]				NULL_MIME = new MimeType[0];
 	
 	static boolean mimesAreCompatible(final MimeType from, final MimeType with) {
-		if (from == null) {
+		if (from == null) { 
 			throw new NullPointerException("Type to compare from can't be null");
 		}
 		else if (with == null) {
@@ -94,8 +95,11 @@ public class InternalUtils {
 			throw new NullPointerException("Type to compare with can't be null");
 		}
 		else {
-			for (MimeType item : from) {
-				if (mimesAreCompatible(item,with)) {
+			for (int index = 0; index < from.length; index++) {
+				if (from[index] == null) {
+					throw new NullPointerException("Type to compare from contains nulls at index ["+index+"]");
+				}
+				else if (mimesAreCompatible(from[index],with)) {
 					return true;
 				}
 			}
@@ -103,15 +107,15 @@ public class InternalUtils {
 		}
 	}
 	
-	static MimeType[] buildMime(final String... source) throws IOException {
+	static MimeType[] buildMime(final String... source) throws MimeTypeParseException {
 		if (source == null) {
 			throw new NullPointerException("Source MIME list can't be null");
 		}
 		else if (source.length == 0) {
-			return new MimeType[0];
+			return NULL_MIME;
 		}
 		else {
-			int	pos, start, end, counter = 0;
+			int	pos, start, counter = 0;
 			
 			for (int index = 0; index < source.length; index++) {
 				if (source[index] == null || source[index].isEmpty()) {
@@ -131,43 +135,43 @@ public class InternalUtils {
 			
 			final MimeType[]	result = new MimeType[counter];
 
-			try{counter = 0;
-				for (int index = 0; index < source.length; index++) {
-					final String	temp = source[index];
-					int				semicolon;
-					
-					pos = start = 0;
-					while ((pos = temp.indexOf(',',start)) != -1) {
-						String	currentMime = temp.substring(start,pos);
-						
-						if ((semicolon = currentMime.indexOf(';')) >= 0) {
-							currentMime = currentMime.substring(0,semicolon); 
-						}
-						result[counter++] = new MimeType(currentMime);
-						start = pos + 1;
-					}
-					String	currentMime = temp.substring(start);
+			counter = 0;
+			for (int index = 0; index < source.length; index++) {
+				final String	temp = source[index];
+				int				semicolon;
+				
+				pos = start = 0;
+				while ((pos = temp.indexOf(',',start)) != -1) {
+					String	currentMime = temp.substring(start,pos);
 					
 					if ((semicolon = currentMime.indexOf(';')) >= 0) {
 						currentMime = currentMime.substring(0,semicolon); 
 					}
 					result[counter++] = new MimeType(currentMime);
+					start = pos + 1;
 				}
-			} catch (MimeTypeParseException e) {
-				throw new IOException(e);
+				String	currentMime = temp.substring(start);
+				
+				if ((semicolon = currentMime.indexOf(';')) >= 0) {
+					currentMime = currentMime.substring(0,semicolon); 
+				}
+				result[counter++] = new MimeType(currentMime);
 			}
 			return result;
 		}
 	}
 
 	static MimeType[] defineMimeByExtension(final String fileName) {
-		if (fileName.endsWith(".cre")) {
+		if (fileName == null || fileName.isEmpty()) {
+			throw new IllegalArgumentException("File name to define MIME for can't be null or empty");
+		}
+		else if (fileName.endsWith(".cre")) {
 			return new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT};
 		}
-		if (fileName.endsWith(".css")) {
+		else if (fileName.endsWith(".css")) {
 			return new MimeType[]{PureLibSettings.MIME_CSS_TEXT};
 		}
-		if (fileName.contains("favicon.")) {
+		else if (fileName.contains("favicon.ico")) {
 			return new MimeType[]{PureLibSettings.MIME_FAVICON};
 		}
 		else {
@@ -178,8 +182,68 @@ public class InternalUtils {
 		}
 	}
 
+	static boolean intersects(final MimeType[] left, final MimeType[] right) {
+		if (left == null) {
+			throw new NullPointerException("Left MIME can't be null"); 
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right MIME can't be null"); 
+		}
+		else {
+			for (MimeType fromLeft : left) {
+				if (fromLeft == null) {
+					throw new NullPointerException("Left MIME contains nulls inside"); 
+				}
+				else {
+					for (MimeType fromRight : right) {
+						if (fromRight == null) {
+							throw new NullPointerException("Right MIME contains nulls inside"); 
+						}
+						else if ((fromLeft.getPrimaryType().equals(fromRight.getPrimaryType())
+							 || "*".equals(fromRight.getPrimaryType())
+							)
+							&& 
+							(fromLeft.getSubType().equals(fromRight.getSubType()) 
+							 || "*".equals(fromRight.getSubType())
+							)) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+	}
+
+	static boolean theSame(final MimeType[] left, final MimeType[] right) {
+		if (left == null) {
+			throw new NullPointerException("Left MIME can't be null"); 
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right MIME can't be null"); 
+		}
+		else if (left.length != right.length) {
+			return false;
+		}
+		else {
+			int		count = 0;
+			
+			for (MimeType fromLeft : left) {
+				for (MimeType fromRight : right) {
+					if (fromLeft.getPrimaryType().equals(fromRight.getPrimaryType()) && fromLeft.getSubType().equals(fromRight.getSubType())) {
+						count++;
+					}
+				}
+			}
+			return count == left.length;
+		}
+	}
+	
 	public static boolean buildBoolean(final char[] source) {
-		if (CharUtils.compare(source,0,TRUE)) {
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else if (CharUtils.compare(source,0,TRUE)) {
 			return true;
 		}
 		else if (CharUtils.compare(source,0,FALSE)) {
@@ -191,167 +255,247 @@ public class InternalUtils {
 	}
 	
 	public static byte buildByte(final char[] source) {
-		return (byte) buildInt(source);
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else {
+			return (byte) buildInt(source);
+		}
 	}
 
 	public static short buildShort(final char[] source) {
-		return (short) buildInt(source);
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else {
+			return (short) buildInt(source);
+		}
 	}
 
 	public static int buildInt(final char[] source) {
-		final int[]	result = new int[2];
-		
-		CharUtils.parseInt(source,0, result,false);
-		return result[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else {
+			final int[]	result = new int[2];
+			
+			CharUtils.parseInt(source,0, result,false);
+			return result[0];
+		}
 	}
 
 	public static long buildLong(final char[] source) {
-		final long[]	result = new long[2];
-		
-		CharUtils.parseLong(source,0, result,false);
-		return result[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else {
+			final long[]	result = new long[2];
+			
+			CharUtils.parseLong(source,0, result,false);
+			return result[0];
+		}
 	}
 
 	public static float buildFloat(final char[] source) {
-		return (float) buildDouble(source);
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else {
+			return (float) buildDouble(source);
+		}
 	}
 
 	public static double buildDouble(final char[] source) {
-		final double[]	result = new double[2];
-		
-		CharUtils.parseSignedDouble(source,0,result,false);
-		return result[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else {
+			final double[]	result = new double[2];
+			
+			CharUtils.parseSignedDouble(source,0,result,false);
+			return result[0];
+		}
 	}
 	
 	public static boolean[] buildBooleanArray(final char[] source) {
-		final boolean[]	result = new boolean[calculateNL(source)+1];
-		
-		for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-			if (CharUtils.compare(source,start,TRUE)) {
-				result[index] = true;
-				start += TRUE.length;
-			}
-			else if (CharUtils.compare(source,start,FALSE)) {
-				result[index] = false;
-				start += FALSE.length;
-			}
-			else {
-				throw new IllegalArgumentException("Illegal boolean value ["+new String(source)+"]");
-			}
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		return result;
+		else {
+			final boolean[]	result = new boolean[calculateNL(source)+1];
+			
+			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
+				if (CharUtils.compare(source,start,TRUE)) {
+					result[index] = true;
+					start += TRUE.length;
+				}
+				else if (CharUtils.compare(source,start,FALSE)) {
+					result[index] = false;
+					start += FALSE.length;
+				}
+				else {
+					throw new IllegalArgumentException("Illegal boolean value ["+new String(source)+"]");
+				}
+			}
+			return result;
+		}
 	}
 	
 	public static byte[] buildByteArray(final char[] source) {
-		final byte[]	result = new byte[calculateNL(source)+1];
-		final int[]		fill = new int[2];
-		
-		for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-			start = CharUtils.parseInt(source,start,fill,false);
-			result[index] = (byte) fill[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		return result;
+		else {
+			final byte[]	result = new byte[calculateNL(source)+1];
+			final int[]		fill = new int[2];
+			
+			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
+				start = CharUtils.parseInt(source,start,fill,false);
+				result[index] = (byte) fill[0];
+			}
+			return result;
+		}
 	}
 
 	public static short[] buildShortArray(final char[] source) {
-		final short[]	result = new short[calculateNL(source)+1];
-		final int[]		fill = new int[2];
-		
-		for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-			start = CharUtils.parseInt(source,start,fill,false);
-			result[index] = (short) fill[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		return result;
+		else {
+			final short[]	result = new short[calculateNL(source)+1];
+			final int[]		fill = new int[2];
+			
+			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
+				start = CharUtils.parseInt(source,start,fill,false);
+				result[index] = (short) fill[0];
+			}
+			return result;
+		}
 	}
 
 	public static int[] buildIntArray(final char[] source) {
-		final int[]		result = new int[calculateNL(source)+1];
-		final int[]		fill = new int[2];
-		
-		for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-			start = CharUtils.parseInt(source,start,fill,false);
-			result[index] = fill[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		return result;
+		else {
+			final int[]		result = new int[calculateNL(source)+1];
+			final int[]		fill = new int[2];
+			
+			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
+				start = CharUtils.parseInt(source,start,fill,false);
+				result[index] = fill[0];
+			}
+			return result;
+		}
 	}
 
 	public static long[] buildLongArray(final char[] source) {
-		final long[]	result = new long[calculateNL(source)+1];
-		final long[]	fill = new long[2];
-		
-		for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-			start = CharUtils.parseLong(source,start,fill,false);
-			result[index] = fill[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		return result;
+		else {
+			final long[]	result = new long[calculateNL(source)+1];
+			final long[]	fill = new long[2];
+			
+			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
+				start = CharUtils.parseLong(source,start,fill,false);
+				result[index] = fill[0];
+			}
+			return result;
+		}
 	}
 
 	public static float[] buildFloatArray(final char[] source) {
-		final float[]	result = new float[calculateNL(source)+1];
-		final double[]	fill = new double[2];
-		
-		for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-			start = CharUtils.parseDouble(source,start,fill,false);
-			result[index] = (float) fill[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		return result;
+		else {
+			final float[]	result = new float[calculateNL(source)+1];
+			final double[]	fill = new double[2];
+			
+			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
+				start = CharUtils.parseDouble(source,start,fill,false);
+				result[index] = (float) fill[0];
+			}
+			return result;
+		}
 	}
 
 	public static double[] buildDoubleArray(final char[] source) {
-		final double[]	result = new double[calculateNL(source)+1];
-		final double[]	fill = new double[2];
-		
-		for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-			start = CharUtils.parseDouble(source,start,fill,false);
-			result[index] = fill[0];
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		return result;
+		else {
+			final double[]	result = new double[calculateNL(source)+1];
+			final double[]	fill = new double[2];
+			
+			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
+				start = CharUtils.parseDouble(source,start,fill,false);
+				result[index] = fill[0];
+			}
+			return result;
+		}
 	}
 
 	public static String[] buildStringArray(final char[] source) {
-		int		start = 0, currentElement = 0, nlCount = 1;
-		
-		for (char item : source) {
-			if (item == '\n') {
-				nlCount++;
-			}
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
 		}
-		final String[]	result = new String[nlCount];
-		
-		for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
-			if (source[index] == '\n') {
-				result[currentElement++] = new String(source,start,index-start);
-				start = index + 1;
+		else {
+			int		start = 0, currentElement = 0, nlCount = 1;
+			
+			for (char item : source) {
+				if (item == '\n') {
+					nlCount++;
+				}
 			}
+			final String[]	result = new String[nlCount];
+			
+			for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
+				if (source[index] == '\n') {
+					result[currentElement++] = new String(source,start,index-start);
+					start = index + 1;
+				}
+			}
+			result[currentElement] = new String(source,start,source.length-start);
+			return result;
 		}
-		result[currentElement] = new String(source,start,source.length-start);
-		return result;
 	}
 	
 	public static Writer buildWriter(final OutputStream os, final Headers requestHeaders) {
-		final String	encoding = requestHeaders.getFirst(NanoServiceFactory.HEAD_ACCEPT_CHARSET);
-		
-		if (encoding == null || encoding.isEmpty()) {
-			return new OutputStreamWriter(os);
+		if (os == null) {
+			throw new NullPointerException("Output stream can't be null"); 
 		}
 		else {
-			try{return new OutputStreamWriter(os,encoding);
-			} catch (UnsupportedEncodingException e) {
+			final String	encoding = requestHeaders.getFirst(NanoServiceFactory.HEAD_ACCEPT_CHARSET);
+			
+			if (encoding == null || encoding.isEmpty()) {
 				return new OutputStreamWriter(os);
+			}
+			else {
+				try{return new OutputStreamWriter(os,encoding);
+				} catch (UnsupportedEncodingException e) {
+					return new OutputStreamWriter(os);
+				}
 			}
 		}
 	}
 
 	public static Reader buildReader(final InputStream is, final Headers requestHeaders) {
-		final String	encoding = requestHeaders.getFirst(NanoServiceFactory.HEAD_CONTENT_TYPE);
-		
-		if (encoding == null || encoding.isEmpty()) {
-			return new InputStreamReader(is);
+		if (is == null) {
+			throw new NullPointerException("Input stream can't be null"); 
 		}
 		else {
-			try{return new InputStreamReader(is,encoding);
-			} catch (UnsupportedEncodingException e) {
+			final String	encoding = requestHeaders.getFirst(NanoServiceFactory.HEAD_CONTENT_TYPE);
+			
+			if (encoding == null || encoding.isEmpty()) {
 				return new InputStreamReader(is);
+			}
+			else {
+				try{return new InputStreamReader(is,encoding);
+				} catch (UnsupportedEncodingException e) {
+					return new InputStreamReader(is);
+				}
 			}
 		}
 	}

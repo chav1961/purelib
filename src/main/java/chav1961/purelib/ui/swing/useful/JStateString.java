@@ -1,9 +1,7 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
-
 import java.awt.CardLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -26,7 +24,6 @@ import javax.swing.JTable;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
-import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;

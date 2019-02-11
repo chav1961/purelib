@@ -1,16 +1,10 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.io.IOException;
 import java.net.URI;
 
-import javax.swing.JButton;
-import javax.swing.JList;
 import javax.swing.JPanel;
 
-import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -19,13 +13,13 @@ import chav1961.purelib.ui.interfacers.Format;
 public class JFileSystemChanger extends JPanel {
 	private static final long serialVersionUID = 6307351718365525165L;
 
-	private final JButton 	test = new JButton();
+//	private final JButton 	test = new JButton();
 	
 	public JFileSystemChanger() {
 		super(new BorderLayout(2,2));
-		final JList<FileSystemInterfaceDescriptor>	fileSystemList = new JList<>();
-		final JPanel		currentRecord = new JPanel(new LabelledLayout(5,5));
-		final JPanel		buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+//		final JList<FileSystemInterfaceDescriptor>	fileSystemList = new JList<>();
+//		final JPanel		currentRecord = new JPanel(new LabelledLayout(5,5));
+//		final JPanel		buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		
 		
 	}

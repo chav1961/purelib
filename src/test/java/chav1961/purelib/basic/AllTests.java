@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ SyntaxTreeTest.class, BitCharSetTest.class, CharUtilsTest.class,
+		CompilerUtilsTest.class,
 		ConsoleCommandManagerTest.class, InternalUtilsTest.class,
 		LineByLineProcessorTest.class, LoggerFacadeTest.class,
 		PluggableClassLoaderTest.class, SequenceIteratorTest.class,  
