@@ -324,7 +324,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean saveFileAs(final ProgressIndicator progress) throws IOException {
-		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
+		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentName.isEmpty() ? fsi : fsi.open(currentName), JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
 				try(final FileSystemInterface	current = fsi.clone().open(item)) {
 				
 					if (current.exists()) {
