@@ -410,6 +410,8 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		else {
 			try(final InputStream 	is = read()) {
 				Utils.copyStream(is,stream);
+			} catch (RuntimeException exc) {
+				throw new IOException(exc);
 			}
 			return this;
 		}
@@ -436,6 +438,8 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		else {
 			try(final Reader 	is = charRead(encoding)) {
 				Utils.copyStream(is,stream);
+			} catch (RuntimeException exc) {
+				throw new IOException(exc);
 			}
 			return this;
 		}

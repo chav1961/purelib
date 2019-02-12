@@ -72,12 +72,11 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 
 	@Override
 	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
-		try{nested.write(content,from,to-from);
-		} catch (IndexOutOfBoundsException exc) {
-			exc.printStackTrace();
+		nested.write(content,from,to-from);
+		if (storeAnchor) {
+			internalAnchor.append(content,from,to-from);
 		}
 	}
-
 
 	@Override
 	protected void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Long> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Long parameter) throws FlowException {
@@ -89,12 +88,12 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 					case P_CLOSE		: internalWrite(currentDispl, P_CLOSE); break;
 					case H_OPEN			: 
 						internalWrite(currentDispl, H_OPEN[parameter.intValue()]);
-						internalAnchor.setLength(0);
 						storeAnchor = true;
+						internalAnchor.setLength(0);
 						break;
 					case H_CLOSE		: 
 						storeAnchor = false;
-						internalWrite(currentDispl, ("<a id=\"" + URLEncoder.encode(internalAnchor.toString().toLowerCase(),"UTF-8") + "\"></a>").toCharArray());
+						internalWrite(currentDispl, ("<a id=\"" + URLEncoder.encode(internalAnchor.toString().trim().toLowerCase(),"UTF-8") + "\"></a>").toCharArray());
 						internalWrite(currentDispl, H_CLOSE[parameter.intValue()]); 
 						break;
 					case HR				: internalWrite(currentDispl, HR); break;
@@ -153,7 +152,21 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	@Override
 	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (localRef) {
-			final String	link = URLEncoder.encode(new String(data,startLink,endLink-startLink).toLowerCase(),"UTF-8");
+			final String	link;
+			int				found = -1;
+			
+			for (int index = startLink; index <= endLink; index++) {
+				if (data[index] == '#') {
+					found = index;
+					break;
+				}
+			}
+			if (found != -1) {
+				link = new String(data,startLink,found-startLink) + '#' + URLEncoder.encode(new String(data,found+1,endLink-found-1).trim().toLowerCase(),"UTF-8");
+			}
+			else {
+				link = new String(data,startLink,endLink-startLink); 
+			}
 			
 			if (startCaption == endCaption) {
 				internalWrite(displacement,A_START_LOCAL);
