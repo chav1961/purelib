@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.streams.char2byte.asm;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
+import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 

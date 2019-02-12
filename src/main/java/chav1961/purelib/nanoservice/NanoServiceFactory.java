@@ -427,7 +427,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 									final List<String>		accepts = call.getRequestHeaders().get(HEAD_ACCEPT);
 									final MimeType[]		awaited = InternalUtils.buildMime(accepts.toArray(new String[accepts.size()])); 
 
-									if (Arrays.deepEquals(detected,CREOLE_DETECTED) && InternalUtils.intersects(HTML_DETECTED,awaited)) {
+									if (Arrays.deepEquals(detected,CREOLE_DETECTED) && InternalUtils.mimesIntersect(HTML_DETECTED,awaited)) {
 										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,HTML_DETECTED[0].toString()+"; charset=UTF8");
 										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
 										
@@ -438,7 +438,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 											fsi.copy(cre);
 										}
 									}
-									else if (InternalUtils.intersects(detected,awaited)) {
+									else if (InternalUtils.mimesIntersect(detected,awaited)) {
 										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,detected[0].toString());
 										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
 										try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType)) {

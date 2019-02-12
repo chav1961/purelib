@@ -68,14 +68,14 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @since 0.0.2 last update 0.0.3
  *
  */
-@SuppressWarnings("restriction") 
+@SuppressWarnings("restriction")  
 public class InternalUtils {
 	private static final MimetypesFileTypeMap	typeMap = new MimetypesFileTypeMap();
 	private static final char[]					TRUE = "true".toCharArray();
 	private static final char[]					FALSE = "false".toCharArray();
 	private static final MimeType[]				NULL_MIME = new MimeType[0];
 	
-	static boolean mimesAreCompatible(final MimeType from, final MimeType with) {
+	public static boolean mimesAreCompatible(final MimeType from, final MimeType with) {
 		if (from == null) { 
 			throw new NullPointerException("Type to compare from can't be null");
 		}
@@ -87,7 +87,7 @@ public class InternalUtils {
 		}
 	}
 
-	static boolean mimesAreCompatible(final MimeType[] from, final MimeType with) {
+	public static boolean mimesAreCompatible(final MimeType[] from, final MimeType with) {
 		if (from == null || from.length == 0) {
 			throw new IllegalArgumentException("Types to compare from can't be null or empty array");
 		}
@@ -107,7 +107,7 @@ public class InternalUtils {
 		}
 	}
 	
-	static MimeType[] buildMime(final String... source) throws MimeTypeParseException {
+	public static MimeType[] buildMime(final String... source) throws MimeTypeParseException {
 		if (source == null) {
 			throw new NullPointerException("Source MIME list can't be null");
 		}
@@ -161,7 +161,7 @@ public class InternalUtils {
 		}
 	}
 
-	static MimeType[] defineMimeByExtension(final String fileName) {
+	public static MimeType[] defineMimeByExtension(final String fileName) {
 		if (fileName == null || fileName.isEmpty()) {
 			throw new IllegalArgumentException("File name to define MIME for can't be null or empty");
 		}
@@ -182,7 +182,7 @@ public class InternalUtils {
 		}
 	}
 
-	static boolean intersects(final MimeType[] left, final MimeType[] right) {
+	public static boolean mimesIntersect(final MimeType[] left, final MimeType[] right) {
 		if (left == null) {
 			throw new NullPointerException("Left MIME can't be null"); 
 		}
@@ -215,7 +215,7 @@ public class InternalUtils {
 		}
 	}
 
-	static boolean theSame(final MimeType[] left, final MimeType[] right) {
+	public static boolean theSameMimes(final MimeType[] left, final MimeType[] right) {
 		if (left == null) {
 			throw new NullPointerException("Left MIME can't be null"); 
 		}
@@ -350,7 +350,7 @@ public class InternalUtils {
 			final int[]		fill = new int[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseInt(source,start,fill,false);
+				start = CharUtils.parseSignedInt(source,start,fill,false);
 				result[index] = (byte) fill[0];
 			}
 			return result;
@@ -366,7 +366,7 @@ public class InternalUtils {
 			final int[]		fill = new int[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseInt(source,start,fill,false);
+				start = CharUtils.parseSignedInt(source,start,fill,false);
 				result[index] = (short) fill[0];
 			}
 			return result;
@@ -382,7 +382,7 @@ public class InternalUtils {
 			final int[]		fill = new int[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseInt(source,start,fill,false);
+				start = CharUtils.parseSignedInt(source,start,fill,false);
 				result[index] = fill[0];
 			}
 			return result;
@@ -398,7 +398,7 @@ public class InternalUtils {
 			final long[]	fill = new long[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseLong(source,start,fill,false);
+				start = CharUtils.parseSignedLong(source,start,fill,false);
 				result[index] = fill[0];
 			}
 			return result;
@@ -411,11 +411,11 @@ public class InternalUtils {
 		}
 		else {
 			final float[]	result = new float[calculateNL(source)+1];
-			final double[]	fill = new double[2];
+			final float[]	fill = new float[1];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseDouble(source,start,fill,false);
-				result[index] = (float) fill[0];
+				start = CharUtils.parseSignedFloat(source,start,fill,false);
+				result[index] = fill[0];
 			}
 			return result;
 		}
@@ -427,10 +427,10 @@ public class InternalUtils {
 		}
 		else {
 			final double[]	result = new double[calculateNL(source)+1];
-			final double[]	fill = new double[2];
+			final double[]	fill = new double[1];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseDouble(source,start,fill,false);
+				start = CharUtils.parseSignedDouble(source,start,fill,false);
 				result[index] = fill[0];
 			}
 			return result;
@@ -442,22 +442,24 @@ public class InternalUtils {
 			throw new NullPointerException("Source array can't be null"); 
 		}
 		else {
-			int		start = 0, currentElement = 0, nlCount = 1;
+			final String[]	result = new String[calculateNL(source)+1];
+			int				start = 0, len = source.length, from, to, currentElement = 0;
 			
-			for (char item : source) {
-				if (item == '\n') {
-					nlCount++;
+			while (start < len) {
+				while (start < len && source[start] <= ' ' && source[start] != '\n') {
+					start++;
 				}
-			}
-			final String[]	result = new String[nlCount];
-			
-			for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
-				if (source[index] == '\n') {
-					result[currentElement++] = new String(source,start,index-start);
-					start = index + 1;
+				from = start;
+				while (start < len && source[start] != '\n') {
+					start++;
 				}
+				to = start;
+				while (start > from && source[start-1] <= ' ') {
+					start--;
+				}
+				result[currentElement++] = new String(source,from,start-from);
+				start = to + 1;
 			}
-			result[currentElement] = new String(source,start,source.length-start);
 			return result;
 		}
 	}
@@ -561,8 +563,10 @@ public class InternalUtils {
 	private static int calculateNL(final char[] source) {
 		int	count = 0;
 		
-		for (char item : source) {
-			if (item == '\n') {
+		for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
+			final char 	item = source[index];
+		
+			if (item == '\n' && index < maxIndex-1) {	// Not the same last '\n'
 				count++;
 			}
 		}

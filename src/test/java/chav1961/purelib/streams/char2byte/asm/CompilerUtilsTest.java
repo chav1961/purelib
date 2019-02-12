@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.streams.char2byte.asm;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 public class CompilerUtilsTest {
 	@Test

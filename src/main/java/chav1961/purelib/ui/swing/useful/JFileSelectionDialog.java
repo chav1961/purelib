@@ -602,6 +602,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			dlg.pack();
 			dlg.setLocationRelativeTo(window);
 			localizer.addLocaleChangeListener(select);
+			select.content.requestFocusInWindow();
 			dlg.setVisible(true);
 			localizer.removeLocaleChangeListener(select);
 		}
@@ -642,6 +643,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			dlg.pack();
 			dlg.setLocationRelativeTo(window);
 			localizer.addLocaleChangeListener(select);
+			select.content.requestFocusInWindow();
 			dlg.setVisible(true);
 			localizer.removeLocaleChangeListener(select);
 		}

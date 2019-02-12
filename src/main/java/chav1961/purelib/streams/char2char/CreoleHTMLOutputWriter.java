@@ -3,6 +3,7 @@ package chav1961.purelib.streams.char2char;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URLEncoder;
 
 import chav1961.purelib.basic.FSM;
 import chav1961.purelib.basic.Utils;
@@ -53,7 +54,9 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	private static final char[]		IMG_CLOSE = "</img>".toCharArray();
 	
 	private final Writer			nested;
+	private final StringBuilder		internalAnchor = new StringBuilder();
 	private final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>	epilogue;
+	private boolean					storeAnchor = false;
 	
 	CreoleHTMLOutputWriter(final Writer nested, final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> prologue, final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> epilogue) throws IOException {
 		this.nested = nested;
@@ -84,8 +87,16 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 					case DIV_CLOSE		: internalWrite(currentDispl, DIV_CLOSE); break;
 					case P_OPEN			: internalWrite(currentDispl, P_OPEN); break;
 					case P_CLOSE		: internalWrite(currentDispl, P_CLOSE); break;
-					case H_OPEN			: internalWrite(currentDispl, H_OPEN[parameter.intValue()]); break;
-					case H_CLOSE		: internalWrite(currentDispl, H_CLOSE[parameter.intValue()]); break;
+					case H_OPEN			: 
+						internalWrite(currentDispl, H_OPEN[parameter.intValue()]);
+						internalAnchor.setLength(0);
+						storeAnchor = true;
+						break;
+					case H_CLOSE		: 
+						storeAnchor = false;
+						internalWrite(currentDispl, ("<a id=\"" + URLEncoder.encode(internalAnchor.toString().toLowerCase(),"UTF-8") + "\"></a>").toCharArray());
+						internalWrite(currentDispl, H_CLOSE[parameter.intValue()]); 
+						break;
 					case HR				: internalWrite(currentDispl, HR); break;
 					case UL_OPEN		: internalWrite(currentDispl, UL_OPEN); break;
 					case UL_CLOSE		: internalWrite(currentDispl, UL_CLOSE); break;
@@ -142,16 +153,18 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	@Override
 	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (localRef) {
+			final String	link = URLEncoder.encode(new String(data,startLink,endLink-startLink).toLowerCase(),"UTF-8");
+			
 			if (startCaption == endCaption) {
 				internalWrite(displacement,A_START_LOCAL);
-				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,link.toCharArray(),0,link.length(),false);
 				internalWrite(displacement,A_END);
 				internalWrite(displacement,data,startLink,endLink,false);
 				internalWrite(displacement,A_CLOSE);
 			}
 			else {
 				internalWrite(displacement,A_START_LOCAL);
-				internalWrite(displacement,data,startLink,endLink,false);
+				internalWrite(displacement,link.toCharArray(),0,link.length(),false);
 				internalWrite(displacement,A_END);
 				internalWrite(displacement,data,startCaption,endCaption,false);
 				internalWrite(displacement,A_CLOSE);

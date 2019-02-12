@@ -87,7 +87,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private final InputStreamGetter		getterIn;
 	private final OutputStreamGetter	getterOut;
 	private boolean		wasChanged = false;
-	private String		currentName = "";
+	private String		currentName = "", currentDir = "";
 	
 	/**
 	 * <p>Constructor of the class</p>
@@ -194,6 +194,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 			try(final OutputStream	os = getterOut.getContent()) {
 				os.flush();
 				clearModificationFlag();
+				currentName = "";
 				return true;
 			}
 		}
@@ -236,7 +237,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 					throw new IOException(e.getLocalizedMessage(),e);
 				}
 			}
-			try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS)) {
+			try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS)) {
 					try(final FileSystemInterface	current = fsi.clone().open(item)) {
 						
 						progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
@@ -245,6 +246,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		
 							Utils.copyStream(is, os, progress);
 							clearModificationFlag();
+							currentDir = current.open("../").getPath();
 							currentName = item;
 							return true;
 						}
@@ -290,6 +292,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()), current.size());
 					}
 					else {
+						current.create();
 						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
 					}
 					try(final InputStream			is = getterIn.getContent();
@@ -324,7 +327,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean saveFileAs(final ProgressIndicator progress) throws IOException {
-		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentName.isEmpty() ? fsi : fsi.open(currentName), JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
+		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
 				try(final FileSystemInterface	current = fsi.clone().open(item)) {
 				
 					if (current.exists()) {
@@ -339,6 +342,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	
 						Utils.copyStream(is, os, progress);
 						clearModificationFlag();
+						currentDir = current.open("../").getPath();
 						currentName = item;
 						return true;
 					}

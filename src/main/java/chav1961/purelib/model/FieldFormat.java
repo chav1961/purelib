@@ -3,6 +3,7 @@ package chav1961.purelib.model;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.Calendar;
@@ -19,12 +20,14 @@ public class FieldFormat {
 		BooleanContent,
 		StringContent,
 		FormattedStringContent,
+		PasswordContent,
 		IntegerContent,
 		NumericContent,
 		DateContent,
 		TimestampContent,
 		EnumContent,
 		FileContent,
+		URIContent,
 		ArrayContent,
 		NestedContent,
 		Unclassified
@@ -53,11 +56,11 @@ public class FieldFormat {
 	private final boolean		useInList;
 	private final boolean		useInListAnchored;
 	
-	public FieldFormat(final Class<?> clazz) throws SyntaxException {
+	public FieldFormat(final Class<?> clazz) throws NullPointerException, IllegalArgumentException {
 		this(clazz,"");
 	}
 	
-	public FieldFormat(final Class<?> clazz, final String format) throws SyntaxException {
+	public FieldFormat(final Class<?> clazz, final String format) throws NullPointerException, IllegalArgumentException {
 		if (clazz == null) {
 			throw new NullPointerException("Clazz to use in format can't be null");
 		}
@@ -85,57 +88,103 @@ public class FieldFormat {
 				mask = new String(data,start+1,count-1);
 				try{new MaskFormatter(mask);
 				} catch (ParseException e) {
-					throw new SyntaxException(0,0,"Format mask ["+mask+"]: "+e.getLocalizedMessage()); 
+					throw new IllegalArgumentException("Format mask ["+mask+"]: "+e.getLocalizedMessage()); 
 				}
 			}			
 			
 			while (data[pos] != '\n') {
 				switch (data[pos]) {
+					case 'r' : 
+						if (isReadOnlyOnExistent) {
+							throw new IllegalArgumentException("Format ["+new String(data)+"] as pos ["+pos+"]: mutually exclusive options ('r' and 'R')");
+						}
+						else {
+							isReadOnly = true;
+						}
+						break;
+					case 'R' :
+						if (isReadOnly) {
+							throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: mutually exclusive options ('r' and 'R')");
+						}
+						else {
+							isReadOnlyOnExistent = true; 
+						}
+						break; 
+					case 'l' : 
+						if (useInListAnchored) {
+							throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: mutually exclusive options ('l' and 'L')");
+						}
+						else {
+							useInList = true; 
+						}
+						break;
+					case 'L' : 
+						if (useInList) {
+							throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: mutually exclusive options ('l' and 'L')");
+						}
+						else {
+							useInListAnchored = true; 
+						}
+						break;
 					case 'm' : isMandatory = true; break;
-					case 'r' : isReadOnly = true; break;
-					case 'R' : isReadOnlyOnExistent = true; break; 
 					case 'n' : negativeHighlight = true; break;
 					case 'z' : zeroHighlight = true; break;
 					case 'p' : positiveHighlight = true; break;
-					case 'l' : useInList = true; break;
-					case 'L' : useInListAnchored = true; break;
 					case 's' : needSelect = true; break;
 					case '<' :
-						if (data[pos+1] == '>') {
-							alignment = Alignment.Ajusted;
-							pos++;
+						if (alignment != Alignment.NoMatter) {
+							throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: alignment appears more than once");
 						}
 						else {
-							alignment = Alignment.LeftAlignment;
+							if (data[pos+1] == '>') {
+								alignment = Alignment.Ajusted;
+								pos++;
+							}
+							else {
+								alignment = Alignment.LeftAlignment;
+							}
 						}
 						break;
 					case '>' :
-						if (data[pos+1] == '<') {
-							alignment = Alignment.CenterAlignment;
-							pos++;
+						if (alignment != Alignment.NoMatter) {
+							throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: alignment appears more than once");
 						}
 						else {
-							alignment = Alignment.RightAlignment;
+							if (data[pos+1] == '<') {
+								alignment = Alignment.CenterAlignment;
+								pos++;
+							}
+							else {
+								alignment = Alignment.RightAlignment;
+							}
 						}
 						break;
 					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-						value = 0;
-						while (Character.isDigit(data[pos])) {
-							value = 10 * value + data[pos++] - '0';
+						if (len > 0) {
+							throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: field length appears more than once");
 						}
-						len = value;
-						if (data[pos] == '.') {
+						else {
 							value = 0;
-							pos++;
 							while (Character.isDigit(data[pos])) {
 								value = 10 * value + data[pos++] - '0';
 							}
-							frac = value;
+							len = value;
+							if (data[pos] == '.') {
+								value = 0;
+								pos++;
+								while (Character.isDigit(data[pos])) {
+									value = 10 * value + data[pos++] - '0';
+								}
+								frac = value;
+							}
+							pos--;
+							if (frac >= len - 1) {
+								throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: frac part is too long");
+							}
 						}
-						pos--;
 						break;
 					default :
-						throw new SyntaxException(0,pos,"Format ["+new String(data)+"]: illegal char");
+						throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: illegal char");
 				}
 				pos++;
 			}
@@ -200,16 +249,16 @@ public class FieldFormat {
 		return useInListAnchored;
 	}
 
-	private ContentType defineContentType(final Class<?> clazz, final String mask) {
+	static ContentType defineContentType(final Class<?> clazz, final String mask) {
 		switch (Utils.defineClassType(clazz)) {
 			case Utils.CLASSTYPE_REFERENCE	:
 				if (clazz.isEnum()) {
 					return ContentType.EnumContent;
 				}
 				else if (clazz.isArray()) {
-					return ContentType.ArrayContent;
+					return clazz.getComponentType() == char.class ? ContentType.PasswordContent : ContentType.ArrayContent;
 				}
-				else if (clazz.isAssignableFrom(String.class) || clazz == Character.class) {
+				else if (String.class.isAssignableFrom(clazz) || Character.class.isAssignableFrom(clazz)) {
 					if (mask == null) {
 						return ContentType.StringContent;
 					}
@@ -217,23 +266,26 @@ public class FieldFormat {
 						return ContentType.FormattedStringContent;
 					}
 				}
-				else if (clazz.isAssignableFrom(BigInteger.class) || clazz == Byte.class || clazz == Short.class || clazz == Integer.class || clazz == Long.class) {
+				else if (BigInteger.class.isAssignableFrom(clazz) || clazz == Byte.class || clazz == Short.class || clazz == Integer.class || clazz == Long.class) {
 					return ContentType.IntegerContent;
 				}
-				else if (clazz.isAssignableFrom(BigDecimal.class) || clazz == Float.class || clazz == Double.class) {
+				else if (BigDecimal.class.isAssignableFrom(clazz) || clazz == Float.class || clazz == Double.class) {
 					return ContentType.NumericContent;
 				}
-				else if (clazz.isAssignableFrom(Date.class) || clazz.isAssignableFrom(Calendar.class)) {
-					return ContentType.DateContent;
-				}
-				else if (clazz.isAssignableFrom(Timestamp.class)) {
+				else if (Timestamp.class.isAssignableFrom(clazz)) {
 					return ContentType.TimestampContent;
 				}
-				else if (clazz.isAssignableFrom(Boolean.class)) {
+				else if (Date.class.isAssignableFrom(clazz) || Calendar.class.isAssignableFrom(clazz)) {
+					return ContentType.DateContent;
+				}
+				else if (Boolean.class.isAssignableFrom(clazz)) {
 					return ContentType.BooleanContent;
 				}
-				else if (clazz.isAssignableFrom(File.class) || clazz.isAssignableFrom(FileSystemInterface.class)) {
+				else if (File.class.isAssignableFrom(clazz) || FileSystemInterface.class.isAssignableFrom(clazz)) {
 					return ContentType.FileContent;
+				}
+				else if (URI.class.isAssignableFrom(clazz)) {
+					return ContentType.URIContent;
 				}
 				else  {
 					return ContentType.Unclassified;

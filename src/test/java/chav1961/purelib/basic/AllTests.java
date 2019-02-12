@@ -4,9 +4,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import chav1961.purelib.streams.char2byte.asm.CompilerUtilsTest;
+
 @RunWith(Suite.class)
 @SuiteClasses({ SyntaxTreeTest.class, BitCharSetTest.class, CharUtilsTest.class,
-		CompilerUtilsTest.class,
 		ConsoleCommandManagerTest.class, InternalUtilsTest.class,
 		LineByLineProcessorTest.class, LoggerFacadeTest.class,
 		PluggableClassLoaderTest.class, SequenceIteratorTest.class,  
