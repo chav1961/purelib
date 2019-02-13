@@ -421,7 +421,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private final Writer								diagnostics;
 
 	private ParserState									state = ParserState.beforePackage;
-	private long										packageId = -1, constructorId, voidId;
+	private long										packageId = -1, constructorId, classConstructorId, voidId;
 	private long										classNameId, joinedClassNameId;
 	private long										methodNameId;
 	private MethodDescriptor							methodDescriptor;
@@ -443,6 +443,7 @@ class LineParser implements LineByLineProcessorCallback {
 		this.tree = cc.getNameTree();
 		this.diagnostics = null;
 		constructorId = tree.placeOrChangeName("<init>",new NameDescriptor());
+		classConstructorId = tree.placeOrChangeName("<clinit>",new NameDescriptor());
 		voidId = tree.placeOrChangeName("void",new NameDescriptor());
 	}
 
@@ -454,6 +455,7 @@ class LineParser implements LineByLineProcessorCallback {
 		this.tree = cc.getNameTree();				
 		this.diagnostics = diagnostics;
 		constructorId = tree.placeOrChangeName("<init>",new NameDescriptor());
+		classConstructorId = tree.placeOrChangeName("<clinit>",new NameDescriptor());
 		voidId = tree.placeOrChangeName("void",new NameDescriptor());
 	}
 	
@@ -1171,6 +1173,9 @@ class LineParser implements LineByLineProcessorCallback {
 					if (typeId != voidId) {
 						throw new ContentException("Constructor method need return void type!");
 					}
+					else if ((classFlags & Constants.ACC_STATIC) != 0) {	// This is a <clinit>
+						methodNameId = classConstructorId;
+					}
 					else {
 						methodNameId = constructorId;
 					}
@@ -1217,8 +1222,11 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private void processParameterDir(final long id, final char[] data, int start) throws ContentException {
 		start = extractClassWithPossibleArray(data,start, cdr, forClass);
-		
-		if (forClass[0] == void.class) {
+
+		if (methodNameId == classConstructorId) {
+			throw new ContentException("Class initialization method <clinit> should not have any parameters!"); 
+		}
+		else if (forClass[0] == void.class) {
 			throw new ContentException("Type 'void' is invalid for using with parameters"); 
 		}
 		else {
@@ -1231,6 +1239,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private void processVarDir(final long id, final char[] data, int start) throws IOException, ContentException {
 		start = extractClassWithPossibleArray(data,start, cdr, forClass);
+		
 		if (forClass[0] == void.class) {
 			throw new ContentException("Type 'void' is invalid for using with parameters"); 
 		}
@@ -1808,7 +1817,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processShortGlobalIndexCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
-		final int	forResult[] = new int[1];
+		final int	forResult[] = new int[1]; 
 		
 		start = calculateFieldAddress(data,start,end,forResult);
 		if (forResult[0] <= 0 || forResult[0] > Short.MAX_VALUE) {

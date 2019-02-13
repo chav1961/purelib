@@ -16,6 +16,8 @@ class MethodDescriptor implements Closeable {
 	private static final char[]					THIS = "this".toCharArray(); 
 	private static final String					INIT_STRING = "<init>"; 
 	private static final char[]					INIT = INIT_STRING.toCharArray(); 
+
+	final short									accessFlags;
 	
 	private final List<Long>					parametersList = new ArrayList<>();
 	private final List<StackLevel>				pushStack = new ArrayList<>();
@@ -24,7 +26,6 @@ class MethodDescriptor implements Closeable {
 	private final List<short[]>					lineTable = new ArrayList<>();	
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
-	private final short							accessFlags;
 	private final long							classId, methodId, returnedTypeId;
 	private final long							longId, doubleId;
 	private final short							methodDispl;
