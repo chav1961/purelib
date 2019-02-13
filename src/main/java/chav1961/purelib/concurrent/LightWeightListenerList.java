@@ -47,6 +47,7 @@ public class LightWeightListenerList<Listener> {
 	 * to the given listener instance will be made after returning from {@linkplain #removeListener(Object)} method. False allows some 
 	 * calls after returning from {@linkplain #removeListener(Object)}. False is good choice in most of cases.
 	 */
+	@SuppressWarnings("unchecked")
 	public LightWeightListenerList(final Class<Listener> listenerClass, final boolean strictImplementation) {
 		if (listenerClass == null) {
 			throw new NullPointerException("Listener class can't be null");
@@ -71,6 +72,7 @@ public class LightWeightListenerList<Listener> {
 			final WriteLock	wr = lock.writeLock();
 			
 			try{wr.lock();
+				@SuppressWarnings("unchecked")
 				final Listener[]	newContent = (Listener[]) Array.newInstance(listenerClass,list.length+1);
 				
 				System.arraycopy(list,0,newContent,0,list.length);
@@ -97,6 +99,7 @@ public class LightWeightListenerList<Listener> {
 			try{wr.lock();
 				for (int index = 0, maxIndex = list.length; index < maxIndex; index++) {
 					if (listener.equals(list[index])) {
+						@SuppressWarnings("unchecked")
 						final Listener[]	newContent = (Listener[]) Array.newInstance(listenerClass,list.length-1);
 						
 						System.arraycopy(list,index,newContent,index,index);

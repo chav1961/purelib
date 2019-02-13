@@ -69,20 +69,21 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	
 	@Override
 	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-//		int[]		forItem;
-		
 		if (startCaption < endCaption) {
 			putLexema(CreoleLexema.ImageRef,(int)displacement,IMAGE_START.length+(endLink-startLink)+IMAGE_PART.length+(endCaption-startCaption)+IMAGE_END.length);
 		}
 		else {
-			putLexema(CreoleLexema.ImageRef,(int)displacement,IMAGE_START.length+(endLink-startLink)+IMAGE_END.length);
+			if (data[endLink+1] != '}') {
+				putLexema(CreoleLexema.ImageRef,(int)displacement,endLink-startLink);
+			}
+			else {
+				putLexema(CreoleLexema.ImageRef,(int)displacement,IMAGE_START.length+(endLink-startLink)+IMAGE_END.length);
+			}
 		}
 	}
 
 	@Override
 	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-//		int[]		forItem;
-		
 		if (startCaption < endCaption) {
 			putLexema(CreoleLexema.LinkRef,(int)displacement,LINK_START.length+(endLink-startLink)+LINK_PART.length+(endCaption-startCaption)+LINK_END.length);
 		}

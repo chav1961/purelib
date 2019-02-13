@@ -9,6 +9,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JOptionPane;
@@ -19,8 +23,14 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.MutableContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.interfacers.Format;
 
 /**
  * <p>This class is used to support opening/editing/saving any content in the Swing applications. It implements very popular
@@ -47,6 +57,10 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private static final String				UNSAVED_BODY = "JFileContentManipulator.unsaved.body";
 	private static final String				PROGRESS_LOADING = "JFileContentManipulator.progress.loading";
 	private static final String				PROGRESS_SAVING = "JFileContentManipulator.progress.saving";
+	private static final String				LRU_MISSING_TITLE = "JFileContentManipulator.lru.missing.title";
+	private static final String				LRU_MISSING = "JFileContentManipulator.lru.missing";	
+	private static final int				LRU_LIMIT = 10;	
+		
 	private static final ProgressIndicator	DUMMY = new ProgressIndicator() {
 												@Override public void start(String caption) {}
 												@Override public void start(String caption, long total) {}
@@ -86,6 +100,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private final Localizer				localizer;
 	private final InputStreamGetter		getterIn;
 	private final OutputStreamGetter	getterOut;
+	private final List<String>			lru = new ArrayList<>();
 	private boolean		wasChanged = false;
 	private String		currentName = "", currentDir = "";
 	
@@ -251,6 +266,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 							return true;
 						}
 					} finally {
+						fillLru(currentName,false);
 						progress.end();
 					}
 				}
@@ -261,6 +277,57 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		}
 	}
 
+	/**
+	 * <p>Open file from the LRU list</p>
+	 * @param file file to open
+	 * @return true of file was successfully opened
+	 * @throws IOException
+	 * @throws IllegalArgumentException when file name os null or empty
+	 */
+	public boolean openFile(final String file) throws IOException, IllegalArgumentException {
+		return openFile(file,DUMMY);
+	}
+	
+	public boolean openFile(final String file, final ProgressIndicator progress) throws IOException, NullPointerException, IllegalArgumentException {
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("File name can't be null or empty"); 
+		}
+		else if (!lru.contains(file)) {
+			throw new IllegalArgumentException("File to open [] not found in the 'last used' list. Use getLastUsed() to get valid names"); 
+		}
+		else if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null");
+		}
+		else {
+			try(final FileSystemInterface	current = fsi.clone().open(file)) {
+				if (!current.exists() || !current.isFile()) {
+					if (new JLocalizedOptionPane(localizer).confirm(null, LRU_MISSING, LRU_MISSING_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+						lru.remove(file);
+					}
+					return false;
+				}
+				else {
+					try{progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
+						try(final InputStream			is = current.read();
+							final OutputStream			os = getterOut.getContent()) {
+		
+							Utils.copyStream(is, os, progress);
+							clearModificationFlag();
+							currentDir = current.open("../").getPath();
+							currentName = current.getPath();
+							return true;
+						}
+					} finally {
+						fillLru(currentName,false);
+						progress.end();
+					}
+				}
+			} catch (LocalizationException e) {
+				throw new IOException(e);
+			}
+		}
+	}
+	
 	/**
 	 * <p>Process 'File'--&gt;'Save' action</p>
 	 * @return true if processing was successful
@@ -305,6 +372,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				} catch (LocalizationException | IllegalArgumentException e) {
 					throw new IOException(e);
 				} finally {
+					fillLru(currentName,true);
 					progress.end();
 				}
 			}
@@ -347,6 +415,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 						return true;
 					}
 				} finally {
+					fillLru(currentName,true);
 					progress.end();
 				}
 			}
@@ -391,6 +460,14 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		wasChanged = false;
 	}
 
+	/**
+	 * <p>Get names of last used files</p>
+	 * @return list of names. Can be empty but not null.
+	 */
+	public List<String> getLastUsed() {
+		return lru;
+	}
+
 	static InputStreamGetter buildInputStreamGetter(final JTextComponent component) {
 		if (component == null) {
 			throw new NullPointerException("Text component can't be null"); 
@@ -422,6 +499,19 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 					};
 				}
 			};
+		}
+	}
+	
+	private void fillLru(final String name, final boolean fromSave) {
+		if (lru.size() > 0) {	// Avoid filling by repeatable values
+			if (lru.get(0).equals(name) && fromSave) {
+				return;
+			}
+		}
+		lru.remove(currentName);
+		lru.add(0,currentName);
+		if (lru.size() > LRU_LIMIT) {
+			lru.remove(lru.size()-1);
 		}
 	}
 }
