@@ -133,6 +133,7 @@ public abstract class SwingUtils {
 			throw new IllegalArgumentException("Name to find can't be null or empty");
 		}
 		else if (node != null) {
+			System.err.println("Find: "+name+" and "+node.getName());
 			if (name.equals(node.getName())) {
 				return node;
 			}
@@ -141,6 +142,17 @@ public abstract class SwingUtils {
 					for (int index = 0, maxIndex = node.getComponentCount(); index < maxIndex; index++) {
 						if (node.getComponent(index) instanceof Container) {
 							final Container	child = findComponentByName((Container)node.getComponent(index),name);
+							
+							if (child != null) {
+								return child;
+							}
+						}
+					}
+				}
+				else if ((node instanceof JMenu) && ((JMenu)node).getMenuComponentCount() > 0) {
+					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); index < maxIndex; index++) {
+						if (((JMenu)node).getMenuComponent(index) instanceof JMenu) {
+							final Container	child = findComponentByName((Container)((JMenu)node).getMenuComponent(index),name);
 							
 							if (child != null) {
 								return child;

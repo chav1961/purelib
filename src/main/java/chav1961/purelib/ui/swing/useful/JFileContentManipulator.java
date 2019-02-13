@@ -261,8 +261,8 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		
 							Utils.copyStream(is, os, progress);
 							clearModificationFlag();
-							currentDir = current.open("../").getPath();
 							currentName = item;
+							currentDir = current.open("../").getPath();
 							return true;
 						}
 					} finally {
@@ -313,8 +313,8 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		
 							Utils.copyStream(is, os, progress);
 							clearModificationFlag();
-							currentDir = current.open("../").getPath();
 							currentName = current.getPath();
+							currentDir = current.open("../").getPath();
 							return true;
 						}
 					} finally {
@@ -410,8 +410,8 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	
 						Utils.copyStream(is, os, progress);
 						clearModificationFlag();
-						currentDir = current.open("../").getPath();
 						currentName = item;
+						currentDir = current.open("../").getPath();
 						return true;
 					}
 				} finally {

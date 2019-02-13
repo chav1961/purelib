@@ -151,6 +151,7 @@ public class SwingModelUtils {
 		
 		private JMenuBarWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
+			this.setName(metadata.getName());
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
@@ -182,6 +183,7 @@ public class SwingModelUtils {
 		
 		private JMenuPopupWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
+			this.setName(metadata.getName());
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
@@ -213,6 +215,7 @@ public class SwingModelUtils {
 		
 		private JMenuItemWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
+			this.setName(metadata.getName());
 			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
 			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
 				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
@@ -252,6 +255,7 @@ public class SwingModelUtils {
 		
 		private JMenuWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
+			this.setName(metadata.getName());
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();

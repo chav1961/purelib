@@ -97,6 +97,25 @@ public class ModelUtils {
 			return null;
 		}
 	}
+
+	/**
+	 * <p>Convert model tree to tree text</p>
+	 * @param metaData model tree to convert
+	 * @return tree text converted. Can be empty but not null
+	 * @throws NullPointerException when metadata is null
+	 */
+	public static String toString(final ContentNodeMetadata metaData) {
+		if (metaData == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			
+			toString("",metaData,sb);
+			return sb.toString();
+		}
+	}
+	
 	
 	/**
 	 * <p>Get value from instance by getters and setters</p>
@@ -268,4 +287,15 @@ public class ModelUtils {
 			}
 		}
 	}
+
+
+	private static void toString(final String prefix, final ContentNodeMetadata node, final StringBuilder sb) {
+		sb.append(prefix).append(node.getRelativeUIPath()).append('\n');
+		sb.append(prefix).append('\t').append(node.getName()).append(", app=").append(node.getApplicationPath()).append('\n');
+		for (ContentNodeMetadata item : node) {
+			toString(prefix+'\t',item,sb);
+		}
+	}
+
+
 }

@@ -555,8 +555,8 @@ loop:		for (;from < to; from++) {
 								
 								for (int index = from + 1; index < to; index++) {
 									if (data[index] > ' ') {
-										automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_TD,0);						
-										start = ++from;
+										automat(displacement,lineNo,index-begin,CreoleTerminals.TERM_TD,0);						
+										start = index;
 										empty = false;
 										break;
 									}
@@ -588,7 +588,7 @@ loop:		for (;from < to; from++) {
 								int	startLink, endLink, startCaption;
 								
 								startLink = from += 2;
-								while (from < to && data[from] != '|') {
+								while (from < to && data[from] != '|' && data[from] != '}') {
 									from++;
 								}
 								if (data[from] == '|') {
