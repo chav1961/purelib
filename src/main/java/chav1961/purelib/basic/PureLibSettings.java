@@ -51,7 +51,12 @@ public class PureLibSettings {
 	/**
 	 * <p>This is current version of the Pure Library</p>
 	 */
-	public static final String		CURRENT_VERSION = "0.0.2";
+	public static final String		CURRENT_VERSION = "0.0.3";
+
+	/**
+	 * <p>This is a vendor of the Pure Library</p>
+	 */
+	public static final String		VENDOR = "aka chav1961";
 	
 	/**
 	 * <p>This is <b>-D</b> variable name to import content to the settings repository</p>
