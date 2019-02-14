@@ -21,6 +21,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
@@ -37,6 +39,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpringLayout;
@@ -326,6 +329,28 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					return result;
 				}
 			});
+			getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Enter"),"accept");
+			getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Esc"),"cancel");
+			getActionMap().put("accept",new AbstractAction() {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (callback != null) {
+						callback.process(true);
+						callback = null;
+					}
+				}
+			});			
+			getActionMap().put("cancel",new AbstractAction() {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (callback != null) {
+						callback.process(false);
+						callback = null;
+					}
+				}
+			});			
 			accept.addActionListener((e)->{
 				if (callback != null) {
 					callback.process(true);
