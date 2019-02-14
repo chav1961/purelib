@@ -2,10 +2,13 @@ package chav1961.purelib.fsys;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 
 /**
  * <p>This class is a factory for creating file system instances for the given URI type.</p>
@@ -46,18 +49,26 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1, last change at 0.0.2
+ * @since 0.0.1, last updated 0.0.3
  */
 
 public class FileSystemFactory {
+	public static final String		FILESYSTEM_LOCALIZATION_PREFIX = "fileSystems";
+	public static final String		FILESYSTEM_DESCRIPTION_SUFFIX = "description";
+	public static final String		FILESYSTEM_VENDOR_SUFFIX = "vendor";
+	public static final String		FILESYSTEM_LICENSE_SUFFIX = "license";
+	public static final String		FILESYSTEM_LICENSE_CONTENT_SUFFIX = "licenseContent";
+	public static final String		FILESYSTEM_LICENSE_HELP_SUFFIX = "help";
 	
 	/**
 	 * <p>Create {@link FileSystemInterface} instance for the given URI</p>
 	 * @param location uri for passing it to the file system instance constructor. 
 	 * @return file system instance was created
 	 * @throws IOException if any exceptions was thrown
+	 * @throws NullPointerException if location is null
+	 * @throws IllegalArgumentException if location is not absolute URI
 	 */
-	public static FileSystemInterface createFileSystem(final URI location) throws IOException {
+	public static FileSystemInterface createFileSystem(final URI location) throws IOException, NullPointerException, IllegalArgumentException {
 		return createFileSystem(location,FileSystemFactory.class.getClassLoader());
 	}
 
@@ -65,10 +76,12 @@ public class FileSystemFactory {
 	 * <p>Create {@link FileSystemInterface} instance for the given URI and class loader</p>
 	 * @param location uri for passing it to the file system instance constructor.
 	 * @param loader class loader to seek deployed file system instance services
-	 * @return file system instance was created
+	 * @return file system instance created
 	 * @throws IOException if any exceptions was thrown
+	 * @throws NullPointerException if location is null
+	 * @throws IllegalArgumentException if location is not absolute URI
 	 */
-	public static FileSystemInterface createFileSystem(final URI location, final ClassLoader loader) throws IOException {
+	public static FileSystemInterface createFileSystem(final URI location, final ClassLoader loader) throws IOException, NullPointerException, IllegalArgumentException {
 		if (location == null) {
 			throw new NullPointerException("Location can't be null");
 		}
@@ -88,6 +101,43 @@ public class FileSystemFactory {
 				}
 			}
 			throw new IOException("No registered filesystem are supported the resource URI ["+location+"]");
+		}
+	}
+
+	/**
+	 * <p>Get list of available file systems</p>
+	 * @return list of available file systems. Can be empty but not null
+	 * @throws IOException on any errors in the SPI
+	 * @since 0.0.3
+	 */
+	public static FileSystemInterfaceDescriptor[] getAvailableFileSystems() throws IOException {
+		return getAvailableFileSystems(FileSystemFactory.class.getClassLoader());
+	}
+
+	/**
+	 * <p>Get list of available file systems</p>
+	 * @param loader class loader to seek deployed file system instance services
+	 * @return list of available file systems. Can be empty but not null
+	 * @throws IOException on any errors in the SPI
+	 * @throws NullPointerException if class loader is null 
+	 * @since 0.0.3
+	 */
+	public static FileSystemInterfaceDescriptor[] getAvailableFileSystems(final ClassLoader loader) throws IOException, NullPointerException {
+		if (loader == null) {
+			throw new NullPointerException("Class loader to use can't be null"); 
+		}
+		else {
+			final List<FileSystemInterfaceDescriptor>	result = new ArrayList<>();
+			
+			try{for (FileSystemInterface item : ServiceLoader.load(FileSystemInterface.class,loader)){
+					if (item instanceof FileSystemInterfaceDescriptor) {
+						result.add((FileSystemInterfaceDescriptor)item);
+					}
+				}
+				return result.toArray(new FileSystemInterfaceDescriptor[result.size()]);
+			} finally {
+				result.clear();
+			}
 		}
 	}
 }

@@ -3,6 +3,7 @@ package chav1961.purelib.fsys.interfaces;
 import java.io.IOException;
 import java.net.URI;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.ui.swing.useful.JFileSystemChanger;
 
@@ -19,6 +20,11 @@ public interface FileSystemInterfaceDescriptor {
 	 * @return file system driver class name
 	 */
 	String getClassName();
+	
+	/**
+	 * <p>Return</p>
+	 * @return
+	 */
 	String getVersion();
 	URI getLocalizerAssociated();
 	String getDescriptionId();
@@ -27,5 +33,6 @@ public interface FileSystemInterfaceDescriptor {
 	String getLicenseContentId();
 	String getHelpId();
 	URI getUriTemplate();
+	FileSystemInterface getInstance() throws EnvironmentException;
 	boolean testConnection(final URI connection, final LoggerFacade logger) throws IOException;
 }

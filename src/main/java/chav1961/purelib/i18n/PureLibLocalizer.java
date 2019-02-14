@@ -1,5 +1,7 @@
 package chav1961.purelib.i18n;
 
+import java.net.URI;
+
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
@@ -9,10 +11,14 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see Localizer
  * @see chav1961.purelib.fsys
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
 public class PureLibLocalizer extends PropertiesLocalizer {
+	public static final String		LOCALIZER_SUBSCHEME = "prop";
+	public static final String		LOCALIZER_TAIL = "chav1961/purelib/i18n/localization";
+	public static final URI			LOCALIZER_SCHEME = URI.create(Localizer.LOCALIZER_SCHEME+":"+LOCALIZER_SUBSCHEME+":"+LOCALIZER_TAIL);
+	
 	public static final String		TITLE_HELP_SCREEN = "titleHelpScreen";
 	public static final String		TITLE_ASK_PARAMETERS_SCREEN = "titleAskParametersScreen";
 	public static final String		TITLE_FILECHOOSER_OPEN = "titleFileChooserOpen";
@@ -39,6 +45,6 @@ public class PureLibLocalizer extends PropertiesLocalizer {
 	public static final String		TITLE_STANDARD_SELECTION_MARK_TOOLTIP = "titleStandardSelectionMarkTooltip";
 	
 	public PureLibLocalizer() throws LocalizationException, NullPointerException {
-		super("chav1961/purelib/i18n/localization");
+		super(LOCALIZER_TAIL);
 	}
 }

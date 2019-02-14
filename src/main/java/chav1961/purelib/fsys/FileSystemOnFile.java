@@ -13,10 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 /**
  * <p>This class implements the file system interface on the usual file system. The URI to use this class is 
@@ -27,11 +32,16 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface FileSystemInterface
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last updated 0.0.2
+ * @since 0.0.1 last updated 0.0.3
  */
 
-public class FileSystemOnFile extends AbstractFileSystem {
+public class FileSystemOnFile extends AbstractFileSystem implements FileSystemInterfaceDescriptor {
 	private static final URI			SERVE = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:/");
+	private static final String			DESCRIPTION = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_DESCRIPTION_SUFFIX;
+	private static final String			VENDOR = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_VENDOR_SUFFIX;
+	private static final String			LICENSE = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_SUFFIX;
+	private static final String			LICENSE_CONTENT = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_CONTENT_SUFFIX;
+	private static final String			HELP = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_HELP_SUFFIX;
 	
 	private	final URI					rootPath;
 
@@ -91,6 +101,74 @@ public class FileSystemOnFile extends AbstractFileSystem {
 	@Override
 	public DataWrapperInterface createDataWrapper(final URI actualPath) throws IOException {
 		return new FileDataWrapper(actualPath,rootPath);
+	}
+
+	@Override
+	public String getClassName() {
+		return this.getClass().getSimpleName();
+	}
+
+	@Override
+	public String getVersion() {
+		return PureLibSettings.CURRENT_VERSION;
+	}
+
+	@Override
+	public URI getLocalizerAssociated() {
+		return PureLibLocalizer.LOCALIZER_SCHEME;
+	}
+
+	@Override
+	public String getDescriptionId() {
+		return DESCRIPTION;
+	}
+
+	@Override
+	public String getVendorId() {
+		return VENDOR;
+	}
+
+	@Override
+	public String getLicenseId() {
+		return LICENSE;
+	}
+
+	@Override
+	public String getLicenseContentId() {
+		return LICENSE_CONTENT;
+	}
+
+	@Override
+	public String getHelpId() {
+		return HELP;
+	}
+
+	@Override
+	public URI getUriTemplate() {
+		return SERVE;
+	}
+
+	@Override
+	public FileSystemInterface getInstance() throws EnvironmentException {
+		return this;
+	}
+
+	@Override
+	public boolean testConnection(final URI connection, final LoggerFacade logger) throws IOException {
+		if (connection == null) {
+			throw new NullPointerException("Connection to test can't be null");
+		}
+		else {
+			try(final FileSystemInterface	inst  = newInstance(connection)) {
+				
+				return inst.exists();
+			} catch (EnvironmentException e) {
+				if (logger != null) {
+					logger.message(Severity.error, e, "Error testing connection [%1$s]: %2$s",connection,e.getLocalizedMessage());
+				}
+				throw new IOException(e.getLocalizedMessage(),e);
+			}
+		}
 	}
 	
 	private static class FileDataWrapper implements DataWrapperInterface {

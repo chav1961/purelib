@@ -18,8 +18,11 @@ import javax.swing.KeyStroke;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.UITestInterface;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.LocalizerFactory.FillLocalizedContentCallback;
+import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
@@ -83,7 +86,6 @@ public class SwingModelUtils {
 		}
 	}
 	
-	
 	public static UITestInterface buildTestInterface(final ContentNodeMetadata metadata, final Component uiRoot) {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null");
@@ -95,7 +97,51 @@ public class SwingModelUtils {
 			return new SwingTestManager((Class<Component>)uiRoot.getClass(), uiRoot, metadata);
 		}
 	}
+
+	public static boolean putToScreen(final ContentNodeMetadata metadata, final Object content, final Component uiRoot) {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content instance object can't be null"); 
+		}
+		else if (uiRoot == null) {
+			throw new NullPointerException("UI root component can't be null"); 
+		}
+		else if (content.getClass().isAnnotationPresent(LocaleResource.class)) {
+			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] doesn't annotated with @LocaleResource, and can't be used here"); 
+		}
+		else if (metadata.getType() != content.getClass()) {
+			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] differ to metadata instance class ["+metadata.getType().getCanonicalName()+"]. Use appropriative arguments!"); 
+		}
+		else {
+			metadata.getOwner().walkDown((mode, applicationPath, uiPath, node)->{
+				return ContinueMode.CONTINUE;
+			},metadata.getUIPath());
+			return true;
+		}
+	}
 	
+	public static boolean getFromScreen(final ContentNodeMetadata metadata, final Component uiRoot, final Object content) {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content instance object can't be null"); 
+		}
+		else if (uiRoot == null) {
+			throw new NullPointerException("UI root component can't be null"); 
+		}
+		else if (content.getClass().isAnnotationPresent(LocaleResource.class)) {
+			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] doesn't annotated with @LocaleResource, and can't be used here"); 
+		}
+		else if (metadata.getType() != content.getClass()) {
+			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] differ to metadata instance class ["+metadata.getType().getCanonicalName()+"]. Use appropriative arguments!"); 
+		}
+		else {
+			return true;
+		}
+	}
 	
 	private static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./navigation.node.")) {
