@@ -3,6 +3,8 @@ package chav1961.purelib.fsys.interfaces;
 import java.io.IOException;
 import java.net.URI;
 
+import javax.swing.Icon;
+
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.ui.swing.useful.JFileSystemChanger;
@@ -29,6 +31,7 @@ public interface FileSystemInterfaceDescriptor {
 	URI getLocalizerAssociated();
 	String getDescriptionId();
 	String getVendorId();
+	Icon getIcon();
 	String getLicenseId();
 	String getLicenseContentId();
 	String getHelpId();

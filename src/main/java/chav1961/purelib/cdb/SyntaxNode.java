@@ -2,10 +2,11 @@ package chav1961.purelib.cdb;
 
 public class SyntaxNode<Type extends Enum<?>> {
 	public int					row, col;
+	protected Type				type;
 	public long					value;
 	public Object				cargo;
+	public SyntaxNode<Type>		parent = null;
 	public SyntaxNode<Type>[]	children;
-	protected Type				type;
 	
 	public SyntaxNode(final int row, final int col, final Type type, final long value, final Object cargo, SyntaxNode<Type>... children) {
 		if (type == null) {
@@ -18,6 +19,9 @@ public class SyntaxNode<Type extends Enum<?>> {
 			this.value = value;
 			this.cargo = cargo;
 			this.children = children;
+			for (SyntaxNode<Type> item : children) {
+				item.parent = this;
+			}
 		}
 	}
 	

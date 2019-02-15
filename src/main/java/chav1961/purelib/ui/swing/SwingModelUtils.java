@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Locale;
@@ -16,6 +17,7 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.UITestInterface;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -98,7 +100,7 @@ public class SwingModelUtils {
 		}
 	}
 
-	public static boolean putToScreen(final ContentNodeMetadata metadata, final Object content, final Component uiRoot) {
+	public static boolean putToScreen(final ContentNodeMetadata metadata, final Object content, final Container uiRoot) {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
@@ -116,6 +118,13 @@ public class SwingModelUtils {
 		}
 		else {
 			metadata.getOwner().walkDown((mode, applicationPath, uiPath, node)->{
+				if (mode == NodeEnterMode.ENTER) {
+					final Component	component = SwingUtils.findComponentByName(uiRoot,node.getName());
+					
+					if (component instanceof JComponentInterface) {
+						((JComponentInterface)component).assignValueToComponent("AAA");
+					}
+				}
 				return ContinueMode.CONTINUE;
 			},metadata.getUIPath());
 			return true;

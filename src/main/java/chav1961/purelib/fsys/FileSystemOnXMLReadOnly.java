@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -68,6 +70,7 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 	private static final String	LICENSE = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnRMI.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_SUFFIX;
 	private static final String	LICENSE_CONTENT = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnRMI.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_CONTENT_SUFFIX;
 	private static final String	HELP = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnRMI.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_HELP_SUFFIX;
+	private static final Icon	ICON = new ImageIcon(FileSystemInMemory.class.getResource("icon.png"));
 	
 	private final XPathFactory 	factory = XPathFactory.newInstance();
 	private final URI 			rootPath;
@@ -233,6 +236,11 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 		return DESCRIPTION;
 	}
 
+	@Override
+	public Icon getIcon() {
+		return ICON;
+	}
+	
 	@Override
 	public String getVendorId() {
 		return VENDOR;

@@ -26,19 +26,23 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
 public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JComponentMonitor {
 	private static final long 				serialVersionUID = 2981133342567260172L;
 	private static final int				GAP_SIZE = 5; 
 
-	private final ContentMetadataInterface	mdi;
+	private final Object					content;
 	private final Localizer					localizer;
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
+	final ContentMetadataInterface			mdi;
 	
 	public J2ColumnEditor(final Object content) throws SyntaxException, LocalizationException, NullPointerException, PreparationException, IllegalArgumentException, ContentException, IOException {
 		this(content,1);
@@ -53,6 +57,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 		else {
 			final Class<?>	instanceClass = content.getClass();
 			
+			this.content = content;					
 			this.mdi = ContentModelFactory.forAnnotatedClass(instanceClass);
 			this.localizer = LocalizerFactory.getLocalizer(mdi.getRoot().getLocalizerAssociated());
 	
@@ -74,19 +79,21 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 								}
 								accessors.put(node.getUIPath().toString(),GettersAndSettersFactory.buildGetterAndSetter(instanceClass,node.getName()));
 							} catch (LocalizationException | ContentException exc) {
+								exc.printStackTrace();
 							}
 						}
 					}
 				}
 				return ContinueMode.CONTINUE;
 			}, mdi.getRoot().getUIPath());
+			fillLocalizedStrings();
+			bulkUpload();
 		}
 	}
 	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-		// TODO Auto-generated method stub
-		
+		fillLocalizedStrings();
 	}
 
 	@Override
@@ -95,6 +102,54 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 		return false;
 	}
 
+	public void bulkDownload() {
+		mdi.walkDown((mode,applicationPath,uiPath,node)->{
+			if (mode == NodeEnterMode.ENTER) {
+				if(node.getApplicationPath() != null) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+						final JComponent		field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
+		
+						try{if (field instanceof JComponentInterface) {
+								final Object	value = ((JComponentInterface)field).getValueFromComponent();
+								
+								ModelUtils.setValueBySetter(content, value
+														, accessors.get(node.getUIPath().toString())
+														, node);
+							}
+						} catch (ContentException exc) {
+							exc.printStackTrace();
+						}
+					}
+				}
+			}
+			return ContinueMode.CONTINUE;
+		}, mdi.getRoot().getUIPath());
+	}
+
+	public void bulkUpload() {
+		mdi.walkDown((mode,applicationPath,uiPath,node)->{
+			if (mode == NodeEnterMode.ENTER) {
+				if(node.getApplicationPath() != null) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+						final JComponent		field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
+		
+						try{if (field instanceof JComponentInterface) {
+								final Object	value = ModelUtils.getValueByGetter(content
+														, accessors.get(node.getUIPath().toString())
+														, node);
+								
+								((JComponentInterface)field).assignValueToComponent(value);
+							}
+						} catch (ContentException exc) {
+							exc.printStackTrace();
+						}
+					}
+				}
+			}
+			return ContinueMode.CONTINUE;
+		}, mdi.getRoot().getUIPath());
+	}
+	
 	private void fillLocalizedStrings() {
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {

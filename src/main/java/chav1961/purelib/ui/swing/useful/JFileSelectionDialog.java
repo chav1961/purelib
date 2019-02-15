@@ -10,6 +10,7 @@ import java.awt.GridLayout;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -329,28 +330,8 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					return result;
 				}
 			});
-			getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Enter"),"accept");
-			getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Esc"),"cancel");
-			getActionMap().put("accept",new AbstractAction() {
-				private static final long serialVersionUID = 1L;
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (callback != null) {
-						callback.process(true);
-						callback = null;
-					}
-				}
-			});			
-			getActionMap().put("cancel",new AbstractAction() {
-				private static final long serialVersionUID = 1L;
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (callback != null) {
-						callback.process(false);
-						callback = null;
-					}
-				}
-			});			
+			assignEnterAndEscape(this);
+			assignEnterAndEscape(fileName);
 			accept.addActionListener((e)->{
 				if (callback != null) {
 					callback.process(true);
@@ -557,6 +538,12 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				});
 			}
 			fillCurrentState(currentNode);
+			if ((options & OPTIONS_FOR_OPEN) != 0) {
+				content.requestFocusInWindow();
+			}
+			else {
+				fileName.requestFocusInWindow();
+			}
 		}
 	}
 
@@ -738,6 +725,31 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		parent.setToolTipText(localizer.getValue(PARENT_TT));
 	}
 
+	private void assignEnterAndEscape(JComponent component) {
+		component.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"accept");
+		component.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"cancel");
+		component.getActionMap().put("accept",new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (callback != null) {
+					callback.process(true);
+					callback = null;
+				}
+			}
+		});			
+		component.getActionMap().put("cancel",new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (callback != null) {
+					callback.process(false);
+					callback = null;
+				}
+			}
+		});			
+	}
+	
 	public static class SimpleFileFilter implements FilterCallback {
 		private final String	filterName;
 		private final String[]	masks;

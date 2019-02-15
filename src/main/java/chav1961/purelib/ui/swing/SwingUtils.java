@@ -209,6 +209,9 @@ public abstract class SwingUtils {
 				case Unclassified	:
 					result = null;
 					break;
+				case URIContent		:
+					result = new JTextFieldWithMeta(metadata,format,monitor);
+					break;
 				case ArrayContent	:
 				case NestedContent	:
 				case TimestampContent	:

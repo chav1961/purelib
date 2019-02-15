@@ -22,8 +22,8 @@ public interface AppDebugInterface extends AutoCloseable {
 	}
 	
 	void close() throws DebuggingException;
-	Event waitEevent() throws InterruptedException, DebuggingException;
-	Event waitEevent(EventType... eventTypes) throws InterruptedException, DebuggingException;
+	Event waitEvent() throws InterruptedException, DebuggingException;
+	Event waitEvent(EventType... eventTypes) throws InterruptedException, DebuggingException;
 	String[] getThreadNames() throws DebuggingException;
 	String[] getClassNames() throws DebuggingException;
 	String[] getClassNames(final Package... packages) throws DebuggingException;
@@ -31,5 +31,4 @@ public interface AppDebugInterface extends AutoCloseable {
 	InstanceWrapper getClass(final String className) throws DebuggingException;
 	void removeAllBreakpoints() throws DebuggingException; 
 	void exit(int exitCode) throws DebuggingException;
-	void halt(int exitCode) throws DebuggingException;
 }

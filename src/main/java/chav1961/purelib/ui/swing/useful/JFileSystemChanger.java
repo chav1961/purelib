@@ -2,6 +2,7 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.IOException;
@@ -14,7 +15,9 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -28,6 +31,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfacers.Format;
+import chav1961.purelib.ui.swing.SwingModelUtils;
 
 public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final long 		serialVersionUID = 6307351718365525165L;
@@ -45,7 +49,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private final JTextField		uri2test = new JTextField();
 	private final JButton 			testButton = new JButton(), acceptButton = new JButton(), cancelButton = new JButton(); 
 	private final J2ColumnEditor	editor;
-	private final JList<?>			list;
+	private final JList				list;
 	
 	public JFileSystemChanger(final Localizer localizer) throws IOException, LocalizationException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		if (localizer == null) {
@@ -68,6 +72,22 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 				}
 			});
 			this.list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			this.list.setCellRenderer(
+				(list, value, index, isSelected, cellHasFocus)-> {
+					try{final JLabel	label = new JLabel(localizer.getValue(((FileSystemInterfaceDescriptor)value).getDescriptionId())
+												,((FileSystemInterfaceDescriptor)value).getIcon()
+												,JLabel.LEFT);
+					
+						label.setToolTipText(localizer.getValue(((FileSystemInterfaceDescriptor)value).getHelpId()));
+						label.setOpaque(true);
+						label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
+						label.setBorder(cellHasFocus ? new LineBorder(Color.BLACK) : new EmptyBorder(1, 1, 1, 1));
+						return label;
+					} catch (LocalizationException exc) {
+						return new JLabel(value.toString());
+					}
+				}
+			);
 			
 			leftBottomPanel.setBorder(new LineBorder(Color.BLACK,1,true));
 			leftBottomPanel.add(uri2testLabel,BorderLayout.WEST);
@@ -88,6 +108,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			add(centerPanel,BorderLayout.CENTER);
 			add(bottomPanel,BorderLayout.SOUTH);
 			fillLocalizedStrings();
+			list.requestFocusInWindow();
 		}
 	}
 
@@ -105,6 +126,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		cancelButton.setText(localizer.getValue(CANCEL));
 		cancelButton.setToolTipText(localizer.getValue(CANCEL_TOOLTIP));
 		uri2test.setToolTipText(localizer.getValue(TEST_URI_TOOLTIP));
+		((LocaleChangeListener)editor).localeChanged(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 	}
 
 	private void fillRecord(final FileSystemInterfaceDescriptor desc, final FileSystemDescription target) throws LocalizationException, IllegalArgumentException {
@@ -115,9 +137,10 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		target.licenseContentId = localizer.getValue(desc.getLicenseContentId());
 		target.helpId = localizer.getValue(desc.getHelpId());
 		target.uriTemplate = desc.getUriTemplate();
+		SwingModelUtils.putToScreen(this.editor.mdi.getRoot(),target,this.editor);
 	}
 
-	@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/i18n")
+	@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/localization")
 	@LocaleResource(value="JFileSystemChanger.descriptor.caption",tooltip="JFileSystemChanger.descriptor.tooltip")
 	public static class FileSystemDescription {
 		@LocaleResource(value="JFileSystemChanger.descriptor.className",tooltip="JFileSystemChanger.descriptor.className.tooltip")
