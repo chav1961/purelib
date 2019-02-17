@@ -63,7 +63,28 @@ loop:			for (SyntaxNode<T> item : node.children) {
 	}
 
 	private static <T extends Enum<?>> ContinueMode walkUpInternal(final SyntaxNode<T> node, final WalkCallback<T> callback) {
-		// TODO Auto-generated method stub
-		return null;
+		ContinueMode	rc;
+		
+		switch (rc = callback.process(NodeEnterMode.ENTER,node)) {
+			case CONTINUE		:
+				if (node.parent != null) {
+					switch (rc = walkUpInternal(node.parent,callback)) {
+						case CONTINUE : case SIBLINGS_ONLY : case PARENT_ONLY : case SKIP_CHILDREN :
+						case SKIP_PARENT : case SKIP_SIBLINGS :
+							break;
+						case STOP:
+							callback.process(NodeEnterMode.EXIT,node);
+							return ContinueMode.STOP;
+						default: throw new UnsupportedOperationException("Continue node type ["+rc+"] is not supported yet"); 
+					}
+					return (rc = callback.process(NodeEnterMode.EXIT,node)) == ContinueMode.STOP ? ContinueMode.STOP : rc;
+				}
+			case PARENT_ONLY : case SIBLINGS_ONLY : case SKIP_CHILDREN : case SKIP_PARENT : case SKIP_SIBLINGS	:
+				return callback.process(NodeEnterMode.EXIT,node);
+			case STOP			:
+				callback.process(NodeEnterMode.EXIT,node);
+				return ContinueMode.STOP;
+			default: throw new UnsupportedOperationException("Continue node type ["+rc+"] is not supported yet"); 
+		}
 	}
 }

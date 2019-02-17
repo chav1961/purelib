@@ -3,6 +3,7 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.IOException;
@@ -93,7 +94,8 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			leftBottomPanel.add(uri2testLabel,BorderLayout.WEST);
 			leftBottomPanel.add(uri2test,BorderLayout.CENTER);
 			leftBottomPanel.add(testButton,BorderLayout.EAST);
-			
+
+			editor.setPreferredSize(new Dimension(400,400));
 			leftPanel.add(editor,BorderLayout.CENTER);
 			leftPanel.add(leftBottomPanel,BorderLayout.SOUTH);
 			
@@ -136,7 +138,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		target.licenseId = localizer.getValue(desc.getLicenseId());
 		target.licenseContentId = localizer.getValue(desc.getLicenseContentId());
 		target.helpId = localizer.getValue(desc.getHelpId());
-		target.uriTemplate = desc.getUriTemplate();
+		target.uriTemplate = desc.getUriTemplate().toString();
 		SwingModelUtils.putToScreen(this.editor.mdi.getRoot(),target,this.editor);
 	}
 
@@ -145,23 +147,23 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	public static class FileSystemDescription {
 		@LocaleResource(value="JFileSystemChanger.descriptor.className",tooltip="JFileSystemChanger.descriptor.className.tooltip")
 		@Format("r")
-		String className;
+		String className = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.version",tooltip="JFileSystemChanger.descriptor.version.tooltip")
 		@Format("r")
-		String version;
+		String version = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.description",tooltip="JFileSystemChanger.descriptor.description.tooltip")
 		@Format("r")
-		String descriptionId;
+		String descriptionId = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.vendor",tooltip="JFileSystemChanger.descriptor.vendor.tooltip")
 		@Format("r")
-		String vendorId;
+		String vendorId = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.license",tooltip="JFileSystemChanger.descriptor.license.tooltip")
 		@Format("r")
-		String licenseId;
-		String licenseContentId;
-		String helpId;
+		String licenseId = "";
+		String licenseContentId = "";
+		String helpId = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.uriTemplate",tooltip="JFileSystemChanger.descriptor.uriTemplate.tooltip")
 		@Format("r")
-		URI uriTemplate;
+		String uriTemplate = "";
 	}
 }

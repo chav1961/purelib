@@ -1,8 +1,5 @@
 package chav1961.purelib.ui.swing.useful;
 
-import java.awt.Dialog;
-import java.awt.HeadlessException;
-import java.io.File;
 import java.io.IOException;
 
 import javax.swing.JOptionPane;
@@ -12,8 +9,6 @@ import org.junit.Test;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.fsys.FileSystemOnFile;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class JVisualsTest {
 //	@Test

@@ -5,22 +5,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 public class MacroClassLoader extends URLClassLoader {
+    private static final String			ANCHOR = MacroClassLoader.class.getResource("MacroClassLoader.class").toString();
+
     private final Map<String,Class<?>> 	classesHash = new HashMap<>();
 	private final Writer				diagnostics;
-	private final List<String>			antiRecursion = new ArrayList<>();
+	private final Set<String>			antiRecursion = new HashSet<>();
     
     public MacroClassLoader(final ClassLoader parent) {
     	super(new URL[0],parent);
@@ -95,32 +96,36 @@ public class MacroClassLoader extends URLClassLoader {
             return result;
         }
         
-        final URL		anchor = MacroClassLoader.class.getResource("MacroClassLoader.class");
-        final String	resourceName = anchor.toString().replace("MacroClassLoader.class",name.substring(name.lastIndexOf('.')+1)+".class");
+        final String	resourceName = ANCHOR.replace("MacroClassLoader.class",name.substring(name.lastIndexOf('.')+1)+".class");
 		
-        try{final URL	resource = new URL(resourceName);
+        try{final URL	resource = MacroClassLoader.class.getResource(resourceName);
 	    	
-    		try(final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-    			try(final InputStream		is = resource.openStream()) {
-    				Utils.copyStream(is,baos);
-    			}
-    			if (diagnostics != null) {
-    				try{diagnostics.write("Build local: "+name+"\n");
-    				} catch (IOException e) {
-    				}
-    			}
-    			result = defineClass(name,baos.toByteArray(),0,baos.size());
-    			if (diagnostics != null) {
-    				try{diagnostics.write("Local created: "+name+"\n");
-    				} catch (IOException e) {
-    				}
-    			}
-    			classesHash.put(name,result);
-    			
-    			return result;
-    		} catch (IOException e) {
+        	if (resource != null) {
+	    		try(final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+	    			try(final InputStream		is = resource.openStream()) {
+	    				Utils.copyStream(is,baos);
+	    			}
+	    			if (diagnostics != null) {
+	    				try{diagnostics.write("Build local: "+name+"\n");
+	    				} catch (IOException e) {
+	    				}
+	    			}
+	    			result = defineClass(name,baos.toByteArray(),0,baos.size());
+	    			if (diagnostics != null) {
+	    				try{diagnostics.write("Local created: "+name+"\n");
+	    				} catch (IOException e) {
+	    				}
+	    			}
+	    			classesHash.put(name,result);
+	    			
+	    			return result;
+	    		} catch (IOException e) {
+	    			return this.getParent().loadClass(name);
+				}
+        	}
+        	else {
     			return this.getParent().loadClass(name);
-			}
+        	}
 		} catch (LinkageError exc) {
 			synchronized(antiRecursion) {
 				if (antiRecursion.contains(name)) {
@@ -138,8 +143,6 @@ public class MacroClassLoader extends URLClassLoader {
 					return null;
 				}
 			}
-		} catch (MalformedURLException e) {
-        	throw new ClassNotFoundException(name+": "+e.getLocalizedMessage(),e);
 		}
     }
 

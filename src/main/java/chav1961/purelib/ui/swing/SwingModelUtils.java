@@ -110,7 +110,7 @@ public class SwingModelUtils {
 		else if (uiRoot == null) {
 			throw new NullPointerException("UI root component can't be null"); 
 		}
-		else if (content.getClass().isAnnotationPresent(LocaleResource.class)) {
+		else if (!content.getClass().isAnnotationPresent(LocaleResource.class)) {
 			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] doesn't annotated with @LocaleResource, and can't be used here"); 
 		}
 		else if (metadata.getType() != content.getClass()) {
@@ -141,7 +141,7 @@ public class SwingModelUtils {
 		else if (uiRoot == null) {
 			throw new NullPointerException("UI root component can't be null"); 
 		}
-		else if (content.getClass().isAnnotationPresent(LocaleResource.class)) {
+		else if (!content.getClass().isAnnotationPresent(LocaleResource.class)) {
 			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] doesn't annotated with @LocaleResource, and can't be used here"); 
 		}
 		else if (metadata.getType() != content.getClass()) {

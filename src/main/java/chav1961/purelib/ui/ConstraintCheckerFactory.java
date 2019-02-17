@@ -23,6 +23,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.sql.InternalUtils;
 import chav1961.purelib.ui.interfacers.Constraint;
 import chav1961.purelib.ui.interfacers.ConstraintChecker;
@@ -81,8 +82,8 @@ public class ConstraintCheckerFactory {
 			throw new NullPointerException("Constraint can't be null");
 		}
 		else {
-			final char[]		expr = (constraint.value()+'\n').toCharArray();
-			final SyntaxNode[]	node = new SyntaxNode[1];
+			final char[]					expr = (constraint.value()+'\n').toCharArray();
+			final SyntaxNode<ExprType>[]	node = new SyntaxNode[1];
 					
 			buildTree(PRTY_OR,expr,0,instanceClass,node);
 			
@@ -113,39 +114,39 @@ public class ConstraintCheckerFactory {
 	}
 	
 	
-	static int buildTree(final int level, final char[] expr, final int from, final Class instClass, final SyntaxNode[] result) throws SyntaxException {
+	static int buildTree(final int level, final char[] expr, final int from, final Class<?> instClass, final SyntaxNode<ExprType>[] result) throws SyntaxException {
 		int	pos = from;
 		
 		switch (level) {
 			case PRTY_OR	:
 				pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
 				if (expr[pos] == '|' && expr[pos+1] == '|') {
-					final List<SyntaxNode>	collection = new ArrayList<>();
+					final List<SyntaxNode<ExprType>>	collection = new ArrayList<>();
 					
 					collection.add(result[0]);
 					do {pos = skipBlank(expr,buildTree(level-1,expr,pos+2,instClass,result));
 						collection.add(result[0]);						
 					} while (expr[pos] == '|' && expr[pos+1] == '|');
-					result[0] = new SyntaxNode(ExprType.Or,0,null,collection.toArray(new SyntaxNode[collection.size()]));
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Or,0,null,collection.toArray(new SyntaxNode[collection.size()]));
 				}
 				break;
 			case PRTY_AND	:
 				pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
 				if (expr[pos] == '&' && expr[pos+1] == '&') {
-					final List<SyntaxNode>	collection = new ArrayList<>();
+					final List<SyntaxNode<ExprType>>	collection = new ArrayList<>();
 					
 					collection.add(result[0]);
 					do {pos = skipBlank(expr,buildTree(level-1,expr,pos+2,instClass,result));
 						collection.add(result[0]);						
 					} while (expr[pos] == '&' && expr[pos+1] == '&');
-					result[0] = new SyntaxNode(ExprType.And,0,null,collection.toArray(new SyntaxNode[collection.size()]));
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.And,0,null,collection.toArray(new SyntaxNode[collection.size()]));
 				}
 				break;
 			case PRTY_NOT	:
 				pos = skipBlank(expr,pos);
 				if (expr[pos] == '!') {
 					pos = skipBlank(expr,buildTree(level-1,expr,pos+1,instClass,result));
-					result[0] = new SyntaxNode(ExprType.Not,0,null,result[0]);
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Not,0,null,result[0]);
 				}
 				else {
 					pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
@@ -154,8 +155,8 @@ public class ConstraintCheckerFactory {
 			case PRTY_COMPARE	:
 				pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
 				if (expr[pos] == '>' || expr[pos] == '<' || expr[pos] == '=' || expr[pos] == '!') {
-					final SyntaxNode	left = result[0];
-					OperType			oper = null;
+					final SyntaxNode<ExprType>	left = result[0];
+					OperType					oper = null;
 					
 					switch (expr[pos]) {
 						case '>' :
@@ -198,54 +199,54 @@ public class ConstraintCheckerFactory {
 							break;
 					}
 					pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
-					result[0] = new SyntaxNode(ExprType.Comparison,0,oper,left,result[0]);
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Comparison,0,oper,left,result[0]);
 				}
 				break;
 			case PRTY_CONCAT	:
 				pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
 				if (expr[pos] == '#') {
-					final List<SyntaxNode>	collection = new ArrayList<>();
+					final List<SyntaxNode<ExprType>>	collection = new ArrayList<>();
 					
 					collection.add(result[0]);
 					do {pos = skipBlank(expr,buildTree(level-1,expr,pos+1,instClass,result));
 						collection.add(result[0]);						
 					} while (expr[pos] == '#');
-					result[0] = new SyntaxNode(ExprType.Concat,0,null,collection.toArray(new SyntaxNode[collection.size()]));
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Concat,0,null,collection.toArray(new SyntaxNode[collection.size()]));
 				}
 				break;
 			case PRTY_ADD	:
 				pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
 				if (expr[pos] == '+' || expr[pos] == '-') {
-					final List<SyntaxNode>	collection = new ArrayList<>();
-					final StringBuilder		sb = new StringBuilder("+");
+					final List<SyntaxNode<ExprType>>	collection = new ArrayList<>();
+					final StringBuilder					sb = new StringBuilder("+");
 					
 					collection.add(result[0]);
 					do {sb.append(expr[pos]);
 						pos = skipBlank(expr,buildTree(level-1,expr,pos+1,instClass,result));
 						collection.add(result[0]);
 					} while (expr[pos] == '+' || expr[pos] == '-');
-					result[0] = new SyntaxNode(ExprType.Addition,0,sb.toString().toCharArray(),collection.toArray(new SyntaxNode[collection.size()]));
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Addition,0,sb.toString().toCharArray(),collection.toArray(new SyntaxNode[collection.size()]));
 				}
 				break;
 			case PRTY_MUL	:
 				pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
 				if (expr[pos] == '*' || expr[pos] == '/' || expr[pos] == '%') {
-					final List<SyntaxNode>	collection = new ArrayList<>();
-					final StringBuilder		sb = new StringBuilder("*");
+					final List<SyntaxNode<ExprType>>	collection = new ArrayList<>();
+					final StringBuilder					sb = new StringBuilder("*");
 					
 					collection.add(result[0]);
 					do {sb.append(expr[pos]);
 						pos = skipBlank(expr,buildTree(level-1,expr,pos+1,instClass,result));
 						collection.add(result[0]);
 					} while (expr[pos] == '*' || expr[pos] == '/' || expr[pos] == '%');
-					result[0] = new SyntaxNode(ExprType.Multiplication,0,sb.toString().toCharArray(),collection.toArray(new SyntaxNode[collection.size()]));
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Multiplication,0,sb.toString().toCharArray(),collection.toArray(new SyntaxNode[collection.size()]));
 				}
 				break;
 			case PRTY_NEG	:
 				pos = skipBlank(expr,pos);
 				if (expr[pos] == '-') {
 					pos = skipBlank(expr,buildTree(level-1,expr,pos+1,instClass,result));
-					result[0] = new SyntaxNode(ExprType.Negation,0,null,result[0]);
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Negation,0,null,result[0]);
 				}
 				else {
 					pos = skipBlank(expr,buildTree(level-1,expr,pos,instClass,result));
@@ -259,13 +260,13 @@ public class ConstraintCheckerFactory {
 					pos = CharUtils.parseNumber(expr,pos,values,CharUtils.PREF_ANY,true);
 					switch ((int)values[1]) {
 						case CharUtils.PREF_INT : case CharUtils.PREF_LONG :
-							result[0] = new SyntaxNode(ExprType.Const,0,Long.valueOf(values[0]));
+							result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Const,0,Long.valueOf(values[0]));
 							break;
 						case CharUtils.PREF_FLOAT	:
-							result[0] = new SyntaxNode(ExprType.Const,0,Double.valueOf(Float.intBitsToFloat((int)values[0])));
+							result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Const,0,Double.valueOf(Float.intBitsToFloat((int)values[0])));
 							break;
 						case CharUtils.PREF_DOUBLE	:
-							result[0] = new SyntaxNode(ExprType.Const,0,Double.valueOf(Double.longBitsToDouble(values[0])));
+							result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Const,0,Double.valueOf(Double.longBitsToDouble(values[0])));
 							break;
 					}
 				}
@@ -276,15 +277,15 @@ public class ConstraintCheckerFactory {
 					final String	name = new String(expr,ranges[0],ranges[1]-ranges[0]+1);
 					
 					if ("true".equals(name)) {
-						result[0] = new SyntaxNode(ExprType.Const,0,Boolean.valueOf(true));
+						result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Const,0,Boolean.valueOf(true));
 					}
 					else if ("false".equals(name)) {
-						result[0] = new SyntaxNode(ExprType.Const,0,Boolean.valueOf(false));
+						result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Const,0,Boolean.valueOf(false));
 					}
 					else {
 						try{final GetterAndSetter	gas = GettersAndSettersFactory.buildGetterAndSetter(instClass,name);
 						
-							result[0] = new SyntaxNode(ExprType.Field,0,gas);
+							result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Field,0,gas);
 						} catch (ContentException e) {
 							throw new SyntaxException(0,pos,"");
 						}
@@ -294,7 +295,7 @@ public class ConstraintCheckerFactory {
 					final int[]	ranges = new int[2];
 					
 					pos = CharUtils.parseUnescapedString(expr,pos+1,'\"',true,ranges);
-					result[0] = new SyntaxNode(ExprType.Const,0,new String(expr,ranges[0],ranges[1]-ranges[0]+1));
+					result[0] = new SyntaxNode<ExprType>(0,pos,ExprType.Const,0,new String(expr,ranges[0],ranges[1]-ranges[0]+1));
 				}
 				else if (expr[pos] == '(') {
 					pos = skipBlank(expr,buildTree(PRTY_OR,expr,pos+1,instClass,result));
@@ -314,8 +315,8 @@ public class ConstraintCheckerFactory {
 		return pos;
 	}
 
-	static <T> Object calculate(final T instance, final SyntaxNode node) throws ContentException {
-		switch (node.expr) {
+	static <T> Object calculate(final T instance, final SyntaxNode<ExprType> node) throws ContentException {
+		switch (node.getType()) {
 			case Addition			:
 				final char[]	addOperators = (char[])node.cargo; 
 				long			longAddition = 0;
@@ -323,7 +324,7 @@ public class ConstraintCheckerFactory {
 				boolean			wasDoubleAddition = false;
 				int				addIndex = 0;
 				
-				for (SyntaxNode item : node.children) {
+				for (SyntaxNode<ExprType> item : node.children) {
 					final Object	result = calculate(instance,item);
 					
 					if ((result instanceof Double) || (result instanceof Float)) {
@@ -358,7 +359,7 @@ public class ConstraintCheckerFactory {
 			case And				:
 				boolean	andResult = true;
 				
-				for (SyntaxNode item : node.children) {
+				for (SyntaxNode<ExprType> item : node.children) {
 					final Object	result = calculate(instance,item);
 					
 					andResult &= (result instanceof Boolean) ? ((Boolean)result).booleanValue() : false; 
@@ -419,7 +420,7 @@ public class ConstraintCheckerFactory {
 			case Concat				:
 				final StringBuilder	sb = new StringBuilder();
 				
-				for (SyntaxNode item : node.children) {
+				for (SyntaxNode<ExprType> item : node.children) {
 					sb.append(calculate(instance,item));
 				}
 				return sb.toString();
@@ -460,7 +461,7 @@ public class ConstraintCheckerFactory {
 				boolean			wasDoubleMultiplication = false;
 				int				mulIndex = 0;
 				
-				for (SyntaxNode item : node.children) {
+				for (SyntaxNode<ExprType> item : node.children) {
 					final Object	result = calculate(instance,item);
 					
 					if ((result instanceof Double) || (result instanceof Float)) {
@@ -515,13 +516,13 @@ public class ConstraintCheckerFactory {
 			case Or					:
 				boolean	orResult = false;
 				
-				for (SyntaxNode item : node.children) {
+				for (SyntaxNode<ExprType> item : node.children) {
 					final Object	result = calculate(instance,item);
 					
 					orResult |= (result instanceof Boolean) ? ((Boolean)result).booleanValue() : false; 
 				}
 				return orResult;
-			default : throw new UnsupportedOperationException("Node type ["+node.expr+"] is not supported yet");
+			default : throw new UnsupportedOperationException("Node type ["+node.getType()+"] is not supported yet");
 		}
 	}
 
@@ -543,24 +544,5 @@ public class ConstraintCheckerFactory {
 
 	private static <T> T convert2Class(final Object value, final Class<T> target) throws ContentException {
 		return InternalUtils.convert(target, value);
-	}
-
-	static class SyntaxNode {
-		ExprType		expr;
-		long			value;
-		Object			cargo;
-		SyntaxNode[]	children;
-		
-		public SyntaxNode(final ExprType expr, final long value, final Object cargo, final SyntaxNode... children) {
-			this.expr = expr;
-			this.value = value;
-			this.cargo = cargo;
-			this.children = children;
-		}
-
-		@Override
-		public String toString() {
-			return "SyntaxNode [expr=" + expr + ", value=" + value + ", cargo=" + cargo + ", children=" + Arrays.toString(children) + "]";
-		}
 	}
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -49,6 +50,11 @@ public class PureLibSettings {
 	public static final Logger		logger = Logger.getLogger("chav1961.purelib");
 	
 	/**
+	 * <p>Current Java process id</p>
+	 */
+	public static final long		CURRENT_PID = getCurrentPID();
+	
+	/**
 	 * <p>This is current version of the Pure Library</p>
 	 */
 	public static final String		CURRENT_VERSION = "0.0.3";
@@ -56,7 +62,7 @@ public class PureLibSettings {
 	/**
 	 * <p>This is a vendor of the Pure Library</p>
 	 */
-	public static final String		VENDOR = "aka chav1961";
+	public static final String		VENDOR = "A.Chernomyrdin aka chav1961";
 	
 	/**
 	 * <p>This is <b>-D</b> variable name to import content to the settings repository</p>
@@ -366,5 +372,12 @@ public class PureLibSettings {
 			return null;
 		}
 	}
+
+	private static long getCurrentPID() {
+		final String	name = ManagementFactory.getRuntimeMXBean().getName(); 
+		
+		return Long.valueOf(name.substring(0,name.indexOf('@')));
+	}
+
 }
 

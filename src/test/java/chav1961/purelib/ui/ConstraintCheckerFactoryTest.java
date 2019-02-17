@@ -8,7 +8,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.ui.ConstraintCheckerFactory.SyntaxNode;
+import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.ui.interfacers.Constraint;
 import chav1961.purelib.ui.interfacers.ConstraintChecker;
 
@@ -18,31 +18,31 @@ public class ConstraintCheckerFactoryTest {
 		final SyntaxNode[]	result = new SyntaxNode[1]; 
 				
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"1\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].getType());
 		Assert.assertEquals(Long.valueOf(1),result[0].cargo);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"1.0\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].getType());
 		Assert.assertEquals(Double.valueOf(1.0),result[0].cargo);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"\"test\"\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].getType());
 		Assert.assertEquals("test",result[0].cargo);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"true\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].getType());
 		Assert.assertEquals(Boolean.valueOf(true),result[0].cargo);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"false\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].getType());
 		Assert.assertEquals(Boolean.valueOf(false),result[0].cargo);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"b1\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Field,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Field,result[0].getType());
 		Assert.assertTrue(result[0].cargo instanceof ByteGetterAndSetter);
 		
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"s7\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Field,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Field,result[0].getType());
 		Assert.assertTrue(result[0].cargo instanceof ObjectGetterAndSetter);
 	}
 
@@ -51,12 +51,12 @@ public class ConstraintCheckerFactoryTest {
 		final SyntaxNode[]	result = new SyntaxNode[1]; 
 				
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_NEG,"-1\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Negation,result[0].expr);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].children[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Negation,result[0].getType());
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].children[0].getType());
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_NOT,"!false\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Not,result[0].expr);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].children[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Not,result[0].getType());
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Const,result[0].children[0].getType());
 	}
 
 	@Test
@@ -64,25 +64,25 @@ public class ConstraintCheckerFactoryTest {
 		final SyntaxNode[]	result = new SyntaxNode[1]; 
 				
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_MUL,"2*3/4%5\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Multiplication,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Multiplication,result[0].getType());
 		Assert.assertEquals(4,((char[])result[0].cargo).length);
 		Assert.assertEquals(4,result[0].children.length);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_ADD,"2+3-4\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Addition,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Addition,result[0].getType());
 		Assert.assertEquals(3,((char[])result[0].cargo).length);
 		Assert.assertEquals(3,result[0].children.length);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_CONCAT,"\"a\"#\"b\"\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Concat,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Concat,result[0].getType());
 		Assert.assertEquals(2,result[0].children.length);
 
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_AND,"true&&false\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.And,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.And,result[0].getType());
 		Assert.assertEquals(2,result[0].children.length);
 	
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_OR,"true||false\n".toCharArray(),0,PseudoClass4Test.class,result);
-		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Or,result[0].expr);
+		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Or,result[0].getType());
 		Assert.assertEquals(2,result[0].children.length);
 	}
 
