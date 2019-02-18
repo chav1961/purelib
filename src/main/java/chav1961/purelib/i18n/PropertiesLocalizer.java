@@ -9,7 +9,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
@@ -21,7 +20,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
-import chav1961.purelib.nanoservice.NanoServiceFactory;
 
 /**
  * <p>This class is a wrapper to standard Java {@linkplain ResourceBundle} class. This class is an Java SPI service and available thru 

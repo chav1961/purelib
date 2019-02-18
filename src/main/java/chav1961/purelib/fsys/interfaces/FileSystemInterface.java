@@ -69,7 +69,7 @@ import chav1961.purelib.basic.interfaces.SpiService;
  *  chained calls (for example <code>myFileSystem.open("something").create().write()</code>).</p> 
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1
+ * @since 0.0.1 last update 0.0.3
  */
 
 public interface FileSystemInterface extends Cloneable, Closeable, SpiService<FileSystemInterface> {
@@ -272,12 +272,26 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	FileSystemInterface mount(FileSystemInterface another) throws IOException;
 	
 	/**
-	 * <p>Unmount another filesystem from the given point</p>
+	 * <p>Unmount another file system from the given point</p>
 	 * @return file system was unmounted from the actual file system cursor location
 	 * @throws IOException if any exceptions was thrown
 	 */
 	FileSystemInterface unmount() throws IOException;
 
+	/**
+	 * <p>Check weather given node has children mound</p>
+	 * @return true if has
+	 * @throws IOException if any exceptions was thrown
+	 */
+	boolean isMound() throws IOException;
+
+	/**
+	 * <p>Get file systems mound for the given node</p>
+	 * @return file systems mound or numm if none mound on the node
+	 * @throws IOException
+	 */
+	FileSystemInterface mound() throws IOException;
+	
 	/**
 	 * <p>Copy content from one file system to another</p>
 	 * @param another target file system to copy to. Copying makes to the actual getPath() for the target file system 

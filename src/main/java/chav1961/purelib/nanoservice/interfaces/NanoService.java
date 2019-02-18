@@ -4,8 +4,9 @@ import java.io.IOException;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.concurrent.interfaces.ExecutionControl;
 
-public interface NanoService {
+public interface NanoService extends ExecutionControl {
 	void start() throws IOException;
 	void suspend() throws IOException;
 	void resume() throws IOException;

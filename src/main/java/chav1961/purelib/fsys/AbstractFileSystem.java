@@ -375,6 +375,16 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	}
 
 	@Override
+	public boolean isMound() throws IOException {
+		return mounts.containsKey(currentPath);
+	}
+
+	@Override
+	public FileSystemInterface mound() throws IOException {
+		return mounts.get(currentPath);
+	}
+	
+	@Override
 	public FileSystemInterface copy(final FileSystemInterface another) throws IOException {
 		if (another == null) {
 			throw new NullPointerException("Another file system can't be null");
