@@ -2,22 +2,21 @@ package chav1961.purelib.cdb;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.lang.management.ManagementFactory;
-import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sun.jdi.StackFrame;
-
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface;
+import chav1961.purelib.cdb.interfaces.AppDebugInterface.Event;
 import chav1961.purelib.cdb.interfaces.ArrayWrapper;
+import chav1961.purelib.cdb.interfaces.ClassWrapper;
+import chav1961.purelib.cdb.interfaces.ObjectWrapper;
 import chav1961.purelib.cdb.interfaces.StackWrapper;
 import chav1961.purelib.cdb.interfaces.ThreadWrapper;
 
@@ -50,6 +49,10 @@ public class ConnectorsTest {
 						Assert.assertEquals("running",tw.getCurrentState());
 						Assert.assertTrue(tw.getExecutionControl().isStarted());
 						Assert.assertTrue(tw.getExecutionControl().isSuspended());
+
+																					// Suspend location access
+						Assert.assertEquals(FileInputStream.class,tw.getCurrentLocation().getClassInside().contentType());
+						Assert.assertEquals("readBytes",tw.getCurrentLocation().getMethodInside().name());
 						
 						Assert.assertEquals(5,tw.getStackSize());					// Stack frame access
 						Assert.assertEquals(13,tw.getStackContent(4).getVarNames().length);
@@ -69,17 +72,62 @@ public class ConnectorsTest {
 						Assert.assertEquals(Boolean.valueOf(true),sw.getVar("varBoolean").getValue());
 						Assert.assertArrayEquals("test string".toCharArray(),(char[])((ArrayWrapper)sw.getVar("charContent").getValue()).get());
 						Assert.assertArrayEquals(new String[]{"test string1","test string2"},(String[])((ArrayWrapper)sw.getVar("stringContent").getValue()).get());
-//						Assert.assertArrayEquals(new Long[]{10L,20L},(Long[])((ArrayWrapper)sw.getVar("longContent").getValue()).get());
+						Assert.assertEquals(2,((ObjectWrapper[])((ArrayWrapper)sw.getVar("longContent").getValue()).get()).length);
+
+						Assert.assertNull(sw.getThis());
+						
+						final ClassWrapper	cw = adi.getClass(PoorRabbit.class.getCanonicalName());
+						
+						Assert.assertArrayEquals(new String[]{"x"},cw.getFieldNames());
+						Assert.assertEquals(int.class,cw.getClassField("x").contentType());
+						Assert.assertEquals(Integer.valueOf(10),cw.getClassField("x").get());
+						
+						final int	bp = tw.getExecutionControl().setBreakpoint(PoorRabbit.class, PoorRabbit.class.getDeclaredMethod("init"),17);
 						
 						tw.getExecutionControl().resume();
 						next(os);
+						
+						for (Event event : adi.waitEvent()) {
+							switch (event.getType()) {
+								case BreakPointEvent	:
+									final StackWrapper	initSw = tw.getStackContent(0);
+									
+									Assert.assertEquals(tw.getCurrentState(),"running");
+									Assert.assertTrue(tw.getExecutionControl().isSuspended());
+									Assert.assertEquals(17,tw.getCurrentLocation().getLineNo());
+									Assert.assertEquals(Integer.valueOf(20),initSw.getVar("y").getValue());
+									break;
+								default:
+									break;
+							}
+						}
+						
+						tw.getExecutionControl().step();
+						tw.getExecutionControl().resume();
+
+						for (Event event : adi.waitEvent()) {
+							switch (event.getType()) {
+								case StepEvent			:
+									final StackWrapper	initSw = tw.getStackContent(0);
+									
+									Assert.assertEquals(tw.getCurrentState(),"running");
+									Assert.assertTrue(tw.getExecutionControl().isSuspended());
+									Assert.assertEquals(18,tw.getCurrentLocation().getLineNo());
+									Assert.assertEquals(Integer.valueOf(20),initSw.getVar("z").getValue());
+									break;
+								default:
+									break;
+							}
+						}
+						
+						tw.getExecutionControl().resume();
 					}
 				}
 			}
-			System.err.println("line="+line);
+//			System.err.println("line="+line);
 		}
 		p.waitFor();
-		System.err.println("The end! "+p.exitValue());
+//		System.err.println("The end! "+p.exitValue());
 	}
 	
 	private static boolean contains(final String item, final String... list) {

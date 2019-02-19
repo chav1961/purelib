@@ -6,6 +6,7 @@
 3. Написать реализацию XmlBasedParser для построения парсеров "болтливых" языков типа SQL.
 4. Удалить из библиотеки AssemblerTemplateRepo и исключить все ссылки на него
 5. Ввести кэш в GettersAndSetters
+6. Дополнить LongIdMap методами maxKey() и firstFree();
 Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 Пакет exceptions
@@ -124,3 +125,46 @@
 5. Статический контент для справки (описание MerLan, описание world) 
 
 http://www.docjar.com/docs/api/com/sun/tools/example/trace/package-index.html
+
+
+
+
+<profiles>
+    <profile>
+        <id>default-profile</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+            <file>
+                <exists>${java.home}/../lib/tools.jar</exists>
+            </file>
+        </activation>
+        <properties>
+            <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
+        </properties>
+    </profile>
+    <profile>
+        <id>mac-profile</id>
+        <activation>
+            <activeByDefault>false</activeByDefault>
+            <file>
+                <exists>${java.home}/../Classes/classes.jar</exists>
+            </file>
+        </activation>
+        <properties>
+            <toolsjar>${java.home}/../Classes/classes.jar</toolsjar>
+        </properties>
+    </profile>
+</profiles>
+
+
+<dependencies>
+    <dependency>
+        <groupId>jdk.tools</groupId>
+        <artifactId>jdk.tools</artifactId>
+        <version>jdk1.8.0</version>
+        <scope>system</scope>
+        <systemPath>${toolsjar}</systemPath>
+    </dependency>
+</dependencies>
+
+https://github.com/olivergondza/maven-jdk-tools-wrapper/blob/master/pom.xml

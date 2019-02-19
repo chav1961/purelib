@@ -7,6 +7,10 @@ public class PoorRabbit {
 	public static int	x = 10;
 
 	public PoorRabbit(final int x) {
+		init();
+	}
+	
+	private void init() {
 		final int	y = x + 10;
 		int			z = 20;
 		

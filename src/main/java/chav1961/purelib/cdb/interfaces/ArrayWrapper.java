@@ -7,5 +7,4 @@ public interface ArrayWrapper {
 	int getLength() throws DebuggingException;
 	Object get(int index) throws DebuggingException;
 	Object get() throws DebuggingException;
-	void set(int index, Object value) throws DebuggingException;
 }

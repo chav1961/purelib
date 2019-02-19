@@ -17,10 +17,12 @@ public class LongIdMapTest {
 		
 		Assert.assertEquals(map.get(1),"test string 1");
 		Assert.assertEquals(map.get(1000000),"test string 2");
+		Assert.assertEquals(1000000,map.maxValue());
+		Assert.assertEquals(0,map.firstFree());
 		
-//		try{map.put(-1,"test string 1");
-//		} catch (IllegalArgumentException exc) {			
-//		}
+		try{map.put(-1,"test string 1");
+		} catch (IllegalArgumentException exc) {			
+		}
 		try{map.put(1,null);
 		} catch (NullPointerException exc) {			
 		}

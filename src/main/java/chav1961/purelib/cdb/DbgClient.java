@@ -1,15 +1,18 @@
 package chav1961.purelib.cdb;
 
 
-import java.awt.Frame;
+
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.ArrayReference;
@@ -27,6 +30,7 @@ import com.sun.jdi.ClassObjectReference;
 import com.sun.jdi.ClassType;
 import com.sun.jdi.DoubleType;
 import com.sun.jdi.DoubleValue;
+import com.sun.jdi.Field;
 import com.sun.jdi.FloatType;
 import com.sun.jdi.FloatValue;
 import com.sun.jdi.IncompatibleThreadStateException;
@@ -44,6 +48,7 @@ import com.sun.jdi.StringReference;
 import com.sun.jdi.ThreadGroupReference;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.Type;
+import com.sun.jdi.VMDisconnectedException;
 import com.sun.jdi.Value;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.VirtualMachineManager;
@@ -51,20 +56,29 @@ import com.sun.jdi.VoidType;
 import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector.Argument;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
+import com.sun.jdi.event.BreakpointEvent;
+import com.sun.jdi.event.EventSet;
+import com.sun.jdi.event.StepEvent;
+import com.sun.jdi.request.BreakpointRequest;
+import com.sun.jdi.request.EventRequest;
+import com.sun.jdi.request.StepRequest;
 
+import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface;
+import chav1961.purelib.cdb.interfaces.AppDebugInterface.EventType;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface.Location;
 import chav1961.purelib.cdb.interfaces.ArrayWrapper;
-import chav1961.purelib.cdb.interfaces.InstanceWrapper;
+import chav1961.purelib.cdb.interfaces.ClassWrapper;
+import chav1961.purelib.cdb.interfaces.FieldWrapper;
+import chav1961.purelib.cdb.interfaces.MethodWrapper;
 import chav1961.purelib.cdb.interfaces.ObjectWrapper;
 import chav1961.purelib.cdb.interfaces.StackWrapper;
 import chav1961.purelib.cdb.interfaces.ThreadWrapper;
 import chav1961.purelib.cdb.interfaces.VariableWrapper;
-import chav1961.purelib.concurrent.interfaces.ExecutionControl;
 import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 public class DbgClient {
@@ -77,7 +91,7 @@ public class DbgClient {
 		STATES.put(ThreadReference.THREAD_STATUS_SLEEPING,"sleeping");
 		STATES.put(ThreadReference.THREAD_STATUS_UNKNOWN,"unknown");
 		STATES.put(ThreadReference.THREAD_STATUS_WAIT,"wait");
-		STATES.put(ThreadReference.THREAD_STATUS_ZOMBIE,"zombie");			
+		STATES.put(ThreadReference.THREAD_STATUS_ZOMBIE,"zombie");
 	}
 	
 	public static AppDebugInterface connectTo(final long pid) throws DebuggingException {
@@ -117,7 +131,8 @@ public class DbgClient {
 	
 	
 	private static class AppDebugInterfaceImpl implements AppDebugInterface {
-		private final VirtualMachine	vm;
+		private final VirtualMachine				vm;
+		private final LongIdMap<BreakpointRequest>	bp = new LongIdMap<>(BreakpointRequest.class);
 		
 		AppDebugInterfaceImpl(final VirtualMachine vm) {
 			this.vm = vm;
@@ -125,18 +140,84 @@ public class DbgClient {
 
 		@Override
 		public void close() throws DebuggingException {
-			// TODO Auto-generated method stub
+			try{vm.dispose();
+			} catch (VMDisconnectedException exc) {
+			}
 		}
 
 		@Override
-		public Event waitEvent() throws InterruptedException, DebuggingException {
+		public Event[] waitEvent() throws InterruptedException, DebuggingException {
 			return waitEvent(EventType.values());
 		}
 
 		@Override
-		public Event waitEvent(EventType... eventTypes) throws InterruptedException, DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
+		public Event[] waitEvent(final EventType... eventTypes) throws InterruptedException, DebuggingException {
+			final EventSet 			eventSet = vm.eventQueue().remove();
+			final List<Event>		result = new ArrayList<>();
+			final Set<EventType>	whiteList = new HashSet<>();
+			
+			whiteList.addAll(Arrays.asList(eventTypes));
+			for (com.sun.jdi.event.Event item : eventSet) {
+				if (item instanceof BreakpointEvent) {
+					result.add(new Event(){
+						@Override
+						public EventType getType() throws DebuggingException {
+							return EventType.BreakPointEvent;
+						}
+
+						@Override
+						public ThreadWrapper getThreadAssociated() throws DebuggingException {
+							return new ThreadWrapperImpl(AppDebugInterfaceImpl.this,((BreakpointEvent) item).thread());
+						}
+
+						@Override
+						public Location getLocation() throws DebuggingException {
+							return new LocationImpl(AppDebugInterfaceImpl.this,((BreakpointEvent) item).location());
+						}
+						
+						@Override
+						public String toString() {
+							try{return getType()+" : "+getLocation();
+							} catch (DebuggingException e) {
+								return super.toString();
+							}
+						}
+					});
+				}
+				else if (item instanceof StepEvent) {
+					vm.eventRequestManager().deleteEventRequest(item.request());
+					result.add(new Event(){
+						@Override
+						public EventType getType() throws DebuggingException {
+							return EventType.StepEvent;
+						}
+
+						@Override
+						public ThreadWrapper getThreadAssociated() throws DebuggingException {
+							return new ThreadWrapperImpl(AppDebugInterfaceImpl.this,((BreakpointEvent) item).thread());
+						}
+
+						@Override
+						public Location getLocation() throws DebuggingException {
+							return new LocationImpl(AppDebugInterfaceImpl.this,((BreakpointEvent) item).location());
+						}
+						
+						@Override
+						public String toString() {
+							try{return getType()+" : "+getLocation();
+							} catch (DebuggingException e) {
+								return super.toString();
+							}
+						}
+					});
+				}
+			}
+			for (int index = result.size()-1; index >= 0; index--) {
+				if (!whiteList.contains(result.get(index).getType())) {
+					result.remove(index);
+				}
+			}
+			return result.toArray(new Event[result.size()]);
 		}
 
 		@Override
@@ -198,7 +279,7 @@ public class DbgClient {
 			else {
 				for (ThreadReference item :vm.allThreads()) {
 					if (threadName.equals(item.name())) {
-						return new ThreadWrapperImpl(vm,item);
+						return new ThreadWrapperImpl(this,item);
 					}
 				}
 			}
@@ -206,21 +287,46 @@ public class DbgClient {
 		}
 
 		@Override
-		public InstanceWrapper getClass(String className) throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
+		public ClassWrapper getClass(final String className) throws DebuggingException {
+			if (className == null || className.isEmpty()) {
+				throw new IllegalArgumentException("Class name can't be null or empty");
+			}
+			else {
+				for (ReferenceType item : vm.allClasses()) {
+					if (className.equals(item.name())) {
+						return new ClassWrapperImpl(this,(ClassType)item);
+					}
+				}
+			}
+			throw new DebuggingException("Class name ["+className+"] is misisng in the debuggee");
 		}
 
 		@Override
 		public void removeAllBreakpoints() throws DebuggingException {
-			// TODO Auto-generated method stub
-			
+			for (long id = 0, maxId = bp.maxValue(); id <= maxId; id++) {
+				bp.remove(id);
+			}
 		}
 
 		@Override
 		public void exit(int exitCode) throws DebuggingException {
-			// TODO Auto-generated method stub
-			
+			vm.exit(exitCode);
+		}
+
+		@Override
+		public void removeBreakpoint(final int breakPoint) throws DebuggingException {
+			if (breakPoint < 0) {
+				throw new IllegalArgumentException("Break point id ["+breakPoint+"] can't be negative");
+			}
+			else if (!bp.contains(breakPoint)) {
+				throw new IllegalArgumentException("Break point id ["+breakPoint+"] is missing in the breakpoint list");
+			}
+			else {
+				final BreakpointRequest	rq = bp.remove(breakPoint);
+				
+				rq.disable();
+				vm.eventRequestManager().deleteEventRequest(rq);
+			}
 		}
 	}
 	
@@ -282,17 +388,17 @@ public class DbgClient {
 		}
 	}
 	
-	private static Object value2Object(final VirtualMachine vm, final ThreadReference ref, final StackFrame frame, final Class<?> clazz, final Value val) throws ClassNotLoadedException, DebuggingException {
+	private static Object value2Object(final AppDebugInterfaceImpl adi, final ThreadReference ref, final StackFrame frame, final Class<?> clazz, final Value val) throws ClassNotLoadedException, DebuggingException {
 		switch (Utils.defineClassType(clazz)) {
 			case Utils.CLASSTYPE_REFERENCE	:
 				if (val instanceof StringReference) {
 					return ((StringReference)val).value();
 				}
 				else if (val instanceof ArrayReference) {
-					return new ArrayWrapperImpl(vm,ref,frame,clazz,(ArrayReference)val);
+					return new ArrayWrapperImpl(adi,ref,frame,clazz,(ArrayReference)val);
 				}
 				else if (val instanceof ThreadReference) {
-					return new ThreadWrapperImpl(vm,(ThreadReference)val);
+					return new ThreadWrapperImpl(adi,(ThreadReference)val);
 				}
 				else if (val instanceof ThreadGroupReference) {
 					throw new UnsupportedOperationException(); 
@@ -304,7 +410,7 @@ public class DbgClient {
 					throw new UnsupportedOperationException(); 
 				}
 				else {
-					return new ObjectWrapperImpl(vm,ref,frame,(ObjectReference)val);
+					return new ObjectWrapperImpl(adi,ref,frame,((ObjectReference)val).referenceType(),(ObjectReference)val);
 				}
 			case Utils.CLASSTYPE_BYTE		:
 				return ((ByteValue)val).byteValue();
@@ -326,14 +432,12 @@ public class DbgClient {
 		}
 	}
 	
-	
-	
 	private static class ThreadWrapperImpl implements ThreadWrapper {
-		private final VirtualMachine	vm;
-		private final ThreadReference	ref;
+		private final AppDebugInterfaceImpl	adi;
+		private final ThreadReference		ref;
 		
-		ThreadWrapperImpl(final VirtualMachine vm, final ThreadReference ref) {
-			this.vm = vm;
+		ThreadWrapperImpl(final AppDebugInterfaceImpl adi, final ThreadReference ref) {
+			this.adi = adi;
 			this.ref = ref;
 		}
 		
@@ -349,28 +453,71 @@ public class DbgClient {
 				
 				@Override
 				public void step() throws DebuggingException {
-					// TODO Auto-generated method stub
+					final StepRequest	rq = adi.vm.eventRequestManager().createStepRequest(ref, StepRequest.STEP_LINE, StepRequest.STEP_OVER);
 					
+					rq.addCountFilter(1);
+					rq.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
+					rq.enable();
 				}
+				
 				@Override
 				public void stepInto() throws DebuggingException {
-					// TODO Auto-generated method stub
+					final StepRequest	rq = adi.vm.eventRequestManager().createStepRequest(ref, StepRequest.STEP_LINE, StepRequest.STEP_INTO);
 					
+					rq.addCountFilter(1);
+					rq.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
+					rq.enable();
 				}
+				
 				@Override
 				public void stepOut() throws DebuggingException {
-					// TODO Auto-generated method stub
+					final StepRequest	rq = adi.vm.eventRequestManager().createStepRequest(ref, StepRequest.STEP_LINE, StepRequest.STEP_OUT);
 					
+					rq.addCountFilter(1);
+					rq.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
+					rq.enable();
 				}
+				
 				@Override
-				public void run() throws DebuggingException {
-					// TODO Auto-generated method stub
-					
-				}
-				@Override
-				public void setBreakpoint() throws DebuggingException {
-					// TODO Auto-generated method stub
-					
+				public int setBreakpoint(final Class<?> clazz, final Method m, final int line) throws DebuggingException {
+					if (clazz == null) {
+						throw new NullPointerException("Class ref can't be null");
+					}
+					else if (m == null) {
+						throw new NullPointerException("Method ref can't be null");
+					}
+					else if (line <= 0) {
+						throw new IllegalArgumentException("Line number ["+line+"] must be positive");
+					}
+					else {
+						final String	className = clazz.getCanonicalName();
+						final String	method = CompilerUtils.buildMethodPath(m)+CompilerUtils.buildMethodSignature(m);
+						
+						for (ReferenceType item : adi.vm.allClasses()) {
+							if (className.equals(item.name())) {
+								for ( com.sun.jdi.Method innerItem : ((ClassType)item).allMethods()) { 
+									final String	methodSignature = innerItem.declaringType().name()+"."+innerItem.name()+innerItem.signature();
+									
+									if (method.equals(methodSignature)) {
+										try{for (com.sun.jdi.Location lines : innerItem.allLineLocations()) {
+												if (lines.lineNumber() == line) {
+													final BreakpointRequest	bpr = adi.vm.eventRequestManager().createBreakpointRequest(lines);
+													final long				bpId = adi.bp.firstFree();
+													
+													bpr.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
+													bpr.enable();
+													adi.bp.put(bpId,bpr);
+													return (int)bpId;
+												}
+											}
+										} catch (AbsentInformationException e) {
+										}
+									}								
+								}
+							}
+						}
+						throw new DebuggingException("Class ["+clazz+"] method ["+m+"] line ["+line+"] not found");
+					}
 				}
 			};
 		}
@@ -382,15 +529,16 @@ public class DbgClient {
 		
 		@Override
 		public Location getCurrentLocation() throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
+			try{return new LocationImpl(adi,ref.frame(0).location());
+			} catch (IncompatibleThreadStateException e) {
+				throw new DebuggingException("Incompatible thread state to call: "+e.getLocalizedMessage(),e);
+			}
 		}
 
 		@Override
 		public int getStackSize() throws DebuggingException {
 			try{return ref.frameCount();
 			} catch (IncompatibleThreadStateException e) {
-				e.printStackTrace();
 				throw new DebuggingException("Incompatible thread state to call: "+e.getLocalizedMessage(),e);
 			}
 		}
@@ -401,7 +549,7 @@ public class DbgClient {
 				final StackWrapper[]	result = new StackWrapper[frames.size()];
 				
 				for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
-					result[index] = new StackWrapperImpl(vm,ref,frames.get(index));
+					result[index] = new StackWrapperImpl(adi,ref,frames.get(index));
 				}
 				return result;
 			} catch (IncompatibleThreadStateException e) {
@@ -415,7 +563,7 @@ public class DbgClient {
 				throw new IllegalArgumentException("Stack depth ["+depth+"] out of range 0.."+(getStackSize()-1));
 			}
 			else {
-				try{return new StackWrapperImpl(vm,ref,ref.frame(depth));
+				try{return new StackWrapperImpl(adi,ref,ref.frame(depth));
 				} catch (IncompatibleThreadStateException e) {
 					throw new DebuggingException("Incompatible thread state to call: "+e.getLocalizedMessage(),e);
 				}
@@ -435,7 +583,7 @@ public class DbgClient {
 						final String		method = f.location().method().name();
 				
 						if (methodSignature.equals(clazz+'.'+method+signature)) {
-							return new StackWrapperImpl(vm,ref,f);
+							return new StackWrapperImpl(adi,ref,f);
 						}
 					} catch (IncompatibleThreadStateException e) {
 						throw new DebuggingException("Incompatible thread state to call: "+e.getLocalizedMessage(),e);
@@ -457,19 +605,26 @@ public class DbgClient {
 	}
 	
 	private static class StackWrapperImpl implements StackWrapper {
-		private final VirtualMachine 	vm;
+		private final AppDebugInterfaceImpl	adi;
 		private final ThreadReference 	ref;
 		private final StackFrame 		frame;
 		
-		StackWrapperImpl(final VirtualMachine vm, final ThreadReference ref, final StackFrame frame) {
-			this.vm = vm;
+		StackWrapperImpl(final AppDebugInterfaceImpl adi, final ThreadReference ref, final StackFrame frame) {
+			this.adi = adi;
 			this.ref = ref;
 			this.frame = frame;
 		}
 
 		@Override
-		public Object getThis() throws DebuggingException {
-			return frame.thisObject();
+		public ObjectWrapper getThis() throws DebuggingException {
+			final ObjectReference	obj = frame.thisObject();
+
+			if (obj == null) {
+				return null;
+			}
+			else {
+				return new ObjectWrapperImpl(adi, ref, frame, obj.referenceType(), obj);
+			}
 		}
 		
 		@Override
@@ -498,7 +653,7 @@ public class DbgClient {
 						throw new DebuggingException("Missing variable ["+name+"]");
 					}
 					else {
-						return new VariableWrapperImpl(vm,ref,frame,variable);
+						return new VariableWrapperImpl(adi,ref,frame,variable);
 					}
 				} catch (AbsentInformationException e) {
 					throw new DebuggingException("Missing debugging information (location="+frame.location()+")"); 
@@ -508,13 +663,13 @@ public class DbgClient {
 	}
 	
 	private static class VariableWrapperImpl implements VariableWrapper {
-		private final VirtualMachine 	vm;
-		private final ThreadReference 	ref;
-		private final StackFrame 		frame;
-		private final LocalVariable 	variable;
+		private final AppDebugInterfaceImpl	adi;
+		private final ThreadReference 		ref;
+		private final StackFrame 			frame;
+		private final LocalVariable 		variable;
 		
-		VariableWrapperImpl(final VirtualMachine vm, final ThreadReference ref, final StackFrame frame, final LocalVariable variable) {
-			this.vm = vm;
+		VariableWrapperImpl(final AppDebugInterfaceImpl adi, final ThreadReference ref, final StackFrame frame, final LocalVariable variable) {
+			this.adi = adi;
 			this.ref = ref;
 			this.frame = frame;
 			this.variable = variable;
@@ -538,96 +693,83 @@ public class DbgClient {
 			final Class<?>	clazz = getType();
 			final Value		val = frame.getValue(variable);
 			
-			try{return value2Object(vm,ref,frame,clazz,val);
+			try{return value2Object(adi,ref,frame,clazz,val);
+			} catch (ClassNotLoadedException e) {
+				throw new DebuggingException(e);
+			}
+		}
+	}
+
+	private static class ObjectWrapperImpl implements ObjectWrapper {
+		private final AppDebugInterfaceImpl	adi;
+		private final ThreadReference 		ref;
+		private final StackFrame 			frame;
+		private final ReferenceType			type;
+		private final ObjectReference 		obj;
+		
+		ObjectWrapperImpl(final AppDebugInterfaceImpl adi, final ThreadReference ref, final StackFrame frame, final ReferenceType type, final ObjectReference obj) {
+			this.adi = adi;
+			this.ref = ref;
+			this.frame = frame;
+			this.type = type;
+			this.obj = obj;
+		}
+
+		@Override
+		public Class<?> contentType() throws DebuggingException {
+			try{return type2Class(type.classObject().type());
 			} catch (ClassNotLoadedException e) {
 				throw new DebuggingException(e);
 			}
 		}
 
 		@Override
-		public void setValue(Object newValue) throws DebuggingException {
-			// TODO Auto-generated method stub
-//			frame.setValue(variable,);
-		}
-	}
-
-	private static class ObjectWrapperImpl implements ObjectWrapper {
-		private final VirtualMachine 	vm;
-		private final ThreadReference 	ref;
-		private final StackFrame 		frame;
-		private final ObjectReference 	obj;
-		
-		ObjectWrapperImpl(final VirtualMachine vm, final ThreadReference ref, final StackFrame frame, final ObjectReference obj) {
-			this.vm = vm;
-			this.ref = ref;
-			this.frame = frame;
-			this.obj = obj;
-		}
-
-		@Override
-		public Class<?> contentType() throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public ObjectWrapper superValue() throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
 		public String[] fields() throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public String[] declaredFields() throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
+			final List<Field> 	fields = type.visibleFields();
+			final String[]		names = new String[fields.size()];
+			
+			for (int index = 0; index < names.length; index++) {
+				names[index] = fields.get(index).name();
+			}
+			return names;
 		}
 
 		@Override
 		public String[] methods() throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public String[] declaredMethods() throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public Object get(String field) throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public void set(String field, Object value) throws DebuggingException {
-			// TODO Auto-generated method stub
+			final List<com.sun.jdi.Method>	methods = type.visibleMethods();
+			final String[]		names = new String[methods.size()];
 			
+			for (int index = 0; index < names.length; index++) {
+				names[index] = methods.get(index).name()+methods.get(index).signature();
+			}
+			return names;
 		}
 
 		@Override
-		public Object invoke(String methodSignature, Object... parameters) throws DebuggingException {
-			// TODO Auto-generated method stub
-			return null;
+		public Object get(final String field) throws DebuggingException {
+			if (field == null || field.isEmpty()) {
+				throw new IllegalArgumentException("Field can't be null or empty");
+			}
+			else {
+				try{final ReferenceType	fieldType = type.fieldByName(field).declaringType();
+					
+					return value2Object(adi,ref,frame,type2Class(fieldType),obj.getValue(type.fieldByName(field)));
+				} catch (ClassNotLoadedException e) {
+					throw new DebuggingException(e);
+				}
+			}
 		}
 	}
 	
 	private static class ArrayWrapperImpl implements ArrayWrapper {
-		private final VirtualMachine 	vm;
-		private final ThreadReference 	ref;
-		private final StackFrame 		frame;
-		private final Class<?> 			content;
-		private final ArrayReference 	obj;
+		private final AppDebugInterfaceImpl	adi;
+		private final ThreadReference 		ref;
+		private final StackFrame 			frame;
+		private final Class<?> 				content;
+		private final ArrayReference 		obj;
 		
-		ArrayWrapperImpl(final VirtualMachine vm, final ThreadReference ref, final StackFrame frame, final Class<?> content, final ArrayReference obj) {
-			this.vm = vm;
+		ArrayWrapperImpl(final AppDebugInterfaceImpl adi, final ThreadReference ref, final StackFrame frame, final Class<?> content, final ArrayReference obj) {
+			this.adi = adi;
 			this.ref = ref;
 			this.frame = frame;
 			this.content = content;
@@ -652,10 +794,11 @@ public class DbgClient {
 		@Override
 		public Object get() throws DebuggingException {
 			final int			length = getLength();
-			final Object		result = Array.newInstance(contentType(),length);
+			final Class<?>		type = contentType();
+			final Object		result = Array.newInstance(type.isPrimitive() || String.class.isAssignableFrom(type) ? type : ObjectWrapper.class,length);
 			
 			for (int index = 0; index < length; index++) {
-				try{final Object	value =	value2Object(vm,ref,frame,contentType(),obj.getValue(index));
+				try{final Object	value =	value2Object(adi,ref,frame,contentType(),obj.getValue(index));
 				
 					switch (Utils.defineClassType(contentType())) {
 						case Utils.CLASSTYPE_REFERENCE	: Array.set(result,index,value); break;
@@ -675,12 +818,155 @@ public class DbgClient {
 			}
 			return result;
 		}
+	}
+
+	private static class ClassWrapperImpl implements ClassWrapper {
+		private final AppDebugInterfaceImpl	adi;
+		private final ClassType 			clazz;
 		
-		@Override
-		public void set(int index, Object value) throws DebuggingException {
-			// TODO Auto-generated method stub
-			
+		ClassWrapperImpl(final AppDebugInterfaceImpl adi, final ClassType clazz) {
+			this.adi = adi;
+			this.clazz = clazz;
 		}
+
+		@Override
+		public String[] getFieldNames() throws DebuggingException {
+			final List<Field> 	fields = clazz.visibleFields();
+			final String[]		names = new String[fields.size()];
+			
+			for (int index = 0; index < names.length; index++) {
+				names[index] = fields.get(index).name();
+			}
+			return names;
+		}
+
+		@Override
+		public FieldWrapper getClassField(final String name) throws DebuggingException {
+			final Field	f = clazz.fieldByName(name);
+			
+			if (!f.isStatic()) {
+				return null;
+			}
+			else {
+				return new FieldWrapperImpl(adi, clazz, f);
+			}
+		}
+
+		@Override
+		public String[] getMethodNames() throws DebuggingException {
+			final List<com.sun.jdi.Method>	methods = clazz.visibleMethods();
+			final String[]		names = new String[methods.size()];
+			
+			for (int index = 0; index < names.length; index++) {
+				names[index] = methods.get(index).name()+methods.get(index).signature();
+			}
+			return names;
+		}
+
+		@Override
+		public Class<?> contentType() throws DebuggingException {
+			try{return Thread.currentThread().getContextClassLoader().loadClass(clazz.signature().substring(1).replace('/','.').replace(";",""));
+			} catch (ClassNotFoundException e) {
+				throw new DebuggingException(e); 
+			}
+		}
+	}
+
+	private static class FieldWrapperImpl implements FieldWrapper {
+		private final AppDebugInterfaceImpl	adi;
+		private final ClassType 			clazz;
+		private final Field 				f;
 		
+		FieldWrapperImpl(final AppDebugInterfaceImpl adi, final ClassType clazz, final Field f) {
+			this.adi = adi;
+			this.clazz = clazz;
+			this.f = f;
+		}
+
+		@Override
+		public Class<?> contentType() throws DebuggingException {
+			try{return type2Class(f.type());
+			} catch (ClassNotLoadedException e) {
+				throw new DebuggingException(e);
+			}
+		}
+
+
+		@Override
+		public String getName() throws DebuggingException {
+			return f.name();
+		}
+
+		@Override
+		public Object get() throws DebuggingException {
+			try{return value2Object(adi, null, null, contentType(), clazz.getValue(f));
+			} catch (ClassNotLoadedException e) {
+				throw new DebuggingException(e);
+			}
+		}
+	}
+	
+	private static class LocationImpl implements Location {
+		private final AppDebugInterfaceImpl	adi;
+		private final com.sun.jdi.Location	location;
+		
+		LocationImpl(final AppDebugInterfaceImpl adi, final com.sun.jdi.Location location) {
+			this.adi = adi;
+			this.location = location;
+		}
+
+		public ClassWrapper getClassInside() {
+			final com.sun.jdi.Method	m = location.method();
+			
+			return new ClassWrapperImpl(adi,(ClassType)m.declaringType());
+		}
+
+		@Override
+		public MethodWrapper getMethodInside() {
+			final com.sun.jdi.Method	m = location.method();
+			
+			return new MethodWrapper() {
+				@Override
+				public String signature() throws DebuggingException {
+					return m.signature();
+				}
+				
+				@Override
+				public Class<?> owner() throws DebuggingException {
+					try{return type2Class(m.declaringType());
+					} catch (ClassNotLoadedException e) {
+						throw new DebuggingException(e);
+					}
+				}
+				
+				@Override
+				public String name() throws DebuggingException {
+					return m.name();
+				}
+			};
+		}
+
+		@Override
+		public String getSourcePath() throws DebuggingException {
+			final com.sun.jdi.Method	m = location.method();
+			
+			try{return m.declaringType().sourceName();
+			} catch (AbsentInformationException e) {
+				throw new DebuggingException("Incompatible thread state to call: "+e.getLocalizedMessage(),e);
+			}
+		}
+
+		@Override
+		public int getLineNo() {
+			return location.lineNumber();
+		}
+
+		@Override
+		public String toString() {
+			try{return "LocationImpl ["+getClassInside().contentType()+":"+getMethodInside().name()+getMethodInside().signature()+" at line "+getLineNo()+"]";
+			} catch (DebuggingException e) {
+				return super.toString();
+			}
+		}
 	}
 }

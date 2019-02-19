@@ -12,13 +12,14 @@ import java.util.Arrays;
  * @see chav1961.purelib.basic JUnit tests
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 public class LongIdMap<T> {
 	private static final int	RANGE_STEP = 64;
 	
 	private final Class<T>		contentType;
-	private T[][][][]			content; 
+	private T[][][][]			content;
+	private long				maxValue = 0;
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -72,7 +73,8 @@ public class LongIdMap<T> {
 			else if (part4 >= content[part1][part2][part3].length) {
 				content[part1][part2][part3] = Arrays.copyOf(content[part1][part2][part3],nearest2N(part4));
 			}
-			content[part1][part2][part3][part4] = cargo; 
+			content[part1][part2][part3][part4] = cargo;
+			maxValue = Math.max(maxValue,id);
 			return this;
 		}
 	}
@@ -125,6 +127,42 @@ public class LongIdMap<T> {
 		else {
 			return content[part1][part2][part3][part4]; 
 		}
+	}
+
+	public T remove(final long id) {
+		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+		
+		if (part1 >= content.length || content[part1] == null) {
+			return null;
+		}
+		if (part2 >= content[part1].length || content[part1][part2] == null) {
+			return null;
+		}
+		if (part3 >= content[part1][part2].length || content[part1][part2][part3] == null) {
+			return null;
+		}
+		if (part4 >= content[part1][part2][part3].length) {
+			return null;
+		}
+		else {
+			final T	result = content[part1][part2][part3][part4]; 
+			
+			content[part1][part2][part3][part4] = null;
+			return result;
+		}
+	}
+	
+	public long maxValue() {
+		return maxValue;
+	}
+	
+	public long firstFree() {
+		for (long index = 0, maxIndex = maxValue(); index < maxIndex; index++) {
+			if (!contains(index)) {
+				return index;
+			}
+		}
+		return maxValue()+1;
 	}
 	
 	@Override

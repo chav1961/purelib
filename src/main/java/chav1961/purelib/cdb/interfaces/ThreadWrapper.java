@@ -19,8 +19,7 @@ public interface ThreadWrapper {
 		void step() throws DebuggingException; 
 		void stepInto() throws DebuggingException; 
 		void stepOut() throws DebuggingException;
-		void run() throws DebuggingException;
-		void setBreakpoint() throws DebuggingException;
+		int setBreakpoint(final Class<?> clazz, final Method m, final int line) throws DebuggingException;
 	}
 	
 	DebugExecutionControl getExecutionControl() throws DebuggingException;
