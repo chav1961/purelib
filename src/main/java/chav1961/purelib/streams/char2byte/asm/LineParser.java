@@ -122,6 +122,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final String[]					LLOAD_SPECIAL = {"lload_0","lload_1","lload_2","lload_3"}; 
 	private static final String[]					LSTORE_SPECIAL = {"lstore_0","lstore_1","lstore_2","lstore_3"}; 
 	private static final String[]					BIPUSH_SPECIAL = {"iconst_m1","iconst_0","iconst_1","iconst_2","iconst_3","iconst_4","iconst_5"}; 
+	
+	private static final char[]						CLASS_SUFFIX = ".class".toCharArray(); 
 
 	private static final SyntaxTreeInterface<DirectiveDescriptor>	staticDirectiveTree = new AndOrTree<>(2,16);
 	private static final SyntaxTreeInterface<CommandDescriptor>		staticCommandTree = new AndOrTree<>(3,16);
@@ -1727,7 +1729,19 @@ class LineParser implements LineByLineProcessorCallback {
 				case 'A' : case 'B' : case 'C' : case 'D' : case 'E' : case 'F' : case 'G' : case 'H' :  case 'I' : case 'J' :
 				case 'K' : case 'L' : case 'M' : case 'N' : case 'O' : case 'P' : case 'Q' : case 'R' :  case 'S' : case 'T' :
 				case 'U' : case 'V' : case 'W' : case 'X' : case 'Y' : case 'Z' :
-					displ = 0;
+					final int	startName = start, endName = start = skipQualifiedName(data,startName);
+					
+					if (CharUtils.compare(data, endName-CLASS_SUFFIX.length, CLASS_SUFFIX)) {
+						for (int index = startName; index <= endName; index++) {
+							if (data[index] == '.') {
+								data[index] = '/';
+							}
+						}
+						displ = cc.getConstantPool().asClassDescription(cc.getNameTree().placeOrChangeName(data,startName,endName-CLASS_SUFFIX.length,new NameDescriptor()));
+					}
+					else {
+						throw new ContentException("Illegal name. Only zzz.class is available here");
+					}
 					break;
 				default :
 					throw new ContentException("Illegal lexema. Only int/float constant, string literal, class or method reference are available here");

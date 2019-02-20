@@ -386,4 +386,28 @@ public class CompilerUtils {
 			return sb.append(buildClassPath(field.getDeclaringClass())).append('.').append(field.getName()).append("\n").toString();
 		}
 	}
+	
+	public static String fileName2Class(final String fileName) {
+		if (fileName == null || fileName.isEmpty()) {
+			throw new IllegalArgumentException("File name can't be null or empty");
+		}
+		else {
+			final char[]	content = fileName.toCharArray();
+			int				firstPoint = content[0] == '/' ? 1 : 0, lastPoint = content.length-1;
+			
+			while (lastPoint > 0 && content[lastPoint] != '.') {
+				lastPoint--;
+			}
+			for (int index = firstPoint; index < lastPoint; index++) {
+				if (content[index] == '/') {
+					content[index] = '.';
+				}
+			}
+			return new String(content,firstPoint,lastPoint-firstPoint);
+		}
+	}
+
+//	public static String class2FileName(final String clazz) {
+//		
+//	}
 }

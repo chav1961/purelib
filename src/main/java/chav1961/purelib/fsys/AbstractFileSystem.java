@@ -76,7 +76,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	}
 	
 	protected AbstractFileSystem(final AbstractFileSystem another) {
-		this(another.rootPath);
+		this.rootPath = another.rootPath;
 		this.currentPath = another.currentPath;
 		this.stack.addAll(another.stack);
 	}	

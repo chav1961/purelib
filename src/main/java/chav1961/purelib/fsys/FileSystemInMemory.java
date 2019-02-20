@@ -54,7 +54,7 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
 	 */
 	public FileSystemInMemory(){
-		this.content = null;
+		this.content = new HashMap<>();
 	}
 
 	/**

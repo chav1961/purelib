@@ -14,6 +14,8 @@ import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,6 +37,7 @@ import chav1961.purelib.basic.interfaces.BasicScriptEngineController;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.fsys.FileSystemInMemory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 /**
  * <p>This class implements basic functionality for the {@link ScriptEngine} interface. It's functionality is oriented to use with the
@@ -298,7 +301,7 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 		try(final JarInputStream	jis = new JarInputStream(source,true){@Override public void close(){}}) {
 			final Manifest			manifest = jis.getManifest();
 			
-			if (manifest.getAttributes(Attributes.Name.MAIN_CLASS.toString()) == null) {
+			if (manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS.toString()) == null) {
 				throw new IOException("Main-class attribute is missing in the source JAR input");
 			}
 			else {
@@ -328,17 +331,21 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 								}
 							}
 							if (je.getName().endsWith(".class")) {
-								newLoader.prepareClass(je.getName(),baos.toByteArray());
+								newLoader.prepareClass(CompilerUtils.fileName2Class(je.getName()),baos.toByteArray());
 							}
 						}
 					}
 				}
-				loader.close();
+				if (loader != null) {
+					loader.close();
+				}
 				loader = newLoader;
-				mainClass = manifest.getAttributes(Attributes.Name.MAIN_CLASS.toString()).toString();
+				mainClass = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS.toString()).toString();
 			}
 		} catch (IOException e) {
-			newLoader.close();
+			try{newLoader.close();
+			} catch (IOException e1) {
+			}
 			throw new ScriptException(e);
 		}
 	}
@@ -548,20 +555,19 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 		}
 	}
 	
-	private static class InternalClassLoader extends ClassLoader implements Closeable {
+	private static class InternalClassLoader extends URLClassLoader implements Closeable {
 		private InternalClassLoader(final ClassLoader parent, final FileSystemInterface fsi) {
-			super(parent);
+			super(new URL[0],parent);
 		}
 		
 		public void prepareClass(final String className, final byte[] content) {
-			
+			defineClass(className,content,0,content.length);
 		}
 		
 		
 		@Override
-		public void close() {
-			// TODO Auto-generated method stub
-			
+		public void close() throws IOException {
+			super.close();
 		}
 	}
 }
