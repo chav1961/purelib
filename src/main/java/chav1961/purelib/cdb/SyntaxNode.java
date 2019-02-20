@@ -19,8 +19,10 @@ public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode<Type,Clazz
 			this.value = value;
 			this.cargo = cargo;
 			this.children = children;
-			for (Clazz item : children) {
-				item.parent = (Clazz)this;
+			if (children != null) {
+				for (Clazz item : children) {
+					item.parent = (Clazz)this;
+				}
 			}
 		}
 	}
