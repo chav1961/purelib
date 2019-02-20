@@ -1,14 +1,14 @@
 package chav1961.purelib.cdb;
 
-public class SyntaxNode<Type extends Enum<?>> {
-	public int					row, col;
-	protected Type				type;
-	public long					value;
-	public Object				cargo;
-	public SyntaxNode<Type>		parent = null;
-	public SyntaxNode<Type>[]	children;
+public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode<Type,Clazz>> {
+	public int		row, col;
+	public Type		type;
+	public long		value;
+	public Object	cargo;
+	public Clazz	parent = null;
+	public Clazz[]	children;
 	
-	public SyntaxNode(final int row, final int col, final Type type, final long value, final Object cargo, SyntaxNode<Type>... children) {
+	public SyntaxNode(final int row, final int col, final Type type, final long value, final Object cargo, Clazz... children) {
 		if (type == null) {
 			throw new NullPointerException("Type can't be null");
 		}
@@ -19,8 +19,8 @@ public class SyntaxNode<Type extends Enum<?>> {
 			this.value = value;
 			this.cargo = cargo;
 			this.children = children;
-			for (SyntaxNode<Type> item : children) {
-				item.parent = this;
+			for (Clazz item : children) {
+				item.parent = (Clazz)this;
 			}
 		}
 	}

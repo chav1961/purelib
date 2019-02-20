@@ -5,11 +5,11 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 
 public class SyntaxNodeUtils {
 	@FunctionalInterface
-	public interface WalkCallback<Type extends Enum<?>> {
-		ContinueMode process(final NodeEnterMode mode, final SyntaxNode<Type> node);
+	public interface WalkCallback<Type extends Enum<?>,Clazz extends SyntaxNode<Type,Clazz>> {
+		ContinueMode process(final NodeEnterMode mode, final SyntaxNode<Type,Clazz> node);
 	}
 	
-	public static <T extends Enum<?>> boolean walkDown(final SyntaxNode<T> node, final WalkCallback<T> callback) {
+	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkDown(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null"); 
 		}
@@ -21,7 +21,7 @@ public class SyntaxNodeUtils {
 		}
 	}
 
-	public static <T extends Enum<?>> boolean walkUp(final SyntaxNode<T> node, final WalkCallback<T> callback) {
+	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkUp(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null"); 
 		}
@@ -33,12 +33,12 @@ public class SyntaxNodeUtils {
 		}
 	}
 
-	private static <T extends Enum<?>> ContinueMode walkDownInternal(final SyntaxNode<T> node, final WalkCallback<T> callback) {
+	private static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> ContinueMode walkDownInternal(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
 		ContinueMode	rc;
 		
 		switch (rc = callback.process(NodeEnterMode.ENTER,node)) {
 			case CONTINUE		:
-loop:			for (SyntaxNode<T> item : node.children) {
+loop:			for (Clazz item : node.children) {
 					switch (rc = walkDownInternal(item,callback)) {
 						case CONTINUE : case SIBLINGS_ONLY :
 							break;
@@ -62,7 +62,7 @@ loop:			for (SyntaxNode<T> item : node.children) {
 		}
 	}
 
-	private static <T extends Enum<?>> ContinueMode walkUpInternal(final SyntaxNode<T> node, final WalkCallback<T> callback) {
+	private static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> ContinueMode walkUpInternal(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
 		ContinueMode	rc;
 		
 		switch (rc = callback.process(NodeEnterMode.ENTER,node)) {
