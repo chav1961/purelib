@@ -30,7 +30,7 @@ public class ClassDescriptionRepoTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final char[]				longClassName = clazz.getName().toCharArray();
 		
-		cdr.addDescription(clazz);
+		cdr.addDescription(clazz,true);
 		
 		Assert.assertEquals(cdr.getClassDescription(longClassName,0,longClassName.length),clazz);
 		
@@ -55,13 +55,13 @@ public class ClassDescriptionRepoTest {
 	public void illegallArgumentsTest() throws ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
-		try{cdr.addDescription(null);
+		try{cdr.addDescription(null,true);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");			
 		} catch (IllegalArgumentException exc) {
 		}
 
-		cdr.addDescription(this.getClass());
-		cdr.addDescription(FakeClass.class);
+		cdr.addDescription(this.getClass(),true);
+		cdr.addDescription(FakeClass.class,true);
 		
 		try{cdr.getClassDescription(null,0,1);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");			

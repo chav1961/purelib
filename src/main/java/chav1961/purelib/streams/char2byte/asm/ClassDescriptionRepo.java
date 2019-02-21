@@ -47,7 +47,7 @@ class ClassDescriptionRepo {
 		stack.add(0,new RepoStack(new AndOrTree<Keeper>(2,16)));
 //		stack.add(0,new RepoStack(new AndOrTree<Keeper>(1,16),new AndOrTree<Keeper>(2,16)));
 		for (Class<?> item : PRELOADED_CLASSES) {
-			addClassDescription(/*stack.get(0).repoShort,*/stack.get(0).repoLong,item);
+			addClassDescription(/*stack.get(0).repoShort,*/stack.get(0).repoLong,item,false);
 		}
 	}
 
@@ -56,16 +56,16 @@ class ClassDescriptionRepo {
 		stack.add(0,new RepoStack(new AndOrTree<Keeper>(2,16)));
 //		stack.add(0,new RepoStack(new AndOrTree<Keeper>(1,16),new AndOrTree<Keeper>(2,16)));
 		for (Class<?> item : PRELOADED_CLASSES) {
-			addClassDescription(/*stack.get(0).repoShort,*/stack.get(0).repoLong,item);
+			addClassDescription(/*stack.get(0).repoShort,*/stack.get(0).repoLong,item,false);
 		}
 	}
 	
-	void addDescription(final Class<?> clazz) throws ContentException {
+	void addDescription(final Class<?> clazz, final boolean protectedAndPrrivate) throws ContentException {
 		if (clazz == null) {
 			throw new IllegalArgumentException("Class to add can'tbe null");
 		}
 		else {
-			addClassDescription(/*stack.get(0).repoShort,*/stack.get(0).repoLong,clazz);
+			addClassDescription(/*stack.get(0).repoShort,*/stack.get(0).repoLong,clazz,protectedAndPrrivate);
 		}
 	}
 	
@@ -179,7 +179,7 @@ class ClassDescriptionRepo {
 		}
 	}
 
-	private static void addClassDescription(/*final SyntaxTreeInterface<Keeper> shortTree,*/ final SyntaxTreeInterface<Keeper> longTree, final Class<?> clazz) throws ContentException {
+	private static void addClassDescription(/*final SyntaxTreeInterface<Keeper> shortTree,*/ final SyntaxTreeInterface<Keeper> longTree, final Class<?> clazz, final boolean protectedAndPrrivate) throws ContentException {
 		final String	clazzName = clazz.getName();
 		
 		if (clazzName.contains("$")) {
@@ -190,13 +190,13 @@ class ClassDescriptionRepo {
 				public void processEntity(Field entity) throws ContentException {
 					addFieldDescription(/*shortTree,*/longTree,clazzName,entity);
 				}
-			}, true, longTree);
+			}, protectedAndPrrivate, longTree);
 			walkMethods(clazz,new WalkCallback<Method>(){
 				@Override
 				public void processEntity(Method entity) throws ContentException {
 					addMethodDescription(/*shortTree,*/longTree,clazzName,entity);
 				}
-			}, true, longTree);
+			}, protectedAndPrrivate, longTree);
 			for (Constructor<?> c : clazz.getDeclaredConstructors()) {
 				addConstructorDescription(/*shortTree,*/longTree,clazzName,c);
 			}
@@ -208,13 +208,13 @@ class ClassDescriptionRepo {
 				public void processEntity(Field entity) throws ContentException {
 					addFieldDescription(/*shortTree,*/longTree,clazzName,entity);
 				}
-			}, true, longTree);
+			}, protectedAndPrrivate, longTree);
 			walkMethods(clazz,new WalkCallback<Method>(){
 				@Override
 				public void processEntity(Method entity) throws ContentException {
 					addMethodDescription(/*shortTree,*/longTree,clazzName,entity);
 				}
-			}, true, longTree);
+			}, protectedAndPrrivate, longTree);
 			for (Constructor<?> c : clazz.getDeclaredConstructors()) {
 				addConstructorDescription(/*shortTree,*/longTree,clazzName,c);
 			}
@@ -225,7 +225,7 @@ class ClassDescriptionRepo {
 	private static void walkFields(final Class<?> node, final WalkCallback<Field> callback, final boolean processPublicAndPrivate, final SyntaxTreeInterface<Keeper> longTree) throws ContentException {
 		if (node != null && longTree.seekName(node.getCanonicalName() != null ? node.getCanonicalName() : node.getName()) < 0) {
 			for (final Field f : node.getDeclaredFields()) {
-				if (processPublicAndPrivate == (Modifier.isPublic(f.getModifiers()) || Modifier.isPrivate(f.getModifiers()))) {
+				if (Modifier.isPublic(f.getModifiers()) || processPublicAndPrivate) {
 					callback.processEntity(f);
 				}
 			}
@@ -235,7 +235,7 @@ class ClassDescriptionRepo {
 				}
 			}
 			else {
-				walkFields(node.getSuperclass(),callback,false,longTree);
+				walkFields(node.getSuperclass(),callback,processPublicAndPrivate,longTree);
 			}
 		}
 	}
@@ -243,7 +243,7 @@ class ClassDescriptionRepo {
 	private static void walkMethods(final Class<?> node, final WalkCallback<Method> callback, final boolean processPublicAndPrivate, final SyntaxTreeInterface<Keeper> longTree) throws ContentException {
 		if (node != null && longTree.seekName(node.getCanonicalName() != null ? node.getCanonicalName() : node.getName()) < 0) {
 			for (final Method m : node.getDeclaredMethods()) {
-				if (processPublicAndPrivate == (Modifier.isPublic(m.getModifiers()) || Modifier.isPrivate(m.getModifiers()))) {
+				if (Modifier.isPublic(m.getModifiers()) || processPublicAndPrivate) {
 					callback.processEntity(m);
 				}
 			}
@@ -253,7 +253,7 @@ class ClassDescriptionRepo {
 				}
 			}
 			else {
-				walkMethods(node.getSuperclass(),callback,false,longTree);
+				walkMethods(node.getSuperclass(),callback,processPublicAndPrivate,longTree);
 			}
 		}
 	}

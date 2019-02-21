@@ -109,7 +109,6 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	}
 	
 	public void importClass(final Class<?> clazz) throws ContentException {
-		cdr.addDescription(clazz);
-	}
-	
+		cdr.addDescription(clazz,false);
+	}	
 }

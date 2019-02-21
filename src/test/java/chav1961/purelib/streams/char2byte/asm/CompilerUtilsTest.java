@@ -187,9 +187,9 @@ public class CompilerUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		Assert.assertEquals(" invokevirtual chav1961.purelib.basic.CompilerUtilsRabbitChild.callMethod(Ljava/lang/String;[I)I\n",CompilerUtils.buildMethodCall(m));
-		Assert.assertEquals(" invokeinterface chav1961.purelib.basic.RabbitInterface.callInterface(Ljava/lang/String;)V\n",CompilerUtils.buildMethodCall(i,RabbitInterface.class));
-		Assert.assertEquals(" invokestatic chav1961.purelib.basic.CompilerUtilsRabbitChild.staticCall()V\n",CompilerUtils.buildMethodCall(s));
+		Assert.assertEquals(" invokevirtual chav1961.purelib.streams.char2byte.asm.CompilerUtilsRabbitChild.callMethod(Ljava/lang/String;[I)I\n",CompilerUtils.buildMethodCall(m));
+		Assert.assertEquals(" invokeinterface chav1961.purelib.streams.char2byte.asm.RabbitInterface.callInterface(Ljava/lang/String;)V\n",CompilerUtils.buildMethodCall(i,RabbitInterface.class));
+		Assert.assertEquals(" invokestatic chav1961.purelib.streams.char2byte.asm.CompilerUtilsRabbitChild.staticCall()V\n",CompilerUtils.buildMethodCall(s));
 
 		try{CompilerUtils.buildMethodCall(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -204,23 +204,23 @@ public class CompilerUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 		
-		Assert.assertEquals(" invokespecial chav1961.purelib.basic.CompilerUtilsRabbitChild.CompilerUtilsRabbitChild()V\n",CompilerUtils.buildConstructorCall(c));
+		Assert.assertEquals(" invokespecial chav1961.purelib.streams.char2byte.asm.CompilerUtilsRabbitChild.CompilerUtilsRabbitChild()V\n",CompilerUtils.buildConstructorCall(c));
 
 		try{CompilerUtils.buildConstructorCall(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
 
-		Assert.assertEquals(" getfield chav1961.purelib.basic.CompilerUtilsRabbit.field2\n",CompilerUtils.buildGetter(f));
-		Assert.assertEquals(" getstatic chav1961.purelib.basic.CompilerUtilsRabbitChild.str\n",CompilerUtils.buildGetter(fs));
+		Assert.assertEquals(" getfield chav1961.purelib.streams.char2byte.asm.CompilerUtilsRabbit.field2\n",CompilerUtils.buildGetter(f));
+		Assert.assertEquals(" getstatic chav1961.purelib.streams.char2byte.asm.CompilerUtilsRabbitChild.str\n",CompilerUtils.buildGetter(fs));
 
 		try{CompilerUtils.buildGetter(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
 
-		Assert.assertEquals(" putfield chav1961.purelib.basic.CompilerUtilsRabbit.field2\n",CompilerUtils.buildSetter(f));
-		Assert.assertEquals(" putstatic chav1961.purelib.basic.CompilerUtilsRabbitChild.str\n",CompilerUtils.buildSetter(fs));
+		Assert.assertEquals(" putfield chav1961.purelib.streams.char2byte.asm.CompilerUtilsRabbit.field2\n",CompilerUtils.buildSetter(f));
+		Assert.assertEquals(" putstatic chav1961.purelib.streams.char2byte.asm.CompilerUtilsRabbitChild.str\n",CompilerUtils.buildSetter(fs));
 
 		try{CompilerUtils.buildSetter(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

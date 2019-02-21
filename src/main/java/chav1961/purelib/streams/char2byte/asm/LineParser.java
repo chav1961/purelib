@@ -124,6 +124,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final String[]					BIPUSH_SPECIAL = {"iconst_m1","iconst_0","iconst_1","iconst_2","iconst_3","iconst_4","iconst_5"}; 
 	
 	private static final char[]						CLASS_SUFFIX = ".class".toCharArray(); 
+	private static final char[]						PROTECTED_KEYWORD = "protected".toCharArray(); 
 
 	private static final SyntaxTreeInterface<DirectiveDescriptor>	staticDirectiveTree = new AndOrTree<>(2,16);
 	private static final SyntaxTreeInterface<CommandDescriptor>		staticCommandTree = new AndOrTree<>(3,16);
@@ -1294,13 +1295,23 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processImportDir(final char[] data, int start) throws ContentException {
-		final String	className = new String(data,start,skipQualifiedName(data,start) - start);  
+		final int		endName = skipQualifiedName(data,start);
+		final String	className = new String(data,start,endName - start);  
 
-		try{cdr.addDescription(loader != null ? Class.forName(className,true,loader) : Class.forName(className));
+		try{final int	possibleProtected = InternalUtils.skipBlank(data,endName);
+			
+			if (CharUtils.compare(data,possibleProtected,PROTECTED_KEYWORD)) {
+				cdr.addDescription(loader != null ? Class.forName(className,true,loader) : Class.forName(className),true);
+				start = possibleProtected + PROTECTED_KEYWORD.length;
+			}
+			else {
+				cdr.addDescription(loader != null ? Class.forName(className,true,loader) : Class.forName(className),false);
+				start = endName;
+			}
+			skip2line(data,start);
 		} catch (ClassNotFoundException e) {
 			throw new ContentException("Class description ["+className+"] is unknown in the actual class loader. Test the class name you want to import and/or make it aacessible for the class loader",e);
 		}				
-		skip2line(data,start+className.length());
 	}
 
 	private void processIncludeDir(final char[] data, int start, final int end) throws ContentException {
