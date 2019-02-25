@@ -748,7 +748,8 @@ public class CharUtils {
 	 * @param preferences available data types you wish to get 
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws IllegalArgumentException if any parsing errors ware detected
+	 * @since 0.0.1 last update 0.0.3 
 	 */
 	public static int parseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) {
 		int		len;
@@ -773,7 +774,7 @@ public class CharUtils {
 			
 			while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
 				if (checkOverflow) {
-					if (temp > INTMAX_10 && (preferences & (PREF_LONG | PREF_DOUBLE)) == 0) {
+					if (temp > INTMAX_10 && (preferences & (PREF_LONG | PREF_FLOAT)) == 0) {
 						throw new NumberFormatException("Number is greater then maximal available integer");
 					}
 					if (temp > LONGMAX_10 && (preferences & PREF_DOUBLE) == 0) {
@@ -802,84 +803,90 @@ public class CharUtils {
 				throw new NumberFormatException("No one digits in the number was detected!");
 			}
 			else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E' || symbol == 'f' || symbol == 'F') || continueParsing) {
-				double	tempInt = temp;
-				
-				if (continueParsing) {
-					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-						tempInt = tempInt * 10 + symbol - '0';
-						index++;
-					}
-				}
-				
-				if (symbol == '.') {
-					double	frac = 0, scale = 1;
-					int		fracFrom = ++index;
+				if ((preferences & (PREF_FLOAT | PREF_DOUBLE)) != 0) {
+					double	tempInt = temp;
 					
-					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-						frac = frac * 10 + symbol - '0';
-						scale *= 0.1;
-						index++;
+					if (continueParsing) {
+						while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+							tempInt = tempInt * 10 + symbol - '0';
+							index++;
+						}
 					}
 					
-					if (index == fracFrom) {
-						throw new NumberFormatException("No one digits in the fractional part of double was detected!");
+					if (symbol == '.') {
+						double	frac = 0, scale = 1;
+						int		fracFrom = ++index;
+						
+						while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+							frac = frac * 10 + symbol - '0';
+							scale *= 0.1;
+							index++;
+						}
+						
+						if (index == fracFrom) {
+							throw new NumberFormatException("No one digits in the fractional part of double was detected!");
+						}
+						else {
+							tempInt += frac * scale;
+						}
+					}
+					if (symbol == 'e' || symbol == 'E') {
+						int		multiplier = 1;
+						
+						index++;
+						if (index < len && (symbol = source[index]) == '-') {
+							multiplier = -1;
+							index++;
+						}
+						else if (symbol == '+') {
+							index++;
+						}
+						int		exp = 0, expFrom = index;
+						
+						while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+							exp = exp * 10 + symbol - '0';
+							index++;
+						}
+						exp *= multiplier;
+						
+						if (checkOverflow && (exp > EXP_BOUND || exp < -EXP_BOUND)) {
+							throw new NumberFormatException("Number is greater then maximal available double");
+						}
+						
+						if (index == expFrom) {
+							throw new NumberFormatException("No one digits in the exponent part of double was detected!");
+						}
+						else {
+							tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
+						}
+					}
+	
+					if (symbol == 'f' || symbol == 'F') {
+						index++;
+						if ((preferences & PREF_FLOAT) == 0) {
+							throw new NumberFormatException("Float number is not waited here");
+						}
+						else if (Math.abs(tempInt) < Float.MAX_VALUE) {
+							result[0] = Float.floatToIntBits((float)tempInt);
+							result[1] = PREF_FLOAT;
+						}
+						else {
+							throw new NumberFormatException("Float number is greater then maximal available float");
+						}
 					}
 					else {
-						tempInt += frac * scale;
-					}
-				}
-				if (symbol == 'e' || symbol == 'E') {
-					int		multiplier = 1;
-					
-					index++;
-					if (index < len && (symbol = source[index]) == '-') {
-						multiplier = -1;
-						index++;
-					}
-					else if (symbol == '+') {
-						index++;
-					}
-					int		exp = 0, expFrom = index;
-					
-					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-						exp = exp * 10 + symbol - '0';
-						index++;
-					}
-					exp *= multiplier;
-					
-					if (checkOverflow && (exp > EXP_BOUND || exp < -EXP_BOUND)) {
-						throw new NumberFormatException("Number is greater then maximal available double");
-					}
-					
-					if (index == expFrom) {
-						throw new NumberFormatException("No one digits in the exponent part of double was detected!");
-					}
-					else {
-						tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
-					}
-				}
-
-				if (symbol == 'f' || symbol == 'F') {
-					index++;
-					if ((preferences & PREF_FLOAT) == 0) {
-						throw new NumberFormatException("Float number is not waited here");
-					}
-					else if (Math.abs(tempInt) < Float.MAX_VALUE) {
-						result[0] = Float.floatToIntBits((float)tempInt);
-						result[1] = PREF_FLOAT;
-					}
-					else {
-						throw new NumberFormatException("Float number is greater then maximal available float");
+						if ((preferences & PREF_DOUBLE) != 0) {
+							result[0] = Double.doubleToLongBits(tempInt);
+							result[1] = PREF_DOUBLE;
+						}
+						else {
+							throw new NumberFormatException("Double number is not waited here");
+						}
 					}
 				}
 				else {
-					if ((preferences & PREF_DOUBLE) != 0) {
-						result[0] = Double.doubleToLongBits(tempInt);
-						result[1] = PREF_DOUBLE;
-					}
-					else {
-						throw new NumberFormatException("Double number is not waited here");
-					}
+					result[0] = temp; 
+					result[1] = temp > Integer.MAX_VALUE ? PREF_LONG : PREF_INT;
 				}
 			}
 			else {
