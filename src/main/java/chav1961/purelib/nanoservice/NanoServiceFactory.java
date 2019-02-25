@@ -31,6 +31,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
@@ -180,7 +181,9 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	private final AtomicInteger						uniqueNumber = new AtomicInteger(0);
 	@SuppressWarnings("rawtypes")
 	private final PrologueEpilogueMaster			prologue, epilogue;
-	
+	private final int								executorPoolSize;
+
+	private volatile ExecutorService				executorPool;
 	private volatile boolean						started = false, paused = false;
 	
 	public NanoServiceFactory(final LoggerFacade facade, final SubstitutableProperties props) throws NullPointerException, IOException, ContentException, SyntaxException {
@@ -280,6 +283,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					};					
 					this.disableLoopback = props.getProperty(NANOSERVICE_DISABLE_LOOPBACK,boolean.class,"false");
 					this.tempStore = new TemporaryStore(props.getProperty(NANOSERVICE_TEMPORARY_CACHE_SIZE,int.class,""+TemporaryStore.DEFAULT_BUFFER_SIZE));
+					this.executorPoolSize = props.getProperty(NANOSERVICE_EXECUTOR_POOL_SIZE,int.class,DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE);
 					
 					try(final InputStream	is = NanoServiceFactory.class.getResourceAsStream(MACROS_CONTENT);
 						final Reader		rdr = new InputStreamReader(is,"UTF-8")) {
@@ -294,7 +298,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					else {
 						server = HttpServer.create(new InetSocketAddress(props.getProperty(NANOSERVICE_PORT,int.class)),0);
 					}
-					server.setExecutor(Executors.newFixedThreadPool(props.getProperty(NANOSERVICE_EXECUTOR_POOL_SIZE,int.class,DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE)));
 					server.createContext("/",this);
 					check.rollback();
 				}
@@ -311,6 +314,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			throw new IllegalStateException("Attempt to start server already started"); 
 		}
 		else {
+			server.setExecutor(this.executorPool = Executors.newFixedThreadPool(executorPoolSize));
 			server.start();
 			paused = false;
 			started = true;
@@ -360,6 +364,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 		else {
 			server.stop(0);
+			executorPool.shutdownNow();
 			paused = false;
 			started = false;
 		}
