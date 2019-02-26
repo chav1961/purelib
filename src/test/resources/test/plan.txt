@@ -8,6 +8,7 @@
 5. Ввести кэш в GettersAndSetters
 *6. Дополнить LongIdMap методами maxKey() и firstFree();
 7. Дополнить CharUtils методом like(char[],it,char[])
+8. Дополнить ArgParser взаимными проверками (какой параметр какой исключает, какой набор параметров образует целостный комплект) и диапазоном представления или списком для целочисленного аргумента
 Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 Пакет exceptions

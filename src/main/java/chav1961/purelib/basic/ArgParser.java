@@ -149,7 +149,7 @@ public class ArgParser {
 		else {
 			final String	keyFind = caseSensitive ? key : key.toLowerCase();
 			
-			return pairs.containsKey(keyFind) || forKey(keyFind,desc,caseSensitive) != null;
+			return pairs.containsKey(keyFind);// || forKey(keyFind,desc,caseSensitive) != null;
 		}
 	}
 
