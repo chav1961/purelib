@@ -6,7 +6,8 @@
 3. Написать реализацию XmlBasedParser для построения парсеров "болтливых" языков типа SQL.
 4. Удалить из библиотеки AssemblerTemplateRepo и исключить все ссылки на него
 5. Ввести кэш в GettersAndSetters
-6. Дополнить LongIdMap методами maxKey() и firstFree();
+*6. Дополнить LongIdMap методами maxKey() и firstFree();
+7. Дополнить CharUtils методом like(char[],it,char[])
 Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 Пакет exceptions
@@ -14,7 +15,7 @@
 Пакет fsys
 *1. Дополнить интерфейс FileSystemInterface методом isMound и итератором по всем подмонтированным файловым системам. Разнести реализацию на существующие файловые системы
 2. Дополнить интерфейс FileSystemInterface методом join/unjoin/isJoined и итератором по всем слитым файловым системам. Разнести реализацию на существующие файловые системы
-3. Дополнить список файловых систем типом FileSystemOnClassLoader
+*3. Дополнить список файловых систем типом FileSystemOnClassLoader
 Пакет j18n
 *1. Дополнить ссылку uri() в значениях полей возможностью задавать ?mime=xxx/yyy или ?sourcemime=xxx/yyy&targetmime=xxx/yyy
 Пакет json

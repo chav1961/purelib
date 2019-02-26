@@ -50,11 +50,12 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	private static final Pattern		ALL_MASK_COMPILED = Pattern.compile(ALL_MASK);
 	private static final URI			ROOT_URI = URI.create("/");
 
+	protected final URI 				rootPath;
+	
 	private final Map<String,Object>	emptyMap = new HashMap<String,Object>();
 	private final List<URI>				stack = new ArrayList<URI>();
 	private final Map<URI,FileSystemInterface>	mounts = new HashMap<URI,FileSystemInterface>();
 	
-	private final URI 					rootPath;
 	private	URI							currentPath = null, prevPath = null;
 	private Redirection					redirection = null;
 	private DataWrapperInterface		prevWrapper = null;

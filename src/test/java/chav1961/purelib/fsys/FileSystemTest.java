@@ -130,6 +130,43 @@ public class FileSystemTest {
 			Assert.assertArrayEquals(list4,new String[]{"innerFile.txt"});
 		}
 	}
+
+	@Test
+	public void onClassLoaderReadOnlyTest() throws Exception {
+		try(final FileSystemInterface	fs = new FileSystemOnClassLoader(URI.create("classloader:/chav1961/purelib/fsys/classloader"))) {
+			
+//			try(final FileOutputStream	fos = new FileOutputStream("./src/test/resources/chav1961/purelib/fsys/fsTest/innerFile.txt")) {
+//				
+//				fos.write("test string".getBytes());
+//				fos.flush();
+//			}
+			
+			Assert.assertTrue(fs.exists());
+			Assert.assertEquals(fs.getPath(),"/");
+			Assert.assertEquals(fs.getName(),"/");
+			
+			final String[]	list = fs.list();
+			Assert.assertEquals(list.length,2);
+			Assert.assertArrayEquals(list,new String[]{"dir","file.txt"});
+			
+			final String[]	list2 = fs.open("/dir").list();
+			Assert.assertTrue(fs.exists());
+			Assert.assertTrue(fs.isDirectory());
+			Assert.assertFalse(fs.isFile());
+			Assert.assertTrue(fs.canRead());
+			Assert.assertFalse(fs.canWrite());
+			Assert.assertEquals(fs.getPath(),"/dir");
+			Assert.assertEquals(fs.getName(),"dir");
+			Assert.assertEquals(list2.length,1);
+			Assert.assertArrayEquals(list2,new String[]{"innerFile.txt"});
+
+			try(final Writer	wr = new StringWriter()) {
+				fs.open("./innerFile.txt").copy(wr);
+				Assert.assertEquals(wr.toString(),"test string");
+			}
+		}
+	}
+	
 	
 	@Test
 	public void test() throws Exception {
