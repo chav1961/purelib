@@ -396,7 +396,11 @@ loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
 			writeContent(firstLine,' ');
 		}
 	}
-	
+
+	@Override
+	public boolean isOpaque() {
+		return false;
+	}
 	
 	@Override
 	protected void paintComponent(final Graphics g) { 

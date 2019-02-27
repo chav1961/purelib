@@ -11,10 +11,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
 
-class Term extends PseudoConsole implements CharStreamPrinter<Term> {
+public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private static final long 		serialVersionUID = 4321066125437646937L;
 	
 	private static final long		BLINK_INTERVAL = 500;
@@ -26,7 +27,6 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private static final int		INITIAL_SIZE = 32;
 	
 	private final boolean			emulateBell = false;
-	private final Timer				t = new Timer(true);
 	private final TimerTask			tt = new TimerTask(){
 										@Override
 										public void run() {
@@ -35,21 +35,36 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 									};
 	private final StringBuilder		sb = new StringBuilder();
 	private final List<int[]>		stack = new ArrayList<>();
+	private final Color[]			colors = new Color[2];
 	private char[]					buffer = new char[INITIAL_SIZE]; 
 							
 	private int						x = 1, y = 1, escaping = 0;
 	private boolean					on = true, blinkNow = false;
-	private Color[]					colors = new Color[]{Color.GREEN,Color.BLACK};
 
 	public Term(){
 		this(80,25);
 	}
 	
 	public Term(final int width, final int height){
-		super(width,height);
-		t.schedule(tt,BLINK_INTERVAL,BLINK_INTERVAL);
+		this(width,height,Color.GREEN,Color.BLACK);
 	}
 
+	public Term(final int width, final int height, final Color foreground, final Color background){
+		super(width,height);
+		if (foreground == null) {
+			throw new NullPointerException("Foreground color can't be null"); 
+		}
+		else if (background == null) {
+			throw new NullPointerException("Background color can't be null"); 
+		}
+		else {
+			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,BLINK_INTERVAL,BLINK_INTERVAL);
+			colors[0] = foreground;
+			colors[1] = background;
+		}
+	}
+	
+	
 	@Override
 	public void flush() throws IOException {
 	}
@@ -57,7 +72,6 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	@Override
 	public void close() throws IOException {
 		tt.cancel();
-		t.cancel();
 		stack.clear();
 	}
 	
@@ -293,7 +307,7 @@ class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	}
 	
 	public Term clear() {
-		TermUtils.clear(this,Color.GREEN,Color.black);
+		TermUtils.clear(this,colors[0],colors[1]);
 		setCursor(1,1);
 		return this;
 	}
