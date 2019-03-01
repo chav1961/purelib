@@ -17,6 +17,9 @@
 *1. Дополнить интерфейс FileSystemInterface методом isMound и итератором по всем подмонтированным файловым системам. Разнести реализацию на существующие файловые системы
 2. Дополнить интерфейс FileSystemInterface методом join/unjoin/isJoined и итератором по всем слитым файловым системам. Разнести реализацию на существующие файловые системы
 *3. Дополнить список файловых систем типом FileSystemOnClassLoader
+Пакет internal
+1. Довести до ума DocLet
+2. Написать класс Utils для генерации Creole-файлов по описаниям из JavaDоc
 Пакет j18n
 *1. Дополнить ссылку uri() в значениях полей возможностью задавать ?mime=xxx/yyy или ?sourcemime=xxx/yyy&targetmime=xxx/yyy
 Пакет json
@@ -90,8 +93,8 @@
 *4. Перенести MercHighLighter в пакет и обобщить его код
 5. Перенести JUnit-тесты по MercHighLighter в пакет 
 6. Написать и отладить класс JCreoleEditor с подсветкой синтаксиса
-7. Написать и отладить класс JStateString
-8. Написать и отладить класс JLocalizedOptionPane
+*7. Написать и отладить класс JStateString
+*8. Написать и отладить класс JLocalizedOptionPane
 9. Написать и отладить класс JFileNameTextField с возможностью выбора файла и валидацией введенного имени
 *10. Написать и отладить класс LabelledLayout для размещения органов управления в виде имя/значение
 11. Перенести логику создания экранной формы по модели из AutoBuildForm в новый класс JLabelledPanel
@@ -128,49 +131,5 @@
 5. Статический контент для справки (описание MerLan, описание world) 
 
 http://www.docjar.com/docs/api/com/sun/tools/example/trace/package-index.html
-
-
-
-
-<profiles>
-    <profile>
-        <id>default-profile</id>
-        <activation>
-            <activeByDefault>true</activeByDefault>
-            <file>
-                <exists>${java.home}/../lib/tools.jar</exists>
-            </file>
-        </activation>
-        <properties>
-            <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
-        </properties>
-    </profile>
-    <profile>
-        <id>mac-profile</id>
-        <activation>
-            <activeByDefault>false</activeByDefault>
-            <file>
-                <exists>${java.home}/../Classes/classes.jar</exists>
-            </file>
-        </activation>
-        <properties>
-            <toolsjar>${java.home}/../Classes/classes.jar</toolsjar>
-        </properties>
-    </profile>
-</profiles>
-
-
-<dependencies>
-    <dependency>
-        <groupId>jdk.tools</groupId>
-        <artifactId>jdk.tools</artifactId>
-        <version>jdk1.8.0</version>
-        <scope>system</scope>
-        <systemPath>${toolsjar}</systemPath>
-    </dependency>
-</dependencies>
-
-https://github.com/olivergondza/maven-jdk-tools-wrapper/blob/master/pom.xml
-
 
 https://www.developer.com/java/other/article.php/3085991/Javadoc-Programming.htm

@@ -26,6 +26,29 @@ public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode<Type,Clazz
 			}
 		}
 	}
+
+	public SyntaxNode(final SyntaxNode<Type,Clazz> another) {
+		assign(another);
+	}
+	
+	public void assign(final SyntaxNode<Type,Clazz> another) {
+		if (another == null) {
+			throw new NullPointerException("Another node can't be null");
+		}
+		else {
+			this.row = another.row;
+			this.col = another.col;
+			this.type = another.type;
+			this.value = another.value;
+			this.cargo = another.cargo;
+			this.children = another.children;
+			if (children != null) {
+				for (Clazz item : children) {
+					item.parent = (Clazz)this;
+				}
+			}
+		}
+	}
 	
 	public Type getType() {
 		return type;

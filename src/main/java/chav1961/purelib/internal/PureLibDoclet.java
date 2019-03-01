@@ -51,4 +51,11 @@ public class PureLibDoclet {
 		}
 		return true;
 	}	
+	
+	 public static int optionLength(final String option) {
+        if(option.equals("-tag")) {
+            return 2;
+        }
+        return 0;
+    }	
 }

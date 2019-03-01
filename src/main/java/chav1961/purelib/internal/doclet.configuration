@@ -1,0 +1,2 @@
+"-docletpath target/classes
+-doclet doclet.DocletExample
