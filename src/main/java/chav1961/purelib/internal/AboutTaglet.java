@@ -5,7 +5,7 @@ import java.util.Map;
 import com.sun.tools.doclets.Taglet;
 
 public class AboutTaglet extends AbstractTaglet {
-	@Override public String getName() {return "about";}
+	@Override public String getName() {return PureLibDoclet.TAG_ABOUT;}
 	@Override public boolean inConstructor() {return false;}
 	@Override public boolean inField() {return false;}
 	@Override public boolean inMethod() {return false;}

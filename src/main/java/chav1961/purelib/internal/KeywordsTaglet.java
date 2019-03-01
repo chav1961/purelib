@@ -5,7 +5,7 @@ import java.util.Map;
 import com.sun.tools.doclets.Taglet;
 
 public class KeywordsTaglet extends AbstractTaglet {
-	@Override public String getName() {return "keywords";}
+	@Override public String getName() {return PureLibDoclet.TAG_KEYWORDS;}
 	@Override public boolean inConstructor() {return true;}
 	@Override public boolean inField() {return true;}
 	@Override public boolean inMethod() {return true;}

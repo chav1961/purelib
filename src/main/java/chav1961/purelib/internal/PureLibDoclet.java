@@ -5,11 +5,20 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.DocErrorReporter;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.RootDoc;
 
 public class PureLibDoclet {
+	public static final String	TAG_ABOUT = "about";
+	public static final String	TAG_CODESAMPLE = "codeSample";
+	public static final String	TAG_KEYWORDS = "keywords";
+	public static final String	TAG_THREADSAFED = "threadSafed";
+	public static final String	TAG_TREEITEM = "treeItem";
+
+	private static final String	KEY_TREE_TARGET = "treeTarget";
+	
 	public static void process(final String sourcePath) throws IOException {
 		final Process 	process	= new ProcessBuilder().command("javadoc","neo","-sourcepath","src/main/java","-docletpath","target/classes","-doclet","doclet.DocletExample").start();
 		
@@ -52,10 +61,29 @@ public class PureLibDoclet {
 		return true;
 	}	
 	
-	 public static int optionLength(final String option) {
-        if(option.equals("-tag")) {
-            return 2;
-        }
-        return 0;
+	public static int optionLength(final String option) {
+		switch (option) {
+			case KEY_TREE_TARGET	:
+				return 2;
+			default :
+				return 0;
+		}
     }	
+	 
+	public static boolean validOptions(final String options[][], final DocErrorReporter reporter) {
+		boolean success = true;
+		
+		for (String[] item : options) {
+			switch (item[0]) {
+				case KEY_TREE_TARGET	:
+					break;
+				default :
+					break;
+			}
+		}
+		if (!success) {
+			reporter.printError("Usage: javadoc -tag mytag -doclet ListTags ...");
+		}
+		return success;
+	}	 
 }
