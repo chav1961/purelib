@@ -133,7 +133,6 @@ public abstract class SwingUtils {
 			throw new IllegalArgumentException("Name to find can't be null or empty");
 		}
 		else if (node != null) {
-			System.err.println("Find: "+name+" and "+node.getName());
 			if (name.equals(node.getName())) {
 				return node;
 			}

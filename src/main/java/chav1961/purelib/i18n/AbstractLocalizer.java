@@ -45,12 +45,15 @@ import chav1961.purelib.streams.StreamsUtil;
 
 public abstract class AbstractLocalizer implements Localizer {
 	public static final String						DEFAULT_CONTENT_ENCODING = "UTF-8";
+	public enum SupportedLanguages {
+		en, ru
+	}
 		
 	private static final Pattern					URI_PATTERN = Pattern.compile("uri\\((?<uri>.*)\\)");
 	
 	private static final LocaleDescriptor[]			LOCALES = new LocaleDescriptor[]{
-															 new LocaleDescriptorImpl(new Locale.Builder().setLanguage("en").build(),"en","English",new ImageIcon(AbstractLocalizer.class.getResource("en.png")))
-															,new LocaleDescriptorImpl(new Locale.Builder().setLanguage("ru").build(),"ru","Russian",new ImageIcon(AbstractLocalizer.class.getResource("ru.png")))
+															 new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.en.name()).build(),SupportedLanguages.en,"English",new ImageIcon(AbstractLocalizer.class.getResource(SupportedLanguages.en.name()+".png")))
+															,new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.ru.name()).build(),SupportedLanguages.ru,"Russian",new ImageIcon(AbstractLocalizer.class.getResource(SupportedLanguages.ru.name()+".png")))
 														};
 	private static final Iterable<LocaleDescriptor>	LOCALE_ITERATOR = new Iterable<LocaleDescriptor>(){
 															@Override
@@ -77,7 +80,7 @@ public abstract class AbstractLocalizer implements Localizer {
 														};
 	
 	private final List<LocaleChangeListener>		listeners = new ArrayList<>();
-	private LocaleDescriptor						currentDesc = new LocaleDescriptorImpl(Locale.getDefault(),Locale.getDefault().getLanguage(),"",new ImageIcon());
+	private LocaleDescriptor						currentDesc = new LocaleDescriptorImpl(Locale.getDefault(),SupportedLanguages.valueOf(Locale.getDefault().getLanguage()),"",new ImageIcon());
 	private Localizer								parent = null;
 	private LocalizerNode							node = new LocalizerNode(this);
 
@@ -641,12 +644,12 @@ sw:				for(;;) {
 	}
 
 	private static class LocaleDescriptorImpl implements LocaleDescriptor {
-		final Locale	locale;
-		final String	lang;
-		final String	description;
-		final ImageIcon	icon;
+		final Locale				locale;
+		final SupportedLanguages	lang;
+		final String				description;
+		final ImageIcon				icon;
 		
-		public LocaleDescriptorImpl(final Locale locale, final String lang, final String description, final ImageIcon icon) {
+		public LocaleDescriptorImpl(final Locale locale, final SupportedLanguages lang, final String description, final ImageIcon icon) {
 			this.locale = locale;
 			this.lang = lang;
 			this.description = description;
@@ -654,7 +657,7 @@ sw:				for(;;) {
 		}
 
 		@Override public Locale getLocale() {return locale;}
-		@Override public String getLanguage() {return lang;}
+		@Override public String getLanguage() {return lang.name();}
 		@Override public String getDescription() {return description;}
 		@Override public ImageIcon getIcon() {return icon;}
 	}

@@ -176,7 +176,7 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 			
-			setText(localizer.getValue(getNodeMetadata().getLabelId()));
+	//		setText(localizer.getValue(getNodeMetadata().getLabelId()));
 			setToolTipText(localizer.getValue(getNodeMetadata().getLabelId()));
 		} catch (IOException e) {
 			throw new LocalizationException(e);

@@ -9,6 +9,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
@@ -476,7 +477,10 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 			return new InputStreamGetter() {
 				@Override
 				public InputStream getContent() {
-					return new ByteArrayInputStream(component.getText().getBytes());
+					try{return new ByteArrayInputStream(component.getText().getBytes("UTF-8"));
+					} catch (UnsupportedEncodingException e) {
+						return new ByteArrayInputStream(component.getText().getBytes());					
+					}
 				}
 			};
 		}
@@ -494,7 +498,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 						@Override
 						public void close() throws IOException{
 							super.close();
-							component.setText(this.toString());
+							component.setText(this.toString("UTF-8"));
 						}
 					};
 				}

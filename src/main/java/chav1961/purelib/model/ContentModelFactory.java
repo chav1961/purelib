@@ -68,7 +68,7 @@ public class ContentModelFactory {
 														, localeResource.tooltip() 
 														, localeResource.help()
 														, null
-														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+APPLICATION_SCHEME_CLASS+":/"+clazz.getCanonicalName()));
+														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+clazz.getCanonicalName()));
 			
 			collectFields(clazz,fields);
 			if (fields.size() == 0) {

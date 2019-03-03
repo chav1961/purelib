@@ -14,5 +14,7 @@ public interface ActionFormManager<Id,Instance> {
 	 * @throws FlowException on any errors or on action cancelling  
 	 * @throws LocalizationException on any errors in the localization  
 	 */
-	RefreshMode onAction(final Instance inst, final Id id, final String actionName, final Object parameter) throws FlowException, LocalizationException;
+	default RefreshMode onAction(final Instance inst, final Id id, final String actionName, final Object parameter) throws FlowException, LocalizationException {
+		return RefreshMode.DEFAULT;
+	}
 }

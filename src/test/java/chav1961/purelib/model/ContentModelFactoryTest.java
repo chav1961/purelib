@@ -105,7 +105,7 @@ public class ContentModelFactoryTest {
 		Assert.assertEquals(AnnotatedForTest.class.getSimpleName(),cmi.getRoot().getName());
 		Assert.assertEquals(URI.create("./"+AnnotatedForTest.class.getCanonicalName()),cmi.getRoot().getRelativeUIPath());
 		Assert.assertEquals(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()),cmi.getRoot().getUIPath());
-		Assert.assertEquals(URI.create("app:/class:/"+AnnotatedForTest.class.getCanonicalName()),cmi.getRoot().getApplicationPath());
+		Assert.assertEquals(URI.create("app:class:/"+AnnotatedForTest.class.getCanonicalName()),cmi.getRoot().getApplicationPath());
 		Assert.assertEquals(URI.create("i18n:prop:chav1961/purelib/i18n/localization"),cmi.getRoot().getLocalizerAssociated());
 		Assert.assertEquals(2,cmi.getRoot().getChildrenCount());
 		Assert.assertNull(cmi.getRoot().getFormatAssociated());

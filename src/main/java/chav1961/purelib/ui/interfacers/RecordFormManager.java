@@ -24,5 +24,7 @@ public interface RecordFormManager<Id,Instance> {
 	 * @throws FlowException on any errors or on action cancelling  
 	 * @throws LocalizationException on any errors in the localization  
 	 */
-	RefreshMode onRecord(final Action action, final Instance oldRecord, final Id oldId, final Instance newRecord, final Id newId) throws FlowException, LocalizationException;
+	default RefreshMode onRecord(final Action action, final Instance oldRecord, final Id oldId, final Instance newRecord, final Id newId) throws FlowException, LocalizationException {
+		return RefreshMode.DEFAULT;
+	}
 }

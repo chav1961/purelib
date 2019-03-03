@@ -217,8 +217,8 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		if (data == null) {
 			throw new IllegalArgumentException("Data can't be null");
 		}
-		else if (from < 0 || from >= data.length) {
-			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(data.length-1));
+		else if (from < 0 || from > data.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(data.length));
 		}
 		else if (len < 0 || len > data.length) {
 			throw new IllegalArgumentException("Length ["+from+"] out of range 0.."+(data.length-1));

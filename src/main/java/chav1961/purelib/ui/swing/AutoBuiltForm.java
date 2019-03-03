@@ -1,21 +1,32 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
@@ -31,7 +42,9 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -44,7 +57,9 @@ import chav1961.purelib.ui.interfacers.Action;
 import chav1961.purelib.ui.interfacers.FormManager;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
 import chav1961.purelib.ui.swing.useful.LabelledLayout;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 
 /**
  * <p>This class is a simplest for builder for any class. It supports the {@linkplain FormManager} interface to process user actions in the generated form.</p>
@@ -63,7 +78,6 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * @since 0.0.2 last update 0.0.3
  */
 
-
 public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor {
 	private static final long 				serialVersionUID = 4920624779261769348L;
 	private static final int				GAP_SIZE = 5; 
@@ -78,6 +92,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
 	private boolean							closed = false, localizerPushed = false;
+	private Color							oldForeground4Label;
 
 	public AutoBuiltForm(final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(localizer, null, instance, formMgr, 1);
@@ -133,7 +148,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 							this.localizerPushed = true;
 							trans.message(Severity.trace, "Localizer push=%1$s",mdi.getRoot().getLocalizerAssociated());
 						} catch (IOException e) {
-							trans.message(Severity.error,e, "personal localizer faulure");
+							trans.message(Severity.error,e, "personal localizer failure");
 							throw new ContentException(e); 
 						}
 					}
@@ -306,13 +321,23 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				}
 				break;
 			case FocusGained:
-				try{messages.setText(SwingUtils.prepareMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
+				final URI s1 = metadata.getUIPath();
+				final URI s2 = Utils.appendRelativePath2URI(metadata.getUIPath(),"./label");
+				
+				try{final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,Utils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
+				
+					oldForeground4Label = label.getForeground();
+					label.setForeground(Color.BLUE);
+					messages.setText(SwingUtils.prepareMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
 				} catch (LocalizationException  exc) {
 					logger.message(Severity.error,exc,"FocusGained for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 					messages.setText("");
 				}
 				break;
 			case FocusLost:
+				final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,Utils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
+				
+				label.setForeground(oldForeground4Label);
 				messages.setText("");
 				break;
 			case Loading:
@@ -411,4 +436,74 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			return ContinueMode.CONTINUE;
 		}, mdi.getRoot().getUIPath());
 	}
+	
+	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, IllegalArgumentException {
+		return askInternal(window,new JDialog(window,true), localizer, form);
+	}
+
+	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, IllegalArgumentException {
+		return askInternal(window,new JDialog(window,true), localizer, form);
+	}
+
+	private static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, IllegalArgumentException {
+		final JButton	okButton = new JButton(localizer.getValue(PureLibLocalizer.BUTTON_OK));
+		final JButton	cancelButton = new JButton(localizer.getValue(PureLibLocalizer.BUTTON_CANCEL));
+		final JPanel	bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final boolean[]	result = new boolean[] {false};
+
+		
+		okButton.addActionListener((e)->{
+			result[0] = true;
+			dlg.setVisible(false);
+		});
+		cancelButton.addActionListener((e)->{
+			result[0] = false;
+			dlg.setVisible(false);
+		});
+		form.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"ask.accept");
+		form.getActionMap().put("ask.accept",new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				okButton.doClick();
+			}
+		});			
+		
+		form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
+			if (mode == NodeEnterMode.ENTER) {
+				if(node.getApplicationPath() != null) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_CLASS)) {
+						try{dlg.setTitle(localizer.getValue(node.getLabelId()));
+						} catch (LocalizationException exc) {
+							form.formManager.getLogger().message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
+						}
+					}
+					else if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+						final JComponent	item = (JComponent) SwingUtils.findComponentByName(form,uiPath.toString());
+						
+						item.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"ask.cancel");
+						item.getActionMap().put("ask.cancel",new AbstractAction() {
+							private static final long serialVersionUID = 1L;
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								cancelButton.doClick();
+							}
+						});			
+					}
+				}
+			}
+			return ContinueMode.CONTINUE;
+		}, form.mdi.getRoot().getUIPath());
+		
+		bottomPanel.add(okButton);
+		bottomPanel.add(cancelButton);
+		dlg.getContentPane().add(form,BorderLayout.CENTER);
+		dlg.getContentPane().add(bottomPanel,BorderLayout.SOUTH);
+		dlg.pack();
+		dlg.setLocationRelativeTo(parent);
+		dlg.setVisible(true);
+		dlg.dispose();
+		return result[0];
+	}
+
 }
