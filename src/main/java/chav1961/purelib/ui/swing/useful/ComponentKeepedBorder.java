@@ -68,7 +68,7 @@ public class ComponentKeepedBorder implements Border {
 			borderInsets.right += parentHeight + gap;
 			components[index].setAlignmentX(1.0f);
 			components[index].setAlignmentY(0.5f);
-			components[index].setSize(parentHeight,parentHeight - 2 * gap);
+			components[index].setSize(parentHeight,parentHeight);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionListener;
@@ -96,12 +97,6 @@ public class JCloseableTab extends JLabel {
 		}
 	}
 	
-	@Override
-	public void setBorder(Border border) {
-		super.setBorder(border);
-		new ComponentKeepedBorder(0,crosser).install(this);
-	}
-
 	private void popup() {
 		if (popup != null) {
 			final List<Object>	submenus = new ArrayList<>();
@@ -191,7 +186,7 @@ public class JCloseableTab extends JLabel {
 		final Font	oldFont = getFont(); 
 		
 		setFocusable(true);
-		new ComponentKeepedBorder(0,crosser).install(this);
+		new ComponentKeepedBorder(3,crosser).install(this);
 		setFont(new Font(oldFont.getFontName(),Font.PLAIN,oldFont.getSize()));
 		addMouseListener(new MouseListener() {
 			@Override public void mouseReleased(MouseEvent e) {}
@@ -238,6 +233,7 @@ public class JCloseableTab extends JLabel {
 
 		private JCrosser() {
 			setSize(20,20);
+			setPreferredSize(new Dimension(20,20));
 			addMouseListener(new MouseListener() {
 				@Override public void mouseReleased(MouseEvent e) {}
 				@Override public void mousePressed(MouseEvent e) {}
@@ -263,7 +259,9 @@ public class JCloseableTab extends JLabel {
 		
 		@Override
 		public void paintComponent(final Graphics g) {
-			currentIcon.paintIcon(this,g,0,0);
+			final int	delta = (getPreferredSize().height - currentIcon.getIconHeight())/2;
+			
+			currentIcon.paintIcon(this,g,0,delta);
 		}
 	}
 }
