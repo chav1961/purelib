@@ -17,6 +17,8 @@ public interface ContentMetadataInterface {
 		String getLabelId();
 		String getTooltipId();
 		String getHelpId();
+		default String[] getKeywords(){return new String[0];}
+		default String[] getAttachments(){return new String[0];}
 		FieldFormat getFormatAssociated();
 		URI getApplicationPath();
 		URI getUIPath();

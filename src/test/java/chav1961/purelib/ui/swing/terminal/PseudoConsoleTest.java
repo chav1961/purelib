@@ -7,6 +7,8 @@ import java.awt.Rectangle;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.ui.swing.ColorPair;
+
 
 public class PseudoConsoleTest {
 	@Test
@@ -17,8 +19,8 @@ public class PseudoConsoleTest {
 		Assert.assertEquals(10,pc.getConsoleHeight()); 
 
 		pc.writeAttribute(1,1,Color.RED,Color.BLUE);
-		Assert.assertArrayEquals(new Color[]{Color.RED,Color.BLUE},pc.readAttribute(1,1));
-		Assert.assertArrayEquals(new Color[]{Color.GREEN,Color.BLACK},pc.readAttribute(2,2));
+		Assert.assertEquals(new ColorPair(Color.RED,Color.BLUE),pc.readAttribute(1,1));
+		Assert.assertEquals(new ColorPair(Color.GREEN,Color.BLACK),pc.readAttribute(2,2));
 
 		try{pc.writeAttribute(0,1,Color.RED,Color.BLUE);
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
@@ -46,8 +48,8 @@ public class PseudoConsoleTest {
 		}
 		
 		pc.writeAttribute(new Point(3,3),Color.RED,Color.BLUE);
-		Assert.assertArrayEquals(new Color[]{Color.RED,Color.BLUE},pc.readAttribute(new Point(3,3)));
-		Assert.assertArrayEquals(new Color[]{Color.GREEN,Color.BLACK},pc.readAttribute(new Point(4,4)));
+		Assert.assertEquals(new ColorPair(Color.RED,Color.BLUE),pc.readAttribute(new Point(3,3)));
+		Assert.assertEquals(new ColorPair(Color.GREEN,Color.BLACK),pc.readAttribute(new Point(4,4)));
 
 		try{pc.writeAttribute((Point)null,Color.RED,Color.BLUE);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -143,9 +145,9 @@ public class PseudoConsoleTest {
 		}
 		
 		pc.scrollUp(Color.YELLOW,Color.WHITE);
-		Assert.assertArrayEquals(new Color[]{Color.YELLOW,Color.WHITE},pc.readAttribute(1, 10));
-		Assert.assertArrayEquals(new Color[]{Color.GREEN,Color.BLACK},pc.readAttribute(1, 9));
-		Assert.assertArrayEquals(new Color[]{Color.YELLOW,Color.WHITE},pc.readAttribute(10, 10));
-		Assert.assertArrayEquals(new Color[]{Color.GREEN,Color.BLACK},pc.readAttribute(10, 9));
+		Assert.assertEquals(new ColorPair(Color.YELLOW,Color.WHITE),pc.readAttribute(1, 10));
+		Assert.assertEquals(new ColorPair(Color.GREEN,Color.BLACK),pc.readAttribute(1, 9));
+		Assert.assertEquals(new ColorPair(Color.YELLOW,Color.WHITE),pc.readAttribute(10, 10));
+		Assert.assertEquals(new ColorPair(Color.GREEN,Color.BLACK),pc.readAttribute(10, 9));
 	}
 }

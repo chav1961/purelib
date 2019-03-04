@@ -1,7 +1,5 @@
 package chav1961.purelib.cdb.interfaces;
 
-import java.lang.reflect.Method;
-
 import chav1961.purelib.basic.exceptions.DebuggingException;
 
 public interface ObjectWrapper {

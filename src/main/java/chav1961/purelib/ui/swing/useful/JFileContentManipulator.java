@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -24,14 +22,8 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.model.MutableContentNodeMetadata;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.interfacers.Format;
 
 /**
  * <p>This class is used to support opening/editing/saving any content in the Swing applications. It implements very popular

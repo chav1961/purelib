@@ -386,6 +386,26 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	}
 	
 	@Override
+	public FileSystemInterface join(final FileSystemInterface another) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FileSystemInterface unjoin() throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isJoined() throws IOException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	
+	
+	@Override
 	public FileSystemInterface copy(final FileSystemInterface another) throws IOException {
 		if (another == null) {
 			throw new NullPointerException("Another file system can't be null");

@@ -2,11 +2,12 @@ package chav1961.purelib.ui;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
+import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.CharGetterAndSetter;
@@ -17,8 +18,6 @@ import chav1961.purelib.basic.GettersAndSettersFactory.IntGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
-import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;

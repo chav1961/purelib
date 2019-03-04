@@ -82,9 +82,9 @@ public class ContentModelFactory {
 																	, type
 																	, f.getName()+"/"+type.getCanonicalName()
 																	, null
-																	, fieldLocaleResource.value()
-																	, fieldLocaleResource.tooltip() 
-																	, fieldLocaleResource.help()
+																	, fieldLocaleResource == null ? "?" : fieldLocaleResource.value()
+																	, fieldLocaleResource == null ? "?" : fieldLocaleResource.tooltip() 
+																	, fieldLocaleResource == null ? "?" : fieldLocaleResource.help()
 																	, f.isAnnotationPresent(Format.class) 
 																			? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
 																			: null

@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
@@ -46,6 +45,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpringLayout;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
+
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.NullLoggerFacade;

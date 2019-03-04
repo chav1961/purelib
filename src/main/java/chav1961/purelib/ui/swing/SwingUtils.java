@@ -46,6 +46,8 @@ import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -121,49 +123,97 @@ public abstract class SwingUtils {
 		DEFAULT_VALUES.put(BigDecimal.class,BigDecimal.ZERO);
 	}
 	
-	
 	private SwingUtils() {}
 
 	public static URL url(final String resource) {
 		return SwingUtils.class.getResource(resource);	
 	}
 
-	public static Container findComponentByName(final Container node, final String name) {
-		if (name == null || name.isEmpty()) {
-			throw new IllegalArgumentException("Name to find can't be null or empty");
+	public interface WalkCallback {
+		ContinueMode process(final NodeEnterMode mode, final Component node);
+	}
+	
+	public static ContinueMode walkDown(final Component node, final WalkCallback callback) {
+		if (callback == null) {
+			throw new NullPointerException("Root component can't be null");
 		}
-		else if (node != null) {
-			if (name.equals(node.getName())) {
-				return node;
-			}
-			else {
-				if (node.getComponentCount() > 0) {
-					for (int index = 0, maxIndex = node.getComponentCount(); index < maxIndex; index++) {
-						if (node.getComponent(index) instanceof Container) {
-							final Container	child = findComponentByName((Container)node.getComponent(index),name);
-							
-							if (child != null) {
-								return child;
-							}
-						}
-					}
-				}
-				else if ((node instanceof JMenu) && ((JMenu)node).getMenuComponentCount() > 0) {
-					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); index < maxIndex; index++) {
-						if (((JMenu)node).getMenuComponent(index) instanceof JMenu) {
-							final Container	child = findComponentByName((Container)((JMenu)node).getMenuComponent(index),name);
-							
-							if (child != null) {
-								return child;
-							}
-						}
-					}
-				}
-				return null;
-			}
+		else if (node == null) {
+			throw new NullPointerException("Node callbacl can't be null");
 		}
 		else {
-			return null;
+			switch (callback.process(NodeEnterMode.ENTER,node)) {
+				case CONTINUE		:
+					if ((node instanceof Container) && ((Container)node).getComponentCount() > 0) {
+loop:					for (int index = 0, maxIndex = ((Container)node).getComponentCount(); index < maxIndex; index++) {
+							switch (walkDown(((Container)node).getComponent(index),callback)) {
+								case CONTINUE:
+									break;
+								case SKIP_CHILDREN:
+									break loop;
+								case SKIP_SIBLINGS	:
+									callback.process(NodeEnterMode.EXIT,node);
+									return ContinueMode.SKIP_CHILDREN;
+								case STOP:
+									callback.process(NodeEnterMode.EXIT,node);
+									return ContinueMode.STOP;
+								default:
+									break;
+							}
+						}
+					}
+					else if ((node instanceof JMenu) && ((JMenu)node).getMenuComponentCount() > 0) {
+loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); index < maxIndex; index++) {
+							switch (walkDown(((JMenu)node).getMenuComponent(index),callback)) {
+								case CONTINUE:
+									break;
+								case SKIP_CHILDREN	:
+									break loop;
+								case SKIP_SIBLINGS	:
+									callback.process(NodeEnterMode.EXIT,node);
+									return ContinueMode.SKIP_CHILDREN;
+								case STOP:
+									callback.process(NodeEnterMode.EXIT,node);
+									return ContinueMode.STOP;
+								default:
+									break;
+							}
+						}
+					}
+				case SKIP_CHILDREN	:
+					callback.process(NodeEnterMode.EXIT,node);
+					return ContinueMode.CONTINUE;
+				case SKIP_SIBLINGS	:
+					callback.process(NodeEnterMode.EXIT,node);
+					return ContinueMode.SKIP_CHILDREN;
+				case STOP			:
+					callback.process(NodeEnterMode.EXIT,node);
+					return ContinueMode.STOP;
+				default:
+					return ContinueMode.CONTINUE;
+			}
+		}
+	}
+	
+	public static Container findComponentByName(final Component node, final String name) {
+		if (node == null) {
+			throw new NullPointerException("Node callbacl can't be null");
+		}
+		else if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Name to find can't be null or empty");
+		}
+		else {
+			final Component[]	result = new Component[]{null};
+			
+			walkDown(node,(mode,component)->{
+				if (mode == NodeEnterMode.ENTER && name.equals(component.getName())) {
+					result[0] = component;
+					return ContinueMode.STOP;
+				}
+				else {
+					return ContinueMode.CONTINUE;
+				}
+			});
+			return (Container)result[0];
 		}
 	}
 	

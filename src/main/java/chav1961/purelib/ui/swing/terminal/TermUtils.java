@@ -3,6 +3,8 @@ package chav1961.purelib.ui.swing.terminal;
 import java.awt.Color;
 import java.awt.Rectangle;
 
+import chav1961.purelib.ui.swing.ColorPair;
+
 public class TermUtils {
 //	U+2500 - U+257F - unicode borders
 //	U+2580 - U+259F - unicode filling
@@ -63,7 +65,7 @@ public class TermUtils {
 			throw new NullPointerException("Background color can't be null");
 		}
 		else {
-			console.writeAttribute(new Rectangle(1,1,console.getConsoleWidth(),console.getConsoleHeight()),new Color[]{color,bkGnd});
+			console.writeAttribute(new Rectangle(1,1,console.getConsoleWidth(),console.getConsoleHeight()),new ColorPair(color,bkGnd));
 			console.writeContent(new Rectangle(1,1,console.getConsoleWidth(),console.getConsoleHeight()),' ');
 		}
 	}

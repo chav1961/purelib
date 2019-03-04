@@ -282,15 +282,45 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * <p>Check weather given node has children mound</p>
 	 * @return true if has
 	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.3
 	 */
 	boolean isMound() throws IOException;
 
 	/**
 	 * <p>Get file systems mound for the given node</p>
 	 * @return file systems mound or numm if none mound on the node
-	 * @throws IOException
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.3
 	 */
 	FileSystemInterface mound() throws IOException;
+	
+	/**
+	 * <p>Join new file system with the current directory. New file system is always joining <i>after</i> current. 
+	 * Multiple joins forms a <i>queue</i> of the file systems behind the current one.</p>
+	 * @param another another file system
+	 * @return self
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.3
+	 */
+	
+	FileSystemInterface join(FileSystemInterface another) throws IOException;
+
+	/**
+	 * <p>Unjoin file system from the current directory. All the queue of joined file systems will be returned after the call,
+	 * so you must not call this method in loops</p>
+	 * @return all the queue of file system joined
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.3
+	 */
+	FileSystemInterface unjoin() throws IOException;
+
+	/**
+	 * <p>Has the current directory any joined file systems.</p> 
+	 * @return true if has. Calling this method on any children of the current directory with joins always returns false   
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.3
+	 */
+	boolean isJoined() throws IOException;
 	
 	/**
 	 * <p>Copy content from one file system to another</p>

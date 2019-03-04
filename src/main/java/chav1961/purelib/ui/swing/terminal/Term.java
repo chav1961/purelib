@@ -1,19 +1,17 @@
 package chav1961.purelib.ui.swing.terminal;
 
 import java.awt.Color;
-import java.awt.Rectangle;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Timer;
 import java.util.TimerTask;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
+import chav1961.purelib.ui.swing.ColorPair;
 
 public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private static final long 		serialVersionUID = 4321066125437646937L;
@@ -35,7 +33,7 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 									};
 	private final StringBuilder		sb = new StringBuilder();
 	private final List<int[]>		stack = new ArrayList<>();
-	private final Color[]			colors = new Color[2];
+	private final ColorPair			colors;
 	private char[]					buffer = new char[INITIAL_SIZE]; 
 							
 	private int						x = 1, y = 1, escaping = 0;
@@ -59,8 +57,7 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 		}
 		else {
 			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,BLINK_INTERVAL,BLINK_INTERVAL);
-			colors[0] = foreground;
-			colors[1] = background;
+			colors = valueOf(foreground, background);
 		}
 	}
 	
@@ -255,11 +252,11 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	}
 
 	public Color getForeground() {
-		return colors[0];
+		return colors.getForeground();
 	}
 
 	public Color getBackground() {
-		return colors[1];
+		return colors.getBackground();
 	}
 	
 	public int getCursorX() {
@@ -307,7 +304,7 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	}
 	
 	public Term clear() {
-		TermUtils.clear(this,colors[0],colors[1]);
+		TermUtils.clear(this,colors.getForeground(),colors.getBackground());
 		setCursor(1,1);
 		return this;
 	}
@@ -456,22 +453,22 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 
 	private void processSGR(int code) {
 		switch (code) {
-			case 30 : colors[0] = Color.BLACK; break;
-			case 31 : colors[0] = Color.RED; break;
-			case 32 : colors[0] = Color.GREEN; break;
-			case 33 : colors[0] = Color.YELLOW; break;
-			case 34 : colors[0] = Color.BLUE; break;
-			case 35 : colors[0] = Color.MAGENTA; break;
-			case 36 : colors[0] = Color.CYAN; break;
-			case 37 : colors[0] = Color.WHITE; break;
-			case 40 : colors[1] = Color.BLACK; break;
-			case 41 : colors[1] = Color.RED; break;
-			case 42 : colors[1] = Color.GREEN; break;
-			case 43 : colors[1] = Color.YELLOW; break;
-			case 44 : colors[1] = Color.BLUE; break;
-			case 45 : colors[1] = Color.MAGENTA; break;
-			case 46 : colors[1] = Color.CYAN; break;
-			case 47 : colors[1] = Color.WHITE; break;
+			case 30 : colors.setForeground(Color.BLACK); break;
+			case 31 : colors.setForeground(Color.RED); break;
+			case 32 : colors.setForeground(Color.GREEN); break;
+			case 33 : colors.setForeground(Color.YELLOW); break;
+			case 34 : colors.setForeground(Color.BLUE); break;
+			case 35 : colors.setForeground(Color.MAGENTA); break;
+			case 36 : colors.setForeground(Color.CYAN); break;
+			case 37 : colors.setForeground(Color.WHITE); break;
+			case 40 : colors.setBackground(Color.BLACK); break;
+			case 41 : colors.setBackground(Color.RED); break;
+			case 42 : colors.setBackground(Color.GREEN); break;
+			case 43 : colors.setBackground(Color.YELLOW); break;
+			case 44 : colors.setBackground(Color.BLUE); break;
+			case 45 : colors.setBackground(Color.MAGENTA); break;
+			case 46 : colors.setBackground(Color.CYAN); break;
+			case 47 : colors.setBackground(Color.WHITE); break;
 		}
 	}
 

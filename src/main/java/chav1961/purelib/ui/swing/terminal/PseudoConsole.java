@@ -7,15 +7,12 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
-import java.nio.channels.UnsupportedAddressTypeException;
-import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 
-import chav1961.purelib.streams.char2char.CreoleWriter;
-import chav1961.purelib.ui.interfacers.FormManager;
-import chav1961.purelib.ui.interfacers.FormModel;
+import chav1961.purelib.ui.swing.ColorPair;
 
 /**
  * <p>This class emulates old-style alphanumeric screen.</p>
@@ -23,11 +20,12 @@ import chav1961.purelib.ui.interfacers.FormModel;
  * @since 0.0.3
  */
 public class PseudoConsole extends JComponent {
-	private static final long 	serialVersionUID = -5613033288319056138L;
-	private final char[][]		content;
-	private final Color[][][]	attributes;
-	private final Font			font = new Font("Courier",Font.PLAIN,1);
-	private final int			width, height;
+	private static final long 		serialVersionUID = -5613033288319056138L;
+	private final Set<ColorPair>	attributesCache = new HashSet<>();
+	private final char[][]			content;
+	private final ColorPair[][]		attributes;
+	private final Font				font = new Font("Courier",Font.PLAIN,1);
+	private final int				width, height;
 	
 	public PseudoConsole(final int width, final int height) {
 		if (width <= 0) {
@@ -40,7 +38,7 @@ public class PseudoConsole extends JComponent {
 			this.width = width;
 			this.height = height;
 			this.content = new char[width][height];
-			this.attributes = new Color[width][height][2];
+			this.attributes = new ColorPair[width][height];
 			TermUtils.clear(this,Color.GREEN,Color.BLACK);
 		}
 	}
@@ -67,25 +65,22 @@ public class PseudoConsole extends JComponent {
 			throw new NullPointerException("Background color can't be null");
 		}
 		else {
-			return writeAttribute(x, y, new Color[]{color,bkGnd});
+			return writeAttribute(x, y, valueOf(color,bkGnd));
 		}
 	}
 	
-	public PseudoConsole writeAttribute(final int x, final int y, final Color[] colors) {
+	public PseudoConsole writeAttribute(final int x, final int y, final ColorPair colors) {
 		if (x < 1 || x > width) {
 			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+width);
 		}
 		else if (y < 1 || y > width) {
 			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+height);
 		}
-		else if (colors == null || colors.length != 2) {
-			throw new IllegalArgumentException("Colors attribute can't be null and must have exactly two elements");
-		}
-		else if (colors[0] == null || colors[1] == null) {
-			throw new NullPointerException("Colors attribute contains null values "+Arrays.toString(colors));
+		else if (colors == null) {
+			throw new NullPointerException("Colors attribute can't be null");
 		}
 		else {
-			attributes[x-1][y-1] = colors.clone();
+			attributes[x-1][y-1] = valueOf(colors.getForeground(),colors.getBackground());
 			refresh();
 			return this;
 		}
@@ -102,11 +97,11 @@ public class PseudoConsole extends JComponent {
 			throw new NullPointerException("Background color can't be null");
 		}
 		else {
-			return writeAttribute(point,new Color[]{color,bkGnd});
+			return writeAttribute(point,valueOf(color,bkGnd));
 		}
 	}
 	
-	public PseudoConsole writeAttribute(final Point point, final Color[] colors) {
+	public PseudoConsole writeAttribute(final Point point, final ColorPair colors) {
 		if (point == null) {
 			throw new NullPointerException("Point coordinate can't be null");
 		}
@@ -126,11 +121,11 @@ public class PseudoConsole extends JComponent {
 			throw new NullPointerException("Background color can't be null");
 		}
 		else {
-			return writeAttribute(rect, new Color[]{color, bkGnd});
+			return writeAttribute(rect, valueOf(color, bkGnd));
 		}
 	}
 	
-	public PseudoConsole writeAttribute(final Rectangle rect, final Color[] colors) {
+	public PseudoConsole writeAttribute(final Rectangle rect, final ColorPair colors) {
 		if (rect == null) {
 			throw new NullPointerException("Rectangle can't be null");
 		}
@@ -147,9 +142,11 @@ public class PseudoConsole extends JComponent {
 			throw new IllegalArgumentException("Rectangle Y+height ["+(rect.y+rect.height)+"] out of range 1.."+height);
 		}
 		else {
+			final ColorPair	clone = valueOf(colors.getForeground(),colors.getBackground());
+			
 			for (int x = rect.x; x < rect.x+rect.width; x++) {
 				for (int y = rect.y; y < rect.y+rect.height; y++) {
-					writeAttribute(x,y,colors);
+					writeAttribute(x,y,clone);
 				}
 			}
 			refresh();
@@ -157,7 +154,7 @@ public class PseudoConsole extends JComponent {
 		}
 	}
 
-	public Color[] readAttribute(final int x, final int y) {
+	public ColorPair readAttribute(final int x, final int y) {
 		if (x < 1 || x > width) {
 			throw new IllegalArgumentException("X coordinate ["+x+"] out of range 1.."+width);
 		}
@@ -165,11 +162,11 @@ public class PseudoConsole extends JComponent {
 			throw new IllegalArgumentException("Y coordinate ["+y+"] out of range 1.."+height);
 		}
 		else {
-			return attributes[x-1][y-1].clone();
+			return attributes[x-1][y-1];
 		}
 	}
 	
-	public Color[] readAttribute(final Point point) {
+	public ColorPair readAttribute(final Point point) {
 		if (point == null) {
 			throw new NullPointerException("Point coordinate can't be null");
 		}
@@ -178,7 +175,7 @@ public class PseudoConsole extends JComponent {
 		}
 	}
 	
-	public Color[][][] readAttribute(final Rectangle rect) {
+	public ColorPair[][] readAttribute(final Rectangle rect) {
 		if (rect == null) {
 			throw new NullPointerException("Rectangle can't be null");
 		}
@@ -195,7 +192,7 @@ public class PseudoConsole extends JComponent {
 			throw new IllegalArgumentException("Rectangle Y+height ["+(rect.y+rect.height)+"] out of range 1.."+height);
 		}
 		else {
-			final Color[][][]	result = new Color[rect.width][rect.height][];
+			final ColorPair[][]	result = new ColorPair[rect.width][rect.height];
 			
 			for (int x = rect.x; x < rect.x+rect.width; x++) {
 				for (int y = rect.y; y < rect.y+rect.height; y++) {
@@ -368,10 +365,10 @@ loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
 			for (char[] item : content) {
 				System.arraycopy(item,1,item,0,item.length-1);
 			}
-			for (Color[][] item : attributes) {
+			for (ColorPair[] item : attributes) {
 				System.arraycopy(item,1,item,0,item.length-1);
 			}
-			writeAttribute(lastLine,new Color[]{color,bkGnd});
+			writeAttribute(lastLine,valueOf(color,bkGnd));
 			writeContent(lastLine,' ');
 		}
 	}
@@ -389,10 +386,10 @@ loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
 			for (char[] item : content) {
 				System.arraycopy(item,0,item,1,item.length-1);
 			}
-			for (Color[][] item : attributes) {
+			for (ColorPair[] item : attributes) {
 				System.arraycopy(item,0,item,1,item.length-1);
 			}
-			writeAttribute(firstLine,new Color[]{color,bkGnd});
+			writeAttribute(firstLine,valueOf(color,bkGnd));
 			writeContent(firstLine,' ');
 		}
 	}
@@ -400,6 +397,18 @@ loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
 	@Override
 	public boolean isOpaque() {
 		return false;
+	}
+
+	ColorPair valueOf(final Color foreground, final Color background) {
+		for (ColorPair item : attributesCache) {
+			if (item.getForeground().equals(foreground) && item.getBackground().equals(background)) {
+				return	item;
+			}
+		}
+		final ColorPair	newPair = new ColorPair(foreground, background);
+		
+		attributesCache.add(newPair);
+		return newPair;
 	}
 	
 	@Override
@@ -416,7 +425,7 @@ loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
 	    
 	    for (int indexX = 0; indexX < getConsoleWidth(); indexX++) {
 		    for (int indexY = 0; indexY < getConsoleHeight(); indexY++) {
-		    	g2d.setColor(attributes[indexX][indexY][1]);
+		    	g2d.setColor(attributes[indexX][indexY].getBackground());
 		    	g2d.fillRect(indexX,indexY,1,1);
 		    }
 	    }
@@ -427,7 +436,7 @@ loop:		for (int y = rect.y; y < rect.y+rect.height; y++) {
 	    for (int indexX = 0; indexX < getConsoleWidth(); indexX++) {
 		    for (int indexY = 0; indexY < getConsoleHeight(); indexY++) {
 		    	temp[0] = content[indexX][indexY];
-		    	g2d.setColor(attributes[indexX][indexY][0]);
+		    	g2d.setColor(attributes[indexX][indexY].getForeground());
 		    	g2d.drawChars(temp,0,1,indexX,indexY);
 		    }
 	    }

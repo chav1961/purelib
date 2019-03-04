@@ -12,7 +12,6 @@ import java.util.Date;
 import javax.swing.text.MaskFormatter;
 
 import chav1961.purelib.basic.Utils;
-import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class FieldFormat {
