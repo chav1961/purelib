@@ -1,2 +1,9 @@
-"-docletpath target/classes
--doclet doclet.DocletExample
+-docletpath ./target/classes
+-tagletpath ./target/classes
+-doclet chav1961.purelib.internal.PureLibDoclet
+-taglet chav1961.purelib.internal.AboutTaglet
+-taglet chav1961.purelib.internal.BetaTaglet
+-taglet chav1961.purelib.internal.CodeSampleTaglet
+-taglet chav1961.purelib.internal.KeywordsTaglet
+-taglet chav1961.purelib.internal.ThreadSafedTaglet
+-taglet chav1961.purelib.internal.TreeItemTaglet
