@@ -1,5 +1,6 @@
 package chav1961.purelib.internal;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -25,22 +26,57 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.DocErrorReporter;
 import com.sun.javadoc.FieldDoc;
+import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.MethodDoc;
+import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.Tag;
+import com.sun.tools.classfile.Attribute;
 import com.sun.tools.doclets.standard.Standard;
 
-public class PureLibDoclet extends Standard {
-	public static final String	TAG_ABOUT = "about";
-	public static final String	TAG_CODESAMPLE = "codeSample";
-	public static final String	TAG_KEYWORDS = "keywords";
-	public static final String	TAG_THREADSAFED = "threadSafed";
-	public static final String	TAG_TREEITEM = "treeItem";
+import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.enumerations.ContinueMode;
 
+public class PureLibDoclet extends Standard {
+	public static final String	TAGNAME_ABOUT = "about";
+	public static final String	TAGNAME_CODESAMPLE = "codeSample";
+	public static final String	TAGNAME_KEYWORDS = "keywords";
+	public static final String	TAGNAME_THREADSAFED = "threadSafed";
+	public static final String	TAGNAME_TREEITEM = "treeItem";
+	
+	public static final String	TAG_PREFIX = "nav";
+	public static final String	TAG_PACKAGE = "package";
+	public static final String	TAG_CLASS = "class";
+	public static final String	TAG_METHOD = "method";
+	public static final String	TAG_FIELD = "field";
+	public static final String	TAG_PARAMETER = "parameter";
+	public static final String	TAG_OVERVIEW = "overview";
+
+	public static final String	ATTR_NAME = "name";
+	public static final String	ATTR_SINCE = "since";
+	public static final String	ATTR_KEYWORDS = "keywords";
+	public static final String	ATTR_MODIFIERS = "modifiers";
+	public static final String	ATTR_KINDOF = "kindof";
+	public static final String	ATTR_SAMPLES = "samples";
+	public static final String	ATTR_EXTENDS = "extends";
+	public static final String	ATTR_IMPLEMENTS = "implements";
+	public static final String	ATTR_INSIDE = "inside";
+	public static final String	ATTR_TYPE = "type";
+	public static final String	ATTRVALUE_INHERITED = "@inherited";
+
+	public enum ClassType {
+		CT_CLASS, CT_INTERFACE, CT_ENUM, CT_ANNOTATION, CT_PACKAGE
+	}
+	
 	private static final String	KEY_TREE_TARGET = "treeTarget";
+	
 	
 	public static void process(final String sourceLocation) throws IOException {
 		final Process 	process	= new ProcessBuilder().command("javadoc",sourceLocation,"-sourcepath","src/main/java","@./src/main/java/chav1961/purelib/internal/doclet.configuration").start();
@@ -74,7 +110,7 @@ public class PureLibDoclet extends Standard {
 			final DocumentBuilder 			docBuilder = docFactory.newDocumentBuilder();
 			final Document 					doc = docBuilder.newDocument();
 
-		    final Element 	rootElement = doc.createElementNS("","navigation");
+		    final Element 	rootElement = doc.createElementNS(TAG_PREFIX,"navigation");
 		    final Attr 		rootAttr = doc.createAttributeNS("","overview");
 		    
 		    rootAttr.setValue("schema:/");		    
@@ -83,53 +119,8 @@ public class PureLibDoclet extends Standard {
 			buildPackageTree(rootElement,doc,collectAvailablePackages(rootDoc));
 			
 			for(ClassDoc classDoc: rootDoc.classes()) {
-				System.out.println("Class: "+classDoc.typeName()+", package "+classDoc.containingPackage().name());
-				for (MethodDoc methodDoc : classDoc.methods()) {
-					System.out.println("\tmethod "+methodDoc.qualifiedName());
-					System.out.println("\t       "+Arrays.toString(methodDoc.parameters()));
-					System.out.println("\t       "+methodDoc.commentText());
-				}
-				for (FieldDoc fieldDoc : classDoc.fields()) {
-					System.out.println("\tfield "+fieldDoc.qualifiedName());
-				}
+				seekPackage(rootElement,classDoc.containingPackage().name()).appendChild(buildClassSubtree(doc,classDoc));
 			}
-		
-//
-//		    Element rootElement = doc.createElement("company");
-//		    doc.appendChild(rootElement);
-//
-//		    //staff elements
-//		    Element staff = doc.createElement("Staff");
-//		    rootElement.appendChild(staff);
-//
-//		    //set attribute to staff element
-//		    Attr attr = doc.createAttribute("id");
-//		    attr.setValue("1");
-//		    staff.setAttributeNode(attr);
-//
-//		    //shorten way
-//		    //staff.setAttribute("id", "1");
-//
-//		    //firstname elements
-//		    Element firstname = doc.createElement("firstname");
-//		    firstname.appendChild(doc.createTextNode("yong"));
-//		    staff.appendChild(firstname);
-//
-//		    //lastname elements
-//		    Element lastname = doc.createElement("lastname");
-//		    lastname.appendChild(doc.createTextNode("mook kim"));
-//		    staff.appendChild(lastname);
-//
-//		    //nickname elements
-//		    Element nickname = doc.createElement("nickname");
-//		    nickname.appendChild(doc.createTextNode("mkyong"));
-//		    staff.appendChild(nickname);
-//
-//		    //salary elements
-//		    Element salary = doc.createElement("salary");
-//		    salary.appendChild(doc.createTextNode("100000"));
-//		    staff.appendChild(salary);		
-		
 		
 			final Transformer 	transformer = TransformerFactory.newInstance().newTransformer();
 			final Source 		source = new DOMSource(doc);
@@ -178,10 +169,9 @@ public class PureLibDoclet extends Standard {
 			}
 		}
 		for (Entry<String, Set<String>> entity : subpackages.entrySet()) {
-			final Element	item = doc.createElementNS("","package");
-		    final Attr 		rootAttr = doc.createAttributeNS("","name");
+			final Element	item = doc.createElementNS(TAG_PREFIX,TAG_PACKAGE);
 		    
-		    rootAttr.setValue(entity.getKey());		    
+		    item.setAttribute(ATTR_NAME, entity.getKey());
 		    if (entity.getValue().size() > 0) {
 		    	buildPackageTree(item,doc,entity.getValue());
 		    }
@@ -189,7 +179,239 @@ public class PureLibDoclet extends Standard {
 		}
 	}
 
+	static Element seekPackage(final Element root, final String packageName) {
+		if (root == null) {
+			throw new NullPointerException("Node can't be null");
+		}
+		else if (packageName == null || packageName.isEmpty()) {
+			throw new IllegalArgumentException("Package name can't be null or empty");
+		}
+		else {
+			final NodeList 	list = root.getChildNodes();
+			
+			for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
+				final Element	item = (Element)list.item(index);
+				final Element	result = seekPackageInternal(item, packageName); 
+
+				if (result != null) {
+					return result;
+				}
+			}
+			throw new IllegalArgumentException("Package ["+packageName+"] not found in the package tree"); 
+		}
+	}
+
+	private static Element seekPackageInternal(final Element node, final String name) {
+		final int		dot = name.indexOf('.');
+		
+		if (dot == -1) {
+			if (node.getAttribute(ATTR_NAME).equals(name)) {
+				return node;
+			}
+			else {
+				return null;
+			}
+		}
+		else if (node.getAttribute(ATTR_NAME).equals(name.substring(0,dot))) {
+			final NodeList 	list = node.getChildNodes();
+			final String	tail = name.substring(dot+1);
+			
+			for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
+				final Element	found = seekPackageInternal((Element)list.item(index),tail);
+				
+				if (found != null) {
+					return found;
+				}
+			}
+			return null;
+		}
+		else {
+			return null;
+		}
+	}
 	
+	static Node buildFieldSubtree(final Document doc, final FieldDoc fieldDoc) {	
+		final Element	result = doc.createElementNS(TAG_PREFIX,TAG_FIELD);
+		
+		result.setAttribute(ATTR_NAME,fieldDoc.name());
+		if (fieldDoc.tags(TAGNAME_KEYWORDS).length > 0) {
+			result.setAttribute(ATTR_KEYWORDS,extractTagsBody(fieldDoc.tags(TAGNAME_KEYWORDS)));
+		}
+		if (fieldDoc.tags(ATTR_SINCE).length > 0) {
+			result.setAttribute(ATTR_SINCE,extractTagsBody(fieldDoc.tags(ATTR_SINCE)));
+		}
+		else {
+			result.setAttribute(ATTR_SINCE,ATTRVALUE_INHERITED);
+		}
+		result.setAttribute(ATTR_TYPE,fieldDoc.type().toString());
+		result.setAttribute(ATTR_MODIFIERS,fieldDoc.modifiers().toString());
+		result.appendChild(buildOverview(doc,fieldDoc.getRawCommentText()));
+		return result;
+	}
+	
+	static Element buildMethodSubtree(final Document doc, final MethodDoc methodDoc) {	
+		final Element	result = doc.createElementNS(TAG_PREFIX,TAG_METHOD);
+		
+		result.setAttribute(ATTR_NAME,methodDoc.name());
+		if (methodDoc.tags(TAGNAME_KEYWORDS).length > 0) {
+			result.setAttribute(ATTR_KEYWORDS,extractTagsBody(methodDoc.tags(TAGNAME_KEYWORDS)));
+		}
+		if (methodDoc.tags(ATTR_SINCE).length > 0) {
+			result.setAttribute(ATTR_SINCE,extractTagsBody(methodDoc.tags(ATTR_SINCE)));
+		}
+		else {
+			result.setAttribute(ATTR_SINCE,ATTRVALUE_INHERITED);
+		}
+		result.setAttribute(ATTR_TYPE,methodDoc.returnType().toString());
+		result.setAttribute(ATTR_MODIFIERS,methodDoc.modifiers().toString());
+		result.appendChild(buildOverview(doc,methodDoc.getRawCommentText()));
+		
+		for (Parameter item : methodDoc.parameters()) {
+			final Element	parm = doc.createElementNS("nav",TAG_PARAMETER);
+			
+			parm.setAttribute(ATTR_NAME,item.name());
+			parm.setAttribute(ATTR_TYPE,item.type().toString());
+			result.appendChild(parm);
+		}
+		return result;
+	}
+	
+	static Element buildClassSubtree(final Document doc, final ClassDoc classDoc) {
+		final Element	result = doc.createElementNS(TAG_PREFIX,TAG_CLASS);
+
+		result.setAttribute(ATTR_NAME,classDoc.name());
+		result.setAttribute(ATTR_TYPE,classDoc.qualifiedName());
+		if (classDoc.tags(TAGNAME_KEYWORDS).length > 0) {
+			result.setAttribute(ATTR_KEYWORDS,extractTagsBody(classDoc.tags(TAGNAME_KEYWORDS)));
+		}
+		if (classDoc.tags(ATTR_SINCE).length > 0) {
+			result.setAttribute(ATTR_SINCE,extractTagsBody(classDoc.tags(ATTR_SINCE)));
+		}
+		else {
+			result.setAttribute(ATTR_SINCE,ATTRVALUE_INHERITED);
+		}
+		if (classDoc.tags(TAGNAME_CODESAMPLE).length > 0) {
+			result.setAttribute(ATTR_SAMPLES,Arrays.toString(classDoc.tags(TAGNAME_CODESAMPLE)));
+		}
+		if (classDoc.superclass() != null) {
+			result.setAttribute(ATTR_EXTENDS,classDoc.superclass().toString());
+		}
+		if (classDoc.interfaceTypes().length > 0) {
+			result.setAttribute(ATTR_IMPLEMENTS,Arrays.toString(classDoc.interfaceTypes()));
+		}
+		result.setAttribute(ATTR_MODIFIERS,classDoc.modifiers().toString());
+		result.setAttribute(ATTR_KINDOF,detectKindOf(classDoc).name());
+		if (classDoc.containingClass() != null) {
+			result.setAttribute(ATTR_INSIDE,classDoc.containingClass().name());
+		}
+		result.appendChild(buildOverview(doc,classDoc.getRawCommentText()));
+		
+		for (FieldDoc fieldDoc : classDoc.fields()) {
+			result.appendChild(buildFieldSubtree(doc,fieldDoc));
+		}
+		for (MethodDoc methodDoc : classDoc.methods()) {
+			result.appendChild(buildMethodSubtree(doc,methodDoc));
+		}
+		return result;
+	}
+
+	@FunctionalInterface
+	interface WalkCallback {
+		ContinueMode process(NodeEnterMode mode, Element node);
+	}
+	
+	static ContinueMode walk(final Element node, final WalkCallback callback) {
+		if (node == null) {
+			throw new NullPointerException("Node can't be null"); 
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Callback can't be null"); 
+		}
+		else {
+			return walkInternal(node,callback);
+		}
+	}
+
+	static String extractTagsBody(final Tag[] tags) {
+		final StringBuilder	sb = new StringBuilder();
+		
+		for (Tag item : tags) {
+			final String	stringItem = item.toString();
+			final int		index = stringItem.indexOf(':');
+			
+			if (index == -1) {
+				sb.append(';').append(stringItem);
+			}
+			else {
+				sb.append(';').append(stringItem,index+1,stringItem.length());
+			}
+		}
+		return sb.delete(0,1).toString();
+	}
+
+	private static ContinueMode walkInternal(final Element node, final WalkCallback callback) {
+		switch (callback.process(NodeEnterMode.ENTER,node)) {
+			case CONTINUE	:
+				final NodeList 	list = node.getChildNodes();
+					
+loop:			for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
+					switch (walk((Element)list.item(index),callback)) {
+						case CONTINUE :
+							break;
+						case SKIP_CHILDREN :
+							break loop;
+						case SKIP_SIBLINGS :
+							callback.process(NodeEnterMode.EXIT,node);
+							return ContinueMode.SKIP_CHILDREN; 
+						case SKIP_PARENT : case PARENT_ONLY : case SIBLINGS_ONLY :
+							break loop;
+						case STOP :
+							callback.process(NodeEnterMode.EXIT,node);
+							return ContinueMode.STOP; 
+						default:
+							break;
+					}
+				}
+			case SKIP_CHILDREN : 
+				callback.process(NodeEnterMode.EXIT,node);
+				return ContinueMode.CONTINUE;
+			case SKIP_SIBLINGS	:
+				callback.process(NodeEnterMode.EXIT,node);
+				return ContinueMode.SKIP_CHILDREN;
+			case STOP			:
+				callback.process(NodeEnterMode.EXIT,node);
+				return ContinueMode.STOP; 
+			case PARENT_ONLY : case SIBLINGS_ONLY : case SKIP_PARENT :
+				return callback.process(NodeEnterMode.EXIT,node);
+			default :
+				throw new UnsupportedOperationException("");
+		}
+	}
+
+	private static ClassType detectKindOf(final ClassDoc doc) {
+		if (doc.isAnnotationType()) {
+			return ClassType.CT_ANNOTATION;
+		}
+		else if (doc.isClass()) {
+			return ClassType.CT_CLASS;
+		}
+		else if (doc.isEnum()) {
+			return ClassType.CT_ENUM;
+		}
+		else if (doc.isInterface()) {
+			return ClassType.CT_INTERFACE;
+		}
+		else {
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	private static Element buildOverview(final Document doc, final String content) {
+		final Element	overview = doc.createElementNS("",TAG_OVERVIEW);
+		
+		overview.setTextContent(content);
+		return overview;
+	}
 	
 /*	public static int optionLength(final String option) {
 		switch (option) {
