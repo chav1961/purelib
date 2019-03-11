@@ -1372,6 +1372,40 @@ public class CharUtils {
 		}		
 	}
 	
+	/**
+	 * <p>Skip blank content of the line</p>
+	 * @param source content to skip in
+	 * @param from start position to skip
+	 * @param stopOnEOL don't pass cross lines
+	 * @return nearest non-blank position in the source
+	 * @throws NullPointerException if source string is null
+	 * @throws IllegalArgumentException if from position out of range 
+	 * @since 0.0.3 
+	 */
+	public static final int skipBlank(final char[] source, final int from, final boolean stopOnEOL) {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null");
+		}
+		else if (from < 0 || from >= source.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(source.length-1));
+		}
+		else if (stopOnEOL) {
+			for (int index = from, maxIndex = source.length; index < maxIndex; index++) {
+				if (source[index] > ' ' || source[index] == '\n') {
+					return index;
+				}
+			}
+			return source.length;
+		}
+		else {
+			for (int index = from, maxIndex = source.length; index < maxIndex; index++) {
+				if (source[index] > ' ') {
+					return index;
+				}
+			}
+			return source.length;
+		}
+	}	
 	
 	/**
 	 * <p>Compare char array slice with the given template</p>

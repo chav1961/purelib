@@ -555,6 +555,32 @@ public class CharUtilsTest {
 	}
 	
 	@Test
+	public void skipBlankTest() {
+		Assert.assertEquals(0,CharUtils.skipBlank("test".toCharArray(),0,false));
+		Assert.assertEquals(1,CharUtils.skipBlank(" test".toCharArray(),0,false));
+		Assert.assertEquals(1,CharUtils.skipBlank("\ntest".toCharArray(),0,false));
+		Assert.assertEquals(0,CharUtils.skipBlank("\ntest".toCharArray(),0,true));
+		Assert.assertEquals(2,CharUtils.skipBlank(" \n".toCharArray(),0,false));
+
+		try{CharUtils.skipBlank(null,0,true);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}		
+		try{CharUtils.skipBlank("".toCharArray(),0,true);
+			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharUtils.skipBlank(" ".toCharArray(),-1,true);
+			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{CharUtils.skipBlank("".toCharArray(),0,true);
+			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}		
+	}
+	
+	@Test
 	public void compareTest() {
 		Assert.assertTrue(CharUtils.compare("test string".toCharArray(), 5, "str".toCharArray()));
 		Assert.assertTrue(CharUtils.compare("test string".toCharArray(), 5, "string".toCharArray()));
