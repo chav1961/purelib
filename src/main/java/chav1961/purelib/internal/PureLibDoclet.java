@@ -24,6 +24,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Attr;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -42,6 +43,9 @@ import com.sun.tools.classfile.Attribute;
 import com.sun.tools.doclets.standard.Standard;
 
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
 
 public class PureLibDoclet extends Standard {
@@ -106,9 +110,10 @@ public class PureLibDoclet extends Standard {
 	}
 	
 	public static boolean start(final RootDoc rootDoc) {
-		try{final DocumentBuilderFactory 	docFactory = DocumentBuilderFactory.newInstance();
-			final DocumentBuilder 			docBuilder = docFactory.newDocumentBuilder();
-			final Document 					doc = docBuilder.newDocument();
+		try{final DocumentBuilderFactory 		docFactory = DocumentBuilderFactory.newInstance();
+			final DocumentBuilder 				docBuilder = docFactory.newDocumentBuilder();
+			final Document 						doc = docBuilder.newDocument();
+			final SyntaxTreeInterface<char[]>	availableClasses = new AndOrTree<>();
 
 		    final Element 	rootElement = doc.createElementNS(TAG_PREFIX,"navigation");
 		    final Attr 		rootAttr = doc.createAttributeNS("","overview");
@@ -117,9 +122,10 @@ public class PureLibDoclet extends Standard {
 		    doc.appendChild(rootElement);
 			
 			buildPackageTree(rootElement,doc,collectAvailablePackages(rootDoc));
+			buildClassesList(rootDoc,availableClasses);
 			
 			for(ClassDoc classDoc: rootDoc.classes()) {
-				seekPackage(rootElement,classDoc.containingPackage().name()).appendChild(buildClassSubtree(doc,classDoc));
+				seekPackage(rootElement,classDoc.containingPackage().name()).appendChild(buildClassSubtree(doc,classDoc,availableClasses));
 			}
 		
 			final Transformer 	transformer = TransformerFactory.newInstance().newTransformer();
@@ -127,7 +133,7 @@ public class PureLibDoclet extends Standard {
 			final Result 		output = new StreamResult(System.out);
 			
 			transformer.transform(source, output);		
-		} catch (ParserConfigurationException | TransformerFactoryConfigurationError | TransformerException e) {
+		} catch (ParserConfigurationException | TransformerFactoryConfigurationError | TransformerException | SyntaxException | DOMException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -230,7 +236,7 @@ public class PureLibDoclet extends Standard {
 		}
 	}
 	
-	static Node buildFieldSubtree(final Document doc, final FieldDoc fieldDoc) {	
+	static Node buildFieldSubtree(final Document doc, final FieldDoc fieldDoc, final  SyntaxTreeInterface<char[]> availableClasses) throws SyntaxException, DOMException, IOException {	
 		final Element	result = doc.createElementNS(TAG_PREFIX,TAG_FIELD);
 		
 		result.setAttribute(ATTR_NAME,fieldDoc.name());
@@ -245,11 +251,11 @@ public class PureLibDoclet extends Standard {
 		}
 		result.setAttribute(ATTR_TYPE,fieldDoc.type().toString());
 		result.setAttribute(ATTR_MODIFIERS,fieldDoc.modifiers().toString());
-		result.appendChild(buildOverview(doc,fieldDoc.getRawCommentText()));
+		result.appendChild(buildOverview(doc,DocletUtils.javadoc2Creole(fieldDoc.getRawCommentText(),availableClasses)[0].content));
 		return result;
 	}
 	
-	static Element buildMethodSubtree(final Document doc, final MethodDoc methodDoc) {	
+	static Element buildMethodSubtree(final Document doc, final MethodDoc methodDoc, final  SyntaxTreeInterface<char[]> availableClasses) throws SyntaxException, DOMException, IOException {
 		final Element	result = doc.createElementNS(TAG_PREFIX,TAG_METHOD);
 		
 		result.setAttribute(ATTR_NAME,methodDoc.name());
@@ -264,7 +270,7 @@ public class PureLibDoclet extends Standard {
 		}
 		result.setAttribute(ATTR_TYPE,methodDoc.returnType().toString());
 		result.setAttribute(ATTR_MODIFIERS,methodDoc.modifiers().toString());
-		result.appendChild(buildOverview(doc,methodDoc.getRawCommentText()));
+		result.appendChild(buildOverview(doc,DocletUtils.javadoc2Creole(methodDoc.getRawCommentText(),availableClasses)[0].content));
 		
 		for (Parameter item : methodDoc.parameters()) {
 			final Element	parm = doc.createElementNS("nav",TAG_PARAMETER);
@@ -276,7 +282,7 @@ public class PureLibDoclet extends Standard {
 		return result;
 	}
 	
-	static Element buildClassSubtree(final Document doc, final ClassDoc classDoc) {
+	static Element buildClassSubtree(final Document doc, final ClassDoc classDoc, final  SyntaxTreeInterface<char[]> availableClasses) throws SyntaxException, DOMException, IOException {
 		final Element	result = doc.createElementNS(TAG_PREFIX,TAG_CLASS);
 
 		result.setAttribute(ATTR_NAME,classDoc.name());
@@ -304,13 +310,13 @@ public class PureLibDoclet extends Standard {
 		if (classDoc.containingClass() != null) {
 			result.setAttribute(ATTR_INSIDE,classDoc.containingClass().name());
 		}
-		result.appendChild(buildOverview(doc,classDoc.getRawCommentText()));
+		result.appendChild(buildOverview(doc,DocletUtils.javadoc2Creole(classDoc.getRawCommentText(),availableClasses)[0].content));
 		
 		for (FieldDoc fieldDoc : classDoc.fields()) {
-			result.appendChild(buildFieldSubtree(doc,fieldDoc));
+			result.appendChild(buildFieldSubtree(doc,fieldDoc,availableClasses));
 		}
 		for (MethodDoc methodDoc : classDoc.methods()) {
-			result.appendChild(buildMethodSubtree(doc,methodDoc));
+			result.appendChild(buildMethodSubtree(doc,methodDoc,availableClasses));
 		}
 		return result;
 	}
@@ -406,11 +412,20 @@ loop:			for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index
 		}
 	}
 	
-	private static Element buildOverview(final Document doc, final String content) {
+	private static Element buildOverview(final Document doc, final char[] content) {
 		final Element	overview = doc.createElementNS("",TAG_OVERVIEW);
 		
-		overview.setTextContent(content);
+		overview.setTextContent(new String(content));
 		return overview;
+	}
+
+	private static void buildClassesList(final RootDoc rootDoc, final SyntaxTreeInterface<char[]> availableClasses) {
+		for (ClassDoc clazz : rootDoc.classes()) {
+			final String	name = clazz.name();
+			final int		lastDot = name.lastIndexOf('.');
+			
+			availableClasses.placeOrChangeName(lastDot >= 0 ? name.substring(lastDot+1) : name, ("./"+name).replace('.','/').toCharArray());
+		}
 	}
 	
 /*	public static int optionLength(final String option) {

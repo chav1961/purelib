@@ -1,5 +1,6 @@
 package chav1961.purelib.internal;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.internal.DocletUtils.MultilangContent;
 
@@ -83,6 +85,10 @@ public class DocletUtilsTest {
 		string = " description".toCharArray();
 		sb.setLength(0);	DocletUtils.ACTIONS.getCargo(DocletUtils.ACTIONS.seekName("code")).process(sb,string,0,string.length,imports);
 		Assert.assertEquals("{{{ description}}}",sb.toString());
+
+		string = " test".toCharArray();
+		sb.setLength(0);	DocletUtils.ACTIONS.getCargo(DocletUtils.ACTIONS.seekName("codeSample")).process(sb,string,0,string.length,imports);
+		Assert.assertEquals("\n\n//Code samples(s)://  [[class/test/Test|test]]\n",sb.toString());
 		
 		string = " test\n".toCharArray();
 		sb.setLength(0);	DocletUtils.ACTIONS.getCargo(DocletUtils.ACTIONS.seekName("deprecated")).process(sb,string,0,string.length,imports);
@@ -174,8 +180,27 @@ public class DocletUtilsTest {
 		sb.setLength(0);	DocletUtils.parseInternal(0,string,0,string.length,sb,imports,DocletUtils.ACTIONS,content);
 		Assert.assertEquals("\n\n//See also://  [[123|123]] [[class/test/Test|test]] [[123|123]]\n",sb.toString());
 
-		string = "{@link 123}\n".toCharArray();
+		string = "{@link test}".toCharArray();
 		sb.setLength(0);	DocletUtils.parseInternal(0,string,0,string.length,sb,imports,DocletUtils.ACTIONS,content);
-		Assert.assertEquals("\n\n//See also://  [[123|123]] [[class/test/Test|test]] [[123|123]]\n",sb.toString());
+		Assert.assertEquals("[[class/test/Test|test]]",sb.toString());
+	}
+
+	@Test
+	public void javadoc2CreoleTest() throws SyntaxException, IOException {
+		final SyntaxTreeInterface<char[]>	imports = new AndOrTree<>();
+
+		imports.placeName("test", "class/test/Test".toCharArray());
+		
+		Assert.assertEquals("See [[class/test/Test|test]]\n\n\n",new String(DocletUtils.javadoc2Creole("<p>See {@link test}</p>",imports)[0].content));
+		Assert.assertEquals("",new String(DocletUtils.javadoc2Creole("",imports)[0].content));
+		
+		try{DocletUtils.javadoc2Creole(null,imports);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {			
+		}
+		try{DocletUtils.javadoc2Creole("<p>See {@link test}</p>",null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {			
+		}
 	}
 }

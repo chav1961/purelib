@@ -749,6 +749,43 @@ public class CharUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 	}
+
+	@Test
+	public void likeTest() {
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"first".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"fi?st".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"?irst".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"firs?".toCharArray(),0));
+		Assert.assertTrue(CharUtils.like("first".toCharArray(),"irst".toCharArray(),1) >= 0);
+		Assert.assertTrue(CharUtils.like("first".toCharArray(),"firs".toCharArray(),0) < 0);
+		Assert.assertTrue(CharUtils.like("firs".toCharArray(),"first".toCharArray(),0) < 0);
+		
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"*".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"f*".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"f*t".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"f*s*".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"f*r*t".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"*r*t".toCharArray(),0));
+		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"*r*t".toCharArray(),1));
+		Assert.assertTrue(CharUtils.like("first".toCharArray(),"*rs".toCharArray(),0) < 0);
+
+		try{CharUtils.like(null,"first".toCharArray(),0);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.like("first".toCharArray(),null,0);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.like("first".toCharArray(),"first".toCharArray(),-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.like("first".toCharArray(),"first".toCharArray(),100);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
 }
 
 enum PseudoConversionEnum {

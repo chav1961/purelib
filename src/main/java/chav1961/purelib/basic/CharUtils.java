@@ -61,6 +61,8 @@ public class CharUtils {
 	private static final char[]		DOUBLE_NEGATIVE_INFINITY = "-Infinity".toCharArray();
 	private static final char[]		DOUBLE_POSITIVE_INFINITY = "Infinity".toCharArray();
 	private static final char[]		HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+	private static final char		WILDCARD_ANY_SEQ = '*';
+	private static final char		WILDCARD_ANY_CHAR = '?';
 	
 	static {
 		DOUBLE_EXPS = new double[EXP_BOUND * 2 + 1];
@@ -1483,6 +1485,107 @@ public class CharUtils {
 				}
 			}
 			return true;
+		}
+	}
+	
+	/**
+	 * <p>Performs 'like' operation in char arrays (see SQL language syntax)</p>
+	 * @param source source array to test
+	 * @param template template to test. Wild cards of the template are (*) - any sequence, (?) - exactly one char
+	 * @param from start testing like in the source
+	 * @return length 'liked' if resolved, or any negative value if doesn't like
+	 * @throws NullPointerException if source or template are null
+	 * @throws IllegalArgumentException if from position out of range
+	 * @since 0.0.3
+	 */
+	public static int like(final char[] source, final char[] template, final int from) throws NullPointerException, IllegalArgumentException {
+		if (source == null) {
+			throw new NullPointerException("Source can't be null");
+		}
+		else {
+			return like(source, template, from, source.length-1);
+		}
+	}
+
+
+	/**
+	 * <p>Performs 'like' operation in char arrays (see SQL language syntax)</p>
+	 * @param source source array to test
+	 * @param template template to test. Wild cards of the template are (*) - any sequence, (?) - exactly one char
+	 * @param from start testing like in the source
+	 * @param to end testing like in the source
+	 * @return length 'liked' if resolved, or any negative value if doesn't like
+	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
+	 * @since 0.0.3
+	 */
+	public static int like(final char[] source, final char[] template, final int from, final int to) throws NullPointerException, IllegalArgumentException {
+		if (source == null) {
+			throw new NullPointerException("Source can't be null");
+		}
+		else if (template == null) {
+			throw new NullPointerException("Template can't be null");
+		}
+		else if (source.length == 0 || template.length == 0) {
+			return -1;
+		}
+		else if (from < 0 || from >= source.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(source.length-1));
+		}
+		else if (to < 0 || to >= source.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(source.length-1));
+		}
+		else if (to < from) {
+			throw new IllegalArgumentException("To position ["+to+"] is less than from ["+from+"]");
+		}
+		else {
+			return likeInternal(source,template,from,to,0);
+		}
+	}
+
+	private static int likeInternal(final char[] source, final char[] template, final int from, final int to, final int templateFrom) {
+		int	asteriskCount =  0;
+		
+		for (int index = templateFrom, maxIndex = template.length; index < maxIndex; index++) {
+			if (template[index] == WILDCARD_ANY_SEQ) {
+				asteriskCount++;
+			}
+		}
+		if (asteriskCount == 0) {
+			if (to - from != template.length - templateFrom - 1) {
+				return -template.length;
+			}
+			else {
+				for (int index = 0, maxIndex = template.length-templateFrom; index < maxIndex; index++) {
+					if (source[from+index] != template[index + templateFrom] && template[index + templateFrom] != WILDCARD_ANY_CHAR) {
+						return -template.length;
+					}
+				}
+				return from + template.length - templateFrom;
+			}				
+		}
+		else {
+			for (int start = 0, index = 0, maxIndex = template.length; index < maxIndex && start + from <= to; index++, start++) {
+				if (source[start + from] != template[index + templateFrom] && template[index + templateFrom] != WILDCARD_ANY_CHAR) {
+					if (template[index + templateFrom] != WILDCARD_ANY_SEQ) {
+						return -template.length;
+					}
+					else if (index + templateFrom == template.length - 1) {
+						return to+1;
+					}
+					else {
+						for(; start + from <= to; start++) {
+							int result = likeInternal(source,template,start+from,to,index+templateFrom+1);
+							
+							if (result > 0) {
+								return result;
+							}
+						}
+						return -template.length;
+					}
+				}
+			}
+			return from + template.length - templateFrom;
 		}
 	}
 	

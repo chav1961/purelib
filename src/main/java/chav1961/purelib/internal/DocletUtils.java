@@ -18,6 +18,7 @@ public class DocletUtils {
 	static final SyntaxTreeInterface<ActionsCallback>	ACTIONS = new AndOrTree<>();
 
 	private static final BitCharSet						STOPS = new BitCharSet('\n','\r','<','@','&','{');
+	private static final char[]							EMPTY_ARRAY = new char[0];
 	
 	
 	static {
@@ -47,6 +48,11 @@ public class DocletUtils {
 		ACTIONS.placeName("code",(sb, data, from, to, imports)->{
 			sb.append("{{{").append(data, from, to - from).append("}}}");
 		});
+		ACTIONS.placeName("codeSample",(sb, data, from, to, imports)->{
+			sb.append("\n\n//Code samples(s):// ");
+			resolveReferences(data, from, to, imports, sb); 
+			sb.append('\n');
+		});
 		ACTIONS.placeName("deprecated",(sb, data, from, to, imports)->{
 			final int	pos = CharUtils.skipBlank(data,from,true);
 			
@@ -67,14 +73,14 @@ public class DocletUtils {
 			try{final int[]	namePos = new int[2];
 				final int	start = CharUtils.skipBlank(data,from,true);
 				int			pos = CharUtils.parseName(data,start,namePos);
+				int			nextContent = CharUtils.skipBlank(data,pos,true);
 
-				if (CharUtils.skipBlank(data,pos,true) >= to) {
-					resolveReferences(data, namePos[0], namePos[1]+1, imports, sb);
-					sb.append(" : ").append(data,pos,to-pos);
+				sb.append("[[");
+				resolveSingleReference(data, namePos[0], namePos[1]+1, imports, sb);
+				if (data[nextContent] == '}') {
+					sb.append("|").append(data,namePos[0],namePos[1]-namePos[0]+1).append("]]");
 				}
 				else {
-					sb.append("[[");
-					resolveSingleReference(data, namePos[0], namePos[1]+1, imports, sb);
 					sb.append("|").append(data,pos,to-pos).append("]]");
 				}
 			} catch (IllegalArgumentException exc) {
@@ -135,15 +141,14 @@ public class DocletUtils {
 		});
 	}
 	
-	public enum ReferenceType {
-		See_REF, Link_Ref, CodeSample_REF, Overview_REF
-	}
-
 	public static MultilangContent[] javadoc2Creole(final String content, final SyntaxTreeInterface<char[]> imports) throws IOException, SyntaxException {
-		if (content == null || content.isEmpty()) {
-			throw new IllegalArgumentException("Content can't be null");
+		if (content == null) {
+			throw new NullPointerException("Content can't be null");
 		}
-		else {
+		else if (imports == null) {
+			throw new NullPointerException("Imports can't be null");
+		}
+		else if (!content.isEmpty()) {
 			final List<MultilangContent>	result = new ArrayList<>();
 			final StringBuilder				sb = new StringBuilder();
 			
@@ -152,7 +157,11 @@ public class DocletUtils {
 															})) {
 				proc.write(content.toCharArray(),0,content.length());
 			}
+			result.add(new MultilangContent(SupportedLanguages.en,sb.toString().toCharArray()));
 			return result.toArray(new MultilangContent[result.size()]);
+		}
+		else {
+			return new MultilangContent[]{new MultilangContent(SupportedLanguages.en,EMPTY_ARRAY)};
 		}
 	}
 	
@@ -255,14 +264,19 @@ public class DocletUtils {
 				current++;
 			}
 			if (number >= 0) {
-				final long	id = imports.seekName(data,start,number);
-				
-				if (id >= 0) {
-					sb.append("[[").append(imports.getCargo(id)).append('#').append(data,number+1,current-number-1)
-					  .append('|').append(data,start,current-start).append("]]");
+				if (start == number) {
+					sb.append("[[#").append(data,start,current-start).append('|').append(data,start,current-start).append("]]");
 				}
 				else {
-					sb.append("[[").append(data,start,current-start).append('|').append(data,start,current-start).append("]]");
+					final long	id = imports.seekName(data,start,number);
+					
+					if (id >= 0) {
+						sb.append("[[").append(imports.getCargo(id)).append('#').append(data,number+1,current-number-1)
+						  .append('|').append(data,start,current-start).append("]]");
+					}
+					else {
+						sb.append("[[").append(data,start,current-start).append('|').append(data,start,current-start).append("]]");
+					}
 				}
 			}
 			else {
@@ -317,38 +331,18 @@ public class DocletUtils {
 	public static class MultilangContent {
 		public final SupportedLanguages	lang;
 		public final char[]				content;
-		public final Reference[]		refs;
 		
-		public MultilangContent(SupportedLanguages lang, char[] content, Reference[] refs) {
+		public MultilangContent(SupportedLanguages lang, char[] content) {
 			this.lang = lang;
 			this.content = content;
-			this.refs = refs;
 		}
 
 		@Override
 		public String toString() {
-			return "MultilangContent [lang=" + lang + ", content=" + Arrays.toString(content) + ", refs=" + Arrays.toString(refs) + "]";
-		}
+			return "MultilangContent [lang=" + lang + ", content=" + Arrays.toString(content) + "]";
+		}		
 	}
 	
-	public static class Reference {
-		public final int				row, col;
-		public final ReferenceType		refType;
-		public final URI				ref;
-		
-		public Reference(int row, int col, ReferenceType refType, URI ref) {
-			this.row = row;
-			this.col = col;
-			this.refType = refType;
-			this.ref = ref;
-		}
-
-		@Override
-		public String toString() {
-			return "Reference [row=" + row + ", col=" + col + ", refType=" + refType + ", ref=" + ref + "]";
-		}
-	}
-
 	@FunctionalInterface
 	interface ActionsCallback {
 		void process(final StringBuilder sb, final char[] data, final int from, final int to, final SyntaxTreeInterface<char[]> imports);
