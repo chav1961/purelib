@@ -332,8 +332,10 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 				y[index] = list[bar][index].totalY;
 			}
 			
-			totalX[bar] = SizeRequirements.getTiledSizeRequirements(x);
-			totalY[bar] = SizeRequirements.getAlignedSizeRequirements(y);
+			totalX[bar] = SizeRequirements.getAlignedSizeRequirements(x);
+			totalY[bar] = SizeRequirements.getTiledSizeRequirements(y);
+//			totalX[bar] = SizeRequirements.getTiledSizeRequirements(x);
+//			totalY[bar] = SizeRequirements.getAlignedSizeRequirements(y);
 		}
 		return new SizeRequirements[]{SizeRequirements.getTiledSizeRequirements(totalX),SizeRequirements.getAlignedSizeRequirements(totalY)};
 	}
@@ -391,7 +393,7 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		}
 		else {
 			for (int index = 0, tail = source.length; index < result.length; index++, tail -= pieceSize) {
-				result[index] = Arrays.copyOfRange(source,index*pieceSize,Math.min(pieceSize, tail));
+				result[index] = Arrays.copyOfRange(source,index*pieceSize,index*pieceSize+Math.min(pieceSize, tail));
 			}
 		}
 		return result;

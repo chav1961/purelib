@@ -46,6 +46,7 @@
 Пакет streams
 1. Переделать JsonSaxHandlerFactory под новые возможности ассемблера и класса GettersAndSetters 
 2. Добавить опцию для BigInteger/BigDecimal
+3. Отрефакторить JsonSaxHandlerFactory под класс CompilerUtils
 Пакет streams.char2char
 *1. Дополнить класс CreoleWriter режимом подсчета переводов строки в параграфах и других элементах 
 *2. Дополнить класс CreoleWriter режимом подсчета завершающих '===' в заголовках, чтобы можно было правильно отображать текст в окне
