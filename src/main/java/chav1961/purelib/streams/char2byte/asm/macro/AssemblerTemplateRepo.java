@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.streams.char2byte.asm.macro;
 
 
 import java.io.Closeable;
@@ -11,55 +11,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
+import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
-/**
- * <p>This class is used to simplify assembly code generation (see {@linkplain AsmWriter}). It is an alternative mechanism for assembler code automation against assembler macros. 
- * Don't use it in your applications, use macros instead of it.</p>
- * <p>Base of the class is a <i>template repository</i>. Template repository contains a set of <i>parts</i>. Every part is a piece of the input stream was passed in the class constructor.
- * Example of the parts is:</p>
- * <code>
- * {part1} ----<br>
- * &lt;content of the part1&gt;<br>
- * &lt;. . .&gt;<br>
- * {part2} ----<br>
- * &lt;content of the part2&gt;<br>
- * &lt;. . .&gt;<br>
- * {partN} ----<br>
- * &lt;content of the partN&gt;<br>
- * &lt;. . .&gt;<br>
- * </code>
- * <p>content of the part is an ordinal assembler code fragment. Is can also contains any <i>substitutions</i> in the {@linkplain SubstitutableProperties}-styled syntax.
- * When you wish to insert the part requested in the assembler code, simply call {@linkplain #append(GrowableCharArray, char[])} or {@linkplain #append(GrowableCharArray, char[], CharSubstitutionSource)}
- * method. The class instance seek the part requested, performs any substitutions in it and put target content into the {@linkplain GrowableCharArray} instance.</p>
- * <p>To simplify substitution process, a public inner class {@linkplain NameKeeper} can be used. To get access to the class instance, simply call {@linkplain #getNameKeeper()} instance. You can then put any
- * key/value pairs in it to use in the substitution process. The class has also a specific method {@linkplain NameKeeper#push()} to organize substitution hierarchy (for example, in the recursive code generators).
- * Typical use of the {@linkplain NameKeeper} class is:</p>
- * <code>
- * public void parse(...,AssemblerTemplateRepo repo,NameKeeper parent,GrowableCharArray writer...) {<br>
- * &nbsp;try(NameKeeper current = parent.push()) {<br>
- * &nbsp;&nbsp;. . .<br>
- * &nbsp;&nbsp;current.put("NAME1",value1).put("NAME2",value2)...<br>
- * &nbsp;&nbsp;. . .<br>
- * &nbsp;&nbsp;repo.append(writer,"PARTNAME".toCharArray(),current);<br>
- * &nbsp;&nbsp;. . .<br>
- * &nbsp;}<br>
- * }<br>
- * </code>
- * <p>The {@linkplain NameKeeper} class searches the name required in it's instance. If the name not found, it continues searching in the parent instance.</p>
- * @see chav1961.purelib.streams.char2byte.asm.macro.MacroCompilerTest
- * @see chav1961.purelib.streams JUnit tests
- * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
- */
-
-@Deprecated
-public class AssemblerTemplateRepo {
+class AssemblerTemplateRepo {
 	private static final char[]		THE_END = "\n{_theend_}\n".toCharArray();
 	
 	private final AssemblerTemplateRepo.PartRecord[]	partNames;
@@ -227,7 +189,7 @@ public class AssemblerTemplateRepo {
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
 	 */
-	public static class NameKeeper implements CharSubstitutionSource, Closeable {
+	static class NameKeeper implements CharSubstitutionSource, Closeable {
 		private NameKeeper					parent;   
 		private SyntaxTreeInterface<char[]>	content = null;
 		

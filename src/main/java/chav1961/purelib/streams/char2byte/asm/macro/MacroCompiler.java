@@ -2,16 +2,20 @@ package chav1961.purelib.streams.char2byte.asm.macro;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import chav1961.purelib.basic.AssemblerTemplateRepo;
-import chav1961.purelib.basic.AssemblerTemplateRepo.NameKeeper;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
+import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepo.NameKeeper;
 
 @SuppressWarnings("deprecation")
 public class MacroCompiler {
@@ -54,6 +58,55 @@ public class MacroCompiler {
 	private static final char[]		COMMAND_IFLE = "ifle".toCharArray();
 	private static final char[]		COMMAND_IFLT = "iflt".toCharArray();
 	private static final char[]		COMMAND_IFNE = "ifne".toCharArray();
+
+	private static final Method		ME_TO_STRING_L;
+	private static final Method		ME_TO_STRING_D;
+	private static final Method		ME_TO_STRING_Z;
+	private static final Method		ME_COMPARE_STRINGS;
+	private static final Method		ME_VALUE_EXISTS;
+	private static final Method		ME_TO_BOOLEAN;
+	private static final Method		ME_SPLIT;
+
+	private static final Method		GCA_APPEND;
+
+	private static final Method		ENI_GET_LONG;	
+	private static final Method		ENI_GET_DOUBLE;	
+	private static final Method		ENI_GET_STRING;	
+	private static final Method		ENI_GET_BOOLEAN;	
+
+	private static final Method		CU_PARSE_SIGNED_LONG;	
+	private static final Method		CU_PARSE_SIGNED_DOUBLE;	
+	
+	static {
+		try{final Class<MacroExecutor>				macroExecutorClass = MacroExecutor.class;
+			
+			ME_TO_STRING_L = macroExecutorClass.getMethod("toString",long.class);
+			ME_TO_STRING_D = macroExecutorClass.getMethod("toString",double.class);
+			ME_TO_STRING_Z = macroExecutorClass.getMethod("toString",boolean.class);
+			ME_COMPARE_STRINGS = macroExecutorClass.getMethod("compareStrings",char[].class,char[].class);
+			ME_VALUE_EXISTS = macroExecutorClass.getMethod("valueExists",AssignableExpressionNodeInterface.class);
+			ME_TO_BOOLEAN = macroExecutorClass.getMethod("toBoolean",char[].class); 
+			ME_SPLIT = macroExecutorClass.getMethod("split",char[].class,char[].class);
+			
+			final Class<GrowableCharArray>			growableCharArrayClass = GrowableCharArray.class; 
+
+			GCA_APPEND = growableCharArrayClass.getMethod("append",char[].class);
+			
+			final Class<ExpressionNodeInterface>	expressionNodeInterfaceClass = ExpressionNodeInterface.class;
+			
+			ENI_GET_LONG = expressionNodeInterfaceClass.getMethod("getLong");
+			ENI_GET_DOUBLE = expressionNodeInterfaceClass.getMethod("getDouble");
+			ENI_GET_STRING = expressionNodeInterfaceClass.getMethod("getString");
+			ENI_GET_BOOLEAN = expressionNodeInterfaceClass.getMethod("getBoolean");
+			
+			final Class<CharUtils>					charUtilsClass = CharUtils.class;
+			
+			CU_PARSE_SIGNED_LONG = charUtilsClass.getMethod("parseSignedLong",char[].class,int.class,long[].class,boolean.class);
+			CU_PARSE_SIGNED_DOUBLE = charUtilsClass.getMethod("parseSignedDouble",char[].class,int.class,double[].class,boolean.class);
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new PreparationException("MacroCompiler class initialization failed : "+e.getLocalizedMessage(),e);
+		}
+	}
 	
 	public static void compile(final String className, final Command command, final GrowableCharArray writer, final GrowableCharArray stringRepo) throws IOException, SyntaxException, CalculationException {
 		try(final InputStream			is = MacroCompiler.class.getResourceAsStream(MACROCOMPILER_RESOURCE)) {
@@ -155,8 +208,7 @@ public class MacroCompiler {
 					repo.append(writer," .begin\neachArray"+uniqueSuffix+" .var char[][] final\neachArrayIndex"+uniqueSuffix+" .var int\n");
 					compileExpression(((ForEachCommand)command).parameters[1],storage,repo,current,writer,0,0);
 					compileExpression(((ForEachCommand)command).parameters[2],storage,repo,current,writer,0,0);
-					repo.append(writer," invokestatic chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.split([C[C)[[C\n" +
-							   		   " astore eachArray"+uniqueSuffix+"\n iconst_0\n istore eachArrayIndex"+uniqueSuffix+"\n");
+					repo.append(writer," " + CompilerUtils.buildMethodCall(ME_SPLIT)+"\n astore eachArray"+uniqueSuffix+"\n iconst_0\n istore eachArrayIndex"+uniqueSuffix+"\n");
 					
 					repo.append(writer,"label"+labelForeachAgain+":\n");
 					repo.append(writer,PART_PREPARE_WRAPPER,current.put(VAR_INDEX,((AssignableExpressionNode)((ForEachCommand)command).parameters[0]).getSequentialNumber()));
@@ -261,7 +313,7 @@ public class MacroCompiler {
 						else {
 							repo.append(writer," aload_2\n");
 							compileExpression(item,storage,repo,current,writer,0,0);
-							repo.append(writer," invokevirtual chav1961.purelib.basic.growablearrays.GrowableCharArray.append([C)Lchav1961/purelib/basic/growablearrays/GrowableCharArray;\n pop\n");
+							repo.append(writer," "+CompilerUtils.buildMethodCall(GCA_APPEND)+"\n pop\n");
 						}
 					}
 					break;
@@ -298,16 +350,16 @@ public class MacroCompiler {
 					
 					switch ((((AssignableExpressionNode)node).getValueType())) {
 						case INTEGER	:
-							repo.append(writer," invokeinterface	chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface.getLong()J\n");
+							repo.append(writer," "+CompilerUtils.buildMethodCall(ENI_GET_LONG)+"\n");
 							break;
 						case REAL		:
-							repo.append(writer," invokeinterface	chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface.getDouble()D\n");
+							repo.append(writer," "+CompilerUtils.buildMethodCall(ENI_GET_DOUBLE)+"\n");
 							break;
 						case STRING		:
-							repo.append(writer," invokeinterface	chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface.getString()[C\n");
+							repo.append(writer," "+CompilerUtils.buildMethodCall(ENI_GET_STRING)+"\n");
 							break;
 						case BOOLEAN	:
-							repo.append(writer," invokeinterface	chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface.getBoolean()Z\n");
+							repo.append(writer," "+CompilerUtils.buildMethodCall(ENI_GET_BOOLEAN)+"\n");
 							if (trueLabel != 0 || falseLabel != 0) {
 								if (trueLabel != 0) {
 									repo.append(writer," ifne label"+trueLabel+"\n");
@@ -519,7 +571,7 @@ public class MacroCompiler {
 									writer.append("	aload_1\n");
 									writer.append((" ldc "+((AssignableExpressionNode)((FuncExistsNode)node).operands.get(0)).getSequentialNumber()+"\n"));
 									writer.append("	aaload\n");
-									writer.append("	invokestatic	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.valueExists(Lchav1961/purelib/streams/char2byte/asm/AssignableExpressionNodeInterface;)Z\n");
+									writer.append("	"+CompilerUtils.buildMethodCall(ME_VALUE_EXISTS)+"\n");
 
 									if (trueLabel != 0 || falseLabel != 0) {
 										if (trueLabel != 0) {
@@ -549,7 +601,8 @@ public class MacroCompiler {
 										writer.append("	ldc	0\n");
 										writer.append("	getfield longResult\n");
 										writer.append("	ldc	0\n");
-										writer.append("	invokestatic	chav1961.purelib.basic.CharUtils.parseSignedLong([CI[LZ)I\n");
+										writer.append("	"+CompilerUtils.buildMethodCall(CU_PARSE_SIGNED_LONG)+"\n");
+										writer.append("	pop\n");
 										writer.append("	getfield longResult\n");
 										writer.append("	ldc	0\n");
 										writer.append("	lload\n");
@@ -571,7 +624,8 @@ public class MacroCompiler {
 										writer.append("	ldc	0\n");
 										writer.append("	getfield doubleResult\n");
 										writer.append("	ldc	0\n");
-										writer.append("	invokestatic	chav1961.purelib.basic.CharUtils.parseSignedDoubke([CI[DZ)I\n");
+										writer.append("	"+CompilerUtils.buildMethodCall(CU_PARSE_SIGNED_DOUBLE)+"\n");
+										writer.append("	pop\n");
 										writer.append("	getfield doubleResult\n");
 										writer.append("	ldc	0\n");
 										writer.append("	dload\n");
@@ -585,15 +639,15 @@ public class MacroCompiler {
 								compileExpression(((FuncToStringNode)node).operands.get(0),storage,repo,current,writer,trueLabel,falseLabel);
 								switch (((FuncToStringNode)node).operands.get(0).getValueType()) {
 									case INTEGER	:
-										writer.append("	invokestatic	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.toString(J)[C\n");
+										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_STRING_L)+"\n");
 										break;
 									case REAL		:
-										writer.append("	invokestatic	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.toString(D)[C\n");
+										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_STRING_D)+"\n");
 										break;
 									case STRING		:
 										break;
 									case BOOLEAN	:
-										writer.append("	invokestatic	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.toString(Z)[C\n");
+										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_STRING_Z)+"\n");
 										break;
 									default : throw new UnsupportedOperationException("Data type ["+((FuncToStringNode)node).operands.get(0).getValueType()+"] is not supported yet");
 								}
@@ -604,7 +658,7 @@ public class MacroCompiler {
 									case INTEGER : case REAL :
 										throw new CalculationException("Conversion to boolean is not applicable for data type ["+node.getValueType()+"]");
 									case STRING		:
-										writer.append("	invokestatic	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.toBoolean([C)Z\n");
+										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_BOOLEAN)+"\n");
 										break;
 									case BOOLEAN	:
 										break;
@@ -689,7 +743,7 @@ public class MacroCompiler {
 				writer.append(" dcmpg\n");
 				break;
 			case STRING		:
-				writer.append("	invokestatic	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.compareStrings([C[C)I\n");
+				writer.append("	"+CompilerUtils.buildMethodCall(ME_COMPARE_STRINGS)+"\n");
 				break;
 			case BOOLEAN	:
 				writer.append(" isub\n");
@@ -732,9 +786,6 @@ public class MacroCompiler {
 					case LT : writer.append(("	ifge label"+falseLabel+"\n")); break;
 					default : throw new UnsupportedOperationException("Operator type ["+operator+"] is not supported yet");
 				}
-//				if (trueLabel != 0) {
-//					writer.append(("	goto label"+trueLabel+"\n"));
-//				}
 			}
 		}
 	}

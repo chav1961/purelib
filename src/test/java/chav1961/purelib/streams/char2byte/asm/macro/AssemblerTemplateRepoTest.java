@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.streams.char2byte.asm.macro;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -7,9 +7,9 @@ import java.io.InputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.AssemblerTemplateRepo.NameKeeper;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepo.NameKeeper;
 
 @SuppressWarnings("deprecation")
 public class AssemblerTemplateRepoTest {

@@ -305,6 +305,7 @@ public class FileSystemTest {
 			Assert.assertEquals(fs.getAttributes().get("key1").toString(),"value1");
 		}		
 
+															// Test mount/unmount
 		try(final FileSystemInterface	mount = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/advanced/").toURI())) {
 			fs.open("/copyDir/nestedDir").mount(mount);
 			
@@ -312,8 +313,6 @@ public class FileSystemTest {
 			Assert.assertEquals(fs.open("/copyDir/nestedDir").unmount(),mount);
 			Assert.assertArrayEquals(fs.list(),new String[]{"nestedFile.new"});
 		}
-		
-		
 		
 		try{fs.open("/copyDir").delete();					// Remove directory
 			Assert.fail("Mandatory exceptin was not detected (attempt to remove non-empty directory)");

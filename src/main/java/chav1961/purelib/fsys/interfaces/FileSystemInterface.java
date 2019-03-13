@@ -288,7 +288,7 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 
 	/**
 	 * <p>Get file systems mound for the given node</p>
-	 * @return file systems mound or numm if none mound on the node
+	 * @return file systems mound or null if none mound on the node
 	 * @throws IOException if any exceptions was thrown
 	 * @since 0.0.3
 	 */
@@ -321,6 +321,13 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @since 0.0.3
 	 */
 	boolean isJoined() throws IOException;
+
+	/**
+	 * <p>Get list of joined file systems from the current directory</p>
+	 * @return list (stack) of joined file systems. Can be empty but not null 
+	 * @throws IOException if any exceptions was thrown
+	 */
+	FileSystemInterface[] joinedList() throws IOException;
 	
 	/**
 	 * <p>Copy content from one file system to another</p>

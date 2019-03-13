@@ -5,6 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import chav1961.purelib.streams.char2byte.asm.CompilerUtilsTest;
+import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepoTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({ SyntaxTreeTest.class, BitCharSetTest.class, CharUtilsTest.class,

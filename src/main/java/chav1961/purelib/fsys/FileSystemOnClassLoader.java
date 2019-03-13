@@ -102,7 +102,12 @@ public class FileSystemOnClassLoader extends AbstractFileSystem implements FileS
 	
 	@Override
 	public DataWrapperInterface createDataWrapper(final URI actualPath) throws IOException {
-		return new ClassLoaderDataWrapperInterface(Utils.appendRelativePath2URI(rootPath,actualPath.getPath()));
+		if (actualPath == null || actualPath.getPath().isEmpty()) {
+			return new ClassLoaderDataWrapperInterface(rootPath);
+		}
+		else {
+			return new ClassLoaderDataWrapperInterface(Utils.appendRelativePath2URI(rootPath,actualPath.getPath()));
+		}
 	}
 	
 	@Override

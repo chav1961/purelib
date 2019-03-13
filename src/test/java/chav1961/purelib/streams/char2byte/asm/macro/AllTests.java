@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ CommandTest.class, ExpressionNodeTest.class, InternalUtilsTest.class, MacroClassLoaderTest.class,
-		MacroCompilerTest.class, MacroProcessingTest.class, MacrosTest.class })
+		MacroCompilerTest.class, MacroProcessingTest.class, MacrosTest.class, AssemblerTemplateRepoTest.class })
 public class AllTests {
 
 }

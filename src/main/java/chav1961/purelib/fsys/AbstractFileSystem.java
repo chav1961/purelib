@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
@@ -40,7 +42,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @see chav1961.purelib.fsys.FileSystemOnFile
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1
+ * @since 0.0.1 last update 0.0.3
  */
 
 public abstract class AbstractFileSystem implements FileSystemInterface {
@@ -48,16 +50,16 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	
 	private static final String			ALL_MASK = ".*";
 	private static final Pattern		ALL_MASK_COMPILED = Pattern.compile(ALL_MASK);
-	private static final URI			ROOT_URI = URI.create("/");
+	private static final FileSystemInterface[]	EMPTY_LIST = new FileSystemInterface[0];  
 
 	protected final URI 				rootPath;
 	
 	private final Map<String,Object>	emptyMap = new HashMap<String,Object>();
 	private final List<URI>				stack = new ArrayList<URI>();
-	private final Map<URI,FileSystemInterface>	mounts = new HashMap<URI,FileSystemInterface>();
+	private final SyntaxTreeInterface<FileSystemInterface>			mounts = new AndOrTree<>();
+	private final SyntaxTreeInterface<List<FileSystemInterface>>	joins = new AndOrTree<>();
 	
 	private	URI							currentPath = null, prevPath = null;
-	private Redirection					redirection = null;
 	private DataWrapperInterface		prevWrapper = null;
 	private boolean						appendMode = false;
 	
@@ -80,6 +82,17 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		this.rootPath = another.rootPath;
 		this.currentPath = another.currentPath;
 		this.stack.addAll(another.stack);
+		another.mounts.walk((name,len,id,cargo)->{
+			this.mounts.placeName(name,0,len,cargo);
+			return true;
+		});
+		another.joins.walk((name,len,id,cargo)->{
+			final List<FileSystemInterface>	clone = new ArrayList<>();
+			
+			clone.addAll(cargo);
+			this.joins.placeName(name,0,len,cargo);
+			return true;
+		});
 	}	
 
 	@Override public abstract boolean canServe(final URI uriSchema);	
@@ -88,15 +101,26 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	@Override public abstract DataWrapperInterface createDataWrapper(final URI actualPath) throws IOException;
 
 	/**
-	 * <p>Close the file system. This method also closes all mounted file systems (see {@link #mount(FileSystemInterface)} method)</p>  
+	 * <p>Close the file system. This method also closes all mounted file systems (see {@link #mount(FileSystemInterface)} method)
+	 * but retains all joined file systems (see {@link #join(FileSystemInterface)} method) in it's current states</p>  
 	 */
 	@Override
 	public void close() throws IOException {
-		for (FileSystemInterface item : mounts.values()) {
-			item.close();
-		}
+		final IOException[]	exc = new IOException[]{null}; 
+		
+		mounts.walk((name,len,id,cargo)->{
+			try{cargo.close();
+			} catch (IOException e) {
+				exc[0] = e;
+			}
+			return true;
+		});
 		mounts.clear();
-		stack.clear();		
+		joins.clear();
+		stack.clear();
+		if (exc[0] != null) {
+			throw exc[0]; 
+		}
 	}
 
 	@Override
@@ -349,61 +373,118 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		if (another == null) {
 			throw new NullPointerException("Another file system can't be null");
 		}
-		else if (mounts.containsKey(currentPath)) {
+		else if (mounts.seekName(currentPath.getPath()) > 0) {
 			throw new IOException("There is a mound file system at the path ["+getPath()+"]. Use another path for mounting or unmount prevous file system");
 		}
 		else if (!exists() || !isDirectory()) {
 			throw new IOException("Mount path ["+getPath()+"] is not exists or is a file, not directory");
 		}
+		else if (!(another instanceof AbstractFileSystem)) {
+			throw new UnsupportedOperationException("Implementation restriction: another file system must be instance of AbstractFileSystem"); 
+		}
 		else {
-			mounts.put(currentPath,another);
-			redirection = needRedirect(currentPath);
-			prevPath = ROOT_URI;
+			mounts.placeName(currentPath.getPath(),another);
+			prevPath = null;
 			return this;
 		}
 	}
 
 	@Override
 	public FileSystemInterface unmount() throws IOException {
-		if (!mounts.containsKey(currentPath)) {
+		final long	id = mounts.seekName(currentPath.getPath()); 
+		
+		if (id < 0) {
 			throw new IllegalArgumentException("Nothing mound at the path ["+getPath()+"]");
 		}
 		else {
-			redirection = null;
-			prevPath = ROOT_URI;
-			return mounts.remove(currentPath); 
+			final FileSystemInterface	returned = mounts.getCargo(id);
+			
+			prevPath = null;
+			mounts.removeName(id);
+			return returned; 
 		}
 	}
 
 	@Override
 	public boolean isMound() throws IOException {
-		return mounts.containsKey(currentPath);
+		return mounts.seekName(currentPath.getPath()) > 0;
 	}
 
 	@Override
 	public FileSystemInterface mound() throws IOException {
-		return mounts.get(currentPath);
+		final long	id = mounts.seekName(currentPath.getPath());
+		
+		if (id > 0) {
+			return mounts.getCargo(id);
+		}
+		else {
+			return null;
+		}
 	}
 	
 	@Override
 	public FileSystemInterface join(final FileSystemInterface another) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		if (another == null) {
+			throw new NullPointerException("Another file system can't be null");
+		}
+		else if (!exists() || !isDirectory()) {
+			throw new IOException("Join path ["+getPath()+"] is not exists or is a file, not directory");
+		}
+		else if (!(another instanceof AbstractFileSystem)) {
+			throw new UnsupportedOperationException("Implementation restriction: another file system must be instance of AbstractFileSystem"); 
+		}
+		else {
+			final String				path = currentPath.getPath();
+			List<FileSystemInterface>	list;
+			long						id = joins.seekName(path);
+			
+			if (id < 0) {
+				joins.placeName(path, list = new ArrayList<>());
+			}
+			else {
+				list = joins.getCargo(id);
+			}
+			list.add(another.clone());
+			prevPath = null;
+			return this;
+		}
 	}
 
 	@Override
 	public FileSystemInterface unjoin() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		final long	id = joins.seekName(currentPath.getPath());
+		
+		if (id < 0) {
+			throw new IllegalArgumentException("Nothing joined at the path ["+getPath()+"]");
+		}
+		else {
+			final List<FileSystemInterface>	stackFS = joins.getCargo(id);
+			final FileSystemInterface		returned = stackFS.remove(stackFS.size()-1);
+
+			if (stackFS.size() == 0) {
+				joins.removeName(id);
+			}
+			
+			return returned; 
+		}
 	}
 
 	@Override
 	public boolean isJoined() throws IOException {
-		// TODO Auto-generated method stub
-		return false;
+		return joins.seekName(currentPath.getPath()) > 0;
 	}
 	
-	
+	@Override
+	public FileSystemInterface[] joinedList() throws IOException {
+		if (isJoined()) {
+			final List<FileSystemInterface>	stack = joins.getCargo(joins.seekName(currentPath.getPath()));
+			
+			return stack.toArray(new FileSystemInterface[stack.size()]);
+		}
+		else {
+			return EMPTY_LIST;
+		}
+	}
 	
 	@Override
 	public FileSystemInterface copy(final FileSystemInterface another) throws IOException {
@@ -606,22 +687,59 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	public String toString() {
 		return "FileSystemFS [currentPath=" + currentPath + ", appendMode=" + appendMode + "]";
 	}
-
 	
 	private DataWrapperInterface getDataWrapper(final URI entityPath) throws IOException {
 		if (prevPath != null && entityPath.equals(prevPath)) {	// Micro-cache to optimize chained operations
 			return prevWrapper;
 		}
-		else if (redirection != null) {		// Processing mounted file systems
-			prevPath = entityPath;
-			return prevWrapper = redirection.filesystem.createDataWrapper(URI.create("/"+redirection.rootURI.relativize(entityPath).toString()));
-		}
 		else {
+			final char[]						path = entityPath.getPath().toCharArray(); 
+			final List<DataWrapperInterface>	collection = new ArrayList<>();
+			
+			walk(this,path,0,0,collection);
+			
 			prevPath = entityPath;
-			return prevWrapper = createDataWrapper(entityPath);
+			return prevWrapper = new JoinedWrapper(entityPath, collection);
 		}
 	}
 	
+	private static void walk(final AbstractFileSystem afs, final char[] path, final int from, final int to, final List<DataWrapperInterface> collection) throws IOException {
+		final long	joinId = to > from ? afs.joins.seekName(path,from,to) : -1;  
+		final long	mountId = to > from ? afs.mounts.seekName(path,from,to) : -1;  
+		
+		if (joinId > 0) {
+			final List<FileSystemInterface>	list = afs.joins.getCargo(joinId);
+			
+			for (int index = list.size() - 1; index >= 0; index--) {
+				walk((AbstractFileSystem)list.get(index),path,to,path.length,collection);
+			}
+		}
+		if (mountId > 0) {
+			final FileSystemInterface	fsi = afs.mounts.getCargo(mountId);
+			
+			walk((AbstractFileSystem)fsi,path,to,path.length,collection);
+		}
+		else if (to == path.length) {
+			collection.add(afs.createDataWrapper(URI.create(new String(path,from,to-from))));
+		}
+		else {
+			int		slash = -1;
+			
+			for (int index = to+1; index < path.length; index++) {
+				if (path[index] == '/') {
+					slash = index;
+					break;
+				}
+			}
+			if (slash != -1) {
+				walk(afs,path,from,slash,collection);
+			}
+			else {
+				walk(afs,path,from,path.length,collection);
+			}
+		}
+	}
+
 	private URI build(final String delta) throws IOException {
 		final StringBuilder sb = new StringBuilder();
 		final List<String>	result = new ArrayList<String>();
@@ -655,26 +773,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	private FileSystemInterface open(final URI item) {
 		currentPath = item.normalize();
 		appendMode = false;
-		redirection = needRedirect(currentPath);
 		return this;
-	}
-
-	private Redirection needRedirect(final URI address) {
-		if (mounts.size() == 0) {
-			return null;
-		}
-		else if (address.compareTo(ROOT_URI) == 0 || address.toString().isEmpty()) {
-			return null;
-		}
-		else if (mounts.containsKey(address)) {
-			return new Redirection(address,mounts.get(address));
-		}
-		else if (address.toString().equals("/") || address.toString().equals("/../")) {
-			return null;
-		}
-		else {
-			return needRedirect(address.resolve("../").normalize());
-		}
 	}
 
 	private FileSystemInterface push(URI item) {
@@ -712,18 +811,100 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		return this;
 	}
 
-	private static class Redirection {
-		private final URI			rootURI;
-		private final FileSystemInterface	filesystem;
+	private static class JoinedWrapper implements DataWrapperInterface {
+		private final URI							currentPath;
+		private final List<DataWrapperInterface>	collection;
 		
-		public Redirection(URI rootURI, FileSystemInterface filesystem) {
-			this.rootURI = rootURI;
-			this.filesystem = filesystem;
+		public JoinedWrapper(final URI currentPath, final List<DataWrapperInterface> collection) {
+			this.currentPath = currentPath;
+			this.collection = collection;
 		}
 
 		@Override
-		public String toString() {
-			return "Redirection [rootURI=" + rootURI + ", filesystem=" + filesystem + "]";
+		public URI[] list(final Pattern pattern) throws IOException {
+			final List<URI>	content = new ArrayList<>();
+			
+			for (DataWrapperInterface item : collection) {
+				if ((Boolean)item.getAttributes().get(ATTR_EXIST)) {
+					content.addAll(Arrays.asList(item.list(pattern)));
+				}
+			}
+			return content.toArray(new URI[content.size()]);
+		}
+	
+		@Override
+		public void mkDir() throws IOException {
+			collection.get(0).mkDir();
+		}
+	
+		@Override
+		public void create() throws IOException {
+			collection.get(0).create();
+		}
+	
+		@Override
+		public void setName(final String name) throws IOException {
+			for (DataWrapperInterface item : collection) {
+				if ((Boolean)item.getAttributes().get(ATTR_EXIST)) {
+					item.setName(name);
+					return;
+				}
+			}
+			throw new IOException("Directory/file ["+currentPath+"] not found anywhere");
+		}
+	
+		@Override
+		public void delete() throws IOException {
+			for (DataWrapperInterface item : collection) {
+				if ((Boolean)item.getAttributes().get(ATTR_EXIST)) {
+					item.delete();
+					return;
+				}
+			}
+			throw new IOException("Directory/file ["+currentPath+"] was not deleted");
+		}
+	
+		@Override
+		public OutputStream getOutputStream(final boolean append) throws IOException {
+			for (DataWrapperInterface item : collection) {
+				if ((Boolean)item.getAttributes().get(ATTR_EXIST)) {
+					return item.getOutputStream(append);
+				}
+			}
+			throw new IOException("Directory/file ["+currentPath+"] not found anywhere");
+		}
+	
+		@Override
+		public InputStream getInputStream() throws IOException {
+			for (DataWrapperInterface item : collection) {
+				if ((Boolean)item.getAttributes().get(ATTR_EXIST)) {
+					return item.getInputStream();
+				}
+			}
+			throw new IOException("Directory/file ["+currentPath+"] not found anywhere");
+		}
+	
+		@Override
+		public Map<String, Object> getAttributes() throws IOException {
+			for (DataWrapperInterface item : collection) {
+				if ((Boolean)item.getAttributes().get(ATTR_EXIST)) {
+					return item.getAttributes();
+				}
+			}
+			final String	path = currentPath.getPath();
+			final int		slash = path.lastIndexOf('/');
+			
+			return Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, slash >= 0 ? path.substring(slash+1) : path, ATTR_LASTMODIFIED, 0, ATTR_DIR, false, ATTR_EXIST, false, ATTR_CANREAD, false, ATTR_CANWRITE, false);
+		}
+	
+		@Override
+		public void linkAttributes(final Map<String, Object> attributes) throws IOException {
+			for (DataWrapperInterface item : collection) {
+				if ((Boolean)item.getAttributes().get(ATTR_EXIST)) {
+					item.linkAttributes(attributes);
+					return;
+				}
+			}
 		}
 	}
 }
