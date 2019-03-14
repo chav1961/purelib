@@ -137,7 +137,7 @@ public class CompilerUtils {
 			throw new NullPointerException("Class to build path for can't be null"); 
 		}
 		else {
-			return clazz.getCanonicalName();
+			return clazz.getName();
 		}
 	}
 

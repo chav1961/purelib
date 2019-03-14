@@ -1,4 +1,4 @@
-package chav1961.purelib.streams;
+package chav1961.purelib.json;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.Set;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.growablearrays.GrowableBooleanArray;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -28,8 +30,10 @@ import chav1961.purelib.basic.growablearrays.GrowableIntArray;
 import chav1961.purelib.basic.growablearrays.GrowableLongArray;
 import chav1961.purelib.basic.growablearrays.GrowableShortArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.json.interfaces.CreateAndSet;
+import chav1961.purelib.streams.JsonSaxParser;
 import chav1961.purelib.streams.char2byte.AsmWriter;
-import chav1961.purelib.streams.interfaces.CreateAndSet;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.streams.interfaces.JsonSaxDeserializer;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 
@@ -42,7 +46,7 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  * p.parse(...);<br>
  * final MyClass deserialized = h.getInstance();<br>   
  * </code>
- * <p>The {@link JsonSaxHandler} implementation was built is a {@link JsonSaxDeserializer} interface implementation, which uses a list of
+ * <p>The {@link JsonSaxHandler} implementation was built is a {@link JsonSaxDeserializerFactory} interface implementation, which uses a list of
  * deserialization rules to process data:</p>
  * <ul>
  * <li>every JSON array reflects to appropriative array in the class you want to deserialise from JSON</li>
@@ -66,7 +70,7 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  * 
  * <p><b>Pay attentiton</b>, that you can call {@link JsonSaxParser#parse(String)} or any other similar method more than once, but all sequential
  * calls will <b>refill</b> the same first deserialized instance was created in the first call. It allow you reduce memory requirements for the 
- * new deserialized instances. To avoid this functionality, always call {@link JsonSaxDeserializer#use(Object) JsonSaxDeserializer.use(null)} before
+ * new deserialized instances. To avoid this functionality, always call {@link JsonSaxDeserializerFactory#use(Object) JsonSaxDeserializer.use(null)} before
  * next parsing. You can also use this call to fill the <i>predefined</i> class instance with the deserialized data. Also pay attention, that 
  * on building {@link JsonSaxHandler} class with the <b>publicOnly</b> flag, it makes by reflection, but it's runtime not uses reflection, but 
  * on-the-fly built class to create new instances and set it's fields. It radically increases parsing speed, but strongly check visibility of the
@@ -79,11 +83,43 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  * @see chav1961.purelib.streams.interfaces.JsonSaxDeserializer
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1
+ * @since 0.0.1 last update 0.0.3
  */
 
-public class JsonSaxHandlerFactory {
-	private JsonSaxHandlerFactory(){}
+public class JsonSaxDeserializerFactory {
+	private static final Class<?>		CL_ILLEGALARGUMENTEXCAPTION = IllegalArgumentException.class;
+	private static final Class<?>		CL_PRIMITIVECOLLECTION = PrimitiveCollection.class;
+	private static final Class<?>		CL_CREATEANDSET = CreateAndSet.class;
+
+	private static final Constructor<?>	CON_OBJECT;
+	private static final Constructor<?>	CON_ILLEGALARGUMENTEXCEPTION;
+
+	private static final Field			F_PC_CONTENT_TYPE;
+	private static final Field			F_PC_CONTENT_LONGVALUE;
+	private static final Field			F_PC_CONTENT_DOUBLEVALUE;
+	private static final Field			F_PC_CONTENT_BOOLEANVALUE;
+	
+	static {
+		try{final Class<Object>						objClass = Object.class;
+			
+			CON_OBJECT = objClass.getConstructor();
+			
+			final Class<IllegalArgumentException>	iaeClass = IllegalArgumentException.class;
+			
+			CON_ILLEGALARGUMENTEXCEPTION = iaeClass.getConstructor(String.class);
+
+			final Class<PrimitiveCollection>		pcClass = PrimitiveCollection.class;
+			
+			F_PC_CONTENT_TYPE = pcClass.getField("contentType");
+			F_PC_CONTENT_LONGVALUE = pcClass.getField("longValue");
+			F_PC_CONTENT_DOUBLEVALUE = pcClass.getField("doubleValue");
+			F_PC_CONTENT_BOOLEANVALUE = pcClass.getField("booleanValue");
+		} catch (NoSuchMethodException | SecurityException | NoSuchFieldException e) {
+			throw new PreparationException("Class JsonSaxDeserializerFactory initialization failed: "+e.getLocalizedMessage(),e);
+		}
+	}
+	
+	private JsonSaxDeserializerFactory(){}
 	
 	/**
 	 * <p>Build {@link JsonSaxHandler} for automatic deserialization from JSON to the given class instance</p>
@@ -121,25 +157,24 @@ public class JsonSaxHandlerFactory {
 			if (publicOnly && !extra.isPrimitive()) {		// Build class for direct access instead of reflections...
 				try(final ByteArrayOutputStream		baos = new ByteArrayOutputStream();
 					final Writer					wr = new AsmWriter(baos);) {
-	//				final Writer					wr = new OutputStreamWriter(System.err);) {
-					final String					pseudoClassName = JsonSaxHandlerFactory.class.getPackage().getName()+'.'+extra.getSimpleName()+"_serv"; 
+					final String					pseudoClassName = JsonSaxDeserializerFactory.class.getPackage().getName()+'.'+extra.getSimpleName()+"_serv"; 
 					final List<SettingPairs>		settingPairs = new ArrayList<>();				
 					
-					wr.write(" 				.package "+JsonSaxHandlerFactory.class.getPackage().getName()+'\n');
-					wr.write(" 				.import "+JsonSaxHandlerFactory.class.getPackage().getName()+".interfaces.CreateAndSet\n");
-					wr.write(" 				.import "+JsonSaxHandlerFactory.class.getPackage().getName()+".JsonSaxHandlerFactory$PrimitiveCollection\n");
-					wr.write(" 				.import java.lang.IllegalArgumentException\n");
+					wr.write(" 				.package "+JsonSaxDeserializerFactory.class.getPackage().getName()+'\n');
+					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
+					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
+					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
 					
 					preventDuplicates.clear();
 					preventDuplicates.add(String.class);			
 					printClassCreationImport(wr,desc,preventDuplicates);
 					
-					wr.write(extra.getSimpleName()+"_serv 	.class public implements "+JsonSaxHandlerFactory.class.getPackage().getName()+".interfaces.CreateAndSet\n");
+					wr.write(extra.getSimpleName()+"_serv 	.class public implements "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
 					
 					wr.write(extra.getSimpleName()+"_serv	.method void public\n");
 					wr.write("				.stack 2\n");
 					wr.write("				aload_0\n");
-					wr.write("				invokespecial java.lang.Object.Object()V\n");
+					wr.write(" "+CompilerUtils.buildConstructorCall(CON_OBJECT)+"\n");
 					wr.write("				return\n");
 					wr.write(extra.getSimpleName()+"_serv	.end\n");
 					wr.write("newInstance 	.method java.lang.Object public\n");
@@ -154,10 +189,10 @@ public class JsonSaxHandlerFactory {
 					
 					wr.write("				.default Throw\n");
 					wr.write("				.end\n");
-					wr.write("Throw:		new 	java.lang.IllegalArgumentException\n");
+					wr.write("Throw:		new 	"+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
 					wr.write("				dup\n");
 					wr.write("				ldc_w 	\"Unknown classId value to create instance\"\n");
-					wr.write("				invokespecial java.lang.IllegalArgumentException.IllegalArgumentException(Ljava/lang/String;)V\n");
+					wr.write("				"+CompilerUtils.buildConstructorCall(CON_ILLEGALARGUMENTEXCEPTION)+"\n");
 					wr.write("				athrow\n");
 					
 					preventDuplicates.clear();
@@ -184,15 +219,15 @@ public class JsonSaxHandlerFactory {
 						
 						wr.write("				.default Unknown\n");
 						wr.write("				.end\n");
-						wr.write("Unknown:		new 	java.lang.IllegalArgumentException\n");
+						wr.write("Unknown:		new 	"+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
 						wr.write("				dup\n");
 						wr.write("				ldc_w 	\"Unknown classId/fieldId combination to set value\"\n");
-						wr.write("				invokespecial java.lang.IllegalArgumentException.IllegalArgumentException(Ljava/lang/String;)V\n");
+						wr.write("				"+CompilerUtils.buildConstructorCall(CON_ILLEGALARGUMENTEXCEPTION)+"\n");
 						wr.write("				athrow\n");
-						wr.write("Cast:			new 	java.lang.IllegalArgumentException\n");
+						wr.write("Cast:			new 	"+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
 						wr.write("				dup\n");
 						wr.write("				ldc_w 	\"Source primitive type can't be cast to target field type\"\n");
-						wr.write("				invokespecial java.lang.IllegalArgumentException.IllegalArgumentException(Ljava/lang/String;)V\n");
+						wr.write("				"+CompilerUtils.buildConstructorCall(CON_ILLEGALARGUMENTEXCEPTION)+"\n");
 						wr.write("				athrow\n");
 						
 						printClassSettingsCode(wr,settingPairs,tree);
@@ -405,50 +440,50 @@ public class JsonSaxHandlerFactory {
 				case Utils.CLASSTYPE_SHORT		:
 				case Utils.CLASSTYPE_CHAR		:
 				case Utils.CLASSTYPE_INT		:
-					wr.write("			checkcast chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection\n");
+					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.contentType\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc_w "+PrimitiveCollection.CONTENT_LONG+"\n");
 					wr.write("			if_icmpne Cast\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.longValue\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_LONGVALUE)+"\n");
 					wr.write("			l2i\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				case Utils.CLASSTYPE_LONG		:
-					wr.write("			checkcast chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection\n");
+					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.contentType\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_LONG+"\n");
 					wr.write("			if_icmpne Cast\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.longValue\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_LONGVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				case Utils.CLASSTYPE_FLOAT		:
-					wr.write("			checkcast chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection\n");
+					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.contentType\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_DOUBLE+"\n");
 					wr.write("			if_icmpne Cast\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.doubleValue\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_DOUBLEVALUE)+"\n");
 					wr.write("			d2f\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				case Utils.CLASSTYPE_DOUBLE		:
-					wr.write("			checkcast chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection\n");
+					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.contentType\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_DOUBLE+"\n");
 					wr.write("			if_icmpne Cast\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.doubleValue\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_DOUBLEVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				case Utils.CLASSTYPE_BOOLEAN	:
-					wr.write("			checkcast chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection\n");
+					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.contentType\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_BOOLEAN+"\n");
 					wr.write("			if_icmpne Cast\n");
-					wr.write("			getfield chav1961.purelib.streams.JsonSaxHandlerFactory$PrimitiveCollection.booleanValue\n");
+					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_BOOLEANVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				default :  throw new UnsupportedOperationException();
@@ -499,7 +534,7 @@ public class JsonSaxHandlerFactory {
 		private final PrimitiveCollection				forPrimitives = new PrimitiveCollection();
 		private final long								lastTreeId;
 		
-		private InternalClassLoader	cl = new InternalClassLoader(JsonSaxHandlerFactory.class.getClassLoader());
+		private InternalClassLoader	cl = new InternalClassLoader(JsonSaxDeserializerFactory.class.getClassLoader());
 		private CreateAndSet		cs;
 		private T					result = null;
 		private ClassDesc			actualDesc;

@@ -1,4 +1,4 @@
-package chav1961.purelib.streams;
+package chav1961.purelib.json;
 
 public class JsonStrings {
 	String	x;

@@ -54,6 +54,7 @@ public class FieldFormat {
 	private final boolean		needSelect;
 	private final boolean		useInList;
 	private final boolean		useInListAnchored;
+	private final boolean		isOutput;
 	
 	public FieldFormat(final Class<?> clazz) throws NullPointerException, IllegalArgumentException {
 		this(clazz,"");
@@ -68,7 +69,7 @@ public class FieldFormat {
 		}
 		else {
 			final char[]	data = (format.trim()+'\n').toCharArray();
-			boolean			isMandatory = false, isReadOnly = false, isReadOnlyOnExistent = false;
+			boolean			isMandatory = false, isReadOnly = false, isReadOnlyOnExistent = false, isOutput = false;
 			boolean			negativeHighlight = false, zeroHighlight = false, positiveHighlight = false;
 			boolean			useInList = false, useInListAnchored = false, needSelect = false;
 			String			mask = null;
@@ -127,6 +128,7 @@ public class FieldFormat {
 						break;
 					case 'm' : isMandatory = true; break;
 					case 'n' : negativeHighlight = true; break;
+					case 'o' : isOutput = true; break;
 					case 'z' : zeroHighlight = true; break;
 					case 'p' : positiveHighlight = true; break;
 					case 's' : needSelect = true; break;
@@ -188,6 +190,7 @@ public class FieldFormat {
 				pos++;
 			}
 			this.isMandatory = isMandatory;
+			this.isOutput = isOutput;
 			this.isReadOnly = isReadOnly;
 			this.isReadOnlyOnExistent = isReadOnlyOnExistent;
 			this.negativeHighlight = negativeHighlight;
@@ -228,6 +231,10 @@ public class FieldFormat {
 		return isMandatory;
 	}
 
+	public boolean isOutput() {
+		return isOutput;
+	}
+	
 	public boolean isReadOnly(boolean onCreation) {
 		return onCreation ? isReadOnlyOnExistent : isReadOnly;
 	}

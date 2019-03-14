@@ -1,4 +1,4 @@
-package chav1961.purelib.streams;
+package chav1961.purelib.json;
 
 import java.io.IOException;
 
@@ -7,6 +7,9 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.json.JsonSaxDeserializerFactory;
+import chav1961.purelib.streams.JsonPrimitives;
+import chav1961.purelib.streams.JsonSaxParser;
 import chav1961.purelib.streams.interfaces.JsonSaxDeserializer;
 
 
@@ -14,7 +17,7 @@ public class JsonSaxHandlerFactoryTest {
 	 
 	@Test
 	public void primitivesAndSingleValuesTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<JsonPrimitives>	d = JsonSaxHandlerFactory.buildDeserializer(JsonPrimitives.class,false);
+		final JsonSaxDeserializer<JsonPrimitives>	d = JsonSaxDeserializerFactory.buildDeserializer(JsonPrimitives.class,false);
 		final JsonSaxParser							p = new JsonSaxParser(d);
 		
 		p.parse("{\"x\":10,\"y\":20,\"z\":30.5,\"t\":40.5,\"a\":true,\"b\":100,\"c\":100,\"d\":48}".toCharArray());
@@ -73,7 +76,7 @@ public class JsonSaxHandlerFactoryTest {
 
 	@Test
 	public void compiledPrimitivesAndSingleValuesTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<JsonPrimitives>	d = JsonSaxHandlerFactory.buildDeserializer(JsonPrimitives.class,true);
+		final JsonSaxDeserializer<JsonPrimitives>	d = JsonSaxDeserializerFactory.buildDeserializer(JsonPrimitives.class,true);
 		final JsonSaxParser							p = new JsonSaxParser(d);
 		
 		p.parse("{\"x\":10,\"y\":20,\"z\":30.5,\"t\":40.5,\"a\":true,\"b\":100,\"c\":100,\"d\":48}".toCharArray());
@@ -133,7 +136,7 @@ public class JsonSaxHandlerFactoryTest {
 	
 	@Test
 	public void stringsAndReusableTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<JsonStrings>	d = JsonSaxHandlerFactory.buildDeserializer(JsonStrings.class,false);
+		final JsonSaxDeserializer<JsonStrings>	d = JsonSaxDeserializerFactory.buildDeserializer(JsonStrings.class,false);
 		final JsonSaxParser						p = new JsonSaxParser(d);
 		
 		p.parse("{\"x\":\"test string 1\",\"y\":\"test string 2\"}".toCharArray());
@@ -152,7 +155,7 @@ public class JsonSaxHandlerFactoryTest {
 
 	@Test
 	public void primitiveArraysTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<JsonPrimitiveArrays>	d = JsonSaxHandlerFactory.buildDeserializer(JsonPrimitiveArrays.class,false);
+		final JsonSaxDeserializer<JsonPrimitiveArrays>	d = JsonSaxDeserializerFactory.buildDeserializer(JsonPrimitiveArrays.class,false);
 		final JsonSaxParser								p = new JsonSaxParser(d);
 		
 		p.parse("{\"a\":[1,2],\"b\":[3,4],\"c\":[],\"d\":[5,6],\"e\":[7,8,9],\"f\":[10],\"g\":[true,false],\"h\":[48]}".toCharArray());
@@ -170,7 +173,7 @@ public class JsonSaxHandlerFactoryTest {
 
 	@Test
 	public void innerClassesTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<JsonOuterClass>	d = JsonSaxHandlerFactory.buildDeserializer(JsonOuterClass.class,false);
+		final JsonSaxDeserializer<JsonOuterClass>	d = JsonSaxDeserializerFactory.buildDeserializer(JsonOuterClass.class,false);
 		final JsonSaxParser							p = new JsonSaxParser(d);
 		
 		p.parse("{\"a\":10,\"b\":\"test string 1\",\"in\":{\"x\":20,\"y\":\"test string 2\"}}".toCharArray());
@@ -183,7 +186,7 @@ public class JsonSaxHandlerFactoryTest {
 
 	@Test
 	public void innerClassArraysTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<JsonOuterArrayClass>	d = JsonSaxHandlerFactory.buildDeserializer(JsonOuterArrayClass.class,false);
+		final JsonSaxDeserializer<JsonOuterArrayClass>	d = JsonSaxDeserializerFactory.buildDeserializer(JsonOuterArrayClass.class,false);
 		final JsonSaxParser								p = new JsonSaxParser(d);
 		
 		p.parse("{\"a\":10,\"in1\":[{\"x\":20,\"y\":\"test string 2\"},{\"x\":30,\"y\":\"test string 3\"}],\"in2\":[],\"b\":\"test string 1\"}".toCharArray());
@@ -200,7 +203,7 @@ public class JsonSaxHandlerFactoryTest {
 
 	@Test
 	public void topPrimitiveArraysTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<byte[]>	dByte = JsonSaxHandlerFactory.buildDeserializer(byte[].class,false);
+		final JsonSaxDeserializer<byte[]>	dByte = JsonSaxDeserializerFactory.buildDeserializer(byte[].class,false);
 		final JsonSaxParser					pByte = new JsonSaxParser(dByte);
 		
 		pByte.parse("[10,20,30]".toCharArray());
@@ -208,7 +211,7 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(dByte.getInstance().length,3);
 		Assert.assertArrayEquals(dByte.getInstance(),new byte[]{10,20,30});
 		
-		final JsonSaxDeserializer<short[]>	dShort = JsonSaxHandlerFactory.buildDeserializer(short[].class,false);
+		final JsonSaxDeserializer<short[]>	dShort = JsonSaxDeserializerFactory.buildDeserializer(short[].class,false);
 		final JsonSaxParser					pShort = new JsonSaxParser(dShort);
 		
 		pShort.parse("[10,20,30]".toCharArray());
@@ -216,7 +219,7 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(dShort.getInstance().length,3);
 		Assert.assertArrayEquals(dShort.getInstance(),new short[]{10,20,30});
 
-		final JsonSaxDeserializer<char[]>	dChar = JsonSaxHandlerFactory.buildDeserializer(char[].class,false);
+		final JsonSaxDeserializer<char[]>	dChar = JsonSaxDeserializerFactory.buildDeserializer(char[].class,false);
 		final JsonSaxParser					pChar = new JsonSaxParser(dChar);
 		
 		pChar.parse("[10,20,30]".toCharArray());
@@ -224,7 +227,7 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(dChar.getInstance().length,3);
 		Assert.assertArrayEquals(dChar.getInstance(),new char[]{10,20,30});
 		
-		final JsonSaxDeserializer<int[]>	d = JsonSaxHandlerFactory.buildDeserializer(int[].class,false);
+		final JsonSaxDeserializer<int[]>	d = JsonSaxDeserializerFactory.buildDeserializer(int[].class,false);
 		final JsonSaxParser					p = new JsonSaxParser(d);
 		
 		p.parse("[10,20,30]".toCharArray());
@@ -232,7 +235,7 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(d.getInstance().length,3);
 		Assert.assertArrayEquals(d.getInstance(),new int[]{10,20,30});
 
-		final JsonSaxDeserializer<long[]>	dLong = JsonSaxHandlerFactory.buildDeserializer(long[].class,false);
+		final JsonSaxDeserializer<long[]>	dLong = JsonSaxDeserializerFactory.buildDeserializer(long[].class,false);
 		final JsonSaxParser					pLong = new JsonSaxParser(dLong);
 		
 		pLong.parse("[10,20,30]".toCharArray());
@@ -240,7 +243,7 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(dLong.getInstance().length,3);
 		Assert.assertArrayEquals(dLong.getInstance(),new long[]{10,20,30});
 
-		final JsonSaxDeserializer<float[]>	dFloat = JsonSaxHandlerFactory.buildDeserializer(float[].class,false);
+		final JsonSaxDeserializer<float[]>	dFloat = JsonSaxDeserializerFactory.buildDeserializer(float[].class,false);
 		final JsonSaxParser					pFloat = new JsonSaxParser(dFloat);
 		
 		pFloat.parse("[10,20,30]".toCharArray());
@@ -248,7 +251,7 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(dFloat.getInstance().length,3);
 		Assert.assertArrayEquals(dFloat.getInstance(),new float[]{10,20,30},0.0001f);
 
-		final JsonSaxDeserializer<double[]>	dDouble = JsonSaxHandlerFactory.buildDeserializer(double[].class,false);
+		final JsonSaxDeserializer<double[]>	dDouble = JsonSaxDeserializerFactory.buildDeserializer(double[].class,false);
 		final JsonSaxParser					pDouble = new JsonSaxParser(dDouble);
 		
 		pDouble.parse("[10,20,30]".toCharArray());
@@ -256,7 +259,7 @@ public class JsonSaxHandlerFactoryTest {
 		Assert.assertEquals(dDouble.getInstance().length,3);
 		Assert.assertArrayEquals(dDouble.getInstance(),new double[]{10,20,30},0.0001);
 
-		final JsonSaxDeserializer<boolean[]>	dBooelan = JsonSaxHandlerFactory.buildDeserializer(boolean[].class,false);
+		final JsonSaxDeserializer<boolean[]>	dBooelan = JsonSaxDeserializerFactory.buildDeserializer(boolean[].class,false);
 		final JsonSaxParser						pBooelan = new JsonSaxParser(dBooelan);
 		
 		pBooelan.parse("[false,true,false]".toCharArray());
@@ -269,7 +272,7 @@ public class JsonSaxHandlerFactoryTest {
 
 	@Test
 	public void theSameNamesTest() throws IOException, SyntaxException, ContentException {
-		final JsonSaxDeserializer<JsonOuterTheSameClass>	d = JsonSaxHandlerFactory.buildDeserializer(JsonOuterTheSameClass.class,false);
+		final JsonSaxDeserializer<JsonOuterTheSameClass>	d = JsonSaxDeserializerFactory.buildDeserializer(JsonOuterTheSameClass.class,false);
 		final JsonSaxParser									p = new JsonSaxParser(d);
 		
 		p.parse("{\"x\":10,\"y\":\"test string 1\",\"in\":{\"x\":20,\"y\":\"test string 2\"}}".toCharArray());

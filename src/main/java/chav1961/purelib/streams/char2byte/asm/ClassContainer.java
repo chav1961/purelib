@@ -22,16 +22,18 @@ class ClassContainer implements Closeable {
 	private final InOutGrowableByteArray		interfGba = new InOutGrowableByteArray(false); 
 	private final InOutGrowableByteArray		fieldsGba = new InOutGrowableByteArray(false); 
 	private final List<MethodDescriptor>		methods = new ArrayList<>();
+	private final List<short[]>					initials = new ArrayList<>();
 	
 	private short	classModifiers = 0, thisId = 0, superId = 0, interfCount = 0, fieldCount = 0;
-	private short	currentMajor = Constants.MAJOR_1_7, currentMinor = Constants.MINOR_1_7;  
-	private long	joinedClassName = 0;
+	private short	currentMajor = Constants.MAJOR_1_7, currentMinor = Constants.MINOR_1_7;
+	private long	joinedClassName = 0, constantValueId;
 	private boolean methodBodyAwait = false;
 	private URL		sourceRef = null;
 	
 	public ClassContainer() {
-		tree.placeName("long",null);	// To use in LocalVarTable descriptors
+		tree.placeName("long",null);			// To use in LocalVarTable descriptors
 		tree.placeName("double",null);
+		constantValueId = tree.placeName("ConstantValue",null);	// To use in initials
 	}
 
 	@Override
@@ -90,6 +92,17 @@ class ClassContainer implements Closeable {
 		fieldCount++;
 	}
 
+	void addFieldDescription(final short modifiers, final long fieldId, final long typeId, final short valueId) throws IOException, ContentException {
+		fieldsGba.writeShort(modifiers);
+		fieldsGba.writeShort(getConstantPool().asUTF(fieldId));
+		fieldsGba.writeShort(getConstantPool().asUTF(typeId));
+		fieldsGba.writeShort(1);
+		fieldsGba.writeShort(getConstantPool().asUTF(constantValueId));
+		fieldsGba.writeInt(2);
+		fieldsGba.writeShort(valueId);
+		fieldCount++;
+	}
+	
 	void setSourceAttribute(final URL source) {
 		sourceRef = source;
 	}

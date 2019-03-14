@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
@@ -38,7 +37,6 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
 public class ModelUtils {
 	private static final AsmWriter		writer;
 	private static final IOException	initExc;
-	private static final AtomicInteger	uniqueSuffix = new AtomicInteger(0);
 	
 	static {
 		AsmWriter	temp;

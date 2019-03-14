@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.DocErrorReporter;
@@ -454,7 +455,7 @@ loop:			for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index
 		return success;
 	}*/
 	
-	public static void main(final String[] args) throws IOException {
+	public static void main(final String[] args) throws IOException, ParserConfigurationException, SAXException {
 		process("chav1961.purelib.basic");
 	}
 }

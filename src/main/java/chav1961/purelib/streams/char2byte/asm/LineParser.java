@@ -26,6 +26,7 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -39,6 +40,9 @@ import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 class LineParser implements LineByLineProcessorCallback {
 	private static final int						EXPONENT_BASE = 305;
 	private static final double[]					EXPONENTS;
+
+	private static final char[]						TRUE = "true".toCharArray();
+	private static final char[]						FALSE = "false".toCharArray();
 	
 	private static final long						DEFAULT_MARK = Integer.MAX_VALUE+1L;
 	private static final Comparator<Entry<Long,Long>>	SORT_COMPARATOR = new Comparator<Entry<Long,Long>>(){
@@ -432,6 +436,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private Map<Long,Long>								jumps = new HashMap<>();
 	private int											switchAddress;
 	private int											beginLevel = 0;
+	private int											classConstructorCount = 0;
 	private ParserState									beforeBegin;
 	private List<int[]>									tryList = new ArrayList<int[]>();
 	private Macros										currentMacros = null;
@@ -1129,7 +1134,82 @@ class LineParser implements LineByLineProcessorCallback {
 			final long		typeId = tree.placeOrChangeName(InternalUtils.buildFieldSignature(tree,tree.placeOrChangeName(type.getName(),new NameDescriptor())),new NameDescriptor());
 			
 			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"field",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_VOLATILE,OPTION_TRANSIENT,OPTION_SYNTHETIC);
-			cc.addFieldDescription(forEntity.options,id,typeId);
+			start = InternalUtils.skipBlank(data,start);
+			
+			if (data[start] == '=') {	// Initial values.
+				if ((forEntity.options & OPTION_STATIC) == 0) {
+					throw new ContentException("Initial values can be typed for static fields only!"); 
+				}
+				else if (!type.isPrimitive() && type != String.class) {
+					throw new ContentException("Initial values can be typed for primitive types and string only!"); 
+				}
+				else {
+					final short		valueId;
+					
+					start = InternalUtils.skipBlank(data,start+1);
+					switch (Utils.defineClassType(type)) {
+						case Utils.CLASSTYPE_REFERENCE	:
+							if (data[start] != '\"') {
+								throw new ContentException("Illegal initial value for String!"); 
+							}
+							else {
+								final int[]		places = new int[2];
+								
+								if ((CharUtils.parseUnescapedString(data,start+1,'\"',true,places)) < 0) {
+									final StringBuilder	sb = new StringBuilder();
+									
+									CharUtils.parseStringExtended(data,start+1,'\"',sb);
+									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb.toString(),new NameDescriptor()));
+								}
+								else {
+									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]-places[0],new NameDescriptor()));
+								}
+							}							
+							break;
+						case Utils.CLASSTYPE_BOOLEAN :
+							if (CharUtils.compare(data,start,TRUE)) {
+								valueId = cc.getConstantPool().asIntegerDescription(1); 
+							}
+							else if (CharUtils.compare(data,start,FALSE)) {
+								valueId = cc.getConstantPool().asIntegerDescription(0); 
+							}
+							else {
+								throw new ContentException("Illegal initial value for boolean!"); 
+							}
+							break;
+						case Utils.CLASSTYPE_BYTE : case Utils.CLASSTYPE_SHORT : case Utils.CLASSTYPE_CHAR : case Utils.CLASSTYPE_INT :
+							final int[]		intValues = new int[1];
+							
+							CharUtils.parseSignedInt(data,start,intValues,true);
+							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
+							break;
+						case Utils.CLASSTYPE_FLOAT	:
+							final float[]		floatValues = new float[1];
+							
+							CharUtils.parseSignedFloat(data,start,floatValues,true);
+							valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
+							break;
+						case Utils.CLASSTYPE_LONG	:
+							final long[]		longValues = new long[1];
+							
+							CharUtils.parseSignedLong(data,start,longValues,true);
+							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
+							break;
+						case Utils.CLASSTYPE_DOUBLE	:
+							final double[]		doubleValues = new double[1];
+							
+							CharUtils.parseSignedDouble(data,start,doubleValues,true);
+							valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
+							break;
+						default :
+							throw new UnsupportedOperationException();
+					}
+					cc.addFieldDescription(forEntity.options,id,typeId,(short)0);
+				}
+			}
+			else {
+				cc.addFieldDescription(forEntity.options,id,typeId);
+			}
 			cc.getConstantPool().asFieldRefDescription(joinedClassNameId,id,typeId);
 
 			final int		classNameLen = tree.getNameLength(joinedClassNameId), fieldLen = tree.getNameLength(id);
@@ -1139,6 +1219,7 @@ class LineParser implements LineByLineProcessorCallback {
 			forLongName[classNameLen] = '.';
 			tree.getName(id,forLongName,classNameLen+1);
 			tree.placeName(forLongName,0,forLongName.length,new NameDescriptor());
+			
 		}
 	}
 
@@ -1153,7 +1234,79 @@ class LineParser implements LineByLineProcessorCallback {
 			final long	typeId = tree.placeOrChangeName(cdr.getClassDescription(data,startName,endName).getName(),new NameDescriptor());
 			
 			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"field",cdr,false,OPTION_PUBLIC,OPTION_STATIC,OPTION_FINAL);
-			cc.addFieldDescription((short) (forEntity.options | Constants.ACC_PUBLIC | Constants.ACC_STATIC | Constants.ACC_FINAL),id,typeId);
+			start = InternalUtils.skipBlank(data,start);
+			
+			if (data[start] == '=') {	// Initial values.
+				if (!type.isPrimitive() && type != String.class) {
+					throw new ContentException("Initial values can be typed for primitive types and string only!"); 
+				}
+				else {
+					final short		valueId;
+					
+					start = InternalUtils.skipBlank(data,start+1);
+					switch (Utils.defineClassType(type)) {
+						case Utils.CLASSTYPE_REFERENCE	:
+							if (data[start] != '\"') {
+								throw new ContentException("Illegal initial value for String!"); 
+							}
+							else {
+								final int[]		places = new int[2];
+								
+								if ((CharUtils.parseUnescapedString(data,start+1,'\"',true,places)) < 0) {
+									final StringBuilder	sb = new StringBuilder();
+									
+									CharUtils.parseStringExtended(data,start+1,'\"',sb);
+									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb.toString(),new NameDescriptor()));
+								}
+								else {
+									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]-places[0],new NameDescriptor()));
+								}
+							}							
+							break;
+						case Utils.CLASSTYPE_BOOLEAN :
+							if (CharUtils.compare(data,start,TRUE)) {
+								valueId = cc.getConstantPool().asIntegerDescription(1); 
+							}
+							else if (CharUtils.compare(data,start,FALSE)) {
+								valueId = cc.getConstantPool().asIntegerDescription(0); 
+							}
+							else {
+								throw new ContentException("Illegal initial value for boolean!"); 
+							}
+							break;
+						case Utils.CLASSTYPE_BYTE : case Utils.CLASSTYPE_SHORT : case Utils.CLASSTYPE_CHAR : case Utils.CLASSTYPE_INT :
+							final int[]		intValues = new int[1];
+							
+							CharUtils.parseSignedInt(data,start,intValues,true);
+							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
+							break;
+						case Utils.CLASSTYPE_FLOAT	:
+							final float[]		floatValues = new float[1];
+							
+							CharUtils.parseSignedFloat(data,start,floatValues,true);
+							valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
+							break;
+						case Utils.CLASSTYPE_LONG	:
+							final long[]		longValues = new long[1];
+							
+							CharUtils.parseSignedLong(data,start,longValues,true);
+							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
+							break;
+						case Utils.CLASSTYPE_DOUBLE	:
+							final double[]		doubleValues = new double[1];
+							
+							CharUtils.parseSignedDouble(data,start,doubleValues,true);
+							valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
+							break;
+						default :
+							throw new UnsupportedOperationException();
+					}
+					cc.addFieldDescription((short)(forEntity.options| Constants.ACC_PUBLIC | Constants.ACC_STATIC | Constants.ACC_FINAL),id,typeId,valueId);
+				}
+			}
+			else {
+				cc.addFieldDescription((short)(forEntity.options| Constants.ACC_PUBLIC | Constants.ACC_STATIC | Constants.ACC_FINAL),id,typeId);
+			}
 		}
 	}
 	
@@ -1177,7 +1330,13 @@ class LineParser implements LineByLineProcessorCallback {
 						throw new ContentException("Constructor method need return void type!");
 					}
 					else if ((classFlags & Constants.ACC_STATIC) != 0) {	// This is a <clinit>
-						methodNameId = classConstructorId;
+						if (classConstructorCount == 0) {
+							methodNameId = classConstructorId;
+							classConstructorCount++;
+						}
+						else {
+							throw new ContentException("Class can't have more than one <clinit> methods!");
+						}
 					}
 					else {
 						methodNameId = constructorId;

@@ -442,16 +442,27 @@ loop:	for (int index = 0; index < args.length; index++) {
 	}
 
 	protected static class IntegerArg extends AbstractArg {
-		private final String[]	defaults;	
+		private final String[]	defaults;
+		private final long[][]	ranges;
 
 		public IntegerArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
-			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = new String[]{"0"};
+			this(name,isMandatory,isPositional,helpDescriptor,new long[][]{new long[]{Long.MIN_VALUE,Long.MAX_VALUE}});
 		}
 
 		public IntegerArg(final String name, final boolean isPositional, final String helpDescriptor, final long defaultValue) {
+			this(name,isPositional,helpDescriptor,defaultValue,new long[][]{new long[]{Long.MIN_VALUE,Long.MAX_VALUE}});
+		}
+
+		public IntegerArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor, final long[][] availableRanges) {
+			super(name, isMandatory, isPositional, helpDescriptor);
+			this.defaults = new String[]{"0"};
+			this.ranges = availableRanges; 
+		}
+		
+		public IntegerArg(final String name, final boolean isPositional, final String helpDescriptor, final long defaultValue, final long[][] availableRanges) {
 			super(name, false, isPositional, helpDescriptor);
 			this.defaults = new String[]{String.valueOf(defaultValue)};
+			this.ranges = availableRanges; 
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -490,7 +501,24 @@ loop:	for (int index = 0; index < args.length; index++) {
 				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
-				try{Long.valueOf(value).longValue();
+				try{final long	longValue = Long.valueOf(value).longValue();
+				
+					for (long[] range : ranges) {
+						if (range[0] <= longValue && longValue <= range[1]) {
+							return;
+						}
+					}
+					final StringBuilder	sb = new StringBuilder();
+					
+					for (long[] range : ranges) {
+						if (range[0] == range[1]) {
+							sb.append(',').append(range[0]);
+						}
+						else {
+							sb.append(',').append(range[0]).append("..").append(range[1]);
+						}
+					}
+					throw new ConsoleCommandException("Argument ["+getName()+"]: value ["+longValue+"] out of range. Available values are "+sb.delete(0, 0).toString());
 				} catch (NumberFormatException exc) {
 					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid integer: "+value);
 				}
@@ -691,7 +719,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				}
 			}
 			else {
-				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to enumeration type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to enumeration ["+enumType.getSimpleName()+"] only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 			}
 		}
 

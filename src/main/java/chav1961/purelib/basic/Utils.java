@@ -23,6 +23,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -35,6 +37,8 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.basic.xsd.XSDConst;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -964,7 +968,67 @@ public class Utils {
 			return Utils.class.getResourceAsStream("xsd/"+item+".xsd");
 		}
 	}
+
+	@FunctionalInterface
+	public interface XMLWalkerCallback {
+		ContinueMode process(NodeEnterMode mode, Element node);
+	}
 	
+	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws NullPointerException {
+		return walkDownXML(root,-1L,callback);
+	}
+
+	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws NullPointerException {
+		if (root == null) {
+			throw new NullPointerException("Root element can't be null"); 
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Walker callback can't be null"); 
+		}
+		else {
+			return walkDownXMLInternal(root, nodeTypes, callback); 
+		}
+	}
+	
+	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) {
+		ContinueMode	rc;
+		
+		if (node != null && (nodeTypes & (1 << node.getNodeType())) != 0) {
+			switch (rc = callback.process(NodeEnterMode.ENTER, node)) {
+				case CONTINUE		:
+					final NodeList	list = node.getChildNodes();
+					
+loop:				for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
+						switch (rc = walkDownXMLInternal((Element)list.item(index),nodeTypes,callback)) {
+							case CONTINUE	:
+								break;
+							case SKIP_CHILDREN :
+								break loop;
+							case PARENT_ONLY : case SIBLINGS_ONLY : case SKIP_PARENT : case SKIP_SIBLINGS :
+								break;
+							case STOP :
+								break;
+							default:
+								break;
+						}
+					}
+				case SKIP_CHILDREN	:
+					rc = callback.process(NodeEnterMode.EXIT, node);
+					return ContinueMode.CONTINUE;
+				case PARENT_ONLY : case SIBLINGS_ONLY : case SKIP_PARENT : case SKIP_SIBLINGS :
+					return callback.process(NodeEnterMode.EXIT, node);
+				case STOP			:
+					callback.process(NodeEnterMode.EXIT, node);
+					return ContinueMode.STOP;
+				default:
+					return ContinueMode.STOP;
+			}
+		}
+		else {
+			return ContinueMode.CONTINUE;
+		}
+	}
+
 	/**
 	 * <p>Load bytes from the given URI.</p>
 	 * @param uri uri to load bytes from

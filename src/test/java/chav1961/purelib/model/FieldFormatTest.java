@@ -83,6 +83,9 @@ public class FieldFormatTest {
 		Assert.assertFalse(new FieldFormat(String.class,"").isMandatory());
 		Assert.assertTrue(new FieldFormat(String.class,"m").isMandatory());
 
+		Assert.assertFalse(new FieldFormat(String.class,"").isOutput());
+		Assert.assertTrue(new FieldFormat(String.class,"o").isOutput());
+		
 		Assert.assertFalse(new FieldFormat(String.class,"").isHighlighted(-1));
 		Assert.assertTrue(new FieldFormat(String.class,"n").isHighlighted(-1));
 		

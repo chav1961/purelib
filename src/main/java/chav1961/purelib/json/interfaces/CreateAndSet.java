@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.interfaces;
+package chav1961.purelib.json.interfaces;
 
 public interface CreateAndSet {
 	Object newInstance(final int classId);
