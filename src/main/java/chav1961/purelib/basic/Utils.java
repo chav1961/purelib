@@ -24,6 +24,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
@@ -991,44 +992,106 @@ public class Utils {
 	}
 	
 	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) {
-		ContinueMode	rc;
+		ContinueMode	before = null, after = ContinueMode.CONTINUE;
 		
 		if (node != null && (nodeTypes & (1 << node.getNodeType())) != 0) {
-			switch (rc = callback.process(NodeEnterMode.ENTER, node)) {
+			switch (before = callback.process(NodeEnterMode.ENTER, node)) {
 				case CONTINUE		:
 					final NodeList	list = node.getChildNodes();
 					
-loop:				for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
-						switch (rc = walkDownXMLInternal((Element)list.item(index),nodeTypes,callback)) {
-							case CONTINUE	:
+					for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
+						final Node	item = list.item(index);
+						
+						if (item instanceof Element) {
+							if ((after = walkDownXMLInternal((Element)item,nodeTypes,callback)) != ContinueMode.CONTINUE) {
 								break;
-							case SKIP_CHILDREN :
-								break loop;
-							case PARENT_ONLY : case SIBLINGS_ONLY : case SKIP_PARENT : case SKIP_SIBLINGS :
-								break;
-							case STOP :
-								break;
-							default:
-								break;
+							}
 						}
 					}
-				case SKIP_CHILDREN	:
-					rc = callback.process(NodeEnterMode.EXIT, node);
-					return ContinueMode.CONTINUE;
-				case PARENT_ONLY : case SIBLINGS_ONLY : case SKIP_PARENT : case SKIP_SIBLINGS :
-					return callback.process(NodeEnterMode.EXIT, node);
-				case STOP			:
-					callback.process(NodeEnterMode.EXIT, node);
-					return ContinueMode.STOP;
+					after = resolveContinueMode(after,callback.process(NodeEnterMode.EXIT, node));
+					break;
+				case SKIP_CHILDREN : case STOP :
+					after = callback.process(NodeEnterMode.EXIT, node);
+					break;
 				default:
-					return ContinueMode.STOP;
+					throw new IllegalStateException("Unwaited continue mode ["+before+"] for walking down");
 			}
+			return resolveContinueMode(before, after);
 		}
 		else {
 			return ContinueMode.CONTINUE;
 		}
 	}
 
+	public static ContinueMode resolveContinueMode(final ContinueMode before, final ContinueMode after) {
+		if (before == null) {
+			throw new NullPointerException("Before mode can't be null");
+		}
+		else if (after == null) {
+			throw new NullPointerException("After mode can't be null");
+		}
+		else {
+			return resolveContinueModeInternal(before, after);
+		}
+	}
+	
+	static ContinueMode resolveContinueModeInternal(final ContinueMode before, final ContinueMode after) {
+		if (before == null) {
+			throw new NullPointerException("Before mode can't be null");
+		}
+		else if (after == null) {
+			throw new NullPointerException("After mode can't be null");
+		}
+		else {
+			switch (before) {
+				case CONTINUE		:
+					return after;
+				case PARENT_ONLY	:
+					if (after == ContinueMode.CONTINUE || after == ContinueMode.SKIP_CHILDREN || after == ContinueMode.SKIP_SIBLINGS) {
+						return ContinueMode.PARENT_ONLY;
+					}
+					else if (after == ContinueMode.SIBLINGS_ONLY) {
+						return ContinueMode.PARENT_ONLY;
+					}
+					else {
+						return after;
+					}
+				case SIBLINGS_ONLY	:
+					if (after == ContinueMode.CONTINUE || after == ContinueMode.SKIP_CHILDREN) {
+						return ContinueMode.SIBLINGS_ONLY;
+					}
+					else {
+						return after;
+					}
+				case SKIP_CHILDREN	:
+					if (after == ContinueMode.CONTINUE) {
+						return ContinueMode.SKIP_CHILDREN;
+					}
+					else {
+						return after;
+					}
+				case SKIP_PARENT	:
+					if (after == ContinueMode.CONTINUE || after == ContinueMode.SKIP_CHILDREN || after == ContinueMode.SKIP_SIBLINGS || after == ContinueMode.SIBLINGS_ONLY || after == ContinueMode.PARENT_ONLY) {
+						return ContinueMode.SKIP_PARENT;
+					}
+					else {
+						return after;
+					}
+				case SKIP_SIBLINGS	:
+					if (after == ContinueMode.CONTINUE || after == ContinueMode.SKIP_CHILDREN || after == ContinueMode.SIBLINGS_ONLY) {
+						return ContinueMode.SKIP_SIBLINGS;
+					}
+					else {
+						return after;
+					}
+				case STOP			:
+					return ContinueMode.STOP;
+				default : throw new UnsupportedOperationException("Continue mode ["+before+"] is not supported yet");
+					
+			}
+		}
+	}
+	
 	/**
 	 * <p>Load bytes from the given URI.</p>
 	 * @param uri uri to load bytes from
