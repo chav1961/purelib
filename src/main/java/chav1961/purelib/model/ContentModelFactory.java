@@ -49,7 +49,7 @@ public class ContentModelFactory {
 	public static final String			APPLICATION_SCHEME_ACTION = "action";
 	public static final String			APPLICATION_SCHEME_BUILTIN_ACTION = "builtin";
 	
-	public static final String			BUILTIN_LANGUAGE = "lang";
+	public static final String			BUILTIN_LANGUAGE = "builtin.languages";
 	public static final String			BUILTIN_STYLE = "style";	
 
 	private static final String			NAMESPACE_PREFIX = "app";

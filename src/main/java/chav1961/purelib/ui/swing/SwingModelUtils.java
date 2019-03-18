@@ -188,7 +188,7 @@ public class SwingModelUtils {
 		if (node.getRelativeUIPath().getPath().startsWith("./navigation.node.")) {
 			final JMenu	submenu = new JMenuWithMeta(node);
 			
-			if (node.getApplicationPath().toString().contains(ContentModelFactory.APPLICATION_SCHEME_BUILTIN_ACTION)) {
+			if (node.getApplicationPath() != null && node.getApplicationPath().toString().contains(ContentModelFactory.APPLICATION_SCHEME_BUILTIN_ACTION)) {
 				switch (node.getName()) {
 					case ContentModelFactory.BUILTIN_LANGUAGE	:
 						AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
