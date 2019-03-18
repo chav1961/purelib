@@ -8,8 +8,10 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -28,6 +30,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -40,14 +43,25 @@ import chav1961.purelib.ui.interfacers.Format;
 import chav1961.purelib.ui.interfacers.MultiAction;
 
 public class ContentModelFactory {
-	public static final String		APPLICATION_SCHEME_CLASS = "class";	
-	public static final String		APPLICATION_SCHEME_FIELD = "field";	
-	public static final String		APPLICATION_SCHEME_NAVIGATOR = "navigator";	
-	public static final String		APPLICATION_SCHEME_ACTION = "action";	
+	public static final String			APPLICATION_SCHEME_CLASS = "class";	
+	public static final String			APPLICATION_SCHEME_FIELD = "field";	
+	public static final String			APPLICATION_SCHEME_NAVIGATOR = "navigator";	
+	public static final String			APPLICATION_SCHEME_ACTION = "action";
+	public static final String			APPLICATION_SCHEME_BUILTIN_ACTION = "builtin";
+	
+	public static final String			BUILTIN_LANGUAGE = "lang";
+	public static final String			BUILTIN_STYLE = "style";	
 
-	private static final String		NAMESPACE_PREFIX = "app";
-	private static final String		NAMESPACE_VALUE = "http://ui.purelib.chav1961/";
-	private static final String		TAG_I18N = NAMESPACE_PREFIX+":i18n";
+	private static final String			NAMESPACE_PREFIX = "app";
+	private static final String			NAMESPACE_VALUE = "http://ui.purelib.chav1961/";
+	private static final String			TAG_I18N = NAMESPACE_PREFIX+":i18n";
+	
+	private static final Set<String>	AVAILABLE_BUILTINS = new HashSet<>();
+	
+	static {
+		AVAILABLE_BUILTINS.add(BUILTIN_LANGUAGE);
+		AVAILABLE_BUILTINS.add(BUILTIN_STYLE);
+	}
 	
 	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (clazz == null) {
@@ -104,7 +118,7 @@ public class ContentModelFactory {
 		}
 	}
 
-	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription) throws NullPointerException, PreparationException {
+	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription) throws NullPointerException, EnvironmentException {
 		if (contentDescription == null) {
 			throw new NullPointerException("Content description can't be null");
 		}
@@ -162,7 +176,7 @@ public class ContentModelFactory {
 				root.setOwner(result);
 				return result;
 			} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
-				throw new PreparationException("Error preparing xml metadata: "+e.getLocalizedMessage(),e);
+				throw new EnvironmentException("Error preparing xml metadata: "+e.getLocalizedMessage(),e);
 			}
 		}
 	}	
@@ -171,7 +185,7 @@ public class ContentModelFactory {
 		return null;
 	}
 	
-	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) {
+	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) throws EnvironmentException {
 		MutableContentNodeMetadata	child;
 		
 //		if (document.getNodeType() == Document.ENTITY_NODE) {
@@ -236,17 +250,22 @@ public class ContentModelFactory {
 					final String	builtinName = getAttribute(document,"name");
 					final String	builtinCaption = getAttribute(document,"caption");
 					final String	builtinTooltip = getAttribute(document,"tooltip");
-					final String	builtinAction = getAttribute(document,"name");
+					final String	builtinAction = getAttribute(document,"action");
 					
-					child = new MutableContentNodeMetadata(builtinName
-							, String.class
-							, "navigation.node."+builtinName
-							, null
-							, builtinCaption
-							, builtinTooltip 
-							, null
-							, null
-							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+builtinAction));
+					if (!AVAILABLE_BUILTINS.contains(builtinName)) {
+						throw new EnvironmentException("Illegal name ["+builtinName+"] for built-in navigation");						
+					}
+					else {
+						child = new MutableContentNodeMetadata(builtinName
+								, String.class
+								, "navigation.node."+builtinName
+								, null
+								, builtinCaption
+								, builtinTooltip 
+								, null
+								, null
+								, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":"+APPLICATION_SCHEME_BUILTIN_ACTION+":/"+builtinAction));
+					}
 					break;
 				case "app:keyset"		:
 					final String	keysetName = getAttribute(document,"id");
@@ -343,5 +362,4 @@ public class ContentModelFactory {
 			collectActions(clazz.getSuperclass(),root);
 		}
 	}
-
 }

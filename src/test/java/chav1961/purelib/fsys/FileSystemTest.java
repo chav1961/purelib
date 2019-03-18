@@ -167,9 +167,8 @@ public class FileSystemTest {
 		}
 	}
 	
-	
 	@Test
-	public void test() throws Exception {
+	public void basicTest() throws Exception {
 		// test usual file system
 		try(final FileSystemInterface	fs = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").toURI())) {
 			test(fs,false);
@@ -197,6 +196,35 @@ public class FileSystemTest {
 		}
 		
 	}
+
+	@Test
+	public void joinTest() throws Exception {
+		try(final FileSystemInterface	fs = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").toURI())) {
+			joinTest(fs,false);
+		}
+
+		// test file system on file system
+//		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
+//			joinTest(fs,false);
+//		}
+		
+		// test file system in memory
+		try(final FileSystemInterface	fs = new FileSystemInMemory(URI.create("/"))) {
+			joinTest(fs,false);
+		}
+		
+		// Test RMI connection to the file system
+		try{java.rmi.registry.LocateRegistry.createRegistry(Registry.REGISTRY_PORT);	// Start RMI registry
+		} catch (ExportException ex) {
+			java.rmi.registry.LocateRegistry.getRegistry(Registry.REGISTRY_PORT);
+		}
+		try(final FileSystemInterface	fsNest = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").toURI());
+			final RMIFileSystemServer	fss = new RMIFileSystemServer(URI.create("rmi://localhost:"+Registry.REGISTRY_PORT+"/testRMI"),fsNest);  
+			final FileSystemInterface	fs = new FileSystemOnRMI(URI.create("rmi://localhost:"+Registry.REGISTRY_PORT+"/testRMI"))) {
+			joinTest(fs,false);
+		}
+	}
+	
 	
 	private void test(final FileSystemInterface fs, boolean testMetadata) throws Exception {
 		int	count;
@@ -321,5 +349,23 @@ public class FileSystemTest {
 		
 		fs.deleteAll();
 		Assert.assertFalse(fs.exists());
+	}
+
+
+	private void joinTest(final FileSystemInterface fs, boolean testMetadata) throws Exception {
+		try(final FileSystemInterface	join = new FileSystemOnFile(new File("./src/test/resources/chav1961/purelib/fsys/advanced/").toURI())) {
+			fs.open("/newDir").mkDir();
+			
+			Assert.assertEquals(0,fs.list().length);
+			Assert.assertFalse(fs.isJoined());
+			
+			fs.join(join);
+			Assert.assertEquals(1,fs.list().length);
+			Assert.assertTrue(fs.isJoined());
+			
+			Assert.assertEquals(join.getPath(),fs.unjoin().getPath());
+			Assert.assertEquals(0,fs.list().length);
+			Assert.assertFalse(fs.isJoined());
+		}		
 	}
 }

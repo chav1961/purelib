@@ -15,6 +15,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
@@ -22,10 +24,12 @@ import chav1961.purelib.ui.swing.interfaces.UITestInterface;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.LocalizerFactory.FillLocalizedContentCallback;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
 public class SwingModelUtils {
@@ -184,10 +188,36 @@ public class SwingModelUtils {
 		if (node.getRelativeUIPath().getPath().startsWith("./navigation.node.")) {
 			final JMenu	submenu = new JMenuWithMeta(node);
 			
-			for (ContentNodeMetadata child : node) {
-				toMenuEntity(child,submenu);
+			if (node.getApplicationPath().toString().contains(ContentModelFactory.APPLICATION_SCHEME_BUILTIN_ACTION)) {
+				switch (node.getName()) {
+					case ContentModelFactory.BUILTIN_LANGUAGE	:
+						AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
+							final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
+							
+							item.setText(langName);
+							item.setIcon(icon);
+							item.setActionCommand(node.getApplicationPath()+":"+lang.name());
+							submenu.add(item);
+						});
+						break;
+					case ContentModelFactory.BUILTIN_STYLE		:
+						for (LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
+							final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
+							
+							item.setText(laf.getName());
+							item.setActionCommand(node.getApplicationPath()+":"+laf.getClassName());
+							submenu.add(item);
+						}
+						break;
+					default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");
+				}
 			}
-			menu.add(submenu);
+			else {
+				for (ContentNodeMetadata child : node) {
+					toMenuEntity(child,submenu);
+				}
+				menu.add(submenu);
+			}
 		} 
 		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.leaf.")) {
 			final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);

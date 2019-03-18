@@ -464,7 +464,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			if (stackFS.size() == 0) {
 				joins.removeName(id);
 			}
-			
+			prevPath = null;
 			return returned; 
 		}
 	}

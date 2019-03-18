@@ -22,7 +22,9 @@ import java.util.regex.Pattern;
 
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JMenu;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
@@ -45,12 +47,27 @@ import chav1961.purelib.streams.StreamsUtil;
 
 public abstract class AbstractLocalizer implements Localizer {
 	public static final String						DEFAULT_CONTENT_ENCODING = "UTF-8";
+
+	/**
+	 * <p>This enumerations contains all locales currently supported</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	public enum SupportedLanguages {
 		en, ru
 	}
-		
-	private static final Pattern					URI_PATTERN = Pattern.compile("uri\\((?<uri>.*)\\)");
+
+	/**
+	 * <p>Yhjis interface is used to enumerate all locales supported</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
+	@FunctionalInterface
+	public interface SupportedLocalesIterator {
+		void process(final SupportedLanguages lang, final String langName, final Icon icon);
+	}
 	
+	private static final Pattern					URI_PATTERN = Pattern.compile("uri\\((?<uri>.*)\\)");
 	private static final LocaleDescriptor[]			LOCALES = new LocaleDescriptor[]{
 															 new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.en.name()).build(),SupportedLanguages.en,"English",new ImageIcon(AbstractLocalizer.class.getResource(SupportedLanguages.en.name()+".png")))
 															,new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.ru.name()).build(),SupportedLanguages.ru,"Russian",new ImageIcon(AbstractLocalizer.class.getResource(SupportedLanguages.ru.name()+".png")))
@@ -634,6 +651,23 @@ sw:				for(;;) {
 		}
 	}
 
+	/**
+	 * <p>Enumerate all locales supported</p>
+	 * @param iterator iterator to process all locale supported
+	 * @throws NullPointerException
+	 * @since 0.0.3
+	 */
+	public static void enumerateLocales(final SupportedLocalesIterator iterator) throws NullPointerException {
+		if (iterator == null) {
+			throw new NullPointerException("Iterator can't be null");
+		}
+		else {
+			for (LocaleDescriptor item : LOCALES) {
+				iterator.process(SupportedLanguages.valueOf(item.getLanguage()),item.getDescription(),item.getIcon());
+			}
+		}
+	}	
+	
 	protected String substitute(final String key, final String localValue) {
 		return CharUtils.substitute(key,localValue,(key2substitute)->{
 			try{return getValue(key2substitute);

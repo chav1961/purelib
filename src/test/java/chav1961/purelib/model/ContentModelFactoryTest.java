@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -23,7 +24,7 @@ import chav1961.purelib.ui.interfacers.Format;
 
 public class ContentModelFactoryTest {
 	@Test
-	public void xmlDescriptionTest() throws IOException {
+	public void xmlDescriptionTest() throws IOException, EnvironmentException {
 		try(final InputStream	is = this.getClass().getResourceAsStream("modelTest1.xml")) {
 			
 			final ContentMetadataInterface 	cmi = ContentModelFactory.forXmlDescription(is);
