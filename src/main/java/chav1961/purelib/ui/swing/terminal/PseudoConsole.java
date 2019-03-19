@@ -12,7 +12,7 @@ import java.util.Set;
 
 import javax.swing.JComponent;
 
-import chav1961.purelib.ui.swing.ColorPair;
+import chav1961.purelib.ui.ColorPair;
 
 /**
  * <p>This class emulates old-style alphanumeric screen.</p>

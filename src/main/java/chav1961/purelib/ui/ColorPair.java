@@ -1,4 +1,4 @@
-package chav1961.purelib.ui.swing;
+package chav1961.purelib.ui;
 
 import java.awt.Color;
 

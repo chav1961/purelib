@@ -3,7 +3,7 @@ package chav1961.purelib.ui.swing.terminal;
 import java.awt.Color;
 import java.awt.Rectangle;
 
-import chav1961.purelib.ui.swing.ColorPair;
+import chav1961.purelib.ui.ColorPair;
 
 public class TermUtils {
 //	U+2500 - U+257F - unicode borders

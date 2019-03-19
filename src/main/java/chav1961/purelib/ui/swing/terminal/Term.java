@@ -11,7 +11,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
-import chav1961.purelib.ui.swing.ColorPair;
+import chav1961.purelib.ui.ColorPair;
 
 public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	private static final long 		serialVersionUID = 4321066125437646937L;

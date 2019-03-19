@@ -7,7 +7,7 @@ import java.awt.Rectangle;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.ui.swing.ColorPair;
+import chav1961.purelib.ui.ColorPair;
 
 
 public class PseudoConsoleTest {
