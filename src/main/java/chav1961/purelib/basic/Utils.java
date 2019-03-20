@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -919,6 +920,7 @@ public class Utils {
 	 * @param logger logger facade to print error messages
 	 * @return true is the XML content is valid
 	 * @throws NullPointerException if any parameters are null
+	 * @since 0.0.2
 	 */
 	public static boolean validateXMLByXSD(final InputStream xml, final InputStream xsd, final LoggerFacade logger) throws NullPointerException {
 		if (xml == null) {
@@ -955,6 +957,53 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * <p>Validate XML content by it's XSD and load DOM</p>
+	 * @param xml XML content to validate and load
+	 * @param xsd XSD to check validation
+	 * @param logger logger facade to print error messages
+	 * @return DOM if the XML content is valid
+	 * @throws NullPointerException if any parameters are null
+	 * @throws ContentException on any validation problems
+	 * @since 0.0.3
+	 */
+	public static Document validateAndLoadXML(final InputStream xml, final InputStream xsd, final LoggerFacade logger) throws NullPointerException, ContentException {
+		if (xml == null) {
+			throw new NullPointerException("XML input stream can't be null");
+		}
+		else if (xsd == null) {
+			throw new NullPointerException("XSD input stream can't be null");
+		}
+		else if (logger == null) {
+			throw new NullPointerException("Logger facade can't be null");
+		}
+		else {
+			try(final LoggerFacade	tran = logger.transaction("validateAndLoadXML")) {
+				final DocumentBuilderFactory 	dbf = DocumentBuilderFactory.newInstance();
+			
+				dbf.setNamespaceAware(true);
+				dbf.setValidating(true);
+				dbf.setAttribute(XSDConst.SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
+				dbf.setAttribute(XSDConst.SCHEMA_SOURCE, new InputSource(xsd));
+				
+			    final DocumentBuilder 			db = dbf.newDocumentBuilder();
+			    
+			    db.setErrorHandler(new ErrorHandler() {
+					@Override public void warning(SAXParseException exception) throws SAXException {logger.message(Severity.warning,exception.toString());}
+					@Override public void error(SAXParseException exception) throws SAXException {logger.message(Severity.error,exception.toString()); throw exception;}
+					@Override public void fatalError(SAXParseException exception) throws SAXException {logger.message(Severity.severe,exception.toString()); throw exception;}
+					}
+			    );
+			    final Document	doc = db.parse(new InputSource(xml));
+			    
+			    tran.rollback();
+	            return doc;
+	        } catch (IOException | SAXException | ParserConfigurationException e) {
+	            throw new ContentException(e.getLocalizedMessage(),e);
+	        }			
+		}
+	}
+	
 	/**
 	 * <p>Get XSD from purelib XSD collection.</p> 
 	 * @param item xsd type to get
