@@ -9,8 +9,8 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.SyntaxNode;
-import chav1961.purelib.ui.interfacers.Constraint;
-import chav1961.purelib.ui.interfacers.ConstraintChecker;
+import chav1961.purelib.ui.interfaces.Constraint;
+import chav1961.purelib.ui.interfaces.ConstraintChecker;
 
 public class ConstraintCheckerFactoryTest {
 	@Test

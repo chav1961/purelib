@@ -7,8 +7,10 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.List;
 
+import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -17,7 +19,8 @@ import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.streams.char2char.CreoleWriter;
-import chav1961.purelib.ui.interfacers.Format;
+import chav1961.purelib.ui.interfaces.Format;
+import chav1961.purelib.ui.interfaces.UIServer;
 
 /**
  * <p>This is utility class to support useful methods for UI.</p>  
@@ -29,6 +32,11 @@ public class UIUtils {
 	private UIUtils(){
 	}
 
+	public static UIServer createUIServer(URI serverType, SubstitutableProperties options) {
+		return null;
+	}
+	
+	
 	/**
 	 * <p>Convert Creole-based character array to HTML string</p>
 	 * @param source creole-based character array. Can't be null or empty array

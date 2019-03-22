@@ -51,7 +51,7 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.interfacers.FormManager;
+import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 

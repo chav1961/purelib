@@ -5,7 +5,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.AbstractAction;
 
-import chav1961.purelib.ui.interfacers.ControllerAction;
+import chav1961.purelib.ui.interfaces.ControllerAction;
 
 class SimpleCallAction extends AbstractAction {
 	private static final long serialVersionUID = 6194849062900094588L;

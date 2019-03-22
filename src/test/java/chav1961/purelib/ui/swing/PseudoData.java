@@ -5,8 +5,8 @@ import java.util.Date;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
-import chav1961.purelib.ui.interfacers.Action;
-import chav1961.purelib.ui.interfacers.Format;
+import chav1961.purelib.ui.interfaces.Action;
+import chav1961.purelib.ui.interfaces.Format;
 
 @LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/localization")
 @LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen")	

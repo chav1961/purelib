@@ -24,8 +24,8 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.sql.InternalUtils;
-import chav1961.purelib.ui.interfacers.Constraint;
-import chav1961.purelib.ui.interfacers.ConstraintChecker;
+import chav1961.purelib.ui.interfaces.Constraint;
+import chav1961.purelib.ui.interfaces.ConstraintChecker;
 
 public class ConstraintCheckerFactory {
 	static final int	PRTY_OR = 8;

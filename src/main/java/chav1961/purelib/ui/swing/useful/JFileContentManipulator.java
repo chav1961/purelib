@@ -24,6 +24,8 @@ import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.interfaces.InputStreamGetter;
+import chav1961.purelib.ui.interfaces.OutputStreamGetter;
 
 /**
  * <p>This class is used to support opening/editing/saving any content in the Swing applications. It implements very popular
@@ -60,34 +62,6 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 												@Override public boolean processed(long processed) {return true;}
 												@Override public void end() {}
 											};
-
-	/**
-	 * <p>This interface produces input stream to get content of the manipulated entity on saving</p>  
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.3
-	 */
-	@FunctionalInterface
-	public interface InputStreamGetter {
-		/**
-		 * <p>Get entity content to save</p>
-		 * @return content stream. Can't be null
-		 */
-		InputStream getContent();
-	}
-
-	/**
-	 * <p>This interface produces output stream to set content of the manipulated entity on loading</p>  
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.3
-	 */
-	@FunctionalInterface
-	public interface OutputStreamGetter {
-		/**
-		 * <p>Get entity content to load</p>
-		 * @return content stream. Can't be null
-		 */
-		OutputStream getContent();
-	}
 
 	private final FileSystemInterface	fsi;
 	private final Localizer				localizer;

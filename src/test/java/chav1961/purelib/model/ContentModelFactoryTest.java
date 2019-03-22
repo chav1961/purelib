@@ -19,8 +19,8 @@ import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.interfacers.Action;
-import chav1961.purelib.ui.interfacers.Format;
+import chav1961.purelib.ui.interfaces.Action;
+import chav1961.purelib.ui.interfaces.Format;
 
 public class ContentModelFactoryTest {
 	@Test

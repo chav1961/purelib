@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.ui.interfacers.FormModel;
+import chav1961.purelib.ui.interfaces.FormModel;
 
 public abstract class AbstractInMemoryFormModel<Id,Instance> implements FormModel<Id,Instance> {
 	public static final String		ARRAY_INDEX = "@arrayIndex@";

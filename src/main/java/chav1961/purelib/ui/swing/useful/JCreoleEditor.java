@@ -14,7 +14,7 @@ import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.ui.HighlightItem;
-import chav1961.purelib.ui.interfacers.FormModel;
+import chav1961.purelib.ui.interfaces.FormModel;
 
 /**
  * <p>This is a swing component for Creole editor with syntax highlighting and paragraph formatting. Use it as usual {@linkplain JTextPane} control.</p>  

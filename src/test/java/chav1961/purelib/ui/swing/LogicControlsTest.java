@@ -16,7 +16,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.interfacers.Format;
+import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
 public class LogicControlsTest {

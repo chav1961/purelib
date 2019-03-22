@@ -4,7 +4,7 @@ import java.util.Set;
 
 import javax.swing.JComponent;
 
-import chav1961.purelib.ui.interfacers.FormManager;
+import chav1961.purelib.ui.interfaces.FormManager;
 
 /**
  * <p>This interface associated with all swing components in the application form, that allows complex local editing with it's content.

@@ -9,9 +9,9 @@ import java.util.Map;
 
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
-import chav1961.purelib.ui.interfacers.FormRepresentation;
-import chav1961.purelib.ui.interfacers.Format;
-import chav1961.purelib.ui.interfacers.Wizard;
+import chav1961.purelib.ui.interfaces.FormRepresentation;
+import chav1961.purelib.ui.interfaces.Format;
+import chav1961.purelib.ui.interfaces.Wizard;
 
 @LocaleResourceLocation("test")
 public class TotalClass {

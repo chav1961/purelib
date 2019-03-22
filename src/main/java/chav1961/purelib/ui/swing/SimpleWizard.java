@@ -49,9 +49,9 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
-import chav1961.purelib.ui.interfacers.WizardStep;
-import chav1961.purelib.ui.interfacers.WizardStep.ErrorProcessing;
-import chav1961.purelib.ui.interfacers.WizardStep.StepType;
+import chav1961.purelib.ui.interfaces.WizardStep;
+import chav1961.purelib.ui.interfaces.WizardStep.ErrorProcessing;
+import chav1961.purelib.ui.interfaces.WizardStep.StepType;
 
 /**
  * <p>This class is a swing-oriented simple <i>wizard</i> to use with the {@linkplain WizardStep} implementations. The class extends JDialog
