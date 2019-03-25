@@ -74,7 +74,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 		}
 		else {
 			if (data[endLink+1] != '}') {
-				putLexema(CreoleLexema.ImageRef,(int)displacement,endLink-startLink);
+				putLexema(CreoleLexema.ImageRef,(int)displacement,endLink-startLink+1);
 			}
 			else {
 				putLexema(CreoleLexema.ImageRef,(int)displacement,IMAGE_START.length+(endLink-startLink)+IMAGE_END.length);
@@ -108,7 +108,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 						break;
 					case P_CLOSE	:
 						forItem = sectionStack.remove(0);
-						putLexema(CreoleLexema.Paragraph,forItem[2],totalLen-forItem[2]+1);
+						putLexema(CreoleLexema.Paragraph,forItem[2]+1,totalLen-forItem[2]+1);
 						totalLen += (int)(parameter.longValue() >> 32);
 						break;
 					case H_OPEN	:
