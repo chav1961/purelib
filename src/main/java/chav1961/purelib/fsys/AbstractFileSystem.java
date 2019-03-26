@@ -551,6 +551,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			try(final Reader 	is = charRead(encoding)) {
 				Utils.copyStream(is,stream);
 			} catch (RuntimeException exc) {
+				exc.printStackTrace();
 				throw new IOException(exc);
 			}
 			return this;

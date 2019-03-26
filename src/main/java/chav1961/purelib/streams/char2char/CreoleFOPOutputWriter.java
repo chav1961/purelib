@@ -134,7 +134,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
 		boolean	has2escape = false;
 		
-		for (int index = from; index <= to; index++) {
+		for (int index = from; index < to; index++) {
 			if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
 				has2escape = true;
 				break;
