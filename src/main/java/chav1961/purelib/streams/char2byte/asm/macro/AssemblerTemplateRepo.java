@@ -19,7 +19,6 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.AsmWriter;
 
 class AssemblerTemplateRepo {
 	private static final char[]		THE_END = "\n{_theend_}\n".toCharArray();

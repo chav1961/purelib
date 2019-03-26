@@ -190,7 +190,7 @@ public class ModelUtils {
 		}
 		else {
 			if (gas instanceof ObjectGetterAndSetter) {
-				((ObjectGetterAndSetter)gas).set(instance,value);
+				((ObjectGetterAndSetter<Object>)gas).set(instance,value);
 			}
 			else if (gas instanceof BooleanGetterAndSetter) {
 				if (value == null) {

@@ -17,7 +17,6 @@ import chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
 import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepo.NameKeeper;
 
-@SuppressWarnings("deprecation")
 public class MacroCompiler {
 	private static final String		MACROCOMPILER_RESOURCE = "macrocompiler.txt";
 	

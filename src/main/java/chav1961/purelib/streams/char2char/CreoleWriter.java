@@ -691,7 +691,7 @@ loop:		for (;from < to; from++) {
 		if (to - from > 0 && !(to - from == 1 && content[from] == '\n' || to - from == 2 && content[from] == '\r' && content[from+1] == '\n')) {
 			automat(displacement,lineNo,colNo,CreoleTerminals.TERM_CONTENT,0);
 		}
-		writer.internalWrite(displacement,content,from,to,keepNewLines);
+		writer.internalWriteEscaped(displacement,content,from,to,keepNewLines);
 	}
 	
 	protected void automat(final long displacement, final int lineNo, final int colNo, final CreoleTerminals terminal, final long parameter) throws IOException, SyntaxException {

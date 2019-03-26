@@ -79,6 +79,11 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 
 	private static final String		VALUE_PROLOGUE_MASTER_NAME = "main";
 	private static final String		VALUE_LINEFEED_PRESERVE = "preserve";
+
+	private static final char[]		ESC_LT = "&lt;".toCharArray();
+	private static final char[]		ESC_GT = "&gt;".toCharArray();
+	private static final char[]		ESC_AMP = "&amp;".toCharArray();
+	private static final char[]		ESC_QUOT = "&quot;".toCharArray();
 	
 	private final Writer			nested;
 	private final PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> epilogue;
@@ -125,6 +130,40 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 		}
 	}
 
+	@Override
+	void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+		boolean	has2escape = false;
+		
+		for (int index = from; index <= to; index++) {
+			if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
+				has2escape = true;
+				break;
+			}
+		}
+		if (has2escape) {
+			int 	start = from;
+			
+			for (int index = from; index <= to; index++) {
+				if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
+					internalWrite(displacement+start-from,content,start,index,keepNewLines);
+					switch (content[index]) {
+						case '<'	: internalWrite(displacement+start-from,ESC_LT); break;
+						case '>'	: internalWrite(displacement+start-from,ESC_GT); break;
+						case '&'	: internalWrite(displacement+start-from,ESC_AMP); break;
+						case '\"'	: internalWrite(displacement+start-from,ESC_QUOT); break;
+					}
+					start = index + 1;
+				}
+			}
+			if (start < to) {
+				internalWrite(displacement+start-from,content,start,to,keepNewLines);
+			}
+		}
+		else {
+			internalWrite(displacement,content,from,to,keepNewLines);
+		}
+	}
+	
 	@Override
 	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		writeStartTag(TAG_IMG);

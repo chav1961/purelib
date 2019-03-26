@@ -49,6 +49,11 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	
 	private static final String[]	CAPTION_DEPTH = {"1","2","3","4","5","6"};
 	
+	private static final char[]		ESC_LT = "&lt;".toCharArray();
+	private static final char[]		ESC_GT = "&gt;".toCharArray();
+	private static final char[]		ESC_AMP = "&amp;".toCharArray();
+	private static final char[]		ESC_QUOT = "&quot;".toCharArray();
+	
 	private final Writer			nested;
 	private final PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter> epilogue;
 	private final XMLEventFactory 	eventFactory = XMLEventFactory.newInstance();
@@ -84,6 +89,39 @@ class CreoleXMLOutputWriter extends CreoleOutputWriter {
 		}
 	}
 
+	@Override
+	void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+		boolean	has2escape = false;
+		
+		for (int index = from; index <= to; index++) {
+			if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
+				has2escape = true;
+				break;
+			}
+		}
+		if (has2escape) {
+			int 	start = from;
+			
+			for (int index = from; index <= to; index++) {
+				if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
+					internalWrite(displacement+start-from,content,start,index,keepNewLines);
+					switch (content[index]) {
+						case '<'	: internalWrite(displacement+start-from,ESC_LT); break;
+						case '>'	: internalWrite(displacement+start-from,ESC_GT); break;
+						case '&'	: internalWrite(displacement+start-from,ESC_AMP); break;
+						case '\"'	: internalWrite(displacement+start-from,ESC_QUOT); break;
+					}
+					start = index + 1;
+				}
+			}
+			if (start < to) {
+				internalWrite(displacement+start-from,content,start,to,keepNewLines);
+			}
+		}
+		else {
+			internalWrite(displacement,content,from,to,keepNewLines);
+		}
+	}
 
 	@Override
 	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {

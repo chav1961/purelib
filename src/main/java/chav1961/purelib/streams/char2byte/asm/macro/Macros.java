@@ -713,6 +713,19 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 								positional++;
 							}
 						}
+						else {	// Skipped positional parameter
+							if (positional >= root.getDeclarations().length) {
+								throw new SyntaxException(lineNo,from,"Too many parameters in the macro call!");
+							}
+							else if (root.getDeclarations()[positional].getType() != ExpressionNodeType.POSITIONAL_PARAMETER) {
+								throw new SyntaxException(lineNo,from,"Too many positional parameters in the macro call!");
+							}
+							else {
+//								InternalUtils.parseConstant(data,bounds[0],true,val);
+//								cmd.getDeclarations()[positional].assign(val[0]);
+								positional++;
+							}
+						}
 						continue loop;
 					case '=' :
 						final char[]	keyName = Arrays.copyOfRange(data,bounds[0],bounds[1]+1);

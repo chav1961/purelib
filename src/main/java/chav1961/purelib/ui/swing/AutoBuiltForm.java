@@ -91,6 +91,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
+	private final boolean					tooltipsOnFocus;
 	private boolean							closed = false, localizerPushed = false;
 	private Color							oldForeground4Label;
 
@@ -107,11 +108,10 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	}
 
 	public AutoBuiltForm(final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(localizer,new SystemErrLoggerFacade(),leftIcon,instance,formMgr,numberOfBars);
-//		this(localizer,new NullLoggerFacade(),leftIcon,instance,formMgr,numberOfBars);
+		this(localizer,new SystemErrLoggerFacade(),leftIcon,instance,formMgr,numberOfBars,false);
 	}
 	
-	public AutoBuiltForm(final Localizer localizer, final LoggerFacade logger, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final Localizer localizer, final LoggerFacade logger, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -134,6 +134,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			final Class<?>					instanceClass = instance.getClass();
 
 			this.logger = logger;
+			this.tooltipsOnFocus = tooltipsOnFocus; 
 			
 			try(final LoggerFacade			trans = logger.transaction(this.getClass().getSimpleName())) {
 				this.instance = instance;
@@ -163,7 +164,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					this.personalLocalizer = null;
 					trans.message(Severity.trace, "No localizers associated");
 				}
-	
+
 				buttonPanel.add(messages);
 				mdi.walkDown((mode,applicationPath,uiPath,node)->{
 					if (mode == NodeEnterMode.ENTER) {
@@ -328,10 +329,14 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				
 					oldForeground4Label = label.getForeground();
 					label.setForeground(Color.BLUE);
-					messages.setText(SwingUtils.prepareMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
+					if (tooltipsOnFocus) {
+						messages.setText(SwingUtils.prepareMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
+					}
 				} catch (LocalizationException  exc) {
 					logger.message(Severity.error,exc,"FocusGained for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-					messages.setText("");
+					if (tooltipsOnFocus) {
+						messages.setText("");
+					}
 				}
 				break;
 			case FocusLost:

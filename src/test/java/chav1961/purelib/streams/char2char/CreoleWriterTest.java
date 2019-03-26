@@ -62,6 +62,11 @@ public class CreoleWriterTest {
 					}
 
 					@Override
+					void internalWriteEscaped(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+						System.err.print(new String(content,from,to-from));
+					}
+					
+					@Override
 					void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 						System.err.print("<IMAGE: "+new String(data,startLink,endLink-startLink)+">");
 					}

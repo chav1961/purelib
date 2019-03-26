@@ -60,6 +60,11 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		totalLen = (int)currentDispl;
 	}
+	
+	@Override
+	void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+		internalWrite(displacement,content,from,to,keepNewLines);
+	}	
 
 	void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
 		internalWrite(displacement, content, from, to, keepNewLines);

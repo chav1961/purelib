@@ -45,10 +45,14 @@ class CreoleTextOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keedNewLines) throws IOException, SyntaxException {
+	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		nested.write(content,from,to-from);
 	}
 
+	@Override
+	void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+		internalWrite(displacement,content,from,to,keepNewLines);
+	}	
 
 	@Override
 	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {

@@ -24,7 +24,6 @@ import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JMenu;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
