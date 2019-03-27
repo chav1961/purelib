@@ -418,7 +418,7 @@ public abstract class AbstractPreparedStatement extends AbstractStatement implem
 	@Override
 	public void setNull(final int parameterIndex, final int sqlType) throws SQLException {
 		checkParameter(parameterIndex);
-		setNull(parameterIndex,sqlType,InternalUtils.typeNameByTypeId(sqlType));
+		setNull(parameterIndex,sqlType,SQLUtils.typeNameByTypeId(sqlType));
 	}
 
 	@Override
@@ -456,7 +456,7 @@ public abstract class AbstractPreparedStatement extends AbstractStatement implem
 			throw new SQLException("Object to set can't be null. Use setNull() to set null values");
 		}
 		else {
-			parm[parameterIndex-1] = InternalUtils.convert(1,parameterIndex,InternalUtils.classBySqlTypeName(InternalUtils.typeNameByTypeId(targetSqlType)),x);
+			parm[parameterIndex-1] = SQLUtils.convert(1,parameterIndex,SQLUtils.classBySqlTypeName(SQLUtils.typeNameByTypeId(targetSqlType)),x);
 		}
 	}
 

@@ -19,7 +19,7 @@ import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.AbstractContent;
 import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
-import chav1961.purelib.sql.InternalUtils;
+import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
 
 public class CsvContentParser implements ResultSetContentParser {
@@ -118,7 +118,7 @@ public class CsvContentParser implements ResultSetContentParser {
 			for (String item : columns) {
 				metaData.add(item+DATA_SUFFIX);
 			}
-			this.metadata = new AbstractResultSetMetaData(InternalUtils.prepareMetadata(metaData.toArray(new String[metaData.size()])),false) {
+			this.metadata = new AbstractResultSetMetaData(SQLUtils.prepareMetadata(metaData.toArray(new String[metaData.size()])),false) {
 									@Override public String getTableName(int column) throws SQLException {return "table";}
 									@Override public String getSchemaName(int column) throws SQLException {return "schema";}
 									@Override public String getCatalogName(int column) throws SQLException {return "catalog";}

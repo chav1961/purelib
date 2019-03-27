@@ -23,7 +23,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.SyntaxNode;
-import chav1961.purelib.sql.InternalUtils;
+import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.ui.interfaces.Constraint;
 import chav1961.purelib.ui.interfaces.ConstraintChecker;
 
@@ -542,6 +542,6 @@ public class ConstraintCheckerFactory {
 	}
 
 	private static <T> T convert2Class(final Object value, final Class<T> target) throws ContentException {
-		return InternalUtils.convert(target, value);
+		return SQLUtils.convert(target, value);
 	}
 }

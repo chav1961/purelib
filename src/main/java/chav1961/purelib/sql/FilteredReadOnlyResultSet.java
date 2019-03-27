@@ -786,7 +786,7 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 						throw new UnsupportedOperationException("Unsupported comparison operation ["+oper+"]");						
 					}
 				case Lexema.OPER_LIKE	:
-					return InternalUtils.matchLikeStyledTemplate(leftValue.toString(),rightValue.toString());
+					return SQLUtils.matchLikeStyledTemplate(leftValue.toString(),rightValue.toString());
 				default : throw new UnsupportedOperationException("Unsupported comparison operation ["+oper+"]"); 
 			}
 		}
@@ -998,13 +998,13 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 			Object	operand = expression.get(content);
 			
 			try{if (Date.class.isAssignableFrom(type)) {
-						return InternalUtils.convert(Date.class,operand);
+						return SQLUtils.convert(Date.class,operand);
 				}
 				else if (Number.class.isAssignableFrom(type)) {
-					return InternalUtils.convert(Number.class,operand);
+					return SQLUtils.convert(Number.class,operand);
 				}
 				else if (String.class.isAssignableFrom(type)) {
-					return InternalUtils.convert(String.class,operand);
+					return SQLUtils.convert(String.class,operand);
 				}
 				else {
 					throw new UnsupportedOperationException("Unsupported conversion type ["+type+"]"); 

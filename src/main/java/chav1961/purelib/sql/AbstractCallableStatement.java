@@ -275,10 +275,10 @@ public abstract class AbstractCallableStatement extends AbstractPreparedStatemen
 			if (value != null) {
 				wasNull = false;
 				if (map.containsKey(sourceType)) {
-					return InternalUtils.convert(0,parameterIndex,map.get(sourceType),value); 
+					return SQLUtils.convert(0,parameterIndex,map.get(sourceType),value); 
 				}
 				else {
-					return InternalUtils.convert(0,parameterIndex,Object.class,value); 
+					return SQLUtils.convert(0,parameterIndex,Object.class,value); 
 				}
 			}
 			else {
@@ -297,7 +297,7 @@ public abstract class AbstractCallableStatement extends AbstractPreparedStatemen
 	@Override
 	public <T> T getObject(final int parameterIndex, final Class<T> type) throws SQLException {
 		checkParameterIndex(parameterIndex,true);
-		return InternalUtils.convert(0,parameterIndex,type,parm[parameterIndex-1]);
+		return SQLUtils.convert(0,parameterIndex,type,parm[parameterIndex-1]);
 	}
 
 	@Override
@@ -426,7 +426,7 @@ public abstract class AbstractCallableStatement extends AbstractPreparedStatemen
 
 	@Override
 	public void registerOutParameter(final int parameterIndex, final int sqlType) throws SQLException {
-		registerOutParameter(parameterIndex,sqlType,InternalUtils.typeNameByTypeId(sqlType));
+		registerOutParameter(parameterIndex,sqlType,SQLUtils.typeNameByTypeId(sqlType));
 	}
 
 	@Override
@@ -438,8 +438,8 @@ public abstract class AbstractCallableStatement extends AbstractPreparedStatemen
 	@Override
 	public void registerOutParameter(final int parameterIndex, final int sqlType, final int scale) throws SQLException {
 		checkParameterIndex(parameterIndex,false);
-		result[parameterIndex-1] = InternalUtils.classBySqlTypeName(InternalUtils.typeNameByTypeId(sqlType));
-		parm[parameterIndex-1] = new OutputValue(sqlType,InternalUtils.typeNameByTypeId(sqlType));
+		result[parameterIndex-1] = SQLUtils.classBySqlTypeName(SQLUtils.typeNameByTypeId(sqlType));
+		parm[parameterIndex-1] = new OutputValue(sqlType,SQLUtils.typeNameByTypeId(sqlType));
 	}
 
 	@Override

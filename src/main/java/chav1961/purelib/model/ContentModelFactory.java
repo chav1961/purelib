@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,9 +38,14 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.xsd.XSDConst;
+import chav1961.purelib.i18n.DummyLocalizer;
+import chav1961.purelib.i18n.TableContainer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.sql.SQLUtils;
+import chav1961.purelib.sql.interfaces.ORMProvider;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.interfaces.MultiAction;
@@ -181,8 +189,71 @@ public class ContentModelFactory {
 		}
 	}	
 
-	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema) throws NullPointerException, PreparationException {
-		return null;
+	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema, final String table) throws NullPointerException, PreparationException, ContentException {
+		if (dbDescription == null) {
+			throw new NullPointerException("Database description can't be null");
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema name can't be null or empty");
+		}
+		else if (schema.contains("_") || schema.contains("%")) {
+			throw new UnsupportedOperationException("Wildcards in the schema name are not supported yet");
+		}
+		else if (table == null || table.isEmpty()) {
+			throw new IllegalArgumentException("Table name can't be null or empty");
+		}
+		else if (table.contains("_") || table.contains("%")) {
+			throw new UnsupportedOperationException("Wildcards in the table name are not supported yet");
+		}
+		else {
+			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(table
+													, TableContainer.class
+													, table
+													, null
+													, schema+"."+table
+													, schema+"."+table+".tt" 
+													, schema+"."+table+".help"
+													, null
+													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+TableContainer.class.getCanonicalName()));
+			
+			
+			try(final ResultSet	rs = dbDescription.getColumns(catalog, schema, table, "%")) {
+				while (rs.next()) {
+					final Class<?>			type = SQLUtils.classByTypeId(rs.getInt("DATA_TYPE"));
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(rs.getString("COLUMN_NAME")
+																	, type
+																	, rs.getString("COLUMN_NAME")+"/"+rs.getString("COLUMN_NAME")
+																	, null
+																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")
+																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".tt" 
+																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".help"
+																	, new FieldFormat(type,buildColumnFormat(rs))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+table+"/"+rs.getString("COLUMN_NAME"))
+																);
+					root.addChild(metadata);
+					metadata.setParent(root);
+				}
+			} catch (SQLException e) {
+				throw new ContentException(e.getLocalizedMessage());
+			}
+			final SimpleContentMetadata result = new SimpleContentMetadata(root);
+			
+			root.setOwner(result);
+			return result;
+		}
+	}
+
+	public static <Key, Record> ORMProvider<Key, Record> buildORMProvider(final ContentNodeMetadata clazz, final ContentNodeMetadata table) {
+		if (clazz == null) {
+			throw new NullPointerException("Class metadata can't be null");
+		}
+		else if (table == null) {
+			throw new NullPointerException("Table metadata can't be null");
+		}
+		else {
+			// TODO:
+			return null;
+		}
 	}
 	
 	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) throws EnvironmentException {
@@ -361,5 +432,33 @@ public class ContentModelFactory {
 			}
 			collectActions(clazz.getSuperclass(),root);
 		}
+	}
+
+	private static String buildColumnFormat(final ResultSet rs) throws SQLException {
+		final StringBuilder	sb = new StringBuilder();
+		
+		if (rs.getInt("DECIMAL_DIGITS") != 0) {
+			if (rs.getInt("COLUMN_SIZE") == 0) {
+				sb.append("18.").append(rs.getInt("DECIMAL_DIGITS"));
+			}
+			else {
+				sb.append(rs.getInt("COLUMN_SIZE")).append('.').append(rs.getInt("DECIMAL_DIGITS"));
+			}
+		}
+		else {
+			if (rs.getInt("COLUMN_SIZE") == 0) {
+				sb.append("30");
+			}
+			else if (rs.getInt("COLUMN_SIZE") > 50) {
+				sb.append("30");
+			}
+			else {
+				sb.append(rs.getInt("COLUMN_SIZE"));
+			}
+		}
+		if (rs.getInt("NULLABLE") != DatabaseMetaData.columnNullable) {
+			sb.append("m");
+		}
+		return sb.toString();
 	}
 }

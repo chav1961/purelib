@@ -282,7 +282,7 @@ public abstract class AbstractReadOnlyResultSet implements ResultSet {
 
 	@Override
 	public Object getObject(int columnIndex) throws SQLException {
-		return getObject(columnIndex,InternalUtils.DEFAULT_CONVERTOR);
+		return getObject(columnIndex,SQLUtils.DEFAULT_CONVERTOR);
 	}
 
 	@Override
@@ -1097,7 +1097,7 @@ public abstract class AbstractReadOnlyResultSet implements ResultSet {
 		final Object	result = getObject(columnIndex);
 		
 		if (result != null) {
-			return InternalUtils.convert(getRow(),columnIndex,type,result);
+			return SQLUtils.convert(getRow(),columnIndex,type,result);
 		}
 		else {
 			return null;
@@ -1127,10 +1127,10 @@ public abstract class AbstractReadOnlyResultSet implements ResultSet {
 			if (value != null) {
 				wasNull = false;
 				if (map.containsKey(sourceType)) {
-					return InternalUtils.convert(getRow(),columnIndex,map.get(sourceType),value); 
+					return SQLUtils.convert(getRow(),columnIndex,map.get(sourceType),value); 
 				}
 				else {
-					return InternalUtils.convert(getRow(),columnIndex,Object.class,value); 
+					return SQLUtils.convert(getRow(),columnIndex,Object.class,value); 
 				}
 			}
 			else {

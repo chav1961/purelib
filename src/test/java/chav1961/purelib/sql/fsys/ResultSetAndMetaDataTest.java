@@ -24,9 +24,9 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.InMemoryReadOnlyResultSet;
-import chav1961.purelib.sql.InternalUtils;
+import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.sql.NullReadOnlyResultSet;
-import chav1961.purelib.sql.InternalUtils;
+import chav1961.purelib.sql.SQLUtils;
 
 public class ResultSetAndMetaDataTest {
 	@Test
@@ -350,7 +350,7 @@ public class ResultSetAndMetaDataTest {
 
 class PseudoResultSetMetaData extends AbstractResultSetMetaData {
 	PseudoResultSetMetaData(final boolean readOnly, final String... columns) {
-		super(InternalUtils.prepareMetadata(columns), readOnly);
+		super(SQLUtils.prepareMetadata(columns), readOnly);
 	}
 
 	@Override public String getSchemaName(int column) throws SQLException {return "SCHEMA";}

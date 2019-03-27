@@ -23,8 +23,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.sql.InternalUtils.ByteArrayInputStreamWithEquals;
-import chav1961.purelib.sql.InternalUtils.StringReaderWithEquals;
+import chav1961.purelib.sql.SQLUtils.ByteArrayInputStreamWithEquals;
+import chav1961.purelib.sql.SQLUtils.StringReaderWithEquals;
 
 public class InternalUtilsTest {
 	private static final ConversionPairTest[]	PAIRS = {new ConversionPairTest(Boolean.class,Boolean.class,true,false)
@@ -439,7 +439,7 @@ public class InternalUtilsTest {
 	
 	@Test
 	public void prepareMetadataTest() {
-		final RsMetaDataElement[]	metadata = InternalUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE"); 
+		final RsMetaDataElement[]	metadata = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE"); 
 
 		Assert.assertEquals(metadata.length,3);
 		
@@ -464,60 +464,60 @@ public class InternalUtilsTest {
 		Assert.assertEquals(metadata[2].getLength(),0);
 		Assert.assertEquals(metadata[2].getFrac(),0);
 		
-		try{InternalUtils.prepareMetadata((String[])null); 
+		try{SQLUtils.prepareMetadata((String[])null); 
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata(); 
+		try{SQLUtils.prepareMetadata(); 
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata(null,"X:Y"); 
+		try{SQLUtils.prepareMetadata(null,"X:Y"); 
 			Assert.fail("Mandatory exception was not detected (null argument in the list)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("","X:Y"); 
+		try{SQLUtils.prepareMetadata("","X:Y"); 
 			Assert.fail("Mandatory exception was not detected (empty argument in the list)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{InternalUtils.prepareMetadata(":TYPE"); 
+		try{SQLUtils.prepareMetadata(":TYPE"); 
 			Assert.fail("Mandatory exception was not detected (name missing)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME"); 
+		try{SQLUtils.prepareMetadata("NAME"); 
 			Assert.fail("Mandatory exception was not detected (name without type)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:"); 
+		try{SQLUtils.prepareMetadata("NAME:"); 
 			Assert.fail("Mandatory exception was not detected (name without type)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:UNKNOWN"); 
+		try{SQLUtils.prepareMetadata("NAME:UNKNOWN"); 
 			Assert.fail("Mandatory exception was not detected (unknown type)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:UNKNOWN(10)"); 
+		try{SQLUtils.prepareMetadata("NAME:UNKNOWN(10)"); 
 			Assert.fail("Mandatory exception was not detected (unknown type)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:VARCHAR("); 
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR("); 
 			Assert.fail("Mandatory exception was not detected (missing length)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:VARCHAR(10"); 
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10"); 
 			Assert.fail("Mandatory exception was not detected (missing close bracket)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:VARCHAR(10,"); 
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,"); 
 			Assert.fail("Mandatory exception was not detected (missing fractional)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:VARCHAR(10,2"); 
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,2"); 
 			Assert.fail("Mandatory exception was not detected (missing close bracket)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.prepareMetadata("NAME:VARCHAR(10,20)"); 
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,20)"); 
 			Assert.fail("Mandatory exception was not detected (fractional gtreater than length)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -525,15 +525,15 @@ public class InternalUtilsTest {
 
 	@Test
 	public void typeConversionTest() {
-		Assert.assertEquals(InternalUtils.typeIdByTypeName(InternalUtils.typeNameByTypeId(Types.VARCHAR)),Types.VARCHAR);
-		Assert.assertEquals(InternalUtils.typeIdByTypeName("UNKNOWN"),InternalUtils.UNKNOWN_TYPE);
-		Assert.assertNull(InternalUtils.typeNameByTypeId(InternalUtils.UNKNOWN_TYPE));
+		Assert.assertEquals(SQLUtils.typeIdByTypeName(SQLUtils.typeNameByTypeId(Types.VARCHAR)),Types.VARCHAR);
+		Assert.assertEquals(SQLUtils.typeIdByTypeName("UNKNOWN"),SQLUtils.UNKNOWN_TYPE);
+		Assert.assertNull(SQLUtils.typeNameByTypeId(SQLUtils.UNKNOWN_TYPE));
 
-		try{InternalUtils.typeIdByTypeName(null); 
+		try{SQLUtils.typeIdByTypeName(null); 
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.typeIdByTypeName(""); 
+		try{SQLUtils.typeIdByTypeName(""); 
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -550,13 +550,13 @@ public class InternalUtilsTest {
 //					int x = 0;
 //				}
 				try{if (Comparable.class.isAssignableFrom(item.source)) {
-						Assert.assertTrue(((Comparable<Object>)InternalUtils.convert(item.source,InternalUtils.convert(item.target,value))).compareTo(value) == 0);
+						Assert.assertTrue(((Comparable<Object>)SQLUtils.convert(item.source,SQLUtils.convert(item.target,value))).compareTo(value) == 0);
 					}
 					else if (item.source.isArray() && item.source.getComponentType() == byte.class) {
-						Assert.assertArrayEquals((byte[])InternalUtils.convert(item.source,InternalUtils.convert(item.target,value)),(byte[])value);
+						Assert.assertArrayEquals((byte[])SQLUtils.convert(item.source,SQLUtils.convert(item.target,value)),(byte[])value);
 					}
 					else {
-						Assert.assertEquals(InternalUtils.convert(item.source,InternalUtils.convert(item.target,value)),value);
+						Assert.assertEquals(SQLUtils.convert(item.source,SQLUtils.convert(item.target,value)),value);
 					}
 					if (item.exception != null) {
 						Assert.fail("Mandatory exception was not detected...");

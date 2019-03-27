@@ -32,7 +32,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 
-public class InternalUtils {
+public class SQLUtils {
 	public static final int							UNKNOWN_TYPE = 666;
 	static final Map<String,Class<?>>				DEFAULT_CONVERTOR = new HashMap<>();
 		
@@ -152,6 +152,15 @@ public class InternalUtils {
 		return null;
 	}
 
+	public static Class<?> classByTypeId(final int typeId) {
+		for (JDBCTypeDescriptor item : TYPE_DECODER) {
+			if (item.getType() == typeId) {
+				return DEFAULT_CONVERTOR.get(item.getTypeName());
+			}
+		}
+		return null;
+	}
+	
 	public static int typeIdByTypeName(final String typeName) {
 		if (typeName == null || typeName.isEmpty()) {
 			throw new IllegalArgumentException("Type name can't be null or empty");
@@ -324,7 +333,7 @@ public class InternalUtils {
 						}
 						final int	numericType = typeIdByTypeName(typeName);
 						
-						if (numericType != 0 && numericType != InternalUtils.UNKNOWN_TYPE) {
+						if (numericType != 0 && numericType != SQLUtils.UNKNOWN_TYPE) {
 							return new RsMetaDataElement(name,name,typeName,numericType,length,frac);
 						}
 						else {
@@ -335,7 +344,7 @@ public class InternalUtils {
 				else {
 					final int	numericType = typeIdByTypeName(typeName);
 					
-					if (numericType != 0 && numericType != InternalUtils.UNKNOWN_TYPE) {
+					if (numericType != 0 && numericType != SQLUtils.UNKNOWN_TYPE) {
 						return new RsMetaDataElement(name,name,typeName,numericType,0,0);
 					}
 					else {
@@ -393,7 +402,7 @@ public class InternalUtils {
 		toMap.put(NClob.class,(source)->{return new InMemoryLittleNClob((Boolean)source ? "true" : "false");});
 		toMap.put(String.class,(source)->{return (Boolean)source ? "true" : "false";});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("BIT"),source instanceof Boolean ? source : Boolean.valueOf((boolean)source));
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("BIT"),source instanceof Boolean ? source : Boolean.valueOf((boolean)source));
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -421,7 +430,7 @@ public class InternalUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Byte)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Byte)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("TINYINT"),((Byte)source).byteValue());
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("TINYINT"),((Byte)source).byteValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -449,7 +458,7 @@ public class InternalUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Short)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Short)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("SMALLINT"),((Short)source).shortValue());
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("SMALLINT"),((Short)source).shortValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -477,7 +486,7 @@ public class InternalUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Integer)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Integer)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("INTEGER"),((Integer)source).intValue());
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("INTEGER"),((Integer)source).intValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -518,7 +527,7 @@ public class InternalUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Long)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Long)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("BIGINT"),((Long)source).longValue());
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("BIGINT"),((Long)source).longValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -552,7 +561,7 @@ public class InternalUtils {
 		});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(String.valueOf(((Float)source).floatValue()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("FLOAT"),((Float)source).floatValue());
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("FLOAT"),((Float)source).floatValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -586,7 +595,7 @@ public class InternalUtils {
 		});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(String.valueOf(((Double)source).doubleValue()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("DOUBLE"),((Double)source).doubleValue());
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("DOUBLE"),((Double)source).doubleValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -674,7 +683,7 @@ public class InternalUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("VARBINARY"),(byte[])source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("VARBINARY"),(byte[])source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -818,7 +827,7 @@ public class InternalUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("BLOB"),(Blob)source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("BLOB"),(Blob)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -921,7 +930,7 @@ public class InternalUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("CLOB"),(Clob)source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("CLOB"),(Clob)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1024,7 +1033,7 @@ public class InternalUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("NCLOB"),(NClob)source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("NCLOB"),(NClob)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1070,7 +1079,7 @@ public class InternalUtils {
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(((BigDecimal)source).toString().getBytes());});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(source.toString());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("DECIMAL"),(BigDecimal)source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("DECIMAL"),(BigDecimal)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1095,7 +1104,7 @@ public class InternalUtils {
 		});
 		toMap.put(String.class,(source)->{return Long.valueOf((((Date)source).getTime()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("DATE"),(Date)source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("DATE"),(Date)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1119,7 +1128,7 @@ public class InternalUtils {
 		});
 		toMap.put(String.class,(source)->{return Long.valueOf((((Time)source).getTime()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("TIME_WITH_TIMEZONE"),(Time)source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("TIME_WITH_TIMEZONE"),(Time)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1143,7 +1152,7 @@ public class InternalUtils {
 		});
 		toMap.put(String.class,(source)->{return Long.valueOf((((Timestamp)source).getTime()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(InternalUtils.typeIdByTypeName("TIMESTAMP"),(Timestamp)source);
+			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("TIMESTAMP"),(Timestamp)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}

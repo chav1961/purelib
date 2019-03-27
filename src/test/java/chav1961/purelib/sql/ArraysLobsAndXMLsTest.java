@@ -75,11 +75,11 @@ public class ArraysLobsAndXMLsTest {
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{a.getArray(0,10,InternalUtils.DEFAULT_CONVERTOR);
+		try{a.getArray(0,10,SQLUtils.DEFAULT_CONVERTOR);
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}
-		try{a.getArray(100,10,InternalUtils.DEFAULT_CONVERTOR);
+		try{a.getArray(100,10,SQLUtils.DEFAULT_CONVERTOR);
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}
@@ -92,11 +92,11 @@ public class ArraysLobsAndXMLsTest {
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{a.getResultSet(0,10,InternalUtils.DEFAULT_CONVERTOR);
+		try{a.getResultSet(0,10,SQLUtils.DEFAULT_CONVERTOR);
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}
-		try{a.getResultSet(100,10,InternalUtils.DEFAULT_CONVERTOR);
+		try{a.getResultSet(100,10,SQLUtils.DEFAULT_CONVERTOR);
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}

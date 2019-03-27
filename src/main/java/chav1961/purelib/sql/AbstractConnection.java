@@ -345,7 +345,7 @@ public abstract class AbstractConnection implements Connection {
 			throw new IllegalArgumentException("Property name can't be null or empty");
 		}
 		else {
-			return new InMemoryLitteArray(InternalUtils.typeIdByTypeName(typeName),elements);
+			return new InMemoryLitteArray(SQLUtils.typeIdByTypeName(typeName),elements);
 		}		
 	}
 

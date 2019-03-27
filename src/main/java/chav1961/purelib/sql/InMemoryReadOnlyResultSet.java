@@ -11,7 +11,7 @@ public class InMemoryReadOnlyResultSet extends AbstractReadOnlyResultSet {
 	private final Map<String, Class<?>>	map;
 
 	public InMemoryReadOnlyResultSet(final Statement stmt, final ResultSetMetaData rsmd, final int resultSetType, final AbstractContent content) {
-		this(stmt,rsmd,resultSetType,content,InternalUtils.DEFAULT_CONVERTOR);
+		this(stmt,rsmd,resultSetType,content,SQLUtils.DEFAULT_CONVERTOR);
 	}
 	
 	public InMemoryReadOnlyResultSet(final Statement stmt, final ResultSetMetaData rsmd, final int resultSetType, final AbstractContent content, final Map<String, Class<?>> map) {
@@ -30,7 +30,7 @@ public class InMemoryReadOnlyResultSet extends AbstractReadOnlyResultSet {
 	}
 
 	public InMemoryReadOnlyResultSet(final ResultSetMetaData rsmd, final int resultSetType, final AbstractContent content) {
-		this(rsmd,resultSetType,content,InternalUtils.DEFAULT_CONVERTOR);
+		this(rsmd,resultSetType,content,SQLUtils.DEFAULT_CONVERTOR);
 	}
 	
 	public InMemoryReadOnlyResultSet(final ResultSetMetaData rsmd, final int resultSetType, final AbstractContent content, final Map<String, Class<?>> map) {

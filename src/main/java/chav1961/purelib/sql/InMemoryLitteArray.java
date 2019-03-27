@@ -14,7 +14,7 @@ public class InMemoryLitteArray implements Array {
 	private final Class<?>	returnedClass, wrappedClass;
 	
 	public InMemoryLitteArray(final int contentType, final Object... content) throws SQLException {
-		if (InternalUtils.typeNameByTypeId(contentType) == null) {
+		if (SQLUtils.typeNameByTypeId(contentType) == null) {
 			throw new IllegalArgumentException("Unknown content type ["+contentType+"]. Valid type can be any field from java.sql.Types class only"); 
 		}
 		else if (content == null) {
@@ -23,8 +23,8 @@ public class InMemoryLitteArray implements Array {
 		else {
 			this.contentType = contentType;
 			this.content = content;
-			if (InternalUtils.DEFAULT_CONVERTOR.containsKey(InternalUtils.typeNameByTypeId(contentType))) {
-				this.returnedClass = InternalUtils.DEFAULT_CONVERTOR.get(InternalUtils.typeNameByTypeId(contentType));
+			if (SQLUtils.DEFAULT_CONVERTOR.containsKey(SQLUtils.typeNameByTypeId(contentType))) {
+				this.returnedClass = SQLUtils.DEFAULT_CONVERTOR.get(SQLUtils.typeNameByTypeId(contentType));
 				switch (Utils.defineClassType(this.returnedClass)) {
 					case Utils.CLASSTYPE_REFERENCE	:	this.wrappedClass = this.returnedClass; break;
 					case Utils.CLASSTYPE_BYTE		:	this.wrappedClass = Byte.class; break;
@@ -60,7 +60,7 @@ public class InMemoryLitteArray implements Array {
 
 	@Override
 	public Object getArray(final long index, final int count) throws SQLException {
-		return getArray(index,count,InternalUtils.DEFAULT_CONVERTOR);
+		return getArray(index,count,SQLUtils.DEFAULT_CONVERTOR);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class InMemoryLitteArray implements Array {
 			final Object[]	result = (Object[])java.lang.reflect.Array.newInstance(wrappedClass,(int)(end-(index-1)));
 
 			for (int curs = 0; curs < end; curs++) {
-				result[curs] = InternalUtils.convert((int)(curs+(index-1)),1,wrappedClass,content[(int)(curs + (index-1))]);
+				result[curs] = SQLUtils.convert((int)(curs+(index-1)),1,wrappedClass,content[(int)(curs + (index-1))]);
 			}
 			switch (Utils.defineClassType(this.returnedClass)) {
 				case Utils.CLASSTYPE_REFERENCE	:	return result;
@@ -100,7 +100,7 @@ public class InMemoryLitteArray implements Array {
 
 	@Override
 	public String getBaseTypeName() throws SQLException {
-		return InternalUtils.typeNameByTypeId(getBaseType());
+		return SQLUtils.typeNameByTypeId(getBaseType());
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class InMemoryLitteArray implements Array {
 
 	@Override
 	public ResultSet getResultSet(final long index, final int count) throws SQLException {
-		return getResultSet(index,count,InternalUtils.DEFAULT_CONVERTOR);
+		return getResultSet(index,count,SQLUtils.DEFAULT_CONVERTOR);
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class InMemoryLitteArray implements Array {
 	
 	private static class ArrayResultSetMetaData extends AbstractResultSetMetaData {
 		ArrayResultSetMetaData(final String... columns) {
-			super(InternalUtils.prepareMetadata(columns),true);
+			super(SQLUtils.prepareMetadata(columns),true);
 		}
 
 		@Override

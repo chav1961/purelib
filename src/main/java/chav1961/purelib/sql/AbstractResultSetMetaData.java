@@ -159,8 +159,8 @@ public abstract class AbstractResultSetMetaData implements ResultSetMetaData {
 	}
 	
 	protected Class<?> getColumnClass(int column) throws SQLException {
-		if (InternalUtils.DEFAULT_CONVERTOR.containsKey(columns[column-1].getTypeName())) {
-			return InternalUtils.DEFAULT_CONVERTOR.get(columns[column-1].getTypeName());
+		if (SQLUtils.DEFAULT_CONVERTOR.containsKey(columns[column-1].getTypeName())) {
+			return SQLUtils.DEFAULT_CONVERTOR.get(columns[column-1].getTypeName());
 		}
 		else {
 			return Object.class;

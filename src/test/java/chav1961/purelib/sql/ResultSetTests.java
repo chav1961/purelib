@@ -24,7 +24,7 @@ public class ResultSetTests {
 	
 	@Test
 	public void resultSetMetaDataTest() throws SQLException {
-		final RsMetaDataElement[]	fields = InternalUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
+		final RsMetaDataElement[]	fields = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
 		final ResultSetMetaData		rsmd = new AbstractResultSetMetaData(fields,true) {
 											@Override public String getTableName(int column) throws SQLException {return "table";}
 											@Override public String getSchemaName(int column) throws SQLException {return "schema";}
@@ -94,7 +94,7 @@ public class ResultSetTests {
 	
 	@Test
 	public void nullResultSetTest() throws SQLException {
-		final RsMetaDataElement[]	fields = InternalUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
+		final RsMetaDataElement[]	fields = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
 		final ResultSetMetaData		rsmd = new AbstractResultSetMetaData(fields,true) {
 										@Override public String getTableName(int column) throws SQLException {return "table";}
 										@Override public String getSchemaName(int column) throws SQLException {return "schema";}
@@ -112,7 +112,7 @@ public class ResultSetTests {
 
 	@Test
 	public void inMemoryResultSetMovingTest() throws SQLException {
-		final RsMetaDataElement[]		fields = InternalUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
+		final RsMetaDataElement[]		fields = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
 		final ResultSetMetaData			rsmd = new AbstractResultSetMetaData(fields,true) {
 											@Override public String getTableName(int column) throws SQLException {return "table";}
 											@Override public String getSchemaName(int column) throws SQLException {return "schema";}
@@ -249,7 +249,7 @@ public class ResultSetTests {
 
 	@Test
 	public void inMemoryResultSetGettingTest() throws SQLException {
-		final RsMetaDataElement[]		fields = InternalUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
+		final RsMetaDataElement[]		fields = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE");
 		final ResultSetMetaData			rsmd = new AbstractResultSetMetaData(fields,true) {
 											@Override public String getTableName(int column) throws SQLException {return "table";}
 											@Override public String getSchemaName(int column) throws SQLException {return "schema";}
@@ -559,7 +559,7 @@ public class ResultSetTests {
 //	@Test
 	public void filteredResultSetTotalTest() throws SQLException, SyntaxException {
 		final ArrayContent				ac = new ArrayContent(new Object[]{100L,200.0,new Date(0),"test1"},new Object[]{150L,250.0,new Date(100),"test2"});
-		final AbstractResultSetMetaData	rsmd = new AbstractResultSetMetaData(InternalUtils.prepareMetadata("F1:INTEGER","F2:NUMERIC(10,2)","F3:DATE","F4:VARCHAR(100)"),true){
+		final AbstractResultSetMetaData	rsmd = new AbstractResultSetMetaData(SQLUtils.prepareMetadata("F1:INTEGER","F2:NUMERIC(10,2)","F3:DATE","F4:VARCHAR(100)"),true){
 											@Override public String getSchemaName(int column) throws SQLException {return null;}
 											@Override public String getTableName(int column) throws SQLException {return null;}
 											@Override public String getCatalogName(int column) throws SQLException {return null;}
