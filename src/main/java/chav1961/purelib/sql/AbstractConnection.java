@@ -1,5 +1,6 @@
 package chav1961.purelib.sql;
 
+import java.net.URI;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -25,12 +26,16 @@ import java.util.concurrent.Executor;
 public abstract class AbstractConnection implements Connection {
 	protected final Properties				props = new Properties();
 	protected final Map<String, Class<?>>	types = new HashMap<>();
-	
+
+	URI										connString;
+	String									user;
 	private boolean							closed = false, readOnly = false, autoCommit;
 	private String							catalog = null, schema = null;
 	private int								isolationLevel = Connection.TRANSACTION_NONE, networkTimeout = 0;
 	
-	protected AbstractConnection(final boolean readOnly) {
+	protected AbstractConnection(final URI connString, final String user, final boolean readOnly) {
+		this.connString = connString;
+		this.user = user;
 		this.readOnly = readOnly;
 	}
 
