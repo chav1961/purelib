@@ -27,6 +27,11 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String					VIEW_SORT = "VIEW";
 
 	public static final String					ASC_OR_DESC_NAME = "ASC_OR_DESC";
+	
+	public static final String					ATTR_DEF_NAME = "ATTR_DEF";
+	public static final String					ATTR_NAME_NAME = "ATTR_NAME";
+	public static final String					ATTR_SIZE_NAME = "ATTR_SIZE";
+	public static final String					ATTR_TYPE_NAME_NAME = "ATTR_TYPE_NAME";
 	public static final String					AUTO_INCREMENT_NAME = "AUTO_INCREMENT";
 
 	public static final String					BASE_TYPE_NAME = "BASE_TYPE";
@@ -42,14 +47,30 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String					COLUMN_NAME_NAME = "COLUMN_NAME";
 	public static final String					COLUMN_SIZE_NAME = "COLUMN_SIZE";
 	public static final String					COLUMN_TYPE_NAME = "COLUMN_TYPE";
+	public static final String					COLUMN_USAGE_NAME = "COLUMN_USAGE";
 	
 	public static final String					DATA_TYPE_NAME = "DATA_TYPE";	
 
 	public static final String					DECIMAL_DIGITS_NAME = "DECIMAL_DIGITS";	
+
+	public static final String					DEFAULT_VALUE_NAME = "DEFAULT_VALUE";
+	
+	public static final String					DEFERRABILITY_NAME = "DEFERRABILITY";
+	
+	public static final String					DELETE_RULE_NAME = "DELETE_RULE";
+
+	public static final String					DESCRIPTION_NAME = "DESCRIPTION";
 	
 	public static final String					FILTER_CONDITION_NAME = "FILTER_CONDITION";	
 	public static final String					FIXED_PREC_SCALE_NAME = "FIXED_PREC_SCALE";	
 
+	public static final String					FK_NAME_NAME = "FK_NAME";
+	
+	public static final String					FKTABLE_CAT_NAME = "FKTABLE_CAT";
+	public static final String					FKTABLE_SCHEM_NAME = "FKTABLE_SCHEM";
+	public static final String					FKTABLE_TABLE_NAME = "FKTABLE_NAME";
+	public static final String					FKTABLE_COLUMN_NAME = "FKCOLUMN_NAME";
+	
 	public static final String					FUNCTION_CAT_NAME = "FUNCTION_CAT";
 	public static final String					FUNCTION_SCHEM_NAME = "FUNCTION_SCHEM";
 	public static final String					FUNCTION_NAME_NAME = "FUNCTION_NAME";
@@ -71,9 +92,13 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String					LOCAL_TYPE_NAME_NAME = "LOCAL_TYPE_NAME";	
 
 	public static final String					MINIMUM_SCALE_NAME = "MINIMUM_SCALE";	
+
+	public static final String					MAX_LEN_NAME = "MAX_LEN";	
 	
 	public static final String					MAXIMUM_SCALE_NAME = "MAXIMUM_SCALE";	
 
+	public static final String					NAME_NAME = "NAME";
+	
 	public static final String					NON_UNIQUE_NAME = "NON_UNIQUE";	
 	
 	public static final String					NULLABLE_NAME = "NULLABLE";	
@@ -84,6 +109,11 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 
 	public static final String					PAGES_NAME = "PAGES";
 	
+	public static final String					PKTABLE_CAT_NAME = "PKTABLE_CAT";
+	public static final String					PKTABLE_SCHEM_NAME = "PKTABLE_SCHEM";
+	public static final String					PKTABLE_TABLE_NAME = "PKTABLE_NAME";
+	public static final String					PKTABLE_COLUMN_NAME = "PKCOLUMN_NAME";
+	
 	public static final String					PK_NAME_NAME = "PK_NAME";
 	
 	public static final String					PROCEDURE_CAT_NAME = "PROCEDURE_CAT";
@@ -93,6 +123,8 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String					PRECISION_NAME = "PRECISION";
 
 	public static final String					PRIVILEGE_NAME = "PRIVILEGE";
+
+	public static final String					PSEUDO_COLUMN_NAME = "PSEUDO_COLUMN";
 	
 	public static final String					RADIX_NAME = "RADIX";
 	
@@ -102,6 +134,8 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 
 	public static final String					SCALE_NAME = "SCALE";
 
+	public static final String					SCOPE_NAME = "SCOPE";
+	
 	public static final String					SCOPE_CATALOG_NAME = "SCOPE_CATALOG";
 	public static final String					SCOPE_SCHEMA_NAME = "SCOPE_SCHEMA";
 	public static final String					SCOPE_TABLE_NAME = "SCOPE_TABLE";
@@ -109,6 +143,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String					SOURCE_DATA_TYPE_NAME = "SOURCE_DATA_TYPE";
 
 	public static final String					SPECIFIC_NAME_NAME = "SPECIFIC_NAME";
+
+	public static final String					SUPERTABLE_NAME_NAME = "SUPERTABLE_NAME";
+	
+	public static final String					SUPERTYPE_CAT_NAME = "SUPERTYPE_CAT";
+	public static final String					SUPERTYPE_SCHEM_NAME = "SUPERTYPE_SCHEM";
+	public static final String					SUPERTYPE_NAME_NAME = "SUPERTYPE_NAME";
 	
 	public static final String					TABLE_CAT_NAME = "TABLE_CAT";
 	public static final String					TABLE_SCHEM_NAME = "TABLE_SCHEM";
@@ -122,15 +162,56 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String					TYPE_NAME_NAME = "TYPE_NAME";
 
 	public static final String					UNSIGNED_ATTRIBUTE_NAME = "UNSIGNED_ATTRIBUTE";
+
+	public static final String					UPDATE_RULE_NAME = "UPDATE_RULE";
 	
 	public static final String[]				PROCEDURES_CONTENT = new String[]{PROCEDURE_SORT};
 	public static final String[]				FUNCTIONS_CONTENT = new String[]{PROCEDURE_SORT};
 	public static final String[]				TABLES_CONTENT = new String[]{TABLE_SORT, VIEW_SORT, GLOBAL_TEMPORARY_SORT};
 	public static final String[]				TYPES_CONTENT = new String[]{TYPE_SORT};
 	
+	private static final RsMetaDataElement[]	ATTRIBUTES_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(TYPE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TYPE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TYPE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(ATTR_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(DATA_TYPE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(ATTR_TYPE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(ATTR_SIZE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(DECIMAL_DIGITS_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(NUM_PREC_RADIX_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(NULLABLE_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+													,new RsMetaDataElement(REMARKS_NAME,"","VARCHAR",Types.VARCHAR,65536,0)
+													,new RsMetaDataElement(ATTR_DEF_NAME,"","VARCHAR",Types.VARCHAR,65536,0)
+													,new RsMetaDataElement("SQL_DATA_TYPE","","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement("SQL_DATETIME_SUB","","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(CHAR_OCTET_LENGTH_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(ORDINAL_POSITION_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(IS_NULLABLE_NAME,"","VARCHAR",Types.VARCHAR,10,0)
+													,new RsMetaDataElement(SCOPE_CATALOG_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(SCOPE_SCHEMA_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(SCOPE_TABLE_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(SOURCE_DATA_TYPE_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+												};
+	private static final RsMetaDataElement[]	BEST_ROW_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(SCOPE_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+													,new RsMetaDataElement(COLUMN_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(DATA_TYPE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(TYPE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(COLUMN_SIZE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement("BUFFER_LENGTH","","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(DECIMAL_DIGITS_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(PSEUDO_COLUMN_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+												};
 	private static final RsMetaDataElement[]	CATALOG_META = new RsMetaDataElement[]{
 													new RsMetaDataElement(TABLE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
-												};  
+												};	
+	private static final RsMetaDataElement[]	CLIENT_INFO_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(MAX_LEN_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(DEFAULT_VALUE_NAME,"","VARCHAR",Types.VARCHAR,65536,0)
+													,new RsMetaDataElement(DESCRIPTION_NAME,"","VARCHAR",Types.VARCHAR,65536,0)
+												};
 	private static final RsMetaDataElement[]	COLUMNS_META = new RsMetaDataElement[]{
 													new RsMetaDataElement(TABLE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
 													,new RsMetaDataElement(TABLE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
@@ -192,7 +273,22 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 													,new RsMetaDataElement(IS_NULLABLE_NAME,"","VARCHAR",Types.VARCHAR,10,0)
 													,new RsMetaDataElement(SPECIFIC_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
 												};
-	
+	private static final RsMetaDataElement[]	KEYS_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(PKTABLE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(PKTABLE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(PKTABLE_TABLE_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(PKTABLE_COLUMN_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(FKTABLE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(FKTABLE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(FKTABLE_TABLE_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(FKTABLE_COLUMN_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(KEY_SEQ_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+													,new RsMetaDataElement(UPDATE_RULE_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+													,new RsMetaDataElement(DELETE_RULE_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+													,new RsMetaDataElement(PK_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(FK_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(DEFERRABILITY_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+												};
 	private static final RsMetaDataElement[]	INDEX_META = new RsMetaDataElement[]{
 													new RsMetaDataElement(TABLE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
 													,new RsMetaDataElement(TABLE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
@@ -216,9 +312,37 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 													,new RsMetaDataElement(KEY_SEQ_NAME,"","SMALLINT",Types.SMALLINT,5,0)
 													,new RsMetaDataElement(PK_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
 												};  
+	private static final RsMetaDataElement[]	PSEUDOCOLUMNS_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(TABLE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TABLE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TABLE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(COLUMN_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(DATA_TYPE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(COLUMN_SIZE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(DECIMAL_DIGITS_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(NUM_PREC_RADIX_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(COLUMN_USAGE_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(REMARKS_NAME,"","VARCHAR",Types.VARCHAR,65536,0)
+													,new RsMetaDataElement(CHAR_OCTET_LENGTH_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(IS_NULLABLE_NAME,"","VARCHAR",Types.VARCHAR,10,0)
+												};  
 	private static final RsMetaDataElement[]	SCHEMA_META = new RsMetaDataElement[]{
 													new RsMetaDataElement(TABLE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
 													,new RsMetaDataElement("TABLE_CATALOG","","VARCHAR",Types.VARCHAR,2048,0)
+												};  
+	private static final RsMetaDataElement[]	SUPERTYPE_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(TYPE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TYPE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TYPE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(SUPERTYPE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(SUPERTYPE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(SUPERTYPE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+												};  
+	private static final RsMetaDataElement[]	SUPERTABLE_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(TABLE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TABLE_SCHEM_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(TABLE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(SUPERTABLE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
 												};  
 	private static final RsMetaDataElement[]	PROCEDURE_META = new RsMetaDataElement[]{
 													new RsMetaDataElement(PROCEDURE_CAT_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
@@ -283,6 +407,16 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 													,new RsMetaDataElement(DATA_TYPE_NAME,"","INTEGER",Types.INTEGER,9,0)
 													,new RsMetaDataElement(REMARKS_NAME,"","VARCHAR",Types.VARCHAR,65536,0)
 													,new RsMetaDataElement(BASE_TYPE_NAME,"","INTEGER",Types.INTEGER,9,0)
+												};
+	private static final RsMetaDataElement[]	VERSION_COLUMNS_META = new RsMetaDataElement[]{
+													new RsMetaDataElement(SCOPE_NAME,"","SMALLINT",Types.SMALLINT,5,0)
+													,new RsMetaDataElement(COLUMN_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(DATA_TYPE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(TYPE_NAME_NAME,"","VARCHAR",Types.VARCHAR,2048,0)
+													,new RsMetaDataElement(COLUMN_SIZE_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement("BUFFER_LENGTH","","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(DECIMAL_DIGITS_NAME,"","INTEGER",Types.INTEGER,9,0)
+													,new RsMetaDataElement(PSEUDO_COLUMN_NAME,"","SMALLINT",Types.SMALLINT,5,0)
 												};
 	
 	private static final Object[][]				TABLE_TYPES_RS = new Object[][]{
@@ -985,15 +1119,79 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	}
 
 	@Override
-	public ResultSet getBestRowIdentifier(String catalog, String schema, String table, int scope, boolean nullable) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public ResultSet getBestRowIdentifier(final String catalog, final String schema, final String table, final int scope, final boolean nullable) throws SQLException {
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
+				,TABLES_CONTENT,BEST_ROW_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(BEST_ROW_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
+				,TABLES_CONTENT,BEST_ROW_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(BEST_ROW_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
-	public ResultSet getVersionColumns(String catalog, String schema, String table) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public ResultSet getVersionColumns(final String catalog, final String schema, final String table) throws SQLException {
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
+				,TABLES_CONTENT,VERSION_COLUMNS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(VERSION_COLUMNS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
+				,TABLES_CONTENT,VERSION_COLUMNS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(VERSION_COLUMNS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
@@ -1035,21 +1233,117 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	}
 
 	@Override
-	public ResultSet getImportedKeys(String catalog, String schema, String table) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public ResultSet getImportedKeys(final String catalog, final String schema, final String table) throws SQLException {
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
+				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
+				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
-	public ResultSet getExportedKeys(String catalog, String schema, String table) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public ResultSet getExportedKeys(final String catalog, final String schema, final String table) throws SQLException {
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
+				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
+				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
 	public ResultSet getCrossReference(String parentCatalog, String parentSchema, String parentTable, String foreignCatalog, String foreignSchema, String foreignTable) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((parentCatalog == null ? "%" : parentCatalog)+'/'+(parentSchema == null ? "%" : parentSchema)+'/'+(parentTable == null ? "%" : parentTable)+"/constrains/primarykey"
+				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((parentSchema == null ? "%" : parentSchema)+'/'+(parentTable == null ? "%" : parentTable)+"/constrains/primarykey"
+				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
@@ -1170,21 +1464,117 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	}
 
 	@Override
-	public ResultSet getSuperTypes(String catalog, String schemaPattern, String typeNamePattern) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public ResultSet getSuperTypes(final String catalog, final String schemaPattern, final String typeNamePattern) throws SQLException {
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
+				,TABLES_CONTENT,SUPERTYPE_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTYPE_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
+				,TABLES_CONTENT,SUPERTYPE_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTYPE_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
-	public ResultSet getSuperTables(String catalog, String schemaPattern, String tableNamePattern) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public ResultSet getSuperTables(final String catalog, final String schemaPattern, final String tableNamePattern) throws SQLException {
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
+				,TABLES_CONTENT,SUPERTABLE_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTABLE_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
+				,TABLES_CONTENT,SUPERTABLE_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTABLE_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
 	public ResultSet getAttributes(String catalog, String schemaPattern, String typeNamePattern, String attributeNamePattern) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
+				,TABLES_CONTENT,ATTRIBUTES_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(ATTRIBUTES_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
+				,TABLES_CONTENT,ATTRIBUTES_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(ATTRIBUTES_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
@@ -1243,8 +1633,38 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getClientInfoProperties() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect("%/%/%",TYPES_CONTENT,CLIENT_INFO_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(CLIENT_INFO_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect("%/%",TYPES_CONTENT,CLIENT_INFO_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(CLIENT_INFO_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 	@Override
@@ -1325,14 +1745,46 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 
 	@Override
 	public ResultSet getPseudoColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		if (!isCatalogsSupported()) {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
+				,TABLES_CONTENT,PSEUDOCOLUMNS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PSEUDOCOLUMNS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
+		else {
+			final List<Object[]>	result = new ArrayList<>();
+			
+			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
+				,TABLES_CONTENT,PSEUDOCOLUMNS_META,(mode, contentType, nodeType, node)->{
+					if (mode == NodeEnterMode.ENTER) {
+						// TODO:
+					}
+					return ContinueMode.SKIP_CHILDREN;
+				}
+			);
+			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PSEUDOCOLUMNS_META,true) {
+				@Override public String getTableName(int column) throws SQLException {return null;}
+				@Override public String getSchemaName(int column) throws SQLException {return null;}
+				@Override public String getCatalogName(int column) throws SQLException {return null;}
+			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+		}
 	}
 
 
-	private static int[] convertTypes(final String[] types) {
-		return null;
-	}
+//	private static int[] convertTypes(final String[] types) {
+//		return null;
+//	}
 
 	private static String[] convertTypes(final int[] types) {
 		return null;
