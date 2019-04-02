@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -1409,6 +1410,62 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * <p>Parse query string from uri</p>
+	 * @param uri uri to parse query string
+	 * @return key/value pair from parsed query. Can be empty but not null
+	 * @throws NullPointerException when uri is null
+	 * @throws link IllegalArgumentException when query contains syntax errors
+	 * @since 0.0.3
+	 */
+	public static Hashtable<String,String[]> parseQuery(final URI uri) throws NullPointerException {
+		if (uri == null) {
+			throw new NullPointerException("Uri to parsre can't be null"); 
+		}
+		else {
+			final String						query = uri.getQuery();
+			
+			if (query != null && !query.isEmpty()) {
+				return parseQuery(query);
+			}
+			else {
+				return new Hashtable<>();
+			}
+		}
+	}
+
+	/**
+	 * <p>Parse query string (usually from uri query)</p>
+	 * @param query query string without preceding '?'
+	 * @return key/value pair from parsed query. Can be empty but not null
+	 * @throws NullPointerException when uri is null
+	 * @throws link IllegalArgumentException when query contains syntax errors
+	 * @since 0.0.3
+	 */
+	public static Hashtable<String,String[]> parseQuery(final String query) throws NullPointerException, IllegalArgumentException {
+		if (query == null) {
+			throw new NullPointerException("Query to parsre can't be null"); 
+		}
+		else if (query.isEmpty()) {
+			return new Hashtable<>();
+		}
+		else {
+			final Hashtable<String,String[]>	result = new Hashtable<>();
+			
+			for (String item : CharUtils.split(query,'&')) {
+				final int	index = item.indexOf('=');
+
+				if (index > 0) {
+					result.put(item.substring(0,index),new String[]{item.substring(index+1)});
+				}
+				else {
+					throw new IllegalArgumentException("Query item ["+item+"] doesn't contain equals sign");
+				}
+			}
+			return result;
+		}
+	}
+	
 	/**
 	 * <p>Delete directory content and directory self.</p>
 	 * @param dir directory to delete

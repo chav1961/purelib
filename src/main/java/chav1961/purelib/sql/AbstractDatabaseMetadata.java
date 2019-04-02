@@ -1,6 +1,10 @@
 package chav1961.purelib.sql;
 
 
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -8,10 +12,13 @@ import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.sql.interfaces.SQLMeta;
 
 public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String[]				ANY_CONTENT = new String[0];
@@ -446,7 +453,7 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 
 	@FunctionalInterface
 	protected interface DBTreeCallback<T> {
-		ContinueMode process(NodeEnterMode mode, RsMetaDataElement[] contentType, String nodeType, T node);
+		ContinueMode process(NodeEnterMode mode, RsMetaDataElement[] contentType, String nodeType, T node) throws SQLException;
 	}
 
 	protected abstract boolean isSuperUser(String userName) throws SQLException;
@@ -829,16 +836,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(procedureNamePattern == null ? "%" : procedureNamePattern)
 				,PROCEDURES_CONTENT,PROCEDURE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PROCEDURE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PROCEDURE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PROCEDURE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -846,19 +849,15 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(procedureNamePattern == null ? "%" : procedureNamePattern)
 				,PROCEDURES_CONTENT,PROCEDURE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PROCEDURE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PROCEDURE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PROCEDURE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
-
+	
 	@Override
 	public ResultSet getProcedureColumns(final String catalog, final String schemaPattern, final String procedureNamePattern, final String columnNamePattern) throws SQLException {
 		if (!isCatalogsSupported()) {
@@ -867,16 +866,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(procedureNamePattern == null ? "%" : procedureNamePattern)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,PROCEDURES_CONTENT,PROCEDURE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PROCEDURE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PROCEDURE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PROCEDURE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -884,16 +879,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(procedureNamePattern == null ? "%" : procedureNamePattern)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,PROCEDURES_CONTENT,PROCEDURE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PROCEDURE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PROCEDURE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PROCEDURE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -905,16 +896,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)
 				,types,TABLE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(TABLE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(TABLE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(TABLE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -922,16 +909,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)
 				,types,TABLE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(TABLE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(TABLE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(TABLE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -942,66 +925,46 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			
 			collect("%/%",ANY_CONTENT,SCHEMA_META,(mode, contentType, nodeType, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					// TODO:
+					result.add(fillAnnotations(SCHEMA_META,extractAnnotations(node.getClass(),node)));
 				}
 				return ContinueMode.SKIP_CHILDREN;
 			});
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SCHEMA_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SCHEMA_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
 			
 			collect("%",ANY_CONTENT,SCHEMA_META,(mode, contentType, nodeType, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					// TODO:
+					result.add(fillAnnotations(SCHEMA_META,extractAnnotations(node.getClass(),node)));
 				}
 				return ContinueMode.SKIP_CHILDREN;
 			});
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SCHEMA_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SCHEMA_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
 	@Override
 	public ResultSet getCatalogs() throws SQLException {
 		if (!isCatalogsSupported()) {
-			return new NullReadOnlyResultSet(new AbstractResultSetMetaData(CATALOG_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY);
+			return new NullReadOnlyResultSet(new SimpleResultSetMetaData(CATALOG_META,true),ResultSet.TYPE_FORWARD_ONLY);
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
 			
 			collect("%",ANY_CONTENT,CATALOG_META,(mode, contentType, nodeType, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					// TODO:
+					result.add(fillAnnotations(CATALOG_META,extractAnnotations(node.getClass(),node)));
 				}
 				return ContinueMode.SKIP_CHILDREN;
 			});
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(CATALOG_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(CATALOG_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
 	@Override
 	public ResultSet getTableTypes() throws SQLException {
-		return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(TABLE_TYPES_META,true) {
-			@Override public String getTableName(int column) throws SQLException {return null;}
-			@Override public String getSchemaName(int column) throws SQLException {return null;}
-			@Override public String getCatalogName(int column) throws SQLException {return null;}
-		},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(TABLE_TYPES_RS));
+		return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(TABLE_TYPES_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(TABLE_TYPES_RS));
 	}
 
 	@Override
@@ -1012,16 +975,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,TABLES_CONTENT,COLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(COLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(COLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(COLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1029,16 +988,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,TABLES_CONTENT,COLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(COLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(COLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(COLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1050,16 +1005,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,TABLES_CONTENT,COLUMN_PRIVILEGES_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(COLUMN_PRIVILEGES_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(COLUMN_PRIVILEGES_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(COLUMN_PRIVILEGES_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1067,16 +1018,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,TABLES_CONTENT,COLUMN_PRIVILEGES_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(COLUMN_PRIVILEGES_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(COLUMN_PRIVILEGES_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(COLUMN_PRIVILEGES_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1088,16 +1035,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)
 				,TABLES_CONTENT,TABLE_PRIVILEGES_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(TABLE_PRIVILEGES_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(TABLE_PRIVILEGES_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(TABLE_PRIVILEGES_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1105,16 +1048,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)
 				,TABLES_CONTENT,TABLE_PRIVILEGES_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(TABLE_PRIVILEGES_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(TABLE_PRIVILEGES_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(TABLE_PRIVILEGES_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1126,16 +1065,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
 				,TABLES_CONTENT,BEST_ROW_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(BEST_ROW_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(BEST_ROW_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(BEST_ROW_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1143,16 +1078,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
 				,TABLES_CONTENT,BEST_ROW_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(BEST_ROW_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(BEST_ROW_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(BEST_ROW_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1164,16 +1095,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
 				,TABLES_CONTENT,VERSION_COLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(VERSION_COLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(VERSION_COLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(VERSION_COLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1181,16 +1108,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/version/%"
 				,TABLES_CONTENT,VERSION_COLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(VERSION_COLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(VERSION_COLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(VERSION_COLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1202,16 +1125,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
 				,TABLES_CONTENT,PRIMARY_KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PRIMARY_KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PRIMARY_KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PRIMARY_KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1219,16 +1138,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
 				,TABLES_CONTENT,PRIMARY_KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PRIMARY_KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PRIMARY_KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PRIMARY_KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1240,16 +1155,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
 				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1257,16 +1168,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
 				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1278,16 +1185,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
 				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1295,16 +1198,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/constrains/primarykey"
 				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1316,16 +1215,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((parentCatalog == null ? "%" : parentCatalog)+'/'+(parentSchema == null ? "%" : parentSchema)+'/'+(parentTable == null ? "%" : parentTable)+"/constrains/primarykey"
 				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1333,16 +1228,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((parentSchema == null ? "%" : parentSchema)+'/'+(parentTable == null ? "%" : parentTable)+"/constrains/primarykey"
 				,TABLES_CONTENT,KEYS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(KEYS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(KEYS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(KEYS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1353,32 +1244,24 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			
 			collect("%/%/%",TYPES_CONTENT,TYPE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(TYPE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(TYPE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(TYPE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
 			
 			collect("%/%",TYPES_CONTENT,TYPE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(TYPE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(TYPE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(TYPE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1390,16 +1273,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/indices/%"
 				,TABLES_CONTENT,INDEX_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(INDEX_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(INDEX_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(INDEX_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1407,16 +1286,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schema == null ? "%" : schema)+'/'+(table == null ? "%" : table)+"/indices/%"
 				,TABLES_CONTENT,INDEX_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(INDEX_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(INDEX_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(INDEX_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1428,16 +1303,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)
 				,convertTypes(types),UDT_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(UDT_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(UDT_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(UDT_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1445,16 +1316,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)
 				,convertTypes(types),UDT_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(UDT_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(UDT_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(UDT_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1471,16 +1338,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
 				,TABLES_CONTENT,SUPERTYPE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(SUPERTYPE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTYPE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SUPERTYPE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1488,16 +1351,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
 				,TABLES_CONTENT,SUPERTYPE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(SUPERTYPE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTYPE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SUPERTYPE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1509,16 +1368,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
 				,TABLES_CONTENT,SUPERTABLE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(SUPERTABLE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTABLE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SUPERTABLE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1526,16 +1381,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
 				,TABLES_CONTENT,SUPERTABLE_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(SUPERTABLE_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SUPERTABLE_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SUPERTABLE_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1547,16 +1398,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
 				,TABLES_CONTENT,ATTRIBUTES_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(ATTRIBUTES_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(ATTRIBUTES_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(ATTRIBUTES_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1564,16 +1411,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(typeNamePattern == null ? "%" : typeNamePattern)+"/indices/%"
 				,TABLES_CONTENT,ATTRIBUTES_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(ATTRIBUTES_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(ATTRIBUTES_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(ATTRIBUTES_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1604,30 +1447,22 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			
 			collect((schemaPattern == null ? "%" : schemaPattern),ANY_CONTENT,SCHEMA_META,(mode, contentType, nodeType, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					// TODO:
+					result.add(fillAnnotations(SCHEMA_META,extractAnnotations(node.getClass(),node)));
 				}
 				return ContinueMode.SKIP_CHILDREN;
 			});
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SCHEMA_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SCHEMA_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
 			
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern),ANY_CONTENT,SCHEMA_META,(mode, contentType, nodeType, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					// TODO:
+					result.add(fillAnnotations(SCHEMA_META,extractAnnotations(node.getClass(),node)));
 				}
 				return ContinueMode.SKIP_CHILDREN;
 			});
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(SCHEMA_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(SCHEMA_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1638,32 +1473,24 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			
 			collect("%/%/%",TYPES_CONTENT,CLIENT_INFO_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(CLIENT_INFO_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(CLIENT_INFO_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(CLIENT_INFO_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
 			
 			collect("%/%",TYPES_CONTENT,CLIENT_INFO_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(CLIENT_INFO_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(CLIENT_INFO_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(CLIENT_INFO_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1675,16 +1502,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(functionNamePattern == null ? "%" : functionNamePattern)
 				,FUNCTIONS_CONTENT,FUNCTION_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(FUNCTION_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(FUNCTION_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(FUNCTION_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1692,16 +1515,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(functionNamePattern == null ? "%" : functionNamePattern)
 				,FUNCTIONS_CONTENT,FUNCTION_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(FUNCTION_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(FUNCTION_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(FUNCTION_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1713,16 +1532,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(functionNamePattern == null ? "%" : functionNamePattern)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,PROCEDURES_CONTENT,FUNCTION_COLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(FUNCTION_COLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(FUNCTION_COLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(FUNCTION_COLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1730,16 +1545,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(functionNamePattern == null ? "%" : functionNamePattern)+'/'+(columnNamePattern == null ? "%" : columnNamePattern)
 				,PROCEDURES_CONTENT,FUNCTION_COLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(FUNCTION_COLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(FUNCTION_COLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(FUNCTION_COLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1751,16 +1562,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((catalog == null ? "%" : catalog)+'/'+(schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
 				,TABLES_CONTENT,PSEUDOCOLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PSEUDOCOLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PSEUDOCOLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PSEUDOCOLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 		else {
 			final List<Object[]>	result = new ArrayList<>();
@@ -1768,16 +1575,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 			collect((schemaPattern == null ? "%" : schemaPattern)+'/'+(tableNamePattern == null ? "%" : tableNamePattern)+"/indices/%"
 				,TABLES_CONTENT,PSEUDOCOLUMNS_META,(mode, contentType, nodeType, node)->{
 					if (mode == NodeEnterMode.ENTER) {
-						// TODO:
+						result.add(fillAnnotations(PSEUDOCOLUMNS_META,extractAnnotations(node.getClass(),node)));
 					}
 					return ContinueMode.SKIP_CHILDREN;
 				}
 			);
-			return new InMemoryReadOnlyResultSet(new AbstractResultSetMetaData(PSEUDOCOLUMNS_META,true) {
-				@Override public String getTableName(int column) throws SQLException {return null;}
-				@Override public String getSchemaName(int column) throws SQLException {return null;}
-				@Override public String getCatalogName(int column) throws SQLException {return null;}
-			},ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
+			return new InMemoryReadOnlyResultSet(new SimpleResultSetMetaData(PSEUDOCOLUMNS_META,true),ResultSet.TYPE_FORWARD_ONLY, new ArrayContent(result.toArray()));
 		}
 	}
 
@@ -1788,5 +1591,52 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 
 	private static String[] convertTypes(final int[] types) {
 		return null;
+	}
+
+	private static Map<String,Object> extractAnnotations(final Class<?> clazz, final Object instance) throws SQLException {
+		final Map<String,Object>	result = new HashMap<>();
+		
+		try{extractAnnotations(clazz,instance,result);
+			return result;
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			throw new SQLException("EXception extracting metadata: "+e.getLocalizedMessage());
+		}
+	}
+
+	private static Object[] fillAnnotations(final RsMetaDataElement[] metaDescription, final Map<String,Object> annotations) {
+		final Object[]	result = new Object[metaDescription.length]; 
+		
+		for (int index = 0; index < result.length; index++) {
+			result[index] = annotations.get(metaDescription[index]);
+		}
+		return result;
+	}
+
+	private static void extractAnnotations(final Class<?> clazz, final Object instance, final Map<String,Object> target) throws IllegalAccessException, InvocationTargetException {
+		if (clazz != null) {
+			for (Field f : clazz.getDeclaredFields()) {
+				if (f.isAnnotationPresent(SQLMeta.class)) {
+					f.setAccessible(true);
+					target.put(f.getAnnotation(SQLMeta.class).value(),f.get(instance));
+				}
+			}
+			for (Method m : clazz.getDeclaredMethods()) {
+				if (m.isAnnotationPresent(SQLMeta.class)) {
+					m.setAccessible(true);
+					target.put(m.getAnnotation(SQLMeta.class).value(), m.invoke(instance));
+				}
+			}
+			extractAnnotations(clazz.getSuperclass(), instance, target);
+		}
+	}
+	
+	private class SimpleResultSetMetaData extends AbstractResultSetMetaData {
+		public SimpleResultSetMetaData(final RsMetaDataElement[] columns, final boolean readOnly) {
+			super(columns, readOnly);
+		}
+
+		@Override public String getSchemaName(int column) throws SQLException {return null;}
+		@Override public String getTableName(int column) throws SQLException {return null;}
+		@Override public String getCatalogName(int column) throws SQLException {return null;}
 	}
 }

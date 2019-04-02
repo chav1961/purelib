@@ -1,7 +1,6 @@
 package chav1961.purelib.internal;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

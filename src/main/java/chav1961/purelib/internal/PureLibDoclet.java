@@ -16,7 +16,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -27,27 +26,23 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.DocErrorReporter;
 import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Tag;
-import com.sun.tools.classfile.Attribute;
 import com.sun.tools.doclets.standard.Standard;
 
-import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 
 public class PureLibDoclet extends Standard {
 	public static final String	TAGNAME_ABOUT = "about";
@@ -79,9 +74,6 @@ public class PureLibDoclet extends Standard {
 	public enum ClassType {
 		CT_CLASS, CT_INTERFACE, CT_ENUM, CT_ANNOTATION, CT_PACKAGE
 	}
-	
-	private static final String	KEY_TREE_TARGET = "treeTarget";
-	
 	
 	public static void process(final String sourceLocation) throws IOException {
 		final Process 	process	= new ProcessBuilder().command("javadoc",sourceLocation,"-sourcepath","src/main/java","@./src/main/java/chav1961/purelib/internal/doclet.configuration").start();

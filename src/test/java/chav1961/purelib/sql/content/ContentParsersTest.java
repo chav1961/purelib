@@ -15,7 +15,7 @@ public class ContentParsersTest {
 	@Test
 	public void csvTest() throws UnsupportedEncodingException, IOException, SyntaxException, SQLException {
 		try(final InputStream		is = new ByteArrayInputStream("col1,col2,col3\nvalue1,value2,value3".getBytes("UTF-8"))) {
-			final CsvContentParser	parser = new CsvContentParser(is,"UTF-8", ',');
+			final CsvContentParser	parser = new CsvContentParser(is,"UTF-8", ',', false, null);
 			
 			Assert.assertEquals(parser.getMetaData().getColumnCount(),3);
 			Assert.assertEquals(parser.getMetaData().getColumnName(1),"col1");
@@ -28,7 +28,7 @@ public class ContentParsersTest {
 		}
 
 		try(final InputStream		is = new ByteArrayInputStream("\"col1\",col2,\"col3\"\nvalue1,\"value2\",value3".getBytes("UTF-8"))) {
-			final CsvContentParser	parser = new CsvContentParser(is,"UTF-8", ',');
+			final CsvContentParser	parser = new CsvContentParser(is,"UTF-8", ',', false, null);
 			
 			Assert.assertEquals(parser.getMetaData().getColumnCount(),3);
 			Assert.assertEquals(parser.getMetaData().getColumnName(1),"col1");
@@ -40,19 +40,19 @@ public class ContentParsersTest {
 			Assert.assertArrayEquals(parser.getAccessContent().getRow(1),new String[]{"value1","value2","value3"});
 		}
 		
-		try{new CsvContentParser(null,"UTF-8", ',');
+		try{new CsvContentParser(null,"UTF-8", ',', false, null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new CsvContentParser(new ByteArrayInputStream(new byte[0]),null, ',');
+		try{new CsvContentParser(new ByteArrayInputStream(new byte[0]),null, ',', false, null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new CsvContentParser(new ByteArrayInputStream(new byte[0]),"", ',');
+		try{new CsvContentParser(new ByteArrayInputStream(new byte[0]),"", ',', false, null);
 			Assert.fail("Mandatory exception was not detected (empty 2-nd argument)");
 		} catch (UnsupportedEncodingException exc) {
 		}
-		try{new CsvContentParser(new ByteArrayInputStream(new byte[0]),"shaize", ',');
+		try{new CsvContentParser(new ByteArrayInputStream(new byte[0]),"shaize", ',', false, null);
 			Assert.fail("Mandatory exception was not detected (unknown 2-nd argument)");
 		} catch (UnsupportedEncodingException exc) {
 		}

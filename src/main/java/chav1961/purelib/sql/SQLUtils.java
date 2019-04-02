@@ -256,6 +256,7 @@ public class SQLUtils {
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <T> T convertInternal(final Class<T> awaited, final Object value) throws ContentException {
 		final Class<?>	sourceClass = value.getClass();
 		

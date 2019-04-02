@@ -482,7 +482,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 							int 	rc = 200;
 							
 							try(final OutputStream	os = pair.getOutputStream()) {
-								final Hashtable<String,String[]>	queryParsed = parseQuery(call.getRequestURI().getQuery());
+								final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(call.getRequestURI().getQuery());
 								final URI							callPath = call.getRequestURI();
 								final String						pathTail = callPath.getPath().replace(pluginRoot,"");
 										
@@ -671,7 +671,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						try{int 	rc = 200;
 							long	length[] = new long[]{0};
 							
-							final Hashtable<String,String[]>	queryParsed = parseQuery(call.getRequestURI().getQuery());
+							final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(call.getRequestURI().getQuery());
 							final URI							callPath = call.getRequestURI();
 							final String						pathTail = callPath.getPath().replace(pluginRoot,"");
 									
@@ -925,19 +925,19 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 	
-	public static Hashtable<String,String[]> parseQuery(final String query) {
-		final Hashtable<String,String[]>	result = new Hashtable<>();
-		
-		if (query != null && !query.isEmpty()) {
-			for (String item : CharUtils.split(query,'&')) {
-				final int	index = item.indexOf('=');
-				
-				result.put(item.substring(0,index),new String[]{item.substring(index+1)});
-			}
-		}
-		return result;
-	}
-
+//	public static Hashtable<String,String[]> parseQuery(final String query) {
+//		final Hashtable<String,String[]>	result = new Hashtable<>();
+//		
+//		if (query != null && !query.isEmpty()) {
+//			for (String item : CharUtils.split(query,'&')) {
+//				final int	index = item.indexOf('=');
+//				
+//				result.put(item.substring(0,index),new String[]{item.substring(index+1)});
+//			}
+//		}
+//		return result;
+//	}
+//
 	/*
 	 * Collection of methods to parse annotated plug-in class and build wrapper to it
 	 */

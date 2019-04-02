@@ -221,7 +221,7 @@ public abstract class AbstractLocalizer implements Localizer {
 					final String	temp = getHelp(uriRef.getPath()); 
 					
 					if (uriRef.getQuery() != null) {
-						try{final Hashtable<String,String[]>	mimes = NanoServiceFactory.parseQuery(uriRef.getQuery());
+						try{final Hashtable<String,String[]>	mimes = Utils.parseQuery(uriRef.getQuery());
 							final MimeType		fromMime = mimes.containsKey("mime") ? PureLibSettings.MIME_PLAIN_TEXT : new MimeType(mimes.get("sourceMime")[0]);
 							final MimeType 		toMime = mimes.containsKey("mime") ? new MimeType(mimes.get("mime")[0]) : new MimeType(mimes.get("targetMime")[0]);
 						

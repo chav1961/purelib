@@ -23,27 +23,27 @@ public class RsMetaDataElement implements Comparable<RsMetaDataElement> {
 		this.frac = frac;
 	}
 	
-	String getName() {
+	public String getName() {
 		return name;
 	}
 
-	String getDescription() {
+	public String getDescription() {
 		return description;
 	}
 
-	String getTypeName() {
+	public String getTypeName() {
 		return typeName;
 	}
 
-	int getType() {
+	public int getType() {
 		return type;
 	}
 
-	int getLength() {
+	public int getLength() {
 		return length;
 	}
 
-	int getFrac() {
+	public int getFrac() {
 		return frac;
 	}
 
