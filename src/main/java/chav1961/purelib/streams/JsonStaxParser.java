@@ -10,6 +10,8 @@ import java.util.NoSuchElementException;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
+import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 /**
  * <p>This class implements a StAX-styled JSON parser to use in the in-stream JSON parsing application. Usage of this class is:</p>
@@ -25,13 +27,13 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * <p>This class is not thread-safe.</p>
  * 
  * @see <a href="https://tools.ietf.org/html/rfc7159">RFC 7159</a> 
- * @see LexType
+ * @see JsonStaxParserLexType
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
-public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterator<JsonStaxParser.LexType>, Closeable {
+public class JsonStaxParser implements JsonStaxParserInterface {
 	public static final int					DEFAULT_BUFFER_SIZE = 65536;
 	public static final int					MINIMAL_BUFFER_SIZE = 8192;
 
@@ -44,27 +46,6 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	private static final int				VALUE_AWAITED = 2;
 	private static final int				LIST_SPLITTER_AWAITED = 3;
 
-	/**
-	 * <p>This enumeration describes types of JSON lexemas in the input stream</p> 
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.2
-	 */
-	public enum LexType {
-		START_OBJECT,	// { 
-		END_OBJECT,		// }
-		START_ARRAY, 	// [
-		END_ARRAY,		// ]
-		LIST_SPLITTER, 	// ,
-		NAME_SPLITTER,	// :
-		BOOLEAN_VALUE, 	// true/false
-		INTEGER_VALUE, 	// 123
-		REAL_VALUE, 	// 123.456e-7
-		STRING_VALUE, 	// "text"
-		NULL_VALUE,		// null
-		NAME,			// "fieldName"
-		ERROR			// any unclassified content
-	}
-	
 	private final Reader					rdr;
 	private final int						bufferSize;
 	private final SyntaxTreeInterface<?>	tree;
@@ -76,7 +57,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	private char[]							buffer, pseudoStack = new char[64];
 	private int[]							awaitedLex = new int[64];
 	private int								cursor = 0, currentLen, currentRow = 0, currentCol = 0, pseudoStackDepth = 0;
-	private LexType							currentLex = null;
+	private JsonStaxParserLexType			currentLex = null;
 	private Exception						detected = null;
 
 	/**
@@ -149,6 +130,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * <p>Reset parser content</p> 
 	 * @throws IOException on any I/O errors
 	 */
+	@Override
 	public void reset() throws IOException {
 		readBlock();
 		pseudoStackDepth = 0;
@@ -158,7 +140,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	}
 	
 	@Override
-	public Iterator<LexType> iterator() {
+	public Iterator<JsonStaxParserLexType> iterator() {
 		return this;
 	}
 
@@ -177,7 +159,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	}
 
 	@Override
-	public LexType next() {
+	public JsonStaxParserLexType next() {
 		if (closed) {
 			throw new IllegalStateException("Attempt to call this method on closed stream");
 		}
@@ -192,7 +174,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 					case '{' 	:
 						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited object start in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							if (pseudoStackDepth >= pseudoStack.length-1) {
@@ -204,26 +186,26 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 							pseudoStack[pseudoStackDepth] = '{';
 							awaitedLex[pseudoStackDepth] = NAME_AWAITED;
 							cursor++; 
-							return currentLex = LexType.START_OBJECT;
+							return currentLex = JsonStaxParserLexType.START_OBJECT;
 						}	
 					case '}' 	:
 						if (pseudoStackDepth < 0) {
 							detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator: nesting stack exhausted");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else if (pseudoStack[pseudoStackDepth] != '{') {
 							detected = new SyntaxException(currentRow,currentCol,"Unpaired object terminator. Array terminator awaiting");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							pseudoStackDepth--;
 							cursor++; 
-							return currentLex = LexType.END_OBJECT;
+							return currentLex = JsonStaxParserLexType.END_OBJECT;
 						}
 					case '[' 	: 
 						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited array start in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							if (pseudoStackDepth >= pseudoStack.length-1) {
@@ -235,87 +217,87 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 							pseudoStack[pseudoStackDepth] = '[';
 							awaitedLex[pseudoStackDepth] = VALUE_AWAITED;
 							cursor++; 
-							return currentLex = LexType.START_ARRAY;
+							return currentLex = JsonStaxParserLexType.START_ARRAY;
 						}
 					case ']' 	: 
 						if (pseudoStackDepth < 0) {
 							detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator: nesting stack exhausted");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else if (pseudoStack[pseudoStackDepth] != '[') {
 							detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator. Object terminator awaiting");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							pseudoStackDepth--;
 							cursor++; 
-							return currentLex = LexType.END_ARRAY;
+							return currentLex = JsonStaxParserLexType.END_ARRAY;
 						}
 					case ',' 	:
 						if (awaitedLex[pseudoStackDepth] != LIST_SPLITTER_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited list splitter in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							cursor++; 
 							awaitedLex[pseudoStackDepth] = pseudoStack[pseudoStackDepth] == '{' ? NAME_AWAITED : VALUE_AWAITED;
-							return currentLex = LexType.LIST_SPLITTER;
+							return currentLex = JsonStaxParserLexType.LIST_SPLITTER;
 						}
 					case ':' 	: 
 						if (awaitedLex[pseudoStackDepth] != NAME_SPLITTER_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited name splitter in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							cursor++; 
 							awaitedLex[pseudoStackDepth] = VALUE_AWAITED;
-							return currentLex = LexType.NAME_SPLITTER;
+							return currentLex = JsonStaxParserLexType.NAME_SPLITTER;
 						}
 					case 't' 	:
 						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							if (compare(TRUE_VALUE)) {
 								parsedBoolean = true;
 								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = LexType.BOOLEAN_VALUE;
+								return currentLex = JsonStaxParserLexType.BOOLEAN_VALUE;
 							}
 							else {
 								detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
-								return currentLex = LexType.ERROR;
+								return currentLex = JsonStaxParserLexType.ERROR;
 							}
 						}
 					case 'f' 	:
 						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							if (compare(FALSE_VALUE)) {
 								parsedBoolean = false;
 								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = LexType.BOOLEAN_VALUE;
+								return currentLex = JsonStaxParserLexType.BOOLEAN_VALUE;
 							}
 							else {
 								detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
-								return currentLex = LexType.ERROR;
+								return currentLex = JsonStaxParserLexType.ERROR;
 							}
 						}
 					case 'n'	:
 						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							if (compare(NULL_VALUE)) {
 								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = LexType.NULL_VALUE;
+								return currentLex = JsonStaxParserLexType.NULL_VALUE;
 							}
 							else {
 								detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
-								return currentLex = LexType.ERROR;
+								return currentLex = JsonStaxParserLexType.ERROR;
 							}
 						}
 					case '-' :
@@ -324,7 +306,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 						cursor++;
 						if (!skipBlank()) {
 							detected = new SyntaxException(currentRow,currentCol,"Illegal sign in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 						int		from = cursor;
@@ -341,9 +323,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 							}
 						} while (readBlock());
 						
-						currentLex = LexType.INTEGER_VALUE;
+						currentLex = JsonStaxParserLexType.INTEGER_VALUE;
 						if (temp[cursor] == '.') {
-							currentLex = LexType.REAL_VALUE;
+							currentLex = JsonStaxParserLexType.REAL_VALUE;
 							cursor++;
 							
 							do {while (cursor < currentLen && temp[cursor] >= '0' && temp[cursor] <= '9') {
@@ -360,7 +342,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 						}
 						
 						if (temp[cursor] == 'e' || temp[cursor] == 'E') {
-							currentLex = LexType.REAL_VALUE;
+							currentLex = JsonStaxParserLexType.REAL_VALUE;
 							cursor++;
 							
 							do {while (cursor < currentLen && (temp[cursor] == '+' || temp[cursor] == '-')) {
@@ -390,10 +372,10 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 						
 						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
-							if (currentLex == LexType.INTEGER_VALUE) {
+							if (currentLex == JsonStaxParserLexType.INTEGER_VALUE) {
 								if (from < cursor) {
 									cursor = CharUtils.parseLong(buffer,from,forParsedLong,true);
 								}
@@ -441,7 +423,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 						
 						if (awaitedLex[pseudoStackDepth] != NAME_AWAITED && awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
 							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = LexType.ERROR;
+							return currentLex = JsonStaxParserLexType.ERROR;
 						}
 						else {
 							if (moreThanBlock) {
@@ -467,20 +449,20 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 							escapedString = escaped;
 							if (awaitedLex[pseudoStackDepth] == NAME_AWAITED) {
 								awaitedLex[pseudoStackDepth] = NAME_SPLITTER_AWAITED;
-								return currentLex = LexType.NAME;
+								return currentLex = JsonStaxParserLexType.NAME;
 							}
 							else {
 								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = LexType.STRING_VALUE;
+								return currentLex = JsonStaxParserLexType.STRING_VALUE;
 							}
 						}
 					default : 
 						detected = new SyntaxException(currentRow,currentCol,"Illegal char in the stream");
-						return currentLex = LexType.ERROR;
+						return currentLex = JsonStaxParserLexType.ERROR;
 				}
 			} catch (IOException e) {
 				detected = e;
-				return currentLex = LexType.ERROR;
+				return currentLex = JsonStaxParserLexType.ERROR;
 			}
 		}
 	}
@@ -489,12 +471,22 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * <p>Get current lexema type</p>
 	 * @return current lexema type. Can't be nu;;
 	 */
-	public LexType current() {
+	@Override
+	public JsonStaxParserLexType current() {
 		if (currentLex == null) {
 			throw new IllegalStateException("Attempt to call this method before any next() calls");
 		}
 		else {
 			return currentLex;
+		}
+	}
+
+	@Override
+	public JsonStaxParserInterface nested() throws IOException, IllegalStateException {
+		switch (current()) {
+			case START_ARRAY 	: return new StaxWrapper(this,JsonStaxParserLexType.END_ARRAY);
+			case START_OBJECT	: return new StaxWrapper(this,JsonStaxParserLexType.END_OBJECT);
+			default : throw new IllegalStateException("Call this method is available on the START_OBJECT or START_ARRAY lexema only, but current lexema is ["+current()+"]");
 		}
 	}
 	
@@ -504,11 +496,12 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @throws IOException on any I/O errors
 	 * @throws IllegalStateException attempt to get Id without passing {@linkplain SyntaxTreeInterface} instance 
 	 */
+	@Override
 	public int nameId() throws IOException, IllegalStateException {
 		if (tree == null) {
 			throw new IllegalStateException("You can't use this method because name tree was not passed to the constructor");
 		}
-		else if (currentLex != LexType.NAME) {
+		else if (currentLex != JsonStaxParserLexType.NAME) {
 			throw new IllegalStateException("Attempt to read name when lex type is ["+currentLex+"]");
 		}
 		else if (shortString) {
@@ -525,8 +518,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @throws IOException on any I/O errors
 	 * @throws IllegalStateException if current lexema is not a name 
 	 */
+	@Override
 	public String name() throws IOException, IllegalStateException {
-		if (currentLex != LexType.NAME) {
+		if (currentLex != JsonStaxParserLexType.NAME) {
 			throw new IllegalStateException("Attempt to read name when lex type is ["+currentLex+"]");
 		}
 		else if (shortString) {
@@ -545,8 +539,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @return really filled length.
 	 * @throws IOException on any I/O errors
 	 */
+	@Override
 	public int name(final char[] content, final int from, final int to) throws IOException, IllegalStateException {
-		if (currentLex != LexType.NAME) {
+		if (currentLex != JsonStaxParserLexType.NAME) {
 			throw new IllegalStateException("Attempt to read string when lex type is ["+currentLex+"]");
 		}
 		else if (shortString) {
@@ -569,8 +564,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @throws IOException on any I/O errors
 	 * @throws IllegalStateException if current lexema is not a boolean value 
 	 */
+	@Override
 	public boolean booleanValue() throws IOException, IllegalStateException {
-		if (currentLex != LexType.BOOLEAN_VALUE) {
+		if (currentLex != JsonStaxParserLexType.BOOLEAN_VALUE) {
 			throw new IllegalStateException("Attempt to read boolean when lex type is ["+currentLex+"]");
 		}
 		else {
@@ -584,8 +580,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @throws IOException on any I/O errors
 	 * @throws IllegalStateException if current lexema is not a int value 
 	 */
+	@Override
 	public long intValue() throws IOException, IllegalStateException {
-		if (currentLex != LexType.INTEGER_VALUE) {
+		if (currentLex != JsonStaxParserLexType.INTEGER_VALUE) {
 			throw new IllegalStateException("Attempt to read integer when lex type is ["+currentLex+"]");
 		}
 		else {
@@ -599,8 +596,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @throws IOException on any I/O errors
 	 * @throws IllegalStateException if current lexema is not a real value 
 	 */
+	@Override
 	public double realValue() throws IOException, IllegalStateException {
-		if (currentLex != LexType.REAL_VALUE) {
+		if (currentLex != JsonStaxParserLexType.REAL_VALUE) {
 			throw new IllegalStateException("Attempt to read real when lex type is ["+currentLex+"]");
 		}
 		else {
@@ -614,8 +612,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @throws IOException on any I/O errors
 	 * @throws IllegalStateException if current lexema is not a name 
 	 */
+	@Override
 	public String stringValue() throws IOException, IllegalStateException {
-		if (currentLex != LexType.STRING_VALUE) {
+		if (currentLex != JsonStaxParserLexType.STRING_VALUE) {
 			throw new IllegalStateException("Attempt to read string when lex type is ["+currentLex+"]");
 		}
 		else if (shortString && !escapedString) {
@@ -634,8 +633,9 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * @return really filled length.
 	 * @throws IOException on any I/O errors
 	 */
+	@Override
 	public int stringValue(final char[] content, final int from, final int to) throws IOException, IllegalStateException {
-		if (currentLex != LexType.STRING_VALUE) {
+		if (currentLex != JsonStaxParserLexType.STRING_VALUE) {
 			throw new IllegalStateException("Attempt to read string when lex type is ["+currentLex+"]");
 		}
 		else if (shortString && !escapedString) {
@@ -656,6 +656,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * <p>Get current row inside Reader</p>
 	 * @return current row
 	 */
+	@Override
 	public long row() {
 		return 0;
 	}
@@ -664,6 +665,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * <p>Get current column inside Reader</p>
 	 * @return current column
 	 */
+	@Override
 	public long col() {
 		return 0;
 	}
@@ -672,6 +674,7 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 	 * <p>Get last error description</p>
 	 * @return last error description or null if missing
 	 */
+	@Override
 	public Exception getLastError() {
 		return detected;
 	}
@@ -719,5 +722,114 @@ public class JsonStaxParser implements Iterable<JsonStaxParser.LexType>, Iterato
 		} while (readBlock());
 		
 		return false;
+	}
+
+	private static class StaxWrapper implements JsonStaxParserInterface {
+		private final JsonStaxParserInterface	delegate;
+		private final JsonStaxParserLexType 	terminator;
+		private boolean							canContinue = true;
+		
+		StaxWrapper(final JsonStaxParserInterface delegate, final JsonStaxParserLexType terminator) {
+			this.delegate = delegate;
+			this.terminator = terminator;
+		}
+
+		@Override
+		public Iterator<JsonStaxParserLexType> iterator() {
+			return this;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return canContinue && delegate.hasNext();
+		}
+
+		@Override
+		public JsonStaxParserLexType next() {
+			final JsonStaxParserLexType	result = delegate.next();
+			
+			if (result == terminator) {
+				canContinue = false;
+			}
+			return result;
+		}
+
+		@Override
+		public void close() throws IOException {
+		}
+
+		@Override
+		public void reset() throws IOException {
+			throw new IllegalStateException("Calling this method is not available on nested parsers");
+		}
+
+		@Override
+		public JsonStaxParserLexType current() {
+			return delegate.current();
+		}
+
+		@Override
+		public JsonStaxParserInterface nested() throws IOException {
+			switch (current()) {
+				case START_ARRAY 	: return new StaxWrapper(delegate,JsonStaxParserLexType.END_ARRAY);
+				case START_OBJECT	: return new StaxWrapper(delegate,JsonStaxParserLexType.END_OBJECT);
+				default : throw new IllegalStateException("Call this method is available on the START_OBJECT or START_ARRAY lexema only, but current lexema is ["+current()+"]");
+			}
+		}
+
+		@Override
+		public int nameId() throws IOException {
+			return delegate.nameId();
+		}
+
+		@Override
+		public String name() throws IOException {
+			return delegate.name();
+		}
+
+		@Override
+		public int name(char[] content, int from, int to) throws IOException {
+			return delegate.name(content, from, to);
+		}
+
+		@Override
+		public boolean booleanValue() throws IOException {
+			return delegate.booleanValue();
+		}
+
+		@Override
+		public long intValue() throws IOException {
+			return delegate.intValue();
+		}
+
+		@Override
+		public double realValue() throws IOException {
+			return delegate.realValue();
+		}
+
+		@Override
+		public String stringValue() throws IOException {
+			return delegate.stringValue();
+		}
+
+		@Override
+		public int stringValue(char[] content, int from, int to) throws IOException {
+			return delegate.stringValue(content, from, to);
+		}
+
+		@Override
+		public long row() {
+			return delegate.row();
+		}
+
+		@Override
+		public long col() {
+			return delegate.col();
+		}
+
+		@Override
+		public Exception getLastError() {
+			return delegate.getLastError();
+		}		
 	}
 }

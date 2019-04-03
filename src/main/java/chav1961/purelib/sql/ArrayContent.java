@@ -1,5 +1,6 @@
 package chav1961.purelib.sql;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 
 public class ArrayContent extends AbstractContent {
@@ -16,27 +17,33 @@ public class ArrayContent extends AbstractContent {
 	}
 
 	@Override
-	public int getRowCount() {
+	public boolean isStreaming() {
+		return false;
+	}
+	
+	@Override
+	public int getRowCount() throws SQLException {
 		return data.length;
 	}
 
 	@Override
-	public int getCurrentRow() {
+	public int getCurrentRow() throws SQLException {
 		return currentRow;
 	}
 
 	@Override
-	public void setCurrentRow(final int row) {
+	public boolean setCurrentRow(final int row) throws SQLException {
 		if (row < 1 || row > getRowCount()) {
 			throw new IllegalArgumentException("Row number ["+row+"] out of range 1.."+getRowCount());
 		}
 		else {
 			this.currentRow = row;
+			return true;
 		}
 	}
 
 	@Override
-	public Object[] getRow(final int row) {
+	public Object[] getRow(final int row) throws SQLException {
 		if (row < 1 || row > getRowCount()) {
 			throw new IllegalArgumentException("Row number ["+row+"] out of range 1.."+getRowCount());
 		}
@@ -44,15 +51,23 @@ public class ArrayContent extends AbstractContent {
 			return data[row-1];
 		}
 	}
+
+	@Override
+	public void close() throws SQLException {
+		Arrays.fill(data,null);
+	}
 	
 	@Override
 	public String toString() {
-		final StringBuilder	sb = new StringBuilder("ArrayContent = [size="+getRowCount()+", current="+getCurrentRow()+", data:\n");
+		try{final StringBuilder				sb = new StringBuilder("ArrayContent = [size="+getRowCount()+", current="+getCurrentRow()+", data:\n");
 		
-		for (Object[] item : data) {
-			sb.append(Arrays.toString(item)).append('\n');
+			for (Object[] item : data) {
+				sb.append(Arrays.toString(item)).append('\n');
+			}
+			sb.append(']');
+			return sb.toString();
+		} catch (SQLException e) {
+			return super.toString();
 		}
-		sb.append(']');
-		return sb.toString();
 	}
 }

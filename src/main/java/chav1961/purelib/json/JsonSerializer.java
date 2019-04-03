@@ -39,10 +39,10 @@ import chav1961.purelib.basic.growablearrays.GrowableShortArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 import chav1961.purelib.streams.JsonStaxParser;
-import chav1961.purelib.streams.JsonStaxParser.LexType;
 import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
+import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 /**
  * <p>This class is a JSON serializer/deserializer for different classes. It supports both primitive and referenced Java classes. Sources and targets
@@ -2472,7 +2472,7 @@ public abstract class JsonSerializer<T> {
 						final GrowableBooleanArray	temp = arrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case BOOLEAN_VALUE	:
 										temp.append(reader.booleanValue());
@@ -2765,7 +2765,7 @@ loop:						for (LexType item : reader) {
 						final GrowableByteArray	temp = arrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case INTEGER_VALUE	:
 										temp.append((byte)reader.intValue());
@@ -3100,7 +3100,7 @@ loop:						for (LexType item : reader) {
 						final char[]			symbol = charArrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case STRING_VALUE	:
 										reader.stringValue(symbol,0,1);
@@ -3409,7 +3409,7 @@ loop:						for (LexType item : reader) {
 						final GrowableDoubleArray	temp = arrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case INTEGER_VALUE	:
 										temp.append(reader.intValue());
@@ -3716,7 +3716,7 @@ loop:						for (LexType item : reader) {
 						final GrowableFloatArray	temp = arrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case INTEGER_VALUE	:
 										temp.append(reader.intValue());
@@ -4011,7 +4011,7 @@ loop:						for (LexType item : reader) {
 						final GrowableIntArray	temp = arrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case INTEGER_VALUE	:
 										temp.append((int)reader.intValue());
@@ -4303,7 +4303,7 @@ loop:						for (LexType item : reader) {
 						final GrowableLongArray	temp = arrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case INTEGER_VALUE	:
 										temp.append(reader.intValue());
@@ -4594,7 +4594,7 @@ loop:						for (LexType item : reader) {
 						final GrowableShortArray	temp = arrayMemory.allocate();
 						
 						try{
-loop:						for (LexType item : reader) {
+loop:						for (JsonStaxParserLexType item : reader) {
 								switch (item) {
 									case INTEGER_VALUE	:
 										temp.append((short)reader.intValue());
@@ -4878,11 +4878,11 @@ loop:						for (LexType item : reader) {
 						final Object[]			value = objectArrayMemory.allocate();
 						
 						try{do {reader.next();	// The same first call skips '[', all next - ','
-								if (reader.current() == LexType.END_ARRAY) {
+								if (reader.current() == JsonStaxParserLexType.END_ARRAY) {
 									break;
 								}
 								temp.add(innerSerializer.deserialize(reader));
-							} while (reader.current() == LexType.LIST_SPLITTER);
+							} while (reader.current() == JsonStaxParserLexType.LIST_SPLITTER);
 						
 							final Object[]	returned = (Object[]) Array.newInstance(innerClass,temp.size());
 							
@@ -5266,7 +5266,7 @@ loop:						for (LexType item : reader) {
 								else {
 									break;
 								}
-								if (reader.current() == LexType.END_OBJECT) {
+								if (reader.current() == JsonStaxParserLexType.END_OBJECT) {
 									break;
 								}
 							
@@ -5279,7 +5279,7 @@ loop:						for (LexType item : reader) {
 								else {
 									final GetterAndSetter	cargo = names.getCargo(nameId);
 									
-									if (reader.hasNext() && reader.next() == LexType.NAME_SPLITTER) {
+									if (reader.hasNext() && reader.next() == JsonStaxParserLexType.NAME_SPLITTER) {
 										if (reader.hasNext()) {
 											reader.next();
 											cargo.setValue(instance,cargo.getSerializer().deserialize(reader));
@@ -5292,7 +5292,7 @@ loop:						for (LexType item : reader) {
 										throw new SyntaxException(reader.row(),reader.col(),"Ref obj ':' is missing");
 									}
 								}							
-							} while (reader.current() == LexType.LIST_SPLITTER);
+							} while (reader.current() == JsonStaxParserLexType.LIST_SPLITTER);
 						
 							return instance;
 						} catch (IOException | InstantiationException | IllegalAccessException e) {

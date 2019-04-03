@@ -75,13 +75,23 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 				}
 
 				@Override
-				public void setCurrentRow(final int row) {
+				public boolean setCurrentRow(final int row) {
 					this.currentRow = row;
+					return true;
 				}
 
 				@Override
 				public Object[] getRow(final int rowNum) {
 					return returned[rowNum];
+				}
+
+				@Override
+				public boolean isStreaming() {
+					return false;
+				}
+
+				@Override
+				public void close() throws SQLException {
 				}
 			};
 		}

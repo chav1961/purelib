@@ -1,9 +1,12 @@
 package chav1961.purelib.sql;
 
-public abstract class AbstractContent {
-	public boolean isStreaming() {return false;}
-	public abstract int getRowCount();
-	public abstract int getCurrentRow();
-	public abstract void setCurrentRow(int row);
-	public abstract Object[] getRow(int rowNum);
+import java.sql.SQLException;
+
+public abstract class AbstractContent implements AutoCloseable {
+	public abstract boolean isStreaming();
+	public abstract int getRowCount() throws SQLException;
+	public abstract int getCurrentRow() throws SQLException;
+	public abstract boolean setCurrentRow(int row) throws SQLException;
+	public abstract Object[] getRow(int rowNum) throws SQLException;
+	public abstract void close() throws SQLException;
 }

@@ -25,6 +25,7 @@ import chav1961.purelib.streams.JsonSaxParser;
 
 public class XMLContentParser implements ResultSetContentParser {
 	private static final URI		URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":xml:");
+	private static final String		OPTION_ENCODING = "encoding";
 	
 	private final AbstractContent	content;
 	private ResultSetMetaData		metadata = null;
@@ -58,7 +59,7 @@ public class XMLContentParser implements ResultSetContentParser {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
 		for (Entry<String, String[]> item : result.entrySet()) {
-			if (!"encoding".equals(item.getKey())) {
+			if (!OPTION_ENCODING.equals(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
 		}
@@ -74,12 +75,13 @@ public class XMLContentParser implements ResultSetContentParser {
 			throw new IllegalArgumentException("Content can't be null or empty array");
 		}
 		else {
-			try(final InputStream	is = access.openStream()) {
-						
-				return new JsonContentParser(is,options.containsKey("encoding") ? options.getProperty("encoding",String.class) : "UTF-8",content);
-			} catch (SyntaxException e) {
-				throw new IOException("Syntax error in content: "+e.getLocalizedMessage());
-			}
+//			try(final InputStream	is = access.openStream()) {
+					
+				return null;
+				//return new JsonContentParser(is,options.getProperty(OPTION_ENCODING,String.class,"UTF-8"),content);
+//			} catch (SyntaxException e) {
+//				throw new IOException("Syntax error in content: "+e.getLocalizedMessage());
+//			}
 		}
 	}
 

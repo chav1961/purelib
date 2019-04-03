@@ -49,6 +49,7 @@
 2. Добавить опцию для BigInteger/BigDecimal
 *3. Отрефакторить JsonSaxHandlerFactory под класс CompilerUtils
 *4. Перенести JsonSaxHandlerFactory в пакет json
+5. Дополнить JsonStaxParser методом nested()->Iterable<LexType> для обработки вложенностей
 *Пакет streams.char2char
 *1. Дополнить класс CreoleWriter режимом подсчета переводов строки в параграфах и других элементах 
 *2. Дополнить класс CreoleWriter режимом подсчета завершающих '===' в заголовках, чтобы можно было правильно отображать текст в окне

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -31,35 +32,77 @@ import chav1961.purelib.sql.AbstractContent;
 import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
+import chav1961.purelib.sql.StreamContent;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
 import chav1961.purelib.streams.JsonSaxParser;
+import chav1961.purelib.streams.JsonStaxParser;
+import chav1961.purelib.streams.byte2char.BufferedInputStreamReader;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
+import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
+import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 public class JsonContentParser implements ResultSetContentParser {
-	private static final URI		URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":json:");
+	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":json:");
+	private static final String			OPTION_ENCODING = "encoding";
+	private static final int			PARSER_BUFFER_SIZE = 8192;
 	
 	private final SyntaxTreeInterface<Object>	names = new AndOrTree<>();
 	private final AbstractContent		content;
-	private final RsMetaDataElement[]	fields;
-	private ResultSetMetaData			metadata = null;
+	private final ResultSetMetaData		metadata;
 	
 	public JsonContentParser() {
 		this.content = null;
-		this.fields = null;
+		this.metadata = null;
 	}
 	
-	protected JsonContentParser(final InputStream content, final String encoding, final RsMetaDataElement[] fields) throws IOException, SyntaxException {
-		final List<Object[]>		values = new ArrayList<>();
+	protected JsonContentParser(final JsonStaxParser parser, final RsMetaDataElement[] fields) throws IOException, SyntaxException {
+		this.content = new StreamContent(new Object[fields.length],
+				(forData)->{
+loop:				for (JsonStaxParserLexType item : parser) {
+						switch (item) {
+							case END_ARRAY		:
+								break loop;
+							case ERROR			:
+								final Exception	err = parser.getLastError();
+								
+								throw new SQLException(err.getLocalizedMessage(),err);
+							case LIST_SPLITTER	:
+								break;
+							case START_OBJECT	:
+								try(final JsonStaxParserInterface inner = parser.nested()) {
+									
+									fillRow(inner,forData);
+								} catch (IOException e) {
+									throw new SQLException(e.getLocalizedMessage(),e);
+								}
+								return true;
+							default:
+								break;						
+						}
+					}
+					return false;
+				},
+				()->{
+					try{parser.close();
+					} catch (IOException e) {
+						throw new SQLException(e.getLocalizedMessage(),e);
+					}
+				}
+			);
+		this.metadata = new AbstractResultSetMetaData(fields,true) {
+			@Override public String getTableName(int column) throws SQLException {return "table";}
+			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
+			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
+		};
+	}
 
-		for (int index = 0; index < fields.length; index++) {
-			names.placeName(fields[index].getName(), index, null);
-		}
-		
-		final Object[][] result = values.toArray(new Object[values.size()][]);
-		
-		values.clear();
-		this.content = new ArrayContent((Object[][])result);
-		this.fields = null;
+	protected JsonContentParser(final Object[][] content, final RsMetaDataElement[] fields) throws IOException, SyntaxException {
+		this.content = new ArrayContent(content);
+		this.metadata = new AbstractResultSetMetaData(fields,true) {
+			@Override public String getTableName(int column) throws SQLException {return "table";}
+			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
+			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
+		};
 	}
 	
 	@Override
@@ -72,7 +115,7 @@ public class JsonContentParser implements ResultSetContentParser {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
 		for (Entry<String, String[]> item : result.entrySet()) {
-			if (!"encoding".equals(item.getKey())) {
+			if (!OPTION_ENCODING.equals(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
 		}
@@ -87,12 +130,72 @@ public class JsonContentParser implements ResultSetContentParser {
 		else if (content == null || content.length == 0) {
 			throw new NullPointerException("Content can't be null or empty array");
 		}
+		else if (resultSetType != ResultSet.TYPE_FORWARD_ONLY && resultSetType != ResultSet.TYPE_SCROLL_SENSITIVE && resultSetType != ResultSet.TYPE_SCROLL_INSENSITIVE) {
+			throw new IllegalArgumentException("Illegal result set type ["+resultSetType+"]. Can be ResultSet.TYPE_FORWARD_ONLY, ResultSet.TYPE_SCROLL_SENSITIVE or ResultSet.TYPE_SCROLL_INSENSITIVE only");
+		}
 		else {
-			try(final InputStream	is = access.openStream()) {
-						
-				return new JsonContentParser(is,options.containsKey("encoding") ? options.getProperty("encoding",String.class) : "UTF-8",content);
-			} catch (SyntaxException e) {
-				throw new IOException("Syntax error in content: "+e.getLocalizedMessage());
+			final SyntaxTreeInterface<RsMetaDataElement>	names = new AndOrTree<>();
+			
+			for (int index = 0; index < content.length; index++) {
+				names.placeName(content[index].getName(),index+1,content[index]);
+			}
+			
+			if (resultSetType == ResultSet.TYPE_FORWARD_ONLY) {
+				final InputStream		is = access.openStream();
+				final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(OPTION_ENCODING,String.class,"UTF-8"));
+				final JsonStaxParser	parser = new JsonStaxParser(rdr,PARSER_BUFFER_SIZE,names);
+				
+				if (!parser.hasNext()) {
+					try{return new JsonContentParser(new Object[0][],content);
+					} catch (SyntaxException exc) {
+						parser.close();
+						throw new IOException(exc.getLocalizedMessage(),exc); 
+					}
+				}
+				else if (parser.next() != JsonStaxParserLexType.START_ARRAY) {
+					final SyntaxException	exc = new SyntaxException(parser.row(),parser.col(),"Array nesting is too big or exhausted");
+
+					parser.close();
+					throw new IOException(exc.getLocalizedMessage(),exc); 
+				}
+				else {
+					try{return new JsonContentParser(parser,content);
+					} catch (SyntaxException exc) {
+						parser.close();
+						throw new IOException(exc.getLocalizedMessage(),exc); 
+					}
+				}
+			}
+			else {
+				final List<Object[]>		data = new ArrayList<>();
+				
+				try(final InputStream		is = access.openStream();
+					final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(OPTION_ENCODING,String.class,"UTF-8"));
+					final JsonStaxParser	parser = new JsonStaxParser(rdr,PARSER_BUFFER_SIZE,names)) {
+					int						arrayDepth = 0, nameIndex = 0;
+					Object[]				row = null;
+
+					for (JsonStaxParserLexType item : parser) {
+						switch (item) {
+							case START_ARRAY	:
+								try(final JsonStaxParserInterface inner = parser.nested()) {
+								}
+								break;
+							case LIST_SPLITTER	:
+								break;
+							default:
+								break;
+						}
+					}
+					
+					try{return new JsonContentParser((Object[][])data.toArray(),content);
+					} catch (SyntaxException exc) {
+						throw new IOException(exc.getLocalizedMessage(),exc); 
+					}
+				} finally {
+					data.clear();
+					names.clear();
+				}
 			}
 		}
 	}
@@ -112,4 +215,51 @@ public class JsonContentParser implements ResultSetContentParser {
 		return content;
 	}
 
+	private static void fillRow(final JsonStaxParserInterface parser, final Object[] row) throws IOException {
+		int			nameIndex = 0;
+		
+		for (JsonStaxParserLexType item : parser) {
+			switch (item) {
+				case BOOLEAN_VALUE	:
+					row[nameIndex] = parser.booleanValue();
+					break;
+				case END_ARRAY		:
+					break;
+				case END_OBJECT		:
+					return;
+				case ERROR			:
+					final Exception	ex = parser.getLastError();
+					
+					throw new IOException(ex.getLocalizedMessage(),ex); 
+				case INTEGER_VALUE	:
+					row[nameIndex] = parser.intValue();
+					break;
+				case NAME			:
+					nameIndex = parser.nameId();
+					break;
+				case NULL_VALUE		:
+					row[nameIndex] = null;
+					break;
+				case REAL_VALUE		:
+					row[nameIndex] = parser.realValue();
+					break;
+				case START_ARRAY	:
+					final SyntaxException	excA = new SyntaxException(parser.row(),parser.col(),"Array nesting is too big");
+					
+					throw new IOException(excA.getLocalizedMessage(),excA); 
+				case START_OBJECT	:
+					final SyntaxException	excO = new SyntaxException(parser.row(),parser.col(),"Object nesting is too big");
+					
+					throw new IOException(excO.getLocalizedMessage(),excO); 
+				case STRING_VALUE	:
+					row[nameIndex] = parser.stringValue();
+					break;
+				default:
+					break;
+			}
+		}
+		final SyntaxException	excO = new SyntaxException(parser.row(),parser.col(),"Empty structure");
+		
+		throw new IOException(excO.getLocalizedMessage(),excO); 
+	}	
 }

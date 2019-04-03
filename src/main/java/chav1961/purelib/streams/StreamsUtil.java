@@ -9,8 +9,8 @@ import javax.activation.MimeType;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
-import chav1961.purelib.streams.JsonStaxParser.LexType;
 import chav1961.purelib.streams.char2char.CreoleWriter;
+import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 /**
  * <p>This is an useful utility class to support a lot of popular operations on streams.</p>
@@ -88,7 +88,7 @@ public class StreamsUtil {
 			throw new NullPointerException("Target printer can't be null");
 		}
 		else {
-			for (LexType item : source) {
+			for (JsonStaxParserLexType item : source) {
 				switch (item) {
 					case BOOLEAN_VALUE	: target.value(source.booleanValue()); break;
 					case END_ARRAY		: target.endArray(); break;
