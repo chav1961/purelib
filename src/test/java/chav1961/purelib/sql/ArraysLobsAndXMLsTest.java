@@ -14,7 +14,6 @@ import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLXML;
-import java.sql.Struct;
 import java.sql.Types;
 import java.util.HashSet;
 import java.util.Set;

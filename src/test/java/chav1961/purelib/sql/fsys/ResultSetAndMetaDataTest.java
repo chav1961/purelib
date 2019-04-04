@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.InMemoryReadOnlyResultSet;
@@ -30,7 +31,7 @@ import chav1961.purelib.sql.SQLUtils;
 
 public class ResultSetAndMetaDataTest {
 	@Test
-	public void metaDataTest() throws SQLException {
+	public void metaDataTest() throws SQLException, SyntaxException {
 		final ResultSetMetaData	rsmd = new PseudoResultSetMetaData(true,"CHAR:VARCHAR(100)","NUMBER:NUMERIC(10,2)","DATE:DATE");
 		
 		Assert.assertEquals(rsmd.getColumnCount(),3);
@@ -71,7 +72,7 @@ public class ResultSetAndMetaDataTest {
 	}
 	
 	@Test
-	public void nullResultSetTest() throws SQLException {
+	public void nullResultSetTest() throws SQLException, SyntaxException {
 		try(final ResultSet		rs = new NullReadOnlyResultSet(new FSysResultSetMetaData(null,null,null,true,"NAME:VARCHAR(100)"),ResultSet.TYPE_FORWARD_ONLY)) {
 			
 			Assert.assertEquals(rs.getMetaData().getColumnCount(),1);
@@ -137,7 +138,7 @@ public class ResultSetAndMetaDataTest {
 	}	
 
 	@Test
-	public void inMemoryResultSetTest() throws SQLException, IOException {
+	public void inMemoryResultSetTest() throws SQLException, IOException, SyntaxException {
 		try(final ResultSet		rs = new InMemoryReadOnlyResultSet(new FSysResultSetMetaData(null,null,null,true
 																				,"NAME:VARCHAR(100)"
 																				,"URL:VARCHAR(100)"
@@ -201,7 +202,7 @@ public class ResultSetAndMetaDataTest {
 	}
 
 	@Test
-	public void inMemoryScrollableResultSetTest() throws SQLException, IOException {
+	public void inMemoryScrollableResultSetTest() throws SQLException, IOException, SyntaxException {
 		try(final ResultSet		rs = new InMemoryReadOnlyResultSet(new FSysResultSetMetaData(null,null,null,true
 																				,"NAME:VARCHAR(100)"
 																				,"URL:VARCHAR(100)"
@@ -349,7 +350,7 @@ public class ResultSetAndMetaDataTest {
 }
 
 class PseudoResultSetMetaData extends AbstractResultSetMetaData {
-	PseudoResultSetMetaData(final boolean readOnly, final String... columns) {
+	PseudoResultSetMetaData(final boolean readOnly, final String... columns) throws SyntaxException {
 		super(SQLUtils.prepareMetadata(columns), readOnly);
 	}
 

@@ -23,10 +23,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.SQLUtils.ByteArrayInputStreamWithEquals;
 import chav1961.purelib.sql.SQLUtils.StringReaderWithEquals;
 
-public class InternalUtilsTest {
+public class SQLUtilsTest {
 	private static final ConversionPairTest[]	PAIRS = {new ConversionPairTest(Boolean.class,Boolean.class,true,false)
 													, new ConversionPairTest(Boolean.class,Byte.class,true,false)
 													, new ConversionPairTest(Boolean.class,Short.class,true,false)
@@ -438,7 +439,7 @@ public class InternalUtilsTest {
 												};
 	
 	@Test
-	public void prepareMetadataTest() {
+	public void prepareMetadataTest() throws SyntaxException {
 		final RsMetaDataElement[]	metadata = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE"); 
 
 		Assert.assertEquals(metadata.length,3);

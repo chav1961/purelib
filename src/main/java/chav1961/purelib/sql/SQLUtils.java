@@ -25,11 +25,15 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 
 public class SQLUtils {
@@ -39,7 +43,21 @@ public class SQLUtils {
 	private static final JDBCTypeDescriptor[]		TYPE_DECODER;
 	private static final ConversionDescriptor[]		CONVERSION_PAIRS;
 	private static final char[]						ESCAPES = {'%', '_'};
+	private static final Set<Integer>				LENGTH_PRESENTS = new HashSet<>();
+	private static final Set<Integer>				LENGTH_AND_FRACTIONS_PRESENTS = new HashSet<>();
 	
+	static {
+		LENGTH_PRESENTS.add(Types.CHAR);
+		LENGTH_PRESENTS.add(Types.DECIMAL);
+		LENGTH_PRESENTS.add(Types.NCHAR);
+		LENGTH_PRESENTS.add(Types.NUMERIC);
+		LENGTH_PRESENTS.add(Types.NVARCHAR);
+		LENGTH_PRESENTS.add(Types.VARBINARY);
+		LENGTH_PRESENTS.add(Types.VARCHAR);
+
+		LENGTH_AND_FRACTIONS_PRESENTS.add(Types.DECIMAL);
+		LENGTH_AND_FRACTIONS_PRESENTS.add(Types.NUMERIC);
+	}
 	
 	@FunctionalInterface
 	private interface ConversionCall {
@@ -121,8 +139,12 @@ public class SQLUtils {
 				, new ConversionDescriptor(Array.class,prepareConversion4Array())
 		};
 	}
+
+	public static RsMetaDataElement[] prepareMetadata(final String... description) throws SyntaxException {
+		return prepareMetadata(':',description);
+	}
 	
-	public static RsMetaDataElement[] prepareMetadata(final String... description) {
+	public static RsMetaDataElement[] prepareMetadata(final char terminal, final String... description) throws SyntaxException {
 		if (description == null || description.length == 0) {
 			throw new IllegalArgumentException("Description can't be null or empty array");
 		}
@@ -130,14 +152,99 @@ public class SQLUtils {
 			final RsMetaDataElement		answer[] = new RsMetaDataElement[description.length]; 
 			
 			for (int index = 0; index < description.length; index++) {
+				final int	eqPlace;
+				
 				if (description[index] == null || description[index].isEmpty()) {
 					throw new IllegalArgumentException("Element ["+index+"] in the description list contains null or empty string");
 				}
+				else if ((eqPlace = description[index].indexOf(terminal)) < 0) {
+					throw new IllegalArgumentException("Element ["+index+"] in the description list doesn't contain ("+terminal+")");
+				}
 				else {
-					answer[index] = prepareMetaDataElement(index,description[index]);
+					final String	name = description[index].substring(0,eqPlace).trim();
+					final String	type = description[index].substring(eqPlace+1).trim();
+					
+					answer[index] = prepareMetadataElement(name,type);
 				}
 			}
 			return answer;
+		}
+	}
+
+	public static RsMetaDataElement prepareMetadataElement(final String name, final String type) throws SyntaxException {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Name can't be null or empty"); 
+		}
+		else if (type == null || type.isEmpty()) {
+			throw new IllegalArgumentException("Type can't be null or empty"); 
+		}
+		else {
+			int	location, typeId;
+			
+			if ((location = type.indexOf('(')) == -1) {
+				typeId = SQLUtils.typeIdByTypeName(type.toUpperCase());
+				
+				if (typeId == SQLUtils.UNKNOWN_TYPE) {
+					throw new SyntaxException(0,0,"Unknown data type ["+type+"] for field ["+name+"]"); 
+				}
+				else if (LENGTH_PRESENTS.contains(typeId)) {
+					throw new SyntaxException(0,0,"Mandatory length is missing for field ["+name+"]"); 
+				}
+				else {
+					return new RsMetaDataElement(name,"",type,typeId,0,0);
+				}
+			}
+			else {
+				String	tail = type.substring(location+1), extractedType = type.substring(0,location); 
+				int		len, frac;
+				
+				if (tail.charAt(tail.length()-1) != ')') {
+					throw new SyntaxException(0,0,"Missing close bracket in the data type for field ["+name+"]"); 
+				}
+				else {
+					tail = tail.substring(0,tail.length()-1);
+				}
+				
+				typeId = SQLUtils.typeIdByTypeName(extractedType.toUpperCase());
+				
+				if (typeId == SQLUtils.UNKNOWN_TYPE) {
+					throw new SyntaxException(0,0,"Unknown data type ["+type+"] for field ["+name+"]"); 
+				}
+				else if (!LENGTH_PRESENTS.contains(typeId)) {
+					throw new SyntaxException(0,0,"Field type for field ["+name+"] doesn't support explicit length"); 
+				}
+				if ((location = tail.indexOf(',')) == -1) {
+					try{len = Integer.valueOf(tail.trim());
+						frac = 0;
+					} catch (NumberFormatException exc) {
+						throw new SyntaxException(0,0,"Illegal number ["+tail.trim()+"] in the length for field ["+name+"]");
+					}
+					if (len == 0) {
+						throw new SyntaxException(0,0,"Explicitly typed length for field ["+name+"] must be greater than 0");
+					}
+				}
+				else {
+					if (!LENGTH_AND_FRACTIONS_PRESENTS.contains(typeId)) {
+						throw new SyntaxException(0,0,"Field type for field ["+name+"] doesn't support explicit fractional"); 
+					}
+					try{final String[] parts = CharUtils.split(tail.trim(),',');
+						len = Integer.valueOf(parts[0].trim());
+						frac =  Integer.valueOf(parts[1].trim());
+					} catch (NumberFormatException exc) {
+						throw new SyntaxException(0,0,"Illegal number(s) ["+tail.trim()+"] in the length and/or fractional for field ["+name+"]");
+					}
+					if (len == 0) {
+						throw new SyntaxException(0,0,"Explicitly typed length for field ["+name+"] must be greater than 0");
+					}
+					else if (frac < 0) {
+						throw new SyntaxException(0,0,"Explicitly typed fractional part for field ["+name+"] can't be negative");
+					}
+					else if (frac >= len) {
+						throw new SyntaxException(0,0,"Explicitly typed fractional part for field ["+name+"] is greater or equals than explicitly typed length");
+					}
+				}
+				return new RsMetaDataElement(name,"",extractedType,typeId,len,frac);
+			}
 		}
 	}
 	
@@ -276,84 +383,6 @@ public class SQLUtils {
 		throw new ContentException("Conversion from ["+value.getClass().getName()+"] to ["+awaited.getName()+"] is not supported");
 	}
 	
-	
-	private static RsMetaDataElement prepareMetaDataElement(final int element, final String content) {
-		final char[]		source = (content+";").toCharArray();
-		final StringBuilder	sb = new StringBuilder();
-		int					pos = 0;
-
-		if (!Character.isJavaIdentifierStart(source[pos])) {
-			throw new IllegalArgumentException("Syntax error in the ["+element+"] element of metadata description ("+content+"): invalid start of the name at position "+pos); 
-		}
-		else {
-			while (Character.isJavaIdentifierPart(source[pos])) {
-				sb.append(source[pos++]);
-			}
-			if (source[pos] != ':') {
-				throw new IllegalArgumentException("Syntax error in the ["+element+"] element of metadata description ("+content+"): missing (:) at position "+pos); 
-			}
-			else {
-				final String		name = sb.toString(), typeName;
-				final int			length, frac;
-				
-				sb.setLength(0);	pos++;
-				
-				while (Character.isJavaIdentifierPart(source[pos])) {
-					sb.append(source[pos++]);
-				}
-				typeName = sb.toString().toUpperCase();
-				
-				if (source[pos] == '(') {
-					int				sum;
-					
-					sum = 0;		pos++;
-					while (Character.isDigit(source[pos])) {
-						sum = 10 * sum + source[pos] - '0';
-						pos++;
-					}
-					length = sum;
-					if (source[pos] == ',') {
-						sum = 0;		pos++;
-						while (Character.isDigit(source[pos])) {
-							sum = 10 * sum + source[pos] - '0';
-							pos++;
-						}
-						frac = sum;
-					}
-					else {
-						frac = 0;
-					}
-					if (source[pos] != ')') {
-						throw new IllegalArgumentException("Syntax error in the ["+element+"] element of metadata description ("+content+"): missing close bracket at position "+pos); 
-					}
-					else {
-						if (length < frac) {
-							throw new IllegalArgumentException("Syntax error in the ["+element+"] element of metadata description ("+content+"): field length less than fractional at position "+pos); 
-						}
-						final int	numericType = typeIdByTypeName(typeName);
-						
-						if (numericType != 0 && numericType != SQLUtils.UNKNOWN_TYPE) {
-							return new RsMetaDataElement(name,name,typeName,numericType,length,frac);
-						}
-						else {
-							throw new IllegalArgumentException("Syntax error in the ["+element+"] element of metadata description ("+content+"): type name ["+typeName+"] is missing in the java.sql.Types class fields"); 
-						}
-					}
-				}
-				else {
-					final int	numericType = typeIdByTypeName(typeName);
-					
-					if (numericType != 0 && numericType != SQLUtils.UNKNOWN_TYPE) {
-						return new RsMetaDataElement(name,name,typeName,numericType,0,0);
-					}
-					else {
-						throw new IllegalArgumentException("Syntax error in the ["+element+"] element of metadata description ("+content+"): type name ["+typeName+"] is missing in the java.sql.Types class fields"); 
-					}
-				}				
-			}
-		}
-	}
-
 	private static Map<Class<?>,ConversionCall> prepareConversion4String() {
 		final Map<Class<?>,ConversionCall>	toMap = new HashMap<>();
 		

@@ -7,7 +7,8 @@ import org.junit.runners.Suite.SuiteClasses;
 import chav1961.purelib.sql.fsys.ResultSetAndMetaDataTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ArraysLobsAndXMLsTest.class, InternalUtilsTest.class, ResultSetAndMetaDataTest.class })
+@SuiteClasses({ ArraysLobsAndXMLsTest.class, SQLUtilsTest.class, ResultSetAndMetaDataTest.class,
+				RsMetaDataElementTest.class})
 public class AllTests {
 
 }

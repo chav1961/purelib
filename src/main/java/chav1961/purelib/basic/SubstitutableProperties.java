@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+
 import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,6 +11,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 /**
@@ -39,7 +41,7 @@ import java.util.Properties;
  * @see Properties
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1
+ * @since 0.0.1 last update 0.0.3
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
@@ -127,6 +129,41 @@ public class SubstitutableProperties extends Properties {
 		return value != null ? convert(key,value,awaited) : null;
 	}
 
+	/**
+	 * <p>Compare properties content is identical</p>
+	 * @param another another properties to compare
+	 * @return true if two contents are identical
+	 * @throws NullPointerException when another properties is null
+	 * @since 0.0.3
+	 */
+	public boolean theSame(final SubstitutableProperties another) throws NullPointerException {
+		if (another == null) {
+			throw new NullPointerException("Another properties can't be null");
+		}
+		else {
+			for (Entry<Object, Object> item : this.entrySet()) {
+				final String	key = (String)item.getKey();
+				
+				if (!another.containsKey(key)) {
+					return false;
+				}
+				else if (!another.getProperty(key).equalsIgnoreCase(getProperty(key))) {
+					return false;
+				}
+			}
+			for (Entry<Object, Object> item : another.entrySet()) {
+				final String	key = (String)item.getKey();
+				
+				if (!this.containsKey(key)) {
+					return false;
+				}
+				else if (!this.getProperty(key).equalsIgnoreCase(another.getProperty(key))) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
 	
 	protected String extendedGetProperty(final String key) {
 		if (containsKey(key)) {

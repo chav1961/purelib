@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 
 public class InMemoryLitteArray implements Array {
 	private final int		contentType;
@@ -133,7 +134,10 @@ public class InMemoryLitteArray implements Array {
 			for (int curs = 0; curs < end; curs++) {
 				result[curs] = new Object[]{curs+index,content[(int)(curs + (index-1))]};
 			}
-			return new InMemoryReadOnlyResultSet(new ArrayResultSetMetaData("INDEX:INTEGER","VALUE:JAVA_OBJECT"),ResultSet.TYPE_FORWARD_ONLY,new ArrayContent(result),map);
+			try{return new InMemoryReadOnlyResultSet(new ArrayResultSetMetaData("INDEX:INTEGER","VALUE:JAVA_OBJECT"),ResultSet.TYPE_FORWARD_ONLY,new ArrayContent(result),map);
+			} catch (SyntaxException e) {
+				throw new SQLException(e.getLocalizedMessage(),e);
+			}
 		}
 	}
 
@@ -163,7 +167,7 @@ public class InMemoryLitteArray implements Array {
 	}
 	
 	private static class ArrayResultSetMetaData extends AbstractResultSetMetaData {
-		ArrayResultSetMetaData(final String... columns) {
+		ArrayResultSetMetaData(final String... columns) throws SyntaxException {
 			super(SQLUtils.prepareMetadata(columns),true);
 		}
 

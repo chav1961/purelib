@@ -30,9 +30,6 @@ import chav1961.purelib.streams.byte2char.BufferedInputStreamReader;
 
 public class CsvContentParser implements ResultSetContentParser {
 	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":csv:");
-	private static final String			OPTION_ENCODING = "encoding";
-	private static final String			OPTION_SEPARATOR = "separator";
-	private static final String			OPTION_FIRST_LINE_ARE_NAMES = "firstlinearenames";
 
 	private ResultSetMetaData			metadata;
 	private final AbstractContent		content;
@@ -98,7 +95,7 @@ public class CsvContentParser implements ResultSetContentParser {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
 		for (Entry<String, String[]> item : result.entrySet()) {
-			if (!OPTION_ENCODING.equals(item.getKey()) && !OPTION_SEPARATOR.equals(item.getKey()) && !OPTION_FIRST_LINE_ARE_NAMES.equals(item.getKey())) {
+			if (!SQLContentUtils.OPTION_ENCODING.equals(item.getKey()) && !SQLContentUtils.OPTION_SEPARATOR.equals(item.getKey()) && !SQLContentUtils.OPTION_FIRST_LINE_ARE_NAMES.equals(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
 		}
@@ -117,8 +114,8 @@ public class CsvContentParser implements ResultSetContentParser {
 			throw new IllegalArgumentException("Illegal result set type ["+resultSetType+"]. Can be ResultSet.TYPE_FORWARD_ONLY, ResultSet.TYPE_SCROLL_SENSITIVE or ResultSet.TYPE_SCROLL_INSENSITIVE only");
 		}
 		else {
-			final String	separator = options.getProperty(OPTION_SEPARATOR,String.class,",");
-			final boolean	processNames = options.getProperty(OPTION_FIRST_LINE_ARE_NAMES,boolean.class,"true"); 
+			final String	separator = options.getProperty(SQLContentUtils.OPTION_SEPARATOR,String.class,",");
+			final boolean	processNames = options.getProperty(SQLContentUtils.OPTION_FIRST_LINE_ARE_NAMES,boolean.class,"true"); 
 			final int[]		moveTo = new int[content.length];
 			
 			if (separator.length() == 0) {
@@ -134,13 +131,14 @@ public class CsvContentParser implements ResultSetContentParser {
 			
 			if (resultSetType == ResultSet.TYPE_FORWARD_ONLY) {
 				final InputStream		is = access.openStream();
-				final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(OPTION_ENCODING,String.class,"UTF-8"));
+				final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
 				final BufferedReader	brdr = new BufferedReader(rdr); 
 				
 				if (processNames) {
 					final String		line = brdr.readLine();
 					
 					if (line == null) {
+						brdr.close();
 						throw new IOException("Empty source was detected, but 'processing first line as names' as required!"); 
 					}
 					else {
@@ -148,6 +146,7 @@ public class CsvContentParser implements ResultSetContentParser {
 						
 						try{processFirstLineInternal(0,lineContent,0,lineContent.length,splitter,content,moveTo);
 						} catch (SyntaxException e) {
+							brdr.close();
 							throw new IOException(e.getMessage(),e); 
 						}
 					}
@@ -176,7 +175,7 @@ public class CsvContentParser implements ResultSetContentParser {
 														}
 													}
 												);
-						final Reader 	rdr = new InputStreamReader(is,options.getProperty(OPTION_ENCODING,String.class,"UTF-8"))) {
+						final Reader 	rdr = new InputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING))) {
 							
 						lblp.write(rdr);
 					}
@@ -192,15 +191,6 @@ public class CsvContentParser implements ResultSetContentParser {
 					values.clear();
 					
 					return new CsvContentParser(result,content);
-//					
-//					
-//					
-//					
-//					return new CsvContentParser(is
-//							,options.getProperty(OPTION_ENCODING,String.class,"UTF-8")
-//							,options.getProperty(OPTION_SEPARATOR,String.class,""+splitter).charAt(0)
-//							,options.getProperty(OPTION_FIRST_LINE_ARE_NAMES,boolean.class,"true")
-//							,content); 
 				} catch (SyntaxException e) {
 					throw new IOException("Syntax error in content: "+e.getLocalizedMessage());
 				}

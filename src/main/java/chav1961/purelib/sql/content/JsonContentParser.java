@@ -2,30 +2,20 @@ package chav1961.purelib.sql.content;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.BitCharSet;
-import chav1961.purelib.basic.FSM;
-import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.Utils;
-import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.sql.AbstractContent;
@@ -34,19 +24,15 @@ import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.StreamContent;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
-import chav1961.purelib.streams.JsonSaxParser;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.byte2char.BufferedInputStreamReader;
-import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 public class JsonContentParser implements ResultSetContentParser {
 	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":json:");
-	private static final String			OPTION_ENCODING = "encoding";
 	private static final int			PARSER_BUFFER_SIZE = 8192;
 	
-	private final SyntaxTreeInterface<Object>	names = new AndOrTree<>();
 	private final AbstractContent		content;
 	private final ResultSetMetaData		metadata;
 	
@@ -115,7 +101,7 @@ loop:				for (JsonStaxParserLexType item : parser) {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
 		for (Entry<String, String[]> item : result.entrySet()) {
-			if (!OPTION_ENCODING.equals(item.getKey())) {
+			if (!SQLContentUtils.OPTION_ENCODING.equals(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
 		}
@@ -142,11 +128,12 @@ loop:				for (JsonStaxParserLexType item : parser) {
 			
 			if (resultSetType == ResultSet.TYPE_FORWARD_ONLY) {
 				final InputStream		is = access.openStream();
-				final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(OPTION_ENCODING,String.class,"UTF-8"));
+				final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
 				final JsonStaxParser	parser = new JsonStaxParser(rdr,PARSER_BUFFER_SIZE,names);
 				
 				if (!parser.hasNext()) {
-					try{return new JsonContentParser(new Object[0][],content);
+					try{parser.close();
+						return new JsonContentParser(new Object[0][],content);
 					} catch (SyntaxException exc) {
 						parser.close();
 						throw new IOException(exc.getLocalizedMessage(),exc); 
@@ -170,10 +157,8 @@ loop:				for (JsonStaxParserLexType item : parser) {
 				final List<Object[]>		data = new ArrayList<>();
 				
 				try(final InputStream		is = access.openStream();
-					final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(OPTION_ENCODING,String.class,"UTF-8"));
+					final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
 					final JsonStaxParser	parser = new JsonStaxParser(rdr,PARSER_BUFFER_SIZE,names)) {
-					int						arrayDepth = 0, nameIndex = 0;
-					Object[]				row = null;
 
 					for (JsonStaxParserLexType item : parser) {
 						switch (item) {
@@ -202,12 +187,7 @@ loop:				for (JsonStaxParserLexType item : parser) {
 
 	@Override
 	public ResultSetMetaData getMetaData() throws IOException {
-		if (metadata == null) {
-			throw new IOException("No one lines in the input stream or the same forst line not contants colimns description"); 
-		}
-		else {
-			return metadata;
-		}
+		return metadata;
 	}
 
 	@Override
