@@ -28,8 +28,8 @@ public class SQLContentUtils {
 		if (query == null || query.isEmpty()) {
 			throw new IllegalArgumentException("Query string can't be null or empty");
 		}
-		else if (includes == null) {
-			throw new NullPointerException("Includes list can't be null");
+		else if (includes == null || includes.isEmpty()) {
+			throw new IllegalArgumentException("Field includes list can't be null or empty");
 		}
 		else {
 			final List<String>					names = new ArrayList<>();

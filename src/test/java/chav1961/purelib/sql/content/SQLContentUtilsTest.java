@@ -54,41 +54,12 @@ public class SQLContentUtilsTest {
 		}
 		try{SQLContentUtils.buildMetadataFromQueryString("f1=VARCHAR(1)&f2=NUMERIC(10,2)&key1=value1",null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-		} catch (NullPointerException exc) {			
+		} catch (IllegalArgumentException exc) {			
 		}
 		
 		try{SQLContentUtils.buildMetadataFromQueryString("f1=VARCHAR(1)&f2=NUMERIC(10,2)&key1=value1",new Hashtable<>());
 			Assert.fail("Mandatory exception was not detected (include list names doesn't intersect with query string keys)");
-		} catch (SyntaxException exc) {			
-		}
-		
-		try{SQLContentUtils.buildMetadataFromQueryString("f1=UNKNOWN",includes);
-			Assert.fail("Mandatory exception was not detected (unknown field type)");
-		} catch (SyntaxException exc) {			
-		}
-		try{SQLContentUtils.buildMetadataFromQueryString("f1=VARCHAR",includes);
-			Assert.fail("Mandatory exception was not detected (type requires explicit field size)");
-		} catch (SyntaxException exc) {			
-		}
-		try{SQLContentUtils.buildMetadataFromQueryString("f1=INTEGER(1)",includes);
-			Assert.fail("Mandatory exception was not detected (type doesn't support explicit legth)");
-		} catch (SyntaxException exc) {			
-		}
-		try{SQLContentUtils.buildMetadataFromQueryString("f1=VARCHAR(0)",includes);
-			Assert.fail("Mandatory exception was not detected (illegal field size)");
-		} catch (SyntaxException exc) {			
-		}
-		try{SQLContentUtils.buildMetadataFromQueryString("f1=VARCHAR(1,0)",includes);
-			Assert.fail("Mandatory exception was not detected (type doesn't support explicit fractional)");
-		} catch (SyntaxException exc) {			
-		}
-		try{SQLContentUtils.buildMetadataFromQueryString("f1=NUMERIC(1,-1)",includes);
-			Assert.fail("Mandatory exception was not detected (illegal fractional size)");
-		} catch (SyntaxException exc) {			
-		}
-		try{SQLContentUtils.buildMetadataFromQueryString("f1=NUMERIC(1,1)",includes);
-			Assert.fail("Mandatory exception was not detected (fractional size must ge less than total length)");
-		} catch (SyntaxException exc) {			
+		} catch (IllegalArgumentException exc) {			
 		}
 	}
 }

@@ -27,17 +27,17 @@ public class ResultSetFactory {
 		else if (!RESULTSET_PARSERS_SCHEMA.equals(resource.getScheme())) {
 			throw new IllegalArgumentException("Resource scheme ["+resource.getScheme()+"] is not ["+RESULTSET_PARSERS_SCHEMA+"]");
 		}
-		else if ((query = resource.getRawQuery()) == null) {
+		else if ((query = extractQuery(resource)) == null) {
 			throw new IllegalArgumentException("Resource ["+resource+"]: query string is missing in the URI!");
 		}
 		else {
 			try{final URI		source = URI.create(resource.getRawSchemeSpecificPart());
 			
 				for (ResultSetContentParser item : ServiceLoader.load(ResultSetContentParser.class)) {
-					if (item.canServe(source)) {
+					if (item.canServe(resource)) {
 						final Hashtable<String,String[]>	content = Utils.parseQuery(query);
 						final RsMetaDataElement[]			fields = SQLContentUtils.buildMetadataFromQueryString(query,item.filter(content));
-						final ResultSetContentParser		parser = item.newInstance(URI.create(source.getRawSchemeSpecificPart()).toURL()
+						final ResultSetContentParser		parser = item.newInstance(Utils.removeQueryFromURI(URI.create(source.getRawSchemeSpecificPart())).toURL()
 																	,resultSetType
 																	,fields
 																	,SQLContentUtils.extractOptions(content,item.filter(content)));
@@ -60,5 +60,23 @@ public class ResultSetFactory {
 				throw new IOException(e.getMessage(),e);
 			}
 		}
+	}
+	
+	private static String extractQuery(final URI from) {
+		URI		current = from;
+		String	query = null, previous = from.toString();
+		
+		while ((query = current.getQuery()) == null) {
+			final String	ssp = current.getSchemeSpecificPart();
+			
+			if (ssp == null || previous.equals(ssp)) {
+				break;
+			}
+			else {
+				previous = ssp;
+				current = URI.create(ssp);
+			}
+		}
+		return query;
 	}
 }

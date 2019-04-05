@@ -28,15 +28,6 @@ public class NullReadOnlyResultSet extends AbstractReadOnlyResultSet {
 		return content;
 	}
 
-	private static class NullContent extends AbstractContent {
-		@Override public boolean isStreaming() {return false;}
-		@Override public int getRowCount() {return 0;}
-		@Override public int getCurrentRow() {return 0;}
-		@Override public boolean setCurrentRow(int row) {return true;}
-		@Override public Object[] getRow(int rowNum) {return null;}
-		@Override public void close() throws SQLException {}
-	}
-
 	@Override
 	public Statement getStatement() throws SQLException {
 		return stmt;

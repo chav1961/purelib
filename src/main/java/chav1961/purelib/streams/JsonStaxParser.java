@@ -457,7 +457,7 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 							}
 						}
 					default : 
-						detected = new SyntaxException(currentRow,currentCol,"Illegal char in the stream");
+						detected = new SyntaxException(currentRow,currentCol,"Illegal char ["+temp[cursor]+"] in the stream");
 						return currentLex = JsonStaxParserLexType.ERROR;
 				}
 			} catch (IOException e) {
@@ -505,7 +505,7 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 			throw new IllegalStateException("Attempt to read name when lex type is ["+currentLex+"]");
 		}
 		else if (shortString) {
-			return (int)tree.seekName(buffer,bounds[0],bounds[1]-bounds[0]);
+			return (int)tree.seekName(buffer,bounds[0],bounds[1]+1);
 		}
 		else {
 			return (int)tree.seekName(sbResult.toString());
@@ -717,6 +717,7 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 			}
 			if (tempCursor < tempLen) {
 				currentCol += (tempCursor-fromCol);
+				cursor = tempCursor;
 				return true;
 			}
 		} while (readBlock());

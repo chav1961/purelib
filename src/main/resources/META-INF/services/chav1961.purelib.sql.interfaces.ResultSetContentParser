@@ -1,1 +1,3 @@
 chav1961.purelib.sql.content.CsvContentParser
+chav1961.purelib.sql.content.XMLContentParser
+chav1961.purelib.sql.content.JsonContentParser

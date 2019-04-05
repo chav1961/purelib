@@ -182,7 +182,9 @@ public class SQLUtils {
 			int	location, typeId;
 			
 			if ((location = type.indexOf('(')) == -1) {
-				typeId = SQLUtils.typeIdByTypeName(type.toUpperCase());
+				final String	upperCaseType = type.toUpperCase();
+				
+				typeId = SQLUtils.typeIdByTypeName(upperCaseType);
 				
 				if (typeId == SQLUtils.UNKNOWN_TYPE) {
 					throw new SyntaxException(0,0,"Unknown data type ["+type+"] for field ["+name+"]"); 
@@ -191,21 +193,21 @@ public class SQLUtils {
 					throw new SyntaxException(0,0,"Mandatory length is missing for field ["+name+"]"); 
 				}
 				else {
-					return new RsMetaDataElement(name,"",type,typeId,0,0);
+					return new RsMetaDataElement(name,name,upperCaseType,typeId,0,0);
 				}
 			}
 			else {
-				String	tail = type.substring(location+1), extractedType = type.substring(0,location); 
+				String	tail = type.substring(location+1), extractedType = type.substring(0,location).toUpperCase(); 
 				int		len, frac;
 				
-				if (tail.charAt(tail.length()-1) != ')') {
+				if (tail.length() == 0 || tail.charAt(tail.length()-1) != ')') {
 					throw new SyntaxException(0,0,"Missing close bracket in the data type for field ["+name+"]"); 
 				}
 				else {
 					tail = tail.substring(0,tail.length()-1);
 				}
 				
-				typeId = SQLUtils.typeIdByTypeName(extractedType.toUpperCase());
+				typeId = SQLUtils.typeIdByTypeName(extractedType);
 				
 				if (typeId == SQLUtils.UNKNOWN_TYPE) {
 					throw new SyntaxException(0,0,"Unknown data type ["+type+"] for field ["+name+"]"); 
@@ -243,7 +245,7 @@ public class SQLUtils {
 						throw new SyntaxException(0,0,"Explicitly typed fractional part for field ["+name+"] is greater or equals than explicitly typed length");
 					}
 				}
-				return new RsMetaDataElement(name,"",extractedType,typeId,len,frac);
+				return new RsMetaDataElement(name,name,extractedType,typeId,len,frac);
 			}
 		}
 	}

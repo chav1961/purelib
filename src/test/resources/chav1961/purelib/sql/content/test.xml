@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <row>
+        <toSum>10</toSum>
+        <forLine>line</forLine>
+    </row>
+    <row>
+        <toSum>20</toSum>
+        <forLine>line</forLine>
+    </row>
+    <row>
+        <toSum>30</toSum>
+        <forLine>line</forLine>
+    </row>
+</root>

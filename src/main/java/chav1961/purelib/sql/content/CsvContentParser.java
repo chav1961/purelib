@@ -26,10 +26,9 @@ import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.StreamContent;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
-import chav1961.purelib.streams.byte2char.BufferedInputStreamReader;
 
 public class CsvContentParser implements ResultSetContentParser {
-	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":csv:");
+	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":csv:/");
 
 	private ResultSetMetaData			metadata;
 	private final AbstractContent		content;
@@ -94,7 +93,7 @@ public class CsvContentParser implements ResultSetContentParser {
 	public Hashtable<String, String[]> filter(Hashtable<String, String[]> source) {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
-		for (Entry<String, String[]> item : result.entrySet()) {
+		for (Entry<String, String[]> item : source.entrySet()) {
 			if (!SQLContentUtils.OPTION_ENCODING.equals(item.getKey()) && !SQLContentUtils.OPTION_SEPARATOR.equals(item.getKey()) && !SQLContentUtils.OPTION_FIRST_LINE_ARE_NAMES.equals(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
@@ -131,7 +130,7 @@ public class CsvContentParser implements ResultSetContentParser {
 			
 			if (resultSetType == ResultSet.TYPE_FORWARD_ONLY) {
 				final InputStream		is = access.openStream();
-				final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
+				final Reader			rdr = new InputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
 				final BufferedReader	brdr = new BufferedReader(rdr); 
 				
 				if (processNames) {
@@ -165,7 +164,7 @@ public class CsvContentParser implements ResultSetContentParser {
 					try(final LineByLineProcessor	lblp = new LineByLineProcessor(new LineByLineProcessorCallback() {
 														@Override
 														public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-															if (lineNo == 0 && processNames) {
+															if (lineNo == 1 && processNames) {
 																processFirstLineInternal(lineNo,data,from,length,splitter,content,moveTo);
 																completed[0] = true;
 															}
@@ -217,11 +216,11 @@ public class CsvContentParser implements ResultSetContentParser {
 		final List<String>	columns = new ArrayList<>();
 		
 		processSingleLine(lineNo,data,from,length,splitter,columns);
-loop:		for (int index = 0, maxIndex = columns.size(); index < maxIndex; index++) {
+loop:	for (int index = 0, maxIndex = columns.size(); index < maxIndex; index++) {
 			final String	name = columns.get(index);
 			
 			for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-				if (name.equals(fields[index].getName())) {
+				if (name.equals(fields[fieldIndex].getName())) {
 					moves[index] = fieldIndex;
 					continue loop;
 				}
@@ -236,8 +235,13 @@ loop:		for (int index = 0, maxIndex = columns.size(); index < maxIndex; index++)
 		processSingleLine(lineNo,data,from,length,splitter,record);
 		final Object[]	row = new Object[moves.length];
 		
-		for (int index = 0; index < moves.length; index++) {
-			row[index] = record.get(moves[index]);
+		for (int index = 0, maxSize = record.size(); index < moves.length; index++) {
+			if (moves[index] < maxSize) {
+				row[index] = record.get(moves[index]);
+			}
+			else {
+				row[index] = null;
+			}
 		}
 		return row;
 	}

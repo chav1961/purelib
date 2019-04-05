@@ -496,31 +496,35 @@ public class SQLUtilsTest {
 		}
 		try{SQLUtils.prepareMetadata("NAME:UNKNOWN"); 
 			Assert.fail("Mandatory exception was not detected (unknown type)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{SQLUtils.prepareMetadata("NAME:UNKNOWN(10)"); 
 			Assert.fail("Mandatory exception was not detected (unknown type)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{SQLUtils.prepareMetadata("NAME:VARCHAR("); 
 			Assert.fail("Mandatory exception was not detected (missing length)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10"); 
 			Assert.fail("Mandatory exception was not detected (missing close bracket)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,"); 
 			Assert.fail("Mandatory exception was not detected (missing fractional)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,2"); 
 			Assert.fail("Mandatory exception was not detected (missing close bracket)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,20)"); 
 			Assert.fail("Mandatory exception was not detected (fractional gtreater than length)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
+		}
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,2)"); 
+			Assert.fail("Mandatory exception was not detected (type not allows fractional)");
+		} catch (SyntaxException exc) {
 		}
 	}
 

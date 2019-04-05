@@ -7,6 +7,7 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.Ref;
@@ -24,11 +25,16 @@ import java.util.Map;
 
 public abstract class AbstractReadOnlyResultSet implements ResultSet {
 	protected static final String		ERR_READ_ONLY = "This result set is read only";
+	protected static final int			NAME_UNKNOWN = 0;
+	protected static final int			NAME_LOWER = 1;
+	protected static final int			NAME_UPPER = 2;
+	protected static final int			NAME_ASIS = 3;
 	
 	protected final ResultSetMetaData 	rsmd;
 	protected final int					resultSetType;
 	protected final Calendar			defaultCalendar = Calendar.getInstance();
 	protected int						fetchDirection = FETCH_FORWARD, fetchSize = 0;
+	protected int						caseName = NAME_UNKNOWN;
 	protected boolean					beforeFirst, afterLast, wasNull = true, closed = false;
 	
 	protected AbstractReadOnlyResultSet(final ResultSetMetaData rsmd, final int resultSetType) {
@@ -78,8 +84,7 @@ public abstract class AbstractReadOnlyResultSet implements ResultSet {
 			beforeFirst = false;
 			wasNull = true;
 			if (getContent().getCurrentRow() < getContent().getRowCount()) {
-				getContent().setCurrentRow(getContent().getCurrentRow()+1);
-				return true;
+				return !getContent().setCurrentRow(getContent().getCurrentRow()+1);
 			}
 			else {
 				afterLast = true; 
@@ -94,6 +99,7 @@ public abstract class AbstractReadOnlyResultSet implements ResultSet {
 	@Override
 	public void close() throws SQLException {
 		closed = true;
+		getContent().close();
 	}
 
 	@Override
@@ -296,12 +302,63 @@ public abstract class AbstractReadOnlyResultSet implements ResultSet {
 			throw new IllegalArgumentException("Column label can't be null or empty");
 		}
 		else {
-			for (int index = 1; index <= rsmd.getColumnCount(); index++) {
-				if (columnLabel.equals(rsmd.getColumnName(index))) {
-					return index;
-				}
+			switch (caseName) {
+				case NAME_LOWER		:
+					final String	lowerCol = columnLabel.toLowerCase();
+					
+					for (int index = 1; index <= rsmd.getColumnCount(); index++) {
+						if (lowerCol.equals(rsmd.getColumnName(index).toLowerCase())) {
+							return index;
+						}
+					}
+					return 0;
+				case NAME_UPPER		:
+					final String	upperCol = columnLabel.toUpperCase();
+					
+					for (int index = 1; index <= rsmd.getColumnCount(); index++) {
+						if (upperCol.equals(rsmd.getColumnName(index).toUpperCase())) {
+							return index;
+						}
+					}
+					return 0;
+				case NAME_UNKNOWN	:
+					if (getStatement() != null) {	// It can't be defined in constructor because getStatement() is abstract...
+						if (getStatement().getConnection() != null) {
+							if (getStatement().getConnection().getMetaData() != null) {
+								final DatabaseMetaData	metadata = getStatement().getConnection().getMetaData();
+								
+								if (metadata.storesUpperCaseIdentifiers()) {
+									caseName = NAME_UPPER;
+									return findColumn(columnLabel);
+								}
+								else if (metadata.storesLowerCaseIdentifiers()) {
+									caseName = NAME_LOWER;
+									return findColumn(columnLabel);
+								}
+								else {
+									caseName = NAME_ASIS;
+								}
+							}
+							else {
+								caseName = NAME_ASIS;
+							}
+						}
+						else {
+							caseName = NAME_ASIS;
+						}
+					}
+					else {
+						caseName = NAME_ASIS;
+					}
+				case NAME_ASIS		:
+					for (int index = 1; index <= rsmd.getColumnCount(); index++) {
+						if (columnLabel.equals(rsmd.getColumnName(index))) {
+							return index;
+						}
+					}
+					return 0;
+				default : throw new UnsupportedOperationException("Unsupported name type ["+caseName+"]");
 			}
-			return 0;
 		}
 	}
 

@@ -1,0 +1,5 @@
+[
+{"toSum":10,"forLine":"line"},
+{"toSum":20,"forLine":"line","forNull":null},
+{"toSum":30,"forLine":"line"}
+]

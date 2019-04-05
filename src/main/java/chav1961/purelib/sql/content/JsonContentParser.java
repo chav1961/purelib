@@ -2,6 +2,7 @@ package chav1961.purelib.sql.content;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
@@ -25,12 +26,11 @@ import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.StreamContent;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
 import chav1961.purelib.streams.JsonStaxParser;
-import chav1961.purelib.streams.byte2char.BufferedInputStreamReader;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 public class JsonContentParser implements ResultSetContentParser {
-	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":json:");
+	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":json:/");
 	private static final int			PARSER_BUFFER_SIZE = 8192;
 	
 	private final AbstractContent		content;
@@ -100,7 +100,7 @@ loop:				for (JsonStaxParserLexType item : parser) {
 	public Hashtable<String, String[]> filter(Hashtable<String, String[]> source) {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
-		for (Entry<String, String[]> item : result.entrySet()) {
+		for (Entry<String, String[]> item : source.entrySet()) {
 			if (!SQLContentUtils.OPTION_ENCODING.equals(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
@@ -123,12 +123,12 @@ loop:				for (JsonStaxParserLexType item : parser) {
 			final SyntaxTreeInterface<RsMetaDataElement>	names = new AndOrTree<>();
 			
 			for (int index = 0; index < content.length; index++) {
-				names.placeName(content[index].getName(),index+1,content[index]);
+				names.placeName(content[index].getName(),index,content[index]);
 			}
 			
 			if (resultSetType == ResultSet.TYPE_FORWARD_ONLY) {
 				final InputStream		is = access.openStream();
-				final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
+				final Reader			rdr = new InputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
 				final JsonStaxParser	parser = new JsonStaxParser(rdr,PARSER_BUFFER_SIZE,names);
 				
 				if (!parser.hasNext()) {
@@ -157,13 +157,35 @@ loop:				for (JsonStaxParserLexType item : parser) {
 				final List<Object[]>		data = new ArrayList<>();
 				
 				try(final InputStream		is = access.openStream();
-					final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
+					final Reader			rdr = new InputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
 					final JsonStaxParser	parser = new JsonStaxParser(rdr,PARSER_BUFFER_SIZE,names)) {
+					int						nesting = 0;
 
 					for (JsonStaxParserLexType item : parser) {
+						final Object[]		forData = new Object[content.length];
+						
 						switch (item) {
 							case START_ARRAY	:
-								try(final JsonStaxParserInterface inner = parser.nested()) {
+								if (nesting == 0) {
+									nesting++;
+								}
+								else {
+									final SyntaxException	exc = new SyntaxException(parser.row(),parser.col(),"Array nesting is too big or exhausted");
+
+									throw new IOException(exc.getLocalizedMessage(),exc); 
+								}
+								break;
+							case START_OBJECT	:
+								if (nesting == 1) {
+									try(final JsonStaxParserInterface inner = parser.nested()) {
+										fillRow(inner,forData);
+									}
+									data.add(forData);
+								}
+								else {
+									final SyntaxException	exc = new SyntaxException(parser.row(),parser.col(),"Structure nesting is too big or exhausted");
+
+									throw new IOException(exc.getLocalizedMessage(),exc); 
 								}
 								break;
 							case LIST_SPLITTER	:
@@ -173,7 +195,7 @@ loop:				for (JsonStaxParserLexType item : parser) {
 						}
 					}
 					
-					try{return new JsonContentParser((Object[][])data.toArray(),content);
+					try{return new JsonContentParser(data.toArray(new Object[data.size()][]),content);
 					} catch (SyntaxException exc) {
 						throw new IOException(exc.getLocalizedMessage(),exc); 
 					}

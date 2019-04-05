@@ -1392,20 +1392,15 @@ public class Utils {
 			throw new NullPointerException("Uri to remove query from can't be null");
 		}
 		else {
-			if (uri.getQuery() != null) {
-				final String		str = uri.toString();
+			final String		str = uri.toString();
+			
+			if (uri.getFragment() != null) {
+				final String	frag = str.substring(str.lastIndexOf('#'));
 				
-				if (uri.getFragment() != null) {
-					final String	frag = str.substring(str.lastIndexOf('#'));
-					
-					return URI.create(str.substring(0,str.lastIndexOf('?'))+frag);
-				}
-				else {
-					return URI.create(str.substring(0,str.lastIndexOf('?')));
-				}
+				return URI.create(str.substring(0,str.lastIndexOf('?'))+frag);
 			}
 			else {
-				return uri;
+				return URI.create(str.substring(0,str.lastIndexOf('?')));
 			}
 		}
 	}

@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.FilterTree;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.Lexema;
 
@@ -79,17 +80,41 @@ public class ResultSetTests {
 	
 	@Test
 	public void arrayContentTest() throws SQLException {
-		final AbstractContent		content = new ArrayContent(new Object[]{"10",20,true},new Object[]{"100",200,false});
-		
-		Assert.assertEquals(content.getRowCount(),2);
-		Assert.assertEquals(content.getCurrentRow(),0);
-		Assert.assertArrayEquals(content.getRow(2),new Object[]{"100",200,false});
-		content.setCurrentRow(2);
-		Assert.assertEquals(content.getCurrentRow(),2);
+		try(final AbstractContent		content = new ArrayContent(new Object[]{"10",20,true},new Object[]{"100",200,false})) {
+			Assert.assertEquals(content.getRowCount(),2);
+			Assert.assertEquals(content.getCurrentRow(),0);
+			Assert.assertArrayEquals(content.getRow(2),new Object[]{"100",200,false});
+			content.setCurrentRow(2);
+			Assert.assertEquals(content.getCurrentRow(),2);
+	
+			detectException(()->{new ArrayContent();},IllegalArgumentException.class,"null or empty array");
+			detectException(()->{content.setCurrentRow(-1);},IllegalArgumentException.class,"current row outside the range");
+			detectException(()->{content.setCurrentRow(100);},IllegalArgumentException.class,"current row outside the range");
+		}
+	}
 
-		detectException(()->{new ArrayContent();},IllegalArgumentException.class,"null or empty array");
-		detectException(()->{content.setCurrentRow(-1);},IllegalArgumentException.class,"current row outside the range");
-		detectException(()->{content.setCurrentRow(100);},IllegalArgumentException.class,"current row outside the range");
+	@Test
+	public void streamContentTest() throws SQLException {
+		final Object[]	buffer = new Object[3], values = new Object[]{"100",20,true};
+		final int[]		counter = new int[]{1};
+		
+		try(final AbstractContent		content = new StreamContent(buffer,(toFill)->{
+				System.arraycopy(values,0,toFill,0,toFill.length);
+				return counter[0]-- > 0;
+				},
+				()->{})) {
+			Assert.assertEquals(content.getRowCount(),1);
+			Assert.assertEquals(content.getCurrentRow(),0);
+			content.setCurrentRow(content.getCurrentRow()+1);
+			Assert.assertArrayEquals(content.getRow(content.getCurrentRow()),new Object[]{"100",20,true});
+			content.setCurrentRow(content.getCurrentRow()+1);
+			Assert.assertEquals(content.getCurrentRow(),2);
+			detectException(()->{content.setCurrentRow(content.getCurrentRow()+1);},IllegalArgumentException.class,"current row outside the range");
+	
+			detectException(()->{new StreamContent(null,(dummy)->{return false;},()->{});},IllegalArgumentException.class,"null or empty array");
+			detectException(()->{content.setCurrentRow(-1);},IllegalArgumentException.class,"current row outside the range");
+			detectException(()->{content.setCurrentRow(100);},IllegalArgumentException.class,"current row outside the range");
+		}
 	}
 	
 	@Test

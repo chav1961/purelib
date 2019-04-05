@@ -9,6 +9,7 @@
 *6. Дополнить LongIdMap методами maxKey() и firstFree();
 *7. Дополнить CharUtils методом like(char[],it,char[])
 *8. Дополнить ArgParser диапазоном представления или списком для целочисленного аргумента
+9. Дополнить PureLibSettings универсальной фабрикой по URI и классу
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 *Пакет exceptions
@@ -38,20 +39,25 @@
 Пакет sql
 1. Отладить все ранее написанные классы
 *2. Разобраться с описаниями полей и привести их к одному виду
-3. Напистаь тесты к SQLUtils
+3. Написать тесты к SQLUtils
 Пакет sql.content
-1. Отладить работу с файлом формата *.csv
-2. Отладить реализацию ResultSetFactory для построения отладочной выборки из различных источников данных
-3. Написать реализацию JsonContentParser для работы с файлами формата JSON
-4. Написать реализацию XMLContentParser для работы с файлами формата XML
-Пакет sql.fsys
-1. Отладить все ранее написанные классы
+*1. Отладить работу с файлом формата *.csv
+*2. Отладить реализацию ResultSetFactory для построения отладочной выборки из различных источников данных
+*3. Написать реализацию JsonContentParser для работы с файлами формата JSON
+*4. Написать реализацию XMLContentParser для работы с файлами формата XML
+5. Дописать покрытие тестами на все классы пакета
 Пакет streams
 1. Переделать JsonSaxHandlerFactory под новые возможности ассемблера и класса GettersAndSetters 
 2. Добавить опцию для BigInteger/BigDecimal
 *3. Отрефакторить JsonSaxHandlerFactory под класс CompilerUtils
 *4. Перенести JsonSaxHandlerFactory в пакет json
 5. Дополнить JsonStaxParser методом nested()->Iterable<LexType> для обработки вложенностей
+Пакет streams.byte2char
+1. Написать класс Jdbc2CsvReader
+2. Написать класс Jdbc2JsonReader
+Пакет streams.char2byte
+1. Написать класс Csv2JdbcWriter
+2. Написать класс Json2JdbcWriter
 *Пакет streams.char2char
 *1. Дополнить класс CreoleWriter режимом подсчета переводов строки в параграфах и других элементах 
 *2. Дополнить класс CreoleWriter режимом подсчета завершающих '===' в заголовках, чтобы можно было правильно отображать текст в окне

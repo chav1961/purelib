@@ -2,6 +2,7 @@ package chav1961.purelib.sql.content;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
@@ -41,10 +42,9 @@ import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.StreamContent;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
-import chav1961.purelib.streams.byte2char.BufferedInputStreamReader;
 
 public class XMLContentParser implements ResultSetContentParser {
-	private static final URI		URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":xml:");
+	private static final URI		URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":xml:/");
 	
 	private final AbstractContent	content;
 	private final ResultSetMetaData	metadata;
@@ -128,8 +128,8 @@ public class XMLContentParser implements ResultSetContentParser {
 	public Hashtable<String, String[]> filter(Hashtable<String, String[]> source) {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
-		for (Entry<String, String[]> item : result.entrySet()) {
-			if (!SQLContentUtils.OPTION_ENCODING.equals(item.getKey())) {
+		for (Entry<String, String[]> item : source.entrySet()) {
+			if (!SQLContentUtils.OPTION_ENCODING.equals(item.getKey()) && !SQLContentUtils.OPTION_ROW_TAG.equals(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
 		}
@@ -160,7 +160,7 @@ public class XMLContentParser implements ResultSetContentParser {
 			
 			if (resultSetType == ResultSet.TYPE_FORWARD_ONLY) {
 				try{final InputStream		is = access.openStream();
-					final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
+					final Reader			rdr = new InputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING));
 					final XMLInputFactory 	factory = XMLInputFactory.newInstance();
 					factory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
 					final XMLStreamReader 	xmlStream = factory.createXMLStreamReader(rdr);	
@@ -174,7 +174,7 @@ public class XMLContentParser implements ResultSetContentParser {
 				final List<Object[]>		data = new ArrayList<>();
 				
 				try(final InputStream		is = access.openStream();
-					final Reader			rdr = new BufferedInputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING))) {
+					final Reader			rdr = new InputStreamReader(is,options.getProperty(SQLContentUtils.OPTION_ENCODING,String.class,SQLContentUtils.DEFAULT_OPTION_ENCODING))) {
 					final DocumentBuilderFactory	factory = DocumentBuilderFactory.newInstance();
 					final DocumentBuilder 			builder = factory.newDocumentBuilder();
 					final Document doc = 	builder.parse(new InputSource(rdr));
@@ -198,7 +198,7 @@ public class XMLContentParser implements ResultSetContentParser {
 						data.add(result);
 					}
 
-					return new XMLContentParser((Object[][])data.toArray(),content);
+					return new XMLContentParser(data.toArray(new Object[data.size()][]),content);
 				} catch (SyntaxException | ParserConfigurationException | SAXException exc) {
 					throw new IOException(exc.getLocalizedMessage(),exc); 
 				} finally {
