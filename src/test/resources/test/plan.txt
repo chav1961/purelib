@@ -12,6 +12,9 @@
 9. Дополнить PureLibSettings универсальной фабрикой по URI и классу
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
+Пакет concurrent
+1. Написать аналог PipedInputStream/PipedOutputStream с двумя буферами
+2. Написать аналог PipedReader/PipedWriter с двумя буферами
 *Пакет exceptions
 *1. Упорядочить применение исключений из пакета exceptions
 Пакет fsys
