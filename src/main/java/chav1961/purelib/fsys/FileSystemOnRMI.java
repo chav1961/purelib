@@ -48,7 +48,7 @@ public class FileSystemOnRMI extends AbstractFileSystem implements FileSystemInt
 	private static final String	LICENSE = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnRMI.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_SUFFIX;
 	private static final String	LICENSE_CONTENT = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnRMI.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_CONTENT_SUFFIX;
 	private static final String	HELP = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnRMI.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_HELP_SUFFIX;
-	private static final Icon	ICON = new ImageIcon(FileSystemInMemory.class.getResource("icon.png"));
+	private static final Icon	ICON = new ImageIcon(FileSystemOnRMI.class.getResource("rmiIcon.png"));
 	
 	private final URI						remote;
 	private final RMIDataWrapperInterface	server;

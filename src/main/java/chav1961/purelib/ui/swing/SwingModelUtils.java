@@ -123,7 +123,7 @@ public class SwingModelUtils {
 		else {
 			metadata.getOwner().walkDown((mode, applicationPath, uiPath, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					final Component	component = SwingUtils.findComponentByName(uiRoot,node.getName());
+					final Component	component = SwingUtils.findComponentByName(uiRoot,node.getUIPath().toString());
 					
 					if (component instanceof JComponentInterface) {
 						((JComponentInterface)component).assignValueToComponent("AAA");

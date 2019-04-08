@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
@@ -168,6 +169,10 @@ public class ModelUtils {
 		}
 	}
 
+	public static Object getValueByGetter(final Object instance, final URI applicationURI, final ContentNodeMetadata metadata) throws NullPointerException, ContentException {
+		return null;
+	}	
+	
 	/**
 	 * <p>Store value into instance by getters and setters</p>
 	 * @param instance instance to store value to
@@ -286,7 +291,11 @@ public class ModelUtils {
 		}
 	}
 
+	public static Object setValueBySetter(final Object instance, final Object value, final URI applicationURI, final ContentNodeMetadata metadata) throws NullPointerException, ContentException {
+		return null;
+	}	
 
+	
 	private static void toString(final String prefix, final ContentNodeMetadata node, final StringBuilder sb) {
 		sb.append(prefix).append(node.getRelativeUIPath()).append('\n');
 		sb.append(prefix).append('\t').append(node.getName()).append(", app=").append(node.getApplicationPath()).append('\n');

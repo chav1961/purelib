@@ -45,7 +45,7 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 	private static final String	LICENSE = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_SUFFIX;
 	private static final String	LICENSE_CONTENT = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_CONTENT_SUFFIX;
 	private static final String	HELP = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_HELP_SUFFIX;
-	private static final Icon	ICON = new ImageIcon(FileSystemInMemory.class.getResource("icon.png"));
+	private static final Icon	ICON = new ImageIcon(FileSystemOnFile.class.getResource("fileIcon.png"));
 	
 	private	final URI					rootPath;
 
