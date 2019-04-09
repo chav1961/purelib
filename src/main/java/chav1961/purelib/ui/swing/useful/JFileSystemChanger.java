@@ -6,11 +6,15 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Locale;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -23,6 +27,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.fsys.FileSystemFactory;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
@@ -40,14 +45,17 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final String 	CANCEL_TOOLTIP = "JFileSystemChanger.button.cancel.tooltip";
 	private static final String 	TEST_TOOLTIP = "JFileSystemChanger.button.test.tooltip";
 	private static final String 	TEST_URI_TOOLTIP = "JFileSystemChanger.test.uri.tooltip";
-
+	private static final String 	ERROR_HEADER = "JFileSystemChanger.message.error.header";
+	private static final Icon		TEST_OK = new ImageIcon(JFileSystemChanger.class.getResource("testOK.png"));
+	private static final Icon		TEST_FAILED = new ImageIcon(JFileSystemChanger.class.getResource("testFailed.png"));
+	
 	private final Localizer			localizer;
 	private final FileSystemDescription	content = new FileSystemDescription();
 	private final JLabel			uri2testLabel = new JLabel();
 	private final JTextField		uri2test = new JTextField();
 	private final JButton 			testButton = new JButton(), acceptButton = new JButton(), cancelButton = new JButton(); 
 	private final J2ColumnEditor	editor;
-	private final JList				list;
+	private final JList<?>			list;
 	
 	public JFileSystemChanger(final Localizer localizer) throws IOException, LocalizationException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		if (localizer == null) {
@@ -65,6 +73,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			
 			this.list.addListSelectionListener((e)->{
 				try{fillRecord((FileSystemInterfaceDescriptor)list.getSelectedValue(),content);
+					this.testButton.setIcon(null);
 				} catch (LocalizationException exc) {
 					exc.printStackTrace();
 				}
@@ -87,6 +96,28 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 				}
 			);
 			
+			this.testButton.addActionListener((e)->{
+				try{URI	testUri = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":unknown:/");
+				
+					try{testUri = URI.create(uri2test.getText());
+						try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(testUri)) {
+							
+							this.testButton.setIcon(TEST_OK);
+							return;
+						} catch (IllegalArgumentException | IOException exc) {
+							JOptionPane.showMessageDialog(JFileSystemChanger.this, exc.getLocalizedMessage(), localizer.getValue(ERROR_HEADER), JOptionPane.ERROR_MESSAGE);
+						}
+					} catch (IllegalArgumentException exc) {
+						JOptionPane.showMessageDialog(JFileSystemChanger.this, exc.getLocalizedMessage(), localizer.getValue(ERROR_HEADER), JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (LocalizationException exc) {
+					exc.printStackTrace();
+				}
+				this.testButton.setIcon(TEST_FAILED);
+			});
+//			this.testButton.setEnabled(false);
+			this.uri2test.addActionListener((e)->{this.testButton.setEnabled(!this.uri2test.getText().isEmpty());});
+			
 			leftBottomPanel.setBorder(new LineBorder(Color.BLACK,1,true));
 			leftBottomPanel.add(uri2testLabel,BorderLayout.WEST);
 			leftBottomPanel.add(uri2test,BorderLayout.CENTER);
@@ -108,6 +139,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			add(bottomPanel,BorderLayout.SOUTH);
 			fillLocalizedStrings();
 			list.requestFocusInWindow();
+			list.setSelectedIndex(0);
 		}
 	}
 
