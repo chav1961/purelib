@@ -16,7 +16,7 @@ public class Jdbc2JsonReader extends Reader {
 	private final InOutGrowableCharArray	gca = new InOutGrowableCharArray(false);
 	private final ReadingFormat[]	formats; 
 	private boolean					theSameFirst = true, theSameLast = false;
-	private int						cursor = 0; 
+	private int						cursor = Integer.MAX_VALUE; 
 	
 	public Jdbc2JsonReader(final ResultSet rs) throws IOException {
 		if (rs == null) {
@@ -65,7 +65,6 @@ public class Jdbc2JsonReader extends Reader {
 							throw new IOException("Column ["+rsmd.getColumnName(index)+"] has unsuported format ["+rsmd.getColumnTypeName(index)+"]");
 					}
 				}			
-			gca.append("[\n");
 			} catch (SQLException e) {
 				throw new IOException("Error getting metadata "+e.getLocalizedMessage(),e);
 			}
@@ -80,13 +79,14 @@ public class Jdbc2JsonReader extends Reader {
 		else if (off < 0 || off >= cbuf.length) {
 			throw new IllegalArgumentException("Offset ["+off+"] out of range 0.."+(cbuf.length-1));			
 		}
-		else if (off+len < 0 || off+len >= cbuf.length) {
+		else if (off+len < 0 || off+len > cbuf.length) {
 			throw new IllegalArgumentException("Offset+length ["+(off+len)+"] out of range 0.."+(cbuf.length-1));			
 		}
 		else {
 			if (cursor >= gca.length()) {
 				try{if (!rs.next()) {
 						if (!theSameLast) {
+							gca.length(0);
 							gca.append("]\n");
 							cursor = 0;
 							theSameLast = true;
@@ -97,7 +97,10 @@ public class Jdbc2JsonReader extends Reader {
 					}
 					else {
 						gca.length(0);
-						if (!theSameFirst) {
+						if (theSameFirst) {
+							gca.append("[\n");
+						}
+						else {
 							gca.append(',');
 						}
 						gca.print('{');
@@ -128,6 +131,7 @@ public class Jdbc2JsonReader extends Reader {
 						}
 						gca.println('}');
 						theSameFirst = false;
+						cursor = 0;
 					}
 				} catch (SQLException | PrintingException e) {
 					throw new IOException("Error getting record : "+e.getLocalizedMessage(),e);

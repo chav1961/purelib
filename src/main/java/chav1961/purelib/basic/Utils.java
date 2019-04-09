@@ -1411,6 +1411,32 @@ public class Utils {
 	}
 
 	/**
+	 * <p>Extract query string from multi-schemed URI</p>
+	 * @param uri uri to extract query from
+	 * @return query extracted or null if missing
+	 * @throws NullPointerException
+	 * @since 0.0.3
+	 */
+	public static String extractQueryFromURI(final URI uri) throws NullPointerException {
+		URI		current = uri; 
+		String	query = null, previous = uri.toString();
+		
+		while ((query = current.getQuery()) == null) {
+			final String	ssp = current.getSchemeSpecificPart();
+			
+			if (ssp == null || previous.equals(ssp)) {
+				break;
+			}
+			else {
+				previous = ssp;
+				current = URI.create(ssp);
+			}
+		}
+		return query;
+	}
+	
+	
+	/**
 	 * <p>Parse query string from uri</p>
 	 * @param uri uri to parse query string
 	 * @return key/value pair from parsed query. Can be empty but not null

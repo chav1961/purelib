@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,11 +38,47 @@ import chav1961.purelib.basic.gettersandsetters.StaticIntOwner;
 import chav1961.purelib.basic.gettersandsetters.StaticLongOwner;
 import chav1961.purelib.basic.gettersandsetters.StaticReferencedOwner;
 import chav1961.purelib.basic.gettersandsetters.StaticShortOwner;
+import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 
 public class GettersAndSettersFactoryTest {
 	@Before
 	public void prepare() {
 		GettersAndSettersFactory.clearCache();
+	}
+
+	@Test
+	public void uriStyledTest() throws IllegalArgumentException, NullPointerException, ContentException {
+		final Object					publicBooleanObj = new BooleanOwner();
+		final BooleanGetterAndSetter	booleanGS = (BooleanGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(
+												URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD+":/"+BooleanOwner.class.getName()+"/value"));
+		
+		Assert.assertFalse(((BooleanOwner)publicBooleanObj).value);
+		Assert.assertFalse(booleanGS.get(publicBooleanObj));
+		booleanGS.set(publicBooleanObj,true);
+		Assert.assertTrue(((BooleanOwner)publicBooleanObj).value);
+		Assert.assertTrue(booleanGS.get(publicBooleanObj));
+		
+		try{GettersAndSettersFactory.buildGetterAndSetter(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {			
+		}
+		try{GettersAndSettersFactory.buildGetterAndSetter(URI.create("/test"));
+			Assert.fail("Mandatory exception was not detected (scheme is missing)");
+		} catch (IllegalArgumentException exc) {			
+		}
+		try{GettersAndSettersFactory.buildGetterAndSetter(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/test"));
+			Assert.fail("Mandatory exception was not detected (subscheme is missing)");
+		} catch (IllegalArgumentException exc) {			
+		}
+		try{GettersAndSettersFactory.buildGetterAndSetter(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD+":/"));
+			Assert.fail("Mandatory exception was not detected (illegal path format)");
+		} catch (IllegalArgumentException exc) {			
+		}
+		try{GettersAndSettersFactory.buildGetterAndSetter(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD+":/unknown/unknown"));
+			Assert.fail("Mandatory exception was not detected (class not found)");
+		} catch (IllegalArgumentException exc) {			
+		}
 	}
 	
 	

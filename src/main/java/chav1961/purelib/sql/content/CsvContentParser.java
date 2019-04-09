@@ -21,7 +21,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.sql.AbstractContent;
-import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.StreamContent;
@@ -38,8 +37,8 @@ public class CsvContentParser implements ResultSetContentParser {
 		this.metadata = null;
 	}
 	
-	protected CsvContentParser(final BufferedReader content, final char splitter, final RsMetaDataElement[] fields, final int[] moveTo) throws IOException, SyntaxException {
-		this.content = new StreamContent(new Object[fields.length],
+	protected CsvContentParser(final BufferedReader content, final char splitter, final ResultSetMetaData metadata, final int[] moveTo) throws IOException, SyntaxException, SQLException {
+		this.content = new StreamContent(new Object[metadata.getColumnCount()],
 			(forData)->{
 				try{final String	line = content.readLine();
 					
@@ -68,20 +67,12 @@ public class CsvContentParser implements ResultSetContentParser {
 				}
 			}
 		);
-		this.metadata = new AbstractResultSetMetaData(fields,true) {
-			@Override public String getTableName(int column) throws SQLException {return "table";}
-			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
-			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
-		};
+		this.metadata = metadata;
 	}
 
 	protected CsvContentParser(final Object[][] content, final RsMetaDataElement[] fields) throws IOException, SyntaxException {
 		this.content = new ArrayContent((Object[][])content);
-		this.metadata = new AbstractResultSetMetaData(fields,true) {
-			@Override public String getTableName(int column) throws SQLException {return "table";}
-			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
-			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
-		};
+		this.metadata = new FakeResultSetMetaData(fields,true);
 	}
 	
 	@Override
@@ -151,8 +142,8 @@ public class CsvContentParser implements ResultSetContentParser {
 					}
 				}
 				
-				try{return new CsvContentParser(brdr,splitter,content,moveTo);
-				} catch (SyntaxException e) {
+				try{return new CsvContentParser(brdr,splitter,new FakeResultSetMetaData(content,true),moveTo);
+				} catch (SyntaxException | SQLException e) {
 					throw new IOException(e.getLocalizedMessage(),e);
 				}
 			}

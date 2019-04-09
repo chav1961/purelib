@@ -49,7 +49,7 @@ public class JUnitExecutorTest {
 		
 		try{ex.call(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (FlowException exc) {
+		} catch (NullPointerException exc) {
 		}
 	}
 }

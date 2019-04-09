@@ -37,7 +37,6 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.sql.AbstractContent;
-import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.StreamContent;
@@ -54,8 +53,8 @@ public class XMLContentParser implements ResultSetContentParser {
 		this.metadata = null;
 	}
 	
-	protected XMLContentParser(final XMLStreamReader reader, final RsMetaDataElement[] fields, final String rowTag, final SyntaxTreeInterface<?> names) throws IOException, SyntaxException {
-		this.content = new StreamContent(new Object[fields.length],
+	protected XMLContentParser(final XMLStreamReader reader, final ResultSetMetaData metadata, final String rowTag, final SyntaxTreeInterface<?> names) throws IOException, SyntaxException, SQLException {
+		this.content = new StreamContent(new Object[metadata.getColumnCount()],
 				(forData)->{
 					boolean	found = false;
 					int		nameIndex = 0;
@@ -102,20 +101,12 @@ public class XMLContentParser implements ResultSetContentParser {
 					}
 				}
 			);
-		this.metadata = new AbstractResultSetMetaData(fields,true) {
-			@Override public String getTableName(int column) throws SQLException {return "table";}
-			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
-			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
-		};
+		this.metadata = metadata;
 	}
 
-	protected XMLContentParser(final Object[][] content, final RsMetaDataElement[] fields) throws IOException, SyntaxException {
+	protected XMLContentParser(final Object[][] content, final ResultSetMetaData metadata) throws IOException, SyntaxException {
 		this.content = new ArrayContent(content);
-		this.metadata = new AbstractResultSetMetaData(fields,true) {
-			@Override public String getTableName(int column) throws SQLException {return "table";}
-			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
-			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
-		};
+		this.metadata = metadata;
 	}
 	
 	
@@ -165,8 +156,8 @@ public class XMLContentParser implements ResultSetContentParser {
 					factory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
 					final XMLStreamReader 	xmlStream = factory.createXMLStreamReader(rdr);	
 				
-					return new XMLContentParser(xmlStream, content, rowTag, names); 
-				} catch (XMLStreamException | SyntaxException exc) {
+					return new XMLContentParser(xmlStream, new FakeResultSetMetaData(content,true), rowTag, names); 
+				} catch (XMLStreamException | SyntaxException | SQLException exc) {
 					throw new IOException(exc.getLocalizedMessage(),exc); 
 				}
 			}
@@ -198,7 +189,7 @@ public class XMLContentParser implements ResultSetContentParser {
 						data.add(result);
 					}
 
-					return new XMLContentParser(data.toArray(new Object[data.size()][]),content);
+					return new XMLContentParser(data.toArray(new Object[data.size()][]),new FakeResultSetMetaData(content,true));
 				} catch (SyntaxException | ParserConfigurationException | SAXException exc) {
 					throw new IOException(exc.getLocalizedMessage(),exc); 
 				} finally {

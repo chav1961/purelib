@@ -9,7 +9,8 @@
 *6. Дополнить LongIdMap методами maxKey() и firstFree();
 *7. Дополнить CharUtils методом like(char[],it,char[])
 *8. Дополнить ArgParser диапазоном представления или списком для целочисленного аргумента
-9. Дополнить PureLibSettings универсальной фабрикой по URI и классу
+*9. Дополнить PureLibSettings универсальной фабрикой по URI и классу
+*10. Дописать в GettersAndSetters методы построения по URI из модели
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 Пакет concurrent

@@ -1,13 +1,10 @@
 package chav1961.purelib.sql.content;
 
-import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.SubstitutableProperties;
@@ -21,6 +18,9 @@ public class SQLContentUtils {
 	public static final String			OPTION_SEPARATOR = "separator";
 	public static final String			OPTION_FIRST_LINE_ARE_NAMES = "firstlinearenames";
 	public static final String			OPTION_ROW_TAG = "rowtag";
+	public static final String			OPTION_TABLE_NAME = "tablename";
+	public static final String			OPTION_SCHEMA_NAME = "schemaname";
+	public static final String			OPTION_CATALOG_NAME = "catalogname";
 
 	public static final String			DEFAULT_OPTION_ENCODING = "UTF-8";
 	

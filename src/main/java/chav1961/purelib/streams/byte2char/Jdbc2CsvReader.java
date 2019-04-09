@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
-import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.growablearrays.InOutGrowableCharArray;
 
 public class Jdbc2CsvReader extends Reader {
@@ -16,7 +15,7 @@ public class Jdbc2CsvReader extends Reader {
 	private final char				splitter;
 	private final InOutGrowableCharArray	gca = new InOutGrowableCharArray(false);
 	private final ReadingFormat[]	formats; 
-	private int						cursor = 0;
+	private int						cursor;
 	
 	public Jdbc2CsvReader(final ResultSet rs, final char splitter) throws IOException {
 		this(rs,splitter,true);
@@ -79,6 +78,10 @@ public class Jdbc2CsvReader extends Reader {
 				}
 				if (firstLineIsNames) {
 					gca.append('\n');
+					cursor = 0;
+				}
+				else {
+					cursor = Integer.MAX_VALUE;
 				}
 			} catch (SQLException e) {
 				throw new IOException("Error processing metadata: "+e.getLocalizedMessage(),e);
@@ -94,7 +97,7 @@ public class Jdbc2CsvReader extends Reader {
 		else if (off < 0 || off >= cbuf.length) {
 			throw new IllegalArgumentException("Offset ["+off+"] out of range 0.."+(cbuf.length-1));			
 		}
-		else if (off+len < 0 || off+len >= cbuf.length) {
+		else if (off+len < 0 || off+len > cbuf.length) {
 			throw new IllegalArgumentException("Offset+length ["+(off+len)+"] out of range 0.."+(cbuf.length-1));			
 		}
 		else {
@@ -130,6 +133,7 @@ public class Jdbc2CsvReader extends Reader {
 						}
 						gca.println();
 					}
+					cursor = 0;
 				} catch (SQLException | PrintingException e) {
 					throw new IOException("Error getting record : "+e.getLocalizedMessage(),e);
 				}

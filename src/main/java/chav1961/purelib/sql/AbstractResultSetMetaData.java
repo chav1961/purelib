@@ -3,6 +3,7 @@ package chav1961.purelib.sql;
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 public abstract class AbstractResultSetMetaData implements ResultSetMetaData {
 	protected final RsMetaDataElement[]	columns;
@@ -150,6 +151,11 @@ public abstract class AbstractResultSetMetaData implements ResultSetMetaData {
 	public String getColumnClassName(final int column) throws SQLException {
 		checkColumnNumber(column);
 		return getColumnClass(column).getName();
+	}
+
+	@Override
+	public String toString() {
+		return "AbstractResultSetMetaData [columns=" + Arrays.toString(columns) + ", readOnly=" + readOnly + "]";
 	}
 
 	protected void checkColumnNumber(final int column) {

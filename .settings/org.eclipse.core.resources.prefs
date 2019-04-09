@@ -21,6 +21,7 @@ encoding//src/test/resources/chav1961/purelib/nanoservice/root/test.txt=UTF-8
 encoding//src/test/resources/chav1961/purelib/sql/content/test.csv=UTF-8
 encoding//src/test/resources/chav1961/purelib/sql/content/test.json=UTF-8
 encoding//src/test/resources/chav1961/purelib/sql/content/test.xml=UTF-8
+encoding//src/test/resources/chav1961/purelib/streams/byte2char/csvtest.csv=UTF-8
 encoding//src/test/resources/chav1961/purelib/streams/char2byte/asm/macro/source.txt=UTF-8
 encoding//src/test/resources/chav1961/purelib/streams/char2byte/creole/creole1.0test.txt=UTF-8
 encoding//src/test/resources/chav1961/purelib/streams/char2byte/creole/output.html=UTF-8

@@ -27,7 +27,7 @@ public class ResultSetFactory {
 		else if (!RESULTSET_PARSERS_SCHEMA.equals(resource.getScheme())) {
 			throw new IllegalArgumentException("Resource scheme ["+resource.getScheme()+"] is not ["+RESULTSET_PARSERS_SCHEMA+"]");
 		}
-		else if ((query = extractQuery(resource)) == null) {
+		else if ((query = Utils.extractQueryFromURI(resource)) == null) {
 			throw new IllegalArgumentException("Resource ["+resource+"]: query string is missing in the URI!");
 		}
 		else {
@@ -60,23 +60,5 @@ public class ResultSetFactory {
 				throw new IOException(e.getMessage(),e);
 			}
 		}
-	}
-	
-	private static String extractQuery(final URI from) {
-		URI		current = from;
-		String	query = null, previous = from.toString();
-		
-		while ((query = current.getQuery()) == null) {
-			final String	ssp = current.getSchemeSpecificPart();
-			
-			if (ssp == null || previous.equals(ssp)) {
-				break;
-			}
-			else {
-				previous = ssp;
-				current = URI.create(ssp);
-			}
-		}
-		return query;
 	}
 }

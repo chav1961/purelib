@@ -20,7 +20,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.sql.AbstractContent;
-import chav1961.purelib.sql.AbstractResultSetMetaData;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.StreamContent;
@@ -41,8 +40,8 @@ public class JsonContentParser implements ResultSetContentParser {
 		this.metadata = null;
 	}
 	
-	protected JsonContentParser(final JsonStaxParser parser, final RsMetaDataElement[] fields) throws IOException, SyntaxException {
-		this.content = new StreamContent(new Object[fields.length],
+	protected JsonContentParser(final JsonStaxParser parser, final ResultSetMetaData metadata) throws IOException, SyntaxException, SQLException {
+		this.content = new StreamContent(new Object[metadata.getColumnCount()],
 				(forData)->{
 loop:				for (JsonStaxParserLexType item : parser) {
 						switch (item) {
@@ -75,20 +74,12 @@ loop:				for (JsonStaxParserLexType item : parser) {
 					}
 				}
 			);
-		this.metadata = new AbstractResultSetMetaData(fields,true) {
-			@Override public String getTableName(int column) throws SQLException {return "table";}
-			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
-			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
-		};
+		this.metadata = metadata;
 	}
 
 	protected JsonContentParser(final Object[][] content, final RsMetaDataElement[] fields) throws IOException, SyntaxException {
 		this.content = new ArrayContent(content);
-		this.metadata = new AbstractResultSetMetaData(fields,true) {
-			@Override public String getTableName(int column) throws SQLException {return "table";}
-			@Override public String getSchemaName(int column) throws SQLException {return "schema";}
-			@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
-		};
+		this.metadata = new FakeResultSetMetaData(fields,true);
 	}
 	
 	@Override
@@ -135,19 +126,17 @@ loop:				for (JsonStaxParserLexType item : parser) {
 					try{parser.close();
 						return new JsonContentParser(new Object[0][],content);
 					} catch (SyntaxException exc) {
-						parser.close();
 						throw new IOException(exc.getLocalizedMessage(),exc); 
 					}
 				}
 				else if (parser.next() != JsonStaxParserLexType.START_ARRAY) {
-					final SyntaxException	exc = new SyntaxException(parser.row(),parser.col(),"Array nesting is too big or exhausted");
-
 					parser.close();
-					throw new IOException(exc.getLocalizedMessage(),exc); 
+					throwIOException(parser.row(),parser.col(),"Array nesting is too big or exhausted");
+					return null;
 				}
 				else {
-					try{return new JsonContentParser(parser,content);
-					} catch (SyntaxException exc) {
+					try{return new JsonContentParser(parser,new FakeResultSetMetaData(content, true));
+					} catch (SyntaxException | SQLException exc) {
 						parser.close();
 						throw new IOException(exc.getLocalizedMessage(),exc); 
 					}
@@ -170,9 +159,7 @@ loop:				for (JsonStaxParserLexType item : parser) {
 									nesting++;
 								}
 								else {
-									final SyntaxException	exc = new SyntaxException(parser.row(),parser.col(),"Array nesting is too big or exhausted");
-
-									throw new IOException(exc.getLocalizedMessage(),exc); 
+									throwIOException(parser.row(),parser.col(),"Array nesting is too big or exhausted");
 								}
 								break;
 							case START_OBJECT	:
@@ -183,9 +170,7 @@ loop:				for (JsonStaxParserLexType item : parser) {
 									data.add(forData);
 								}
 								else {
-									final SyntaxException	exc = new SyntaxException(parser.row(),parser.col(),"Structure nesting is too big or exhausted");
-
-									throw new IOException(exc.getLocalizedMessage(),exc); 
+									throwIOException(parser.row(),parser.col(),"Structure nesting is too big or exhausted");
 								}
 								break;
 							case LIST_SPLITTER	:
@@ -246,13 +231,9 @@ loop:				for (JsonStaxParserLexType item : parser) {
 					row[nameIndex] = parser.realValue();
 					break;
 				case START_ARRAY	:
-					final SyntaxException	excA = new SyntaxException(parser.row(),parser.col(),"Array nesting is too big");
-					
-					throw new IOException(excA.getLocalizedMessage(),excA); 
+					throwIOException(parser.row(),parser.col(),"Array nesting is too big");
 				case START_OBJECT	:
-					final SyntaxException	excO = new SyntaxException(parser.row(),parser.col(),"Object nesting is too big");
-					
-					throw new IOException(excO.getLocalizedMessage(),excO); 
+					throwIOException(parser.row(),parser.col(),"Object nesting is too big");
 				case STRING_VALUE	:
 					row[nameIndex] = parser.stringValue();
 					break;
@@ -260,8 +241,12 @@ loop:				for (JsonStaxParserLexType item : parser) {
 					break;
 			}
 		}
-		final SyntaxException	excO = new SyntaxException(parser.row(),parser.col(),"Empty structure");
+		throwIOException(parser.row(),parser.col(),"Empty structure");
+	}
+	
+	private static void throwIOException(final long row, final long col, final String message) throws IOException {
+		final SyntaxException	excO = new SyntaxException(row,col,message);
 		
 		throw new IOException(excO.getLocalizedMessage(),excO); 
-	}	
+	}
 }

@@ -90,7 +90,7 @@ public class ContentModelFactory {
 														, localeResource.tooltip() 
 														, localeResource.help()
 														, null
-														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+clazz.getCanonicalName()));
+														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+clazz.getName()));
 			
 			collectFields(clazz,fields);
 			if (fields.size() == 0) {
@@ -110,7 +110,7 @@ public class ContentModelFactory {
 																	, f.isAnnotationPresent(Format.class) 
 																			? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
 																			: null
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+clazz.getCanonicalName()+"/"+f.getName())
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName())
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);

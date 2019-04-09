@@ -10,11 +10,14 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import sun.misc.Unsafe;
 
@@ -55,7 +58,7 @@ import sun.misc.Unsafe;
  * @see chav1961.purelib.streams.char2byte.AsmWriter
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
 @SuppressWarnings("restriction")
@@ -320,6 +323,61 @@ public class GettersAndSettersFactory {
 		public abstract void set(final Object instance, final T value) throws ContentException;
 	}
 
+	/**
+	 * <p>Build getter and setter by it's application path in model.</p>
+	 * @param applicationPath application path URI in the model
+	 * @return getter and setter built
+	 * @throws ContentException on any building errors
+	 * @throws IllegalArgumentException field name is null, empty or is missing in the class
+	 * @throws NullPointerException awaited class is null
+	 * @since 0.0.3
+	 */
+	public static <T> GetterAndSetter buildGetterAndSetter(final URI applicationPath) throws ContentException, IllegalArgumentException, NullPointerException {
+		return buildGetterAndSetter(applicationPath,Thread.currentThread().getContextClassLoader());
+	}
+
+	/**
+	 * <p>Build getter and setter by it's application path in model for specific class loader.</p>
+	 * @param applicationPath application path URI in the model
+	 * @param loader class loader to seek class in
+	 * @return getter and setter built
+	 * @throws ContentException on any building errors
+	 * @throws IllegalArgumentException field name is null, empty or is missing in the class
+	 * @throws NullPointerException awaited class is null
+	 * @since 0.0.3
+	 */
+	public static <T> GetterAndSetter buildGetterAndSetter(final URI applicationPath, final ClassLoader loader) throws ContentException, IllegalArgumentException, NullPointerException {
+		if (applicationPath == null) {
+			throw new NullPointerException("Application path URI can't be null");
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Class loader URI can't be null");
+		}
+		else if (!ContentMetadataInterface.APPLICATION_SCHEME.equals(applicationPath.getScheme())) {
+			throw new IllegalArgumentException("Illegal scheme ["+applicationPath.getScheme()+"] for application path, must be ["+ContentMetadataInterface.APPLICATION_SCHEME+"]");
+		}
+		else {
+			final URI	subScheme = URI.create(applicationPath.getSchemeSpecificPart());
+			
+			if (!ContentModelFactory.APPLICATION_SCHEME_FIELD.equals(subScheme.getScheme())) {
+				throw new IllegalArgumentException("Illegal subscheme ["+subScheme.getScheme()+"] for getters/setters, must be ["+ContentModelFactory.APPLICATION_SCHEME_FIELD+"]");
+			}
+			else {
+				final String[]	parts = CharUtils.split(subScheme.getPath(),'/');
+				
+				if (parts.length != 3) {
+					throw new IllegalArgumentException("Illegal path format ["+subScheme.getPath()+"] for getters/setters, must be [/<class>/<field_name>]");
+				}
+				
+				try{return buildGetterAndSetter(loader.loadClass(parts[1]),parts[2]);
+				} catch (ClassNotFoundException e) {
+					throw new IllegalArgumentException("Class ["+parts[1]+"] is not known in the given class loader");
+				}
+			}
+		}
+	}
+	
+	
 	/**
 	 * <p>Build getter and setter for the given field in the class or instance.</p>
 	 * @param <T> instance to build getter and setter for

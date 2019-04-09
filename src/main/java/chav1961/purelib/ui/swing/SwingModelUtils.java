@@ -21,6 +21,8 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.UITestInterface;
+import chav1961.purelib.basic.GettersAndSettersFactory;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -30,6 +32,7 @@ import chav1961.purelib.i18n.LocalizerFactory.FillLocalizedContentCallback;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
 public class SwingModelUtils {
@@ -126,7 +129,12 @@ public class SwingModelUtils {
 					final Component	component = SwingUtils.findComponentByName(uiRoot,node.getUIPath().toString());
 					
 					if (component instanceof JComponentInterface) {
-						((JComponentInterface)component).assignValueToComponent("AAA");
+						try{((JComponentInterface)component).assignValueToComponent(
+									ModelUtils.getValueByGetter(content,
+											GettersAndSettersFactory.buildGetterAndSetter(node.getApplicationPath())
+											,metadata));
+						} catch (ContentException e) {
+						}
 					}
 				}
 				return ContinueMode.CONTINUE;
@@ -152,6 +160,22 @@ public class SwingModelUtils {
 			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] differ to metadata instance class ["+metadata.getType().getCanonicalName()+"]. Use appropriative arguments!"); 
 		}
 		else {
+			metadata.getOwner().walkDown((mode, applicationPath, uiPath, node)->{
+				if (mode == NodeEnterMode.ENTER) {
+					final Component	component = SwingUtils.findComponentByName(uiRoot,node.getUIPath().toString());
+					
+					if (component instanceof JComponentInterface) {
+						try{ModelUtils.setValueBySetter(content,
+									((JComponentInterface)component).getChangedValueFromComponent(),
+									GettersAndSettersFactory.buildGetterAndSetter(node.getApplicationPath())
+									,metadata);
+							
+						} catch (ContentException e) {
+						}
+					}
+				}
+				return ContinueMode.CONTINUE;
+			},metadata.getUIPath());
 			return true;
 		}
 	}

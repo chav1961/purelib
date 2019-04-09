@@ -14,7 +14,6 @@ public class JUnitExecutor<Command,Response> {
 		Response process(Command command, Object... parameters) throws Throwable;
 	}
 	
-	private final Object					sync = new Object();
 	private final Exchanger<Command>		cmd = new Exchanger<>();
 	private final BlockingQueue<Object>		resp = new ArrayBlockingQueue<>(10);
 	private final boolean 					trace;
@@ -33,11 +32,19 @@ public class JUnitExecutor<Command,Response> {
 			throw new NullPointerException("Command processor can't be null");
 		}
 		else {
-			try{System.err.println("Before getting command...");
+			try{if (trace) {
+					System.err.println("Before getting command...");
+				}
 				final Command	c = cmd.exchange(null);
-				System.err.println("Got command: "+c);
+				
+				if (trace) {
+					System.err.println("Got command: "+c);
+				}
 				final Response	r = proc.process(c,parameters);
-				System.err.println("After processing command "+c+": "+r);
+				
+				if (trace) {
+					System.err.println("After processing command "+c+": "+r);
+				}
 				resp.put(r);
 			} catch (InterruptedException e) {
 				throw e;

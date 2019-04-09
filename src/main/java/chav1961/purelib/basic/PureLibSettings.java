@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.logging.Level;
@@ -19,12 +20,18 @@ import java.util.logging.Logger;
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 
+import chav1961.purelib.basic.PureLibSettings.WellKnownSchema;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.SpiService;
+import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.sql.content.ResultSetFactory;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 
@@ -248,12 +255,67 @@ public class PureLibSettings {
 	 */
 	public static final Timer			COMMON_MAINTENANCE_TIMER = new Timer("PureLibMaintenanceTimer",true);
 	
-	
+	/**
+	 * <p>This interface describes well-known factories in the Pure Library</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
+	public interface WellKnownSchema {
+		/**
+		 * <p>Get schema name</p>
+		 * @return schema name. Can't be null or empty
+		 */
+		String getSchemaName();
+		
+		/**
+		 * <p>Get schema description</p>
+		 * @return schema description. Can be null or empty
+		 */
+		String getDescription();
+		
+		/**
+		 * <p>Get factory class for the given schema</p>
+		 * @return factory class for schema. Can't be null
+		 */
+		Class<?> getFactoryClass();
+		
+		/**
+		 * <p>Does the class supports {@linkplain SpiService} interface</p> 
+		 * @return true of does
+		 */
+		boolean supportsSpiService();
+		
+		/**
+		 * <p>Create service instance by it's URI</p>
+		 * @param description uri to pass to service factory
+		 * @return instance created.
+		 * @throws EnvironmentException on creation errors
+		 */
+		<T> T newInstance(URI description) throws EnvironmentException;
+	}	
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
 	private static final SubstitutableProperties	defaults = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	props = new SubstitutableProperties(defaults);
+	private static final WellKnownSchema[]			schemasList = {
+															new WellKnownSchemaImpl(Localizer.LOCALIZER_SCHEME, "", LocalizerFactory.class, true, 
+																(uri)->{
+																	try{return LocalizerFactory.getLocalizer(uri);
+																	} catch (IOException e) {
+																		throw new EnvironmentException(e); 
+																	}
+																}),
+															new WellKnownSchemaImpl(FileSystemInterface.FILESYSTEM_URI_SCHEME, "", FileSystemFactory.class, true, 
+																(uri)->{
+																	try{return FileSystemFactory.createFileSystem(uri);
+																	} catch (IOException e) {
+																		throw new EnvironmentException(e); 
+																	}
+																}),
+															new WellKnownSchemaImpl(ResultSetFactory.RESULTSET_PARSERS_SCHEMA, "", ResultSetFactory.class, false, 
+																(uri)->{throw new EnvironmentException("This service doesn't supports SpiService interface");})
+														}; 
 	
 	static {
 		try(final InputStream	is = PureLibSettings.class.getResourceAsStream("/purelib.default.properties")) {
@@ -341,6 +403,25 @@ public class PureLibSettings {
 			return defaultName;
 		}
 	}
+
+	/**
+	 * <p>Get well-known schemas in the Pure Lbrary</p> 
+	 * @return schemas iterable. Can't be null
+	 */
+	public static Iterable<WellKnownSchema> wellKnownSchemas() {
+		return new Iterable<PureLibSettings.WellKnownSchema>() {
+			@Override
+			public Iterator<WellKnownSchema> iterator() {
+				return new Iterator<PureLibSettings.WellKnownSchema>() {
+					int	index = 0;
+					
+					@Override public boolean hasNext() {return index < schemasList.length;}
+					@Override public WellKnownSchema next() {return schemasList[index++];}
+				};
+			}
+		};
+	}	
+
 	
 	private static Color toRGB(final String rgb) {
 		if (!rgb.isEmpty()) {
@@ -379,5 +460,36 @@ public class PureLibSettings {
 		return Long.valueOf(name.substring(0,name.indexOf('@')));
 	}
 
+	private static class WellKnownSchemaImpl<T> implements WellKnownSchema {
+		@FunctionalInterface
+		private interface CreationCallback<T> {
+			T create(URI uri) throws EnvironmentException;
+		}
+		
+		private final String				schemaName;
+		private final String				description;
+		private final Class<?>				factoryClass;
+		private final boolean				supportsSpi;
+		private final CreationCallback<T>	callback;
+		
+		WellKnownSchemaImpl(final String schemaName, final String description, final Class<?> factoryClass, final boolean supportsSpi, final CreationCallback<T> callback) {
+			this.schemaName = schemaName;
+			this.description = description;
+			this.factoryClass = factoryClass;
+			this.supportsSpi = supportsSpi;
+			this.callback = callback;
+		}
+
+		@Override public String getSchemaName() {return schemaName;}
+		@Override public String getDescription() {return description;}
+		@Override public Class<?> getFactoryClass() {return factoryClass;}
+		@Override public boolean supportsSpiService() {return supportsSpi;}
+		@Override public <T> T newInstance(final URI description) throws EnvironmentException {return (T) callback.create(description);}
+
+		@Override
+		public String toString() {
+			return "WellKnownSchemaImpl [schemaName=" + schemaName + ", description=" + description + ", factoryClass=" + factoryClass + ", supportsSpi=" + supportsSpi + "]";
+		}
+	}
 }
 
