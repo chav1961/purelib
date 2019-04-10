@@ -128,7 +128,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	 */
 	public void parse(final char[] data) throws NullPointerException, IOException, SyntaxException {
 		if (data == null) {
-			throw new NullPointerException("String to parse can't be null"); 
+			throw new NullPointerException("Character array to parse can't be null"); 
 		}
 		else {
 			try{parse(data,0,data.length);

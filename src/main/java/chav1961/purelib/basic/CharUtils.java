@@ -1046,7 +1046,7 @@ public class CharUtils {
 					result[1] = index - 1;
 					return index + 1;
 				}
-				else if (source[index] == '\\' && checkEscaping) {
+				else if ((source[index] == '\\' || source[index] == '\n')&& checkEscaping) {
 					result[0] = from;
 					result[1] = index - 1;
 					return -index;
