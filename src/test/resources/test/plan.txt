@@ -11,6 +11,7 @@
 *8. Дополнить ArgParser диапазоном представления или списком для целочисленного аргумента
 *9. Дополнить PureLibSettings универсальной фабрикой по URI и классу
 *10. Дописать в GettersAndSetters методы построения по URI из модели
+11. Дополнить PureLibSettings методами installHelpContent/uninstallHelpContent с автоматичесим поднятием сервера HTTP
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 Пакет concurrent

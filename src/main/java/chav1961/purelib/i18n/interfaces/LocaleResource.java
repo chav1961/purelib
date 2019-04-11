@@ -36,4 +36,10 @@ public @interface LocaleResource {
 	 * @return any key registered in the localization resource described by {@linkplain LocaleResourceLocation} annotation
 	 */
 	String help() default "";
+	
+	/**
+	 * <p>Icon associated with the given entity</p>
+	 * @return associated icon or null
+	 */
+	String icon() default ""; 
 }

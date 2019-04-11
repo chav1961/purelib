@@ -2,6 +2,7 @@ package chav1961.purelib.ui.interfaces;
 
 
 import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Repeatable;
@@ -11,7 +12,7 @@ import java.lang.annotation.Target;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 
 @Retention(RUNTIME)
-@Target(TYPE)
+@Target({TYPE,FIELD})
 @Repeatable(MultiAction.class)
 public @interface Action {
 	LocaleResource resource();

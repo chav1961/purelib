@@ -112,6 +112,9 @@ public class ContentModelFactory {
 																			: null
 																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName())
 																);
+					if (f.isAnnotationPresent(MultiAction.class) || f.isAnnotationPresent(Action.class)) {
+						collectActions(clazz,f,metadata);
+					}
 					root.addChild(metadata);
 					metadata.setParent(root);
 				}
@@ -434,6 +437,27 @@ public class ContentModelFactory {
 		}
 	}
 
+	private static void collectActions(final Class<?> clazz, final Field field, final MutableContentNodeMetadata root) throws IllegalArgumentException, NullPointerException, SyntaxException, LocalizationException, ContentException {
+		if (field.isAnnotationPresent(MultiAction.class) || field.isAnnotationPresent(Action.class)) {
+			for (Action item : field.isAnnotationPresent(MultiAction.class) 
+							 	? field.getAnnotation(MultiAction.class).value() 
+							 	: new Action[] {field.getAnnotation(Action.class)}) {
+				root.addChild(
+						new MutableContentNodeMetadata(item.actionString()
+										, ActionEvent.class
+										, "./"+field.getName()+"."+item.actionString()
+										, null
+										, item.resource().value()
+										, item.resource().tooltip()
+										, item.resource().help()
+										, null
+										, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+field.getName()+"."+item.actionString())
+						)
+				);
+			}
+		}
+	}
+	
 	private static String buildColumnFormat(final ResultSet rs) throws SQLException {
 		final StringBuilder	sb = new StringBuilder();
 		

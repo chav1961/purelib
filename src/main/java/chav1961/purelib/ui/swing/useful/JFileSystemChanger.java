@@ -33,6 +33,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.swing.SwingModelUtils;
 
@@ -41,6 +42,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final String 	ACCEPT = "JFileSystemChanger.button.accept";
 	private static final String 	CANCEL = "JFileSystemChanger.button.cancel";
 	private static final String 	TEST = "JFileSystemChanger.button.test";
+	private static final String 	TEST_CAPTION = "JFileSystemChanger.button.test.caption";
 	private static final String 	ACCEPT_TOOLTIP = "JFileSystemChanger.button.accept.tooltip";
 	private static final String 	CANCEL_TOOLTIP = "JFileSystemChanger.button.cancel.tooltip";
 	private static final String 	TEST_TOOLTIP = "JFileSystemChanger.button.test.tooltip";
@@ -69,7 +71,17 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	
 			this.localizer = localizer;
 			this.list = new JList<>(FileSystemFactory.getAvailableFileSystems());
-			this.editor = new J2ColumnEditor(content);
+			this.editor = new J2ColumnEditor(content,(c)-> {
+				if (c.endsWith("showHelp")) {
+					System.err.println("Help: "+content.helpId);
+				}
+				else if (c.endsWith("showLicense")) {
+					System.err.println("License: "+content.licenseContentId);
+				}
+				else {
+					System.err.println("Press: "+c+" "+content.helpId+" "+content.licenseContentId);
+				}
+			});
 			
 			this.list.addListSelectionListener((e)->{
 				try{fillRecord((FileSystemInterfaceDescriptor)list.getSelectedValue(),content);
@@ -115,15 +127,13 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 				}
 				this.testButton.setIcon(TEST_FAILED);
 			});
-//			this.testButton.setEnabled(false);
 			this.uri2test.addActionListener((e)->{this.testButton.setEnabled(!this.uri2test.getText().isEmpty());});
 			
-			leftBottomPanel.setBorder(new LineBorder(Color.BLACK,1,true));
 			leftBottomPanel.add(uri2testLabel,BorderLayout.WEST);
 			leftBottomPanel.add(uri2test,BorderLayout.CENTER);
 			leftBottomPanel.add(testButton,BorderLayout.EAST);
-
-			editor.setPreferredSize(new Dimension(400,400));
+			
+			editor.setPreferredSize(new Dimension(400,170));
 			leftPanel.add(editor,BorderLayout.CENTER);
 			leftPanel.add(leftBottomPanel,BorderLayout.SOUTH);
 			
@@ -156,6 +166,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		acceptButton.setToolTipText(localizer.getValue(ACCEPT_TOOLTIP));
 		cancelButton.setText(localizer.getValue(CANCEL));
 		cancelButton.setToolTipText(localizer.getValue(CANCEL_TOOLTIP));
+		uri2testLabel.setText(localizer.getValue(TEST_CAPTION));
 		uri2test.setToolTipText(localizer.getValue(TEST_URI_TOOLTIP));
 		((LocaleChangeListener)editor).localeChanged(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 	}
@@ -182,15 +193,17 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		String version = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.description",tooltip="JFileSystemChanger.descriptor.description.tooltip")
 		@Format("r")
+		@Action(actionString="showHelp",resource=@LocaleResource(tooltip="JFileSystemChanger.descriptor.help.show.tooltip",value="Advanced"))
 		String descriptionId = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.vendor",tooltip="JFileSystemChanger.descriptor.vendor.tooltip")
 		@Format("r")
 		String vendorId = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.license",tooltip="JFileSystemChanger.descriptor.license.tooltip")
 		@Format("r")
+		@Action(actionString="showLicense",resource=@LocaleResource(tooltip="JFileSystemChanger.descriptor.license.show.tooltip",value="Advanced"))
 		String licenseId = "";
-		String licenseContentId = "";
 		String helpId = "";
+		String licenseContentId = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.uriTemplate",tooltip="JFileSystemChanger.descriptor.uriTemplate.tooltip")
 		@Format("r")
 		String uriTemplate = "";
