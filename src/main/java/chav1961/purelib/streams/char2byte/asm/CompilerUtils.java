@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
+import com.sun.glass.ui.GestureSupport;
+
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -122,6 +124,99 @@ public class CompilerUtils {
 			try{return clazz.getDeclaredConstructor(parameters);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new ContentException("Constructor with parameters "+Arrays.toString(parameters)+" is missing in the class ["+clazz.getCanonicalName()+"]");
+			}
+		}
+	}
+
+	@FunctionalInterface
+	public interface FieldWalker {
+		void process(final Class<?> clazz, final Field field);
+	}
+	
+	/**
+	 * <p>Walk all fields in the class</p>
+	 * @param clazz class to walk fields in
+	 * @param walker callback to process field
+	 * @throws NullPointerException any parameters are null
+	 * @since 0.0.3
+	 */
+	public static void walkFields(final Class<?> clazz, final FieldWalker walker) throws NullPointerException {
+		if (clazz == null) {
+			throw new NullPointerException("Clazz to walk fields can't be null");
+		}
+		else if (walker == null) {
+			throw new NullPointerException("Field walker can't be null");
+		}
+		else {
+			Class<?>	temp = clazz;
+			
+			while (temp != null) {
+				for (Field f : temp.getDeclaredFields()) {
+					walker.process(temp,f);
+				}
+				temp = temp.getSuperclass();
+			}
+		}
+	}
+	
+	@FunctionalInterface
+	public interface MethodWalker {
+		void process(final Class<?> clazz, final Method method);
+	}
+	
+	/**
+	 * <p>Walk all methods in the class</p>
+	 * @param clazz class to walk methods in
+	 * @param walker callback to process method
+	 * @throws NullPointerException any parameters are null
+	 * @since 0.0.3
+	 */
+	public static void walkMethods(final Class<?> clazz, final MethodWalker walker) throws NullPointerException {
+		if (clazz == null) {
+			throw new NullPointerException("Clazz to walk methods can't be null");
+		}
+		else if (walker == null) {
+			throw new NullPointerException("Method walker can't be null");
+		}
+		else {
+			Class<?>	temp = clazz;
+			
+			while (temp != null) {
+				for (Method m : temp.getDeclaredMethods()) {
+					walker.process(temp,m);
+				}
+				temp = temp.getSuperclass();
+			}
+		}
+	}
+	
+	@FunctionalInterface
+	public interface ConstructorWalker {
+		void process(final Class<?> clazz, final Constructor<?> method);
+	}
+	
+	/**
+	 * <p>Walk all constructors in the class</p>
+	 * @param clazz class to walk constructors in
+	 * @param walker callback to process constructor
+	 * @throws NullPointerException any parameters are null
+	 * @since 0.0.3
+	 */
+	public static void walkConstructors(final Class<?> clazz, final ConstructorWalker walker) {
+		if (clazz == null) {
+			throw new NullPointerException("Clazz to walk constructors can't be null");
+		}
+		else if (walker == null) {
+			throw new NullPointerException("Constructor walker can't be null");
+		}
+		else {
+			Class<?>	temp = clazz;
+			
+			while (temp != null) {
+				for (Constructor<?> c : temp.getDeclaredConstructors()) {
+					walker.process(temp,c);
+				}
+				temp = temp.getSuperclass();
 			}
 		}
 	}

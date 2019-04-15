@@ -1,0 +1,4 @@
+; --------------------------------------------------------------------
+
+buildPrimitiveStaticBoolean 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
+								.mend

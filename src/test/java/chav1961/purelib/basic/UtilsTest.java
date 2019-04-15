@@ -261,4 +261,24 @@ public class UtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}
+	
+	@Test
+	public void checkArrayContentTest() {
+		Assert.assertEquals(-1,Utils.checkArrayContent(new Object[]{"","",""}));
+		Assert.assertEquals(2,Utils.checkArrayContent(new Object[]{"","",null}));
+		
+		try{Utils.checkArrayContent(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{Utils.checkArrayContent("");
+			Assert.fail("Mandatory exception was not detected (1-st argument is not array)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{Utils.checkArrayContent(new int[]{1,2,3});
+			Assert.fail("Mandatory exception was not detected (1-st argument is not referenced array)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
+	
 }

@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -32,6 +33,8 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import com.sun.javadoc.ThrowsTag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -1548,6 +1551,34 @@ public class Utils {
 				}
 			}
 			return result.toString();
+		}
+	}
+	
+	/**
+	 * <p>Check array content for nulls</p>
+	 * @param array referenced type array to check 
+	 * @return index of the same first null in the array, otherwise -1
+	 * @throws NullPointerException when object to test is null
+	 * @throws IllegalArgumentException when object to test is not a referenced array
+	 * @since 0.0.3
+	 */
+	public static int checkArrayContent(final Object array) throws NullPointerException, IllegalArgumentException {
+		if (array == null) {
+			throw new NullPointerException("Array object to check can't be null"); 
+		}
+		else if (!array.getClass().isArray()) {
+			throw new IllegalArgumentException("Object to check is not array"); 
+		}
+		else if (array.getClass().getComponentType().isPrimitive()) {
+			throw new IllegalArgumentException("Array of primitive types can't be checked by this method"); 
+		}
+		else {
+			for (int index = 0, maxIndex = Array.getLength(array); index < maxIndex; index++) {
+				if (Array.get(array,index) == null) {
+					return index;
+				}
+			}
+			return -1;
 		}
 	}
 }

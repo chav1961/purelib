@@ -38,6 +38,8 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.xsd.XSDConst;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.DummyLocalizer;
 import chav1961.purelib.i18n.TableContainer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
@@ -45,6 +47,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.SQLUtils;
+import chav1961.purelib.sql.SimpleProvider;
 import chav1961.purelib.sql.interfaces.ORMProvider;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
@@ -53,6 +56,7 @@ import chav1961.purelib.ui.interfaces.MultiAction;
 public class ContentModelFactory {
 	public static final String			APPLICATION_SCHEME_CLASS = "class";	
 	public static final String			APPLICATION_SCHEME_FIELD = "field";	
+	public static final String			APPLICATION_SCHEME_ID = "id";	
 	public static final String			APPLICATION_SCHEME_NAVIGATOR = "navigator";	
 	public static final String			APPLICATION_SCHEME_ACTION = "action";
 	public static final String			APPLICATION_SCHEME_BUILTIN_ACTION = "builtin";
@@ -225,13 +229,33 @@ public class ContentModelFactory {
 					final Class<?>			type = SQLUtils.classByTypeId(rs.getInt("DATA_TYPE"));
 					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(rs.getString("COLUMN_NAME")
 																	, type
-																	, rs.getString("COLUMN_NAME")+"/"+rs.getString("COLUMN_NAME")
+																	, rs.getString("TABLE_NAME")+"/"+rs.getString("COLUMN_NAME")
 																	, null
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".tt" 
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".help"
 																	, new FieldFormat(type,buildColumnFormat(rs))
 																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+table+"/"+rs.getString("COLUMN_NAME"))
+																);
+					root.addChild(metadata);
+					metadata.setParent(root);
+				}
+			} catch (SQLException e) {
+				throw new ContentException(e.getLocalizedMessage());
+			}
+			try(final ResultSet	rs = dbDescription.getPrimaryKeys(catalog, schema, table)) {
+				
+				while (rs.next()) {
+					final Class<?>			type = SQLUtils.classByTypeId(rs.getInt("DATA_TYPE"));
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(rs.getString("PKCOLUMN_NAME")
+																	, type
+																	, rs.getString("PKTABLE_NAME")+"/"+rs.getString("PKCOLUMN_NAME")
+																	, null
+																	, "?"
+																	, "?" 
+																	, "?"
+																	, null
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ID+":/"+table+"/"+rs.getString("PKCOLUMN_NAME"))
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);
@@ -246,7 +270,7 @@ public class ContentModelFactory {
 		}
 	}
 
-	public static <Key, Record> ORMProvider<Key, Record> buildORMProvider(final ContentNodeMetadata clazz, final ContentNodeMetadata table) {
+	public static <Key, Record> ORMProvider<Key, Record> buildORMProvider(final ContentNodeMetadata clazz, final ContentNodeMetadata table) throws IOException {
 		if (clazz == null) {
 			throw new NullPointerException("Class metadata can't be null");
 		}
@@ -255,7 +279,36 @@ public class ContentModelFactory {
 		}
 		else {
 			// TODO:
-			return null;
+			final Set<String>	tableFields = new HashSet<>(), classFields = new HashSet<>();
+			final List<String>	pkFields = new ArrayList<>();
+			
+			new SimpleContentMetadata(clazz).walkDown((mode, applicationPath, uiPath, node)->{
+				if (mode == NodeEnterMode.ENTER) {
+					if (applicationPath.toString().contains(APPLICATION_SCHEME_FIELD)) {
+						classFields.add(node.getName().toUpperCase());
+					}
+				}
+				return ContinueMode.CONTINUE;
+			},clazz.getUIPath());
+			new SimpleContentMetadata(table).walkDown((mode, applicationPath, uiPath, node)->{
+				if (mode == NodeEnterMode.ENTER) {
+					if (applicationPath.toString().contains(APPLICATION_SCHEME_FIELD)) {
+						tableFields.add(node.getName().toUpperCase());
+					}
+					else if (applicationPath.toString().contains(APPLICATION_SCHEME_ID)) {
+						pkFields.add(node.getName().toUpperCase());
+					}
+				}
+				return ContinueMode.CONTINUE;
+			},clazz.getUIPath());
+			classFields.retainAll(tableFields);
+			
+			if (classFields.size() == 0) {
+				throw new IllegalArgumentException("Class and table has no any intersections by it's fields. At least one field name must be common for them");
+			}
+			else {
+				return new SimpleProvider<Key,Record>(table, clazz, (Class<Record>)clazz.getType(), classFields.toArray(new String[classFields.size()]), pkFields.toArray(new String[pkFields.size()]));
+			}
 		}
 	}
 	
