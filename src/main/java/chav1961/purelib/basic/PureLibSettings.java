@@ -243,12 +243,17 @@ public class PureLibSettings {
 	/**
 	 * <p>Common-accessible localizer for the Pure Library</p> 
 	 */
-	public static final Localizer		PURELIB_LOCALIZER = createPureLibLocalizer();
+	public static final Localizer	PURELIB_LOCALIZER = createPureLibLocalizer();
 	
 	/**
 	 * <p>Null logger facade for any purposes</p>
 	 */
 	public static final LoggerFacade	NULL_LOGGER = new NullLoggerFacade();
+
+	/**
+	 * <p>System.err logger facade for any purposes</p>
+	 */
+	public static final LoggerFacade	SYSTEM_ERR_LOGGER = new SystemErrLoggerFacade();
 	
 	/**
 	 * <p>Shared timer to process common maintenance for any pure library consumers</p>

@@ -11,17 +11,27 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
@@ -33,24 +43,33 @@ import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
@@ -686,6 +705,40 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 		// TODO:
 	}
 
+	public static void showCreoleHelpWindow(final Component owner, final URI helpContent) throws IOException {
+		final PopupFactory	pf = PopupFactory.getSharedInstance();
+		final JEditorPane	pane = new JEditorPane("text/html","");
+		final JScrollPane	scroll = new JScrollPane(pane);
+		final Point			point = new Point(0,0);
+		
+		scroll.setPreferredSize(new Dimension(200,300));
+		SwingUtilities.convertPointToScreen(point,owner);
+		
+		final Popup			popup = pf.getPopup(owner,scroll,point.x,point.y);
+		
+		try(final InputStream	is = helpContent.toURL().openStream();
+			final Reader		rdr = new InputStreamReader(is);
+			final Writer		wr = new StringWriter();
+			final Writer		cwr = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML)) {
+			
+			Utils.copyStream(rdr,cwr);
+			pane.setText(wr.toString());
+		}
+		
+		pane.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				popup.hide();
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+			}
+		});
+		popup.show();
+	}
+	
+	
 	private static class MethodHandleAndAsync {
 		final MethodHandle	handle;
 		final boolean		async;
