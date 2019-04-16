@@ -4,16 +4,22 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -21,6 +27,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EtchedBorder;
 
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
@@ -51,7 +58,6 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	private final boolean		isWizard, isModal;
 	private final Localizer		localizer;
 	private final Common		common;
-	private final JPanel		center = new JPanel(new BorderLayout());
 	private final JStateString	state;
 	private final JButton		okButton = new JButton();
 	private final JButton		cancelButton = new JButton();
@@ -67,40 +73,15 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	protected Component			currentComponent;
 	protected boolean			result;
 	
-	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner) {
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner) throws LocalizationException {
 		this(localizer, parent, captionId, inner, true);
 	}
 
-	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner) {
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner) throws LocalizationException {
 		this(localizer, parent, captionId, inner, true);
 	}
 	
-	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final boolean modal) {
-		super(parent,modal);
-		if (localizer == null) {
-			throw new NullPointerException("Localizer can't be null");
-		}
-		else if (captionId == null || captionId.isEmpty()) {
-			throw new IllegalArgumentException("Caption id can't be null or empty");
-		}
-		else if (inner == null) {
-			throw new NullPointerException("Inner component can't be null");
-		}
-		else {
-			this.isWizard = false;
-			this.isModal = modal;
-			this.localizer = localizer;
-			this.common = null;
-			this.err = null;
-			this.steps = null;
-			this.captionId = captionId;
-			this.state = new JStateString(localizer);
-
-			prepareSimpleDialog(inner);
-		}
-	}
-
-	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final boolean modal) {
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException {
 		super(parent,modal);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -122,6 +103,33 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			this.state = new JStateString(localizer);
 			
 			prepareSimpleDialog(inner);
+			fillLocalizedStrings();
+		}
+	}
+
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException {
+		super(parent,modal);
+		if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null");
+		}
+		else if (captionId == null || captionId.isEmpty()) {
+			throw new IllegalArgumentException("Caption id can't be null or empty");
+		}
+		else if (inner == null) {
+			throw new NullPointerException("Inner component can't be null");
+		}
+		else {
+			this.isWizard = false;
+			this.isModal = modal;
+			this.localizer = localizer;
+			this.common = null;
+			this.err = null;
+			this.steps = null;
+			this.captionId = captionId;
+			this.state = new JStateString(localizer);
+			
+			prepareSimpleDialog(inner);
+			fillLocalizedStrings();
 		}
 	}
 	
@@ -264,6 +272,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				prev = steps[stepIndexById(currentStep)-1].getStepId(); 
 			}
 			placeCurrentComponent(currentStep,prev);
+			refreshButtons();
 		}
 	}
 
@@ -278,9 +287,10 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				String	next = steps[stepIndexById(currentStep)].getNextStep();
 				
 				if (next == null) {
-					next = steps[stepIndexById(currentStep)-1].getStepId(); 
+					next = steps[stepIndexById(currentStep)+1].getStepId(); 
 				}
 				placeCurrentComponent(currentStep,next);
+				refreshButtons();
 			}
 		}
 	}
@@ -288,7 +298,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	protected void refreshButtons() {
 		if (isWizard) {
 			prevButton.setEnabled(steps[stepIndexById(currentStep)].getStepType() != StepType.INITIAL);
-			if (steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_FAILURE || steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_FAILURE) {
+			if (steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_FAILURE || steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_SUCCESS) {
 				try{nextButton.setText(localizer.getValue(FINISH_TEXT));
 					nextButton.setToolTipText(localizer.getValue(FINISH_TEXT_TT));
 				} catch (LocalizationException | IllegalArgumentException exc) {
@@ -320,17 +330,42 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		try(final LoggerFacade	lf = new SystemErrLoggerFacade();
 			final LoggerFacade	trans = lf.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
+			final Dimension		screenSize = Toolkit.getDefaultToolkit().getScreenSize(), innerSize = inner.getPreferredSize();
 			
 			bottom.add(okButton);
 			okButton.addActionListener((e)->{ok();});
 			bottom.add(cancelButton);
 			cancelButton.addActionListener((e)->{cancel();});
-			center.add(inner,BorderLayout.CENTER);
-			center.add(bottom,BorderLayout.SOUTH);
+			state.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+			south.add(bottom);
+			south.add(state);
+
+			getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"OK");
+			getRootPane().getActionMap().put("OK",new AbstractAction(){
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					ok();
+				}
+			});
+			getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"Cancel");
+			getRootPane().getActionMap().put("Cancel",new AbstractAction(){
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					cancel();
+				}
+			});			
 			
-			getContentPane().add(center,BorderLayout.CENTER);
-			getContentPane().add(state,BorderLayout.SOUTH);
-			SwingUtils.centerMainWindow(this);
+			getContentPane().add(inner,BorderLayout.CENTER);
+			getContentPane().add(south,BorderLayout.SOUTH);
+			if (innerSize != null) {
+				SwingUtils.centerMainWindow(this,(float)Math.max(innerSize.getWidth()/screenSize.getWidth(),(innerSize.getHeight()+south.getPreferredSize().getHeight())/screenSize.getHeight()));
+			}
+			else {
+				SwingUtils.centerMainWindow(this,0.5f);
+			}
 			trans.rollback();
 		}
 	}
@@ -339,6 +374,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		try(final LoggerFacade	lf = new SystemErrLoggerFacade();
 			final LoggerFacade	trans = lf.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
 			
 			bottom.add(prevButton);
 			prevButton.addActionListener((e)->{
@@ -356,8 +392,11 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			});
 			bottom.add(cancelButton);
 			cancelButton.addActionListener((e)->{cancel();});
-			center.add(bottom,BorderLayout.SOUTH);
+			state.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+			south.add(bottom);
+			south.add(state);
 
+			final Set<String>	stepIds = new HashSet<>();
 			boolean		hasInitial = false, hasTerminal = false;
 			
 			for (WizardStep<Common, ErrorType, Content> item : steps) {
@@ -367,6 +406,15 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				}
 				else if (item.getStepType() == StepType.TERM_SUCCESS || item.getStepType() == StepType.TERM_FAILURE) {
 					hasTerminal = true;
+				}
+				if (item.getStepId() == null || item.getStepId().isEmpty()) {
+					throw new IllegalArgumentException("Null or empty step id in the wizard step list"); 
+				}
+				else if (stepIds.contains(item.getStepId())) {
+					throw new IllegalArgumentException("Duplicate step id ["+item.getStepId()+"] in the wizard step list"); 
+				}
+				else {
+					stepIds.add(item.getStepId());
 				}
 			}
 			if (!hasInitial) {
@@ -381,11 +429,13 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				throw new IllegalArgumentException("Wizard step content for step id ["+initialStep+"] is not a Swing component"); 
 			}
 			else {
-				center.add(currentComponent = (Component)centerId,BorderLayout.CENTER);
+				getContentPane().add(currentComponent = (Component)centerId,BorderLayout.CENTER);
 				refreshButtons();
 			}
-			((JPanel)getContentPane()).getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
-			((JPanel)getContentPane()).getActionMap().put("help",new AbstractAction(){
+			getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
+			getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
+			getRootPane().getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
+			getRootPane().getActionMap().put("help",new AbstractAction(){
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -407,9 +457,8 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				}
 			});
 			
-			getContentPane().add(center,BorderLayout.CENTER);
-			getContentPane().add(state,BorderLayout.SOUTH);
-			SwingUtils.centerMainWindow(this);
+			getContentPane().add(south,BorderLayout.SOUTH);
+			SwingUtils.centerMainWindow(this,0.5f);
 			trans.rollback();
 		}
 	}
@@ -446,6 +495,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		captionId = steps[stepIndexById(currentStep)].getCaption();
 		fillLocalizedStrings();
 		steps[stepIndexById(currentStep)].beforeShow(common,temporary,err);
+		getContentPane().add(currentComponent = (Component)steps[stepIndexById(currentStep)].getContent(),BorderLayout.CENTER);
 	}
 	
 	private WizardStep<Common, ErrorType, Content> stepById(final String stepId) {

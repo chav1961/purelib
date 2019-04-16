@@ -11,7 +11,7 @@ import chav1961.purelib.ui.interfaces.WizardStep;
  * <p>This class is a template for the wizard steps and implements it's typical functionality.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @see WizardStep 
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 
 public abstract class AbstractWizardStep<Common,ErrorType extends Enum<?>, Content> implements WizardStep<Common,ErrorType,Content> {
@@ -23,7 +23,7 @@ public abstract class AbstractWizardStep<Common,ErrorType extends Enum<?>, Conte
 	
 	@Override
 	public String getStepId() {
-		return this.getClass().getSimpleName();
+		return this.getClass().getName();
 	}
 
 	@Override
