@@ -140,8 +140,24 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 
 	@Override
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) throws ContentException {
-		// TODO Auto-generated method stub
-		return false;
+		switch (event) {
+			case Action			:
+				return false;
+			case FocusGained	:
+				return false;
+			case FocusLost		:
+				return false;
+			case Loading		:
+				return false;
+			case Rollback		:
+				return false;
+			case Saving			:
+				return false;
+			case Validation		:
+				return true;
+			default:
+				throw new UnsupportedOperationException("Unsupported event type ["+event+"]");
+		}
 	}
 
 	public void bulkDownload() {

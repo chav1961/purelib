@@ -128,13 +128,23 @@ public class CompilerUtils {
 		}
 	}
 
+	/**
+	 * <p>This interface describes callback for {@linkplain CompilerUtils#walkFields(Class, FieldWalker)} method</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface FieldWalker {
+		/**
+		 * <p>Process field</p>
+		 * @param clazz field owner descriptor
+		 * @param field field descriptor
+		 */
 		void process(final Class<?> clazz, final Field field);
 	}
 	
 	/**
-	 * <p>Walk all fields in the class</p>
+	 * <p>Walk all fields in the class and it's parents</p>
 	 * @param clazz class to walk fields in
 	 * @param walker callback to process field
 	 * @throws NullPointerException any parameters are null
@@ -159,8 +169,18 @@ public class CompilerUtils {
 		}
 	}
 	
+	/**
+	 * <p>This interface describes callback for {@linkplain CompilerUtils#walkMethods(Class, MethodWalker)} method</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface MethodWalker {
+		/**
+		 * <p>Process method</p>
+		 * @param clazz method owner descriptor
+		 * @param field method descriptor
+		 */
 		void process(final Class<?> clazz, final Method method);
 	}
 	
@@ -190,8 +210,18 @@ public class CompilerUtils {
 		}
 	}
 	
+	/**
+	 * <p>This interface describes callback for {@linkplain CompilerUtils#walkConstructors(Class, ConstructorWalker)} method</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface ConstructorWalker {
+		/**
+		 * <p>Process constructor</p>
+		 * @param clazz constructor owner descriptor
+		 * @param field constructor descriptor
+		 */
 		void process(final Class<?> clazz, final Constructor<?> method);
 	}
 	

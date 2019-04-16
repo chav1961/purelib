@@ -21,6 +21,8 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -78,6 +80,9 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 				else if (c.endsWith("showLicense")) {
 					System.err.println("License: "+content.licenseContentId);
 				}
+				else if (c.endsWith("copyPasteUri")) {
+					uri2test.setText(content.uriTemplate);
+				}
 				else {
 					System.err.println("Press: "+c+" "+content.helpId+" "+content.licenseContentId);
 				}
@@ -127,7 +132,23 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 				}
 				this.testButton.setIcon(TEST_FAILED);
 			});
-			this.uri2test.addActionListener((e)->{this.testButton.setEnabled(!this.uri2test.getText().isEmpty());});
+			this.uri2test.getDocument().addDocumentListener(new DocumentListener() {
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					testButton.setEnabled(e.getLength() != 0);
+				}
+				
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					testButton.setEnabled(e.getLength() != 0);
+				}
+				
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+					testButton.setEnabled(e.getLength() != 0);				
+				}
+			});
+			this.testButton.setEnabled(false);
 			
 			leftBottomPanel.add(uri2testLabel,BorderLayout.WEST);
 			leftBottomPanel.add(uri2test,BorderLayout.CENTER);
@@ -156,7 +177,6 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
-		((LocaleChangeListener)editor).localeChanged(oldLocale, newLocale);
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
@@ -206,6 +226,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		String licenseContentId = "";
 		@LocaleResource(value="JFileSystemChanger.descriptor.uriTemplate",tooltip="JFileSystemChanger.descriptor.uriTemplate.tooltip")
 		@Format("r")
+		@Action(actionString="copyPasteUri",resource=@LocaleResource(tooltip="JFileSystemChanger.descriptor.uriTemplate.copyPaste.tooltip",value="Advanced"))
 		String uriTemplate = "";
 	}
 }

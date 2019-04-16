@@ -71,7 +71,14 @@ public class FileSystemOnRMI extends AbstractFileSystem implements FileSystemInt
 	public FileSystemOnRMI(final URI remote) throws IOException {
 		super(remote);
 		this.remote = remote;
-		try{this.server = (RMIDataWrapperInterface)Naming.lookup(remote.toString());
+		try{final Object	server = Naming.lookup(remote.toString());
+			
+			if (server instanceof RMIDataWrapperInterface) {
+				this.server = (RMIDataWrapperInterface)server;
+			}
+			else {
+				throw new IOException("Remote server ["+remote+"] not found");
+			}
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			throw new IOException(e.getMessage());
 		}
