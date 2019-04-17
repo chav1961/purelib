@@ -6,14 +6,19 @@ import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -23,10 +28,16 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
 import chav1961.purelib.basic.SubstitutableProperties;
@@ -64,11 +75,12 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	private final JButton		prevButton = new JButton();
 	private final JButton		nextButton = new JButton();
 	private final Map<String,Object>	temporary = new HashMap<>();
-	private final WizardStep<Common,ErrorType,Content>[]	steps; 
+	private final WizardStep<Common,ErrorType,Content>[]	steps;
+	private final History		history;
 
 	private ErrorProcessing<Common,ErrorType>			err;
 	private Thread				processingThread = null;
-	private String				captionId, helpId;
+	private String				captionId = null;
 	protected String			initialStep, currentStep;
 	protected Component			currentComponent;
 	protected boolean			result;
@@ -101,6 +113,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			this.steps = null;
 			this.captionId = captionId;
 			this.state = new JStateString(localizer);
+			this.history = new History(localizer,1);
 			
 			prepareSimpleDialog(inner);
 			fillLocalizedStrings();
@@ -127,13 +140,14 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			this.steps = null;
 			this.captionId = captionId;
 			this.state = new JStateString(localizer);
+			this.history = new History(localizer,1);
 			
 			prepareSimpleDialog(inner);
 			fillLocalizedStrings();
 		}
 	}
 	
-	public JDialogContainer(final Localizer localizer, final JFrame parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) {
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) throws LocalizationException {
 		super(parent,true);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -155,12 +169,13 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			this.err = err;
 			this.steps = steps;
 			this.state = new JStateString(localizer);
+			this.history = new History(localizer,steps.length);
 			
 			prepareWizardDialog(steps);
 		}
 	}
 
-	public JDialogContainer(final Localizer localizer, final JDialog parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) {
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) throws LocalizationException {
 		super(parent,true);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -182,6 +197,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			this.err = err;
 			this.steps = steps;
 			this.state = new JStateString(localizer);
+			this.history = new History(localizer,steps.length);
 			
 			prepareWizardDialog(steps);
 		}
@@ -272,6 +288,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				prev = steps[stepIndexById(currentStep)-1].getStepId(); 
 			}
 			placeCurrentComponent(currentStep,prev);
+			history.pop();
 			refreshButtons();
 		}
 	}
@@ -290,6 +307,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 					next = steps[stepIndexById(currentStep)+1].getStepId(); 
 				}
 				placeCurrentComponent(currentStep,next);
+				history.push(steps[stepIndexById(currentStep)].getStepType(),steps[stepIndexById(currentStep)].getCaption());
 				refreshButtons();
 			}
 		}
@@ -340,24 +358,6 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			state.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
 			south.add(bottom);
 			south.add(state);
-
-			getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"OK");
-			getRootPane().getActionMap().put("OK",new AbstractAction(){
-				private static final long serialVersionUID = 1L;
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					ok();
-				}
-			});
-			getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"Cancel");
-			getRootPane().getActionMap().put("Cancel",new AbstractAction(){
-				private static final long serialVersionUID = 1L;
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					cancel();
-				}
-			});			
-			
 			getContentPane().add(inner,BorderLayout.CENTER);
 			getContentPane().add(south,BorderLayout.SOUTH);
 			if (innerSize != null) {
@@ -366,11 +366,12 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			else {
 				SwingUtils.centerMainWindow(this,0.5f);
 			}
+			assignKeys();
 			trans.rollback();
 		}
 	}
 
-	private void prepareWizardDialog(WizardStep<Common, ErrorType, Content>[] steps) {
+	private void prepareWizardDialog(WizardStep<Common, ErrorType, Content>[] steps) throws LocalizationException {
 		try(final LoggerFacade	lf = new SystemErrLoggerFacade();
 			final LoggerFacade	trans = lf.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
@@ -432,37 +433,76 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				getContentPane().add(currentComponent = (Component)centerId,BorderLayout.CENTER);
 				refreshButtons();
 			}
-			getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
 			getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
-			getRootPane().getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
 			getRootPane().getActionMap().put("help",new AbstractAction(){
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					final URI	uri = URI.create(helpId);
+					final String	help = steps[stepIndexById(currentStep)].getHelpId();
 					
-					if (Desktop.isDesktopSupported()) {
-						try{Desktop.getDesktop().browse(uri);
-						} catch (IOException exc) {
-							state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
+					if (help != null && !help.isEmpty()) {
+						final URI	uri = URI.create(help);
+						
+						if (uri.isAbsolute() && Desktop.isDesktopSupported()) {
+							try{Desktop.getDesktop().browse(uri);
+							} catch (IOException exc) {
+								state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
+							}
 						}
-					}
-					else {
-						try{SwingUtils.showCreoleHelpWindow(JDialogContainer.this,uri);
-						} catch (IOException exc) {
-							state.message(Severity.error,exc,"Help window error: "+exc.getLocalizedMessage());
+						else {
+							try{SwingUtils.showCreoleHelpWindow(JDialogContainer.this,uri);
+							} catch (IOException exc) {
+								state.message(Severity.error,exc,"Help window error: "+exc.getLocalizedMessage());
+							}
 						}
 					}
 				}
 			});
-			
-			getContentPane().add(south,BorderLayout.SOUTH);
+		
 			SwingUtils.centerMainWindow(this,0.5f);
+			
+			final JPanel		historyPanel = new JPanel(new GridLayout(1,1));
+			
+			history.push(stepById(initialStep).getStepType(),stepById(initialStep).getCaption());
+			historyPanel.setPreferredSize(new Dimension(200,0));
+			historyPanel.setBorder(new EmptyBorder(50, 10, 10, 10));
+			historyPanel.add(history);
+			
+			getContentPane().add(historyPanel,BorderLayout.WEST);
+			getContentPane().add(south,BorderLayout.SOUTH);
+			assignKeys();
 			trans.rollback();
 		}
 	}
 
+	private void assignKeys() {
+		getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"OK");
+		getRootPane().getActionMap().put("OK",new AbstractAction(){
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (isWizard) {
+					try{next();
+					} catch (LocalizationException | FlowException exc) {
+						state.message(Severity.error,exc,"Next jump error: "+exc.getLocalizedMessage());
+					}
+				}
+				else {
+					ok();
+				}
+			}
+		});
+		getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"Cancel");
+		getRootPane().getActionMap().put("Cancel",new AbstractAction(){
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cancel();
+			}
+		});			
+	}
+	
 	private void placeCurrentComponent(final String currentState, final String newState) throws LocalizationException, FlowException {
 		steps[stepIndexById(currentState)].afterShow(common,temporary,err);
 		getContentPane().remove(currentComponent);
@@ -516,5 +556,43 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			}
 		}
 		return -1;
+	}
+	
+	private static class History extends JEditorPane implements LocaleChangeListener {
+		private final List<String>	steps = new ArrayList<>();
+		private final Localizer		localizer;
+		
+		History(final Localizer localizer, final int maximumSize) {
+			super("text/html","");
+			this.localizer = localizer;
+			setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+			setEditable(false);
+		}
+		
+		public void push(final StepType type, final String step) throws LocalizationException {
+			steps.add(step);
+			refreshContent();
+		}
+
+		public void pop() throws LocalizationException {
+			steps.remove(steps.size()-1);
+			refreshContent();
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			refreshContent();
+		}
+
+		private void refreshContent() throws LocalizationException, IllegalArgumentException {
+			final StringBuilder	sb = new StringBuilder();
+			
+			sb.append("<html><body>");
+			for (String step : steps) {
+				sb.append(localizer.getValue(step)).append("<br>");
+			}
+			sb.append("</body></html>");
+			setText(sb.toString());
+		}
 	}
 }
