@@ -56,6 +56,8 @@ import chav1961.purelib.ui.interfaces.MultiAction;
 public class ContentModelFactory {
 	public static final String			APPLICATION_SCHEME_CLASS = "class";	
 	public static final String			APPLICATION_SCHEME_FIELD = "field";	
+	public static final String			APPLICATION_SCHEME_TABLE = "table";	
+	public static final String			APPLICATION_SCHEME_COLUMN = "column";	
 	public static final String			APPLICATION_SCHEME_ID = "id";	
 	public static final String			APPLICATION_SCHEME_NAVIGATOR = "navigator";	
 	public static final String			APPLICATION_SCHEME_ACTION = "action";
@@ -221,7 +223,7 @@ public class ContentModelFactory {
 													, schema+"."+table+".tt" 
 													, schema+"."+table+".help"
 													, null
-													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+TableContainer.class.getCanonicalName()));
+													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_TABLE+":/"+TableContainer.class.getCanonicalName()));
 			
 			
 			try(final ResultSet	rs = dbDescription.getColumns(catalog, schema, table, "%")) {
@@ -235,7 +237,7 @@ public class ContentModelFactory {
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".tt" 
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".help"
 																	, new FieldFormat(type,buildColumnFormat(rs))
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+table+"/"+rs.getString("COLUMN_NAME"))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_COLUMN+":/"+table+"/"+rs.getString("COLUMN_NAME")+"?seq="+rs.getString("ORDINAL_POSITION"))
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);

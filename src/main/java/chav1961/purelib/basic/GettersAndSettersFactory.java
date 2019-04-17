@@ -359,10 +359,7 @@ public class GettersAndSettersFactory {
 		else {
 			final URI	subScheme = URI.create(applicationPath.getSchemeSpecificPart());
 			
-			if (!ContentModelFactory.APPLICATION_SCHEME_FIELD.equals(subScheme.getScheme())) {
-				throw new IllegalArgumentException("Illegal subscheme ["+subScheme.getScheme()+"] for getters/setters, must be ["+ContentModelFactory.APPLICATION_SCHEME_FIELD+"]");
-			}
-			else {
+			if (ContentModelFactory.APPLICATION_SCHEME_FIELD.equals(subScheme.getScheme())) {
 				final String[]	parts = CharUtils.split(subScheme.getPath(),'/');
 				
 				if (parts.length != 3) {
@@ -374,9 +371,11 @@ public class GettersAndSettersFactory {
 					throw new IllegalArgumentException("Class ["+parts[1]+"] is not known in the given class loader");
 				}
 			}
+			else {
+				throw new IllegalArgumentException("Illegal subscheme ["+subScheme.getScheme()+"] for getters/setters, must be ["+ContentModelFactory.APPLICATION_SCHEME_FIELD+"]");
+			}
 		}
 	}
-	
 	
 	/**
 	 * <p>Build getter and setter for the given field in the class or instance.</p>
