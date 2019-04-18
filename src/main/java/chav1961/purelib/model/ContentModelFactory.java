@@ -237,7 +237,7 @@ public class ContentModelFactory {
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".tt" 
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".help"
 																	, new FieldFormat(type,buildColumnFormat(rs))
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_COLUMN+":/"+table+"/"+rs.getString("COLUMN_NAME")+"?seq="+rs.getString("ORDINAL_POSITION"))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_COLUMN+":/"+table+"/"+rs.getString("COLUMN_NAME")+"?seq="+rs.getString("ORDINAL_POSITION")+"&type"+rs.getString("DATA_TYPE"))
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);
@@ -272,7 +272,7 @@ public class ContentModelFactory {
 		}
 	}
 
-	public static <Key, Record> ORMProvider<Key, Record> buildORMProvider(final ContentNodeMetadata clazz, final ContentNodeMetadata table) throws IOException {
+	public static <Record> ORMProvider<Record, Record> buildORMProvider(final ContentNodeMetadata clazz, final ContentNodeMetadata table) throws IOException, ContentException {
 		if (clazz == null) {
 			throw new NullPointerException("Class metadata can't be null");
 		}
@@ -309,7 +309,7 @@ public class ContentModelFactory {
 				throw new IllegalArgumentException("Class and table has no any intersections by it's fields. At least one field name must be common for them");
 			}
 			else {
-				return new SimpleProvider<Key,Record>(table, clazz, (Class<Record>)clazz.getType(), classFields.toArray(new String[classFields.size()]), pkFields.toArray(new String[pkFields.size()]));
+				return new SimpleProvider<Record>(table, clazz, (Class<Record>)clazz.getType(), classFields.toArray(new String[classFields.size()]), pkFields.toArray(new String[pkFields.size()]));
 			}
 		}
 	}
