@@ -1494,6 +1494,34 @@ public class Utils {
 			return result;
 		}
 	}
+
+	/**
+	 * <p>Test weather URI has the given scheme at any depth</p>
+	 * @param uri uri to test
+	 * @param scheme scheme to detect
+	 * @return true if the given scheme presents at any depth, otherwise false
+	 * @since 0.0.3
+	 */
+	public static boolean hasSubScheme(final URI uri, final String scheme) {
+		if (uri == null) {
+			throw new NullPointerException("URI to test can't be null");
+		}
+		else if (scheme == null) {
+			throw new IllegalArgumentException("Scheme string can'ty be null or empty");
+		}
+		else if (!uri.isAbsolute()) {
+			return false;
+		}
+		else {
+			if (scheme.equalsIgnoreCase(uri.getScheme())) {
+				return true;
+			}
+			else {
+				return hasSubScheme(URI.create(uri.getSchemeSpecificPart()), scheme);
+			}
+		}
+	}
+	
 	
 	/**
 	 * <p>Delete directory content and directory self.</p>
@@ -1562,7 +1590,7 @@ public class Utils {
 	 * @throws IllegalArgumentException when object to test is not a referenced array
 	 * @since 0.0.3
 	 */
-	public static int checkArrayContent(final Object array) throws NullPointerException, IllegalArgumentException {
+	public static int checkArrayContent4Nulls(final Object array) throws NullPointerException, IllegalArgumentException {
 		if (array == null) {
 			throw new NullPointerException("Array object to check can't be null"); 
 		}

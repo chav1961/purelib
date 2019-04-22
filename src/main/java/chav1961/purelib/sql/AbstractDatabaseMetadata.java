@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
@@ -438,12 +439,12 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 		CORE_SQL, EXTENDED_SQL, ANSI92_ENTRYLEVEL, ANSI92_INTERMEDIATE, ANSI92_FULL	
 	}
 	
-	private final AbstractDriver		driver;
+	private final Driver				driver;
 	private final AbstractConnection	conn;
 	private final CaseSensitivity		caseSens;
 	private final GrammarLevel			grammarLevel;
 	
-	protected AbstractDatabaseMetadata(final AbstractDriver driver, final AbstractConnection conn, final CaseSensitivity caseSens
+	protected AbstractDatabaseMetadata(final Driver driver, final AbstractConnection conn, final CaseSensitivity caseSens
 									  ,final GrammarLevel grammarLevel) {
 		this.driver = driver;
 		this.conn = conn;
@@ -460,6 +461,8 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	protected abstract boolean isCatalogsSupported() throws SQLException;
 	protected abstract <T> ContinueMode collect(final String pattern, final String[] acceptedTypes, final RsMetaDataElement[] contentType, DBTreeCallback<T> callback);
 	
+	@Override public abstract String getDatabaseProductName() throws SQLException;
+	@Override public abstract String getDriverName() throws SQLException;
 	@Override public abstract boolean nullsAreSortedHigh() throws SQLException;
 	@Override public abstract boolean nullsAreSortedLow() throws SQLException;
 	@Override public abstract boolean nullsAreSortedAtStart() throws SQLException;
@@ -596,16 +599,6 @@ public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	@Override
 	public boolean isReadOnly() throws SQLException {
 		return conn.isReadOnly();
-	}
-
-	@Override
-	public String getDatabaseProductName() throws SQLException {
-		return driver.getDatabaseProductName();
-	}
-
-	@Override
-	public String getDriverName() throws SQLException {
-		return driver.getDriverName();
 	}
 
 	@Override

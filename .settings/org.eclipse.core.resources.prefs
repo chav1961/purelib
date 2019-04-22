@@ -2,7 +2,6 @@ eclipse.preferences.version=1
 encoding//src/main/java/chav1961/purelib/basic/gettersandsettersmacros.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/model/macros.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/nanoservice/macros.txt=UTF-8
-encoding//src/main/java/chav1961/purelib/sql/util/sqlsubset.xml=UTF-8
 encoding//src/main/java/chav1961/purelib/streams/char2byte/asm/macro/macrocompiler.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/streams/char2char/CreoleFOPOutputWriter.java=UTF-8
 encoding//src/main/resources/chav1961/purelib/i18n/localization/help/en/x.txt=UTF-8
