@@ -123,8 +123,12 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 public class NanoServiceFactory implements Closeable, NanoService, HttpHandler   {
 	public static final String 		NANOSERVICE_PORT = "nanoservicePort";
 	public static final String 		NANOSERVICE_ROOT = "nanoserviceRoot";
+	public static final String 		NANOSERVICE_LOCALHOST_ONLY = "nanoserviceLocalhostOnly";
+	public static final String 		DEFAULT_NANOSERVICE_LOCALHOST_ONLY = "true";
 	public static final String 		NANOSERVICE_EXECUTOR_POOL_SIZE = "nanoserviceExecutorPoolSize";
+	public static final String 		DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE = "10";
 	public static final String 		NANOSERVICE_DISABLE_LOOPBACK = "nanoserviceDisableLoopback";
+	public static final String 		DEFAULT_NANOSERVICE_DISABLE_LOOPBACK = "true";
 	public static final String 		NANOSERVICE_TEMPORARY_CACHE_SIZE = "nanoserviceTemporaryCacheSize";
 	public static final String 		NANOSERVICE_CREOLE_PROLOGUE_URI = "nanoserviceCreolePrologueURI";
 	public static final String 		NANOSERVICE_CREOLE_EPILOGUE_URI = "nanoserviceCreoleEpilogueURI";
@@ -137,7 +141,18 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	public static final String 		NANOSERVICE_SSL_TRUSTSTORE = "nanoserviceSSLTrustStore";
 	public static final String 		NANOSERVICE_SSL_TRUSTSTORE_TYPE = "nanoserviceSSLTrustStoreType";
 	public static final String 		NANOSERVICE_SSL_TRUSTSTORE_PASSWD = "nanoserviceSSLTrustStorePasswd";
+	public static final String 		NANOSERVICE_SSL_TYPE = "TLS";
+	public static final String 		NANOSERVICE_KEY_TYPE = "SunX509";
 
+	public static final String 		SYSTEM_SSL_KEYSTORE = "javax.net.ssl.keyStore";
+	public static final String 		SYSTEM_SSL_KEYSTORE_TYPE = "javax.net.ssl.keyStoreType";
+	public static final String 		DEFAULT_SYSTEM_SSL_KEYSTORE_TYPE = "JKS";
+	public static final String 		SYSTEM_SSL_KEYSTORE_PASSWD = "javax.net.ssl.keyStorePassword";
+	public static final String 		SYSTEM_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
+	public static final String 		SYSTEM_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
+	public static final String 		DEFAULT_SYSTEM_SSL_TRUSTSTORE_TYPE = "JKS";
+	public static final String 		SYSTEM_SSL_TRUSTSTORE_PASSWD = "javax.net.ssl.trustStorePassword";
+	
 	public static final String 		HEAD_CONTENT_LENGTH = "Content-Length";
 	public static final String 		HEAD_CONTENT_TYPE = "Content-type";
 	public static final String 		HEAD_CONTENT_ENCODING = "Content-encoding";
@@ -153,7 +168,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 																		  ,String.class,CharacterSource.class,JsonStaxParser.class,Reader.class,InputStream.class));
 
 	public static final InputStream	NULL_INPUT = new InputStream(){@Override public int read() throws IOException {return -1;}};
-	public static final String 		DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE = "10";
 
 	private static final MimeType[]	CREOLE_DETECTED = new MimeType[] {PureLibSettings.MIME_CREOLE_TEXT};
 	private static final MimeType[]	HTML_DETECTED = new MimeType[] {PureLibSettings.MIME_HTML_TEXT};
@@ -179,6 +193,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	private final TemplateCache<ResponseHeadSetter>	responseHeaderCache = new TemplateCache<>();
 	private final NanoServiceEnvironment			environment;
 	private final boolean							disableLoopback;
+	private final boolean							localhostOnly;
 	private final TemporaryStore					tempStore;
 	private final URLClassLoader					urlClassLoader = new URLClassLoader(new URL[0]);
 	private final ClassLoaderWrapper				internalLoader = new ClassLoaderWrapper(urlClassLoader);
@@ -286,7 +301,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 							}
 						}
 					};					
-					this.disableLoopback = props.getProperty(NANOSERVICE_DISABLE_LOOPBACK,boolean.class,"false");
+					this.disableLoopback = props.getProperty(NANOSERVICE_DISABLE_LOOPBACK,boolean.class,DEFAULT_NANOSERVICE_DISABLE_LOOPBACK);
+					this.localhostOnly = props.getProperty(NANOSERVICE_LOCALHOST_ONLY,boolean.class,DEFAULT_NANOSERVICE_LOCALHOST_ONLY);
 					this.tempStore = new TemporaryStore(props.getProperty(NANOSERVICE_TEMPORARY_CACHE_SIZE,int.class,""+TemporaryStore.DEFAULT_BUFFER_SIZE));
 					this.executorPoolSize = props.getProperty(NANOSERVICE_EXECUTOR_POOL_SIZE,int.class,DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE);
 					
@@ -408,7 +424,10 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 
 	@Override
 	public void handle(final HttpExchange call) throws IOException {
-		if (!paused) {
+		if (localhostOnly && !"localhost".equals(call.getRemoteAddress().getHostName())) {
+			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address");
+		}
+		else if (!paused) {
 			final char[]			path = call.getRequestURI().getPath().toCharArray();
 			final String			pluginRoot = seekPluginRoot(path, call);
 			final MethodExecutor	me;
@@ -802,31 +821,32 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	}
 	
 	private static SSLContext createSSLContext(final SubstitutableProperties props) throws IOException  {
-	    try{final SSLContext			sslContext = SSLContext.getInstance("TLS");
-        	final KeyManagerFactory		kmf = KeyManagerFactory.getInstance("SunX509");
-	        final TrustManagerFactory	tmf = TrustManagerFactory.getInstance("SunX509");
+	    try{final SSLContext			sslContext = SSLContext.getInstance(NANOSERVICE_SSL_TYPE);
+        	final KeyManagerFactory		kmf = KeyManagerFactory.getInstance(NANOSERVICE_KEY_TYPE);
+	        final TrustManagerFactory	tmf = TrustManagerFactory.getInstance(NANOSERVICE_KEY_TYPE);
 	    	final KeyStore 				ks = KeyStore.getInstance(props.getProperty(NANOSERVICE_SSL_KEYSTORE_TYPE, String.class
-	    									, System.getProperty("javax.net.ssl.keyStoreType", "JKS")));
+	    									, System.getProperty(SYSTEM_SSL_KEYSTORE_TYPE, DEFAULT_SYSTEM_SSL_KEYSTORE_TYPE)));
 		    final KeyStore 				ts = KeyStore.getInstance(props.getProperty(NANOSERVICE_SSL_TRUSTSTORE_TYPE, String.class
-											, System.getProperty("javax.net.ssl.trustStoreType", "JKS")));
+											, System.getProperty(SYSTEM_SSL_TRUSTSTORE_TYPE, DEFAULT_SYSTEM_SSL_TRUSTSTORE_TYPE)));
 
-		    if (props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class)) {
-		        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_KEYSTORE, InputStream.class, System.getProperty("javax.net.ssl.keyStore"))) {
-		        	ks.load(is,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty("javax.net.ssl.keyStorePassword")));
+		    if (props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class,"false")) {
+		        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_KEYSTORE, InputStream.class, System.getProperty(SYSTEM_SSL_KEYSTORE))) {
+		        	ks.load(is,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_KEYSTORE_PASSWD)));
 		        }
-		        kmf.init(ks,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty("javax.net.ssl.keyStorePassword")));
+		        kmf.init(ks,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_KEYSTORE_PASSWD)));
 		    }
-		    if (props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class)) {
-		        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_TRUSTSTORE, InputStream.class, System.getProperty("javax.net.ssl.trustStore"))) {
-		        	ts.load(is,props.getProperty(NANOSERVICE_SSL_TRUSTSTORE_PASSWD, char[].class, System.getProperty("javax.net.ssl.trustStorePassword")));
+		    if (props.getProperty(NANOSERVICE_USE_TRUSTSTORE,boolean.class,"false")) {
+		        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_TRUSTSTORE, InputStream.class, System.getProperty(SYSTEM_SSL_TRUSTSTORE))) {
+		        	ts.load(is,props.getProperty(NANOSERVICE_SSL_TRUSTSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_TRUSTSTORE_PASSWD)));
 		        }
 		        tmf.init(ts);
 		    }
-	        sslContext.init(props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class) ? kmf.getKeyManagers() : null
-	        			  , props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class) ? tmf.getTrustManagers() : null
+	        sslContext.init(props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class,"false") ? kmf.getKeyManagers() : null
+	        			  , props.getProperty(NANOSERVICE_USE_TRUSTSTORE,boolean.class,"false") ? tmf.getTrustManagers() : null
 	        			  , null);
 	        return sslContext;
 	    } catch (Exception e) {
+	    	e.printStackTrace();
 	    	throw new IOException(e);
 	    }       
 	}

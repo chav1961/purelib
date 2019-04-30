@@ -734,7 +734,7 @@ public class NanoServiceFactoryTest {
 			factory.stop();
 		}
 	}
-	
+
 	private static class TestProbe {
 		final URI			uri;
 		final Properties	headers;

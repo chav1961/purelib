@@ -1,6 +1,8 @@
 package chav1961.purelib.nanoservice;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,11 +11,26 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.security.KeyFactory;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import java.util.List;
 
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 import javax.activation.MimetypesFileTypeMap;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
@@ -559,6 +576,80 @@ public class InternalUtils {
 		}
 	}
 	
+	public static PrivateKey buildRSAPrivateKey(final InputStream is) throws IOException, ContentException {
+		if (is == null) {
+			throw new NullPointerException("Input stream can't be null"); 
+		}
+		else {
+			final StringBuilder		sb = new StringBuilder();
+			final Reader			rdr = new InputStreamReader(is);
+			final BufferedReader	brdr = new BufferedReader(rdr);
+			
+			boolean		wasBeginPK = false, wasEndPK = false;
+		    String 		line;
+		    
+		    while ((line = brdr.readLine()) != null) {
+		    	if (line.contains("BEGIN")) {
+		    		wasBeginPK = true;
+		    	}
+		    	else if (line.contains("END")) {
+		    		wasEndPK = true;
+		    	}
+		    	else {
+			        sb.append(line);
+		    	}
+		    }
+		    if (!wasBeginPK || !wasEndPK) {
+				throw new ContentException("Private key stream doesn't contain BEGIN/END private key markers");
+		    }
+		    else {
+			    try{final KeyFactory 			kf = KeyFactory.getInstance("RSA");
+			    	final PKCS8EncodedKeySpec	ks = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(sb.toString())); 
+			    	
+					return kf.generatePrivate(ks);		
+				} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+					throw new ContentException("Private key generation failure: "+e.getLocalizedMessage()+" ("+e.getClass().getSimpleName()+")");
+				}
+		    }
+		}
+	}
+
+	public static Certificate buildX509Certificate(final InputStream is) throws ContentException {
+		if (is == null) {
+			throw new NullPointerException("Input stream can't be null"); 
+		}
+		else {
+			try{final CertificateFactory 	cf = CertificateFactory.getInstance("X.509");
+			
+				return cf.generateCertificate(is);
+			} catch (CertificateException e) {
+				throw new ContentException("Certificate generation failure: "+e.getLocalizedMessage()+" ("+e.getClass().getSimpleName()+")");
+			}
+		}
+	}
+
+	public static SSLSocketFactory buildClientSSLSocketFactory(final InputStream certificate) throws IOException, ContentException {
+		if (certificate == null) {
+			throw new NullPointerException("Input stream can't be null"); 
+		}
+		else {
+			try{final CertificateFactory 	cf = CertificateFactory.getInstance("X.509");
+				final Certificate 			ca = cf.generateCertificate(certificate);
+				final KeyStore 				keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+				final TrustManagerFactory 	tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+				final SSLContext 			context = SSLContext.getInstance("TLS");
+				
+				keyStore.load(null, null);
+				keyStore.setCertificateEntry("client", ca);
+				tmf.init(keyStore);
+	
+				context.init(null, tmf.getTrustManagers(), null);
+				return context.getSocketFactory();				
+			} catch (KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException  e) {
+				throw new ContentException("SSL socket factory generation failure: "+e.getLocalizedMessage()+" ("+e.getClass().getSimpleName()+")");
+			}
+		}
+	}
 	
 	private static int calculateNL(final char[] source) {
 		int	count = 0;

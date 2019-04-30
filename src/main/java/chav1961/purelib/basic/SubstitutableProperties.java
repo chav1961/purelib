@@ -48,7 +48,7 @@ public class SubstitutableProperties extends Properties {
 	
 	private static enum Conversions {
 		STRING,	INTWRAPPER, LONGWRAPPER, FLOATWRAPPER, DOUBLEWRAPPER, BOOLEANWRAPPER,
-		FILE, INPUTSTREAM, URL, URI, COLOR
+		FILE, INPUTSTREAM, URL, URI, COLOR, CHARARRAY
 	}
 
 	private static final Map<Class<?>,Class<?>>		WRAPPER = new HashMap<Class<?>,Class<?>>(){private static final long serialVersionUID = 1L;
@@ -71,6 +71,7 @@ public class SubstitutableProperties extends Properties {
 								put(URL.class,Conversions.URL);
 								put(URI.class,Conversions.URI);
 								put(Color.class,Conversions.COLOR);
+								put(char[].class,Conversions.CHARARRAY);
 								}};
 
 	public SubstitutableProperties() {}
@@ -217,6 +218,8 @@ public class SubstitutableProperties extends Properties {
 						return awaited.cast(URI.create(value));
 					case COLOR			:
 						return awaited.cast(PureLibSettings.colorByName(value,null));
+					case CHARARRAY		:
+						return awaited.cast(value == null ? null : value.toCharArray());
 					default :
 						throw new UnsupportedOperationException("Conversion to ["+awaited+"] is not implemented yet");
 				}		
