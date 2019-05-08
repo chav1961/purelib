@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,8 +22,10 @@ import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 
 import chav1961.purelib.basic.PureLibSettings.WellKnownSchema;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.fsys.FileSystemFactory;
@@ -31,6 +34,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.content.ResultSetFactory;
 import chav1961.purelib.ui.swing.SwingUtils;
 
@@ -259,6 +263,11 @@ public class PureLibSettings {
 	 * <p>Shared timer to process common maintenance for any pure library consumers</p>
 	 */
 	public static final Timer			COMMON_MAINTENANCE_TIMER = new Timer("PureLibMaintenanceTimer",true);
+
+	/**
+	 * <p>HTTP port for built-in help</p>
+	 */
+	public static final String			BUILTIN_HELP_PORT = "purelib.settings.help.port";
 	
 	/**
 	 * <p>This interface describes well-known factories in the Pure Library</p>
@@ -320,7 +329,9 @@ public class PureLibSettings {
 																}),
 															new WellKnownSchemaImpl(ResultSetFactory.RESULTSET_PARSERS_SCHEMA, "", ResultSetFactory.class, false, 
 																(uri)->{throw new EnvironmentException("This service doesn't supports SpiService interface");})
-														}; 
+														};
+	private static final AtomicInteger				helpContextCount = new AtomicInteger();
+	private static volatile NanoServiceFactory		helpServer = null;
 	
 	static {
 		try(final InputStream	is = PureLibSettings.class.getResourceAsStream("/purelib.default.properties")) {
@@ -410,6 +421,78 @@ public class PureLibSettings {
 	}
 
 	/**
+	 * <p>Install help content to the application</p> 
+	 * @param helpPath help path in the http://localhost:<port>/<path>
+	 * @param helpContent static help content
+	 * @throws NullPointerException help when content is null
+	 * @throws IllegalArgumentException when help path is null or empty
+	 * @throws IllegalStateException if help system is not available
+	 * @throws SyntaxException syntax errors in the help content
+	 * @throws ContentException errors in the help content
+	 * @throws IOException I/O errors on installation
+	 * @since 0.0.3
+	 */
+	public static void installHelpContent(final String helpPath, final FileSystemInterface helpContent) throws SyntaxException, NullPointerException, IllegalArgumentException, IllegalStateException, ContentException, IOException {
+		
+		if (helpPath == null || helpPath.isEmpty()) {
+			throw new IllegalArgumentException("Help path can't be null or empty"); 
+		}
+		else if (helpContent == null) {
+			throw new NullPointerException("Help content can't be null"); 
+		}
+		else if (!instance().containsKey(BUILTIN_HELP_PORT)) {
+			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
+		}
+		else {
+			synchronized (helpContextCount) {
+				if (helpServer == null) {
+					helpServer = new NanoServiceFactory(new StandardJRELoggerFacade(logger), props);
+					helpServer.start();
+				}
+				helpServer.deploy(helpPath,helpContent);
+				helpContextCount.incrementAndGet();
+			}
+		}
+	}
+
+	/**
+	 * <p>Uninstall help content</p>
+	 * @param helpPath help path in the http://localhost:<port>/<path>
+	 * @throws NullPointerException help when content is null
+	 * @throws IllegalArgumentException when help path is null or empty
+	 * @throws IllegalStateException if help system is not available
+	 * @throws SyntaxException syntax errors in the help content
+	 * @throws ContentException errors in the help content
+	 * @throws IOException I/O errors on installation
+	 * @since 0.0.3
+	 */
+	public static void uninstallHelpContent(final String helpPath) throws SyntaxException, NullPointerException, IllegalArgumentException, IllegalStateException, ContentException, IOException {
+		if (helpPath == null || helpPath.isEmpty()) {
+			throw new IllegalArgumentException("Help path can't be null or empty"); 
+		}
+		else if (!instance().containsKey(BUILTIN_HELP_PORT)) {
+			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
+		}
+		else {
+			synchronized (helpContextCount) {
+				final int	value = helpContextCount.decrementAndGet();
+				
+				if (value < 0) {
+					throw new IllegalStateException("Help path ["+helpPath+"] was not deployed earlier"); 
+				}
+				else {
+					helpServer.undeploy(helpPath);
+					if (value == 0) {
+						helpServer.stop();
+						helpServer = null;
+					}
+				}
+			}
+		}
+	}
+	
+	
+	/**
 	 * <p>Get well-known schemas in the Pure Lbrary</p> 
 	 * @return schemas iterable. Can't be null
 	 */
@@ -426,7 +509,6 @@ public class PureLibSettings {
 			}
 		};
 	}	
-
 	
 	private static Color toRGB(final String rgb) {
 		if (!rgb.isEmpty()) {

@@ -28,4 +28,10 @@ public class PureLibSettingsTest {
 		} catch (NullPointerException exc) {
 		}		
 	}
+
+	@Test
+	public void helpTest() {
+		
+	}
+
 }
