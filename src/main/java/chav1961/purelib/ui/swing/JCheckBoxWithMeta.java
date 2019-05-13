@@ -77,14 +77,14 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 					}					
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JCheckBoxWithMeta.this,e.getActionCommand());
-					} catch (ContentException exc) {
-					}
-				}
-			});
+//			addActionListener(new ActionListener() {
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					try{monitor.process(MonitorEvent.Action,metadata,JCheckBoxWithMeta.this,e.getActionCommand());
+//					} catch (ContentException exc) {
+//					}
+//				}
+//			});
 			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
 			getActionMap().put("rollback-value", new AbstractAction(){
 				private static final long serialVersionUID = -6372550433958089237L;

@@ -179,7 +179,7 @@ public class FieldFormat {
 								frac = value;
 							}
 							pos--;
-							if (frac >= len - 1) {
+							if (frac > 0 && frac >= len - 1) {
 								throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: frac part is too long");
 							}
 						}

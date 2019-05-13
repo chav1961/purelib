@@ -389,7 +389,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				}
 				break;
 			case Validation:
-				final String	error = ((JComponentInterface)component).standardValidation(((JComponentInterface)component).getChangedValueFromComponent().toString());
+				final Object	changed = ((JComponentInterface)component).getChangedValueFromComponent(); 
+				final String	error = ((JComponentInterface)component).standardValidation(changed == null ? null : changed.toString());
 				
 				if (error != null) {
 					messages.setText(SwingUtils.prepareMessage(Severity.error, error));

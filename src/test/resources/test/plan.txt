@@ -105,6 +105,8 @@
 *6. Написать и отладить классы JColorPickerWithMetaData и JColorPairPickerWithMetaData 
 7. Поддержать встроенное меню для выбора языка, и выбора стиля
 8. Написать метод SwingUtils.showCreoleMicroHelp
+9. Дополнить класс AutoBuildForm обработкой @Action непосредственно возле методов, а не только возле класса (методы - без параметров!)
+10. Дополнить класс AutoBuildForm обработкой кода возврата RefreshMode.EXIT 
 *Пакет ui.swing.terminal
 *1. Переделать класс PseudoConsole для использования возможностей PureLib 
 *2. Отладить класс PseudoConsole

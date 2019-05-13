@@ -19,7 +19,9 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -144,12 +146,6 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		}		
 	}
 
-	@Override
-	public void setBorder(Border border) {
-		super.setBorder(border);
-		new ComponentKeepedBorder(0,callSelect).install(this);
-	}
-	
 	@Override
 	public ContentNodeMetadata getNodeMetadata() {
 		return metadata;

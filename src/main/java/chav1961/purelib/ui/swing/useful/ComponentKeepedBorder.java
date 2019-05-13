@@ -3,6 +3,8 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
 import javax.swing.JComponent;
 import javax.swing.border.Border;
@@ -49,12 +51,18 @@ public class ComponentKeepedBorder implements Border {
 		if (current == null) {
 			parent.setBorder(this);
 		}
+		else if (current instanceof CompoundBorder) {	// Protection against recursive nesting
+			if (((CompoundBorder)current).getOutsideBorder() != this) {
+				final CompoundBorder 	compound = new CompoundBorder(current, this);
+				parent.setBorder(compound);
+			}
+		}
 		else {
 			final CompoundBorder 	compound = new CompoundBorder(current, this);
 			parent.setBorder(compound);
 		}
-		for (JComponent item : components) {
-			parent.add(item);
+		for (int index = 0; index < components.length; index++) {
+			parent.add(components[index]);
 		}
 	}
 
