@@ -1,6 +1,7 @@
 package chav1961.purelib.concurrent;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -12,7 +13,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * <p>This class is thread-save</p>   
  * @param <Listener> any listener type to keep in the class
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
+ * @since 0.0.2 last update 0.0.3
  */
 public class LightWeightListenerList<Listener> {
 	
@@ -111,6 +112,21 @@ public class LightWeightListenerList<Listener> {
 			} finally {
 				wr.unlock();
 			}
+		}
+	}
+	
+	/**
+	 * <p>Remove all listeners from list</p>
+	 * @since 0.0.3
+	 */
+	public void clear() {
+		final WriteLock	wr = lock.writeLock();
+		
+		try{wr.lock();
+			Arrays.fill(list,null);
+			list = (Listener[]) Array.newInstance(listenerClass,0);
+		} finally {
+			wr.unlock();
 		}
 	}
 	
