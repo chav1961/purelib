@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -52,6 +53,7 @@ import chav1961.purelib.sql.interfaces.ORMProvider;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.interfaces.MultiAction;
+import chav1961.purelib.ui.interfaces.RefreshMode;
 
 public class ContentModelFactory {
 	public static final String			APPLICATION_SCHEME_CLASS = "class";	
@@ -127,6 +129,18 @@ public class ContentModelFactory {
 				if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
 					collectActions(clazz,root);
 				}
+				
+				final List<Method>		methods = new ArrayList<>();
+				
+				collectMethods(clazz,methods);
+				if (methods.size() > 0) {
+					for (Method m : methods) {
+						if (m.isAnnotationPresent(MultiAction.class) || m.isAnnotationPresent(Action.class)) {
+							collectActions(clazz,m,root);
+						}
+					}
+				}
+				
 				final SimpleContentMetadata	result = new SimpleContentMetadata(root); 
 				
 				root.setOwner(result);
@@ -294,7 +308,7 @@ public class ContentModelFactory {
 			},clazz.getUIPath());
 			new SimpleContentMetadata(table).walkDown((mode, applicationPath, uiPath, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (applicationPath.toString().contains(APPLICATION_SCHEME_FIELD)) {
+					if (applicationPath.toString().contains(APPLICATION_SCHEME_COLUMN)) {
 						tableFields.add(node.getName().toUpperCase());
 					}
 					else if (applicationPath.toString().contains(APPLICATION_SCHEME_ID)) {
@@ -468,6 +482,25 @@ public class ContentModelFactory {
 		}		
 	}
 
+	private static void collectMethods(final Class<?> clazz, final List<Method> methods) {
+		if (clazz != null) {
+			for (Method m : clazz.getDeclaredMethods()) {
+				if (m.isAnnotationPresent(Action.class)) {
+					if (m.getParameterCount() != 0) {
+						throw new IllegalArgumentException("Method ["+m+"] annotated with @Action must not have any parameters"); 
+					}
+					else if (m.getReturnType() != void.class && m.getReturnType() != RefreshMode.class) {
+						throw new IllegalArgumentException("Method ["+m+"] annotated with @Action must return void or RefreshMode data type"); 
+					}
+					else {
+						methods.add(m);
+					}
+				}
+			}
+			collectMethods(clazz.getSuperclass(),methods);
+		}		
+	}
+	
 	private static void collectActions(final Class<?> clazz, final MutableContentNodeMetadata root) throws IllegalArgumentException, NullPointerException, SyntaxException, LocalizationException, ContentException {
 		if (clazz != null) {
 			if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
@@ -507,6 +540,27 @@ public class ContentModelFactory {
 										, item.resource().help()
 										, null
 										, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+field.getName()+"."+item.actionString())
+						)
+				);
+			}
+		}
+	}
+
+	private static void collectActions(final Class<?> clazz, final Method method, final MutableContentNodeMetadata root) throws IllegalArgumentException, NullPointerException, SyntaxException, LocalizationException, ContentException {
+		if (method.isAnnotationPresent(MultiAction.class) || method.isAnnotationPresent(Action.class)) {
+			for (Action item : method.isAnnotationPresent(MultiAction.class) 
+							 	? method.getAnnotation(MultiAction.class).value() 
+							 	: new Action[] {method.getAnnotation(Action.class)}) {
+				root.addChild(
+						new MutableContentNodeMetadata(item.actionString()
+										, ActionEvent.class
+										, "./"+method.getName()+"."+item.actionString()
+										, null
+										, item.resource().value()
+										, item.resource().tooltip()
+										, item.resource().help()
+										, null
+										, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+method.getName()+"()."+item.actionString())
 						)
 				);
 			}

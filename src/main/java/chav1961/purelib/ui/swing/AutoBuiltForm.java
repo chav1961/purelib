@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
@@ -185,6 +187,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 										logger.message(Severity.error,exc,"Button [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 									}
 								});
+								
 								buttonPanel.add(button);							
 							}
 							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
@@ -324,23 +327,45 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) throws ContentException {
 		switch (event) {
 			case Action:
-				try{switch (formManager.onAction(instance,null,metadata.getApplicationPath().toString(),null)) {
-						case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
-							break;
-						case TOTAL : case RECORD_ONLY :
-							for (ContentNodeMetadata item : metadata.getParent()) {
-								final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
-								
-								process(MonitorEvent.Loading,item,comp);
-							}
-							break;
-						case EXIT :
-							return process(MonitorEvent.Exit,metadata,component,parameters);
-						default	:
-							break;
+				if (metadata.getApplicationPath().toString().contains("().")) {
+					try{switch (seekAndCall(instance,metadata.getApplicationPath())) {
+							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
+								break;
+							case TOTAL : case RECORD_ONLY :
+								for (ContentNodeMetadata item : metadata.getParent()) {
+									final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
+									
+									process(MonitorEvent.Loading,item,comp);
+								}
+								break;
+							case EXIT :
+								return process(MonitorEvent.Exit,metadata,component,parameters);
+							default	:
+								break;
+						}
+					} catch (Exception exc) {
+						logger.message(Severity.error,exc,"Action [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 					}
-				} catch (LocalizationException | FlowException exc) {
-					logger.message(Severity.error,exc,"Action [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
+				}
+				else {
+					try{switch (formManager.onAction(instance,null,metadata.getApplicationPath().toString(),null)) {
+							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
+								break;
+							case TOTAL : case RECORD_ONLY :
+								for (ContentNodeMetadata item : metadata.getParent()) {
+									final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
+									
+									process(MonitorEvent.Loading,item,comp);
+								}
+								break;
+							case EXIT :
+								return process(MonitorEvent.Exit,metadata,component,parameters);
+							default	:
+								break;
+						}
+					} catch (LocalizationException | FlowException exc) {
+						logger.message(Severity.error,exc,"Action [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
+					}
 				}
 				break;
 			case FocusGained:
@@ -432,6 +457,28 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		return true;
 	}
 	
+	private RefreshMode seekAndCall(final T instance, final URI appPath) throws Exception {
+		final String[]	parts = URI.create(appPath.getSchemeSpecificPart()).getPath().split("/");
+		Class<?>		cl = instance.getClass();
+		
+		while (cl != null) {
+			for (Method m : cl.getDeclaredMethods()) {
+				if (parts[2].startsWith(m.getName()+"().")) {
+					m.setAccessible(true);
+					if (m.getReturnType() == void.class) {
+						m.invoke(instance);
+						return RefreshMode.DEFAULT;
+					}
+					else {
+						return (RefreshMode)m.invoke(instance);
+					}
+				}
+			}
+			cl = cl.getSuperclass();
+		}
+		return RefreshMode.DEFAULT;
+	}
+
 	/**
 	 * <p>Get Ids of all field labels created</p> 
 	 * @return list of all the labels. Can be empty but not null
