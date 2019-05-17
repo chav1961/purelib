@@ -8,7 +8,9 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.HashMap;
@@ -114,6 +116,35 @@ public class GettersAndSettersFactory {
 	 * @since 0.0.2
 	 */
 	public interface GetterAndSetter {		
+	}
+
+	/**
+	 * <p>This interface can be used as a type of variable to store any instantiator.</p> 
+	 * @author achernomyrdin
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 * @param <T> any class to allocate memory for
+	 */
+	public interface Instantiator<T> {
+		/**
+		 * <p>Get managed class fpr the given interface</p>
+		 * @return managed class. Can't be null
+		 */
+		Class<T> getType();
+		
+		/**
+		 * <p>Allocate memory for the given class without calling any constructors</p>
+		 * @return memory instance allocated
+		 * @throws InstantiationException when instantiation failed
+		 */
+		T newInstance() throws InstantiationException;
+		
+		/**
+		 * <p>Allocate array to store instance if the given class</p>
+		 * @param size array size to allocate
+		 * @return array allocated
+		 */
+		T[] newArray(int size);
 	}
 	
 	/**
@@ -323,6 +354,24 @@ public class GettersAndSettersFactory {
 		public abstract void set(final Object instance, final T value) throws ContentException;
 	}
 
+	protected static abstract class InstantiatorImpl<T> implements Instantiator<T> {
+		protected final Class<T> 	clazz;
+		
+		protected InstantiatorImpl(Class<T> clazz) {
+			this.clazz = clazz;
+		}
+		
+		@Override
+		public Class<T> getType() {
+			return clazz;
+		}
+		
+		@Override
+		public T[] newArray(int size) {
+			return (T[])Array.newInstance(getType(),size);
+		}
+	}
+	
 	/**
 	 * <p>Build getter and setter by it's application path in model.</p>
 	 * @param applicationPath application path URI in the model
@@ -515,6 +564,44 @@ public class GettersAndSettersFactory {
 		}
 	}
 
+	/**
+	 * <p>Build instantiator of the class.</p>
+	 * @param clazz managed class to build instantiator to
+	 * @return instantiator for managed class
+	 * @throws ContentException on any building errors
+	 * @throws IllegalArgumentException field name is null, empty or is missing in the class
+	 * @throws NullPointerException awaited class is null
+	 * @throws IllegalArgumentException awaited class is not valid
+	 * @throws IllegalStateException awaited class is not public and sun.misc.Unsafe is not available
+	 * @since 0.0.3
+	 */
+	public static <T> Instantiator<T> buildInstantiator(final Class<T> clazz) throws ContentException, IllegalArgumentException, NullPointerException, IllegalStateException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to build instantitor for can't be null"); 
+		}
+		else if (clazz.isPrimitive() || clazz.isArray()) {
+			throw new IllegalArgumentException("Class to build instantitor for can't be primitive or array"); 
+		}
+		else if (Modifier.isPublic(clazz.getModifiers())) {
+			try{final String 	className = clazz.getSimpleName()+"$instantiator";
+				
+				return buildCode(writer,clazz,className);
+			} catch (IOException exc) {
+				throw new ContentException(exc.getLocalizedMessage(),exc);
+			}
+		} 
+		else if (unsafe != null) {
+			return new InstantiatorImpl<T>(clazz){
+				@Override
+				public T newInstance() throws InstantiationException {
+					return (T)unsafe.allocateInstance(clazz);
+				}}; 
+		}
+		else {
+			throw new IllegalStateException("Class to build instantitor for is not public, but sun.misc.Unsafe functionality is not available to build memory allocation code.");
+		}
+	}
+	
 	private static Field extractFieldInfo(final Class<?> awaited, final Class<?> forError, final String fieldName) {
 		if (awaited != null) {
 			for (Field f : awaited.getDeclaredFields() ) {
@@ -1137,6 +1224,30 @@ public class GettersAndSettersFactory {
 			return gas.newInstance();
 		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			throw new IllegalArgumentException("Can't build code for access to fields in class ["+className+"] : "+e.getLocalizedMessage(),e);
+		}
+	}
+
+	private static <T> Instantiator<T> buildCode(final AsmWriter writer, final Class<T> owner, final String className) throws IOException {
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final AsmWriter			wr = writer.clone(baos)) {
+				
+				try{wr.importClass(owner);
+					wr.importClass(Instantiator.class);
+					wr.importClass(InstantiatorImpl.class);
+				} catch (ContentException e) {
+				}
+				wr.write("");
+				wr.flush();
+			}
+			Class<Instantiator<T>>	inst;
+				
+			try{inst = (Class<Instantiator<T>>) internalLoader.createClass(className,baos.toByteArray());
+			} catch (Exception exc) {
+				inst = (Class<Instantiator<T>>) internalLoader.loadClass(className);
+			}
+			return inst.newInstance();
+		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+			throw new IllegalArgumentException("Can't build code for create instantiator of class ["+className+"] : "+e.getLocalizedMessage(),e);
 		}
 	}
 }

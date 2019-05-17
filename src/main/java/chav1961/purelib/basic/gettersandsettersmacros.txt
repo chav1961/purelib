@@ -707,7 +707,31 @@ set			.end
 		.mend
 
 
+; --------------------------------------------------------------------
 
+buildInstantiator .macro	className:str=,managedClass:str=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(managedClass)
+			.error		"mandatory parameter 'managedClass' is missing"
+		.else
+&className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl
+&className	.method		void public
+			.stack		2
+			aload_0
+			ldc			&managedClass..class
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl.<init>(Ljava.lang.Class;)V
+			return
+&className	.end
+newInstance	.method		&managedClass public throws java.lang.InstantiationException
+instance	.parameter	java.lang.Class final
+			.stack		5
+			new			&managedClass..class
+			areturn
+newInstance			.end
+&className	.end
+		.endif
+		.mend
 
 
 
@@ -715,6 +739,8 @@ set			.end
 
 
 	.package	chav1961.purelib.streams.char2byte.asm
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$Instantiator
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$GetterAndSetter
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter	
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter	

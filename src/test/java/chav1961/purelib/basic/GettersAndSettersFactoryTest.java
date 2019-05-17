@@ -13,6 +13,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.CharGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.DoubleGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.FloatGetterAndSetter;
+import chav1961.purelib.basic.GettersAndSettersFactory.Instantiator;
 import chav1961.purelib.basic.GettersAndSettersFactory.IntGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
@@ -710,5 +711,21 @@ public class GettersAndSettersFactoryTest {
 			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		}
 	}
+
+	@Test
+	public void instantiatorAsmTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException {
+		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+		
+		final Instantiator<String>	inst = GettersAndSettersFactory.buildInstantiator(String.class);
+		
+		Assert.assertNotNull(inst);
+		Assert.assertNotNull(inst.newInstance());
+	}		
+
+	@Test
+	public void instantiatorUnsafeTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
+		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"true");
+	}		
+	
 }
 

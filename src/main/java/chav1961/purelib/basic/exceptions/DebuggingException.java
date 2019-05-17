@@ -1,7 +1,7 @@
 package chav1961.purelib.basic.exceptions;
 
 /**
- * <p>This exception is used for rmote debuggers inly and sounl not be use on any other purposes.</p>
+ * <p>This exception is used for remote debuggers only and should not be use on any other purposes.</p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3

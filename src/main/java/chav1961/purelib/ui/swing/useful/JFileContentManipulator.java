@@ -54,8 +54,33 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private static final String				PROGRESS_SAVING = "JFileContentManipulator.progress.saving";
 	private static final String				LRU_MISSING_TITLE = "JFileContentManipulator.lru.missing.title";
 	private static final String				LRU_MISSING = "JFileContentManipulator.lru.missing";	
-	private static final int				LRU_LIMIT = 10;	
+	private static final int				LRU_LIMIT = 10;
+	private static final LRUPersistence		DUMMY_PERSISTENCE = new LRUPersistence(){
+												@Override public void loadLRU(List<String> lru) throws IOException {}
+												@Override public void saveLRU(List<String> lru) throws IOException {}
+											}; 
+
+	/**
+	 * <p>This interface describes persistence fotr LRU list in the content manupulator</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
+	public interface LRUPersistence {
+		/**
+		 * <p>Load LRU persistence. Always is called from the constructor</p>
+		 * @param lru list to fill persistent names
+		 * @throws IOException on any I/O exceptions
+		 */
+		void loadLRU(List<String> lru) throws IOException;
 		
+		/**
+		 * <p>Store LRU persistence. Always is called from the {@linkplain JFileContentManipulator#close()} method</p>
+		 * @param lru list to store persistent names
+		 * @throws IOException on any I/O exceptions
+		 */
+		void saveLRU(List<String> lru) throws IOException;
+	}	
+	
 	private static final ProgressIndicator	DUMMY = new ProgressIndicator() {
 												@Override public void start(String caption) {}
 												@Override public void start(String caption, long total) {}
@@ -67,6 +92,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private final Localizer				localizer;
 	private final InputStreamGetter		getterIn;
 	private final OutputStreamGetter	getterOut;
+	private final LRUPersistence		persistence;
 	private final List<String>			lru = new ArrayList<>();
 	private boolean		wasChanged = false;
 	private String		currentName = "", currentDir = "";
@@ -80,7 +106,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IllegalArgumentException text component to associate is invalid
 	 */
 	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final JTextComponent component) throws NullPointerException, IllegalArgumentException {
-		this(fsi,localizer,buildInputStreamGetter(component),buildOutputStreamGetter(component));
+		this(fsi,localizer,buildInputStreamGetter(component),buildOutputStreamGetter(component),DUMMY_PERSISTENCE);
 	}
 
 	/**
@@ -90,9 +116,34 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @param getterIn callback to get content when save
 	 * @param getterOut callback to put content when load
 	 * @throws NullPointerException any of parameters are null
-	 * @throws NullPointerException 
 	 */
 	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut) throws NullPointerException {
+		this(fsi,localizer,getterIn,getterOut,DUMMY_PERSISTENCE);
+	}
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param fsi file system to use as content. Can't be null
+	 * @param localizer localizer to use. Can't be null
+	 * @param component any text component on the Swing form. Can't be null
+	 * @param persistence persistence interface to load/store persistence
+	 * @throws NullPointerException any of parameters are null
+	 * @throws IllegalArgumentException text component to associate is invalid
+	 */
+	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final JTextComponent component, final LRUPersistence persistence) throws NullPointerException, IllegalArgumentException {
+		this(fsi,localizer,buildInputStreamGetter(component),buildOutputStreamGetter(component),persistence);
+	}
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param fsi file system to use as content. Can't be null
+	 * @param localizer localizer to use. Can't be null
+	 * @param getterIn callback to get content when save
+	 * @param getterOut callback to put content when load
+	 * @param persistence persistence interface to load/store persistence
+	 * @throws NullPointerException any of parameters are null
+	 */
+	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut, final LRUPersistence persistence) throws NullPointerException {
 		if (fsi == null) {
 			throw new NullPointerException("File system interface can't be null");
 		}
@@ -105,14 +156,22 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		else if (getterOut == null) {
 			throw new NullPointerException("Output stream getter can't be null");
 		}
+		else if (persistence == null) {
+			throw new NullPointerException("Persistence interface can't be null");
+		}
 		else {
 			this.fsi = fsi;
 			this.localizer = localizer;
 			this.getterIn = getterIn;
 			this.getterOut = getterOut;
+			this.persistence = persistence;
+			try{persistence.loadLRU(lru);
+			} catch (IOException e) {
+				lru.clear();
+			}
 		}
-	}
-
+	}	
+	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		// TODO Auto-generated method stub
@@ -134,6 +193,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
+		persistence.saveLRU(lru);
 	}
 
 	/**
