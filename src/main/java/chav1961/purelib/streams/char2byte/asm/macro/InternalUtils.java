@@ -316,7 +316,7 @@ class InternalUtils {
 				else {
 					throw new IllegalArgumentException("Invalid constant value: neither 'true' nor 'false' was detected");
 				}
-			default : throw new IllegalArgumentException("Invalid constant value");
+			default : throw new IllegalArgumentException("Invalid constant value (constant can't be started with ["+data[from]+"])");
 		}
 	}
 

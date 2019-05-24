@@ -12,7 +12,7 @@
 *9. Дополнить PureLibSettings универсальной фабрикой по URI и классу
 *10. Дописать в GettersAndSetters методы построения по URI из модели
 11. Дополнить PureLibSettings методами installHelpContent/uninstallHelpContent с автоматичесим поднятием сервера HTTP
-12. Дополнить GettersAndSetters методом buildInstantiator для выделения памяти под инстанцию класса
+*12. Дополнить GettersAndSetters методом buildInstantiator для выделения памяти под инстанцию класса
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 Пакет concurrent

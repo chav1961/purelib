@@ -716,31 +716,50 @@ buildInstantiator .macro	className:str=,managedClass:str=
 			.error		"mandatory parameter 'managedClass' is missing"
 		.else
 &className	.class	public extends chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl
-&className	.method		void public
+emptyClass	.field		java.lang.Class[] static
+emptyObject	.field		java.lang.Object[] static
+constr		.field		java.lang.reflect.Constructor private final
+&className	.method		void static
 			.stack		2
-			aload_0
-			ldc			&managedClass..class
-			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl.<init>(Ljava.lang.Class;)V
+			ldc			0
+			anewarray	java.lang.Class
+			putstatic	emptyClass
+			ldc			0
+			anewarray	java.lang.Object
+			putstatic	emptyObject
 			return
 &className	.end
-newInstance	.method		&managedClass public throws java.lang.InstantiationException
-instance	.parameter	java.lang.Class final
+&className	.method		void public
 			.stack		5
-			new			&managedClass..class
+			aload		this
+			ldc			&managedClass..class
+			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl.<init>(Ljava/lang/Class;)V
+			aload		this
+			invokestatic	sun.reflect.ReflectionFactory.getReflectionFactory()Lsun/reflect/ReflectionFactory;
+			ldc			&managedClass..class
+			ldc			java.lang.Object.class
+			getstatic	emptyClass
+			invokevirtual	java.lang.Class.getConstructor([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;
+			invokevirtual	sun.reflect.ReflectionFactory.newConstructorForSerialization(Ljava/lang/Class;Ljava/lang/reflect/Constructor;)Ljava/lang/reflect/Constructor;
+			putfield	constr
+			return
+&className	.end
+newInstance	.method		java.lang.Object public throws java.lang.InstantiationException
+			.stack		5
+			aload		this
+			getfield	constr
+			getstatic	emptyObject
+			invokevirtual	java.lang.reflect.Constructor.newInstance([Ljava/lang/Object;)Ljava/lang/Object;
+			checkcast	&managedClass
 			areturn
 newInstance			.end
 &className	.end
 		.endif
 		.mend
 
-
-
-
-
+; --------------------------------------------------------------------
 
 	.package	chav1961.purelib.streams.char2byte.asm
-	.import		chav1961.purelib.basic.GettersAndSettersFactory$Instantiator
-	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$GetterAndSetter
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter	
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter	
@@ -750,7 +769,12 @@ newInstance			.end
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter	
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter	
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter	
-	.import		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$Instantiator
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected		
 	.import		chav1961.purelib.basic.CharUtils	
 	.import		chav1961.purelib.basic.exceptions.ContentException	
+	.import		java.lang.InstantiationException
+	.import		sun.reflect.ReflectionFactory	
+	.import		java.lang.reflect.Constructor
 

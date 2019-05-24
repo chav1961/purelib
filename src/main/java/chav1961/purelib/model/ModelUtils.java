@@ -8,8 +8,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.Arrays;
 
+import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.CharGetterAndSetter;
@@ -115,6 +119,60 @@ public class ModelUtils {
 		}
 	}
 	
+	public static URI buildUriByClassAndField(final Class<?> clazz, final String fieldName) throws IllegalArgumentException, NullPointerException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to build URI for can't be null");
+		}
+		else if (fieldName == null || fieldName.isEmpty()) {
+			throw new IllegalArgumentException("Field name to build URI for can't be null or empty");
+		}
+		else {
+			Class<?>	temp = clazz;
+			
+			while (temp != null) {
+				for (Field f : temp.getDeclaredFields()) {
+					if (f.getName().equals(fieldName)) {
+						return ContentModelFactory.buildClassFieldApplicationURI(clazz,f);					
+					}
+				}
+				temp = temp.getSuperclass();
+			}
+			throw new IllegalArgumentException("Field name ["+fieldName+"] not found in the class ["+clazz.getCanonicalName()+"]");
+		}
+	}
+
+	public static URI buildUriByClassAndMethod(final Class<?> clazz, final String methodName, final Class<?>... parameters) {
+		if (clazz == null) {
+			throw new NullPointerException("Class to build URI for can't be null");
+		}
+		else if (methodName == null || methodName.isEmpty()) {
+			throw new IllegalArgumentException("Method name to build URI for can't be null or empty");
+		}
+		else if (parameters == null) {
+			throw new IllegalArgumentException("Parameter's list can' be null");
+		}
+		else if (Utils.checkArrayContent4Nulls(parameters) >= 0) {
+			throw new IllegalArgumentException("Null inside parameters at position ["+Utils.checkArrayContent4Nulls(parameters)+"]");
+		}
+		else {
+			Class<?>	temp = clazz;
+			
+			while (temp != null) {
+				for (Method m : temp.getDeclaredMethods()) {
+					if (m.getName().equals(methodName) && Arrays.deepEquals(m.getParameterTypes(),parameters)) {
+						return ContentModelFactory.buildClassMethodApplicationURI(clazz,m.getName());					
+					}
+				}
+				temp = temp.getSuperclass();
+			}
+			throw new IllegalArgumentException("Method name ["+methodName+"] not found in the class ["+clazz.getCanonicalName()+"]");
+		}
+	}
+
+	public static URI buildUriByTableAndColumn(final String table, final String column) {
+		return null;
+	}
+	
 	
 	/**
 	 * <p>Get value from instance by getters and setters</p>
@@ -169,8 +227,28 @@ public class ModelUtils {
 		}
 	}
 
+	/**
+	 * <p>Get value from instance by it's application URI</p>
+	 * @param instance instance to get value from
+	 * @param applicationURI URI of the field to extract
+	 * @param metadata mode meta data for the given getter and setter
+	 * @return value extracted
+	 * @throws NullPointerException if any parameters are null
+	 * @throws ContentException on any errors while getting value
+	 */
 	public static Object getValueByGetter(final Object instance, final URI applicationURI, final ContentNodeMetadata metadata) throws NullPointerException, ContentException {
-		return null;
+		if (instance == null) {
+			throw new NullPointerException("Object to get value from can't be null");
+		}
+		else if (applicationURI == null) {
+			throw new NullPointerException("Application URI can't be null");
+		}
+		else if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else {
+			return getValueByGetter(instance,GettersAndSettersFactory.buildGetterAndSetter(applicationURI,Thread.currentThread().getContextClassLoader()),metadata);
+		}
 	}	
 	
 	/**
@@ -291,10 +369,30 @@ public class ModelUtils {
 		}
 	}
 
-	public static Object setValueBySetter(final Object instance, final Object value, final URI applicationURI, final ContentNodeMetadata metadata) throws NullPointerException, ContentException {
-		return null;
+	/**
+	 * <p>Store value into instance by application URI</p>
+	 * @param instance instance to store value to
+	 * @param value value to store
+	 * @param applicationURI URI of the field to store
+	 * @param metadata mode meta data for the given getter and setter
+	 * @throws NullPointerException if any parameters are null
+	 * @throws IllegalArgumentException if value to store is incompatible with target setter 
+	 * @throws ContentException on any errors while setting value
+	 */
+	public static void setValueBySetter(final Object instance, final Object value, final URI applicationURI, final ContentNodeMetadata metadata) throws NullPointerException, ContentException {
+		if (instance == null) {
+			throw new NullPointerException("Object to get value from can't be null");
+		}
+		else if (applicationURI == null) {
+			throw new NullPointerException("Application URI can't be null");
+		}
+		else if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else {
+			setValueBySetter(instance,value,GettersAndSettersFactory.buildGetterAndSetter(applicationURI,Thread.currentThread().getContextClassLoader()),metadata);
+		}
 	}	
-
 	
 	private static void toString(final String prefix, final ContentNodeMetadata node, final StringBuilder sb) {
 		sb.append(prefix).append(node.getRelativeUIPath()).append('\n');
@@ -303,6 +401,4 @@ public class ModelUtils {
 			toString(prefix+'\t',item,sb);
 		}
 	}
-
-
 }

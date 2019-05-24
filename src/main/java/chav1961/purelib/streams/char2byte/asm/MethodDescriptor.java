@@ -15,7 +15,9 @@ import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
 class MethodDescriptor implements Closeable {
 	private static final char[]					THIS = "this".toCharArray(); 
 	private static final String					INIT_STRING = "<init>"; 
+	private static final String					CLASS_INIT_STRING = "<init>"; 
 	private static final char[]					INIT = INIT_STRING.toCharArray(); 
+	private static final char[]					CLASS_INIT = CLASS_INIT_STRING.toCharArray(); 
 
 	final short									accessFlags;
 	
@@ -274,15 +276,21 @@ class MethodDescriptor implements Closeable {
 			tree.getName(signatureId,forLongName,classLen+1+methodLen);
 			tree.placeOrChangeName(forLongName,0,forLongName.length,new NameDescriptor());
 
-			final boolean	wasConstructor = CharUtils.compare(forShortName,0,INIT);
+			final boolean	wasConstructor = CharUtils.compare(forShortName,0,INIT) || CharUtils.compare(forShortName,0,CLASS_INIT);
 			
 			if (wasConstructor) {	// Special behavior for constructors
 				String	className = tree.getName(classId);
 				if (className.lastIndexOf('.') >= 0) {
 					className = className.substring(className.lastIndexOf('.')+1);
 				}
-				tree.placeOrChangeName(new String(forShortName).replace(INIT_STRING,className),new NameDescriptor());
-				tree.placeOrChangeName(new String(forLongName).replace(INIT_STRING,className),new NameDescriptor());
+				if ((accessFlags & Constants.ACC_STATIC) != 0) {
+					tree.placeOrChangeName(new String(forShortName).replace(CLASS_INIT_STRING,className),new NameDescriptor());
+					tree.placeOrChangeName(new String(forLongName).replace(CLASS_INIT_STRING,className),new NameDescriptor());
+				}
+				else {
+					tree.placeOrChangeName(new String(forShortName).replace(INIT_STRING,className),new NameDescriptor());
+					tree.placeOrChangeName(new String(forLongName).replace(INIT_STRING,className),new NameDescriptor());
+				}
 			}
 			
 			signatureDispl = ccr.asUTF(signatureId);

@@ -1329,7 +1329,7 @@ class LineParser implements LineByLineProcessorCallback {
 					if (typeId != voidId) {
 						throw new ContentException("Constructor method need return void type!");
 					}
-					else if ((classFlags & Constants.ACC_STATIC) != 0) {	// This is a <clinit>
+					else if ((forEntity.options & Constants.ACC_STATIC) != 0) {	// This is a <clinit>
 						if (classConstructorCount == 0) {
 							methodNameId = classConstructorId;
 							classConstructorCount++;

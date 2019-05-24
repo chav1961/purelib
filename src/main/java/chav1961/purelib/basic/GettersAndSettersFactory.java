@@ -357,7 +357,7 @@ public class GettersAndSettersFactory {
 	protected static abstract class InstantiatorImpl<T> implements Instantiator<T> {
 		protected final Class<T> 	clazz;
 		
-		protected InstantiatorImpl(Class<T> clazz) {
+		public InstantiatorImpl(Class<T> clazz) {
 			this.clazz = clazz;
 		}
 		
@@ -1236,17 +1236,18 @@ public class GettersAndSettersFactory {
 					wr.importClass(InstantiatorImpl.class);
 				} catch (ContentException e) {
 				}
-				wr.write("");
+				wr.write(" buildInstantiator className=\""+className+"\",managedClass=\""+owner.getCanonicalName()+"\"\n");
 				wr.flush();
 			}
 			Class<Instantiator<T>>	inst;
-				
+			
 			try{inst = (Class<Instantiator<T>>) internalLoader.createClass(className,baos.toByteArray());
 			} catch (Exception exc) {
 				inst = (Class<Instantiator<T>>) internalLoader.loadClass(className);
 			}
 			return inst.newInstance();
 		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+			e.printStackTrace();
 			throw new IllegalArgumentException("Can't build code for create instantiator of class ["+className+"] : "+e.getLocalizedMessage(),e);
 		}
 	}

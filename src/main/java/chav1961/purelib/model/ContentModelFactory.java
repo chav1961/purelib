@@ -90,61 +90,67 @@ public class ContentModelFactory {
 			final URI				localizerResource = clazz.isAnnotationPresent(LocaleResourceLocation.class) ? URI.create(clazz.getAnnotation(LocaleResourceLocation.class).value()) : null;
 			final List<Field>		fields = new ArrayList<>();
 			final LocaleResource	localeResource = clazz.getAnnotation(LocaleResource.class);
-			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(clazz.getSimpleName()
-														, clazz
-														, clazz.getCanonicalName()
-														, localizerResource
-														, localeResource.value()
-														, localeResource.tooltip() 
-														, localeResource.help()
-														, null
-														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+clazz.getName()));
 			
-			collectFields(clazz,fields);
-			if (fields.size() == 0) {
-				throw new IllegalArgumentException("Class ["+clazz+"] doesn't contain any fields annotated with @LocaleResource or @Format");
+			if (localeResource.value().isEmpty()) {
+				throw new IllegalArgumentException("Class ["+clazz+"]: @LocaleResource annotation has empty value");
 			}
 			else {
-				for (Field f : fields) {
-					final Class<?>			type = f.getType();
-					final LocaleResource	fieldLocaleResource = f.getAnnotation(LocaleResource.class);
-					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(f.getName()
-																	, type
-																	, f.getName()+"/"+type.getCanonicalName()
-																	, null
-																	, fieldLocaleResource == null ? "?" : fieldLocaleResource.value()
-																	, fieldLocaleResource == null ? "?" : fieldLocaleResource.tooltip() 
-																	, fieldLocaleResource == null ? "?" : fieldLocaleResource.help()
-																	, f.isAnnotationPresent(Format.class) 
-																			? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
-																			: null
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName())
-																);
-					if (f.isAnnotationPresent(MultiAction.class) || f.isAnnotationPresent(Action.class)) {
-						collectActions(clazz,f,metadata);
+				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(clazz.getSimpleName()
+															, clazz
+															, clazz.getCanonicalName()
+															, localizerResource
+															, localeResource.value()
+															, localeResource.tooltip() 
+															, localeResource.help()
+															, null
+															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+clazz.getName()));
+				
+				collectFields(clazz,fields);
+				if (fields.size() == 0) {
+					throw new IllegalArgumentException("Class ["+clazz+"] doesn't contain any fields annotated with @LocaleResource or @Format");
+				}
+				else {
+					for (Field f : fields) {
+						final Class<?>			type = f.getType();
+						final LocaleResource	fieldLocaleResource = f.getAnnotation(LocaleResource.class);
+						final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(f.getName()
+																		, type
+																		, f.getName()+"/"+type.getCanonicalName()
+																		, null
+																		, fieldLocaleResource == null ? "?" : fieldLocaleResource.value()
+																		, fieldLocaleResource == null ? "?" : fieldLocaleResource.tooltip() 
+																		, fieldLocaleResource == null ? "?" : fieldLocaleResource.help()
+																		, f.isAnnotationPresent(Format.class) 
+																				? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
+																				: null
+																		, buildClassFieldApplicationURI(clazz,f)
+																	);
+						if (f.isAnnotationPresent(MultiAction.class) || f.isAnnotationPresent(Action.class)) {
+							collectActions(clazz,f,metadata);
+						}
+						root.addChild(metadata);
+						metadata.setParent(root);
 					}
-					root.addChild(metadata);
-					metadata.setParent(root);
-				}
-				if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
-					collectActions(clazz,root);
-				}
-				
-				final List<Method>		methods = new ArrayList<>();
-				
-				collectMethods(clazz,methods);
-				if (methods.size() > 0) {
-					for (Method m : methods) {
-						if (m.isAnnotationPresent(MultiAction.class) || m.isAnnotationPresent(Action.class)) {
-							collectActions(clazz,m,root);
+					if (clazz.isAnnotationPresent(MultiAction.class) || clazz.isAnnotationPresent(Action.class)) {
+						collectActions(clazz,root);
+					}
+					
+					final List<Method>		methods = new ArrayList<>();
+					
+					collectMethods(clazz,methods);
+					if (methods.size() > 0) {
+						for (Method m : methods) {
+							if (m.isAnnotationPresent(MultiAction.class) || m.isAnnotationPresent(Action.class)) {
+								collectActions(clazz,m,root);
+							}
 						}
 					}
-				}
-				
-				final SimpleContentMetadata	result = new SimpleContentMetadata(root); 
-				
-				root.setOwner(result);
-				return result;
+					
+					final SimpleContentMetadata	result = new SimpleContentMetadata(root); 
+					
+					root.setOwner(result);
+					return result;
+			}
 			}
 		}
 	}
@@ -327,7 +333,15 @@ public class ContentModelFactory {
 			}
 		}
 	}
-	
+
+	static URI buildClassFieldApplicationURI(final Class<?> clazz, final Field f) {
+		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName());
+	}
+
+	static URI buildClassMethodApplicationURI(final Class<?> clazz, final String action) {
+		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"."+action);
+	}
+
 	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) throws EnvironmentException {
 		MutableContentNodeMetadata	child;
 		
@@ -516,7 +530,7 @@ public class ContentModelFactory {
 											, item.resource().tooltip()
 											, item.resource().help()
 											, null
-											, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"."+item.actionString())
+											, buildClassMethodApplicationURI(clazz,item.actionString())
 							)
 					);
 				}
@@ -539,7 +553,7 @@ public class ContentModelFactory {
 										, item.resource().tooltip()
 										, item.resource().help()
 										, null
-										, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+field.getName()+"."+item.actionString())
+										, buildClassMethodApplicationURI(clazz,field.getName()+"."+item.actionString())
 						)
 				);
 			}
