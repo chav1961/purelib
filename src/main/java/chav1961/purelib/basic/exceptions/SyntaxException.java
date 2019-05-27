@@ -11,12 +11,26 @@ package chav1961.purelib.basic.exceptions;
  */
 public class SyntaxException extends ContentException {
 	private static final long serialVersionUID = 8141880743233589596L;
+	
+	private final long	lineNo, pos;
 
 	public SyntaxException(final long lineNo, final long pos, final String message, final Throwable t) {
 		super("Line "+lineNo+", pos "+pos+": "+message,t);
+		this.lineNo = lineNo;
+		this.pos = pos;
 	}
 
 	public SyntaxException(final long lineNo, final long pos, final String message) {
 		super("Line "+lineNo+", pos "+pos+": "+message);
+		this.lineNo = lineNo;
+		this.pos = pos;
+	}
+	
+	public long getRow() {
+		return lineNo;
+	}
+	
+	public long getCol() {
+		return pos;
 	}
 }

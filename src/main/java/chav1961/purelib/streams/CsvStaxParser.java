@@ -158,7 +158,9 @@ loop:			for (;;) {
 					}
 				}
 				if (splitted) {
-					sb.append(buffer,start,current-start-1);
+					if (current-start-1 > 0) {
+						sb.append(buffer,start,current-start-1);
+					}
 					result = classify(sb.toString().toCharArray(),0,sb.length(),dquoted);
 					sb.setLength(0);
 				}
@@ -235,17 +237,17 @@ loop:			for (;;) {
 	}
 
 	@Override
-	public String name() throws IOException {
+	public String name() throws IOException, SyntaxException {
 		if (current() != CsvStaxParserLexType.NAME) {
 			throw new IllegalStateException("Attempt to read name from illegal lexema ["+current()+"]");
 		}
 		else {
-			return new String(value,valueFrom,valueTo);
+			return new String(value,valueFrom,valueTo-valueFrom);
 		}
 	}
 
 	@Override
-	public int name(char[] content, int from, int to) throws IOException {
+	public int name(char[] content, int from, int to) throws IOException, SyntaxException {
 		if (content == null) {
 			throw new NullPointerException("Content array can't be null"); 
 		}
@@ -267,24 +269,51 @@ loop:			for (;;) {
 	}
 
 	@Override
-	public boolean booleanValue() throws IOException {
-		return CharUtils.compare(value,valueFrom,TRUE);
+	public boolean booleanValue() throws IOException, SyntaxException {
+		if (current() != CsvStaxParserLexType.BOOLEAN_VALUE) {
+			throw new IllegalStateException("Attempt to read boolean value from illegal lexema ["+current()+"]");
+		}
+		else if (CharUtils.compare(value,valueFrom,TRUE)) {
+			return true;
+		}
+		else if (CharUtils.compare(value,valueFrom,FALSE)) {
+			return false;
+		}
+		else {
+			throw new SyntaxException(row(),col(),"Neither 'true' nor 'false' in the  input stream for the boolean");
+		}
 	}
 
 	@Override
-	public long intValue() throws IOException {
-		CharUtils.parseSignedLong(value,valueFrom,parsedLong,true);
-		return parsedLong[0];
+	public long intValue() throws IOException, SyntaxException {
+		if (current() != CsvStaxParserLexType.INTEGER_VALUE) {
+			throw new IllegalStateException("Attempt to read integer value from illegal lexema ["+current()+"]");
+		}
+		else {
+			try{CharUtils.parseSignedLong(value,valueFrom,parsedLong,true);
+				return parsedLong[0];
+			} catch (IllegalArgumentException exc) {
+				throw new SyntaxException(row(),col(),"Invalid integer in the input stream");
+			}
+	}
 	}
 
 	@Override
-	public double realValue() throws IOException {
-		CharUtils.parseSignedDouble(value,valueFrom,parsedDouble,true);
-		return parsedDouble[0];
+	public double realValue() throws IOException, SyntaxException {
+		if (current() != CsvStaxParserLexType.REAL_VALUE) {
+			throw new IllegalStateException("Attempt to read real value from illegal lexema ["+current()+"]");
+		}
+		else {
+			try{CharUtils.parseSignedDouble(value,valueFrom,parsedDouble,true);
+				return parsedDouble[0];
+			} catch (IllegalArgumentException exc) {
+				throw new SyntaxException(row(),col(),"Invalid real in the input stream");
+			}
+		}
 	}
 
 	@Override
-	public String stringValue() throws IOException {
+	public String stringValue() throws IOException, SyntaxException {
 		if (current() != CsvStaxParserLexType.STRING_VALUE) {
 			throw new IllegalStateException("Attempt to read string value from illegal lexema ["+current()+"]");
 		}
@@ -294,7 +323,7 @@ loop:			for (;;) {
 	}
 
 	@Override
-	public int stringValue(char[] content, int from, int to) throws IOException {
+	public int stringValue(char[] content, int from, int to) throws IOException, SyntaxException {
 		if (content == null) {
 			throw new NullPointerException("Content array can't be null"); 
 		}
@@ -332,10 +361,14 @@ loop:			for (;;) {
 
 
 	private boolean nextPiece() throws IOException {
-		this.last = reader.read(this.buffer,0,buffer.length-1);
 		this.current = 0;
-		this.buffer[this.buffer.length-1] = 0;
-		return this.last <= 0;
+		if ((this.last = reader.read(this.buffer,0,buffer.length-1)) <= 0) {
+			return false;
+		}
+		else {
+			this.buffer[this.last] = 0;
+			return true;
+		}
 	}
 
 	private void nextChar() throws IOException {
