@@ -229,6 +229,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			common.setValue(0);
 			currentState = STATE_COMMON;
 			((CardLayout)rightPanel.getLayout()).show(rightPanel, COMMON_PANEL);
+			cancelCommon.setEnabled(true);
 			rightPanel.setVisible(true);
 		}
 	}
@@ -258,6 +259,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			common.setValue(0);
 			currentState = STATE_COMMON;
 			((CardLayout)rightPanel.getLayout()).show(rightPanel, COMMON_PANEL);
+			cancelCommon.setEnabled(true);
 			rightPanel.setVisible(true);
 		}
 	}
@@ -284,6 +286,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 				stage.setIndeterminate(false);
 				stage.setValue(stageNo);
 				currentState = STATE_STAGED;
+				cancelCommon.setEnabled(true);
+				cancelStaged.setEnabled(true);
 				((CardLayout)rightPanel.getLayout()).show(rightPanel, STAGED_PANEL);
 			}
 			if (!caption.isEmpty()) {
@@ -326,6 +330,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 				stage.setIndeterminate(false);
 				stage.setValue(stageNo);
 				currentState = STATE_STAGED;
+				cancelCommon.setEnabled(true);
+				cancelStaged.setEnabled(true);
 				((CardLayout)rightPanel.getLayout()).show(rightPanel, STAGED_PANEL);
 			}
 			if (!caption.isEmpty()) {
@@ -536,18 +542,22 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		cancelCommon.addActionListener((e)->{
 			try(final Locker item = locker.lock(true)) {
 				if (currentCallback != null) {
-					canceled = currentCallback.cancel(currentState == STATE_COMMON ? 0 : stage.getValue()
+					if (canceled = currentCallback.cancel(currentState == STATE_COMMON ? 0 : stage.getValue()
 								,currentState == STATE_COMMON ? common.getMaximum() : step.getMaximum()
-								,currentState == STATE_COMMON ? common.getValue() : step.getValue());
+								,currentState == STATE_COMMON ? common.getValue() : step.getValue())) {
+						cancelCommon.setEnabled(false);
+					}
 				}
 			}
 		});
 		cancelStaged.addActionListener((e)->{
 			try(final Locker item = locker.lock(true)) {
 				if (currentCallback != null) {
-					canceled = currentCallback.cancel(currentState == STATE_COMMON ? 0 : stage.getValue()
+					if (canceled = currentCallback.cancel(currentState == STATE_COMMON ? 0 : stage.getValue()
 								,currentState == STATE_COMMON ? common.getMaximum() : step.getMaximum()
-								,currentState == STATE_COMMON ? common.getValue() : step.getValue());
+								,currentState == STATE_COMMON ? common.getValue() : step.getValue())) {
+						cancelStaged.setEnabled(false);
+					}
 				}
 			}
 		});
