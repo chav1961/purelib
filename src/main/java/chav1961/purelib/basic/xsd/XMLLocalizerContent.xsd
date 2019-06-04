@@ -1,0 +1,38 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.fsys.purelib.chav1961.ru/" xmlns:x18n="http://www.fsys.purelib.chav1961.ru/"
+	elementFormDefault="qualified">
+	<xs:element name="localization">
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="lang" type="x18n:Lang" />
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="Lang">
+		<xs:sequence>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="keys" type="x18n:Key" />
+			</xs:choice>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="refs" type="x18n:Ref" />
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="id" type="xs:string" use="optional" />
+		<xs:anyAttribute processContents="skip" />
+	</xs:complexType>
+
+	<xs:complexType name="Key" mixed="true">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="id" type="xs:string" use="optional" />
+		<xs:anyAttribute processContents="skip" />
+	</xs:complexType>
+
+	<xs:complexType name="Ref" mixed="true">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="ref" type="xs:anyURI" use="optional" />
+		<xs:attribute name="id" type="xs:string" use="optional" />
+		<xs:anyAttribute processContents="skip" />
+	</xs:complexType>
+</xs:schema>
