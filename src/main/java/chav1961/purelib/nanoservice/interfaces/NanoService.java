@@ -5,6 +5,7 @@ import java.io.IOException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.concurrent.interfaces.ExecutionControl;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public interface NanoService extends ExecutionControl {
 	void start() throws IOException;
@@ -16,5 +17,6 @@ public interface NanoService extends ExecutionControl {
 	boolean isSuspended();
 	
 	void deploy(String path, Object instance2deploy) throws IOException, ContentException, SyntaxException;	
-	void undeploy(final String path)throws ContentException;
+	void undeploy(final String path) throws ContentException;
+	FileSystemInterface getServiceRoot();
 }

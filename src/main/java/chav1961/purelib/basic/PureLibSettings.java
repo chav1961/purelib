@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 
-import chav1961.purelib.basic.PureLibSettings.WellKnownSchema;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -370,6 +369,8 @@ public class PureLibSettings {
 		} catch (IOException exc) {
 			logger.log(Level.WARNING,"Internal color table for the Pure library was not loaded: "+exc.getMessage(),exc);
 		}
+		
+		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
 	}
 	
 	private PureLibSettings(){}
@@ -433,7 +434,6 @@ public class PureLibSettings {
 	 * @since 0.0.3
 	 */
 	public static void installHelpContent(final String helpPath, final FileSystemInterface helpContent) throws SyntaxException, NullPointerException, IllegalArgumentException, IllegalStateException, ContentException, IOException {
-		
 		if (helpPath == null || helpPath.isEmpty()) {
 			throw new IllegalArgumentException("Help path can't be null or empty"); 
 		}
@@ -446,10 +446,27 @@ public class PureLibSettings {
 		else {
 			synchronized (helpContextCount) {
 				if (helpServer == null) {
+					if (!props.containsKey(NanoServiceFactory.NANOSERVICE_PORT)) {
+						props.setProperty(NanoServiceFactory.NANOSERVICE_PORT,instance().getProperty(BUILTIN_HELP_PORT));
+					}
+					if (!props.containsKey(NanoServiceFactory.NANOSERVICE_ROOT)) {
+						props.setProperty(NanoServiceFactory.NANOSERVICE_ROOT,FileSystemInterface.FILESYSTEM_URI_SCHEME+":memory:/");
+					}
+					if (!props.containsKey(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY)) {
+						props.setProperty(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY,"true");
+					}
 					helpServer = new NanoServiceFactory(new StandardJRELoggerFacade(logger), props);
 					helpServer.start();
 				}
-				helpServer.deploy(helpPath,helpContent);
+				try(final FileSystemInterface fsi = helpServer.getServiceRoot().clone().open(helpPath)) {
+					if (fsi.exists()) {
+						throw new IllegalArgumentException("Help path ["+helpPath+"] already installed");
+					}
+					else {
+						fsi.mkDir();
+						helpServer.getServiceRoot().open(helpPath).mount(helpContent).open("/");
+					}
+				}			
 				helpContextCount.incrementAndGet();
 			}
 		}
@@ -478,10 +495,21 @@ public class PureLibSettings {
 				final int	value = helpContextCount.decrementAndGet();
 				
 				if (value < 0) {
-					throw new IllegalStateException("Help path ["+helpPath+"] was not deployed earlier"); 
+					throw new IllegalArgumentException("Help path ["+helpPath+"] was not deployed earlier"); 
 				}
 				else {
-					helpServer.undeploy(helpPath);
+					try(final FileSystemInterface fsi = helpServer.getServiceRoot().clone().open(helpPath)) {
+						if (!fsi.exists()) {
+							throw new IllegalArgumentException("Help path ["+helpPath+"] is not installed");
+						}
+						else {
+							helpServer.getServiceRoot().open(helpPath).unmount();
+							if (helpServer.getServiceRoot().open(helpPath).exists()) {
+								helpServer.getServiceRoot().delete();
+							}
+							helpServer.getServiceRoot().open("/");
+						}
+					}			
 					if (value == 0) {
 						helpServer.stop();
 						helpServer = null;
@@ -493,7 +521,7 @@ public class PureLibSettings {
 	
 	
 	/**
-	 * <p>Get well-known schemas in the Pure Lbrary</p> 
+	 * <p>Get well-known schemas in the Pure Library</p> 
 	 * @return schemas iterable. Can't be null
 	 */
 	public static Iterable<WellKnownSchema> wellKnownSchemas() {
@@ -545,6 +573,18 @@ public class PureLibSettings {
 		final String	name = ManagementFactory.getRuntimeMXBean().getName(); 
 		
 		return Long.valueOf(name.substring(0,name.indexOf('@')));
+	}
+
+	private static void stopPureLib() {
+		synchronized (helpContextCount) {
+			if (helpServer != null) {
+				try{helpServer.stop();
+				} catch (IOException e) {
+					logger.log(Level.WARNING,"Builtin help server stop failure: "+e.getLocalizedMessage(),e);
+				}
+				helpServer = null;
+			}
+		}
 	}
 
 	private static class WellKnownSchemaImpl<T> implements WellKnownSchema {

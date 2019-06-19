@@ -149,6 +149,7 @@ public class NanoServiceManagerTest {
 			@Override public void stop() throws IOException {}
 			@Override public boolean isStarted() {return false;}
 			@Override public boolean isSuspended() {return false;}
+			@Override public FileSystemInterface getServiceRoot() {return null;}
 			
 			@Override
 			public void deploy(String path, Object instance2deploy) throws IOException, ContentException, SyntaxException {
@@ -186,6 +187,7 @@ public class NanoServiceManagerTest {
 			@Override public void stop() throws IOException {}
 			@Override public boolean isStarted() {return false;}
 			@Override public boolean isSuspended() {return false;}
+			@Override public FileSystemInterface getServiceRoot() {return null;}
 			
 			@Override
 			public void deploy(String path, Object instance2deploy) throws IOException, ContentException, SyntaxException {

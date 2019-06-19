@@ -11,13 +11,13 @@
 *8. Дополнить ArgParser диапазоном представления или списком для целочисленного аргумента
 *9. Дополнить PureLibSettings универсальной фабрикой по URI и классу
 *10. Дописать в GettersAndSetters методы построения по URI из модели
-11. Дополнить PureLibSettings методами installHelpContent/uninstallHelpContent с автоматичесим поднятием сервера HTTP
+*11. Дополнить PureLibSettings методами installHelpContent/uninstallHelpContent с автоматичесим поднятием сервера HTTP
 *12. Дополнить GettersAndSetters методом buildInstantiator для выделения памяти под инстанцию класса
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
-Пакет concurrent
-1. Написать аналог PipedInputStream/PipedOutputStream с двумя буферами
-2. Написать аналог PipedReader/PipedWriter с двумя буферами
+*Пакет concurrent
+*1. Написать аналог PipedInputStream/PipedOutputStream с двумя буферами
+*2. Написать аналог PipedReader/PipedWriter с двумя буферами
 *Пакет exceptions
 *1. Упорядочить применение исключений из пакета exceptions
 Пакет fsys
@@ -26,12 +26,13 @@
 *3. Дополнить список файловых систем типом FileSystemOnClassLoader
 *4. Добавить механизм опроса доступных файловых систем
 5. Написать и отладить класс FileSystemClassLoader
+6. Проверить работу FileSystemInMemory
 Пакет internal
 1. Довести до ума DocLet
 *2. Написать класс DocletUtils для генерации Creole-файлов по описаниям из JavaDоc
-*Пакет i18n
-*1. Дополнить ссылку uri() в значениях полей возможностью задавать ?mime=xxx/yyy или ?sourcemime=xxx/yyy&targetmime=xxx/yyy
-2. Написать и отладить загрузчик локализации из XML
+Пакет i18n
+1. Дополнить ссылку uri() в значениях полей возможностью задавать ?mime=xxx/yyy или ?sourcemime=xxx/yyy&targetmime=xxx/yyy и ?encoding=
+*2. Написать и отладить загрузчик локализации из XML
 Пакет json
 1. Выполнить рефакторинг JsonSerializer для получения максимальной производительности
 2. Дополнить JsonSerializer возможностью работы с Beans (с использованием getter/setter)

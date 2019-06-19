@@ -38,7 +38,8 @@ public class SequenceIterator<T> implements Iterator<T> {
 	 * @param list iterator list to iterate on it's content
 	 * @return iterable instance. Can be empty, but no null
 	 */
-	public static <T> Iterable<T> iterable(@SuppressWarnings("unchecked") final Iterator<T>... list){
+	@SafeVarargs
+	public static <T> Iterable<T> iterable(final Iterator<T>... list){
 		if (list == null) {
 			throw new NullPointerException("List of iterators can't be null");
 		}

@@ -1,8 +1,9 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	targetNamespace="http://www.fsys.purelib.chav1961.ru/" xmlns:x18n="http://www.fsys.purelib.chav1961.ru/"
+	targetNamespace="http://www.i18n.purelib.chav1961.ru/" xmlns:x18n="http://www.i18n.purelib.chav1961.ru/"
 	elementFormDefault="qualified">
+	
 	<xs:element name="localization">
-		<xs:complexType>
+		<xs:complexType mixed="true">
 			<xs:choice minOccurs="1" maxOccurs="unbounded">
 				<xs:element name="lang" type="x18n:Lang" />
 			</xs:choice>
@@ -12,10 +13,10 @@
 	<xs:complexType name="Lang">
 		<xs:sequence>
 			<xs:choice minOccurs="1" maxOccurs="unbounded">
-				<xs:element name="keys" type="x18n:Key" />
+				<xs:element name="key" type="x18n:Key" />
 			</xs:choice>
 			<xs:choice minOccurs="0" maxOccurs="unbounded">
-				<xs:element name="refs" type="x18n:Ref" />
+				<xs:element name="ref" type="x18n:Ref" />
 			</xs:choice>
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required" />

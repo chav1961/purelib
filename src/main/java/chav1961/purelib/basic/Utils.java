@@ -1190,7 +1190,7 @@ public class Utils {
 		if (uri == null) {
 			throw new NullPointerException("URI to load data from can't be null");  
 		}
-		else if (uri.getScheme().equals(FileSystemInterface.FILESYSTEM_URI_SCHEME)) {
+		else if (FileSystemInterface.FILESYSTEM_URI_SCHEME.equals(uri.getScheme())) {
 			final URL			url = new URL(null,uri.getRawSchemeSpecificPart(),new FileSystemURLStreamHandler());
 			final URLConnection	conn = url.openConnection();
 			

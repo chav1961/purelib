@@ -6,9 +6,13 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -21,11 +25,24 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
+import com.sun.javadoc.Doc;
+import com.sun.tools.internal.xjc.reader.RawTypeSet.Mode;
+
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SequenceIterator;
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.xsd.XSDConst;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 public class XMLLocalizer extends AbstractLocalizer {
@@ -33,41 +50,49 @@ public class XMLLocalizer extends AbstractLocalizer {
 	private static final URI			SERVE = URI.create(Localizer.LOCALIZER_SCHEME+":"+SUBSCHEME+":/");
 	
 	private final URI					resourceAddress;
-	private final Document				doc;
-	private final Map<String,String>	keysAndValues = new HashMap<>();
-	private final Map<String,Object>	helpRefs = new HashMap<>();
+	private final Map<String,KeyCollection>	keys = new HashMap<>();
+	private KeyCollection				currentCollection;
 	private String						localizerURI = "unknown:/";
 	
 	public XMLLocalizer() throws LocalizationException, NullPointerException {
 		this.resourceAddress = null;
-		this.doc = null;
+	}
+
+	protected XMLLocalizer(final URI resourceAddress) throws LocalizationException, NullPointerException {
+		this(resourceAddress,PureLibSettings.SYSTEM_ERR_LOGGER);
 	}
 	
-	protected XMLLocalizer(final URI resourceAddress) throws LocalizationException, NullPointerException {
+	protected XMLLocalizer(final URI resourceAddress, final LoggerFacade facade) throws LocalizationException, NullPointerException {
 		if (resourceAddress == null) {
 			throw new NullPointerException("Resource address can't be null");
+		}
+		else if (facade == null) {
+			throw new NullPointerException("Logger facade can't be null");
 		}
 		else {
 			this.resourceAddress = resourceAddress;
 			
-			if (resourceAddress.getScheme() != null) {
-				try{final URL 	url = resourceAddress.toURL();
-				
-					try(final InputStream	is = url.openStream()) {
-						this.doc = loadDom(is);
+			try(final LoggerFacade	trans = facade.transaction(this.getClass().getName())) {
+				if (resourceAddress.getScheme() != null) {
+					try{final URL 	url = resourceAddress.toURL();
+					
+						try(final InputStream	is = url.openStream()) {
+							loadDom(is,trans);
+						}
+					} catch (ContentException | IOException e) {
+						throw new LocalizationException(e.getLocalizedMessage(),e);
 					}
-				} catch (IOException e) {
-					throw new LocalizationException(e.getLocalizedMessage(),e);
 				}
-			}
-			else {
-				try(final InputStream	is = new FileInputStream(resourceAddress.getPath())) {
-					this.doc = loadDom(is);
-				} catch (IOException e) {
-					throw new LocalizationException(e.getLocalizedMessage(),e);
+				else {
+					try(final InputStream	is = new FileInputStream(resourceAddress.getPath())) {
+						loadDom(is,trans);
+					} catch (ContentException | IOException e) {
+						throw new LocalizationException(e.getLocalizedMessage(),e);
+					}
 				}
+				loadResource(currentLocale().getLocale());
+				trans.rollback();
 			}
-			loadResource(currentLocale().getLocale());
 		}
 	}
 
@@ -88,7 +113,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 
 	@Override
 	public Iterable<String> localKeys() {
-		return keysAndValues.keySet();
+		return SequenceIterator.iterable(currentCollection.keysAndValues.keySet().iterator(),currentCollection.helpRefs.keySet().iterator());
 	}
 
 	@Override
@@ -96,8 +121,17 @@ public class XMLLocalizer extends AbstractLocalizer {
 		if (key == null || key.isEmpty()) {
 			throw new IllegalArgumentException("Key to get value for can't be null or empty"); 
 		}
+		else if (currentCollection.keysAndValues.containsKey(key)) {
+			return currentCollection.keysAndValues.get(key);
+		}
+		else if (currentCollection.helpRefs.containsKey(key)) {
+			try{return new String(Utils.loadCharsFromURI(currentCollection.helpRefs.get(key),"UTF-8"));
+			} catch (IOException e) {
+				throw new LocalizationException(e.getLocalizedMessage(),e);
+			}
+		}
 		else {
-			return keysAndValues.get(key);
+			return null;
 		}
 	}
 
@@ -107,7 +141,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}
 		else {
-			final Object	value = helpRefs.get(helpId);
+			final Object	value = currentCollection.helpRefs.get(helpId);
 			
 			if (value == null) {
 				return "";
@@ -126,54 +160,98 @@ public class XMLLocalizer extends AbstractLocalizer {
 		if (newLocale == null) {
 			throw new NullPointerException("New locale can't be null"); 
 		}
+		else if (keys.containsKey(newLocale.getLanguage())) {
+			currentCollection = keys.get(newLocale.getLanguage());
+		}
 		else {
-			final XPathFactory 			xPathfactory = XPathFactory.newInstance();
-			final XPath 				xpath = xPathfactory.newXPath();
-			
-			try{final XPathExpression 	expr = xpath.compile("/localization/lang[@name='"+newLocale.getLanguage()+"']/keys");
-				final NodeList 			nl = (NodeList) expr.evaluate(doc.getDocumentElement(), XPathConstants.NODESET);
-				
-				for (int index = 0, maxIndex = nl.getLength(); index < maxIndex; index++) {
-					final Node 			item = nl.item(index);
-	
-					keysAndValues.put(item.getAttributes().getNamedItem("name").getNodeName(),item.getTextContent());
-				}
-			} catch (XPathExpressionException e) {
-				throw new LocalizationException("Error seeking keys in the XML: "+e.getLocalizedMessage(),e); 
-			}
-			
-			try{final XPathExpression 	expr = xpath.compile("/localization/lang[@name='"+newLocale.getLanguage()+"']/refs");
-				final NodeList 			nl = (NodeList) expr.evaluate(doc.getDocumentElement(), XPathConstants.NODESET);
-				
-				for (int index = 0, maxIndex = nl.getLength(); index < maxIndex; index++) {
-					final Node 			item = nl.item(index);
-					final String		name = item.getAttributes().getNamedItem("name").getNodeName();
-					final Node			ref = item.getAttributes().getNamedItem("ref");
-		
-					if (ref != null) {
-						helpRefs.put(name,URI.create(ref.getNodeValue()));
-					}
-					else {
-						helpRefs.put(name,item.getTextContent());
-					}
-				}
-			} catch (XPathExpressionException e) {
-				throw new LocalizationException("Error seeking refs in the XML: "+e.getLocalizedMessage(),e); 
-			}
+			throw new LocalizationException("Language ["+newLocale.getLanguage()+"] is not supported for localizer ["+resourceAddress+"]");
 		}
 	}
 
-	private Document loadDom(final InputStream is) throws IOException {
-		final DocumentBuilderFactory 	dbFactory = DocumentBuilderFactory.newInstance();
+	private void loadDom(final InputStream is, final LoggerFacade logger) throws ContentException {
+		final Map<String,String>	keysAndValues = new HashMap<>();
+		final Map<String,URI>		helpRefs = new HashMap<>();
+		final String[]				langName = new String[1];
 		
-		try{final DocumentBuilder 		dBuilder = dbFactory.newDocumentBuilder();
-			final Document 				doc = dBuilder.parse(is);
-			
-			doc.getDocumentElement().normalize();
-			return doc;
-		} catch (ParserConfigurationException | SAXException e) {
-			throw new IOException(e.getLocalizedMessage(),e);
+		Utils.walkDownXML(Utils.validateAndLoadXML(is,XSDConst.class.getResourceAsStream("XMLLocalizerContent.xsd"),logger).getDocumentElement(), (mode,node)->{
+			switch (mode) {
+				case ENTER	:
+					switch (node.getNodeName()) {
+						case "lang"	:
+							langName[0] = node.getAttributes().getNamedItem("name").getTextContent();
+							keysAndValues.clear();
+							helpRefs.clear();
+							break;
+						case "key"	:
+							keysAndValues.put(node.getAttributes().getNamedItem("name").getTextContent(),node.getTextContent());
+							break;
+						case "ref"	:
+							final String		name = node.getAttributes().getNamedItem("name").getTextContent();
+							final String		ref = node.getAttributes().getNamedItem("ref").getTextContent();
+				
+							helpRefs.put(name,URI.create(ref));
+							break;
+					}
+					break;
+				case EXIT	:
+					switch (node.getNodeName()) {
+						case "lang"	:
+							keys.put(langName[0],new KeyCollection(keysAndValues,helpRefs));
+							langName[0] = null;
+							break;
+					}
+					break;
+				default		:
+					throw new UnsupportedOperationException("Mode ["+mode+"] is not supported yet");
+			}
+			return ContinueMode.CONTINUE;
+		});
+		
+		final Set<String>	totalKeys = new HashSet<>();	// Check key definitions in all languages
+		final StringBuilder	sb = new StringBuilder();
+		boolean				wereProblems = false;
+		
+		for (Entry<String, KeyCollection> item : keys.entrySet()) {
+			totalKeys.addAll(item.getValue().keysAndValues.keySet());
+			totalKeys.addAll(item.getValue().helpRefs.keySet());
 		}
-//		NodeList nList = doc.getElementsByTagName("staff");
+		
+		for (Entry<String, KeyCollection> item : keys.entrySet()) {
+			final Set<String>	currentKeys = new HashSet<>();
+			
+			currentKeys.addAll(totalKeys);
+			currentKeys.removeAll(item.getValue().keysAndValues.keySet());
+			currentKeys.removeAll(item.getValue().helpRefs.keySet());
+			if (currentKeys.size() > 0) {
+				wereProblems = true;
+				sb.append("Lang [").append(item.getKey()+"]: ").append(currentKeys).append(' ');
+			}
+			else {
+				currentKeys.clear();
+			}
+		}
+		if (wereProblems) {
+			throw new ContentException("Localizer ["+resourceAddress+"] - some keys are undefined in some languages! "+sb.toString()); 
+		}
+		else {
+			totalKeys.clear();
+			keysAndValues.clear();
+			helpRefs.clear();
+		}
+	}
+	
+	private static class KeyCollection {
+		private final Map<String,String>	keysAndValues = new HashMap<>();
+		private final Map<String,URI>		helpRefs = new HashMap<>();
+
+		private KeyCollection(final Map<String,String> keysAndValues, final Map<String,URI> helpRefs) {
+			this.keysAndValues.putAll(keysAndValues);
+			this.helpRefs.putAll(helpRefs);
+		}
+		
+		@Override
+		public String toString() {
+			return "KeyCollection [keysAndValues=" + keysAndValues + ", helpRefs=" + helpRefs + "]";
+		}
 	}
 }

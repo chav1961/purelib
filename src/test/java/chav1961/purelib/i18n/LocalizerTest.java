@@ -297,6 +297,31 @@ public class LocalizerTest {
 			Assert.assertEquals(pl.getValue("key2"),"значение2");
 		}
 	}
+
+	@Test
+	public void xmlLocalizerTest() throws LocalizationException, IOException {
+		try(final XMLLocalizer	pl = new XMLLocalizer(URI.create("./src/test/resources/chav1961/purelib/i18n/test.xml"))) {
+			int		count;
+			
+			pl.setCurrentLocale(new Locale("en"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals(pl.getValue("key1"),"value1");
+			Assert.assertEquals(pl.getValue("key2"),"value2");
+			
+			pl.setCurrentLocale(new Locale("ru"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals(pl.getValue("key1"),"значение1");
+			Assert.assertEquals(pl.getValue("key2"),"значение2");
+		}
+	}
 }
 
 

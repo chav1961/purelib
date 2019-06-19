@@ -424,8 +424,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 
 	@Override
 	public void handle(final HttpExchange call) throws IOException {
-		if (localhostOnly && !"localhost".equals(call.getRemoteAddress().getHostName())) {
-			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address");
+		if (localhostOnly && !"localhost".equals(call.getRemoteAddress().getHostName()) && !"view-localhost".equals(call.getRemoteAddress().getHostName())) {
+			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+call.getRemoteAddress().getHostName()+"]");
 		}
 		else if (!paused) {
 			final char[]			path = call.getRequestURI().getPath().toCharArray();
@@ -807,6 +807,11 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}		
 	}
 
+	@Override
+	public FileSystemInterface getServiceRoot() {
+		return serviceRoot;
+	}
+	
 	ClassLoaderWrapper getInternalLoader() {
 		return internalLoader;
 	}

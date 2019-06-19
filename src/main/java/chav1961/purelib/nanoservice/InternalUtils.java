@@ -164,7 +164,12 @@ public class InternalUtils {
 					if ((semicolon = currentMime.indexOf(';')) >= 0) {
 						currentMime = currentMime.substring(0,semicolon); 
 					}
-					result[counter++] = new MimeType(currentMime);
+					if ("*".equals(currentMime.trim())) {
+						result[counter++] = new MimeType(currentMime+"/*");
+					}
+					else {
+						result[counter++] = new MimeType(currentMime);
+					}
 					start = pos + 1;
 				}
 				String	currentMime = temp.substring(start);

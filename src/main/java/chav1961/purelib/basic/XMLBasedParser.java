@@ -21,6 +21,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.xsd.XSDConst;
 
 class XMLBasedParser<Type extends Enum<?>,Subtype extends Enum<?>,Action extends Enum<?>,T extends XMLBasedParserLex<Type,Subtype>> {
 	private static final String		TAG_BODY = "body";
@@ -62,8 +63,8 @@ class XMLBasedParser<Type extends Enum<?>,Subtype extends Enum<?>,Action extends
 				
 				dbFactory.setNamespaceAware(true);
 				dbFactory.setValidating(true);
-				dbFactory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage", XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				dbFactory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource", this.getClass().getResource("XMLBasedParser.xsd").toString());
+				dbFactory.setAttribute(XSDConst.SCHEMA_LANGUAGE, XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				dbFactory.setAttribute(XSDConst.SCHEMA_SOURCE, this.getClass().getResource("XMLBasedParser.xsd").toString());
 				
 			    final DocumentBuilder 			dBuilder = dbFactory.newDocumentBuilder();
 			    
