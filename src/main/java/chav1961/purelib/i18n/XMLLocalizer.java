@@ -125,10 +125,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 			return currentCollection.keysAndValues.get(key);
 		}
 		else if (currentCollection.helpRefs.containsKey(key)) {
-			try{return new String(Utils.loadCharsFromURI(currentCollection.helpRefs.get(key),"UTF-8"));
-			} catch (IOException e) {
-				throw new LocalizationException(e.getLocalizedMessage(),e);
-			}
+			return "uri("+currentCollection.helpRefs.get(key)+")";
 		}
 		else {
 			return null;
@@ -136,21 +133,14 @@ public class XMLLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	protected String getHelp(final String helpId) throws LocalizationException, IllegalArgumentException {
+	protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
 		if (helpId == null || helpId.isEmpty()) {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}
 		else {
-			final Object	value = currentCollection.helpRefs.get(helpId);
-			
-			if (value == null) {
-				return "";
-			}
-			else if (value instanceof String) {
-				return (String)value;
-			}
-			else {
-				return null;
+			try{return new String(Utils.loadCharsFromURI(URI.create("file:"+helpId),encoding));
+			} catch (IOException e) {
+				throw new LocalizationException(e.getLocalizedMessage(),e);
 			}
 		}
 	}

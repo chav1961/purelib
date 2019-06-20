@@ -133,9 +133,10 @@ public class FileSystemURLStreamHandler extends URLStreamHandler {
 		@Override
 		public InputStream getInputStream() throws IOException {
 			if (fsi == null) {
-				throw new IllegalStateException("Attempt to get input stream before calling connect() method. Call connect() firstly"); 
+				connect();
+//				throw new IllegalStateException("Attempt to get input stream before calling connect() method. Call connect() firstly"); 
 			}
-			else if (closed) {
+			if (closed) {
 				throw new IllegalStateException("This method can be called exactly once. Reconnect to data source!"); 
 			}
 			else if (getDoOutput()) {

@@ -1,5 +1,6 @@
 package chav1961.purelib.i18n;
 
+
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -45,7 +46,11 @@ import chav1961.purelib.streams.StreamsUtil;
  */
 
 public abstract class AbstractLocalizer implements Localizer {
-	public static final String						DEFAULT_CONTENT_ENCODING = "UTF-8";
+	public static final String		CONTENT_MIME = "mime";
+	public static final String		CONTENT_MIME_SOURCE = "sourceMime";
+	public static final String		CONTENT_MIME_TARGET = "targetMime";
+	public static final String		CONTENT_ENCODING = "encoding";
+	public static final String		DEFAULT_CONTENT_ENCODING = "UTF-8";
 
 	/**
 	 * <p>This enumerations contains all locales currently supported</p> 
@@ -106,7 +111,7 @@ public abstract class AbstractLocalizer implements Localizer {
 	@Override public abstract Iterable<String> localKeys();
 	@Override public abstract String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException;
 	protected abstract void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException;
-	protected abstract String getHelp(final String helpId) throws LocalizationException, IllegalArgumentException;
+	protected abstract String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException;
 	
 	@Override
 	public LocaleDescriptor currentLocale() {
@@ -218,12 +223,14 @@ public abstract class AbstractLocalizer implements Localizer {
 				final URI			uriRef = URI.create(uriName);		
 				
 				if (uriRef.getScheme() == null) {
-					final String	temp = getHelp(uriRef.getPath()); 
+					final String	query = Utils.extractQueryFromURI(uriRef);
+					final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
+					final String	temp = getHelp(uriRef.getPath(),queryParsed.containsKey(CONTENT_ENCODING) ? queryParsed.get(CONTENT_ENCODING)[0] : DEFAULT_CONTENT_ENCODING); 
 					
 					if (uriRef.getQuery() != null) {
 						try{final Hashtable<String,String[]>	mimes = Utils.parseQuery(uriRef.getQuery());
-							final MimeType		fromMime = mimes.containsKey("mime") ? PureLibSettings.MIME_PLAIN_TEXT : new MimeType(mimes.get("sourceMime")[0]);
-							final MimeType 		toMime = mimes.containsKey("mime") ? new MimeType(mimes.get("mime")[0]) : new MimeType(mimes.get("targetMime")[0]);
+							final MimeType		fromMime = mimes.containsKey(CONTENT_MIME) ? PureLibSettings.MIME_PLAIN_TEXT : new MimeType(mimes.get(CONTENT_MIME_SOURCE)[0]);
+							final MimeType 		toMime = mimes.containsKey(CONTENT_MIME) ? new MimeType(mimes.get(CONTENT_MIME)[0]) : new MimeType(mimes.get(CONTENT_MIME_TARGET)[0]);
 						
 							try(final StringWriter	wr = new StringWriter();
 								final Writer		nested = StreamsUtil.getStreamClassForOutput(wr, fromMime, toMime)) {

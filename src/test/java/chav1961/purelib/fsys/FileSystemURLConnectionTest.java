@@ -84,13 +84,6 @@ public class FileSystemURLConnectionTest {
 
 		try{final URLConnection	conn = url.openConnection();
 
-			conn.getInputStream();
-			Assert.fail("Mandatory exception was not detected (calling getInputStream() before call connect())");
-		} catch (IllegalStateException exc) {
-		}
-		
-		try{final URLConnection	conn = url.openConnection();
-
 			conn.setDoOutput(true);
 			conn.getOutputStream();
 			Assert.fail("Mandatory exception was not detected (calling getOutputStream() before call connect())");

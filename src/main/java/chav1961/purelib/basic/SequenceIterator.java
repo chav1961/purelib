@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
 import java.util.Iterator;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 /**
  * <p>This class implements iterator functionality based on a list of nested iterators. When the first iterator in the list is exhausted, this class
@@ -72,5 +74,18 @@ public class SequenceIterator<T> implements Iterator<T> {
 	@Override
 	public T next() {
 		return list[current].next();
+	}
+	
+	/**
+	 * <p>Convert iterator to stream</p>
+	 * @return stream based on this iterator. Iterator will be exhausted after calling this method!
+	 */
+	public Stream<T> toStream() {
+		final Builder<T> 	builder = Stream.builder();
+		
+		while(hasNext()) {
+			builder.accept(next());
+		}
+		return builder.build();
 	}
 }

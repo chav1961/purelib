@@ -52,16 +52,16 @@ public class DummyLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalValue(String key) throws LocalizationException, IllegalArgumentException {
+	public String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException {
 		return key;
 	}
 
 	@Override
-	protected void loadResource(Locale newLocale) throws LocalizationException, NullPointerException {
+	protected void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException {
 	}
 
 	@Override
-	protected String getHelp(String helpId) throws LocalizationException, IllegalArgumentException {
+	protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
 		return helpId;
 	}
 }

@@ -11,8 +11,11 @@ public class Handler extends URLStreamHandler {
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
 		return new FileSystemURLStreamHandler(){
+			private URLConnection	conn;
+			boolean					wasConnected = false;
+			
 			public URLConnection openConnection(final URL url) throws IOException {
-				return super.openConnection(url);
+				return conn = super.openConnection(url);
 			};
 		}.openConnection(url);
 	}

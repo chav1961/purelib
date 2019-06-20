@@ -101,13 +101,10 @@ public class DebuggingLocalizer extends AbstractLocalizer {
 
 	@Override
 	protected void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException {
-//		if (keysAndValues.containsKey(newLocale)) {
-//			throw new LocalizationException("New locale ["+newLocale+"] is missing in the key/value pairs!");
-//		}
 	}
 
 	@Override
-	protected String getHelp(final String helpId) throws LocalizationException, IllegalArgumentException {
+	protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
 		if (helps.containsKey(helpId)) {
 			return helps.get(helpId);
 		}
