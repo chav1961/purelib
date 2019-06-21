@@ -27,12 +27,12 @@
 *4. Добавить механизм опроса доступных файловых систем
 *5. Написать и отладить класс FileSystemClassLoader
 6. Проверить работу FileSystemInMemory
-Пакет internal
-1. Довести до ума DocLet
-*2. Написать класс DocletUtils для генерации Creole-файлов по описаниям из JavaDоc
 *Пакет i18n
 *1. Дополнить ссылку uri() в значениях полей возможностью задавать ?mime=xxx/yyy или ?sourcemime=xxx/yyy&targetmime=xxx/yyy и ?encoding=
 *2. Написать и отладить загрузчик локализации из XML
+Пакет javadoc
+1. Довести до ума DocLet
+*2. Написать класс DocletUtils для генерации Creole-файлов по описаниям из JavaDоc
 Пакет json
 1. Выполнить рефакторинг JsonSerializer для получения максимальной производительности
 2. Дополнить JsonSerializer возможностью работы с Beans (с использованием getter/setter)

@@ -1,6 +1,6 @@
 -docletpath ./target/classes
 -tagletpath ./target/classes
--doclet chav1961.purelib.internal.PureLibDoclet
+-doclet chav1961.purelib.internal.NewPureLibDoclet
 -taglet chav1961.purelib.internal.AboutTaglet
 -taglet chav1961.purelib.internal.BetaTaglet
 -taglet chav1961.purelib.internal.CodeSampleTaglet

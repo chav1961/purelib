@@ -145,7 +145,7 @@
 				</xs:choice>
 			</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required" />
-			<xs:attribute name="returns" type="xs:string" use="required" />
+			<xs:attribute name="type" type="xs:string" use="required" />
 			<xs:attribute name="modifiers" type="xs:string" use="required" />
 			<xs:attribute name="visibility" type="xs:string" use="required" />
 			<xs:attribute name="since" type="xs:string" use="optional" />
@@ -178,6 +178,49 @@
 		</xs:complexType>
 	</xs:element>
 
+<!-- Annotation list:--> 
+	<xs:element name="Annotations">
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="annotation" type="jd:Annotation" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+<!-- Annotation:--> 
+	<xs:element name="Annotation">
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="parm" type="jd:AnnotationParameter" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:choice>
+			<xs:attribute name="name" type="xs:string" use="required" />
+		</xs:complexType>
+	</xs:element>
+
+<!-- Annotation parameter:--> 
+	<xs:element name="AnnotationParameter">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="value" type="xs:string" use="required" />
+		</xs:complexType>
+	</xs:element>
+
+<!-- Throws list:--> 
+	<xs:element name="Throws">
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="exception" type="jd:Exception" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+<!-- Throw:--> 
+	<xs:element name="Exception">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required" />
+		</xs:complexType>
+	</xs:element>
+
 <!-- Code sample list:--> 
 	<xs:element name="Samples">
 		<xs:complexType>
@@ -195,7 +238,7 @@
 				<xs:element name="about" type="jd:About" minOccurs="0" maxOccurs="1" />
 			</xs:sequence>
 			<xs:attribute name="ref" type="xs:anyURI" use="required" />
-			<xs:attribute name="since" type="xs:string" use="required" />
+			<xs:attribute name="since" type="xs:string" use="optional" />
 			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
 			<xs:attribute name="keywords" type="xs:string" use="optional" />
 		</xs:complexType>
