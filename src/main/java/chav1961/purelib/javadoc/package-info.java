@@ -6,4 +6,4 @@
  *
  */
 
-package chav1961.purelib.internal;
+package chav1961.purelib.javadoc;

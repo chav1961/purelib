@@ -1,0 +1,203 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://javadoc.purelib.chav1961/" xmlns:jd="http://javadoc.purelib.chav1961/"
+	elementFormDefault="qualified">
+
+<!-- Root:--> 
+	<xs:element name="javadoc">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:element name="content" type="jd:Content" minOccurs="0" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+<!-- Overview descriptor: html-based description of the entity content--> 
+	<xs:complexType name="Overview" mixed="true">
+		<xs:attribute name="lang" type="xs:string" use="optional" />
+	</xs:complexType>
+			
+<!-- About descriptor: html-based description of the entity content--> 
+	<xs:complexType name="About">
+		<xs:attribute name="ref" type="xs:anyURI" use="required" />
+		<xs:attribute name="lang" type="xs:string" use="optional" />
+	</xs:complexType>
+			
+<!-- About descriptor: html-based description of the entity content--> 
+	<xs:complexType name="Throws">
+		<xs:attribute name="type" type="xs:string" use="required" />
+	</xs:complexType>
+			
+<!-- Content descriptor: packages and/or modules--> 
+	<xs:element name="Content">
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="module" type="jd:Module" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="package" type="jd:Package" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+<!-- Module descriptor: packages and/or modules--> 
+	<xs:element name="Module">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:choice minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="module" type="jd:Module" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="package" type="jd:Package" minOccurs="1" maxOccurs="unbounded"/>
+				</xs:choice>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="author" type="xs:string" use="required" />
+			<xs:attribute name="since" type="xs:string" use="required" />
+			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
+			<xs:attribute name="treeItem" type="xs:anyURI" use="optional" />
+		</xs:complexType>
+	</xs:element>
+
+<!-- Package descriptor: packages and/or modules--> 
+	<xs:element name="Package">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:element name="about" type="jd:About" minOccurs="0" maxOccurs="1" />
+				<xs:element name="annotatedWith" type="jd:Annotations" minOccurs="0" maxOccurs="1" />
+				<xs:choice minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="module" type="jd:Module" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="package" type="jd:Package" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+				<xs:choice minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="class" type="jd:Class" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="samples" type="jd:Samples" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="author" type="xs:string" use="required" />
+			<xs:attribute name="since" type="xs:string" use="required" />
+			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
+			<xs:attribute name="treeItem" type="xs:anyURI" use="optional" />
+		</xs:complexType>
+	</xs:element>
+			
+<!-- Class descriptor: fields, methods, constructors--> 
+	<xs:element name="Class">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:element name="about" type="jd:About" minOccurs="0" maxOccurs="1" />
+				<xs:element name="annotatedWith" type="jd:Annotations" minOccurs="0" maxOccurs="1" />
+				<xs:choice minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="field" type="jd:Field" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="method" type="jd:Method" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="constructor" type="jd:Constructor" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="samples" type="jd:Samples" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="author" type="xs:string" use="required" />
+			<xs:attribute name="since" type="xs:string" use="required" />
+			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
+			<xs:attribute name="beta" type="xs:boolean" use="optional" />
+			<xs:attribute name="threadSafed" type="xs:boolean" use="optional" />
+			<xs:attribute name="keywords" type="xs:string" use="optional" />
+			<xs:attribute name="treeItem" type="xs:anyURI" use="optional" />
+		</xs:complexType>
+	</xs:element>
+
+<!-- Field descriptor:--> 
+	<xs:element name="Field">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:element name="about" type="jd:About" minOccurs="0" maxOccurs="1" />
+				<xs:element name="annotatedWith" type="jd:Annotations" minOccurs="0" maxOccurs="1" />
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="type" type="xs:string" use="required" />
+			<xs:attribute name="modifiers" type="xs:string" use="required" />
+			<xs:attribute name="visibility" type="xs:string" use="required" />
+			<xs:attribute name="since" type="xs:string" use="optional" />
+			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
+			<xs:attribute name="keywords" type="xs:string" use="optional" />
+		</xs:complexType>
+	</xs:element>
+
+<!-- Method descriptor:--> 
+	<xs:element name="Method">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:element name="about" type="jd:About" minOccurs="0" maxOccurs="1" />
+				<xs:element name="annotatedWith" type="jd:Annotations" minOccurs="0" maxOccurs="1" />
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="parameter" type="jd:Field" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="throws" type="jd:Throws" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="samples" type="jd:Samples" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="returns" type="xs:string" use="required" />
+			<xs:attribute name="modifiers" type="xs:string" use="required" />
+			<xs:attribute name="visibility" type="xs:string" use="required" />
+			<xs:attribute name="since" type="xs:string" use="optional" />
+			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
+			<xs:attribute name="keywords" type="xs:string" use="optional" />
+		</xs:complexType>
+	</xs:element>
+
+<!-- Constructor descriptor:--> 
+	<xs:element name="Constructor">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:element name="about" type="jd:About" minOccurs="0" maxOccurs="1" />
+				<xs:element name="annotatedWith" type="jd:Annotations" minOccurs="0" maxOccurs="1" />
+				<xs:choice minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="parameter" type="jd:Field" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+				<xs:choice minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="throws" type="jd:Throws" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="samples" type="jd:Samples" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:choice>
+			</xs:sequence>
+			<xs:attribute name="visibility" type="xs:string" use="required" />
+			<xs:attribute name="since" type="xs:string" use="optional" />
+			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
+			<xs:attribute name="keywords" type="xs:string" use="optional" />
+		</xs:complexType>
+	</xs:element>
+
+<!-- Code sample list:--> 
+	<xs:element name="Samples">
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="sample" type="jd:Sample" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+<!-- Code sample:--> 
+	<xs:element name="Sample">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="overview" type="jd:Overview" minOccurs="0" maxOccurs="1" />
+				<xs:element name="about" type="jd:About" minOccurs="0" maxOccurs="1" />
+			</xs:sequence>
+			<xs:attribute name="ref" type="xs:anyURI" use="required" />
+			<xs:attribute name="since" type="xs:string" use="required" />
+			<xs:attribute name="lastUpdate" type="xs:string" use="optional" />
+			<xs:attribute name="keywords" type="xs:string" use="optional" />
+		</xs:complexType>
+	</xs:element>
+</xs:schema>		

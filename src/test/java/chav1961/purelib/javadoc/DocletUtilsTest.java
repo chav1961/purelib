@@ -1,4 +1,4 @@
-package chav1961.purelib.internal;
+package chav1961.purelib.javadoc;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +11,8 @@ import org.junit.Test;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.internal.DocletUtils.MultilangContent;
+import chav1961.purelib.javadoc.DocletUtils;
+import chav1961.purelib.javadoc.DocletUtils.MultilangContent;
 
 public class DocletUtilsTest {
 	@Test
