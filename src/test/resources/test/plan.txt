@@ -152,7 +152,8 @@
 *18. Добавить persistence для JFileContentManipulator.   
 19. Дописать и отладить JDialogContainer и перевести на него другие классы с содержимым
 20. Написать и отладить JORMProvidedTableModel 
-21. Дописать javadoc 
+21. Дописать javadoc
+22. Написать JSimpleHelpWindow с поддержкой Creole и гиперссылок
 
 Работы по Funny Prolog 0.0.2
 
