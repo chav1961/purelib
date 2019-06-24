@@ -5,8 +5,8 @@ package chav1961.purelib.basic.exceptions;
  * it not contains row and column localization for problems detected</p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.3
- *
+ * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 public class ContentException extends PureLibException {
 	private static final long serialVersionUID = -2374543706560983123L;

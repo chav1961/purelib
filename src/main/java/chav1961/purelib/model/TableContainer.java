@@ -1,4 +1,4 @@
-package chav1961.purelib.i18n;
+package chav1961.purelib.model;
 
 public class TableContainer {
 

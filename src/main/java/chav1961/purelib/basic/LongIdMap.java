@@ -12,7 +12,8 @@ import java.util.Arrays;
  * @see chav1961.purelib.basic JUnit tests
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last update 0.0.3
+ * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 public class LongIdMap<T> {
 	private static final int	RANGE_STEP = 64;

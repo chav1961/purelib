@@ -34,8 +34,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.sun.javadoc.ThrowsTag;
-
+import chav1961.purelib.basic.Utils.EverywhereWalkerCollector.ReferenceType;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -57,7 +56,8 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * 
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.3
+ * @since 0.0.1 
+ * @lastUpdate 0.0.3
  */
 
 public class Utils {
@@ -1023,6 +1023,134 @@ public class Utils {
 		}
 	}
 
+	@FunctionalInterface
+	public interface EverywhereWalkerCollector<T> {
+		public enum ReferenceType {
+			CHILDREN, SIBLINGS, PARENT
+		}
+		
+		T[] getReferences(ReferenceType refs, T node);
+	}
+
+	@FunctionalInterface
+	public interface EverywhereWalkerCallback<T> {
+		ContinueMode process(NodeEnterMode mode, T node) throws ContentException;
+	}
+	
+	public static <T> ContinueMode walkDownEverywhere(final T node, final EverywhereWalkerCollector<T> collector, final EverywhereWalkerCallback<T> callback) throws ContentException {
+		if (node == null) {
+			throw new NullPointerException("Node to walk from can't be null");
+		}
+		else if (collector == null) {
+			throw new NullPointerException("Walker collector can't be null");
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Callback to process walking can't be null");
+		}
+		else {
+			return walkDownEverywhereInternal(node,collector,callback);
+		}
+	}
+
+	private static <T> ContinueMode walkDownEverywhereInternal(final T node, final EverywhereWalkerCollector<T> collector, final EverywhereWalkerCallback<T> callback) throws ContentException {
+		ContinueMode	rcEnter = null, rcExit = null;
+		
+		if (node != null) {
+			try{rcEnter = callback.process(NodeEnterMode.ENTER,node);
+				switch(rcEnter) {
+					case CONTINUE:
+						ContinueMode	rcChildren = null;
+						
+loop:					for (T item : collector.getReferences(ReferenceType.CHILDREN,node)) {
+							switch (rcChildren = walkDownEverywhereInternal(item,collector,callback)) {
+								case CONTINUE		: continue;
+								case STOP			: rcEnter = ContinueMode.STOP;
+								case SKIP_CHILDREN	: break loop;
+								default:
+									throw new IllegalArgumentException("Returned continue mode ["+rcChildren+"] is not supported for walking down");
+							}
+						}
+					case STOP: case SKIP_CHILDREN:
+						break;
+					default:
+						throw new IllegalArgumentException("Returned continue mode ["+rcEnter+"] is not supported for walking down");
+				}
+			} finally {
+				if (rcEnter != null) {
+					rcExit = resolveContinueModeInternal(rcEnter,callback.process(NodeEnterMode.EXIT, node));
+				}
+				else {
+					rcExit = ContinueMode.STOP;
+				}
+			}
+		}
+		else {
+			rcExit = ContinueMode.CONTINUE;
+		}
+		return rcExit;
+	}
+	
+	public static <T> ContinueMode walkUpEverywhere(final T node, final EverywhereWalkerCollector<T> collector, final EverywhereWalkerCallback<T> callback) throws ContentException {
+		if (node == null) {
+			throw new NullPointerException("Node to walk from can't be null");
+		}
+		else if (collector == null) {
+			throw new NullPointerException("Walker collector can't be null");
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Callback to process walking can't be null");
+		}
+		else {
+			return walkUpEverywhereInternal(node,collector,callback);
+		}
+	}
+
+	private static <T> ContinueMode walkUpEverywhereInternal(final T node, final EverywhereWalkerCollector<T> collector, final EverywhereWalkerCallback<T> callback) throws ContentException {
+		ContinueMode	rcEnter = null, rcExit = null;
+		
+		if (node != null) {
+			try{rcEnter = callback.process(NodeEnterMode.ENTER,node);
+				if (rcEnter == ContinueMode.CONTINUE || rcEnter == ContinueMode.SIBLINGS_ONLY) {
+					ContinueMode	rcSibling = null;
+					
+loop:				for (T item : collector.getReferences(ReferenceType.SIBLINGS,node)) {
+						switch (rcSibling = walkUpEverywhereInternal(item,collector,callback)) {
+							case CONTINUE		: continue;
+							case STOP			: rcEnter = ContinueMode.STOP;
+							case SKIP_SIBLINGS	: break loop;
+							default:
+								throw new IllegalArgumentException("Returned continue mode ["+rcSibling+"] is not supported for walking up");
+						}
+					}
+				}
+				if (rcEnter == ContinueMode.CONTINUE || rcEnter == ContinueMode.PARENT_ONLY) {
+					ContinueMode	rcParent = null;
+					
+loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
+						switch (rcParent = walkUpEverywhereInternal(item,collector,callback)) {
+							case CONTINUE		: continue;
+							case STOP			: rcEnter = ContinueMode.STOP;
+							case SKIP_PARENT	: break loop;
+							default:
+								throw new IllegalArgumentException("Returned continue mode ["+rcParent+"] is not supported for walking up");
+						}
+					}
+				}
+			} finally {
+				if (rcEnter != null) {
+					rcExit = resolveContinueModeInternal(rcEnter,callback.process(NodeEnterMode.EXIT, node));
+				}
+				else {
+					rcExit = ContinueMode.STOP;
+				}
+			}
+		}
+		else {
+			rcExit = ContinueMode.CONTINUE;
+		}
+		return rcExit;
+	}
+	
 	@FunctionalInterface
 	public interface XMLWalkerCallback {
 		ContinueMode process(NodeEnterMode mode, Element node);

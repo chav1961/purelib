@@ -41,7 +41,8 @@ import java.util.Properties;
  * @see Properties
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.3
+ * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;

@@ -8,7 +8,8 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * <p>This class implements {@link CharacterTarget} interface by string builder.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.2
+ * @since 0.0.1
+ * @lastUpdate 0.0.2
  *
  */
 public class StringBuilderCharTarget implements CharacterTarget {

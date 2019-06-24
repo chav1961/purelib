@@ -49,7 +49,8 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1, last updated 0.0.3
+ * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 public class FileSystemFactory {

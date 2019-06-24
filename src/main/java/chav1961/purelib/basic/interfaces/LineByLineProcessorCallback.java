@@ -10,7 +10,8 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
  * @see chav1961.purelib.basic.LineByLineProcessor LineByLineProcessor
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.3
+ * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 @FunctionalInterface

@@ -82,8 +82,8 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
 /**
  * <p>This class is used for support of some internal operations of the {@linkplain NanoServiceFactory} class.</p>
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last update 0.0.3
- *
+ * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 @SuppressWarnings("restriction")  
 public class InternalUtils {

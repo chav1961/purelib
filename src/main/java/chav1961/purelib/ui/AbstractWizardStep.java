@@ -11,7 +11,8 @@ import chav1961.purelib.ui.interfaces.WizardStep;
  * <p>This class is a template for the wizard steps and implements it's typical functionality.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @see WizardStep 
- * @since 0.0.2 last update 0.0.3
+ * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 public abstract class AbstractWizardStep<Common,ErrorType extends Enum<?>, Content> implements WizardStep<Common,ErrorType,Content> {

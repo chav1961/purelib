@@ -13,7 +13,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * <p>This class is thread-save</p>   
  * @param <Listener> any listener type to keep in the class
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last update 0.0.3
+ * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 public class LightWeightListenerList<Listener> {
 	

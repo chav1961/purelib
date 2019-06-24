@@ -8,7 +8,8 @@ import chav1961.purelib.streams.interfaces.CharacterSource;
  * <p>This class implements {@link CharacterSource} interface by single string</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.2
+ * @since 0.0.1
+ * @lastUpdate 0.0.2
  *
  */
 public class StringCharSource implements CharacterSource {

@@ -59,7 +59,8 @@ import sun.misc.Unsafe;
  * @see chav1961.purelib.streams.char2byte.AsmWriter
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last update 0.0.3
+ * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 @SuppressWarnings("restriction")

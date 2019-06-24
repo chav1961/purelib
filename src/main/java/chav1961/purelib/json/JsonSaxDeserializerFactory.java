@@ -83,7 +83,8 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  * @see chav1961.purelib.streams.interfaces.JsonSaxDeserializer
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.3
+ * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 public class JsonSaxDeserializerFactory {

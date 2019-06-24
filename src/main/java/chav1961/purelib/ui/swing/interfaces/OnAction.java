@@ -11,7 +11,8 @@ import java.lang.annotation.Target;
  * with Action event. This annotation is used by {@linkplain}</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last update 0.0.3
+ * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 @Retention(RUNTIME)

@@ -42,7 +42,8 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @see chav1961.purelib.fsys.FileSystemOnFile
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.3
+ * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 public abstract class AbstractFileSystem implements FileSystemInterface {

@@ -44,7 +44,8 @@ import chav1961.purelib.streams.char2byte.asm.Asm;
  * @see java.lang.ClassLoader
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.2
+ * @since 0.0.1
+ * @lastUpdate 0.0.2
  */
 
 public class AsmWriter extends Writer {

@@ -69,7 +69,8 @@ import chav1961.purelib.basic.interfaces.SpiService;
  *  chained calls (for example <code>myFileSystem.open("something").create().write()</code>).</p> 
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last update 0.0.3
+ * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 public interface FileSystemInterface extends Cloneable, Closeable, SpiService<FileSystemInterface> {

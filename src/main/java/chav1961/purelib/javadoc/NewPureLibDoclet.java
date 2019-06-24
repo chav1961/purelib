@@ -54,7 +54,7 @@ public class NewPureLibDoclet extends Standard {
 
 	public static final String	ATTR_LANG = "lang";
 	public static final String	ATTR_NAME = "name";
-	public static final String	ATTR_VISIBILITY = "value";
+	public static final String	ATTR_VISIBILITY = "visibility";
 	public static final String	ATTR_TYPE = "type";
 	public static final String	ATTR_VALUE = "value";
 	public static final String	ATTR_AUTHOR = "author";
@@ -109,7 +109,7 @@ public class NewPureLibDoclet extends Standard {
 		}
 	}
 
-	private static Element placePackage(final Element node, final Document doc, final String packageName) {
+	static Element placePackage(final Element node, final Document doc, final String packageName) {
 		final int	dotPos;
 		
 		if ((dotPos = packageName.indexOf('.')) > 0) {
@@ -147,6 +147,35 @@ public class NewPureLibDoclet extends Standard {
 		}
 	}
 
+	static Element seekPackage(final Element node, final String packageName) {
+		final int	dotPos;
+		
+		if ((dotPos = packageName.indexOf('.')) > 0) {
+			final String	current = packageName.substring(0,dotPos), tail = packageName.substring(dotPos+1);
+			final NodeList	list = node.getChildNodes();
+			
+			for (int index = 0; index < list.getLength(); index++) {
+				final Node 	item = list.item(index);
+				
+				if ((item instanceof Element) && TAG_PACKAGE.equals(item.getNodeName()) && current.equals((((Element)item).getAttribute(ATTR_NAME)))) {
+					return seekPackage((Element)item,tail);
+				}
+			}
+		}
+		else {
+			final NodeList	list = node.getChildNodes();
+			
+			for (int index = 0; index < list.getLength(); index++) {
+				final Node	item = list.item(index);
+				
+				if ((item instanceof Element) && TAG_PACKAGE.equals(item.getNodeName()) && packageName.equals(((Element)item).getAttribute(ATTR_NAME))) {
+					return (Element)item;
+				}
+			}
+		}
+		throw new RuntimeException("Package not found!");
+	}
+	
 	private static void setPackageAttributes(final Element node, final Document doc, final PackageDoc desc) {
 		final String			comment = desc.getRawCommentText();
 		final Tag[]				about = desc.tags(TAG_ABOUT);
@@ -185,34 +214,6 @@ public class NewPureLibDoclet extends Standard {
 		}
 	}
 
-	private static Element seekPackage(final Element node, final String packageName) {
-		final int	dotPos;
-		
-		if ((dotPos = packageName.indexOf('.')) > 0) {
-			final String	current = packageName.substring(0,dotPos), tail = packageName.substring(dotPos+1);
-			final NodeList	list = node.getChildNodes();
-			
-			for (int index = 0; index < list.getLength(); index++) {
-				final Node	item = list.item(index);
-				
-				if (TAG_PACKAGE.equals(item.getNodeName()) && current.equals(item.getAttributes().getNamedItem(ATTR_NAME))) {
-					return seekPackage((Element)item,tail);
-				}
-			}
-		}
-		else {
-			final NodeList	list = node.getChildNodes();
-			
-			for (int index = 0; index < list.getLength(); index++) {
-				final Node	item = list.item(index);
-				
-				if (TAG_PACKAGE.equals(item.getNodeName()) && packageName.equals(item.getAttributes().getNamedItem(ATTR_NAME))) {
-					return (Element)item;
-				}
-			}
-		}
-		throw new RuntimeException("Package not found!");
-	}
 	
 	
 	private static Element buildClassDesc(final Document doc, final ClassDoc desc) {
@@ -521,7 +522,7 @@ public class NewPureLibDoclet extends Standard {
 	}
 
 	public static void process(final String sourceLocation) throws IOException {
-		final Process 	process	= new ProcessBuilder().command("javadoc",sourceLocation,"-sourcepath","src/main/java","@./src/main/java/chav1961/purelib/internal/doclet.configuration").start();
+		final Process 	process	= new ProcessBuilder().command("javadoc",sourceLocation,"-sourcepath","src/main/java","@./src/main/java/"+NewPureLibDoclet.class.getPackage().getName().replace('.','/')+"/doclet.configuration").start();
 		
 		new Thread(()->{
 			final InputStream	is = process.getInputStream();

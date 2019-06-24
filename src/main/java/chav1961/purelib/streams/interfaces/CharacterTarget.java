@@ -7,7 +7,8 @@ import chav1961.purelib.basic.exceptions.PrintingException;
  * <p>This interface describes char target to use in the different printers.</p>
  * @see chav1961.purelib.streams.chartarget
  * @author chav1961
- * @since 0.0.1 last update 0.0.2
+ * @since 0.0.1
+ * @lastUpdate 0.0.2
  */
 public interface CharacterTarget {
 	/**

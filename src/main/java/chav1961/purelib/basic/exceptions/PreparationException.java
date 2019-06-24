@@ -22,7 +22,8 @@ package chav1961.purelib.basic.exceptions;
  * }<br>
  * </code>
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last updated 0.0.3
+ * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 public class PreparationException extends RuntimeException {
 	private static final long serialVersionUID = -1189827491666686473L;

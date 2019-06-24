@@ -27,7 +27,8 @@ import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
  * @see chav1961.purelib.basic.interfaces.LineByLineProcessorCallback ILineByLineProcessorCallback
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1, last changes 0.0.2
+ * @since 0.0.1
+ * @lastUpdate 0.0.2
  */
 
 public class LineByLineProcessor implements Closeable {

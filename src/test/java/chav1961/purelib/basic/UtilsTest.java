@@ -1,5 +1,7 @@
 package chav1961.purelib.basic;
 
+
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,14 +11,31 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 
 public class UtilsTest {
 	@Test
@@ -280,5 +299,31 @@ public class UtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}
-	
+
+	@Test
+	public void walkingTest() throws IOException, ParserConfigurationException, SAXException, ContentException {
+		final Set<String>	collection = new HashSet<>();
+		
+		try (final Reader	rdr = new StringReader("")){
+			final DocumentBuilderFactory	factory = DocumentBuilderFactory.newInstance();
+			final DocumentBuilder 			builder = factory.newDocumentBuilder();
+			final Document 					document = builder.parse(new InputSource(rdr));
+			
+			Utils.walkDownEverywhere((Element)document.getDocumentElement()
+					,(type,node)->{
+						final NodeList	list = ((Element)node).getChildNodes();
+						final Element[]	result = new Element[list.getLength()];
+						
+						for (int index = 0; index < result.length; index++) {
+							result[index] = (Element)list.item(index);
+						}
+						return result;
+					  }
+					,(mode,node)->{
+						collection.add(node.getNodeName());
+						return ContinueMode.CONTINUE;
+					}
+				);
+		}
+	}
 }

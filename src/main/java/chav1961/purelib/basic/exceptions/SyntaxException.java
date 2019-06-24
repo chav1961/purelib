@@ -6,8 +6,8 @@ package chav1961.purelib.basic.exceptions;
  * syntax problems in some entity</p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1 last updated 0.0.3
- *
+ * @since 0.0.1 
+ * @lastUpdate 0.0.3
  */
 public class SyntaxException extends ContentException {
 	private static final long serialVersionUID = 8141880743233589596L;
