@@ -28,7 +28,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -302,13 +301,14 @@ public class UtilsTest {
 
 	@Test
 	public void walkingTest() throws IOException, ParserConfigurationException, SAXException, ContentException {
-		final Set<String>	collection = new HashSet<>();
+		final List<String>	collection = new ArrayList<>();
 		
-		try (final Reader	rdr = new StringReader("")){
+		try (final Reader	rdr = new StringReader("<?xml version=\"1.0\"?><root><level1><level11/><level12 id=\"x\"/></level1><level2><level21/><level22/></level2></root>")){
 			final DocumentBuilderFactory	factory = DocumentBuilderFactory.newInstance();
 			final DocumentBuilder 			builder = factory.newDocumentBuilder();
 			final Document 					document = builder.parse(new InputSource(rdr));
-			
+
+			collection.clear();
 			Utils.walkDownEverywhere((Element)document.getDocumentElement()
 					,(type,node)->{
 						final NodeList	list = ((Element)node).getChildNodes();
@@ -320,10 +320,159 @@ public class UtilsTest {
 						return result;
 					  }
 					,(mode,node)->{
-						collection.add(node.getNodeName());
+						if (mode == NodeEnterMode.ENTER) {
+							collection.add(node.getNodeName());
+						}
 						return ContinueMode.CONTINUE;
 					}
+			);
+			Assert.assertEquals(Arrays.asList("root","level1","level11","level12","level2","level21","level22"),collection);
+
+			collection.clear();
+			Utils.walkDownEverywhere((Element)document.getDocumentElement()
+					,(type,node)->{
+						final NodeList	list = ((Element)node).getChildNodes();
+						final Element[]	result = new Element[list.getLength()];
+						
+						for (int index = 0; index < result.length; index++) {
+							result[index] = (Element)list.item(index);
+						}
+						return result;
+					  }
+					,(mode,node)->{
+						if (mode == NodeEnterMode.ENTER) {
+							collection.add(node.getNodeName());
+						}
+						return node.getNodeName().length() > 6 ? ContinueMode.SKIP_CHILDREN : ContinueMode.CONTINUE;
+					}
+			);
+			Assert.assertEquals(Arrays.asList("root","level1","level11","level2","level21"),collection);
+			
+			try{Utils.walkDownEverywhere((Element)null
+						,(type,node)->{
+							final NodeList	list = ((Element)node).getChildNodes();
+							final Element[]	result = new Element[list.getLength()];
+							
+							for (int index = 0; index < result.length; index++) {
+								result[index] = (Element)list.item(index);
+							}
+							return result;
+						  }
+						,(mode,node)->{
+							if (mode == NodeEnterMode.ENTER) {
+								collection.add(node.getNodeName());
+							}
+							return node.getNodeName().length() > 6 ? ContinueMode.SKIP_CHILDREN : ContinueMode.CONTINUE;
+						}
 				);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
+			try{Utils.walkDownEverywhere((Element)document.getDocumentElement()
+						,null
+						,(mode,node)->{
+							if (mode == NodeEnterMode.ENTER) {
+								collection.add(node.getNodeName());
+							}
+							return node.getNodeName().length() > 6 ? ContinueMode.SKIP_CHILDREN : ContinueMode.CONTINUE;
+						}
+				);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try{Utils.walkDownEverywhere((Element)document.getDocumentElement()
+						,(type,node)->{
+							final NodeList	list = ((Element)node).getChildNodes();
+							final Element[]	result = new Element[list.getLength()];
+							
+							for (int index = 0; index < result.length; index++) {
+								result[index] = (Element)list.item(index);
+							}
+							return result;
+						  }
+						,null
+				);
+				Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+			} catch (NullPointerException exc) {
+			}
+			
+			collection.clear();
+			Utils.walkUpEverywhere(document.getDocumentElement().getElementsByTagName("level11").item(0)
+					,(type,node)->{
+						switch (type) {
+							case PARENT:
+								if (node.getParentNode() instanceof Element) {
+									return new Element[]{(Element)node.getParentNode()};
+								}
+							case SIBLINGS:
+								return new Element[0];
+							default :
+								return null;
+						}
+					  }
+					,(mode,node)->{
+						if (mode == NodeEnterMode.ENTER) {
+							collection.add(node.getNodeName());
+						}
+						return ContinueMode.CONTINUE;
+					}
+			);
+			Assert.assertEquals(Arrays.asList("level11","level1","root"),collection);
+			
+			try{Utils.walkUpEverywhere((Element)null
+						,(type,node)->{
+							switch (type) {
+								case PARENT:
+									if (node.getParentNode() instanceof Element) {
+										return new Element[]{(Element)node.getParentNode()};
+									}
+								case SIBLINGS:
+									return new Element[0];
+								default :
+									return null;
+							}
+						  }
+						,(mode,node)->{
+							if (mode == NodeEnterMode.ENTER) {
+								collection.add(node.getNodeName());
+							}
+							return ContinueMode.CONTINUE;
+						}
+				);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try{Utils.walkUpEverywhere(document.getDocumentElement().getElementsByTagName("level11").item(0)
+						,null
+						,(mode,node)->{
+							if (mode == NodeEnterMode.ENTER) {
+								collection.add(node.getNodeName());
+							}
+							return ContinueMode.CONTINUE;
+						}
+				);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try{Utils.walkUpEverywhere(document.getDocumentElement().getElementsByTagName("level11").item(0)
+						,(type,node)->{
+							switch (type) {
+								case PARENT:
+									if (node.getParentNode() instanceof Element) {
+										return new Element[]{(Element)node.getParentNode()};
+									}
+								case SIBLINGS:
+									return new Element[0];
+								default :
+									return null;
+							}
+						  }
+						,null
+				);
+				Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+			} catch (NullPointerException exc) {
+			}
 		}
 	}
 }
