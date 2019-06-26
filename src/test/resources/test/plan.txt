@@ -14,7 +14,7 @@
 *11. Дополнить PureLibSettings методами installHelpContent/uninstallHelpContent с автоматичесим поднятием сервера HTTP
 *12. Дополнить GettersAndSetters методом buildInstantiator для выделения памяти под инстанцию класса
 13. Дописать javadoc 
-14. Дополнить класс Utils универсальным методом обхода деревьев и растащить его на остальные классы
+14. Дополнить класс Utils универсальным методом обхода деревьев и растащить его на остальные классы библиотеки
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 *Пакет concurrent
@@ -154,6 +154,7 @@
 20. Написать и отладить JORMProvidedTableModel 
 21. Дописать javadoc
 22. Написать JSimpleHelpWindow с поддержкой Creole и гиперссылок
+23. Доработать JLocalizedOptionPane и AutoBuiltForm под использование интерфейса JButtonCallbackInterface
 
 Работы по Funny Prolog 0.0.2
 
