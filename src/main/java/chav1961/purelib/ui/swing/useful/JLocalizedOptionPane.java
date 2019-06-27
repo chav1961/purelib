@@ -10,6 +10,7 @@ import javax.swing.UIManager;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
 
 public class JLocalizedOptionPane implements LocaleChangeListener {
 	private static final String	LOCALIZED_PANE_YES = "JLocalizedOptionPane.yesButton";

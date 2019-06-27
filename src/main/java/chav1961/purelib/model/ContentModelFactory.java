@@ -408,7 +408,7 @@ public class ContentModelFactory {
 					final String	builtinAction = getAttribute(document,"action");
 					
 					if (!AVAILABLE_BUILTINS.contains(builtinName)) {
-						throw new EnvironmentException("Illegal name ["+builtinName+"] for built-in navigation");						
+						throw new EnvironmentException("Illegal name ["+builtinName+"] for built-in navigation. Available names are "+AVAILABLE_BUILTINS);						
 					}
 					else {
 						child = new MutableContentNodeMetadata(builtinName

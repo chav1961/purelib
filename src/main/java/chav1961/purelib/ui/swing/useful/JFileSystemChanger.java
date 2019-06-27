@@ -2,22 +2,32 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.GridLayout;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Locale;
 
+import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -28,16 +38,25 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
+import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingModelUtils;
+import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
 
 public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final long 		serialVersionUID = 6307351718365525165L;
@@ -54,14 +73,15 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final Icon		TEST_FAILED = new ImageIcon(JFileSystemChanger.class.getResource("testFailed.png"));
 	
 	private final Localizer			localizer;
-	private final FileSystemDescription	content = new FileSystemDescription();
+	private final AcceptAndCancelCallback	callback;
+	private final FileSystemDescription		content = new FileSystemDescription();
 	private final JLabel			uri2testLabel = new JLabel();
 	private final JTextField		uri2test = new JTextField();
 	private final JButton 			testButton = new JButton(), acceptButton = new JButton(), cancelButton = new JButton(); 
 	private final J2ColumnEditor	editor;
 	private final JList<?>			list;
 	
-	public JFileSystemChanger(final Localizer localizer) throws IOException, LocalizationException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
+	public JFileSystemChanger(final Localizer localizer, final AcceptAndCancelCallback callback) throws IOException, LocalizationException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
@@ -72,6 +92,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			final JPanel		leftBottomPanel = new JPanel(new BorderLayout(2,2));
 	
 			this.localizer = localizer;
+			this.callback = callback;
 			this.list = new JList<>(FileSystemFactory.getAvailableFileSystems());
 			this.editor = new J2ColumnEditor(content,(c)-> {
 				if (c.endsWith("showHelp")) {
@@ -161,9 +182,13 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			centerPanel.setLayout(new GridLayout(1,2,2,2));
 			centerPanel.add(leftPanel);
 			centerPanel.add(new JScrollPane(this.list));
-			
-			bottomPanel.add(acceptButton);
-			bottomPanel.add(cancelButton);
+
+			if (callback != null) {
+				acceptButton.addActionListener((e)->{callback.process(true);});
+				bottomPanel.add(acceptButton);
+				cancelButton.addActionListener((e)->{callback.process(false);});
+				bottomPanel.add(cancelButton);
+			}
 			
 			setLayout(new BorderLayout(2,2));
 			add(centerPanel,BorderLayout.CENTER);
@@ -177,6 +202,37 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
+	}
+	
+	public static boolean ask(final Frame window, final Localizer localizer) throws LocalizationException, SyntaxException, ContentException, IOException {
+		return askInternal(window,new JDialog(window,true), localizer);
+	}
+
+	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, SyntaxException, ContentException, IOException {
+		return askInternal(window,new JDialog(window,true), localizer);
+	}
+
+	private static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer) throws LocalizationException, SyntaxException, ContentException, IOException {
+		final boolean[]				result = new boolean[] {false};
+		final JFileSystemChanger	mgr = new JFileSystemChanger(localizer, (mode)->{result[0] = mode; dlg.setVisible(false);}); 
+		
+		mgr.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"ask.accept");
+		mgr.getActionMap().put("ask.accept",new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				result[0] = true;
+				dlg.setVisible(false);
+			}
+		});			
+		
+		dlg.getContentPane().add(mgr,BorderLayout.CENTER);
+		dlg.pack();
+		dlg.setLocationRelativeTo(parent);
+		
+		dlg.setVisible(true);
+		dlg.dispose();
+		return result[0];
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {

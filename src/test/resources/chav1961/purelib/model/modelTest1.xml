@@ -5,7 +5,7 @@
 		<app:submenu name="submenu" caption="submenuCaption" tooltip="submenuTooltip">
 			<app:separator/>
 			<app:item name="menuItem1" caption="menuItem1Caption" tooltip="menuItem1Tooltip" action="menuItem1Action"/>
-			<app:builtinSubmenu name="menuItem2" caption="menuItem1Caption" tooltip="menuItem1Tooltip"/>
+			<app:builtinSubmenu name="builtin.languages" caption="menuItem1Caption" tooltip="menuItem1Tooltip"/>
 		</app:submenu>
 	</app:menu>
 	<app:keyset id="mainMenuKeyset">

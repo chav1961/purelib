@@ -1580,7 +1580,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			throw new NullPointerException("Uri to parsre can't be null"); 
 		}
 		else {
-			final String						query = uri.getQuery();
+			final String	query = Utils.extractQueryFromURI(uri);
 			
 			if (query != null && !query.isEmpty()) {
 				return parseQuery(query);

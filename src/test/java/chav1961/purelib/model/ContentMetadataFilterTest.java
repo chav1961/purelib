@@ -14,15 +14,15 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 public class ContentMetadataFilterTest {
 	@Test
 	public void basicTest() throws IOException, EnvironmentException {
-		try(final InputStream				is = ContentMetadataFilterTest.class.getResourceAsStream("")) {
+		try(final InputStream				is = ContentMetadataFilterTest.class.getResourceAsStream("modelTest1.xml")) {
 			final ContentMetadataInterface	nested = ContentModelFactory.forXmlDescription(is);
-			final ContentMetadataFilter		filter1 = new ContentMetadataFilter(nested, "*", "*");
-			final ContentMetadataFilter		filter2 = new ContentMetadataFilter(nested, "*", "*");
+			final ContentMetadataFilter		filter1 = new ContentMetadataFilter(nested, ".*", "item.*");
+			final ContentMetadataFilter		filter2 = new ContentMetadataFilter(nested, ".*", "item.*");
 			final int[] 					count = new int[1];
 
 			count[0] = 0;
 			nested.walkDown((a,b,c,d)->{count[0]++; return ContinueMode.CONTINUE;},nested.getRoot().getUIPath());
-			Assert.assertEquals(0,count[0]);
+			Assert.assertEquals(16,count[0]);
 			
 			Assert.assertTrue(filter1.isAllowed(URI.create("")));
 			Assert.assertFalse(filter1.isAllowed(URI.create("")));

@@ -312,6 +312,7 @@ public class PureLibSettings {
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
 	private static final SubstitutableProperties	defaults = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	props = new SubstitutableProperties(defaults);
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static final WellKnownSchema[]			schemasList = {
 															new WellKnownSchemaImpl(Localizer.LOCALIZER_SCHEME, "", LocalizerFactory.class, true, 
 																(uri)->{
@@ -612,6 +613,7 @@ public class PureLibSettings {
 		@Override public String getDescription() {return description;}
 		@Override public Class<?> getFactoryClass() {return factoryClass;}
 		@Override public boolean supportsSpiService() {return supportsSpi;}
+		@SuppressWarnings({ "unchecked", "hiding" })
 		@Override public <T> T newInstance(final URI description) throws EnvironmentException {return (T) callback.create(description);}
 
 		@Override

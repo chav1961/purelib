@@ -366,6 +366,7 @@ public class GettersAndSettersFactory {
 			return clazz;
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public T[] newArray(int size) {
 			return (T[])Array.newInstance(getType(),size);
@@ -592,6 +593,7 @@ public class GettersAndSettersFactory {
 		} 
 		else if (unsafe != null) {
 			return new InstantiatorImpl<T>(clazz){
+				@SuppressWarnings("unchecked")
 				@Override
 				public T newInstance() throws InstantiationException {
 					return (T)unsafe.allocateInstance(clazz);
@@ -1227,6 +1229,7 @@ public class GettersAndSettersFactory {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <T> Instantiator<T> buildCode(final AsmWriter writer, final Class<T> owner, final String className) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			try(final AsmWriter			wr = writer.clone(baos)) {

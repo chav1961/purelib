@@ -57,6 +57,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
 
 /**
  * <p>Standard file selection dialog (see {@linkplain JFileChooser}). Main differences from (see {@linkplain JFileChooser}) are:</p>
@@ -120,21 +121,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public static final int		OPTIONS_FOR_OPEN  = 1 << 7; 
 	
 	/**
-	 * <p>This interface is called when user presses 'accept' or 'cancel' buttons in the dialog.
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.3
-	 */
-	@FunctionalInterface
-	public interface AcceptAndCancelCallback {
-		/**
-		 * <p>Process pressing button</p>
-		 * @param accept true if the 'accept' button was pressed, false otherwise
-		 */
-		void process(boolean accept);
-	}
-
-	/**
-	 * <p>This interface is analog of {@linkplain   
+	 * <p>This interface is analog of {@linkplain FilterCallback}</p>  
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
 	 */
