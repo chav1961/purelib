@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ ArraysLobsAndXMLsTest.class, SQLUtilsTest.class,
-				RsMetaDataElementTest.class})
+				RsMetaDataElementTest.class, ResultSetTests.class})
 public class AllTests {
 
 }

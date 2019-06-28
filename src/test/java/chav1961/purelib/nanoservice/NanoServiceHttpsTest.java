@@ -6,17 +6,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
-import javax.security.cert.X509Certificate;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

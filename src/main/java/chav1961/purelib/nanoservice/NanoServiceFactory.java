@@ -403,8 +403,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			for (String item : content) {
 				lf.message(Severity.info,"Undeploying [%1$s]...",item);
 				try{undeploy(item);
-				} catch (ContentException exc) {
-					lf.message(Severity.error,exc,"Undeploying [%1$s] failed: %2$s",item,exc.getLocalizedMessage());
+				} catch (Exception exc) {
+					lf.message(Severity.info,"Error undeploying [%1$s]: %2$s",item,exc.getLocalizedMessage());
 				}
 			}
 			
@@ -424,7 +424,9 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 
 	@Override
 	public void handle(final HttpExchange call) throws IOException {
-		if (localhostOnly && !"localhost".equals(call.getRemoteAddress().getHostName()) && !"view-localhost".equals(call.getRemoteAddress().getHostName())) {
+		final String	remoteHost = call.getRemoteAddress().getHostName();
+		
+		if (localhostOnly && !"localhost".equals(remoteHost) && !"view-localhost".equals(remoteHost)) {
 			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+call.getRemoteAddress().getHostName()+"]");
 		}
 		else if (!paused) {
@@ -501,7 +503,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 							int 	rc = 200;
 							
 							try(final OutputStream	os = pair.getOutputStream()) {
-								final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(call.getRequestURI().getQuery());
+								final String 						query = Utils.extractQueryFromURI(call.getRequestURI());
+								final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
 								final URI							callPath = call.getRequestURI();
 								final String						pathTail = callPath.getPath().replace(pluginRoot,"");
 										
@@ -529,7 +532,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							exc.printStackTrace();
 							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
@@ -577,7 +579,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							exc.printStackTrace();
 							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
@@ -624,7 +625,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							exc.printStackTrace();
 							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
@@ -671,7 +671,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							exc.printStackTrace();
 							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
@@ -686,13 +685,12 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						final List<String>			inputContent = call.getRequestHeaders().get(HEAD_CONTENT_TYPE); 
 						final List<String>			outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
 						
-						
-						try{int 	rc = 200;
-							long	length[] = new long[]{0};
-							
-							final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(call.getRequestURI().getQuery());
+						try{final String						query = Utils.extractQueryFromURI(call.getRequestURI());
+							final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
 							final URI							callPath = call.getRequestURI();
 							final String						pathTail = callPath.getPath().replace(pluginRoot,"");
+							int 	rc = 200;
+							long	length[] = new long[]{0};
 									
 							rc = me.execute(QueryType.HEAD
 										, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
@@ -716,7 +714,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							exc.printStackTrace();
 							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
@@ -775,7 +772,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	
 				if (id >= 0) {
 					if (deployed.getCargo(id) != null) {
-						throw new ContentException("Path to deploy ["+path+"] contains class already was deployed"); 
+						throw new IllegalArgumentException("Path to deploy ["+path+"] contains class already was deployed"); 
 					}
 					else {
 						deployed.setCargo(id,desc); 
@@ -789,7 +786,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	}
 	
 	@Override
-	public void undeploy(final String path) throws ContentException {
+	public void undeploy(final String path) {
 		synchronized(deployed) {
 			final long	id = deployed.seekName(path);
 			
@@ -798,11 +795,11 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					deployed.setCargo(id,null);
 				}
 				else {
-					throw new ContentException("Attempt to undeploy non-deployed path ["+path+"]");
+					throw new IllegalArgumentException("Attempt to undeploy non-deployed path ["+path+"]");
 				}
 			}
 			else {
-				throw new ContentException("Attempt to undeploy non-deployed path ["+path+"]");
+				throw new IllegalArgumentException("Attempt to undeploy non-deployed path ["+path+"]");
 			}
 		}		
 	}
@@ -810,6 +807,41 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	@Override
 	public FileSystemInterface getServiceRoot() {
 		return serviceRoot;
+	}
+
+	public static SSLContext createSSLContext(final SubstitutableProperties props) throws IOException, NullPointerException  {
+		if (props == null) {
+			throw new NullPointerException("Properties can't be null");
+		}
+		else {
+		    try{final SSLContext			sslContext = SSLContext.getInstance(NANOSERVICE_SSL_TYPE);
+	        	final KeyManagerFactory		kmf = KeyManagerFactory.getInstance(NANOSERVICE_KEY_TYPE);
+		        final TrustManagerFactory	tmf = TrustManagerFactory.getInstance(NANOSERVICE_KEY_TYPE);
+		    	final KeyStore 				ks = KeyStore.getInstance(props.getProperty(NANOSERVICE_SSL_KEYSTORE_TYPE, String.class
+		    									, System.getProperty(SYSTEM_SSL_KEYSTORE_TYPE, DEFAULT_SYSTEM_SSL_KEYSTORE_TYPE)));
+			    final KeyStore 				ts = KeyStore.getInstance(props.getProperty(NANOSERVICE_SSL_TRUSTSTORE_TYPE, String.class
+												, System.getProperty(SYSTEM_SSL_TRUSTSTORE_TYPE, DEFAULT_SYSTEM_SSL_TRUSTSTORE_TYPE)));
+	
+			    if (props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class,"false")) {
+			        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_KEYSTORE, InputStream.class, System.getProperty(SYSTEM_SSL_KEYSTORE))) {
+			        	ks.load(is,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_KEYSTORE_PASSWD)));
+			        }
+			        kmf.init(ks,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_KEYSTORE_PASSWD)));
+			    }
+			    if (props.getProperty(NANOSERVICE_USE_TRUSTSTORE,boolean.class,"false")) {
+			        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_TRUSTSTORE, InputStream.class, System.getProperty(SYSTEM_SSL_TRUSTSTORE))) {
+			        	ts.load(is,props.getProperty(NANOSERVICE_SSL_TRUSTSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_TRUSTSTORE_PASSWD)));
+			        }
+			        tmf.init(ts);
+			    }
+		        sslContext.init(props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class,"false") ? kmf.getKeyManagers() : null
+		        			  , props.getProperty(NANOSERVICE_USE_TRUSTSTORE,boolean.class,"false") ? tmf.getTrustManagers() : null
+		        			  , null);
+		        return sslContext;
+		    } catch (Exception e) {
+		    	throw new IOException(e);
+		    }       
+		}
 	}
 	
 	ClassLoaderWrapper getInternalLoader() {
@@ -823,37 +855,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		    
 		server.setHttpsConfigurator(authconf);
 	    return server;
-	}
-	
-	private static SSLContext createSSLContext(final SubstitutableProperties props) throws IOException  {
-	    try{final SSLContext			sslContext = SSLContext.getInstance(NANOSERVICE_SSL_TYPE);
-        	final KeyManagerFactory		kmf = KeyManagerFactory.getInstance(NANOSERVICE_KEY_TYPE);
-	        final TrustManagerFactory	tmf = TrustManagerFactory.getInstance(NANOSERVICE_KEY_TYPE);
-	    	final KeyStore 				ks = KeyStore.getInstance(props.getProperty(NANOSERVICE_SSL_KEYSTORE_TYPE, String.class
-	    									, System.getProperty(SYSTEM_SSL_KEYSTORE_TYPE, DEFAULT_SYSTEM_SSL_KEYSTORE_TYPE)));
-		    final KeyStore 				ts = KeyStore.getInstance(props.getProperty(NANOSERVICE_SSL_TRUSTSTORE_TYPE, String.class
-											, System.getProperty(SYSTEM_SSL_TRUSTSTORE_TYPE, DEFAULT_SYSTEM_SSL_TRUSTSTORE_TYPE)));
-
-		    if (props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class,"false")) {
-		        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_KEYSTORE, InputStream.class, System.getProperty(SYSTEM_SSL_KEYSTORE))) {
-		        	ks.load(is,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_KEYSTORE_PASSWD)));
-		        }
-		        kmf.init(ks,props.getProperty(NANOSERVICE_SSL_KEYSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_KEYSTORE_PASSWD)));
-		    }
-		    if (props.getProperty(NANOSERVICE_USE_TRUSTSTORE,boolean.class,"false")) {
-		        try(final InputStream 	is = props.getProperty(NANOSERVICE_SSL_TRUSTSTORE, InputStream.class, System.getProperty(SYSTEM_SSL_TRUSTSTORE))) {
-		        	ts.load(is,props.getProperty(NANOSERVICE_SSL_TRUSTSTORE_PASSWD, char[].class, System.getProperty(SYSTEM_SSL_TRUSTSTORE_PASSWD)));
-		        }
-		        tmf.init(ts);
-		    }
-	        sslContext.init(props.getProperty(NANOSERVICE_USE_KEYSTORE,boolean.class,"false") ? kmf.getKeyManagers() : null
-	        			  , props.getProperty(NANOSERVICE_USE_TRUSTSTORE,boolean.class,"false") ? tmf.getTrustManagers() : null
-	        			  , null);
-	        return sslContext;
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	    	throw new IOException(e);
-	    }       
 	}
 
 	private static InputStream getInputStream(final InputStream sourceStream, final List<String> encodings) throws IOException {
@@ -950,19 +951,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 	
-//	public static Hashtable<String,String[]> parseQuery(final String query) {
-//		final Hashtable<String,String[]>	result = new Hashtable<>();
-//		
-//		if (query != null && !query.isEmpty()) {
-//			for (String item : CharUtils.split(query,'&')) {
-//				final int	index = item.indexOf('=');
-//				
-//				result.put(item.substring(0,index),new String[]{item.substring(index+1)});
-//			}
-//		}
-//		return result;
-//	}
-//
 	/*
 	 * Collection of methods to parse annotated plug-in class and build wrapper to it
 	 */

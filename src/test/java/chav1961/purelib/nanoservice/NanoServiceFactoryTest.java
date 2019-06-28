@@ -154,7 +154,7 @@ public class NanoServiceFactoryTest {
 											// ---------- application/octet-stream
 											new TestProbe("http://localhost:1000/pseudo/post/body/InputStream", Utils.mkProps(NanoServiceFactory.HEAD_CONTENT_TYPE, "application/octet-stream", NanoServiceFactory.HEAD_ACCEPT, "application/octet-stream"), 200, "octet test string"),
 											}; 	
-	private static int					unique = 0;
+	private static int			unique = 0;
 
 	
 	private NanoServiceFactory	factory;
@@ -165,7 +165,14 @@ public class NanoServiceFactoryTest {
 		currentPort = (int) (1024 + 60000 * Math.random());
 		factory = new NanoServiceFactory(new SystemErrLoggerFacade(), new SubstitutableProperties(Utils.mkProps(
 												NanoServiceFactory.NANOSERVICE_PORT, ""+currentPort,
-												NanoServiceFactory.NANOSERVICE_ROOT, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/nanoservice/root/")
+												NanoServiceFactory.NANOSERVICE_ROOT, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/nanoservice/root/",
+												NanoServiceFactory.NANOSERVICE_SSL_KEYSTORE, "./src/test/resources/chav1961/purelib/nanoservice/keystore.jks", 
+												NanoServiceFactory.NANOSERVICE_SSL_KEYSTORE_TYPE, "jks", 
+												NanoServiceFactory.NANOSERVICE_SSL_KEYSTORE_PASSWD, "test01", 
+												NanoServiceFactory.NANOSERVICE_SSL_TRUSTSTORE, "./src/test/resources/chav1961/purelib/nanoservice/cacerts.jks", 
+												NanoServiceFactory.NANOSERVICE_SSL_TRUSTSTORE_TYPE, "jks", 
+												NanoServiceFactory.NANOSERVICE_SSL_TRUSTSTORE_PASSWD, "test01", 
+												NanoServiceFactory.NANOSERVICE_DISABLE_LOOPBACK, "false")
 											));
 	}
 
@@ -174,6 +181,35 @@ public class NanoServiceFactoryTest {
 		factory.close();
 	}
 
+	@SuppressWarnings("resource")
+	@Test
+	public void constructorTest() throws IOException, SyntaxException, ContentException {
+		try {new NanoServiceFactory(null, new SubstitutableProperties(Utils.mkProps(
+				NanoServiceFactory.NANOSERVICE_PORT, ""+currentPort,
+				NanoServiceFactory.NANOSERVICE_ROOT, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/nanoservice/root/")
+			));
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new NanoServiceFactory(new SystemErrLoggerFacade(), null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new NanoServiceFactory(new SystemErrLoggerFacade(), new SubstitutableProperties(Utils.mkProps(
+				NanoServiceFactory.NANOSERVICE_ROOT, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/nanoservice/root/")
+			));
+			Assert.fail("Mandatory exception was not detected (mandatory nanoservice port is missing)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {new NanoServiceFactory(new SystemErrLoggerFacade(), new SubstitutableProperties(Utils.mkProps(
+				NanoServiceFactory.NANOSERVICE_PORT, ""+currentPort)
+			));
+			Assert.fail("Mandatory exception was not detected (mandatory nanoservice root is missing)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
+	
+	
 	@Test
 	public void lifeCycleTest() throws IOException {
 		factory.start();
@@ -478,6 +514,11 @@ public class NanoServiceFactoryTest {
 		
 		try{factory.start();
 			factory.deploy(path,new PseudoPlugin());
+
+			try{factory.deploy(path,new PseudoPlugin());
+				Assert.fail("Mandatory exception was not detected (duplicate deployment to the same address)");
+			} catch (IllegalArgumentException exc) {
+			}
 			
 			caller = new SimpleCaller(URI.create("http://localhost:1000/pseudo/test"), QueryType.GET
 									,Utils.mkProps("key","value"
@@ -527,6 +568,49 @@ public class NanoServiceFactoryTest {
 				caller.setStreams(null,os);
 				factory.handle(caller);
 				Assert.assertEquals(404,caller.getResponseCode());
+			}
+
+			factory.deploy(path,new PseudoPlugin());
+			caller = new SimpleCaller(URI.create("http://localhost:1000/pseudo/test"), QueryType.GET
+								,Utils.mkProps("key","value"
+								,NanoServiceFactory.HEAD_CONTENT_TYPE,PureLibSettings.MIME_PLAIN_TEXT.toString()
+								,NanoServiceFactory.HEAD_ACCEPT,PureLibSettings.MIME_PLAIN_TEXT.toString()));
+			try(final OutputStream	os = new ByteArrayOutputStream()) {
+			
+				caller.setStreams(null,os);
+				factory.handle(caller);
+				Assert.assertEquals(200,caller.getResponseCode());
+			}
+			factory.undeploy(path);
+			
+			try{factory.deploy(null,new PseudoPlugin());
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{factory.deploy("",new PseudoPlugin());
+				Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{factory.deploy(path,null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+
+			try{factory.undeploy(null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{factory.undeploy("");
+				Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{factory.undeploy("/unknown");
+				Assert.fail("Mandatory exception was not detected (path is not deployed yet)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{factory.undeploy(path);
+				Assert.fail("Mandatory exception was not detected (path was undeployed earlier)");
+			} catch (IllegalArgumentException exc) {
 			}
 			
 		} finally {
@@ -708,7 +792,7 @@ public class NanoServiceFactoryTest {
 	}
 	
 	
-//	@Test
+	@Test
 	public void loopBackTest() throws IOException {
 		SimpleCaller	caller;
 		
@@ -725,7 +809,7 @@ public class NanoServiceFactoryTest {
 					final Reader		rdr = new InputStreamReader(is)) {
 					final String		readed = Utils.fromResource(rdr);
 					
-					Assert.assertEquals(LOOPBACK_RESPONSE,readed);
+					Assert.assertEquals(LOOPBACK_RESPONSE,readed.replace("\r",""));
 					Assert.assertEquals(caller.getResponseHeaders().getFirst(NanoServiceFactory.HEAD_CONTENT_TYPE),PureLibSettings.MIME_HTML_TEXT.toString());
 					Assert.assertEquals(caller.getResponseHeaders().getFirst(NanoServiceFactory.HEAD_CONTENT_ENCODING),NanoServiceFactory.HEAD_CONTENT_ENCODING_IDENTITY);
 				}
@@ -853,7 +937,7 @@ class SimpleCaller extends HttpExchange {
 
 	@Override
 	public InetSocketAddress getRemoteAddress() {
-		return new InetSocketAddress(1000);
+		return new InetSocketAddress("localhost",1000);
 	}
 
 	@Override

@@ -447,7 +447,7 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 		else {
 			return rs;
 		}
-	}
+	} 
 	
 	static class Lexema {
 		public static final int		LEX_EOD = 0;
@@ -1007,8 +1007,11 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 		public Object get(final Object[] content) {
 			Object	operand = expression.get(content);
 			
-			try{if (Date.class.isAssignableFrom(type)) {
-						return SQLUtils.convert(Date.class,operand);
+			try{if (java.sql.Date.class.isAssignableFrom(type)) {
+					return SQLUtils.convert(java.sql.Date.class,operand);
+				}
+				else if (Date.class.isAssignableFrom(type)) {
+					return SQLUtils.convert(java.sql.Date.class,operand);
 				}
 				else if (Number.class.isAssignableFrom(type)) {
 					return SQLUtils.convert(Number.class,operand);

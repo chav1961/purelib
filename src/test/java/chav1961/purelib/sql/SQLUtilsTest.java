@@ -544,6 +544,7 @@ public class SQLUtilsTest {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void dataConversionTest() {
 		int index = 0;
@@ -577,10 +578,6 @@ public class SQLUtilsTest {
 		}
 	}
 
-	private static byte[] toByteArray(final long content) {
-		return new byte[]{(byte)(content >> 56),(byte)(content >> 48),(byte)(content >> 40),(byte)(content >> 32),(byte)(content >> 24),(byte)(content >> 16),(byte)(content >> 8),(byte)(content >> 0)};
-	}
-	
 	private static byte[] toByteArray(final float value) {
 		final int	content = Float.floatToIntBits(value);
 		
@@ -599,6 +596,7 @@ public class SQLUtilsTest {
 		final Object[]			values;
 		final Class<?>			exception;
 		
+		@SafeVarargs
 		public <T> ConversionPairTest(final Class<T> source, final Class<?> target, final Class<? extends Exception> exception, final T... values) {
 			this.source = source;
 			this.target = target;
@@ -606,6 +604,7 @@ public class SQLUtilsTest {
 			this.exception = exception;
 		}
 
+		@SafeVarargs
 		public <T> ConversionPairTest(final Class<T> source, final Class<?> target, final T... values) {
 			this.source = source;
 			this.target = target;

@@ -11,9 +11,7 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.FilterTree;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.Lexema;
 
@@ -125,14 +123,14 @@ public class ResultSetTests {
 										@Override public String getSchemaName(int column) throws SQLException {return "schema";}
 										@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
 									};
-		final NullReadOnlyResultSet	rs = new NullReadOnlyResultSet(rsmd,ResultSet.TYPE_FORWARD_ONLY);
-		
-		Assert.assertFalse(rs.next());
-		Assert.assertFalse(rs.next());
-		Assert.assertEquals(rs.getMetaData().getColumnCount(),3);
-		
-		detectException(()->{rs.previous();},SQLException.class,"attempt to move on the forward-only cursor");
-		detectException(()->{rs.getString(1);},SQLException.class,"attempt to read from empty cursor");
+		try(final NullReadOnlyResultSet	rs = new NullReadOnlyResultSet(rsmd,ResultSet.TYPE_FORWARD_ONLY)) {
+			Assert.assertFalse(rs.next());
+			Assert.assertFalse(rs.next());
+			Assert.assertEquals(rs.getMetaData().getColumnCount(),3);
+			
+			detectException(()->{rs.previous();},SQLException.class,"attempt to move on the forward-only cursor");
+			detectException(()->{rs.getString(1);},SQLException.class,"attempt to read from empty cursor");
+		}
 	}
 
 	@Test
@@ -144,132 +142,133 @@ public class ResultSetTests {
 											@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
 										};
 		final ArrayContent				content = new ArrayContent(new Object[]{"100",BigDecimal.ONE,new Date(0)},new Object[]{"200",BigDecimal.TEN,new Date(1000)});
-		final InMemoryReadOnlyResultSet	rs = new InMemoryReadOnlyResultSet(rsmd,ResultSet.TYPE_FORWARD_ONLY,content);
+		try(final InMemoryReadOnlyResultSet	rs = new InMemoryReadOnlyResultSet(rsmd,ResultSet.TYPE_FORWARD_ONLY,content)) {
+			
+			Assert.assertTrue(rs.isBeforeFirst());
+			Assert.assertFalse(rs.isFirst());
+			Assert.assertFalse(rs.isLast());
+			Assert.assertFalse(rs.isAfterLast());
+	
+			Assert.assertTrue(rs.next());
+			
+			Assert.assertFalse(rs.isBeforeFirst());
+			Assert.assertTrue(rs.isFirst());
+			Assert.assertFalse(rs.isLast());
+			Assert.assertFalse(rs.isAfterLast());
+	
+			Assert.assertTrue(rs.next());
+			
+			Assert.assertFalse(rs.isBeforeFirst());
+			Assert.assertFalse(rs.isFirst());
+			Assert.assertTrue(rs.isLast());
+			Assert.assertFalse(rs.isAfterLast());
+	
+			Assert.assertFalse(rs.next());
+			
+			Assert.assertFalse(rs.isBeforeFirst());
+			Assert.assertFalse(rs.isFirst());
+			Assert.assertFalse(rs.isLast());
+			Assert.assertTrue(rs.isAfterLast());
+	
+			detectException(()->{rs.previous();},SQLException.class,"attempt to move on the forward-only cursor");
+			detectException(()->{rs.relative(1);},SQLException.class,"attempt to move on the forward-only cursor");
+			detectException(()->{rs.absolute(1);},SQLException.class,"attempt to move on the forward-only cursor");
+			detectException(()->{rs.last();},SQLException.class,"attempt to move on the forward-only cursor");
+			detectException(()->{rs.first();},SQLException.class,"attempt to move on the forward-only cursor");
+			detectException(()->{rs.afterLast();},SQLException.class,"attempt to move on the forward-only cursor");
+			detectException(()->{rs.beforeFirst();},SQLException.class,"attempt to move on the forward-only cursor");
+		}
 		
-		Assert.assertTrue(rs.isBeforeFirst());
-		Assert.assertFalse(rs.isFirst());
-		Assert.assertFalse(rs.isLast());
-		Assert.assertFalse(rs.isAfterLast());
-
-		Assert.assertTrue(rs.next());
-		
-		Assert.assertFalse(rs.isBeforeFirst());
-		Assert.assertTrue(rs.isFirst());
-		Assert.assertFalse(rs.isLast());
-		Assert.assertFalse(rs.isAfterLast());
-
-		Assert.assertTrue(rs.next());
-		
-		Assert.assertFalse(rs.isBeforeFirst());
-		Assert.assertFalse(rs.isFirst());
-		Assert.assertTrue(rs.isLast());
-		Assert.assertFalse(rs.isAfterLast());
-
-		Assert.assertFalse(rs.next());
-		
-		Assert.assertFalse(rs.isBeforeFirst());
-		Assert.assertFalse(rs.isFirst());
-		Assert.assertFalse(rs.isLast());
-		Assert.assertTrue(rs.isAfterLast());
-
-		detectException(()->{rs.previous();},SQLException.class,"attempt to move on the forward-only cursor");
-		detectException(()->{rs.relative(1);},SQLException.class,"attempt to move on the forward-only cursor");
-		detectException(()->{rs.absolute(1);},SQLException.class,"attempt to move on the forward-only cursor");
-		detectException(()->{rs.last();},SQLException.class,"attempt to move on the forward-only cursor");
-		detectException(()->{rs.first();},SQLException.class,"attempt to move on the forward-only cursor");
-		detectException(()->{rs.afterLast();},SQLException.class,"attempt to move on the forward-only cursor");
-		detectException(()->{rs.beforeFirst();},SQLException.class,"attempt to move on the forward-only cursor");
-
-		final InMemoryReadOnlyResultSet	rsScrolled = new InMemoryReadOnlyResultSet(rsmd,ResultSet.TYPE_SCROLL_INSENSITIVE,content);
-
-		Assert.assertTrue(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertTrue(rsScrolled.next());
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertTrue(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertTrue(rsScrolled.next());
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertTrue(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertFalse(rsScrolled.next());
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertTrue(rsScrolled.isAfterLast());
-		
-		Assert.assertTrue(rsScrolled.previous());
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertTrue(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertTrue(rsScrolled.previous());
-		
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertTrue(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-		
-		Assert.assertFalse(rsScrolled.previous());
-
-		Assert.assertTrue(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertTrue(rsScrolled.absolute(2));
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertTrue(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertTrue(rsScrolled.relative(-1));
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertTrue(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertTrue(rsScrolled.last());
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertTrue(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		Assert.assertTrue(rsScrolled.first());
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertTrue(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
-
-		rsScrolled.afterLast();
-
-		Assert.assertFalse(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertTrue(rsScrolled.isAfterLast());
-
-		rsScrolled.beforeFirst();
-
-		Assert.assertTrue(rsScrolled.isBeforeFirst());
-		Assert.assertFalse(rsScrolled.isFirst());
-		Assert.assertFalse(rsScrolled.isLast());
-		Assert.assertFalse(rsScrolled.isAfterLast());
+		try(final InMemoryReadOnlyResultSet	rsScrolled = new InMemoryReadOnlyResultSet(rsmd,ResultSet.TYPE_SCROLL_INSENSITIVE,content)) {
+			Assert.assertTrue(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertTrue(rsScrolled.next());
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertTrue(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertTrue(rsScrolled.next());
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertTrue(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertFalse(rsScrolled.next());
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertTrue(rsScrolled.isAfterLast());
+			
+			Assert.assertTrue(rsScrolled.previous());
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertTrue(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertTrue(rsScrolled.previous());
+			
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertTrue(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+			
+			Assert.assertFalse(rsScrolled.previous());
+	
+			Assert.assertTrue(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertTrue(rsScrolled.absolute(2));
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertTrue(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertTrue(rsScrolled.relative(-1));
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertTrue(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertTrue(rsScrolled.last());
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertTrue(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			Assert.assertTrue(rsScrolled.first());
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertTrue(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+	
+			rsScrolled.afterLast();
+	
+			Assert.assertFalse(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertTrue(rsScrolled.isAfterLast());
+	
+			rsScrolled.beforeFirst();
+	
+			Assert.assertTrue(rsScrolled.isBeforeFirst());
+			Assert.assertFalse(rsScrolled.isFirst());
+			Assert.assertFalse(rsScrolled.isLast());
+			Assert.assertFalse(rsScrolled.isAfterLast());
+		}
 	}
 
 	@Test
@@ -281,22 +280,22 @@ public class ResultSetTests {
 											@Override public String getCatalogName(int column) throws SQLException {return "catalog";}
 										};
 		final ArrayContent				content = new ArrayContent(new Object[]{"100",BigDecimal.ONE,new Date(0)},new Object[]{"200",BigDecimal.TEN,new Date(1000)});
-		final InMemoryReadOnlyResultSet	rs = new InMemoryReadOnlyResultSet(rsmd,ResultSet.TYPE_FORWARD_ONLY,content);
-		
-		detectException(()->{rs.getString(1);},SQLException.class,"attempt to get data on non-positioned cursor");
-
-		Assert.assertTrue(rs.next());
-		Assert.assertEquals(rs.getMetaData().getColumnCount(),3);
-		Assert.assertEquals(rs.getString(1),"100");
-		Assert.assertEquals(rs.getString("CHAR"),"100");
-		Assert.assertEquals(rs.getString(2),"1");
-		Assert.assertEquals(rs.getString("NUMBER"),"1");
-		
-		detectException(()->{rs.getString(0);},SQLException.class,"column index out of range");
-		detectException(()->{rs.getString(100);},SQLException.class,"column index out of range");
+		try(final InMemoryReadOnlyResultSet	rs = new InMemoryReadOnlyResultSet(rsmd,ResultSet.TYPE_FORWARD_ONLY,content)) {
+			detectException(()->{rs.getString(1);},SQLException.class,"attempt to get data on non-positioned cursor");
+	
+			Assert.assertTrue(rs.next());
+			Assert.assertEquals(rs.getMetaData().getColumnCount(),3);
+			Assert.assertEquals(rs.getString(1),"100");
+			Assert.assertEquals(rs.getString("CHAR"),"100");
+			Assert.assertEquals(rs.getString(2),"1");
+			Assert.assertEquals(rs.getString("NUMBER"),"1");
+			
+			detectException(()->{rs.getString(0);},SQLException.class,"column index out of range");
+			detectException(()->{rs.getString(100);},SQLException.class,"column index out of range");
+		}
 	}
 
-//	@Test
+	@Test
 	public void filteredResultSetInnerClassesTest() throws SQLException {
 		final Object[]	content = new Object[]{100L,200.0,new Date(0),"test"};
 		

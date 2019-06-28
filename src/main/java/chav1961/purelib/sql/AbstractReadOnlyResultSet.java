@@ -84,7 +84,7 @@ public abstract class AbstractReadOnlyResultSet implements ResultSet {
 			beforeFirst = false;
 			wasNull = true;
 			if (getContent().getCurrentRow() < getContent().getRowCount()) {
-				return !getContent().setCurrentRow(getContent().getCurrentRow()+1);
+				return getContent().setCurrentRow(getContent().getCurrentRow()+1);
 			}
 			else {
 				afterLast = true; 

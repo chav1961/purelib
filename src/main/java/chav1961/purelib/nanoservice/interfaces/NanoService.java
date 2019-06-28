@@ -17,6 +17,6 @@ public interface NanoService extends ExecutionControl {
 	boolean isSuspended();
 	
 	void deploy(String path, Object instance2deploy) throws IOException, ContentException, SyntaxException;	
-	void undeploy(final String path) throws ContentException;
+	void undeploy(final String path);
 	FileSystemInterface getServiceRoot();
 }
