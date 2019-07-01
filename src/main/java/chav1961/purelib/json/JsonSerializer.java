@@ -5296,7 +5296,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						
 							return instance;
 						} catch (IOException | InstantiationException | IllegalAccessException e) {
-							throw new SyntaxException(reader.row(),reader.col(),"Ref obj unknown field name");
+							throw new SyntaxException(reader.row(),reader.col(),"Ref obj unknown field name",e);
 						} finally {
 							forNames.free(buffer);
 						}

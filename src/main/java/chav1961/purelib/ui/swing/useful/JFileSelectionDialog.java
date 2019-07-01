@@ -177,7 +177,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 									
 	private boolean					forOpen = true, canSelectDir = false, canSelectFile = false, canUseDeletion = true;
 	private FileSystemInterface 	currentNode = null;
-	private AcceptAndCancelCallback callback;
+	private AcceptAndCancelCallback<JFileSelectionDialog> callback;
 
 	/**
 	 * <p>Constructor of the class</p>
@@ -321,13 +321,13 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			assignEnterAndEscape(fileName);
 			accept.addActionListener((e)->{
 				if (callback != null) {
-					callback.process(true);
+					callback.process(this,true);
 					callback = null;
 				}
 			});
 			cancel.addActionListener((e)->{
 				if (callback != null) {
-					callback.process(false);
+					callback.process(this,false);
 					callback = null;
 				}				
 			});
@@ -439,7 +439,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * @throws NullPointerException if any of the parameters is null
 	 * @throws IllegalArgumentException if options contains incompatible flags
 	 */
-	public void select(final FileSystemInterface node, final int options, final AcceptAndCancelCallback callback, final FilterCallback... filters) throws IOException, NullPointerException, IllegalArgumentException {
+	public void select(final FileSystemInterface node, final int options, final AcceptAndCancelCallback<JFileSelectionDialog> callback, final FilterCallback... filters) throws IOException, NullPointerException, IllegalArgumentException {
 		if (node == null) {
 			throw new NullPointerException("Current file system node can't be null");
 		}
@@ -586,7 +586,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		
 		try(final FileSystemInterface	fsi = node.clone()) {
 			select.select(fsi, options,
-					(accept)->{
+					(owner,accept)->{
 						if (accept) {
 							result[0] = select.getSelection();
 						}
@@ -627,7 +627,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		
 		try(final FileSystemInterface	fsi = node.clone()) {
 			select.select(fsi, options,
-					(accept)->{
+					(owner,accept)->{
 						if (accept) {
 							result[0] = select.getSelection();
 						}
@@ -651,7 +651,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 
 	private void selectAndAccept() {
 		if (callback != null) {
-			callback.process(true);
+			callback.process(this,true);
 			callback = null; 
 		}
 	}
@@ -720,7 +720,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (callback != null) {
-					callback.process(true);
+					callback.process(JFileSelectionDialog.this,true);
 					callback = null;
 				}
 			}
@@ -730,7 +730,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (callback != null) {
-					callback.process(false);
+					callback.process(JFileSelectionDialog.this,false);
 					callback = null;
 				}
 			}

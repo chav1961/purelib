@@ -34,6 +34,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
@@ -69,19 +70,20 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final String 	TEST_TOOLTIP = "JFileSystemChanger.button.test.tooltip";
 	private static final String 	TEST_URI_TOOLTIP = "JFileSystemChanger.test.uri.tooltip";
 	private static final String 	ERROR_HEADER = "JFileSystemChanger.message.error.header";
+	private static final String 	ERROR_DESCRIPTION = "JFileSystemChanger.message.error.description";
 	private static final Icon		TEST_OK = new ImageIcon(JFileSystemChanger.class.getResource("testOK.png"));
 	private static final Icon		TEST_FAILED = new ImageIcon(JFileSystemChanger.class.getResource("testFailed.png"));
 	
 	private final Localizer			localizer;
-	private final AcceptAndCancelCallback	callback;
-	private final FileSystemDescription		content = new FileSystemDescription();
+	private final FileSystemDescription			content = new FileSystemDescription();
 	private final JLabel			uri2testLabel = new JLabel();
 	private final JTextField		uri2test = new JTextField();
 	private final JButton 			testButton = new JButton(), acceptButton = new JButton(), cancelButton = new JButton(); 
 	private final J2ColumnEditor	editor;
 	private final JList<?>			list;
+	private URI						testUri = null;
 	
-	public JFileSystemChanger(final Localizer localizer, final AcceptAndCancelCallback callback) throws IOException, LocalizationException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
+	public JFileSystemChanger(final Localizer localizer, final AcceptAndCancelCallback<JFileSystemChanger> callback) throws IOException, LocalizationException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
@@ -92,7 +94,6 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			final JPanel		leftBottomPanel = new JPanel(new BorderLayout(2,2));
 	
 			this.localizer = localizer;
-			this.callback = callback;
 			this.list = new JList<>(FileSystemFactory.getAvailableFileSystems());
 			this.editor = new J2ColumnEditor(content,(c)-> {
 				if (c.endsWith("showHelp")) {
@@ -135,7 +136,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			);
 			
 			this.testButton.addActionListener((e)->{
-				try{URI	testUri = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":unknown:/");
+				try{testUri = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":unknown:/");
 				
 					try{testUri = URI.create(uri2test.getText());
 						try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(testUri)) {
@@ -152,6 +153,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 					exc.printStackTrace();
 				}
 				this.testButton.setIcon(TEST_FAILED);
+				testUri = null;
 			});
 			this.uri2test.getDocument().addDocumentListener(new DocumentListener() {
 				@Override
@@ -184,9 +186,9 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			centerPanel.add(new JScrollPane(this.list));
 
 			if (callback != null) {
-				acceptButton.addActionListener((e)->{callback.process(true);});
+				acceptButton.addActionListener((e)->{callback.process(this,true);});
 				bottomPanel.add(acceptButton);
-				cancelButton.addActionListener((e)->{callback.process(false);});
+				cancelButton.addActionListener((e)->{callback.process(this,false);});
 				bottomPanel.add(cancelButton);
 			}
 			
@@ -204,25 +206,38 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		fillLocalizedStrings();
 	}
 	
-	public static boolean ask(final Frame window, final Localizer localizer) throws LocalizationException, SyntaxException, ContentException, IOException {
+	public static URI ask(final Frame window, final Localizer localizer) throws LocalizationException, SyntaxException, ContentException, IOException {
 		return askInternal(window,new JDialog(window,true), localizer);
 	}
 
-	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, SyntaxException, ContentException, IOException {
+	public static URI ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, SyntaxException, ContentException, IOException {
 		return askInternal(window,new JDialog(window,true), localizer);
 	}
 
-	private static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer) throws LocalizationException, SyntaxException, ContentException, IOException {
-		final boolean[]				result = new boolean[] {false};
-		final JFileSystemChanger	mgr = new JFileSystemChanger(localizer, (mode)->{result[0] = mode; dlg.setVisible(false);}); 
+	private static URI askInternal(final Window parent, final JDialog dlg, final Localizer localizer) throws LocalizationException, SyntaxException, ContentException, IOException {
+		final URI[]					result = new URI[] {null};
+		final JFileSystemChanger	mgr = new JFileSystemChanger(localizer, (manager,mode)->{
+												if (mode) {
+													manager.getActionMap().get("ask.accept").actionPerformed(null);
+												}
+												dlg.setVisible(false);
+											}); 
 		
 		mgr.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"ask.accept");
 		mgr.getActionMap().put("ask.accept",new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				result[0] = true;
-				dlg.setVisible(false);
+				if (mgr.testUri == null) {
+					try{new JLocalizedOptionPane(localizer).message(dlg, ERROR_DESCRIPTION, ERROR_HEADER, JOptionPane.ERROR_MESSAGE);
+					} catch (LocalizationException exc) {
+						PureLibSettings.logger.severe(exc.getLocalizedMessage());
+					}
+				}
+				else {
+					result[0] = mgr.testUri;
+					dlg.setVisible(false);
+				}
 			}
 		});			
 		
@@ -233,6 +248,10 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		dlg.setVisible(true);
 		dlg.dispose();
 		return result[0];
+	}
+	
+	private void fillURI(final JDialog parent, final URI[] result) {
+		
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
