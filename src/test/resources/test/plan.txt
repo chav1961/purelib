@@ -15,6 +15,7 @@
 *12. Дополнить GettersAndSetters методом buildInstantiator для выделения памяти под инстанцию класса
 13. Дописать javadoc 
 14. Дополнить класс Utils универсальным методом обхода деревьев и растащить его на остальные классы библиотеки
+15. Написать класс XMLUtils и перенести в него полезный код из других классов
 *Пакет basic.growablrearrays
 *1. Написать InOutGrowableCharArray
 *Пакет concurrent
@@ -123,6 +124,8 @@
 *10. Дополнить класс AutoBuildForm обработкой кода возврата RefreshMode.EXIT 
 *11. Дополнить класс AutoBuildForm гашением кнопок 'OK'/'Отмена' в статических методах ask 
 12. Дописать javadoc 
+13. Дописать и отладить метод SwingUtils.buildGeneralPath
+14. Дописать и отладить метод SwingUtils.parseCSS 
 Пакет ui.swing.terminal
 *1. Переделать класс PseudoConsole для использования возможностей PureLib 
 *2. Отладить класс PseudoConsole

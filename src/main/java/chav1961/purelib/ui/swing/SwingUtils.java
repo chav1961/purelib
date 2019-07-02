@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -1011,7 +1012,10 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			
 		}
 	}
-	
+
+	public static Map<String,Properties> parseCSS(final char[] cssContent) throws SyntaxException {
+		return null;
+	}	
 	 
 	private static class MethodHandleAndAsync {
 		final MethodHandle	handle;

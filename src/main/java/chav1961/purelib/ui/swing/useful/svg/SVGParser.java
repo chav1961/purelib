@@ -1,16 +1,23 @@
 package chav1961.purelib.ui.swing.useful.svg;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.XSDCollection;
+import chav1961.purelib.ui.swing.SwingUtils;
 
 public class SVGParser {
 	public static SVGPainter parse(final InputStream svgXml) throws NullPointerException, ContentException {
@@ -26,10 +33,23 @@ public class SVGParser {
 		}
 		else {
 			final Document			doc = Utils.validateAndLoadXML(svgXml,Utils.getPurelibXSD(XSDCollection.SVG),logger);
-			final GrowableByteArray	gba = new GrowableByteArray(false); 
 			
 			doc.normalizeDocument();
-			Utils.walkDownXML(doc.getDocumentElement(),(mode,node)->{
+			XMLUtils.walkDownXML(doc.getDocumentElement(),(mode,node)->{	// Extract all styles from the content
+				if (mode == NodeEnterMode.ENTER && "style".equals(node.getTagName())) {
+					if (XMLUtils.contains(node,"href")) {
+						try{SwingUtils.parseCSS(Utils.loadCharsFromURI(XMLUtils.getAttribute(node,"href",URI.class),"UTF-8"));
+						} catch (IOException | SyntaxException e) {
+							e.printStackTrace();
+						}
+					}
+					else {
+						try{SwingUtils.parseCSS(node.getTextContent().toCharArray());
+						} catch (SyntaxException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 				return ContinueMode.CONTINUE;
 			});
 		}

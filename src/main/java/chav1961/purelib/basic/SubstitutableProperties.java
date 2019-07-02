@@ -177,7 +177,7 @@ public class SubstitutableProperties extends Properties {
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected <T> T convert(final String key, final String value, final Class<T> awaited) {
+	protected static <T> T convert(final String key, final String value, final Class<T> awaited) {
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");
 		}

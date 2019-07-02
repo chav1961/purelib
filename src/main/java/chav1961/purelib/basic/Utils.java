@@ -1151,59 +1151,6 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		return rcExit;
 	}
 	
-	@FunctionalInterface
-	public interface XMLWalkerCallback {
-		ContinueMode process(NodeEnterMode mode, Element node);
-	}
-	
-	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws NullPointerException {
-		return walkDownXML(root,-1L,callback);
-	}
-
-	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws NullPointerException {
-		if (root == null) {
-			throw new NullPointerException("Root element can't be null"); 
-		}
-		else if (callback == null) {
-			throw new NullPointerException("Walker callback can't be null"); 
-		}
-		else {
-			return walkDownXMLInternal(root, nodeTypes, callback); 
-		}
-	}
-	
-	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) {
-		ContinueMode	before = null, after = ContinueMode.CONTINUE;
-		
-		if (node != null && (nodeTypes & (1 << node.getNodeType())) != 0) {
-			switch (before = callback.process(NodeEnterMode.ENTER, node)) {
-				case CONTINUE		:
-					final NodeList	list = node.getChildNodes();
-					
-					for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
-						final Node	item = list.item(index);
-						
-						if (item instanceof Element) {
-							if ((after = walkDownXMLInternal((Element)item,nodeTypes,callback)) != ContinueMode.CONTINUE) {
-								break;
-							}
-						}
-					}
-					after = resolveContinueMode(after,callback.process(NodeEnterMode.EXIT, node));
-					break;
-				case SKIP_CHILDREN : case STOP :
-					after = callback.process(NodeEnterMode.EXIT, node);
-					break;
-				default:
-					throw new IllegalStateException("Unwaited continue mode ["+before+"] for walking down");
-			}
-			return resolveContinueMode(before, after);
-		}
-		else {
-			return ContinueMode.CONTINUE;
-		}
-	}
-
 	public static ContinueMode resolveContinueMode(final ContinueMode before, final ContinueMode after) {
 		if (before == null) {
 			throw new NullPointerException("Before mode can't be null");

@@ -32,6 +32,7 @@ import org.xml.sax.SAXException;
 import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -174,7 +175,7 @@ public class XMLContentParser implements ResultSetContentParser {
 					for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
 						final Object[]		result = new Object[content.length];
 						
-						Utils.walkDownXML((Element)list.item(index),(mode,xmlNode)->{
+						XMLUtils.walkDownXML((Element)list.item(index),(mode,xmlNode)->{
 							if (mode == NodeEnterMode.ENTER) {
 								if (xmlNode.getNodeType() == Node.ELEMENT_NODE) {
 									final long	found = names.seekName(xmlNode.getNodeName());

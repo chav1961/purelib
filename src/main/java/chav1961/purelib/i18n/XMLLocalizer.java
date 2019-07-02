@@ -12,37 +12,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
-import com.sun.javadoc.Doc;
-import com.sun.tools.internal.xjc.reader.RawTypeSet.Mode;
-
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SequenceIterator;
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 public class XMLLocalizer extends AbstractLocalizer {
@@ -163,7 +142,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 		final Map<String,URI>		helpRefs = new HashMap<>();
 		final String[]				langName = new String[1];
 		
-		Utils.walkDownXML(Utils.validateAndLoadXML(is,XSDConst.class.getResourceAsStream("XMLLocalizerContent.xsd"),logger).getDocumentElement(), (mode,node)->{
+		XMLUtils.walkDownXML(Utils.validateAndLoadXML(is,XSDConst.class.getResourceAsStream("XMLLocalizerContent.xsd"),logger).getDocumentElement(), (mode,node)->{
 			switch (mode) {
 				case ENTER	:
 					switch (node.getNodeName()) {
