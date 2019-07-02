@@ -52,6 +52,7 @@ import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
@@ -377,7 +378,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					oldForeground4Label = label.getForeground();
 					label.setForeground(Color.BLUE);
 					if (tooltipsOnFocus) {
-						messages.setText(SwingUtils.prepareMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
+						messages.setText(SwingUtils.prepareHtmlMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
 					}
 				} catch (LocalizationException  exc) {
 					logger.message(Severity.error,exc,"FocusGained for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
@@ -442,7 +443,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				final String	error = ((JComponentInterface)component).standardValidation(changed == null ? null : changed.toString());
 				
 				if (error != null) {
-					messages.setText(SwingUtils.prepareMessage(Severity.error, error));
+					messages.setText(SwingUtils.prepareHtmlMessage(Severity.error, error));
 					return false;
 				}
 				else {
@@ -458,8 +459,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	}
 	
 	private RefreshMode seekAndCall(final T instance, final URI appPath) throws Exception {
-		final String[]	parts = URI.create(appPath.getSchemeSpecificPart()).getPath().split("/");
-		Class<?>		cl = instance.getClass();
+		final String[]		parts = URI.create(appPath.getSchemeSpecificPart()).getPath().split("/");
+		Class<?>			cl = instance.getClass();
 		
 		while (cl != null) {
 			for (Method m : cl.getDeclaredMethods()) {
@@ -469,8 +470,11 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						m.invoke(instance);
 						return RefreshMode.DEFAULT;
 					}
-					else {
+					else if (RefreshMode.class.isAssignableFrom(m.getReturnType())) {
 						return (RefreshMode)m.invoke(instance);
+					}
+					else {
+						throw new IllegalArgumentException("Method ["+m+"] returns neither void nor RefreshMode type");
 					}
 				}
 			}

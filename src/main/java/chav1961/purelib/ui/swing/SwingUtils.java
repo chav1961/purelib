@@ -17,6 +17,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.Arc2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -49,7 +50,6 @@ import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
@@ -58,10 +58,13 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -69,6 +72,7 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
@@ -131,12 +135,16 @@ public abstract class SwingUtils {
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
+		DEFAULT_VALUES.put(Byte.class,(byte)0);
 		DEFAULT_VALUES.put(short.class,(short)0);
+		DEFAULT_VALUES.put(Short.class,(short)0);
 		DEFAULT_VALUES.put(int.class,0);
+		DEFAULT_VALUES.put(Integer.class,0);
 		DEFAULT_VALUES.put(long.class,0L);
+		DEFAULT_VALUES.put(Long.class,0L);
 		DEFAULT_VALUES.put(float.class,0.0f);
-		DEFAULT_VALUES.put(double.class,0.0);
 		DEFAULT_VALUES.put(Float.class,0.0f);
+		DEFAULT_VALUES.put(double.class,0.0);
 		DEFAULT_VALUES.put(Double.class,0.0);
 		DEFAULT_VALUES.put(BigInteger.class,BigInteger.ZERO);
 		DEFAULT_VALUES.put(BigDecimal.class,BigDecimal.ZERO);
@@ -144,76 +152,102 @@ public abstract class SwingUtils {
 	
 	private SwingUtils() {}
 
-	public static URL url(final String resource) {
-		return SwingUtils.class.getResource(resource);	
-	}
-
+	/**
+	 * <p>This interface describes callback for walking on the swing component's tree</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
+	@FunctionalInterface
 	public interface WalkCallback {
+		/**
+		 * <p>Process current node</p> 
+		 * @param mode enter mode
+		 * @param node current node
+		 * @return continue mode
+		 */
 		ContinueMode process(final NodeEnterMode mode, final Component node);
 	}
-	
+
+	/**
+	 * <p>Walk on the swing components tree</p>
+	 * @param node root node to walk from
+	 * @param callback callback to process nodes
+	 * @return the same last continue mode (can't be null)
+	 */
 	public static ContinueMode walkDown(final Component node, final WalkCallback callback) {
 		if (callback == null) {
 			throw new NullPointerException("Root component can't be null");
 		}
 		else if (node == null) {
-			throw new NullPointerException("Node callbacl can't be null");
+			throw new NullPointerException("Node callback can't be null");
 		}
 		else {
-			switch (callback.process(NodeEnterMode.ENTER,node)) {
-				case CONTINUE		:
-					if ((node instanceof Container) && ((Container)node).getComponentCount() > 0) {
-loop:					for (int index = 0, maxIndex = ((Container)node).getComponentCount(); index < maxIndex; index++) {
-							switch (walkDown(((Container)node).getComponent(index),callback)) {
-								case CONTINUE:
-									break;
-								case SKIP_CHILDREN:
-									break loop;
-								case SKIP_SIBLINGS	:
-									callback.process(NodeEnterMode.EXIT,node);
-									return ContinueMode.SKIP_CHILDREN;
-								case STOP:
-									callback.process(NodeEnterMode.EXIT,node);
-									return ContinueMode.STOP;
-								default:
-									break;
-							}
+			return walkDownInternal(node,callback);
+		}
+	}	
+	
+	private static ContinueMode walkDownInternal(final Component node, final WalkCallback callback) {
+		switch (callback.process(NodeEnterMode.ENTER,node)) {
+			case CONTINUE		:
+				if ((node instanceof Container) && ((Container)node).getComponentCount() > 0) {
+loop:				for (int index = 0, maxIndex = ((Container)node).getComponentCount(); index < maxIndex; index++) {
+						switch (walkDownInternal(((Container)node).getComponent(index),callback)) {
+							case CONTINUE:
+								break;
+							case SKIP_CHILDREN:
+								break loop;
+							case SKIP_SIBLINGS	:
+								callback.process(NodeEnterMode.EXIT,node);
+								return ContinueMode.SKIP_CHILDREN;
+							case STOP:
+								callback.process(NodeEnterMode.EXIT,node);
+								return ContinueMode.STOP;
+							default:
+								break;
 						}
 					}
-					else if ((node instanceof JMenu) && ((JMenu)node).getMenuComponentCount() > 0) {
-loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); index < maxIndex; index++) {
-							switch (walkDown(((JMenu)node).getMenuComponent(index),callback)) {
-								case CONTINUE:
-									break;
-								case SKIP_CHILDREN	:
-									break loop;
-								case SKIP_SIBLINGS	:
-									callback.process(NodeEnterMode.EXIT,node);
-									return ContinueMode.SKIP_CHILDREN;
-								case STOP:
-									callback.process(NodeEnterMode.EXIT,node);
-									return ContinueMode.STOP;
-								default:
-									break;
-							}
+				}
+				else if ((node instanceof JMenu) && ((JMenu)node).getMenuComponentCount() > 0) {
+loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); index < maxIndex; index++) {
+						switch (walkDownInternal(((JMenu)node).getMenuComponent(index),callback)) {
+							case CONTINUE:
+								break;
+							case SKIP_CHILDREN	:
+								break loop;
+							case SKIP_SIBLINGS	:
+								callback.process(NodeEnterMode.EXIT,node);
+								return ContinueMode.SKIP_CHILDREN;
+							case STOP:
+								callback.process(NodeEnterMode.EXIT,node);
+								return ContinueMode.STOP;
+							default:
+								break;
 						}
 					}
-				case SKIP_CHILDREN	:
-					callback.process(NodeEnterMode.EXIT,node);
-					return ContinueMode.CONTINUE;
-				case SKIP_SIBLINGS	:
-					callback.process(NodeEnterMode.EXIT,node);
-					return ContinueMode.SKIP_CHILDREN;
-				case STOP			:
-					callback.process(NodeEnterMode.EXIT,node);
-					return ContinueMode.STOP;
-				default:
-					return ContinueMode.CONTINUE;
-			}
+				}
+			case SKIP_CHILDREN	:
+				callback.process(NodeEnterMode.EXIT,node);
+				return ContinueMode.CONTINUE;
+			case SKIP_SIBLINGS	:
+				callback.process(NodeEnterMode.EXIT,node);
+				return ContinueMode.SKIP_CHILDREN;
+			case STOP			:
+				callback.process(NodeEnterMode.EXIT,node);
+				return ContinueMode.STOP;
+			default:
+				return ContinueMode.CONTINUE;
 		}
 	}
-	
-	public static Container findComponentByName(final Component node, final String name) {
+
+	/**
+	 * <p>Find  component in the component tree by it's name</p>
+	 * @param node root node to seek component
+	 * @param name component name
+	 * @return component found or null when  missing
+	 * @throws NullPointerException when root node is null
+	 * @throws IllegalArgumentException when name to seek is null or empty 
+	 */
+	public static Container findComponentByName(final Component node, final String name) throws NullPointerException, IllegalArgumentException {
 		if (node == null) {
 			throw new NullPointerException("Node callbacl can't be null");
 		}
@@ -236,6 +270,15 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 		}
 	}
 	
+	/**
+	 * <p>Prepare renderer for the given meta data and field format</p>
+	 * @param metadata meta data to prepare renderer for
+	 * @param format field format
+	 * @param monitor field monitor
+	 * @return component prepared
+	 * @throws NullPointerException when any parameters are null
+	 * @throws LocalizationException when there are problems with localizers
+	 */
 	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws NullPointerException, LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null");
@@ -291,7 +334,15 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 		}
 	}
 
-	public static String prepareMessage(final Severity severity, final String format, final Object... parameters) {
+	/**
+	 * <p>Prepare message in HTML format to show it in the JTextComponent controls</p>
+	 * @param severity message severity
+	 * @param format message format (see {@linkplain String#format(String, Object...)}
+	 * @param parameters additional parameters
+	 * @return HTML representation of the message
+	 * @throws NullPointerException when any parameters are null
+	 */
+	public static String prepareHtmlMessage(final Severity severity, final String format, final Object... parameters) throws NullPointerException {
 		if (severity == null) {
 			throw new NullPointerException("Severity can't be null");
 		}
@@ -316,10 +367,8 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 	}
 
 	public static Object getDefaultValue4Class(final Class<?> clazz) {
-		// TODO:
 		return DEFAULT_VALUES.get(clazz);
 	}
-	
 	
 	public static int getSignum4Value(final Object value) {
 		if (value == null) {
@@ -351,7 +400,7 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 				return ((BigDecimal)value).signum();
 			}
 			else {
-				throw new IllegalArgumentException("Value type ["+value.getClass().getCanonicalName()+"] is not a numerical");
+				throw new IllegalArgumentException("Value type ["+value.getClass().getCanonicalName()+"] for value ["+value+"] is not a numerical type");
 			}
 		}
 	}
@@ -372,13 +421,19 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 		else if (newLocale == null) {
 			throw new NullPointerException("New locale can't be null"); 
 		}
-		else if (root != null) {
+		else {
+			refreshLocaleInternal(root, oldLocale, newLocale);
+		}
+	}
+	
+	private static void refreshLocaleInternal(final Component root, final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		if (root != null) {
 			if (root instanceof LocaleChangeListener) {
 				((LocaleChangeListener)root).localeChanged(oldLocale, newLocale);
 			}
 			else if (root instanceof Container) {
 				for (Component item : ((Container)root).getComponents()) {
-					refreshLocale(item,oldLocale,newLocale);
+					refreshLocaleInternal(item,oldLocale,newLocale);
 				}
 			}
 		}
@@ -416,7 +471,15 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 			});
 		}
 	}
-	
+
+	/**
+	 * <p>Center main window on the screen</p>
+	 * @param frame main window
+	 * @throws NullPointerException if frame is null
+	 */
+	public static void centerMainWindow(final JFrame frame) throws NullPointerException {
+		centerMainWindow(frame,0.75f);
+	}	
 	
 	/**
 	 * <p>Center main window on the screen</p>
@@ -448,16 +511,7 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 	 * @throws NullPointerException if dialog is null
 	 */
 	public static void centerMainWindow(final JDialog dialog) throws NullPointerException {
-		if (dialog == null) {
-			throw new NullPointerException("Dialog window can't be null"); 
-		}
-		else {
-			final Dimension	screen = Toolkit.getDefaultToolkit().getScreenSize();
-			final Dimension	size = dialog.getContentPane().getPreferredSize();
-			final Point		location = new Point((screen.width-size.width)/2,(screen.height-size.height)/2);
-			
-			dialog.setLocation(location);
-		}
+		centerMainWindow(dialog,0.5f);
 	}
 	
 	/**
@@ -484,8 +538,17 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 		}
 	}
 	
+	/**
+	 * <p>This interface describes callback for closing frame</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface ExitMethodCallback {
+		/**
+		 * <p>Process exit from main frame</p>
+		 * @throws Exception
+		 */
 		void processExit() throws Exception;
 	}
 
@@ -512,18 +575,27 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 				@Override public void windowActivated(WindowEvent e) {}
 				
 				@Override 
-				public void windowClosing(WindowEvent e) {
+				public void windowClosing(final WindowEvent e) {
 					try{callback.processExit();
-					} catch (Exception e1) {
-						e1.printStackTrace();
+					} catch (Exception exc) {
+						exc.printStackTrace();
 					}
 				}				
 			});
 		}
 	}
 	
+	/**
+	 * <p>This interface describes callback for processing unknown action string</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface FailedActionListenerCallback {
+		/**
+		 * <p>Process unknown action command</p>
+		 * @param actionCommand
+		 */
 		void processUnknown(final String actionCommand);
 	}
 
@@ -565,14 +637,19 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 			throw new NullPointerException("Form manager can't be null"); 
 		}
 		else {
-			
 		}
 	}
 
+	/**
+	 * <p>Build {@linkplain ActionListener} to call methods marked with {@linkplain OnAction} annotation</p>  
+	 * @param entity marked instance to call methods in
+	 * @return action listener built
+	 * @throws IllegalArgumentException when no entity methods are marked with {@linkplain OnAction}
+	 * @throws NullPointerException when entity reference is null
+	 */
 	public static ActionListener buildAnnotatedActionListener(final Object entity) throws IllegalArgumentException, NullPointerException {
 		return buildAnnotatedActionListener(entity,(action)->{JOptionPane.showMessageDialog(null,"unknown action command ["+action+"]");});
 	}
-	
 	
 	/**
 	 * <p>Build {@linkplain ActionListener} to call methods marked with {@linkplain OnAction} annotation</p>  
@@ -583,23 +660,39 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 	 * @throws NullPointerException when entity reference is null
 	 */
 	public static ActionListener buildAnnotatedActionListener(final Object entity, final FailedActionListenerCallback onUnknown) throws IllegalArgumentException, NullPointerException {
+		return buildAnnotatedActionListener(entity, onUnknown, PureLibSettings.NULL_LOGGER);
+	}
+
+	/**
+	 * <p>Build {@linkplain ActionListener} to call methods marked with {@linkplain OnAction} annotation</p>  
+	 * @param entity marked instance to call methods in
+	 * @param onUnknown callback to process missing actions
+	 * @param logger logger facade to print errors to
+	 * @return action listener built
+	 * @throws IllegalArgumentException when no entity methods are marked with {@linkplain OnAction}
+	 * @throws NullPointerException when entity reference is null
+	 */
+	public static ActionListener buildAnnotatedActionListener(final Object entity, final FailedActionListenerCallback onUnknown, final LoggerFacade logger) throws IllegalArgumentException, NullPointerException {
 		if (entity == null) {
 			throw new NullPointerException("Entity class can't be null"); 
+		}
+		else if (onUnknown == null) {
+			throw new NullPointerException("OnUnknown callback can't be null"); 
+		}
+		else if (logger == null) {
+			throw new NullPointerException("Logger can't be null"); 
 		}
 		else {
 			final Map<String,Method>	annotatedMethods = new HashMap<>(); 
 			Class<?>					entityClass = entity.getClass();
 			
-			while (entityClass != null) {
-				for (Method m : entityClass.getDeclaredMethods()) {
-					if (m.isAnnotationPresent(OnAction.class)) {
-						if (!annotatedMethods.containsKey(m.getAnnotation(OnAction.class).value())) {
-							annotatedMethods.put(m.getAnnotation(OnAction.class).value(),m);
-						}
+			CompilerUtils.walkMethods(entityClass,(clazz,m)->{
+				if (m.isAnnotationPresent(OnAction.class)) {
+					if (!annotatedMethods.containsKey(m.getAnnotation(OnAction.class).value())) {
+						annotatedMethods.put(m.getAnnotation(OnAction.class).value(),m);
 					}
 				}
-				entityClass = entityClass.getSuperclass();
-			}
+			});
 			if (annotatedMethods.size() == 0) {
 				throw new IllegalArgumentException("No any methods in the entity object are annotated with ["+OnAction.class+"] annotation"); 
 			}
@@ -625,8 +718,10 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 								if (mha.async) {
 									new Thread(()->{
 										try{mha.handle.invoke(entity);
+										} catch (ThreadDeath d) {
+											throw d;
 										} catch (Throwable t) {
-											t.printStackTrace();
+											logger.message(Severity.error, t, t.getLocalizedMessage());
 										}
 									}).start();
 								}
@@ -634,7 +729,7 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 									mha.handle.invoke(entity);
 								}
 							} catch (Throwable t) {
-								t.printStackTrace();
+								logger.message(Severity.error, t, t.getLocalizedMessage());
 							}
 						}
 						else {
@@ -705,40 +800,219 @@ loop:					for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); 
 		// TODO:
 	}
 
-	public static void showCreoleHelpWindow(final Component owner, final URI helpContent) throws IOException {
-		final PopupFactory	pf = PopupFactory.getSharedInstance();
-		final JEditorPane	pane = new JEditorPane("text/html","");
-		final JScrollPane	scroll = new JScrollPane(pane);
-		final Point			point = new Point(0,0);
-		
-		scroll.setPreferredSize(new Dimension(200,300));
-		SwingUtilities.convertPointToScreen(point,owner);
-		
-		final Popup			popup = pf.getPopup(owner,scroll,point.x,point.y);
-		
-		try(final InputStream	is = helpContent.toURL().openStream();
-			final Reader		rdr = new InputStreamReader(is);
-			final Writer		wr = new StringWriter();
-			final Writer		cwr = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML)) {
-			
-			Utils.copyStream(rdr,cwr);
-			pane.setText(wr.toString());
+	/**
+	 * <p>Show Creole-based help</p>
+	 * @param owner help window owner
+	 * @param helpContent help reference
+	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException when any parameter is null
+	 */
+	public static void showCreoleHelpWindow(final Component owner, final URI helpContent) throws IOException, NullPointerException {
+		if (owner == null) {
+			throw new NullPointerException("Window owner can't be null");
 		}
-		
-		pane.addFocusListener(new FocusListener() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				popup.hide();
+		else if (helpContent == null) {
+			throw new NullPointerException("Help content refrrence can't be null");
+		}
+		else {
+			final PopupFactory	pf = PopupFactory.getSharedInstance();
+			final JEditorPane	pane = new JEditorPane("text/html","");
+			final JScrollPane	scroll = new JScrollPane(pane);
+			final Point			point = new Point(0,0);
+			
+			scroll.setPreferredSize(new Dimension(200,300));
+			SwingUtilities.convertPointToScreen(point,owner);
+			
+			final Popup			popup = pf.getPopup(owner,scroll,point.x,point.y);
+			
+			try(final InputStream	is = helpContent.toURL().openStream();
+				final Reader		rdr = new InputStreamReader(is);
+				final Writer		wr = new StringWriter();
+				final Writer		cwr = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML)) {
+				
+				Utils.copyStream(rdr,cwr);
+				pane.setText(wr.toString());
 			}
 			
-			@Override
-			public void focusGained(FocusEvent e) {
+			final class RemoveableFocusListener implements FocusListener {
+				private final JEditorPane	owner;
+				
+				RemoveableFocusListener(final JEditorPane owner) {
+					this.owner = owner;
+				}
+				
+				@Override public void focusGained(FocusEvent e) {}
+
+				@Override
+				public void focusLost(FocusEvent e) {
+					popup.hide();
+					owner.removeFocusListener(this);
+				}
 			}
-		});
-		popup.show();
+			
+			pane.addFocusListener(new RemoveableFocusListener(pane));
+			popup.show();
+			pane.requestFocusInWindow();
+		}
+	}
+
+	/*
+	M x y - absolute move
+	m - x y - relative move
+	L x y - absolute line
+	l x y - relative line
+	H x - absolute horizontal move
+	h h - relative horizontal move
+	V x - absolute vertical move
+	v h - relative vertical move
+	Z - close path
+	z - close path
+	C x1 y1 x2 y2 x y - absolute Besier cubic
+	c x1 y1 x2 y2 x y - relative Besier cubic
+	S x2 y2 x y - absolute Besier cubic (continued)
+	s  y2 x y - relative Besier cubic (continued)
+	Q x1 y1 x y - absolute Besier quadratic
+	q x1 y1 x y - relative Besier quadratic
+	T x y - absolute Besier quadratic (continued)
+	t x y - relative Besier quadratic (continued)
+	A rx ry x_axis_angle large_arc sweep_flag x y - absolute arc
+	a rx ry x_axis_angle large_arc sweep_flag x y - relative arc
+
+	large_arc = 0 - arc angle < 180 degrees
+	large_arc = 1 - arc angle >= 180 degrees
+	sweep_flag = 0 - clockwise rotation
+	sweep_flag = 1 - counterclockwise rotation	
+	*/
+	public static GeneralPath buildGeneralPath(final String source) throws SyntaxException, IllegalArgumentException {
+		if (source == null || source.isEmpty()) {
+			throw new IllegalArgumentException("Source string can't be null or empty");
+		}
+		else {
+			final GeneralPath	path = new GeneralPath();
+			final char[]		src = (source+';').toCharArray();
+			final float[]		parsedX = new float[1], parsedY = new float[1];
+			final int[]			parsedFlags = new int[1];
+			final Point2D.Float	zeroPoint = new Point2D.Float(0.0f,0.0f);
+			Point2D.Float		prevPoint;
+			int					from = 0;
+			
+			for (;;) {
+				Point2D			start = path.getCurrentPoint();
+				
+				switch (src[from = CharUtils.skipBlank(src,from,false)]) {
+					case 'M'	:
+						start = zeroPoint;
+					case 'm'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						path.moveTo(start.getX()+parsedX[0],start.getY()+parsedY[0]);
+						break;
+					case 'L'	:
+						start = zeroPoint;
+					case 'l'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						path.lineTo(start.getX()+parsedX[0],start.getY()+parsedY[0]);
+						break;
+					case 'H'	:
+						start = zeroPoint;
+					case 'h'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						path.lineTo(start.getX()+parsedX[0],start.getY());
+						break;
+					case 'V'	:
+						start = zeroPoint;
+					case 'v'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						path.lineTo(start.getX(),start.getY()+parsedY[0]);
+						break;
+					case 'Z' : case 'z' :
+						if (src[from = CharUtils.skipBlank(src,from+1,false)] != ';') {
+							throw new SyntaxException(0,from,"Dust in the tail of command");
+						}
+						path.closePath();
+					case 'C'	:
+						start = zeroPoint;
+					case 'c'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						final float 	x1 = parsedX[0], y1 = parsedY[0];
+						
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						final float 	x2 = parsedX[0], y2 = parsedY[0];
+						
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						path.curveTo(start.getX()+parsedX[0],start.getY()+parsedY[0],start.getX()+x1,start.getY()+y1,start.getX()+x2,start.getY()+y2);
+						prevPoint = new Point2D.Float(x2, y2);
+						break;
+					case 's'	:
+						start = zeroPoint;
+					case 'S'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						final float 	x1s = parsedX[0], y1s = parsedY[0];
+						
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						path.curveTo(start.getX()+parsedX[0],start.getY()+parsedY[0],start.getX()+x1s,start.getY()+y1s,start.getX()+x1s,start.getY()+y1s);
+						prevPoint = new Point2D.Float(x1s, y1s);
+						break;
+					case 'q'	:
+						start = zeroPoint;
+					case 'Q'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						final float 	x1q = parsedX[0], y1q = parsedY[0];
+						
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						path.quadTo(start.getX()+parsedX[0],start.getY()+parsedY[0],start.getX()+x1q,start.getY()+y1q);
+						prevPoint = new Point2D.Float(x1q, y1q);
+						break;
+					case 't'	:
+						start = zeroPoint;
+					case 'T'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						final float 	x1t = parsedX[0], y1t = parsedY[0];
+						
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						path.quadTo(start.getX()+parsedX[0],start.getY()+parsedY[0],start.getX()+x1t,start.getY()+y1t);
+						prevPoint = new Point2D.Float(x1t, y1t);
+						break;
+					case 'a'	:
+						start = zeroPoint;
+					case 'A'	:
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
+						final float 	rx = parsedX[0], ry = parsedY[0];
+						
+						from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
+						final float		xAngle = parsedX[0];
+						
+						from = CharUtils.parseInt(src,CharUtils.skipBlank(src,from+1,false),parsedFlags,true);
+						final int		fLargeArc = parsedFlags[0];
+						
+						from = CharUtils.parseInt(src,CharUtils.skipBlank(src,from+1,false),parsedFlags,true);
+						final int		fSweep = parsedFlags[0];
+						
+						final Arc2D.Float	arc = new Arc2D.Float((float)start.getX(),(float)start.getY(),rx,ry,0.0f,0.0f,Arc2D.OPEN);
+						path.append(arc,true);
+						break;
+					case ';'	:
+						return path;
+					default		:
+						throw new SyntaxException(0,from,"Unknown command ["+src[from]+"] in source string");
+				}
+			}
+			
+		}
 	}
 	
-	
+	 
 	private static class MethodHandleAndAsync {
 		final MethodHandle	handle;
 		final boolean		async;
