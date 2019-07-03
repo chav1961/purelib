@@ -379,6 +379,7 @@ public class ContentModelFactory {
 					final String	itemCaption = getAttribute(document,"caption");
 					final String	itemTooltip = getAttribute(document,"tooltip");
 					final String	itemAction = getAttribute(document,"action");
+					final String	groupAction = getAttribute(document,"group");
 					
 					child = new MutableContentNodeMetadata(itemName
 							, String.class
@@ -388,7 +389,7 @@ public class ContentModelFactory {
 							, itemTooltip 
 							, null
 							, null
-							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+itemAction));
+							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : "")));
 					break;
 				case "app:separator"		:
 					child = new MutableContentNodeMetadata("_"

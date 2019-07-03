@@ -4,14 +4,18 @@ import java.awt.Component;
 import java.awt.Container;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
@@ -240,13 +244,45 @@ public class SwingModelUtils {
 				for (ContentNodeMetadata child : node) {
 					toMenuEntity(child,submenu);
 				}
+				final Set<String>	availableGroups = new HashSet<>(); 
+						
+				for (int index = 0, maxIndex = submenu.getMenuComponentCount(); index < maxIndex; index++) {
+					if (submenu.getMenuComponent(index) instanceof JRadioMenuItemWithMeta) {
+						availableGroups.add(((JRadioMenuItemWithMeta)submenu.getMenuComponent(index)).getRadioGroup());
+					}
+				}
+				if (availableGroups.size() > 0) {
+					for (String group : availableGroups) {
+						final ButtonGroup 	buttonGroup = new ButtonGroup();
+						boolean				selected = false;
+
+						for (int index = 0, maxIndex = submenu.getMenuComponentCount(); index < maxIndex; index++) {
+							Component	c = submenu.getMenuComponent(index); 
+							
+							if ((c instanceof JRadioMenuItemWithMeta) && group.equals(((JRadioMenuItemWithMeta)c).getRadioGroup())) {
+								buttonGroup.add((JRadioMenuItemWithMeta)c);
+								if (!selected) {
+									((JRadioMenuItemWithMeta)c).setSelected(selected = true);
+								}
+							}
+						}
+					}
+				}				
 				menu.add(submenu);
 			}
 		} 
 		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.leaf.")) {
-			final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
+			if (node.getApplicationPath().getFragment() != null) {
+				final JRadioMenuItemWithMeta	item = new JRadioMenuItemWithMeta(node);
+				
+				menu.add(item);
+			}
+			else {
+				final JMenuItemWithMeta			item = new JMenuItemWithMeta(node);
+				
+				menu.add(item);
+			}
 			
-			menu.add(item);
 		}
 		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.separator")) {
 			menu.add(new JSeparator());
@@ -357,6 +393,53 @@ public class SwingModelUtils {
 		}
 	}
 
+	private static class JRadioMenuItemWithMeta extends JRadioButtonMenuItem implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = -1731094524456032387L;
+
+		private final ContentNodeMetadata	metadata;
+		private final String				radioGroup;
+		
+		private JRadioMenuItemWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.radioGroup = metadata.getApplicationPath().getFragment();
+			this.setName(metadata.getName());
+			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
+			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
+				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+					this.setAccelerator(KeyStroke.getKeyStroke(item.getLabelId()));
+					break;
+				}
+			}
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+
+		public String getRadioGroup() {
+			return radioGroup;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+	
+	
 	private static class JMenuWithMeta extends JMenu implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = 366031204608808220L;
 		
