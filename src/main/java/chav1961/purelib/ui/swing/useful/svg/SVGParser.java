@@ -37,14 +37,14 @@ public class SVGParser {
 			doc.normalizeDocument();
 			XMLUtils.walkDownXML(doc.getDocumentElement(),(mode,node)->{	// Extract all styles from the content
 				if (mode == NodeEnterMode.ENTER && "style".equals(node.getTagName())) {
-					if (XMLUtils.contains(node,"href")) {
-						try{SwingUtils.parseCSS(Utils.loadCharsFromURI(XMLUtils.getAttribute(node,"href",URI.class),"UTF-8"));
+					if (node.hasAttribute("href")) {
+						try{SwingUtils.parseCSS(new String(Utils.loadCharsFromURI(XMLUtils.getAttribute(node,"href",URI.class),"UTF-8")));
 						} catch (IOException | SyntaxException e) {
 							e.printStackTrace();
 						}
 					}
 					else {
-						try{SwingUtils.parseCSS(node.getTextContent().toCharArray());
+						try{SwingUtils.parseCSS(node.getTextContent());
 						} catch (SyntaxException e) {
 							e.printStackTrace();
 						}

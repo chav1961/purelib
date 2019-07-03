@@ -1,7 +1,9 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.geom.GeneralPath;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -21,6 +23,7 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.DummyLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -35,7 +38,6 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
 
 public class SwingUtilsTest {
-	
 	@Test
 	public void walkingTest() {
 		final StringBuilder	sb = new StringBuilder();
@@ -175,5 +177,59 @@ public class SwingUtilsTest {
 		
 		SwingUtils.showCreoleHelpWindow(dlg,SwingUtilsTest.class.getResource("helpcontent.cre").toURI());
 		Thread.sleep(5000);
+	}
+
+	@Test
+	public void buildGeneralPathTest() throws SyntaxException, IllegalArgumentException {
+		Assert.assertEquals(new Rectangle(10,10,10,10),SwingUtils.buildGeneralPath("M 10 10 L 20 20").getBounds());
+		Assert.assertEquals(new Rectangle(10,10,10,10),SwingUtils.buildGeneralPath("m 10 10 l 10 10").getBounds());
+		Assert.assertEquals(new Rectangle(10,10,10,10),SwingUtils.buildGeneralPath("m 10 10 h 10 v 10").getBounds());
+		Assert.assertEquals(new Rectangle(10,10,10,10),SwingUtils.buildGeneralPath("m 10 10 h 10 v 10 Z").getBounds());
+		
+		Assert.assertEquals(new Rectangle(0,0,10,5),SwingUtils.buildGeneralPath("M 0 0 Q 5 5 10 0").getBounds());
+		Assert.assertEquals(new Rectangle(0,-5,20,10),SwingUtils.buildGeneralPath("M 0 0 Q 5 5 10 0 T 20 0").getBounds());
+
+		Assert.assertEquals(new Rectangle(0,0,10,5),SwingUtils.buildGeneralPath("M 0 0 C 5 5 5 5 10 0").getBounds());
+		Assert.assertEquals(new Rectangle(0,-5,20,10),SwingUtils.buildGeneralPath("M 0 0 C 5 5 5 5 10 0 S 15 -5 20 0").getBounds());
+		
+		Assert.assertEquals(new Rectangle(0,0,20,10),SwingUtils.buildGeneralPath("M 0 0 A 10 10 0 0 1 20 0").getBounds());
+		Assert.assertEquals(new Rectangle(0,-10,20,10),SwingUtils.buildGeneralPath("M 0 0 A 10 10 0 0 0 20 0").getBounds());
+		Assert.assertEquals(new Rectangle(-10,0,20,20),SwingUtils.buildGeneralPath("M 0 0 A 10 10 90 0 1 0 20").getBounds());
+		Assert.assertEquals(new Rectangle(-10,0,20,10),SwingUtils.buildGeneralPath("M 0 0 A 10 10 90 0 0 0 20").getBounds());
+
+		try{SwingUtils.buildGeneralPath(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{SwingUtils.buildGeneralPath("");
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{SwingUtils.buildGeneralPath("?");
+			Assert.fail("Mandatory exception was not detected (unknown command)");
+		} catch (SyntaxException exc) {
+		}
+
+		try{SwingUtils.buildGeneralPath("m 10");
+			Assert.fail("Mandatory exception was not detected (error parsing number)");
+		} catch (SyntaxException exc) {
+		}
+		try{SwingUtils.buildGeneralPath("A 10 10 90 2 0 0 20");
+			Assert.fail("Mandatory exception was not detected (illegal flag)");
+		} catch (SyntaxException exc) {
+		}
+		try{SwingUtils.buildGeneralPath("A 10 10 90 0 2 0 20");
+			Assert.fail("Mandatory exception was not detected (illegal flag)");
+		} catch (SyntaxException exc) {
+		}
+		try{SwingUtils.buildGeneralPath("S 10 10 20 20");
+			Assert.fail("Mandatory exception was not detected ('S' out of context)");
+		} catch (SyntaxException exc) {
+		}
+		try{SwingUtils.buildGeneralPath("T 10 10");
+			Assert.fail("Mandatory exception was not detected ('T' out of context)");
+		} catch (SyntaxException exc) {
+		}
 	}
 }
