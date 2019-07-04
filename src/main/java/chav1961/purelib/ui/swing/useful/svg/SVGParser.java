@@ -38,13 +38,13 @@ public class SVGParser {
 			XMLUtils.walkDownXML(doc.getDocumentElement(),(mode,node)->{	// Extract all styles from the content
 				if (mode == NodeEnterMode.ENTER && "style".equals(node.getTagName())) {
 					if (node.hasAttribute("href")) {
-						try{SwingUtils.parseCSS(new String(Utils.loadCharsFromURI(XMLUtils.getAttribute(node,"href",URI.class),"UTF-8")));
+						try{XMLUtils.parseCSS(new String(Utils.loadCharsFromURI(XMLUtils.getAttribute(node,"href",URI.class),"UTF-8")));
 						} catch (IOException | SyntaxException e) {
 							e.printStackTrace();
 						}
 					}
 					else {
-						try{SwingUtils.parseCSS(node.getTextContent());
+						try{XMLUtils.parseCSS(node.getTextContent());
 						} catch (SyntaxException e) {
 							e.printStackTrace();
 						}

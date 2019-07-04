@@ -27,7 +27,7 @@ import chav1961.purelib.basic.growablearrays.GrowableCharArray;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 public class CharUtils {
@@ -1365,6 +1365,56 @@ public class CharUtils {
 				result[0] = from;
 				for (index = from; index < len; index++) {
 					if (!Character.isJavaIdentifierPart(source[index])) {
+						break;
+					}
+				}
+				result[1] = index-1;
+				
+				return index;
+			}
+		}		
+	}
+
+	/**
+	 * <p>Parse name from the source</p>
+	 * @param source source data contains character representation of the name
+	 * @param from starting position in the source data. 
+	 * @param result array (new int[2]) to store start and end position of the name detected
+	 * @param availableChars additional chars that are valid in the name
+	 * @return position of the first char in the source after successful parsing of the name 
+	 * @throws IllegalArgumentException if any parsing errors ware detected
+	 * @since 0.0.3 
+	 */
+	public static int parseNameExtended(final char[] source, final int from, final int[] result, final char... availableChars) {
+		int		len;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
+		}
+		else if (result == null || result.length != 2) {
+			throw new IllegalArgumentException("Result array can't be null and needs contain exactly two elements"); 
+		}
+		else {
+			if (!Character.isJavaIdentifierStart(source[from])) {
+				throw new IllegalArgumentException("No valid beginning of the name"); 
+			}
+			else {
+				int		index;
+				
+				result[0] = from;
+loop:			for (index = from; index < len; index++) {
+					if (!Character.isJavaIdentifierPart(source[index])) {
+						break;
+					}
+					else {
+						for (char item : availableChars) {
+							if (item == source[index]) {
+								continue loop;
+							}
+						}
 						break;
 					}
 				}
