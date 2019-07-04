@@ -6,6 +6,7 @@ package chav1961.purelib.ui.swing;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -34,6 +35,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +61,8 @@ import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.CharUtils;
@@ -463,7 +467,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			throw new IllegalArgumentException("Action listener can't be null"); 
 		}
 		else if (actionId == null || actionId.isEmpty()) {
-			throw new IllegalArgumentException("Help identifier can't eb null or empty"); 
+			throw new IllegalArgumentException("Action identifier can't be null or empty"); 
 		}
 		else {
 			component.getInputMap(JPanel.WHEN_FOCUSED).put(keyStroke,actionId);
@@ -819,44 +823,53 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			throw new NullPointerException("Help content refrrence can't be null");
 		}
 		else {
-			final PopupFactory	pf = PopupFactory.getSharedInstance();
-			final JEditorPane	pane = new JEditorPane("text/html","");
-			final JScrollPane	scroll = new JScrollPane(pane);
-			final Point			point = new Point(0,0);
+			final PopupFactory		pf = PopupFactory.getSharedInstance();
+			final JEditorPane		pane = new JEditorPane("text/html","");
+			final JScrollPane		scroll = new JScrollPane(pane);
+			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(200,300); 
+			final Point				point = new Point((ownerSize.width-helpSize.width)/2,(ownerSize.height-helpSize.height)/2);
+			final HyperlinkListener	hll = new HyperlinkListener() {
+										@Override
+										public void hyperlinkUpdate(final HyperlinkEvent e) {
+											if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+												try{Desktop.getDesktop().browse(e.getURL().toURI());
+												} catch (URISyntaxException | IOException exc) {
+													PureLibSettings.SYSTEM_ERR_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
+												}
+											}
+										}
+									}; 
 			
-			scroll.setPreferredSize(new Dimension(200,300));
+			pane.setEditable(false);
+			scroll.setPreferredSize(helpSize);
 			SwingUtilities.convertPointToScreen(point,owner);
 			
-			final Popup			popup = pf.getPopup(owner,scroll,point.x,point.y);
+			final Popup				popup = pf.getPopup(owner,scroll,point.x,point.y);
 			
 			try(final InputStream	is = helpContent.toURL().openStream();
 				final Reader		rdr = new InputStreamReader(is);
-				final Writer		wr = new StringWriter();
-				final Writer		cwr = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML)) {
+				final Writer		wr = new StringWriter()) {
 				
-				Utils.copyStream(rdr,cwr);
+				try(final Writer	cwr = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML)) {
+				
+					Utils.copyStream(rdr,cwr);
+				}
 				pane.setText(wr.toString());
 			}
 			
-			final class RemoveableFocusListener implements FocusListener {
-				private final JEditorPane	owner;
-				
-				RemoveableFocusListener(final JEditorPane owner) {
-					this.owner = owner;
-				}
-				
-				@Override public void focusGained(FocusEvent e) {}
-
+			pane.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).put(SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
+			pane.getActionMap().put(SwingUtils.ACTION_EXIT,new AbstractAction() {private static final long serialVersionUID = 1L;
 				@Override
-				public void focusLost(FocusEvent e) {
+				public void actionPerformed(ActionEvent e) {
 					popup.hide();
-					owner.removeFocusListener(this);
+					pane.removeHyperlinkListener(hll);
+					pane.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).remove(SwingUtils.KS_EXIT);
+					pane.getActionMap().remove(SwingUtils.ACTION_EXIT);
 				}
-			}
+			});
+			pane.addHyperlinkListener(hll);
 			
-			pane.addFocusListener(new RemoveableFocusListener(pane));
 			popup.show();
-			pane.requestFocusInWindow();
 		}
 	}
 

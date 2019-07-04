@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Base64;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -96,17 +97,20 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			this.localizer = localizer;
 			this.list = new JList<>(FileSystemFactory.getAvailableFileSystems());
 			this.editor = new J2ColumnEditor(content,(c)-> {
-				if (c.endsWith("showHelp")) {
-					System.err.println("Help: "+content.helpId);
-				}
-				else if (c.endsWith("showLicense")) {
-					System.err.println("License: "+content.licenseContentId);
-				}
-				else if (c.endsWith("copyPasteUri")) {
-					uri2test.setText(content.uriTemplate);
-				}
-				else {
-					System.err.println("Press: "+c+" "+content.helpId+" "+content.licenseContentId);
+				try{if (c.endsWith("showHelp")) {
+						SwingUtils.showCreoleHelpWindow(JFileSystemChanger.this,URI.create("self:/#"+Base64.getEncoder().encodeToString(localizer.getValue(content.helpId).getBytes())));
+					}
+					else if (c.endsWith("showLicense")) {
+						SwingUtils.showCreoleHelpWindow(JFileSystemChanger.this,URI.create("self:/#"+Base64.getEncoder().encodeToString(localizer.getValue(content.licenseContentId).getBytes())));
+					}
+					else if (c.endsWith("copyPasteUri")) {
+						uri2test.setText(content.uriTemplate);
+					}
+					else {
+						System.err.println("Press: "+c+" "+content.helpId+" "+content.licenseContentId);
+					}
+				} catch (LocalizationException | NullPointerException | IllegalArgumentException | IOException exc) {
+					exc.printStackTrace();
 				}
 			});
 			
