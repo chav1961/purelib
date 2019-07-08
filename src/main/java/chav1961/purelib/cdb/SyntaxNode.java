@@ -1,6 +1,6 @@
 package chav1961.purelib.cdb;
 
-public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode<Type,Clazz>> {
+public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode> {
 	public int		row, col;
 	public Type		type;
 	public long		value;

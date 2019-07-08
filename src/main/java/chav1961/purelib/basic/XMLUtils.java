@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -104,6 +105,21 @@ public class XMLUtils {
 	}
 	
 	
+	/*  Syntax rules:
+		<record>::=<selectors><properties>
+		<selectors>::=<selectorGroup>[','...]
+		<selectorGroup>::=<subtreeSel>[{'>'|'-->'}<subtreeSel>...]
+		<subtreeSel>::=<standaloneSel>[{'~'|'+'}<standaloneSel>...]
+		<standaloneSel>=<selItem>['&'<selItem>...]
+		<selItem>::={'*'|<name>|'#'<id>|'.'<class>|'::'<pseudoelement>|':'<pseudoclass>|<attrExpr>}
+		<pseudoElement>::=<name>
+		<pseudoClass>::=<name>['('<number>['n']['+'<number>]')']
+		<attrExpr>::='['<name>[<operator><operValue>]']'
+		<operator>::={'='|'^='|'|='|'*='|'~='|'$='}
+		<operValue>::='"'<any>'"'
+		<properties>::='{'<property>':'<value>[';'...]'}'
+	 */
+	
 	public static Map<String,Properties> parseCSS(final String cssContent) throws SyntaxException, IllegalArgumentException {
 		if (cssContent == null || cssContent.isEmpty()) {
 			throw new IllegalArgumentException("CSS content can't be null or empty");
@@ -112,12 +128,12 @@ public class XMLUtils {
 			final List<CSSLex>	lexemas = new ArrayList<>();
 			final StringBuilder	sb = new StringBuilder();
 			final int[]			nameRange = new int[2];
-			final char[]		src = (cssContent+'\0').toCharArray();
+			final char[]		src = (cssContent+'\uFFFF').toCharArray();
 			int					from = 0;
 			
 loop:		for (;;) {
 				switch (src[from = CharUtils.skipBlank(src,from,false)]) {
-					case '\0' 	:
+					case '\uFFFF' 	:
 						lexemas.add(new CSSLex(from,CSSLex.CSSLExType.EOF));
 						break loop;
 					case '/'	:
@@ -144,9 +160,11 @@ loop:		for (;;) {
 							throw new SyntaxException(0,from,"Missing Id name");
 						}
 						else {
-							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.ID,new String(src,nameRange[0],nameRange[1]-nameRange[0])));
+							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.ID,new String(src,nameRange[0],nameRange[1]-nameRange[0]+1)));
+							if (src[from] == '.' || src[from] == '#' || src[from] == ':' || src[from] == '[') {
+								lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CONCAT));
+							}
 						}
-						from++;
 						break;
 					case '.'	:
 						from = CharUtils.parseNameExtended(src,from+1,nameRange,AVAILABLE_IN_NAMES);
@@ -154,9 +172,11 @@ loop:		for (;;) {
 							throw new SyntaxException(0,from,"Missing class name");
 						}
 						else {
-							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CLASS,new String(src,nameRange[0],nameRange[1]-nameRange[0])));
+							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CLASS,new String(src,nameRange[0],nameRange[1]-nameRange[0]+1)));
+							if (src[from] == '.' || src[from] == '#' || src[from] == ':' || src[from] == '[') {
+								lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CONCAT));
+							}
 						}
-						from++;
 						break;
 					case ':'	:
 						from = CharUtils.parseNameExtended(src,from+1,nameRange,AVAILABLE_IN_NAMES);
@@ -164,9 +184,25 @@ loop:		for (;;) {
 							throw new SyntaxException(0,from,"Missing pseudoclass name");
 						}
 						else {
-							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.PSEUDOCLASS,new String(src,nameRange[0],nameRange[1]-nameRange[0])));
+							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.PSEUDOCLASS,new String(src,nameRange[0],nameRange[1]-nameRange[0]+1)));
+							if (src[from] == '.' || src[from] == '#' || src[from] == ':' || src[from] == '[') {
+								lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CONCAT));
+							}
 						}
 						from++;
+						break;
+					case '@'	:
+						from = CharUtils.parseNameExtended(src,from+1,nameRange,AVAILABLE_IN_NAMES);
+						if (nameRange[0] == nameRange[1]) {
+							throw new SyntaxException(0,from,"Missing attribute name");
+						}
+						else {
+							if (src[nameRange[1]] == '$') {	// Has special means in the CSS
+								nameRange[1]--;
+								from--;
+							}
+							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.ATTRIBUTE,new String(src,nameRange[0],nameRange[1]-nameRange[0]+1)));
+						}
 						break;
 					case ','	:
 						lexemas.add(new CSSLex(from,CSSLex.CSSLExType.DIV));
@@ -179,6 +215,9 @@ loop:		for (;;) {
 					case ']'	:
 						lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CLOSEB));
 						from++;
+						if (src[from] == '.' || src[from] == '#' || src[from] == ':' || src[from] == '[') {
+							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CONCAT));
+						}
 						break;
 					case '"'	:
 						final int 	start = from;
@@ -190,7 +229,6 @@ loop:		for (;;) {
 						}
 						else {
 							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.STRING,sb.toString()));
-							from++;
 						}
 						break;
 					case '>'	:
@@ -208,6 +246,9 @@ loop:		for (;;) {
 					case ')'	:
 						lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CLOSE));
 						from++;
+						if (src[from] == '.' || src[from] == '#' || src[from] == ':' || src[from] == '[') {
+							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CONCAT));
+						}
 						break;
 					case '='	:
 						lexemas.add(new CSSLex(from,CSSLex.CSSLExType.OPER,CSSLex.OPER_EQUALS));
@@ -272,18 +313,28 @@ loop:		for (;;) {
 					default :
 						if (Character.isJavaIdentifierStart(src[from])) {
 							from = CharUtils.parseName(src,from,nameRange);
-							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.NAME,new String(src,nameRange[0],nameRange[1]-nameRange[0])));
+							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.NAME,new String(src,nameRange[0],nameRange[1]-nameRange[0]+1)));
+							if (src[from] == '.' || src[from] == '#' || src[from] == ':' || src[from] == '[') {
+								lexemas.add(new CSSLex(from,CSSLex.CSSLExType.CONCAT));
+							}
 						}
 						else {
 							throw new SyntaxException(0,from,"Unknown lexema");
 						}
 				}
 			}
-			final CSSLex[]	lex = lexemas.toArray(new CSSLex[lexemas.size()]);
-			int				pos = 0;
+			final CSSLex[]			lex = lexemas.toArray(new CSSLex[lexemas.size()]);
+			final Map<String,Properties>	result = new HashMap<>();
+			int						pos = 0;
 			
 			lexemas.clear();
-			return null;
+			do {final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>>	node = new SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>>(0,0,CSSSyntaxNode.RECORD,0L,null);
+			
+				pos = buildCSSTree(lex,pos,CSSSyntaxNode.RECORD, node);
+				result.put(convertCSSTree2XPath((SyntaxNode<CSSSyntaxNode, SyntaxNode<CSSSyntaxNode, ?>>) node.children[0]),(Properties)node.cargo);
+			} while (pos < lex.length && lex[pos].type != CSSLex.CSSLExType.EOF);
+			
+			return result;
 		}
 	}	
 	
@@ -320,49 +371,55 @@ loop:		for (;;) {
 	}
 
 	private static int parseInnerCSS(final char[] src, final int start, final int[] nameRange, final StringBuilder sb, final Properties props) throws SyntaxException {
-		int	from = start, begin;
-		
-		do {from = CharUtils.parseNameExtended(src, CharUtils.skipBlank(src,from+1,false), nameRange, AVAILABLE_IN_NAMES);
-			if (nameRange[0] == nameRange[1]) {
-				throw new SyntaxException(0,from,"Property name is missing"); 
-			}
-			final String	name = new String(src,nameRange[0],nameRange[1]-nameRange[0]);
-			
-			from = CharUtils.skipBlank(src,from+1,false);
-			if (src[from] == ':') {
-				throw new SyntaxException(0,from,"Colon (:) is missing"); 
-			}
-			else {
-				from = CharUtils.skipBlank(src,from+1,false);
-				if (src[from] == '\"') {
-					sb.setLength(0);
-					begin = from;
-					from = CharUtils.parseString(src,from+1,'\"',sb);
-					if (from >= src.length) {
-						throw new SyntaxException(0,begin,"Unclosed double quote"); 
+		int	from = start, begin = start;
+
+		try{do {from = CharUtils.parseNameExtended(src, CharUtils.skipBlank(src,from+1,false), nameRange, AVAILABLE_IN_NAMES);
+				if (nameRange[0] == nameRange[1]) {
+					throw new SyntaxException(0,from,"Property name is missing"); 
+				}
+				final String	name = new String(src,nameRange[0],nameRange[1]-nameRange[0]+1);
+				
+				from = CharUtils.skipBlank(src,from,false);
+				if (src[from] != ':') {
+					throw new SyntaxException(0,from,"Colon (:) is missing"); 
+				}
+				else {
+					from = CharUtils.skipBlank(src,from+1,false);
+					if (src[from] == '\"') {
+						sb.setLength(0);
+						begin = from;
+						from = CharUtils.parseString(src,from+1,'\"',sb);
+						if (from >= src.length) {
+							throw new SyntaxException(0,begin,"Unclosed double quote"); 
+						}
+						else {
+							props.setProperty(name,sb.toString());
+							from = CharUtils.skipBlank(src,from+1,false);
+						}
 					}
 					else {
-						props.setProperty(name,sb.toString());
+						begin = from;
+						while (src[from] != '\0' && src[from] != ';' && src[from] != '}') {
+							from++;
+						}
+						if (src[from] == '\0') {
+							throw new SyntaxException(0,begin,"Unclosed '}'"); 
+						}
+						else {
+							while (src[from-1] <= ' ') {	// trunk tailed blanks
+								from--;
+							}
+							props.setProperty(name,new String(src,begin,from-begin));
+						}
+					}
+					if (src[from = CharUtils.skipBlank(src,from,false)] == ';') {
 						from = CharUtils.skipBlank(src,from+1,false);
 					}
 				}
-				else {
-					begin = from;
-					while (src[from] != '\0' && src[from] != ';' && src[from] != '}') {
-						from++;
-					}
-					if (src[from] == '\0') {
-						throw new SyntaxException(0,begin,"Unclosed '}'"); 
-					}
-					else {
-						while (src[from-1] <= ' ') {	// trunk tailed blanks
-							from--;
-						}
-						props.setProperty(name,new String(src,begin,from-begin));
-					}
-				}
-			}
-		}  while (src[from] != '\0' && src[from] != '}');
+			}  while (src[from] != '\0' && src[from] != '}');
+		} catch (IllegalArgumentException exc) {
+			throw new SyntaxException(0,begin,exc.getLocalizedMessage(),exc); 
+		}
 		
 		if (src[from] != '}') {
 			throw new SyntaxException(0,begin,"Unclosed '}'"); 
@@ -372,15 +429,243 @@ loop:		for (;;) {
 		}
 	}
 
-	private static int buildCSSTree(final CSSLex src, final int from, final CSSSyntaxNode level, final SyntaxNode<CSSSyntaxNode,?> node) {
-		switch (level) {
+	private static int buildCSSTree(final CSSLex[] src, final int start, final CSSSyntaxNode level, final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>> node) throws SyntaxException {
+		int	from = start;
 		
+		switch (level) {
+			case RECORD			:
+				from = buildCSSTree(src,from,CSSSyntaxNode.SELECTORS,node);
+				if (src[from].type == CSSLex.CSSLExType.PROPS) {
+					final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>> subnode = new SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>>(node); 
+					
+					node.type = CSSSyntaxNode.RECORD;
+					node.value = 0;
+					node.cargo = src[from].props;
+					node.children = new SyntaxNode[]{subnode};
+					node.parent = null;
+					from++;
+				}
+				else {
+					throw new SyntaxException(0,src[from].pos,"Properties clause is missing");
+				}
+				break;
+			case SELECTORS		:
+				from = buildCSSTree(src,from,CSSSyntaxNode.SELECTOR_GROUP,node);
+				if (src[from].type == CSSLex.CSSLExType.DIV) {
+					final List<SyntaxNode>	orList = new ArrayList<>();
+					
+					orList.add(new SyntaxNode(node));					
+					do {from = buildCSSTree(src,from,CSSSyntaxNode.SELECTOR_GROUP,node);
+						orList.add(new SyntaxNode(node));
+					} while (src[from].type == CSSLex.CSSLExType.DIV);
+					node.type = CSSSyntaxNode.SELECTORS;
+					node.children = orList.toArray(new SyntaxNode[orList.size()]);
+				}
+				break;
+			case SELECTOR_GROUP	:
+				from = buildCSSTree(src,from,CSSSyntaxNode.SUBTREE_SEL,node);
+				if (src[from].type == CSSLex.CSSLExType.PLUS) {
+					final List<SyntaxNode>	orList = new ArrayList<>();
+					
+					orList.add(new SyntaxNode(node));					
+					do {from = buildCSSTree(src,from,CSSSyntaxNode.SUBTREE_SEL,node);
+						orList.add(new SyntaxNode(node));
+					} while (src[from].type == CSSLex.CSSLExType.PLUS);
+					node.type = CSSSyntaxNode.SELECTOR_GROUP;
+					node.children = orList.toArray(new SyntaxNode[orList.size()]);
+				}
+				break;
+			case SUBTREE_SEL	:
+				from = buildCSSTree(src,from,CSSSyntaxNode.STANDALONE_SEL,node);
+				if (src[from].type == CSSLex.CSSLExType.SEQUENT) {
+					final List<SyntaxNode>	nestedList = new ArrayList<>();
+					
+					nestedList.add(new SyntaxNode(node));					
+					do {from = buildCSSTree(src,from+1,CSSSyntaxNode.STANDALONE_SEL,node);
+						nestedList.add(new SyntaxNode(node));
+					} while (src[from].type == CSSLex.CSSLExType.SEQUENT);
+					node.type = CSSSyntaxNode.SUBTREE_SEL;
+					node.children = nestedList.toArray(new SyntaxNode[nestedList.size()]);
+				}
+				break;
+			case STANDALONE_SEL	:
+				from = buildCSSTree(src,from,CSSSyntaxNode.SEL_ITEM,node);
+				if (src[from].type == CSSLex.CSSLExType.CONCAT) {
+					final List<SyntaxNode>	andList = new ArrayList<>();
+					
+					andList.add(new SyntaxNode(node));					
+					do {from = buildCSSTree(src,from+1,CSSSyntaxNode.SEL_ITEM,node);
+						andList.add(new SyntaxNode(node));
+					} while (src[from].type == CSSLex.CSSLExType.CONCAT);
+					node.type = CSSSyntaxNode.STANDALONE_SEL;
+					node.children = andList.toArray(new SyntaxNode[andList.size()]);
+				}
+				break;
+			case SEL_ITEM		:
+				node.col = src[from].pos;
+				
+				switch (src[from].type) {
+					case ASTERISK	:
+						node.type = CSSSyntaxNode.SEL_ITEM;
+						node.value = CSSLex.NODE_ASTERISK;
+						from++;
+						break;
+					case CLASS		:
+						node.type = CSSSyntaxNode.SEL_ITEM;
+						node.value = CSSLex.NODE_CLASS;
+						node.cargo = src[from].strValue;
+						from++;
+						break;
+					case ID			:
+						node.type = CSSSyntaxNode.SEL_ITEM;
+						node.value = CSSLex.NODE_ID;
+						node.cargo = src[from].strValue;
+						from++;
+						break;
+					case NAME		:
+						node.type = CSSSyntaxNode.SEL_ITEM;
+						node.value = CSSLex.NODE_TAG;
+						node.cargo = src[from].strValue;
+						from++;
+						break;
+					case PSEUDOCLASS:
+						node.type = CSSSyntaxNode.SEL_ITEM;
+						node.value = CSSLex.NODE_PSEUDOCLASS;
+						if (src[from+1].type == CSSLex.CSSLExType.OPEN) {
+							if (src[from+2].type == CSSLex.CSSLExType.NUMBER && src[from+3].type == CSSLex.CSSLExType.NAME && src[from+4].type == CSSLex.CSSLExType.PLUS && src[from+5].type == CSSLex.CSSLExType.NUMBER && src[from+6].type == CSSLex.CSSLExType.CLOSE) {
+								node.cargo = new Object[]{src[from].strValue,src[from+2].intValue,src[from+5].intValue};
+								from += 7;
+							}
+							else if (src[from+2].type == CSSLex.CSSLExType.NUMBER && src[from+3].type == CSSLex.CSSLExType.NAME && src[from+4].type == CSSLex.CSSLExType.CLOSE) {
+								node.cargo = new Object[]{src[from].strValue,src[from+2].intValue,0};
+								from += 5;
+							}
+							else if (src[from+2].type == CSSLex.CSSLExType.NUMBER && src[from+3].type == CSSLex.CSSLExType.CLOSE) {
+								node.cargo = new Object[]{src[from].strValue,0,src[from+2].intValue};
+								from += 4;
+							}
+							else {
+								throw new SyntaxException(0,src[from].pos,"Illegal pseudoclass parameters"); 
+							}
+						}
+						else {
+							node.cargo = new Object[]{src[from].strValue};
+							from++;
+						}
+						break;
+					case OPENB		:
+						if (src[from+1].type == CSSLex.CSSLExType.ATTRIBUTE) {
+							if (src[from+2].type == CSSLex.CSSLExType.CLOSEB) {
+								node.type = CSSSyntaxNode.SEL_ITEM;
+								node.value = CSSLex.NODE_ATTR; 
+								node.cargo = new Object[]{src[from+1].strValue};
+								from+=3;
+							}
+							else if (src[from+2].type == CSSLex.CSSLExType.OPER && src[from+3].type == CSSLex.CSSLExType.STRING && src[from+4].type == CSSLex.CSSLExType.CLOSEB) {
+								node.type = CSSSyntaxNode.SEL_ITEM;
+								node.value = CSSLex.NODE_ATTR; 
+								node.cargo = new Object[]{src[from+1].strValue,src[from+2].intValue,src[from+3].strValue};
+								from+=5;
+							}
+							else {
+								throw new SyntaxException(0,src[from].pos,"Illegal attribute check"); 
+							}
+						}
+						else {
+							throw new SyntaxException(0,src[from].pos,"Illegal attribute check"); 
+						}
+						break;
+					default:
+						break;
+				}
+				break;
+			default				:
+				break;
 		}
-		return 0;
+		return from;
 	}
 
+	private static String convertCSSTree2XPath(final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>> node) throws SyntaxException {
+		switch (node.type) {
+			case RECORD			:
+				return convertCSSTree2XPath((SyntaxNode<CSSSyntaxNode, SyntaxNode<CSSSyntaxNode, ?>>)node.children[0]); 
+			case SELECTORS		:
+				final StringBuilder	selSb = new StringBuilder();
+				
+				for (SyntaxNode<CSSSyntaxNode, ?> item : node.children) {
+					selSb.append('|').append(convertCSSTree2XPath((SyntaxNode<CSSSyntaxNode, SyntaxNode<CSSSyntaxNode, ?>>) item));
+				}
+				return selSb.substring(1);
+			case SELECTOR_GROUP	:
+				break;
+			case SUBTREE_SEL	:
+				final StringBuilder	depthSb = new StringBuilder();
+				int		depth = 0;
+				
+				for (SyntaxNode<CSSSyntaxNode, ?> item : node.children) {
+					if (depth > 0) {
+						depthSb.append(" and ./child[");
+					}
+					depthSb.append('('+convertCSSTree2XPath((SyntaxNode<CSSSyntaxNode, SyntaxNode<CSSSyntaxNode, ?>>) item)+')');
+					depth++;
+				}
+				while (--depth > 0) {
+					depthSb.append(']');
+				}
+				return depthSb.toString(); 
+			case STANDALONE_SEL	:
+				final StringBuilder	andSb = new StringBuilder();
+				
+				for (SyntaxNode<CSSSyntaxNode, ?> item : node.children) {
+					andSb.append(" and ").append(convertCSSTree2XPath((SyntaxNode<CSSSyntaxNode, SyntaxNode<CSSSyntaxNode, ?>>) item));
+				}
+				return andSb.substring(5); 
+			case SEL_ITEM		:
+				switch ((int)node.value) {
+					case CSSLex.NODE_ASTERISK	:
+						return "*";
+					case CSSLex.NODE_TAG		:
+						return "node-name(.)=\'"+node.cargo.toString()+"\'";
+					case CSSLex.NODE_ID			:
+						return "@id=\'"+node.cargo.toString()+"\'";
+					case CSSLex.NODE_CLASS		:
+						return "contains(concat(' ',normalize-space(@class),' '),\' "+node.cargo.toString()+" \')";
+					case CSSLex.NODE_ATTR		:
+						if (((Object[])node.cargo).length == 1) {
+							return "boolean(@"+((Object[])node.cargo)[0].toString()+")";
+						}
+						else {
+							switch ((Integer)((Object[])node.cargo)[1]) {
+								case CSSLex.OPER_ENDSWITH			:
+									return "ends-with(@"+((Object[])node.cargo)[0].toString()+",\'"+((Object[])node.cargo)[2].toString()+"\')";
+								case CSSLex.OPER_CONTAINS			:
+									return "contains(@"+((Object[])node.cargo)[0].toString()+",\'"+((Object[])node.cargo)[2].toString()+"\')";
+								case CSSLex.OPER_CONTAINS_VALUE		:
+									return "contains(concat(' ',normalize-space(@"+((Object[])node.cargo)[0].toString()+"),' '),\' "+((Object[])node.cargo)[2].toString()+" \')";
+								case CSSLex.OPER_STARTSWITH			:
+									return "starts-with(@"+((Object[])node.cargo)[0].toString()+",\'"+((Object[])node.cargo)[2].toString()+"\')";
+								case CSSLex.OPER_STARTS_OR_EQUALS	:
+									return "(starts-with(@"+((Object[])node.cargo)[0].toString()+",\'"+((Object[])node.cargo)[2].toString()+"\') or @"+((Object[])node.cargo)[0].toString()+"=\'"+((Object[])node.cargo)[2].toString()+"\')";
+								case CSSLex.OPER_EQUALS				:
+									return "@"+((Object[])node.cargo)[0].toString()+"=\'"+((Object[])node.cargo)[2].toString()+"\'";
+								default :
+									throw new SyntaxException(node.row,node.col,"Unsupported attribute operation ["+((Object[])node.cargo)[1]+"] in the syntax tree");
+							}
+						}
+					case CSSLex.NODE_PSEUDOCLASS:
+						break;
+					default :
+						throw new SyntaxException(node.row,node.col,"Unsupported node ["+node.value+"] in the syntax tree");
+				}
+				break;
+			default:
+				break;
+		}
+		return null;
+	}
+	
 	private enum CSSSyntaxNode {
-		RECORD, OR, AND, 
+		RECORD, SELECTORS, SELECTOR_GROUP, SUBTREE_SEL, STANDALONE_SEL, SEL_ITEM 
 	}
 	
 	private static class CSSLex {
@@ -391,8 +676,15 @@ loop:		for (;;) {
 		private static final int	OPER_STARTS_OR_EQUALS = 4;
 		private static final int	OPER_EQUALS = 5;
 		
+		private static final int	NODE_ASTERISK = 0;
+		private static final int	NODE_TAG = 1;
+		private static final int	NODE_ID = 2;
+		private static final int	NODE_CLASS = 3;
+		private static final int	NODE_ATTR = 4;
+		private static final int	NODE_PSEUDOCLASS = 5;
+		
 		private enum CSSLExType {
-			ASTERISK, ID, CLASS, PSEUDOCLASS, DIV, NUMBER, STRING, NAME, OPENB, CLOSEB, OPER, SEQUENT, PLUS, OPEN, CLOSE, PROPS, EOF,   
+			ASTERISK, ID, CLASS, PSEUDOCLASS, ATTRIBUTE, DIV, CONCAT, NUMBER, STRING, NAME, OPENB, CLOSEB, OPER, SEQUENT, PLUS, OPEN, CLOSE, PROPS, EOF,   
 		}
 		
 		private final int			pos;

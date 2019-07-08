@@ -1406,15 +1406,12 @@ public class CharUtils {
 				
 				result[0] = from;
 loop:			for (index = from; index < len; index++) {
-					if (!Character.isJavaIdentifierPart(source[index])) {
-						break;
-					}
-					else {
-						for (char item : availableChars) {
-							if (item == source[index]) {
-								continue loop;
-							}
+					for (char item : availableChars) {
+						if (item == source[index]) {
+							continue loop;
 						}
+					}
+					if (!Character.isJavaIdentifierPart(source[index])) {
 						break;
 					}
 				}
