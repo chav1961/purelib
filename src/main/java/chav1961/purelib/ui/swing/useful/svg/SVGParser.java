@@ -3,6 +3,8 @@ package chav1961.purelib.ui.swing.useful.svg;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -20,6 +22,11 @@ import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 public class SVGParser {
+	private static final Map<String,AbstractAttribute>		GRAPHIC_ATTR = new HashMap<>();
+	
+	static {
+	}
+	
 	public static SVGPainter parse(final InputStream svgXml) throws NullPointerException, ContentException {
 		return parse(svgXml,PureLibSettings.NULL_LOGGER);
 	}

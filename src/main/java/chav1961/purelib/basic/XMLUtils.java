@@ -1,5 +1,7 @@
 package chav1961.purelib.basic;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +20,20 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.streams.JsonStaxParser;
+import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
+import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 public class XMLUtils {
-	private static final char[]	AVAILABLE_IN_NAMES = {'-'};
+	private static final char[]		AVAILABLE_IN_NAMES = {'-'};
+	private static final String		PROP_ATTR_NAME_HAS_FIXED = "hasFixed";
+	private static final String		PROP_ATTR_NAME_VALUE_TYPE = "valueType";
+	private static final String		PROP_ATTR_NAME_INHERITANCE_AVAILABLE = "inheritanceAvailable";
+	private static final String		PROP_ATTR_NAME_URL_AVAILABLE = "urlAvailable";
+	private static final String		PROP_ATTR_NAME_CHILDREN = "children";
+	private static final String		PROP_ATTR_NAME_FORMAT = "format";
+	private static final String		PROP_ATTR_NAME_PARSER_CLASS = "parserClass";
+	private static final String		PROP_ATTR_NAME_PARSER_METHOD = "parserMethod";
 
 	@FunctionalInterface
 	public interface XMLWalkerCallback {
@@ -338,6 +351,31 @@ loop:		for (;;) {
 		}
 	}	
 	
+	public interface AttributeParser {
+		String getAttributeName();
+		void process(final Element element);
+	}
+	
+	public static AttributeParser buildAttributeParser(final Reader parserDescription) throws IOException, SyntaxException {
+		if (parserDescription == null) {
+			throw new NullPointerException("Parser descripion stream can't be null");
+		}
+		else {
+			try(final JsonStaxParserInterface		parser = new JsonStaxParser(parserDescription)) {
+				final Map<String,AttributeParser>	collection = new HashMap<>();
+
+				for (JsonStaxParserLexType item : parser) {
+					while (item == JsonStaxParserLexType.START_ARRAY) {
+						try(final JsonStaxParserInterface	nested = parser.nested()) {
+							buildTopAttributeParsers(parser.nested(),collection);
+						}
+					}
+				}
+				return null;
+			}
+		}
+	}
+
 	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) {
 		ContinueMode	before = null, after = ContinueMode.CONTINUE;
 		
@@ -427,6 +465,120 @@ loop:		for (;;) {
 		else {
 			return from+1;
 		}
+	}
+	
+	private static void buildTopAttributeParsers(final JsonStaxParserInterface parser, final Map<String, AttributeParser> collection) throws SyntaxException, IOException {
+		String			name = null;
+		AttributeParser	ap = null;
+		
+		for (JsonStaxParserLexType item : parser) {
+			if (item == JsonStaxParserLexType.NAME) {
+				name = parser.name();
+			}
+			else if (item == JsonStaxParserLexType.START_OBJECT) {
+				try(final JsonStaxParserInterface	nested = parser.nested()) {
+					ap = buildTopAttributeParser(parser, collection);
+				}
+			}
+			else {
+				throw new SyntaxException(parser.row(),parser.col(),"Only name of starting object can be here");
+			}
+		}
+		if (name == null) {
+			throw new SyntaxException(parser.row(),parser.col(),"Attribute name is missing");
+		}
+		else if (ap == null) {
+			throw new SyntaxException(parser.row(),parser.col(),"Attribute description is missing");
+		}
+		else {
+			collection.put(name,ap);
+		}
+	}
+	
+	
+	private static AttributeParser buildTopAttributeParser(final JsonStaxParserInterface parser, final Map<String, AttributeParser> collection) throws SyntaxException, IOException {
+		// TODO Auto-generated method stub
+		boolean		hasFixed = false, inheritanceAvailable= false, urlAvailable = false;
+		String		valType = null, format = null, parserClass = null, parserMethod = null;
+		
+		for (JsonStaxParserLexType item : parser) {
+			if (item == JsonStaxParserLexType.NAME) {
+				final String	name = parser.name();
+				
+				if (parser.next() != JsonStaxParserLexType.NAME) {
+					throw new SyntaxException(parser.row(),parser.col(),"Missing (:)"); 
+				}
+				switch (name) {
+					case PROP_ATTR_NAME_HAS_FIXED				:
+						if (parser.next() != JsonStaxParserLexType.BOOLEAN_VALUE) {
+							throw new SyntaxException(parser.row(),parser.col(),"Boolean value awaited"); 
+						}
+						else {
+							hasFixed = parser.booleanValue();
+						}
+						break;
+					case PROP_ATTR_NAME_VALUE_TYPE				:
+						if (parser.next() != JsonStaxParserLexType.STRING_VALUE) {
+							throw new SyntaxException(parser.row(),parser.col(),"String value awaited"); 
+						}
+						else {
+							valType = parser.stringValue();
+						}
+						break;
+					case PROP_ATTR_NAME_INHERITANCE_AVAILABLE	:
+						if (parser.next() != JsonStaxParserLexType.BOOLEAN_VALUE) {
+							throw new SyntaxException(parser.row(),parser.col(),"Boolean value awaited"); 
+						}
+						else {
+							inheritanceAvailable = parser.booleanValue();
+						}
+						break;
+					case PROP_ATTR_NAME_URL_AVAILABLE			:
+						if (parser.next() != JsonStaxParserLexType.BOOLEAN_VALUE) {
+							throw new SyntaxException(parser.row(),parser.col(),"Boolean value awaited"); 
+						}
+						else {
+							urlAvailable = parser.booleanValue();
+						}
+						break;
+					case PROP_ATTR_NAME_CHILDREN				:
+						if (parser.next() != JsonStaxParserLexType.START_ARRAY) {
+							throw new SyntaxException(parser.row(),parser.col(),"Array awaited"); 
+						}
+						else {
+//							urlAvailable = parser.booleanValue();
+						}
+						break;
+					case PROP_ATTR_NAME_FORMAT					:
+						if (parser.next() != JsonStaxParserLexType.STRING_VALUE) {
+							throw new SyntaxException(parser.row(),parser.col(),"String value awaited"); 
+						}
+						else {
+							format = parser.stringValue();
+						}
+						break;
+					case PROP_ATTR_NAME_PARSER_CLASS			:
+						if (parser.next() != JsonStaxParserLexType.STRING_VALUE) {
+							throw new SyntaxException(parser.row(),parser.col(),"String value awaited"); 
+						}
+						else {
+							parserClass = parser.stringValue();
+						}
+						break;
+					case PROP_ATTR_NAME_PARSER_METHOD			:
+						if (parser.next() != JsonStaxParserLexType.STRING_VALUE) {
+							throw new SyntaxException(parser.row(),parser.col(),"String value awaited"); 
+						}
+						else {
+							parserMethod = parser.stringValue();
+						}
+						break;
+					default : 
+						throw new SyntaxException(parser.row(),parser.col(),"Unsupported name ["+name+"] in the descriptor"); 
+				}
+			}
+		}
+		return null;
 	}
 
 	private static int buildCSSTree(final CSSLex[] src, final int start, final CSSSyntaxNode level, final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>> node) throws SyntaxException {
