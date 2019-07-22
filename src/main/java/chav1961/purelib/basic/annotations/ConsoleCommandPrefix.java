@@ -25,4 +25,5 @@ import chav1961.purelib.basic.ConsoleCommandManager;
 @Target({ElementType.TYPE})
 public @interface ConsoleCommandPrefix {
 	String value();
+	String[] comment() default {};
 }
