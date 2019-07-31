@@ -19,18 +19,38 @@ public class SVGPainter {
 	}
 	
 	private final Color				background = null;
-	private final AbstractPainter[]	primitives = null;
+	private final AbstractPainter[]	primitives;
+	private final int				width, height;
 	
-	protected SVGPainter() {
+	protected SVGPainter(final int width, final int height, final AbstractPainter... primitives) {
+		if (width <= 0) {
+			throw new IllegalArgumentException("Width ["+width+"] must be positive"); 
+		}
+		else if (height <= 0) {
+			throw new IllegalArgumentException("Height ["+height+"] must be positive"); 
+		}
+		else if (primitives == null || primitives.length == 0) {
+			throw new IllegalArgumentException("Primitive list can't be null or empty"); 
+		}
+		else {
+			this.width = width;
+			this.height = height;
+			this.primitives = primitives;
+		}
 	}
 
-	public void paint(final Graphics2D g2d) {
+	public int getWidth() {
+		return width;
+	}
+	
+	public int getHeight() {
+		return height;
+	}
+	
+	public void paint(final Graphics2D g2d, final int fillWidth, final int fillHeight) {
 		final AffineTransform	oldAt = g2d.getTransform();
 		final AffineTransform	newAt = pickCoordinates(oldAt);
 		
-		if (background != null) {
-			fillBackground(background);
-		}
 		for (AbstractPainter item : primitives) {
 			item.paint(g2d);
 		}
@@ -40,14 +60,9 @@ public class SVGPainter {
 
 	protected AffineTransform pickCoordinates(final AffineTransform oldAt) {
 		// TODO Auto-generated method stub
-		return null;
+		return oldAt;
 	}
 
-	protected void fillBackground(final Color background) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	protected static class AbstractPainter implements PrimitivePainter {
 		@Override public void paint(final Graphics2D g2d) {}		
 	}

@@ -114,7 +114,12 @@ public class XMLUtilsTest {
 		for (Entry<String, Properties> item : result.entrySet()) {
 			Assert.assertEquals("(node-name(.)='tag1') and ./child[(node-name(.)='tag2')]",item.getKey());
 			Assert.assertEquals(Utils.mkProps("key","value"),item.getValue());
-		}
-		
+		}		
 	}
+
+	@Test
+	public void parseCSSStyleTest() throws SyntaxException {
+		Map<String,Object>	result;
+	}
+
 }

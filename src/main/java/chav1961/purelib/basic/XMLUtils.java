@@ -1,7 +1,10 @@
 package chav1961.purelib.basic;
 
+import java.awt.Color;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +19,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -35,6 +39,27 @@ public class XMLUtils {
 	private static final String		PROP_ATTR_NAME_PARSER_CLASS = "parserClass";
 	private static final String		PROP_ATTR_NAME_PARSER_METHOD = "parserMethod";
 
+	private static final Object[]	COLOR_HEX_TEMPLATE = {'#',ArgumentType.hexInt};	
+	private static final char[]		COLOR_RGBA = "rgba".toCharArray();
+	private static final Object[]	COLOR_RGBA_TEMPLATE = {"rgba".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
+	private static final char[]		COLOR_RGB = "rgb".toCharArray();
+	private static final Object[]	COLOR_RGB_TEMPLATE = {"rgb".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
+	private static final char[]		COLOR_HSLA = "hsla".toCharArray();
+	private static final Object[]	COLOR_HSLA_TEMPLATE = {"hsla".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,'%',',',ArgumentType.ordinalInt,'%',',',ArgumentType.ordinalFloat,')'};
+	private static final char[]		COLOR_HSL = "hsl".toCharArray();
+	private static final Object[]	COLOR_HSL_TEMPLATE = {"hsl".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,'%',',',ArgumentType.ordinalInt,'%',')'};
+	
+
+	@FunctionalInterface
+	private interface StyleValueConverter {
+		Object convert(String source) throws SyntaxException; 
+	}
+	
+	private static final Map<String,StyleValueConverter> CONVERTER_LIST = new HashMap<>();
+	
+	static {
+	}
+	
 	@FunctionalInterface
 	public interface XMLWalkerCallback {
 		ContinueMode process(NodeEnterMode mode, Element node);
@@ -344,12 +369,36 @@ loop:		for (;;) {
 			do {final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>>	node = new SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>>(0,0,CSSSyntaxNode.RECORD,0L,null);
 			
 				pos = buildCSSTree(lex,pos,CSSSyntaxNode.RECORD, node);
+				try{printCSSTree(node,new PrintWriter(System.err));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				result.put(convertCSSTree2XPath((SyntaxNode<CSSSyntaxNode, SyntaxNode<CSSSyntaxNode, ?>>) node.children[0]),(Properties)node.cargo);
 			} while (pos < lex.length && lex[pos].type != CSSLex.CSSLExType.EOF);
 			
 			return result;
 		}
 	}	
+	
+	public static Map<String,Object> parseStyle(final String style) throws SyntaxException {
+		if (style == null || style.isEmpty()) {
+			throw new IllegalArgumentException("Style can't be null or empty");
+		}
+		else {
+			final Properties			props = new Properties();
+			final StringBuilder			sb = new StringBuilder();
+
+			parseInnerCSS((style+"}").toCharArray(),0,new int[2],sb,props);
+			
+			final Map<String,Object>	result = new HashMap<>();
+			
+			for (Map.Entry<Object,Object> item : props.entrySet()) {
+				
+			}
+			
+			return result;
+		}
+	}
 	
 	public interface AttributeParser {
 		String getAttributeName();
@@ -408,7 +457,7 @@ loop:		for (;;) {
 		}
 	}
 
-	private static int parseInnerCSS(final char[] src, final int start, final int[] nameRange, final StringBuilder sb, final Properties props) throws SyntaxException {
+	static int parseInnerCSS(final char[] src, final int start, final int[] nameRange, final StringBuilder sb, final Properties props) throws SyntaxException {
 		int	from = start, begin = start;
 
 		try{do {from = CharUtils.parseNameExtended(src, CharUtils.skipBlank(src,from+1,false), nameRange, AVAILABLE_IN_NAMES);
@@ -737,6 +786,37 @@ loop:		for (;;) {
 		return from;
 	}
 
+	private static void printCSSTree(final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>> node, final Writer writer) throws IOException {
+		printCSSTree(node,writer,0);
+	}
+
+	private static void printCSSTree(final SyntaxNode<CSSSyntaxNode,?> node, final Writer writer, final int tabs) throws IOException {
+		if (node != null) {
+			for (int index = 0; index < tabs; index++) {
+				writer.write('\t');
+			}
+			writer.write(node.type.name());
+			writer.write(" : ");
+			switch ((int)node.value) {
+				case CSSLex.NODE_ASTERISK		: writer.write("*");
+				case CSSLex.NODE_TAG			: writer.write("tag");
+				case CSSLex.NODE_ID				: writer.write("id");
+				case CSSLex.NODE_CLASS			: writer.write("class");
+				case CSSLex.NODE_ATTR			: writer.write("attr");
+				case CSSLex.NODE_PSEUDOCLASS	: writer.write("pseudoclass");
+				default : writer.write(String.valueOf(node.value));
+			}
+			writer.write(" -> ");
+			writer.write(node.cargo != null ? node.cargo.toString() : "null");
+			writer.write("\n");
+			if (node.children != null) {
+				for (SyntaxNode<CSSSyntaxNode, ?> item : node.children) {
+					printCSSTree(item,writer,tabs+1);
+				}
+			}
+		}
+	}
+	
 	private static String convertCSSTree2XPath(final SyntaxNode<CSSSyntaxNode,SyntaxNode<CSSSyntaxNode,?>> node) throws SyntaxException {
 		switch (node.type) {
 			case RECORD			:
@@ -819,6 +899,53 @@ loop:		for (;;) {
 	private enum CSSSyntaxNode {
 		RECORD, SELECTORS, SELECTOR_GROUP, SUBTREE_SEL, STANDALONE_SEL, SEL_ITEM 
 	}
+
+	public static Color asColor(final String color) throws SyntaxException {
+		if (color == null || color.isEmpty()) {
+			throw new IllegalArgumentException("Color string can't be null or empty");
+		}
+		else {
+			final char[]	content = UnsafedUtils.getStringContent(color);
+			final int[]		result = new int[5];
+			final Object[]	values = new Object[4];
+			int				from = 0, index;
+			
+			if (content[0] == '#') {
+				from = CharUtils.extract(content,from,values,COLOR_HEX_TEMPLATE);
+				return new Color((Integer)values[0]);
+			}
+			else if (content.length > 4) {
+				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
+					from = CharUtils.extract(content,from,values,COLOR_RGBA_TEMPLATE);
+					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2],(Integer)values[3]);
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
+					from = CharUtils.extract(content,from,values,COLOR_HSLA_TEMPLATE);
+					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2],(Integer)values[3]);
+				}
+				else {
+					return PureLibSettings.colorByName(color,Color.BLACK);
+				}
+			}
+			else if (content.length > 3) {
+				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
+					from = CharUtils.extract(content,from,values,COLOR_RGB_TEMPLATE);
+					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2]);
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
+					from = CharUtils.extract(content,from,values,COLOR_HSL_TEMPLATE);
+					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2]);
+				}
+				else {
+					return PureLibSettings.colorByName(color,Color.BLACK);
+				}
+			}
+			else {
+				return PureLibSettings.colorByName(color,Color.BLACK);
+			}
+		}
+	}
+	
 	
 	private static class CSSLex {
 		private static final int	OPER_ENDSWITH = 0;

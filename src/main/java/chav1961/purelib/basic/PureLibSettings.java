@@ -543,7 +543,7 @@ public class PureLibSettings {
 	private static Color toRGB(final String rgb) {
 		if (!rgb.isEmpty()) {
 			if (rgb.charAt(0) == '#') {
-				return new Color(Integer.parseInt(rgb.substring(1),16));
+				return new Color((int)Long.parseLong(rgb.substring(1).toUpperCase(),16));
 			}
 			else {
 				final String[]	parts = rgb.split("\\,");
