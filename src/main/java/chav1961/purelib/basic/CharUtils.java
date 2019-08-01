@@ -977,16 +977,28 @@ public class CharUtils {
 		else if (from < 0 || from >= len) {
 			throw new IllegalArgumentException("From location ["+from+"] out of range 0.."+(len-1));
 		}
-		else if (result == null || result.length == 0) {
-			throw new IllegalArgumentException("Result object array can't be null or empty");
+		else if (result == null) {
+			throw new NullPointerException("Result object array can't be null");
 		}
 		else if (lexemas == null || lexemas.length == 0) {
 			throw new IllegalArgumentException("Lexemas list can't be null or empty");
 		}
 		else {
+			int  resultCount = 0;
+			
+			for (Object item : lexemas) {
+				if (item instanceof ArgumentType) {
+					resultCount++;
+				}
+			}
+			if (resultCount > result.length) {
+				throw new IllegalArgumentException("Result array size ["+result.length+"] is less than number of ArgumetType lexemas in the list ["+resultCount+"]");
+			}
+			
 			final int[]		intResult = new int[2];
 			final long[]	longResult = new long[2];
 			final float[]	floatResult = new float[2];
+			int				resultIndex = 0;
 			
 			for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++) {
 				final Object	lexema = lexemas[index];
@@ -1014,24 +1026,31 @@ public class CharUtils {
 					switch ((ArgumentType)lexema) {
 						case hexInt			:
 							start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
+							result[resultIndex++] = intResult[0];
 							break;
 						case hexLong		:
 							start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
+							result[resultIndex++] = longResult[0];
 							break;
 						case ordinalInt		:
 							start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
+							result[resultIndex++] = intResult[0];
 							break;
 						case ordinalLong	:
 							start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
+							result[resultIndex++] = longResult[0];
 							break;
 						case ordinalFloat	:
 							start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
+							result[resultIndex++] = floatResult[0];
 							break;
 						case name			:
 							start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+							result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 							break;
 						case hyphenedName	:
 							start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+							result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 							break;
 						default				:
 							throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 

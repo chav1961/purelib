@@ -6,8 +6,10 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +24,8 @@ import org.w3c.dom.NodeList;
 import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
+import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
+import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.streams.JsonStaxParser;
@@ -45,9 +49,9 @@ public class XMLUtils {
 	private static final char[]		COLOR_RGB = "rgb".toCharArray();
 	private static final Object[]	COLOR_RGB_TEMPLATE = {"rgb".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
 	private static final char[]		COLOR_HSLA = "hsla".toCharArray();
-	private static final Object[]	COLOR_HSLA_TEMPLATE = {"hsla".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,'%',',',ArgumentType.ordinalInt,'%',',',ArgumentType.ordinalFloat,')'};
+	private static final Object[]	COLOR_HSLA_TEMPLATE = {"hsla".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalInt,'%',')'};
 	private static final char[]		COLOR_HSL = "hsl".toCharArray();
-	private static final Object[]	COLOR_HSL_TEMPLATE = {"hsl".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,'%',',',ArgumentType.ordinalInt,'%',')'};
+	private static final Object[]	COLOR_HSL_TEMPLATE = {"hsl".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
 	
 
 	@FunctionalInterface
@@ -914,34 +918,712 @@ loop:		for (;;) {
 				from = CharUtils.extract(content,from,values,COLOR_HEX_TEMPLATE);
 				return new Color((Integer)values[0]);
 			}
-			else if (content.length > 4) {
+			if (content.length > 4) {
 				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_RGBA_TEMPLATE);
 					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2],(Integer)values[3]);
 				}
 				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_HSLA_TEMPLATE);
-					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2],(Integer)values[3]);
-				}
-				else {
-					return PureLibSettings.colorByName(color,Color.BLACK);
+					final Color 	temp = Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]); 
+					return new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),(int)(2.56f*(Integer)values[3]));
 				}
 			}
-			else if (content.length > 3) {
+			if (content.length > 3) {
 				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_RGB_TEMPLATE);
 					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2]);
 				}
 				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_HSL_TEMPLATE);
-					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2]);
+					return Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]);
 				}
 				else {
-					return PureLibSettings.colorByName(color,Color.BLACK);
+					final Color	toRet = PureLibSettings.colorByName(color,null); 
+					
+					if (toRet != null) {
+						return toRet;
+					}
+					else {
+						throw new SyntaxException(0,0,"Color name ["+color+"] is unknown"); 
+					}
+				}
+			}
+			final Color	toRet = PureLibSettings.colorByName(color,null); 
+			
+			if (toRet != null) {
+				return toRet;
+			}
+			else {
+				throw new SyntaxException(0,0,"Color name ["+color+"] is unknown"); 
+			}
+		}
+	}
+
+	public static class Distance {
+		private static final int					MAX_CACHEABLE = 128;
+		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name};
+		private static final Map<Units,Distance[]> 	microCache = new EnumMap<>(Units.class);
+		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
+		
+		public enum Units {
+			cm, mm, in, px, pt, pc,							// Absolute			
+			em, ex, ch, rem, vw, vh, vmin, vmax, percent	// Relative
+		}
+		
+		private final int 	value;
+		private final Units	unit;
+		
+		public Distance(final int value, final Units unit) {
+			if (value < 0) {
+				throw new IllegalArgumentException("Value ["+value+"] must not be negative");
+			}
+			else if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else {
+				this.value = value;
+				this.unit = unit;
+			}
+		}
+
+		public int getValue() {
+			return value;
+		}
+
+		public Units getUnit() {
+			return unit;
+		}
+
+		public static Distance valueOf(final String value) {
+			if (value == null || value.isEmpty()) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
+			}
+			else {
+				final char[] 	content = UnsafedUtils.getStringContent(value);
+				final Object[]	result = new Object[2];
+				
+				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
+				} catch (SyntaxException e) {
+					throw new IllegalArgumentException("String ["+value+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+				}
+				return valueOf(((Integer)result[0]).intValue(),Units.valueOf(result[1].toString()));
+			}
+		}
+
+		public static Distance valueOf(final int value, final Units unit) {
+			if (value < 0) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
+			}
+			else if (unit == null) {
+				throw new NullPointerException("Unit value can't be null");
+			}
+			else if (value >= MAX_CACHEABLE) {
+				return new Distance(value, unit);
+			}
+			else {
+				try(final Locker	lock = locker.lock(true)) {
+					Distance[]		list = microCache.get(unit);
+					
+					if (list != null && list[value] != null) {
+						return list[value];
+					}
+				}
+				
+				try(final Locker	lock = locker.lock(false)) {
+					Distance[]		list = microCache.get(unit);
+					
+					if (list == null) {
+						microCache.put(unit,list = new Distance[MAX_CACHEABLE]);
+					}
+					if (list[value] == null) {
+						list[value] = new Distance(value, unit);
+					}
+					return list[value];
+				}
+			}
+		}
+		
+		@Override
+		public String toString() {
+			return ""+value+unit;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((unit == null) ? 0 : unit.hashCode());
+			result = prime * result + value;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			Distance other = (Distance) obj;
+			if (unit != other.unit) return false;
+			if (value != other.value) return false;
+			return true;
+		}
+	}
+
+	public static Distance asDistance(final String distance) throws SyntaxException {
+		if (distance == null || distance.isEmpty()) {
+			throw new IllegalArgumentException("Distance string can't be null or empty");
+		}
+		else {
+			try{return Distance.valueOf(distance);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Distance ["+distance+"] has invalid syntax");
+			}
+		}
+	}	
+	
+	public static class Angle {
+		private static final int					MAX_CACHEABLE = 128;
+		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
+		private static final float[][]				KOEFFS = new float[][] {
+														//       deg 						grad 						rad 						turn
+														/*deg*/ {1.0f, 						90f/100f, 					(float)(Math.PI/180.0f), 	90.0f/360.0f},
+														/*grad*/{100f/90f, 					1.0f, 						(float)(Math.PI/200.0f),	100.0f/360.0f},
+														/*rad*/ {(float)(180.0f/Math.PI), 	(float)(200.0f/Math.PI), 	1.0f, 						(float)(0.5f/Math.PI)},
+														/*turn*/{360.0f/90.0f,				360.0f/100.0f,				(float)(Math.PI/0.5f), 		1.0f},
+													};				
+		private static final Map<Units,Angle[]> 	microCache = new EnumMap<>(Units.class);
+		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
+		
+		public enum Units {
+			deg, grad, rad, turn					// Absolute			
+		}
+		
+		private final float	value;
+		private final Units	unit;
+		
+		public Angle(final float value, final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else {
+				this.value = value;
+				this.unit = unit;
+			}
+		}
+
+		public float getValue() {
+			return value;
+		}
+
+		public float getValueAs(final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else if (this.unit == unit) {
+				return getValue();
+			}
+			else {
+				return KOEFFS[this.unit.ordinal()][unit.ordinal()]*getValue();
+			}
+		}
+		
+		public Units getUnit() {
+			return unit;
+		}
+
+		public static Angle valueOf(final String value) {
+			if (value == null || value.isEmpty()) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
+			}
+			else {
+				final char[] 	content = UnsafedUtils.getStringContent(value);
+				final Object[]	result = new Object[2];
+				
+				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
+				} catch (SyntaxException e) {
+					throw new IllegalArgumentException("String ["+value+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+				}
+				return valueOf(((Float)result[0]).intValue(),Units.valueOf(result[1].toString()));
+			}
+		}
+
+		public static Angle valueOf(final float value, final Units unit) {
+			if (value < 0) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
+			}
+			else if (unit == null) {
+				throw new NullPointerException("Unit value can't be null");
+			}
+			else if (value < 0 || value >= MAX_CACHEABLE || value != (float)((int)value)) {
+				return new Angle(value, unit);
+			}
+			else {
+				final int	intValue = (int)value;
+				
+				try(final Locker	lock = locker.lock(true)) {
+					Angle[]			list = microCache.get(unit);
+					
+					if (list != null && list[intValue] != null) {
+						return list[intValue];
+					}
+				}
+				
+				try(final Locker	lock = locker.lock(false)) {
+					Angle[]			list = microCache.get(unit);
+					
+					if (list == null) {
+						microCache.put(unit,list = new Angle[MAX_CACHEABLE]);
+					}
+					if (list[intValue] == null) {
+						list[intValue] = new Angle(value, unit);
+					}
+					return list[intValue];
+				}
+			}
+		}
+		
+		@Override
+		public String toString() {
+			return ""+value+unit;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((unit == null) ? 0 : unit.hashCode());
+			result = prime * result + Float.floatToIntBits(value);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			Angle other = (Angle) obj;
+			if (unit != other.unit) return false;
+			if (Float.floatToIntBits(value) != Float.floatToIntBits(other.value)) return false;
+			return true;
+		}
+	}
+
+	public static Angle asAngle(final String angle) throws SyntaxException {
+		if (angle == null || angle.isEmpty()) {
+			throw new IllegalArgumentException("Angle string can't be null or empty");
+		}
+		else {
+			try{return Angle.valueOf(angle);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Angle ["+angle+"] has invalid syntax");
+			}
+		}
+	}		
+	
+	public static class Time {
+		private static final int					MAX_CACHEABLE = 128;
+		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
+		private static final Map<Units,Time[]> 		microCache = new EnumMap<>(Units.class);
+		private static final float[][]				KOEFFS = new float[][] {
+														//       msec 						sec
+														/*msec*/ {1.0f, 					0.001f},
+														/*sec*/  {1000f,	 				1.0f},
+													};				
+		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
+		
+		public enum Units {
+			msec, sec								// Absolute			
+		}
+		
+		private final float	value;
+		private final Units	unit;
+		
+		public Time(final float value, final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else {
+				this.value = value;
+				this.unit = unit;
+			}
+		}
+
+		public float getValue() {
+			return value;
+		}
+
+		public float getValueAs(final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else if (this.unit == unit) {
+				return getValue();
+			}
+			else {
+				return KOEFFS[this.unit.ordinal()][unit.ordinal()]*getValue();
+			}
+		}
+
+		public Units getUnit() {
+			return unit;
+		}
+
+		public static Time valueOf(final String value) {
+			if (value == null || value.isEmpty()) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
+			}
+			else {
+				final char[] 	content = UnsafedUtils.getStringContent(value);
+				final Object[]	result = new Object[2];
+				
+				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
+				} catch (SyntaxException e) {
+					throw new IllegalArgumentException("String ["+value+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+				}
+				return valueOf(((Float)result[0]).floatValue(),Units.valueOf(result[1].toString()));
+			}
+		}
+
+		public static Time valueOf(final float value, final Units unit) {
+			if (value < 0) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
+			}
+			else if (unit == null) {
+				throw new NullPointerException("Unit value can't be null");
+			}
+			else if (value >= MAX_CACHEABLE || value != (float)((int)value)) {
+				return new Time(value, unit);
+			}
+			else {
+				final int	intValue = (int)value;
+				
+				try(final Locker	lock = locker.lock(true)) {
+					Time[]			list = microCache.get(unit);
+					
+					if (list != null && list[intValue] != null) {
+						return list[intValue];
+					}
+				}
+				
+				try(final Locker	lock = locker.lock(false)) {
+					Time[]			list = microCache.get(unit);
+					
+					if (list == null) {
+						microCache.put(unit,list = new Time[MAX_CACHEABLE]);
+					}
+					if (list[intValue] == null) {
+						list[intValue] = new Time(value, unit);
+					}
+					return list[intValue];
+				}
+			}
+		}
+		
+		@Override
+		public String toString() {
+			return ""+value+unit;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((unit == null) ? 0 : unit.hashCode());
+			result = prime * result + Float.floatToIntBits(value);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			Time other = (Time) obj;
+			if (unit != other.unit) return false;
+			if (Float.floatToIntBits(value) != Float.floatToIntBits(other.value)) return false;
+			return true;
+		}
+	}
+
+	public static Time asTime(final String time) throws SyntaxException {
+		if (time == null || time.isEmpty()) {
+			throw new IllegalArgumentException("Time string can't be null or empty");
+		}
+		else {
+			try{return Time.valueOf(time);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Time ["+time+"] has invalid syntax");
+			}
+		}
+	}			
+	
+	public static class Frequency {
+		private static final int					MAX_CACHEABLE = 128;
+		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
+		private static final float[][]				KOEFFS = new float[][] {
+														//       Hz 					kHz
+														/*Hz*/ 	{1.0f, 					0.001f},
+														/*kHz*/	{1000f,	 				1.0f},
+													};				
+		private static final Map<Units,Frequency[]>	microCache = new EnumMap<>(Units.class);
+		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
+		
+		public enum Units {
+			Hz, kHz								// Absolute			
+		}
+		
+		private final float	value;
+		private final Units	unit;
+		
+		public Frequency(final float value, final Units unit) {
+			if (value < 0) {
+				throw new IllegalArgumentException("Frequency value ["+value+"] can't be negative");
+			}
+			else if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else {
+				this.value = value;
+				this.unit = unit;
+			}
+		}
+
+		public float getValue() {
+			return value;
+		}
+
+		public float getValueAs(final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else if (this.unit == unit) {
+				return getValue();
+			}
+			else {
+				return KOEFFS[this.unit.ordinal()][unit.ordinal()]*getValue();
+			}
+		}
+		
+		public Units getUnit() {
+			return unit;
+		}
+
+		public static Frequency valueOf(final String value) {
+			if (value == null || value.isEmpty()) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
+			}
+			else {
+				final char[] 	content = UnsafedUtils.getStringContent(value);
+				final Object[]	result = new Object[2];
+				
+				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
+				} catch (SyntaxException e) {
+					throw new IllegalArgumentException("String ["+value+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+				}
+				return valueOf(((Float)result[0]).floatValue(),Units.valueOf(result[1].toString()));
+			}
+		}
+
+		public static Frequency valueOf(final float value, final Units unit) {
+			if (value < 0) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
+			}
+			else if (unit == null) {
+				throw new NullPointerException("Unit value can't be null");
+			}
+			else if (value >= MAX_CACHEABLE || value != (float)((int)value)) {
+				return new Frequency(value, unit);
+			}
+			else {
+				final int	intValue = (int)value;
+				
+				try(final Locker	lock = locker.lock(true)) {
+					Frequency[]		list = microCache.get(unit);
+					
+					if (list != null && list[intValue] != null) {
+						return list[intValue];
+					}
+				}
+				
+				try(final Locker	lock = locker.lock(false)) {
+					Frequency[]		list = microCache.get(unit);
+					
+					if (list == null) {
+						microCache.put(unit,list = new Frequency[MAX_CACHEABLE]);
+					}
+					if (list[intValue] == null) {
+						list[intValue] = new Frequency(value, unit);
+					}
+					return list[intValue];
+				}
+			}
+		}
+		
+		@Override
+		public String toString() {
+			return ""+value+unit;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((unit == null) ? 0 : unit.hashCode());
+			result = prime * result + Float.floatToIntBits(value);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			Frequency other = (Frequency) obj;
+			if (unit != other.unit) return false;
+			if (Float.floatToIntBits(value) != Float.floatToIntBits(other.value)) return false;
+			return true;
+		}
+	}
+
+	public static Frequency asFrequency(final String freq) throws SyntaxException {
+		if (freq == null || freq.isEmpty()) {
+			throw new IllegalArgumentException("Frequency string can't be null or empty");
+		}
+		else {
+			try{return Frequency.valueOf(freq);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Frequency ["+freq+"] has invalid syntax");
+			}
+		}
+	}			
+
+	public static class StylePropertiesStack implements Iterable<Map<String,Object>>{
+		public void push(Map<String,Object> values) {
+			
+		}
+		
+		public Map<String,Object> peek() {
+			return null;
+		}
+		
+		public void pop() {
+			
+		}
+
+		@Override
+		public Iterator<Map<String, Object>> iterator() {
+			return null;
+		}
+	}
+	
+	public static class StylePropertiesTree {
+		private static final Map<StylePropertiesSupported,StylePropertyDescription>	TREE = new EnumMap<>(StylePropertiesSupported.class);
+		
+		public enum StylePropertiesSupported {
+			
+		}
+		
+		static {
+			
+		}
+		
+		public static boolean isPropertySupported(final String prop) {
+			if (prop == null || prop.isEmpty()) {
+				throw new IllegalArgumentException("Property string can't be null or empty");
+			}
+			else {
+				return false;
+			}
+		}
+
+		public static <T> T inferValue(final String prop, final StylePropertiesStack content) {
+			if (prop == null || prop.isEmpty()) {
+				throw new IllegalArgumentException("Property name can't be null or empty");
+			}
+			else if (content == null) {
+				throw new IllegalArgumentException("Properties stack can't be null");
+			}
+			else if (!isPropertySupported(prop)) {
+				for (Map<String, Object> item : content) {
+					if (item.containsKey(prop)) {
+						return (T)item.get(prop);
+					}
 				}
 			}
 			else {
-				return PureLibSettings.colorByName(color,Color.BLACK);
+				final StylePropertyDescription	desc = TREE.get(StylePropertiesSupported.valueOf(prop));
+				
+				for (Map<String, Object> item : content) {
+					if (item.containsKey(prop)) {
+						return (T)item.get(prop);
+					}
+					if (desc.isDetailedProperty()) {
+						StylePropertyDescription	masterDesc = TREE.get(desc.getMasterProp());
+						
+						if (item.containsKey(masterDesc.getType().name())) {
+							return (T)item.get(masterDesc.getType().name());
+						}
+					}
+					if (desc.hasContainer()) {
+						StylePropertyDescription	masterDesc = TREE.get(desc.getMasterProp());
+						
+						if (item.containsKey(masterDesc.getType().name())) {
+							return (T)item.get(masterDesc.getType().name());
+						}
+					}
+					if (!desc.isInheritanceSupported()) {
+						break;
+					}
+				}
+				return null;
+			}
+			return null;
+		}
+
+		public static Map<String,Object> inferAll(final StylePropertiesStack content) {
+			return null;
+		}		
+		
+		private static class StylePropertyDescription {
+			StylePropertyDescription(final StylePropertiesSupported prop, final boolean inheritanceSupported, final StylePropertiesSupported... template) {
+				
+			}
+			
+			StylePropertyDescription(final StylePropertiesSupported prop, final boolean inheritanceSupported, final StylePropertyDescription... details) {
+				
+			}
+			
+			StylePropertiesSupported getType() {
+				return null;
+			}
+
+			boolean isInheritanceSupported() {
+				return false;
+			}
+			
+			boolean isContainer() {
+				return false;
+			}
+			
+			boolean isDetailedProperty() {
+				return false;
+			}
+			
+			StylePropertiesSupported getMasterProp() {
+				return null;
+			}
+			
+			boolean hasContainer() {
+				return false;
+			}
+
+			StylePropertiesSupported getContainerProp() {
+				return null;
+			}
+			
+			<T> Class<T> getValueClass() {
+				return null;
 			}
 		}
 	}

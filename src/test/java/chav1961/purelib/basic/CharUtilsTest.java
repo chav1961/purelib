@@ -3,6 +3,9 @@ package chav1961.purelib.basic;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.CharUtils.ArgumentType;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+
 public class CharUtilsTest {
 	public static final float		EPSILON_FLOAT = 0.00001f;
 	public static final double		EPSILON = 0.000000001;
@@ -635,6 +638,91 @@ public class CharUtilsTest {
 		}		
 	}
 
+	@Test
+	public void extractTest() throws SyntaxException {
+		final Object[]	result= new Object[10];
+		
+		// Constants
+		Assert.assertEquals(3,CharUtils.extract("text".toCharArray(),0,result,'t','e','x'));	
+		Assert.assertEquals(4,CharUtils.extract("text".toCharArray(),0,result,"text".toCharArray()));
+		try{CharUtils.extract("text".toCharArray(),0,result,'z');
+			Assert.fail("Mandatory exception was not detected (mizzing 'z')");
+		} catch (SyntaxException exc) {
+		}
+		try{CharUtils.extract("text".toCharArray(),0,result,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (mizzing 'z')");
+		} catch (SyntaxException exc) {
+		}
+		
+		
+		// Lexemas
+		Assert.assertEquals(3,CharUtils.extract("120".toCharArray(),0,result,ArgumentType.ordinalInt));	
+		Assert.assertEquals(120,((Integer)result[0]).intValue());
+		
+		Assert.assertEquals(2,CharUtils.extract("CC".toCharArray(),0,result,ArgumentType.hexInt));
+		Assert.assertEquals(204,((Integer)result[0]).intValue());
+
+		Assert.assertEquals(3,CharUtils.extract("120".toCharArray(),0,result,ArgumentType.ordinalLong));
+		Assert.assertEquals(120,((Long)result[0]).longValue());
+		
+		Assert.assertEquals(2,CharUtils.extract("CC".toCharArray(),0,result,ArgumentType.hexLong));
+		Assert.assertEquals(204,((Long)result[0]).longValue());
+
+		Assert.assertEquals(4,CharUtils.extract("12.5".toCharArray(),0,result,ArgumentType.ordinalFloat));
+		Assert.assertEquals(12.5f,((Float)result[0]).floatValue(),0.0001f);
+
+		Assert.assertEquals(4,CharUtils.extract("test".toCharArray(),0,result,ArgumentType.name));
+		Assert.assertEquals("test",result[0].toString());
+
+		Assert.assertEquals(9,CharUtils.extract("test-test".toCharArray(),0,result,ArgumentType.hyphenedName));
+		Assert.assertEquals("test-test",result[0].toString());
+
+		
+		// Complex test
+		Assert.assertEquals(13,CharUtils.extract("test 120 test".toCharArray(),0,result,"test".toCharArray(),ArgumentType.ordinalInt,"test".toCharArray()));	// Complex
+		Assert.assertEquals(120,((Integer)result[0]).intValue());
+
+		
+		// Invalid argumenrs
+		try{CharUtils.extract(null,0,result,"z".toCharArray());		
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.extract("".toCharArray(),0,result,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.extract("test".toCharArray(),-1,result,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.extract("test".toCharArray(),10,result,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.extract("test".toCharArray(),0,null,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{CharUtils.extract("test".toCharArray(),0,result,(Object[])null);
+			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.extract("test".toCharArray(),0,result);
+			Assert.fail("Mandatory exception was not detected (empty 4-th argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.extract("test".toCharArray(),0,new Object[0],ArgumentType.hexLong);
+			Assert.fail("Mandatory exception was not detected (3-rd argument is too small)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}	
+	
+	
 	@Test
 	public void substitutionTest() {
 		Assert.assertNull(CharUtils.substitute("key",null,(key)->{return "";}));

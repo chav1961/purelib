@@ -148,11 +148,11 @@ class UnsafedCharUtils {
 				}
 			}
 			else {
-				index = uncheckedParseOctalInt(source, index+1, result, checkOverflow);
+				index = uncheckedParseOctalInt(source, index, result, checkOverflow);
 			}				
 		}
 		else {
-			index = uncheckedParseInt(source, index+1, result, checkOverflow);
+			index = uncheckedParseInt(source, index, result, checkOverflow);
 		}
 		
 		if (index == from) {
@@ -281,11 +281,11 @@ class UnsafedCharUtils {
 				}
 			}
 			else {
-				index = uncheckedParseOctalLong(source, index+1, result, checkOverflow);
+				index = uncheckedParseOctalLong(source, index, result, checkOverflow);
 			}				
 		}
 		else {
-			index = uncheckedParseLong(source, index+1, result, checkOverflow);
+			index = uncheckedParseLong(source, index, result, checkOverflow);
 		}
 		
 		if (index == from) {

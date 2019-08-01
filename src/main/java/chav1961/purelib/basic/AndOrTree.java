@@ -123,7 +123,9 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
-			return placeName(name.toCharArray(),0,name.length(),id,cargo,false,true);
+			final char[]	content = UnsafedUtils.getStringContent(name);
+			
+			return placeName(content,0,content.length,id,cargo,false,true);
 		}
 	}
 
@@ -133,7 +135,9 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
-			return placeName(name.toCharArray(),0,name.length(),id,cargo,false,false);
+			final char[]	content = UnsafedUtils.getStringContent(name);
+			
+			return placeName(content,0,content.length,id,cargo,false,false);
 		}
 	}
 	
@@ -143,7 +147,9 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("Name to seek can't be null or empty");
 		}
 		else {
-			return seekName(name.toCharArray(),0,name.length());
+			final char[]	content = UnsafedUtils.getStringContent(name);
+			
+			return seekName(content,0,content.length);
 		}
 	}
 	
