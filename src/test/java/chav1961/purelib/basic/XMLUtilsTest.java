@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
 import java.awt.Color;
+import java.util.EmptyStackException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -11,6 +13,7 @@ import org.junit.Test;
 import chav1961.purelib.basic.XMLUtils.Angle;
 import chav1961.purelib.basic.XMLUtils.Distance;
 import chav1961.purelib.basic.XMLUtils.Frequency;
+import chav1961.purelib.basic.XMLUtils.StylePropertiesStack;
 import chav1961.purelib.basic.XMLUtils.Time;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
@@ -396,6 +399,34 @@ public class XMLUtilsTest {
 			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
 		} catch (SyntaxException exc) {
 		}		
+	}
+
+	@Test
+	public void stylePropertiesStackTest() throws SyntaxException {
+		final StylePropertiesStack	stack = new StylePropertiesStack();
+		final Map<String,Object>	item = new HashMap<String,Object>(); 
+		
+		Assert.assertEquals(0,stack.size());
+		
+		stack.push(item);
+		Assert.assertEquals(1,stack.size());
+		Assert.assertEquals(item,stack.peek());
+		
+		Assert.assertEquals(item,stack.pop());
+		Assert.assertEquals(0,stack.size());
+		
+		try{stack.push(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{stack.peek();
+			Assert.fail("Mandatory exception was not detected (empty stack)");
+		} catch (EmptyStackException exc) {
+		}
+		try{stack.pop();
+			Assert.fail("Mandatory exception was not detected (empty stack)");
+		} catch (EmptyStackException exc) {
+		}
 	}
 	
 	//

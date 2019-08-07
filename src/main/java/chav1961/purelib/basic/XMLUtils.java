@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.enumerations.StylePropertiesSupported;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
@@ -1499,30 +1501,53 @@ loop:		for (;;) {
 	}			
 
 	public static class StylePropertiesStack implements Iterable<Map<String,Object>>{
+		private final List<Map<String,Object>>	stack = new ArrayList<>();
+		
 		public void push(Map<String,Object> values) {
-			
+			if (values == null) {
+				throw new NullPointerException("Values map can't be null");
+			}
+			else {
+				stack.add(0,values);
+			}
+		}
+		
+		public int size() {
+			return stack.size();
 		}
 		
 		public Map<String,Object> peek() {
-			return null;
+			if (stack.isEmpty()) {
+				throw new EmptyStackException();
+			}
+			else {
+				return stack.get(0);
+			}
 		}
 		
-		public void pop() {
-			
+		public Map<String,Object> pop() {
+			if (stack.isEmpty()) {
+				throw new EmptyStackException();
+			}
+			else {
+				return stack.remove(0);
+			}
 		}
 
 		@Override
 		public Iterator<Map<String, Object>> iterator() {
-			return null;
+			return stack.iterator();
+		}
+
+		@Override
+		public String toString() {
+			return "StylePropertiesStack [stack=" + stack + "]";
 		}
 	}
-	
+
 	public static class StylePropertiesTree {
 		private static final Map<StylePropertiesSupported,StylePropertyDescription>	TREE = new EnumMap<>(StylePropertiesSupported.class);
 		
-		public enum StylePropertiesSupported {
-			
-		}
 		
 		static {
 			
@@ -1584,30 +1609,69 @@ loop:		for (;;) {
 		public static Map<String,Object> inferAll(final StylePropertiesStack content) {
 			return null;
 		}		
-		
-		private static class StylePropertyDescription {
-			StylePropertyDescription(final StylePropertiesSupported prop, final boolean inheritanceSupported, final StylePropertiesSupported... template) {
-				
+
+		class StylePropertyDescription {
+			private final StylePropertiesSupported		prop;
+			private final boolean						inheritanceSupported, listSupported;
+			private final StylePropertiesSupported[]	template;
+			private final StylePropertyDescription[]	details;
+			
+			StylePropertyDescription(final StylePropertiesSupported prop, final boolean inheritanceSupported, final boolean listSupported, final String description, final StylePropertiesSupported... template) {
+				if (prop == null) {
+					throw new NullPointerException("Styled properties type can't be null");
+				}
+				else if (description == null || description == null) {
+					throw new IllegalArgumentException("Description can't be null or empty");
+				}
+				else if (template == null) {
+					throw new NullPointerException("Template list can't be null");
+				}
+				else {
+					this.prop = prop;
+					this.inheritanceSupported = inheritanceSupported;
+					this.listSupported = listSupported;
+					this.template = template;
+					this.details = null;
+				}
 			}
 			
-			StylePropertyDescription(final StylePropertiesSupported prop, final boolean inheritanceSupported, final StylePropertyDescription... details) {
-				
+			StylePropertyDescription(final StylePropertiesSupported prop, final boolean inheritanceSupported, final boolean listSupported, final String description, final StylePropertyDescription... details) {
+				if (prop == null) {
+					throw new NullPointerException("Styled properties type can't be null");
+				}
+				else if (description == null || description == null) {
+					throw new IllegalArgumentException("Description can't be null or empty");
+				}
+				else if (details == null) {
+					throw new NullPointerException("Details list can't be null");
+				}
+				else {
+					this.prop = prop;
+					this.inheritanceSupported = inheritanceSupported;
+					this.listSupported = listSupported;
+					this.template = null;
+					this.details = details;
+				}
 			}
 			
 			StylePropertiesSupported getType() {
-				return null;
+				return prop;
 			}
 
 			boolean isInheritanceSupported() {
-				return false;
+				return inheritanceSupported;
+			}
+			
+			boolean isListSupported() {
+				return listSupported;
 			}
 			
 			boolean isContainer() {
-				return false;
+				return template != null;
 			}
 			
 			boolean isDetailedProperty() {
-				return false;
+				return details == null;
 			}
 			
 			StylePropertiesSupported getMasterProp() {
@@ -1627,6 +1691,7 @@ loop:		for (;;) {
 			}
 		}
 	}
+
 	
 	
 	private static class CSSLex {
