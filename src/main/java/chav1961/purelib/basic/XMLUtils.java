@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EmptyStackException;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -24,12 +25,15 @@ import org.w3c.dom.NodeList;
 
 import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.StylePropertiesSupported;
+import chav1961.purelib.enumerations.StylePropertiesSupported.ContentType;
+import chav1961.purelib.enumerations.StylePropertiesSupported.ValueListDescriptor;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
@@ -54,16 +58,50 @@ public class XMLUtils {
 	private static final Object[]	COLOR_HSLA_TEMPLATE = {"hsla".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalInt,'%',')'};
 	private static final char[]		COLOR_HSL = "hsl".toCharArray();
 	private static final Object[]	COLOR_HSL_TEMPLATE = {"hsl".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
-	
+
+	private static final SyntaxTreeInterface<StylePropValue<?>[]>	KEYWORDS = new AndOrTree<>();
+	private static final long										INHERITED;
 
 	@FunctionalInterface
 	private interface StyleValueConverter {
 		Object convert(String source) throws SyntaxException; 
 	}
 	
-	private static final Map<String,StyleValueConverter> CONVERTER_LIST = new HashMap<>();
-	
 	static {
+		INHERITED = KEYWORDS.placeName("inherited",null);
+		for (StylePropertiesSupported item : StylePropertiesSupported.values()) {
+			switch (item.getContentType()) {
+				case colorOrKeyword		:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case distanceOrKeyword	:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case functionOrKeyword	:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case integerOrKeyword	:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case numberOrKeyword	:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case stringOrKeyword	:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case timeOrKeyword		:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case urlOrKeyword		:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				case value				:
+					addName(KEYWORDS,item,item.getValues());
+					break;
+				default:
+					break;
+			}
+		}
 	}
 	
 	@FunctionalInterface
@@ -406,6 +444,219 @@ loop:		for (;;) {
 		}
 	}
 	
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final String content) {
+		if (prop == null) {
+			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (content == null || content.isEmpty()) {
+			throw new IllegalArgumentException("Content can't be null or empty");
+		}
+		else {
+			return parseStyleProperty(prop,content);
+		}
+	}
+
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final String content, final int from, final int to) {
+		if (prop == null) {
+			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (content == null || content.isEmpty()) {
+			throw new IllegalArgumentException("Content can't be null or empty");
+		}
+		else {
+			return parseStyleProperty(prop,UnsafedUtils.getStringContent(content),from,to);
+		}
+	}
+
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final char[] content, final int from, final int to) {
+		if (prop == null) {
+			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (content == null || content.length == 0) {
+			throw new IllegalArgumentException("Content can't be null or empty array");
+		}
+		else if (from < 0 || from >= content.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length-1));
+		}
+		else if (to < 0 || to >= content.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(content.length-1));
+		}
+		else if (to < from) {
+			throw new IllegalArgumentException("To position ["+to+"] is less than from position ["+from+"]");
+		}
+		else {
+			int		end;
+			long	id;
+			
+			switch (prop.getContentType()) {
+				case asIs				:
+					break;
+				case colorOrKeyword		:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case color				:
+					break;
+				case compoundChoise		:
+					break;
+				case compoundSequence	:
+					break;
+				case distanceOrKeyword	:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case distance			:
+					break;
+				case functionOrKeyword	:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case function			:
+					break;
+				case integerOrKeyword	:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case integer			:
+					final int[]		intResult = new int[1];
+					
+					if ((end = UnsafedCharUtils.uncheckedParseInt(content,from,intResult,true)) != to) {
+						throw new IllegalArgumentException();
+					}
+					else {
+						return (StylePropValue<T>) new StylePropValue<Integer>(ContentType.integer,prop,intResult[0]);
+					}
+				case numberOrKeyword	:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case number				:
+					final float[]		floatResult = new float[1];
+					
+					if ((end = UnsafedCharUtils.uncheckedParseFloat(content,from,floatResult,true)) != to) {
+						throw new IllegalArgumentException();
+					}
+					else {
+						return (StylePropValue<T>) new StylePropValue<Float>(ContentType.number,prop,floatResult[0]);
+					}
+				case stringOrKeyword	:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case string				:
+					return (StylePropValue<T>) new StylePropValue<String>(ContentType.string,prop,new String(content,from,to));
+				case subStyle			:
+					break;
+				case timeOrKeyword		:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case time				:
+					break;
+				case urlOrKeyword		:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+				case url				:
+					break;
+				case value				:
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						if (id == INHERITED) {
+							return parseStylePropertyInherited(prop,content,from,to);
+						}
+						else {
+							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+								if (item.getProp() == prop) {
+									return (StylePropValue<T>) item;
+								}
+							}
+						}
+					}
+					break;
+				default:
+					break;			
+			}
+			return null;
+		}
+	}
+	
+	private static <T> StylePropValue<T> parseStylePropertyInherited(StylePropertiesSupported prop, char[] content, int from, int to) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public interface AttributeParser {
 		String getAttributeName();
 		void process(final Element element);
@@ -1500,6 +1751,36 @@ loop:		for (;;) {
 		}
 	}			
 
+	public static class StylePropValue<T> {
+		private final StylePropertiesSupported.ContentType	type;
+		private final StylePropertiesSupported				prop;
+		private final T										value;
+		
+		public StylePropValue(final ContentType type, final StylePropertiesSupported prop, final T value) {
+			this.type = type;
+			this.prop = prop;
+			this.value = value;
+		}
+
+		public StylePropertiesSupported.ContentType getType() {
+			return type;
+		}
+
+		public StylePropertiesSupported getProp() {
+			return prop;
+		}
+
+		public T getValue() {
+			return value;
+		}
+
+		@Override
+		public String toString() {
+			return "StylePropValue [type=" + type + ", prop=" + prop + ", value=" + value + "]";
+		}
+	}
+	
+	
 	public static class StylePropertiesStack implements Iterable<Map<String,Object>>{
 		private final List<Map<String,Object>>	stack = new ArrayList<>();
 		
@@ -1692,8 +1973,23 @@ loop:		for (;;) {
 		}
 	}
 
-	
-	
+	private static void addName(final SyntaxTreeInterface<StylePropValue<?>[]> keywords, final StylePropertiesSupported prop, final ValueListDescriptor values) {
+		for (String item : values.getContent()) {
+			final StylePropValue<String>	newValue = new StylePropValue<String>(ContentType.value,prop,item);
+			final long						id = keywords.seekName(item);
+			
+			if (id < 0) {
+				keywords.placeName(item,new StylePropValue[]{newValue});
+			}
+			else {
+				final StylePropValue<?>[]	currentList = keywords.getCargo(id), newList = Arrays.copyOf(currentList,currentList.length+1);  
+						
+				newList[newList.length-1] = newValue; 
+				keywords.setCargo(id, newList);
+			}
+		}
+	}
+
 	private static class CSSLex {
 		private static final int	OPER_ENDSWITH = 0;
 		private static final int	OPER_CONTAINS = 1;

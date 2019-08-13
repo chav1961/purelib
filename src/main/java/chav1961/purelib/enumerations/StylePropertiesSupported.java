@@ -3,17 +3,17 @@ package chav1961.purelib.enumerations;
 import java.util.Arrays;
 
 public enum StylePropertiesSupported {
-		background("background"),
+		background("background",true,ContentType.compoundChoise,1,Integer.MAX_VALUE,new ValueListDescriptor(ContentType.subStyle,1,1,"background-attachment","background-color","background-image","background-position","background-repeat")),
 		background_attachment("background-attachment",true,ContentType.value,new ValueListDescriptor(ContentType.value,0,Integer.MAX_VALUE,"fixed","scroll","local")),
 		background_clip("background-clip",false,ContentType.value,new ValueListDescriptor(ContentType.value,0,Integer.MAX_VALUE,"padding-box","border-box","content-box")),
 		background_color("background-color",true,ContentType.color),
 		background_image("background-image",true,ContentType.urlOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
 		background_origin("background-origin",false,ContentType.value,new ValueListDescriptor(ContentType.value,0,Integer.MAX_VALUE,"padding-box","border-box","content-box")),
-		background_position("background-position"),
+		background_position("background-position",true,ContentType.distanceOrKeyword,1,2,new ValueListDescriptor(ContentType.value,1,1,"left","center","right","top","center","bottom")),
 		background_repeat("background-repeat",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,2,"no-repeat","repeat","repeat-x","repeat-y")),
 		background_size("background-size",true,ContentType.distanceOrKeyword,1,2,new ValueListDescriptor(ContentType.value,1,1,"auto","cover","contain")),
 		
-		border("border"),
+		border("border",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
 		border_bottom("border-bottom",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
 		border_bottom_color("border-bottom-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
 		border_bottom_left_radius("border-bottom-left-radius",false,ContentType.distance,1,2),
@@ -22,7 +22,7 @@ public enum StylePropertiesSupported {
 		border_bottom_width("border-bottom-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
 		border_collapse("border-collapse",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"collapse","separate")),
 		border_color("border-color",true,ContentType.colorOrKeyword,1,4,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
-		border_image("border-image"),
+		border_image("border-image",false,ContentType.asIs),
 		border_left("border-left",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
 		border_left_color("border-left-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
 		border_left_style("border-left-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","hidden","dotted","dashed","solid","double","groove","ridge","inset","outset")),
@@ -44,32 +44,32 @@ public enum StylePropertiesSupported {
 		
 		bottom("bottom",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		
-		box_shadow("box-shadow"),
+		box_shadow("box-shadow",false,ContentType.asIs),
 		box_sizing("box-sizing",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"content-box","border-box","padding-box")),
 		
 		caption_side("caption-side",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"top","bottom","left","right")),
 		clear("clear",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"top","none","left","right","both")),
-		clip("clip"),
+		clip("clip",true,ContentType.asIs),
 		color("color",true,ContentType.color),
 		
 		column_count("column-count",false,ContentType.integerOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		column_gap("column-gap",false,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"normal")),
-		column_rule("column-rule"),
+		column_rule("column-rule",false,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
 		column_width("column-width",false,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		
-		columns("columns"),
-		content("content"),
+		columns("columns",false,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"column-width","column-count")),
+		content("content",true,ContentType.asIs),
 		
-		counter_increment("counter-increment"),
-		counter_reset("counter-reset"),
+		counter_increment("counter-increment",true,ContentType.asIs),
+		counter_reset("counter-reset",true,ContentType.asIs),
 		
-		cursor("cursor"),
+		cursor("cursor",true,ContentType.asIs),
 		direction("direction",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"ltr","rtl")),
 		display("display",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"block","inline","inline-block","inline-table","list-item","none","run-in","table","table-caption","table-cell","table-column-group","table-column","table-footer-group","table-header-group","table-row","table-row-group")),
 		empty_cells("empty-cells",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"show","hide")),
 		_float("float",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"left","right","none")),
 
-		font("font"),
+		font("font",true,ContentType.asIs),
 		font_family("font-family",true,ContentType.string,1,Integer.MAX_VALUE),
 		font_size("font-size",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"xx-small","x-small","small","medium","large","x-large","xx-large","larger","smaller")),
 		font_stretch("font-stretch",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"ultra-condensed","extra-condensed","condensed","semi-condensed","normal","semi-expanded","expanded","extra-expanded","ultra-expanded")),
@@ -80,14 +80,14 @@ public enum StylePropertiesSupported {
 		height("height",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		left("left",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		letter_spacing("letter-spacing",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"normal")),
-		line_height("line-height"),
+		line_height("line-height",true,ContentType.asIs),
 		
-		list_style("list-style"),
+		list_style("list-style",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"list-style-type","list-style-position","list-style-image")),
 		list_style_image("list-style-image",true,ContentType.urlOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
 		list_style_position("list-style-position",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"inside","outside")),
 		list_style_type("list-style-type",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"circle","disc","square","armenian","decimal","decimal-leading-zero","georgian","lower-alpha","lower-greek","lower-latin","lower-roman","upper-alpha","upper-latin","upper-roman","none")),
 		
-		margin("margin"),
+		margin("margin",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"margin-top","margin-right","margin-bottom","margin-left")),
 		margin_bottom("margin-bottom",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		margin_left("margin-left",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		margin_right("margin-right",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
@@ -102,17 +102,17 @@ public enum StylePropertiesSupported {
 		opacity("opacity",false,ContentType.number),
 		orphans("orphans",true,ContentType.integer),
 		
-		outline("outline"),
+		outline("outline",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"outline-color","outline-style","outline-width")),
 		outline_color("outline-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"invert")),
 		outline_offset("outline-offset",true,ContentType.distance),
 		outline_style("outline-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","dotted","dashed","solid","double","groove","ridge","inset","outset")),
 		outline_width("outline-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
 		
-		overflow("overflow"),
+		overflow("overflow",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","hidden","scroll","visible")),
 		overflow_x("overflow-x",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","hidden","scroll","visible")),
 		overflow_y("overflow-y",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","hidden","scroll","visible")),
 		
-		padding("padding"),
+		padding("padding",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"padding-top","padding-right","padding-bottom","padding-left")),
 		padding_bottom("padding-bottom",true,ContentType.distance),
 		padding_left("padding-left",true,ContentType.distance),
 		padding_right("padding-right",true,ContentType.distance),
@@ -123,7 +123,7 @@ public enum StylePropertiesSupported {
 		page_break_inside("page-break-inside",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","avoid")),
 		
 		position("position",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"absolute","fixed","relative","static")),
-		quotes("quotes"),
+		quotes("quotes",true,ContentType.asIs),
 		resize("resize",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","both","horizontal","vertical")),
 		right("right",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		tab_size("tab-size",false,ContentType.integer),
@@ -131,24 +131,24 @@ public enum StylePropertiesSupported {
 		
 		text_align("text-align",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"center","justify","left","right","start","end")),
 		text_align_last("text-align-last",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"center","justify","left","right","start","end")),
-		text_decoration("text-decoration"),
+		text_decoration("text-decoration",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.value,1,1,"blink","line-through","overline","underline","none")),
 		text_decoration_color("text-decoration-color",false,ContentType.color),
 		text_decoration_line("text-decoration-line"),
 		text_decoration_style("text-decoration-style",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"solid","double","dotted","dashed")),
 		text_indent("text-indent",true,ContentType.distance),
 		text_overflow("text-overflow",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"clip","ellipsis")),
-		text_shadow("text-shadow"),
+		text_shadow("text-shadow",true,ContentType.asIs),
 		text_transform("text-transform",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"capitalize","lowercase","uppercase","none")),
 		
 		top("top",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		
-		transform("transform"),
-		transform_origin("transform-origin"),
+		transform("transform",true,ContentType.functionOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
+		transform_origin("transform-origin",true,ContentType.asIs),
 		
-		transition("transition"),
+		transition("transition",true,ContentType.asIs),
 		transition_delay("transition-delay",false,ContentType.time,1,Integer.MAX_VALUE),
 		transition_duration("transition-duration",false,ContentType.time,1,Integer.MAX_VALUE),
-		transition_property("transition-property"),
+		transition_property("transition-property",false,ContentType.stringOrKeyword,1,Integer.MAX_VALUE,new ValueListDescriptor(ContentType.value,1,1,"none","all")),
 		transition_timing_function("transition-timing-function",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"ease","ease-in","ease-out","ease-in-out","linear","step-start","step-end","steps","cubic-bezier")),
 		
 		unicode_bidi("unicode-bidi",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"normal","embed","bidi-override")),
@@ -167,8 +167,9 @@ public enum StylePropertiesSupported {
 	
 	public enum ContentType {
 		value, integer, 
-		string, stringOrKeyword, integerOrKeyword, number, numberOrKeyword, color, colorOrKeyword, distance, distanceOrKeyword, time, timeOrKeyword, url, urlOrKeyword,
-		compoundChoise, compoundSequence, subStyle
+		string, stringOrKeyword, integerOrKeyword, number, numberOrKeyword, color, colorOrKeyword,
+		distance, distanceOrKeyword, time, timeOrKeyword, url, urlOrKeyword, function, functionOrKeyword,
+		compoundChoise, compoundSequence, subStyle, asIs
 	}
 	
 	public static class ValueListDescriptor {
@@ -249,7 +250,7 @@ public enum StylePropertiesSupported {
     private StylePropertiesSupported(final String externalName, final ContentType type, final String masterProperty) {
     	this(externalName, false, type, 1, 1, masterProperty, null);
     }
-    
+
     private StylePropertiesSupported(final String externalName, final boolean canBeInherited, final ContentType type, final int minOccurence, final int maxOccurence, final String masterProperty, final ValueListDescriptor values) {
         this.externalName = externalName;
         this.canBeInherted = canBeInherited;
@@ -267,8 +268,24 @@ public enum StylePropertiesSupported {
     public boolean canBeInherited() {
     	return canBeInherted;
     }
+    
+    public ContentType getContentType() {
+		return contentType;
+	}
 
-    public static StylePropertiesSupported forName(final String externalName) {
+    public int getMinOccurence() {
+		return minOccurence;
+	}
+
+    public int getMaxOccurence() {
+		return maxOccurence;
+	}
+
+    public ValueListDescriptor getValues() {
+		return values;
+	}
+
+	public static StylePropertiesSupported forName(final String externalName) {
     	if (externalName == null || externalName.isEmpty()) {
     		throw new IllegalArgumentException("External name can't be null or empty");
     	}
@@ -281,5 +298,4 @@ public enum StylePropertiesSupported {
     		throw new IllegalArgumentException("Unsupported enum value for external name ["+externalName+"]");
     	}
     }
-	
 }
