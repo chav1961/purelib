@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 import java.util.Arrays;
 
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 
 /**
@@ -37,40 +38,12 @@ public class CharUtils {
 	public static final int			PREF_DOUBLE = 8;
 	public static final int			PREF_ANY = PREF_INT | PREF_LONG | PREF_FLOAT | PREF_DOUBLE;
 	public static final int			MAX_SUBST_DEPTH = 16;
-	
-	private static final int		INTMAX_2 = Integer.MAX_VALUE / 2;
-	private static final int		INTMAX_8 = Integer.MAX_VALUE / 8;
-	private static final int		INTMAX_10 = Integer.MAX_VALUE / 10;
-	private static final int		INTMAX_16 = Integer.MAX_VALUE / 16;
-	private static final long		LONGMAX_2 = Long.MAX_VALUE / 2;
-	private static final long		LONGMAX_8 = Long.MAX_VALUE / 8;
-	private static final long		LONGMAX_10 = Long.MAX_VALUE / 10;
-	private static final long		LONGMAX_16 = Long.MAX_VALUE / 16;
-	private static final int		EXP_BOUND = Double.MAX_EXPONENT;
+
 	private static final int		OCT_ESCAPE_SIZE = 3;
 	private static final int		U_ESCAPE_SIZE = 4;
-	private static final long[]		LONG_EXPS = new long[]{1000000000000000000L, 100000000000000000L, 10000000000000000L,
-										1000000000000000L, 100000000000000L, 10000000000000L,
-										1000000000000L, 100000000000L, 10000000000L,
-										1000000000L, 100000000L, 10000000L,
-										1000000L, 100000L, 10000L, 
-										1000L, 	100L, 10L,
-										1L
-									};
-	private static final double		DOUBLE_EXPS[];
-	private static final char[]		DOUBLE_NAN = "NaN".toCharArray();
-	private static final char[]		DOUBLE_NEGATIVE_INFINITY = "-Infinity".toCharArray();
-	private static final char[]		DOUBLE_POSITIVE_INFINITY = "Infinity".toCharArray();
-	private static final char[]		HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
-	
-	static {
-		DOUBLE_EXPS = new double[EXP_BOUND * 2 + 1];
-		for (int index = -EXP_BOUND; index <= EXP_BOUND; index++) {
-			DOUBLE_EXPS[index+EXP_BOUND] = Double.parseDouble("1E"+index);
-		}
-	}
 	
 	/**
 	 * <p>Extract unsigned integer value from the current position of the source data</p>
@@ -94,7 +67,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
-			return uncheckedParseInt(source, from, result, checkOverflow);
+			return UnsafedCharUtils.uncheckedParseInt(source, from, result, checkOverflow);
 		}
 	}
 
@@ -122,42 +95,19 @@ public class CharUtils {
 		}
 		else {
 			if (source[from] == '-') {
-				final int	returned = uncheckedParseInt(source, from+1, result, checkOverflow);
+				final int	returned = UnsafedCharUtils.uncheckedParseInt(source, from+1, result, checkOverflow);
 				
 				result[0] = -result[0];
 				return returned;
 			}
 			else if (source[from] == '+') {
-				return uncheckedParseInt(source, from+1, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseInt(source, from+1, result, checkOverflow);
 			}
 			else {
-				return uncheckedParseInt(source, from, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseInt(source, from, result, checkOverflow);
 			}
 		}
 	}
-	
-	private static int uncheckedParseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
-		final int	len = source.length;
-		int			temp = 0, index = from;
-		char		symbol;
-		
-		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-			if (checkOverflow && temp > INTMAX_10) {
-				throw new NumberFormatException("Number is greater then maximal available integer");
-			}
-			temp = temp * 10 + symbol - '0';
-			index++;
-		}
-		
-		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
-		}
-		else {
-			result[0] = temp;
-			return index;
-		}
-	}
-	
 	
 	/**
 	 * <p>Extract unsigned integer value from the current position of the source data. Differ to {@link #parseInt(char[], int, int[], boolean)} supports binary, octal and hexadecimal representation of the integer constants.</p>
@@ -181,81 +131,10 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain exactly one element"); 
 		}
 		else {
-			int		temp = 0, index = from;
-			char	symbol;
-			
-			if ((symbol = source[index]) == '0') {
-				if (index < len-1) {
-					switch (source[index+1]) {
-						case 'b' : case 'B' :
-							index += 2;
-							while (index < len && (symbol = source[index]) >= '0' && symbol <= '1') {
-								if (checkOverflow && temp > INTMAX_2) {
-									throw new NumberFormatException("Number is greater then maximal available integer");
-								}
-								temp = (temp << 1) + (symbol == '0' ? 0 : 1);
-								index++;
-							}
-							break;
-						case 'x' : case 'X' :
-							index += 2;
-							while (index < len && ((symbol = source[index]) >= '0' && symbol <= '9' || symbol >= 'a' && symbol <= 'f' || symbol >= 'A' && symbol <= 'F')) {
-								if (checkOverflow && temp > INTMAX_16) {
-									throw new NumberFormatException("Number is greater then maximal available integer");
-								}
-								if (symbol >= '0' && symbol <= '9') {
-									temp = (temp << 4) + symbol - '0';
-								}
-								else if (symbol >= 'a' && symbol <= 'f') {
-									temp = (temp << 4) + symbol - 'a' + 10;
-								}
-								else {
-									temp = (temp << 4) + symbol - 'A' + 10;
-								}
-								index++;
-							}
-							break;
-						default :
-							while (index < len && ((symbol = source[index]) >= '0' && symbol <= '7')) {
-								if (checkOverflow && temp > INTMAX_8) {
-									throw new NumberFormatException("Number is greater then maximal available integer");
-								}
-								temp = (temp << 3) + symbol - '0';
-								index++;
-							}
-							break;
-					}
-				}
-				else {
-					while (index < len && ((symbol = source[index]) >= '0' && symbol <= '7')) {
-						if (checkOverflow && temp > INTMAX_8) {
-							throw new NumberFormatException("Number is greater then maximal available integer");
-						}
-						temp = (temp << 3) + symbol - '0';
-						index++;
-					}
-				}				
-			}
-			else {
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					if (checkOverflow && temp > INTMAX_10) {
-						throw new NumberFormatException("Number is greater then maximal available integer");
-					}
-					temp = temp * 10 + symbol - '0';
-					index++;
-				}
-			}
-			
-			if (index == from) {
-				throw new NumberFormatException("No one digits in the number was detected!");
-			}
-			else {
-				result[0] = temp;
-				return index;
-			}
+			return UnsafedCharUtils.uncheckedParseIntExtended(source,from,result,checkOverflow);
 		}
 	}
-	
+
 	/**
 	 * <p>Extract unsigned long value from the current position of the source data</p>
 	 * @param source source data contains character representation of the integer value
@@ -278,7 +157,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
-			return uncheckedParseLong(source, from, result, checkOverflow);
+			return UnsafedCharUtils.uncheckedParseLong(source, from, result, checkOverflow);
 		}
 	}
 
@@ -306,43 +185,19 @@ public class CharUtils {
 		}
 		else {
 			if (source[from] == '-') {
-				final int	returned = uncheckedParseLong(source, from+1, result, checkOverflow);
+				final int	returned = UnsafedCharUtils.uncheckedParseLong(source, from+1, result, checkOverflow);
 				
 				result[0] = -result[0];
 				return returned;
 			}
 			else if (source[from] == '+') {
-				return uncheckedParseLong(source, from+1, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseLong(source, from+1, result, checkOverflow);
 			}
 			else {
-				return uncheckedParseLong(source, from, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseLong(source, from, result, checkOverflow);
 			}
 		}
 	}
-	
-	private static int uncheckedParseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
-		final int	len = source.length;
-		long		temp = 0;
-		int			index = from;
-		char		symbol;
-		
-		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-			if (checkOverflow && temp > LONGMAX_10) {
-				throw new NumberFormatException("Number is greater then maximal available long");
-			}
-			temp = temp * 10 + symbol - '0';
-			index++;
-		}
-		
-		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
-		}
-		else {
-			result[0] = temp;
-			return index;
-		}
-	}
-	
 	
 	/**
 	 * <p>Extract unsigned long value from the current position of the source data. Differ to {@link #parseLong(char[], int, long[], boolean)} supports binary, octal and hexadecimal representation of the integer constants.</p>
@@ -366,79 +221,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
-			long	temp = 0;
-			int		index = from;
-			char	symbol;
-			
-			if ((symbol = source[index]) == '0') {
-				if (index < len-1) {
-					switch (source[index+1]) {
-						case 'b' : case 'B' :
-							index += 2;
-							while (index < len && (symbol = source[index]) >= '0' && symbol <= '1') {
-								if (checkOverflow && temp > LONGMAX_2) {
-									throw new NumberFormatException("Number is greater then maximal available long");
-								}
-								temp = (temp << 1) + (symbol == '0' ? 0 : 1);
-								index++;
-							}
-							break;
-						case 'x' : case 'X' :
-							index += 2;
-							while (index < len && ((symbol = source[index]) >= '0' && symbol <= '9' || symbol >= 'a' && symbol <= 'f' || symbol >= 'A' && symbol <= 'F')) {
-								if (checkOverflow && temp > LONGMAX_16) {
-									throw new NumberFormatException("Number is greater then maximal available long");
-								}
-								if (symbol >= '0' && symbol <= '9') {
-									temp = (temp << 4) + symbol - '0';
-								}
-								else if (symbol >= 'a' && symbol <= 'f') {
-									temp = (temp << 4) + symbol - 'a' + 10;
-								}
-								else {
-									temp = (temp << 4) + symbol - 'A' + 10;
-								}
-								index++;
-							}
-							break;
-						default :
-							while (index < len && ((symbol = source[index]) >= '0' && symbol <= '7')) {
-								if (checkOverflow && temp > LONGMAX_8) {
-									throw new NumberFormatException("Number is greater then maximal available long");
-								}
-								temp = (temp << 3) + symbol - '0';
-								index++;
-							}
-							break;
-					}
-				}
-				else {
-					while (index < len && ((symbol = source[index]) >= '0' && symbol <= '7')) {
-						if (checkOverflow && temp > INTMAX_8) {
-							throw new NumberFormatException("Number is greater then maximal available integer");
-						}
-						temp = (temp << 3) + symbol - '0';
-						index++;
-					}
-				}				
-			}
-			else {
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					if (checkOverflow && temp > LONGMAX_10) {
-						throw new NumberFormatException("Number is greater then maximal available long");
-					}
-					temp = temp * 10 + symbol - '0';
-					index++;
-				}
-			}
-			
-			if (index == from) {
-				throw new NumberFormatException("No one digits in the number was detected!");
-			}
-			else {
-				result[0] = temp;
-				return index;
-			}
+			return UnsafedCharUtils.uncheckedParseLongExtended(source, from, result, checkOverflow);
 		}
 	}
 
@@ -464,7 +247,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain exactly one element"); 
 		}
 		else {
-			return unckeckedParseFloat(source,from,result,checkOverflow);
+			return UnsafedCharUtils.uncheckedParseFloat(source,from,result,checkOverflow);
 		}
 	}
 
@@ -492,103 +275,18 @@ public class CharUtils {
 		}
 		else {
 			if (source[from] == '-') {
-				final int	returned = unckeckedParseFloat(source, from+1, result, checkOverflow);
+				final int	returned = UnsafedCharUtils.uncheckedParseFloat(source, from+1, result, checkOverflow);
 				
 				result[0] = -result[0];
 				return returned;
 			}
 			else if (source[from] == '+') {
-				return unckeckedParseFloat(source, from+1, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseFloat(source, from+1, result, checkOverflow);
 			}
 			else {
-				return unckeckedParseFloat(source, from, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseFloat(source, from, result, checkOverflow);
 			}
 		}
-	}
-	
-	private static int unckeckedParseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) {
-		final int	len = source.length;
-		long		temp = 0;
-		int			index = from;
-		char		symbol = ' ';
-		boolean		continueParsing = false;
-		
-		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-			if (temp > LONGMAX_10) {
-				continueParsing = true;
-				break;
-			}
-			temp = temp * 10 + symbol - '0';
-			index++;
-		}
-		
-		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
-		}
-		else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E') || continueParsing) {
-			double	tempInt = temp;
-			
-			if (continueParsing) {
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					tempInt = tempInt * 10 + symbol - '0';
-					index++;
-				}
-			}
-			
-			if (symbol == '.') {
-				double	frac = 0, scale = 1;
-				int		fracFrom = ++index;
-				
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					frac = frac * 10 + symbol - '0';
-					scale *= 0.1;
-					index++;
-				}
-				
-				if (index == fracFrom) {
-					throw new NumberFormatException("No one digits in the fractional part of float was detected!");
-				}
-				else {
-					tempInt += frac * scale;
-				}
-			}
-			if (symbol == 'e' || symbol == 'E') {
-				int		multiplier = 1;
-				
-				index++;
-				if (index < len && (symbol = source[index]) == '-') {
-					multiplier = -1;
-					index++;
-				}
-				else if (symbol == '+') {
-					index++;
-				}
-				int		exp = 0, expFrom = index;
-				
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					exp = exp * 10 + symbol - '0';
-					index++;
-				}
-				exp *= multiplier;
-				
-				
-				if (checkOverflow && (exp > Float.MAX_EXPONENT || exp < Float.MIN_EXPONENT)) {
-					throw new NumberFormatException("Number is greater then maximal available float");
-				}
-				
-				if (index == expFrom) {
-					throw new NumberFormatException("No one digits in the exponent part of float was detected!");
-				}
-				else {
-					tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
-				}
-			}
-			result[0] = (float)tempInt;
-		}
-		else {
-			result[0] = temp;
-		}
-		return index;
 	}
 	
 	/**
@@ -613,7 +311,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
-			return uncheckedParseDouble(source, from, result, checkOverflow);
+			return UnsafedCharUtils.uncheckedParseDouble(source, from, result, checkOverflow);
 		}
 	}
 
@@ -641,104 +339,19 @@ public class CharUtils {
 		}
 		else {
 			if (source[from] == '-') {
-				final int	returned = uncheckedParseDouble(source, from+1, result, checkOverflow);
+				final int	returned = UnsafedCharUtils.uncheckedParseDouble(source, from+1, result, checkOverflow);
 				
 				result[0] = -result[0];
 				return returned;
 			}
 			else if (source[from] == '+') {
-				return uncheckedParseDouble(source, from+1, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseDouble(source, from+1, result, checkOverflow);
 			}
 			else {
-				return uncheckedParseDouble(source, from, result, checkOverflow);
+				return UnsafedCharUtils.uncheckedParseDouble(source, from, result, checkOverflow);
 			}
 		}
 	}
-	
-	private static int uncheckedParseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) {
-		final int	len = source.length;
-		long		temp = 0;
-		int			index = from;
-		char		symbol = ' ';
-		boolean		continueParsing = false;
-		
-		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-			if (temp > LONGMAX_10) {
-				continueParsing = true;
-				break;
-			}
-			temp = temp * 10 + symbol - '0';
-			index++;
-		}
-		
-		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
-		}
-		else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E') || continueParsing) {
-			double	tempInt = temp;
-			
-			if (continueParsing) {
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					tempInt = tempInt * 10 + symbol - '0';
-					index++;
-				}
-			}
-			
-			if (symbol == '.') {
-				double	frac = 0, scale = 1;
-				int		fracFrom = ++index;
-				
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					frac = frac * 10 + symbol - '0';
-					scale *= 0.1;
-					index++;
-				}
-				
-				if (index == fracFrom) {
-					throw new NumberFormatException("No one digits in the fractional part of double was detected!");
-				}
-				else {
-					tempInt += frac * scale;
-				}
-			}
-			if (symbol == 'e' || symbol == 'E') {
-				int		multiplier = 1;
-				
-				index++;
-				if (index < len && (symbol = source[index]) == '-') {
-					multiplier = -1;
-					index++;
-				}
-				else if (symbol == '+') {
-					index++;
-				}
-				int		exp = 0, expFrom = index;
-				
-				while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-					exp = exp * 10 + symbol - '0';
-					index++;
-				}
-				exp *= multiplier;					
-				
-				if (checkOverflow && (exp > Double.MAX_EXPONENT || exp < Double.MIN_EXPONENT)) {
-					throw new NumberFormatException("Number is greater then maximal available double");
-				}
-				
-				if (index == expFrom) {
-					throw new NumberFormatException("No one digits in the exponent part of double was detected!");
-				}
-				else {
-					tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
-				}
-			}
-			result[0] = tempInt;
-		}
-		else {
-			result[0] = temp;
-		}
-		return index;
-	}
-	
 	
 	/**
 	 * <p>Extract unsigned numeric value from the current position of the source data. This method uses a <i>preferrable</i> parameter to define data type you wish to get. Available 
@@ -770,136 +383,11 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need conatins exactly two elements"); 
 		}
 		else {
-			long	temp = 0;
-			int		index = from;
-			char	symbol = ' ';
-			boolean	continueParsing = false;
-			
-			while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-				if (checkOverflow) {
-					if (temp > INTMAX_10 && (preferences & (PREF_LONG | PREF_FLOAT)) == 0) {
-						throw new NumberFormatException("Number is greater then maximal available integer");
-					}
-					if (temp > LONGMAX_10 && (preferences & PREF_DOUBLE) == 0) {
-						throw new NumberFormatException("Number is greater then maximal available long");
-					}
-				}
-				if (temp > LONGMAX_10) {
-					continueParsing = true;
-					break;
-				}
-				temp = temp * 10 + symbol - '0';
-				index++;
-			}
-			if (index < len && (source[index] == 'l' || source[index] == 'L')) {
-				if ((preferences & PREF_LONG) == 0) {
-					throw new NumberFormatException("Long constant is not waited here");
-				}
-				else {
-					result[0] = temp; 
-					result[1] = PREF_LONG;
-					return index+1;
-				}
-			}
-			
-			if (index == from) {
-				throw new NumberFormatException("No one digits in the number was detected!");
-			}
-			else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E' || symbol == 'f' || symbol == 'F') || continueParsing) {
-				if ((preferences & (PREF_FLOAT | PREF_DOUBLE)) != 0) {
-					double	tempInt = temp;
-					
-					if (continueParsing) {
-						while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-							tempInt = tempInt * 10 + symbol - '0';
-							index++;
-						}
-					}
-					
-					if (symbol == '.') {
-						double	frac = 0, scale = 1;
-						int		fracFrom = ++index;
-						
-						while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-							frac = frac * 10 + symbol - '0';
-							scale *= 0.1;
-							index++;
-						}
-						
-						if (index == fracFrom) {
-							throw new NumberFormatException("No one digits in the fractional part of double was detected!");
-						}
-						else {
-							tempInt += frac * scale;
-						}
-					}
-					if (symbol == 'e' || symbol == 'E') {
-						int		multiplier = 1;
-						
-						index++;
-						if (index < len && (symbol = source[index]) == '-') {
-							multiplier = -1;
-							index++;
-						}
-						else if (symbol == '+') {
-							index++;
-						}
-						int		exp = 0, expFrom = index;
-						
-						while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-							exp = exp * 10 + symbol - '0';
-							index++;
-						}
-						exp *= multiplier;
-						
-						if (checkOverflow && (exp > EXP_BOUND || exp < -EXP_BOUND)) {
-							throw new NumberFormatException("Number is greater then maximal available double");
-						}
-						
-						if (index == expFrom) {
-							throw new NumberFormatException("No one digits in the exponent part of double was detected!");
-						}
-						else {
-							tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
-						}
-					}
-	
-					if (symbol == 'f' || symbol == 'F') {
-						index++;
-						if ((preferences & PREF_FLOAT) == 0) {
-							throw new NumberFormatException("Float number is not waited here");
-						}
-						else if (Math.abs(tempInt) < Float.MAX_VALUE) {
-							result[0] = Float.floatToIntBits((float)tempInt);
-							result[1] = PREF_FLOAT;
-						}
-						else {
-							throw new NumberFormatException("Float number is greater then maximal available float");
-						}
-					}
-					else {
-						if ((preferences & PREF_DOUBLE) != 0) {
-							result[0] = Double.doubleToLongBits(tempInt);
-							result[1] = PREF_DOUBLE;
-						}
-						else {
-							throw new NumberFormatException("Double number is not waited here");
-						}
-					}
-				}
-				else {
-					result[0] = temp; 
-					result[1] = temp > Integer.MAX_VALUE ? PREF_LONG : PREF_INT;
-				}
-			}
-			else {
-				result[0] = temp; 
-				result[1] = temp > Integer.MAX_VALUE ? PREF_LONG : PREF_INT;
-			}
-			return index;
+			return UnsafedCharUtils.uncheckedParseNumber(source,from,result,preferences,checkOverflow);
 		}
 	}
 
+	
 	/**
 	 * <p>Test weather the given char need escaping in the external representation</p>
 	 * @param symbol symbol to test
@@ -1356,25 +844,10 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and needs contain exactly two elements"); 
 		}
 		else {
-			if (!Character.isJavaIdentifierStart(source[from])) {
-				throw new IllegalArgumentException("No valid beginning of the name"); 
-			}
-			else {
-				int		index;
-				
-				result[0] = from;
-				for (index = from; index < len; index++) {
-					if (!Character.isJavaIdentifierPart(source[index])) {
-						break;
-					}
-				}
-				result[1] = index-1;
-				
-				return index;
-			}
+			return UnsafedCharUtils.uncheckedParseName(source,from,result);
 		}		
 	}
-
+	
 	/**
 	 * <p>Parse name from the source</p>
 	 * @param source source data contains character representation of the name
@@ -1398,32 +871,10 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and needs contain exactly two elements"); 
 		}
 		else {
-			if (!Character.isJavaIdentifierStart(source[from])) {
-				throw new IllegalArgumentException("No valid beginning of the name"); 
-			}
-			else {
-				int		index;
-				
-				result[0] = from;
-loop:			for (index = from; index < len; index++) {
-					if (!Character.isJavaIdentifierPart(source[index])) {
-						break;
-					}
-					else {
-						for (char item : availableChars) {
-							if (item == source[index]) {
-								continue loop;
-							}
-						}
-						break;
-					}
-				}
-				result[1] = index-1;
-				
-				return index;
-			}
+			return UnsafedCharUtils.uncheckedParseNameExtended(source,from,result,availableChars);
 		}		
 	}
+	
 	
 	/**
 	 * <p>Skip blank content of the line</p>
@@ -1442,23 +893,11 @@ loop:			for (index = from; index < len; index++) {
 		else if (from < 0 || from >= source.length) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(source.length-1));
 		}
-		else if (stopOnEOL) {
-			for (int index = from, maxIndex = source.length; index < maxIndex; index++) {
-				if (source[index] > ' ' || source[index] == '\n') {
-					return index;
-				}
-			}
-			return source.length;
-		}
 		else {
-			for (int index = from, maxIndex = source.length; index < maxIndex; index++) {
-				if (source[index] > ' ') {
-					return index;
-				}
-			}
-			return source.length;
+			return UnsafedCharUtils.uncheckedSkipBlank(source,from,stopOnEOL);
 		}
 	}	
+
 	
 	/**
 	 * <p>Compare char array slice with the given template</p>
@@ -1482,7 +921,7 @@ loop:			for (index = from; index < len; index++) {
 			return true;
 		}
 		else {
-			return uncheckedCompare(source,from,template,0,template.length);
+			return UnsafedCharUtils.uncheckedCompare(source,from,template,0,template.length);
 		}
 	}
 
@@ -1521,23 +960,110 @@ loop:			for (index = from; index < len; index++) {
 			return false;
 		}
 		else {
-			return uncheckedCompare(source,from,template,templateFrom,templateLen);
+			return UnsafedCharUtils.uncheckedCompare(source,from,template,templateFrom,templateLen);
 		}
 	}
 
-	private static boolean uncheckedCompare(final char[] source, final int from, final char[] template, final int templateFrom, final int templateLen) {
-		if (source.length - from < templateLen) {
-			return false;
+	public enum ArgumentType {
+		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, name, hyphenedName
+	}
+	
+	public static int extract(final char[] source, final int from, final Object[] result, Object... lexemas) throws SyntaxException {
+		int	len, start = from;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source char array can't be null or empty");
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From location ["+from+"] out of range 0.."+(len-1));
+		}
+		else if (result == null) {
+			throw new NullPointerException("Result object array can't be null");
+		}
+		else if (lexemas == null || lexemas.length == 0) {
+			throw new IllegalArgumentException("Lexemas list can't be null or empty");
 		}
 		else {
-			for (int index = 0; index < templateLen; index++) {
-				if (source[from+index] != template[templateFrom+index]) {
-					return false;
+			int  resultCount = 0;
+			
+			for (Object item : lexemas) {
+				if (item instanceof ArgumentType) {
+					resultCount++;
 				}
 			}
-			return true;
+			if (resultCount > result.length) {
+				throw new IllegalArgumentException("Result array size ["+result.length+"] is less than number of ArgumetType lexemas in the list ["+resultCount+"]");
+			}
+			
+			final int[]		intResult = new int[2];
+			final long[]	longResult = new long[2];
+			final float[]	floatResult = new float[2];
+			int				resultIndex = 0;
+			
+			for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++) {
+				final Object	lexema = lexemas[index];
+				
+				start = UnsafedCharUtils.uncheckedSkipBlank(source,start,true);
+				if (lexema instanceof char[]) {
+					final char[]	item = (char[])lexema; 
+					
+					if (UnsafedCharUtils.uncheckedCompare(source,start,item,0,item.length)) {
+						start += item.length;
+					}
+					else {
+						throw new SyntaxException(0,start,"Missing '"+new String(item)+"'"); 
+					}
+				}
+				else if (lexema instanceof Character) {
+					if (source[start] == ((Character)lexema).charValue()) {
+						start++;
+					}
+					else {
+						throw new SyntaxException(0,start,"Missing '"+((Character)lexema).charValue()+"'"); 
+					}
+				}
+				else if (lexema instanceof ArgumentType) {
+					switch ((ArgumentType)lexema) {
+						case hexInt			:
+							start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
+							result[resultIndex++] = intResult[0];
+							break;
+						case hexLong		:
+							start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
+							result[resultIndex++] = longResult[0];
+							break;
+						case ordinalInt		:
+							start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
+							result[resultIndex++] = intResult[0];
+							break;
+						case ordinalLong	:
+							start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
+							result[resultIndex++] = longResult[0];
+							break;
+						case ordinalFloat	:
+							start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
+							result[resultIndex++] = floatResult[0];
+							break;
+						case name			:
+							start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+							result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+							break;
+						case hyphenedName	:
+							start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+							result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+							break;
+						default				:
+							throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
+					}
+				}
+				else {
+					throw new IllegalArgumentException("Unsupported Lexema type ["+lexema+"] at index ["+index+"]"); 
+				}
+			}
 		}
+		return start;
 	}
+	
 	
 	/**
 	 * <p>Performs 'like' operation in char arrays (see SQL language syntax)</p>
@@ -1658,106 +1184,10 @@ loop:			for (index = from; index < len; index++) {
 			throw new IllegalArgumentException("From position ["+from+"] can't be negative"); 
 		}
 		else {
-			return uncheckedPrintLong(content,from,value,reallyFill);
+			return UnsafedCharUtils.uncheckedPrintLong(content,from,value,reallyFill);
 		}
 	}
 
-	private static int uncheckedPrintLong(final char[] content, final int from, final long value, boolean reallyFill) throws IllegalArgumentException {
-		final int	to = content.length;
-		long		currentVal = value;
-		int			newFrom = from,  delta = 0;
-		
-		if (currentVal == 0) {
-			if (newFrom < to) {
-				if (reallyFill) {
-					content[newFrom] = '0';
-				}
-			}
-			else {
-				reallyFill = false;
-			}
-			newFrom++;
-		}
-		else {
-			if (currentVal < 0) {
-				if (currentVal == Long.MIN_VALUE) {
-					currentVal = Long.MAX_VALUE;
-					delta = 1;	// Problem with the Long.MIN_VALUE
-				}
-				else {
-					currentVal = - currentVal;
-				}
-				if (newFrom < to) {
-					if (reallyFill) {
-						content[newFrom] = '-';
-					}
-				}
-				else {
-					reallyFill = false;
-				}
-				newFrom++;
-			}
-			final long[]	expsArray = LONG_EXPS;
-			int				index, maxIndex;
-			
-			for (index = expsArray.length - 1; index > 0; index--) {
-				if (expsArray[index] > currentVal) {
-					index++;
-					break;
-				}
-			}
-			
-			for (maxIndex = expsArray.length; index < maxIndex; index++) {
-				final long	currentDelta = expsArray[index];
-				
-				if (currentVal >= currentDelta) {
-					for (int digit = 1; digit <= 10; digit++) {
-						if ((currentVal -= currentDelta) < 0) {
-							currentVal += currentDelta;
-							if (newFrom < to) {
-								if (reallyFill) {
-									content[newFrom] = (char) ('0'+digit-1);
-								}
-							}
-							else {
-								reallyFill = false;
-							}
-							newFrom++;
-							break;
-						}
-						else if (currentVal == 0) {
-							if (newFrom < to) {
-								if (reallyFill) {
-									content[newFrom] = (char) ('0'+digit);
-								}
-							}
-							else {
-								reallyFill = false;
-							}
-							newFrom++;
-							break;
-						}
-					}
-					currentVal += delta;	// Problem with the Long.MIN_VALUE 
-					delta = 0;
-				}
-				else {
-					if (newFrom < to) {
-						if (reallyFill) {
-							content[newFrom] = '0';
-						}
-					}
-					else {
-						reallyFill = false;
-					}
-					newFrom++;
-				}
-			}
-		}
-		return reallyFill ? newFrom : -newFrom;
-	}
-	
-	
 	/**
 	 * <p>Print double number to the char array</p>
 	 * @param content char array to fill with long
@@ -1776,127 +1206,9 @@ loop:			for (index = from; index < len; index++) {
 			throw new IllegalArgumentException("From position ["+from+"] can't be negative"); 
 		}
 		else {
-			final int	to = content.length;
-			int			newFrom = from;
-			
-			if (Double.isNaN(value)) {
-				if (newFrom < to - DOUBLE_NAN.length) {
-					if (reallyFill) {
-						System.arraycopy(DOUBLE_NAN,0,content,newFrom,DOUBLE_NAN.length);
-					}
-				}
-				else {
-					reallyFill = false;
-				}
-				newFrom += DOUBLE_NAN.length;
-			}
-			else if (value == Double.NEGATIVE_INFINITY) {
-				if (newFrom < to - DOUBLE_NEGATIVE_INFINITY.length) {
-					if (reallyFill) {
-						System.arraycopy(DOUBLE_NEGATIVE_INFINITY,0,content,newFrom,DOUBLE_NEGATIVE_INFINITY.length);
-					}
-				}
-				else {
-					reallyFill = false;
-				}
-				newFrom += DOUBLE_NEGATIVE_INFINITY.length;
-			}
-			else if (value == Double.POSITIVE_INFINITY) {
-				if (newFrom < to - DOUBLE_POSITIVE_INFINITY.length) {
-					if (reallyFill) {
-						System.arraycopy(DOUBLE_POSITIVE_INFINITY,0,content,newFrom,DOUBLE_POSITIVE_INFINITY.length);
-					}
-				}
-				else {
-					reallyFill = false;
-				}
-				newFrom += DOUBLE_POSITIVE_INFINITY.length;
-			}
-			else {
-				if (value == 0) {
-					if (newFrom < to) {
-						if (reallyFill) {
-							content[newFrom] = '0';
-						}
-					}
-					else {
-						reallyFill = false;
-					}
-					newFrom++;
-				}
-				else {
-					if (value < 0) {
-						value = -value;
-						if (newFrom < to) {
-							if (reallyFill) {
-								content[newFrom] = '-';
-							}
-						}
-						else {
-							reallyFill = false;
-						}
-						newFrom++;
-					}
-					int		exponent;
-					
-					if (value > 1e19 || value < 1e-19) {	// Minimize output for too long or too small values
-						exponent = ((int)Math.log10(value));
-						value *= DOUBLE_EXPS[Double.MAX_EXPONENT - exponent]; 
-					}
-					else {
-						exponent = 0;
-					}
-					double	intPart = Math.floor(value), fracPart = (value - intPart) * 1E18;
-					
-					if ((newFrom = uncheckedPrintLong(content,newFrom,(long)intPart,reallyFill)) < 0) {
-						newFrom = -newFrom;
-						reallyFill = false;
-					}
-
-					if (fracPart != 0) {	// Print fraction of non zero
-						final int	dot = newFrom;	// Store dot location
-						
-						fracPart += 1E18; // +1E18 to strongly type left unsignificant zeroes
-						if ((newFrom = uncheckedPrintLong(content,newFrom,(long)fracPart,reallyFill)) < 0) {
-							newFrom = -newFrom;
-							reallyFill = false;
-						}
-						else {	// Replace the same first '1' of 1E18 to '.'
-							if (dot < to) {
-								if (reallyFill) {
-									content[dot] = '.';
-								}
-							}
-							while (content[newFrom-1] == '0') {	// Trunk right unsignificant zeroes in the tail of fractional part 
-								newFrom--;
-							}
-							if (content[newFrom-1] == '.') {
-								newFrom--;
-							}
-						}
-					}
-					
-					if (exponent != 0) {	// Print exponent of non zero
-						if (newFrom < to) {
-							if (reallyFill) {
-								content[newFrom] = 'E';
-							}
-						}
-						else {
-							reallyFill = false;
-						}
-						newFrom++;
-						if ((newFrom = uncheckedPrintLong(content,newFrom,exponent,reallyFill)) < 0) {
-							newFrom = -newFrom;
-							reallyFill = false;
-						}
-					}
-				}
-			}
-			return reallyFill ? newFrom : -newFrom;
+			return UnsafedCharUtils.unckeckedPrintDouble(content,from,value,reallyFill);
 		}
 	}
-	
 
 	/**
 	 * <p>Print char to char array with escaping it if need</p> 
@@ -1917,114 +1229,10 @@ loop:			for (index = from; index < len; index++) {
 			throw new IllegalArgumentException("From position ["+from+"] can't be negative"); 
 		}
 		else {
-			return printUncheckedEscapedChar(content,from,value,reallyFill,strongEscaping);
+			return UnsafedCharUtils.printUncheckedEscapedChar(content,from,value,reallyFill,strongEscaping);
 		}
 	}
 
-	private static int printUncheckedEscapedChar(final char[] content, final int from, final char value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
-		final int	to = content.length;
-		int			newFrom = from;
-
-		if (value < ' ') {
-			switch (value) {
-				case '\b' 	:
-					if (newFrom < to - 2) {
-						content[newFrom++] = '\\';
-						content[newFrom++] = 'b';
-					}
-					else {
-						return -(newFrom + 2);
-					}
-					break;
-				case '\f' 	:
-					if (newFrom < to - 2) {
-						content[newFrom++] = '\\';
-						content[newFrom++] = 'f';
-					}
-					else {
-						return -(newFrom + 2);
-					}
-					break;
-				case '\n' 	:
-					if (newFrom < to - 2) {
-						content[newFrom++] = '\\';
-						content[newFrom++] = 'n';
-					}
-					else {
-						return -(newFrom + 2);
-					}
-					break;
-				case '\r' 	:
-					if (newFrom < to - 2) {
-						content[newFrom++] = '\\';
-						content[newFrom++] = 'r';
-					}
-					else {
-						return -(newFrom + 2);
-					}
-					break;
-				case '\t' 	:
-					if (newFrom < to - 2) {
-						content[newFrom++] = '\\';
-						content[newFrom++] = 't';
-					}
-					else {
-						return -(newFrom + 2);
-					}
-					break;
-				default :
-					if (newFrom < to - 4) {
-						content[newFrom++] = '\\';
-						content[newFrom++] = '0';
-						content[newFrom++] = '0';
-						content[newFrom++] = '0';
-					}
-					else {
-						return -(newFrom + 4);
-					}
-					break;
-			}
-		}
-		else if (value <= 0xFF) {
-			if (newFrom < to) {
-				content[newFrom++] = value;
-			}
-			else {
-				return -(newFrom + 1);
-			}
-		}
-		else {
-			if (strongEscaping) {
-				if (from < to - 6) {
-					content[newFrom++] = '\\';
-					content[newFrom++] = 'u';
-					content[newFrom++] = HEX_DIGITS[(value & 0xF000)>>12];
-					content[newFrom++] = HEX_DIGITS[(value & 0x0F00)>>8];
-					content[newFrom++] = HEX_DIGITS[(value & 0x00F0)>>4];
-					content[newFrom++] = HEX_DIGITS[(value & 0x000F)>>0];
-				}
-				else {
-					return -(newFrom + 6);
-				}
-			}
-			else {
-				if (from < to - 6) {
-					content[newFrom++] = '\\';
-					content[newFrom++] = 'u';
-					content[newFrom++] = HEX_DIGITS[(value & 0xF000)>>12];
-					content[newFrom++] = HEX_DIGITS[(value & 0x0F00)>>8];
-					content[newFrom++] = HEX_DIGITS[(value & 0x00F0)>>4];
-					content[newFrom++] = HEX_DIGITS[(value & 0x000F)>>0];
-				}
-				else {
-					return -(newFrom + 6);
-				}
-			}
-		}
-		
-		return newFrom;
-	}
-	
 	
 	/**
 	 * <p>Print string to the char array with escaping if need</p>
@@ -2091,7 +1299,7 @@ loop:			for (index = from; index < len; index++) {
 			
 			for (int index = charFrom; index < charTo; index++) {
 				if (from < to) {
-					if ((from = printUncheckedEscapedChar(content,from,value[index],reallyFill,strongEscaping)) < 0) {
+					if ((from = UnsafedCharUtils.printUncheckedEscapedChar(content,from,value[index],reallyFill,strongEscaping)) < 0) {
 						from = -from;
 						reallyFill = false;
 					}
