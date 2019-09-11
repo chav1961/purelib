@@ -332,6 +332,7 @@ public class PureLibSettings {
 																(uri)->{throw new EnvironmentException("This service doesn't supports SpiService interface");})
 														};
 	private static final AtomicInteger				helpContextCount = new AtomicInteger();
+	private static final Object						helpContextCountSync = new Object();
 	private static volatile NanoServiceFactory		helpServer = null;
 	
 	static {
@@ -446,7 +447,7 @@ public class PureLibSettings {
 			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
 		}
 		else {
-			synchronized (helpContextCount) {
+			synchronized (helpContextCountSync) {
 				if (helpServer == null) {
 					if (!props.containsKey(NanoServiceFactory.NANOSERVICE_PORT)) {
 						props.setProperty(NanoServiceFactory.NANOSERVICE_PORT,instance().getProperty(BUILTIN_HELP_PORT));
@@ -493,7 +494,7 @@ public class PureLibSettings {
 			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
 		}
 		else {
-			synchronized (helpContextCount) {
+			synchronized (helpContextCountSync) {
 				final int	value = helpContextCount.decrementAndGet();
 				
 				if (value < 0) {
@@ -578,7 +579,7 @@ public class PureLibSettings {
 	}
 
 	private static void stopPureLib() {
-		synchronized (helpContextCount) {
+		synchronized (helpContextCountSync) {
 			if (helpServer != null) {
 				try{helpServer.stop();
 				} catch (IOException e) {

@@ -27,7 +27,7 @@ public enum StylePropertiesSupported {
 		border_left_color("border-left-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
 		border_left_style("border-left-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","hidden","dotted","dashed","solid","double","groove","ridge","inset","outset")),
 		border_left_width("border-left-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
-		border_radius("border-radius"),
+		border_radius("border-radius",false,ContentType.asIs),
 		border_right("border-right",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
 		border_right_color("border-right-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
 		border_right_style("border-right-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","hidden","dotted","dashed","solid","double","groove","ridge","inset","outset")),
@@ -133,7 +133,7 @@ public enum StylePropertiesSupported {
 		text_align_last("text-align-last",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"center","justify","left","right","start","end")),
 		text_decoration("text-decoration",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.value,1,1,"blink","line-through","overline","underline","none")),
 		text_decoration_color("text-decoration-color",false,ContentType.color),
-		text_decoration_line("text-decoration-line"),
+		text_decoration_line("text-decoration-line",false,ContentType.asIs),
 		text_decoration_style("text-decoration-style",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"solid","double","dotted","dashed")),
 		text_indent("text-indent",true,ContentType.distance),
 		text_overflow("text-overflow",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"clip","ellipsis")),
@@ -181,7 +181,12 @@ public enum StylePropertiesSupported {
 			this.type = type;
 			this.minOccur = minOccur;
 			this.maxOccur = maxOccur;
-			this.content = content;
+			if (content == null) {
+				this.content = content;
+			}
+			else {
+				this.content = content;
+			}
 		}
 
 		public ContentType getType() {
@@ -207,7 +212,7 @@ public enum StylePropertiesSupported {
 	}
 	
     private final String 				externalName;
-    private final boolean				canBeInherted;
+    private final boolean				canBeInherited;
     private final ContentType			contentType;
     private final String				masterProperty;
     private final int					minOccurence, maxOccurence;
@@ -215,7 +220,7 @@ public enum StylePropertiesSupported {
 
     private StylePropertiesSupported(final String externalName) {
         this.externalName = externalName;
-        this.canBeInherted = false;
+        this.canBeInherited = false;
         this.contentType = null;
         this.masterProperty = null;
         this.values = null;
@@ -224,19 +229,19 @@ public enum StylePropertiesSupported {
     }
 
     private StylePropertiesSupported(final String externalName, final ContentType type) {
-    	this(externalName, false, type, 1, 1, null, null);
+    	this(externalName, false, type, 1, 1, null, new ValueListDescriptor(type,0,0));
     }
 
     private StylePropertiesSupported(final String externalName, final boolean canBeInherited, final ContentType type) {
-    	this(externalName, canBeInherited, type, 1, 1, null, null);
+    	this(externalName, canBeInherited, type, 1, 1, null, new ValueListDescriptor(type,0,0));
     }
 
     private StylePropertiesSupported(final String externalName, final boolean canBeInherited, final ContentType type, final int minOccurence, final int maxOccurence) {
-    	this(externalName, canBeInherited, type, minOccurence, maxOccurence, null, null);
+    	this(externalName, canBeInherited, type, minOccurence, maxOccurence, null, new ValueListDescriptor(type,0,0));
     }
     
     private StylePropertiesSupported(final String externalName, final boolean canBeInherited, final ContentType type, final String masterProperty) {
-    	this(externalName, canBeInherited, type, 1, 1, masterProperty, null);
+    	this(externalName, canBeInherited, type, 1, 1, masterProperty, new ValueListDescriptor(type,0,0));
     }
     
     private StylePropertiesSupported(final String externalName, final boolean canBeInherited, final ContentType type, final ValueListDescriptor values) {
@@ -248,12 +253,12 @@ public enum StylePropertiesSupported {
     }
     
     private StylePropertiesSupported(final String externalName, final ContentType type, final String masterProperty) {
-    	this(externalName, false, type, 1, 1, masterProperty, null);
+    	this(externalName, false, type, 1, 1, masterProperty, new ValueListDescriptor(type,0,0));
     }
 
     private StylePropertiesSupported(final String externalName, final boolean canBeInherited, final ContentType type, final int minOccurence, final int maxOccurence, final String masterProperty, final ValueListDescriptor values) {
         this.externalName = externalName;
-        this.canBeInherted = canBeInherited;
+        this.canBeInherited = canBeInherited;
         this.contentType = type;
         this.masterProperty = masterProperty;
         this.values = values;
@@ -266,7 +271,7 @@ public enum StylePropertiesSupported {
     }
     
     public boolean canBeInherited() {
-    	return canBeInherted;
+    	return canBeInherited;
     }
     
     public ContentType getContentType() {

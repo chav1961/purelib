@@ -41,7 +41,7 @@ import chav1961.purelib.model.SimpleContentMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.interfaces.ORMProvider;
 
-public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
+public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	private static final int				SELECT_INDEX = 0;
 	private static final int				INSERT_INDEX = 1;
 	private static final int				UPDATE_INDEX = 2;
@@ -50,7 +50,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 	protected final ContentNodeMetadata		tableModel;
 	protected final ContentNodeMetadata		clazzModel;
 	
-	private final ORMProvider<Record, Record>	parent;
+	private final ORMProvider<Key, Record>	parent;
 	private final String					selectString, insertString, updateString, deleteString, bulkSelectString, bulkCountString;
 	private final GetterAndSetter[]			gas;
 	private final int[][]					forSelect;		// length = 2: [0] - index in the 'gas' to call setter, [1] - SQL type of the field (see java.sql.Types)
@@ -120,7 +120,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 		}
 	}
 	
-	private SimpleProvider(final SimpleProvider<Record> parent, final Connection conn) throws SQLException {
+	private SimpleProvider(final SimpleProvider<Key,Record> parent, final Connection conn) throws SQLException {
 		this.parent = parent;
 		this.tableModel = parent.tableModel;
 		this.clazzModel = parent.clazzModel;
@@ -145,7 +145,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 	}
 
 	@Override
-	public ORMProvider<Record, Record> associate(final Connection conn) throws SQLException {
+	public ORMProvider<Key, Record> associate(final Connection conn) throws SQLException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
 		}
@@ -153,7 +153,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 			throw new IllegalStateException("Attempt to associate connection with already associated instance. Chain of associations is not supported!"); 
 		}
 		else {
-			return new SimpleProvider<Record>(this,conn); 
+			return new SimpleProvider<Key,Record>(this,conn); 
 		}
 	}
 
@@ -284,7 +284,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 	}
 	
 	@Override
-	public void create(final Record key, final Record record) throws SQLException {
+	public void create(final Key key, final Record record) throws SQLException {
 		try{upload(hardCodedStatements[INSERT_INDEX],record,gas,forInsert);
 			if (hardCodedStatements[INSERT_INDEX].executeUpdate() != 1) {
 				throw new SQLException("No any record was inserted");
@@ -295,7 +295,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 	}
 
 	@Override
-	public void read(final Record key, final Record record) throws SQLException {
+	public void read(final Key key, final Record record) throws SQLException {
 		try{upload(hardCodedStatements[SELECT_INDEX],key,gas,forSelectKeys);
 			try(final ResultSet	rs = hardCodedStatements[SELECT_INDEX].executeQuery()) {
 				if (rs.next()) {
@@ -311,7 +311,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 	}
 
 	@Override
-	public void update(final Record key, final Record record) throws SQLException {
+	public void update(final Key key, final Record record) throws SQLException {
 		try{upload(hardCodedStatements[UPDATE_INDEX],record,gas,forUpdate);
 			upload(hardCodedStatements[UPDATE_INDEX],key,gas,forUpdateKeys);
 			if (hardCodedStatements[UPDATE_INDEX].executeUpdate() != 1) {
@@ -323,7 +323,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 	}
 
 	@Override
-	public void delete(final Record key) throws SQLException {
+	public void delete(final Key key) throws SQLException {
 		try{upload(hardCodedStatements[DELETE_INDEX],key,gas,forDelete);
 			if (hardCodedStatements[DELETE_INDEX].executeUpdate() != 1) {
 				throw new SQLException("No any record was deleted");
@@ -333,6 +333,16 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 		}
 	}
 
+	@Override
+	public Key newKey() throws SQLException {
+		return null;
+	}
+	
+	@Override
+	public Key getKey(final Record rec) throws SQLException {
+		return null;
+	}
+	
 	public void setProgressIndicator(final ProgressIndicator indicator) {
 		if (parent == null) {
 			throw new IllegalStateException("Attempt to set progress indicator with non-associated instance. Call associate(...) to get appropriative instance"); 
@@ -697,7 +707,7 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 		// TODO Auto-generated method stub
 		final PreparedStatement	ps = contentCache.get(filter,ordering,false);
 		
-		try{upload(ps,item,gas,null);
+		try{upload(ps,item,gas,new int[0][]);
 			try(final ResultSet	rs = ps.executeQuery()) {
 				long	count = 0;
 				
@@ -717,9 +727,9 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 	private void iterate(final Record item, final ContentIteratorCallback<Record> callback, final String filter, final String ordering, final long offset, final long limit) throws SQLException {
 		final PreparedStatement	ps = contentCache.get(filter,ordering,false);
 		
-		try{upload(ps,item,gas,null);
-			ps.setLong(0,offset);
-			ps.setLong(0,limit);
+		try{upload(ps,item,gas,new int[0][]);
+			ps.setLong(1,offset);
+			ps.setLong(2,limit);
 			try(final ResultSet	rs = ps.executeQuery()) {
 				long	count = 0, from = offset;
 				
@@ -935,4 +945,5 @@ public class SimpleProvider<Record> implements ORMProvider<Record, Record> {
 			return new String(target,0,targetIndex);
 		}
 	}
+
 }

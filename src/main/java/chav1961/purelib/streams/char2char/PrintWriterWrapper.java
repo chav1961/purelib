@@ -41,7 +41,7 @@ public class PrintWriterWrapper implements CharStreamPrinter<PrintWriterWrapper>
 	public PrintWriterWrapper println() throws PrintingException {
 		try{delegate.write(CRNL);
 		} catch (IOException e) {
-			new PrintingException(e);
+			throw new PrintingException(e);
 		}
 		return this;
 	}

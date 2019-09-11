@@ -23,6 +23,8 @@ import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.border.Border;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.ui.swing.SwingUtils;
 
@@ -173,7 +175,7 @@ public class JCloseableTab extends JLabel {
 		if (tab instanceof AutoCloseable) {
 			try{((AutoCloseable)tab).close();
 			} catch (Exception exc) {
-				return;
+				PureLibSettings.SYSTEM_ERR_LOGGER.message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
 			}
 		}
 		container.remove(tab);

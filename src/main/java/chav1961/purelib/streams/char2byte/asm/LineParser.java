@@ -1516,7 +1516,7 @@ class LineParser implements LineByLineProcessorCallback {
 			start = CharUtils.parseInt(data,from,parm,true);
 			major = parm[0];
 			if (data[start] == '.') {
-				start = CharUtils.parseInt(data,from = start + 1,parm,true);
+				CharUtils.parseInt(data,from = start + 1,parm,true);
 				minor = parm[0];
 			}
 			if (major == 1 && minor == 7) {
@@ -1538,7 +1538,7 @@ class LineParser implements LineByLineProcessorCallback {
 		int		parm[] = new int[1], from = start;
 		
 		if (start < end && data[start] >= '0' && data[start] <= '9') {
-			start = CharUtils.parseInt(data,from,parm,true);
+			CharUtils.parseInt(data,start,parm,true);
 			if (addLines2ClassManually) {
 				if (state == ParserState.insideClassBody || state == ParserState.insideBegin) {
 					methodDescriptor.addLineNoRecord(parm[0]);
@@ -2201,7 +2201,7 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			final int	startName = start, endName;
 			
-			endName = start = skipSimpleName(data,start);
+			endName = skipSimpleName(data,start);
 			result[0] = methodDescriptor.getVarDispl(tree.placeOrChangeName(data,startName,endName,new NameDescriptor()));
 			return endName;
 		}

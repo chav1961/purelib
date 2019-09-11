@@ -104,10 +104,10 @@ public class JSimpleHelpWindow {
 	}
 	
 	static MimeType extractSourceMime(final Hashtable<String,String[]> parm) throws MimeTypeParseException {
-		if (parm.contains(AbstractLocalizer.CONTENT_MIME)) {
+		if (parm.containsKey(AbstractLocalizer.CONTENT_MIME)) {
 			return new MimeType(parm.get(AbstractLocalizer.CONTENT_MIME)[0]);
 		}
-		else if (parm.contains(AbstractLocalizer.CONTENT_MIME_SOURCE)) {
+		else if (parm.containsKey(AbstractLocalizer.CONTENT_MIME_SOURCE)) {
 			return new MimeType(parm.get(AbstractLocalizer.CONTENT_MIME_SOURCE)[0]);
 		}
 		else {
@@ -116,7 +116,7 @@ public class JSimpleHelpWindow {
 	}
 
 	static MimeType extractTargetMime(final Hashtable<String,String[]> parm) throws MimeTypeParseException {
-		if (parm.contains(AbstractLocalizer.CONTENT_MIME_TARGET)) {
+		if (parm.containsKey(AbstractLocalizer.CONTENT_MIME_TARGET)) {
 			return new MimeType(parm.get(AbstractLocalizer.CONTENT_MIME_TARGET)[0]);
 		}
 		else {

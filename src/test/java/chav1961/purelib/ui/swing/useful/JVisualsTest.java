@@ -21,8 +21,8 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.ui.AbstractWizardStep;
+import chav1961.purelib.ui.interfaces.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.WizardStep;
-import chav1961.purelib.ui.interfaces.WizardStep.ErrorProcessing;
 import chav1961.purelib.fsys.FileSystemOnFile;
 
 public class JVisualsTest {

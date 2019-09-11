@@ -1023,6 +1023,7 @@ public class CharUtils {
 					}
 				}
 				else if (lexema instanceof ArgumentType) {
+					try {
 					switch ((ArgumentType)lexema) {
 						case hexInt			:
 							start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
@@ -1054,6 +1055,9 @@ public class CharUtils {
 							break;
 						default				:
 							throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
+					}
+					} catch (IllegalArgumentException exc) {
+						throw new SyntaxException(0,start,"Parse error: "+exc.getLocalizedMessage()); 
 					}
 				}
 				else {

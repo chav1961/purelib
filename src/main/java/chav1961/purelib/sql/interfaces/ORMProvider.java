@@ -27,4 +27,6 @@ public interface ORMProvider<Key,Record> extends AutoCloseable {
 	void read(Key key, Record record) throws SQLException;
 	void update(Key key, Record record) throws SQLException;
 	void delete(Key key) throws SQLException;
+	Key newKey() throws SQLException; 
+	Key getKey(Record record) throws SQLException; 
 }
