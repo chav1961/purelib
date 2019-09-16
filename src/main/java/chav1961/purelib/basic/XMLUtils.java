@@ -49,13 +49,13 @@ public class XMLUtils {
 
 	private static final Object[]	COLOR_HEX_TEMPLATE = {'#',ArgumentType.hexInt};	
 	private static final char[]		COLOR_RGBA = "rgba".toCharArray();
-	private static final Object[]	COLOR_RGBA_TEMPLATE = {"rgba".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
+	private static final Object[]	COLOR_RGBA_TEMPLATE = {COLOR_RGBA,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
 	private static final char[]		COLOR_RGB = "rgb".toCharArray();
-	private static final Object[]	COLOR_RGB_TEMPLATE = {"rgb".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
+	private static final Object[]	COLOR_RGB_TEMPLATE = {COLOR_RGB,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
 	private static final char[]		COLOR_HSLA = "hsla".toCharArray();
-	private static final Object[]	COLOR_HSLA_TEMPLATE = {"hsla".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalInt,'%',')'};
+	private static final Object[]	COLOR_HSLA_TEMPLATE = {COLOR_HSLA,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
 	private static final char[]		COLOR_HSL = "hsl".toCharArray();
-	private static final Object[]	COLOR_HSL_TEMPLATE = {"hsl".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
+	private static final Object[]	COLOR_HSL_TEMPLATE = {COLOR_HSL,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
 
 	private static final SyntaxTreeInterface<StylePropValue<?>[]>		KEYWORDS = new AndOrTree<>();
 	private static final SyntaxTreeInterface<StylePropertiesSupported>	STYLES = new AndOrTree<>();
@@ -462,7 +462,7 @@ loop:		while (from < len) {
 		}
 	}	
 	
-	public static Map<String,Object> parseStyle(final String style) throws SyntaxException {
+	public static <T> Map<String,StylePropValue<T>> parseStyle(final String style) throws SyntaxException {
 		if (style == null || style.isEmpty()) {
 			throw new IllegalArgumentException("Style can't be null or empty");
 		}
@@ -472,17 +472,17 @@ loop:		while (from < len) {
 
 			parseInnerCSS((style+"}").toCharArray(),0,new int[2],sb,props);
 			
-			final Map<String,Object>	result = new HashMap<>();
+			final Map<String,StylePropValue<T>>	result = new HashMap<>();
 			
 			for (Map.Entry<Object,Object> item : props.entrySet()) {
 				final String	key = ((String)item.getKey());
 				final long 		id = STYLES.seekName(key);
 				
 				if (id >= 0) {
-					result.put(key,parseStyleProperty(STYLES.getCargo(id),(String)item.getValue()));
+					result.put(key,parseStyleProperty(STYLES.getCargo(id),result,(String)item.getValue()));
 				}
 				else {
-					result.put(key,item.getValue());
+					result.put(key,new StylePropValue<T>(ContentType.asIs,null,(T)item.getValue()));
 				}
 			}
 			
@@ -490,33 +490,42 @@ loop:		while (from < len) {
 		}
 	}
 	
-	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final String content) throws SyntaxException {
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final String content) throws SyntaxException {
 		if (prop == null) {
 			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (props == null) {
+			throw new NullPointerException("Properties can't be null");
 		}
 		else if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content can't be null or empty");
 		}
 		else {
-			return parseStyleProperty(prop,content,0,content.length());
+			return parseStyleProperty(prop,props,content,0,content.length());
 		}
 	}
 
-	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final String content, final int from, final int to) throws SyntaxException {
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final String content, final int from, final int to) throws SyntaxException {
 		if (prop == null) {
 			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (props == null) {
+			throw new NullPointerException("Properties can't be null");
 		}
 		else if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content can't be null or empty");
 		}
 		else {
-			return parseStyleProperty(prop,UnsafedUtils.getStringContent(content),from,to);
+			return parseStyleProperty(prop,props,UnsafedUtils.getStringContent(content),from,to);
 		}
 	}
 
-	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final char[] content, final int from, final int to) throws SyntaxException {
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final char[] content, final int from, final int to) throws SyntaxException {
 		if (prop == null) {
 			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (props == null) {
+			throw new NullPointerException("Properties can't be null");
 		}
 		else if (content == null || content.length == 0) {
 			throw new IllegalArgumentException("Content can't be null or empty array");
@@ -541,7 +550,7 @@ loop:		while (from < len) {
 				case colorOrKeyword		:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 					}
 				case color				:
@@ -554,11 +563,14 @@ loop:		while (from < len) {
 					}
 					return new StylePropValue<T>(prop.getContentType(),prop,(T)asColor(content));
 				case compoundChoise		:
+					for (String item : prop.getValues().getContent()) {
+						
+					}
 					break;
 				case compoundSequence	:
 					break;
 				case distanceOrKeyword	:
-					if ((result = parseStylePropertyInheritance(prop,content,from,to)) !=null) {
+					if ((result = parseStylePropertyInheritance(prop,props,content,from,to)) !=null) {
 						return result;
 					}
 				case distance			:
@@ -566,7 +578,7 @@ loop:		while (from < len) {
 				case functionOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -581,7 +593,7 @@ loop:		while (from < len) {
 				case integerOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -603,7 +615,7 @@ loop:		while (from < len) {
 				case numberOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -625,7 +637,7 @@ loop:		while (from < len) {
 				case stringOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -642,7 +654,7 @@ loop:		while (from < len) {
 				case timeOrKeyword		:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -657,7 +669,7 @@ loop:		while (from < len) {
 				case urlOrKeyword		:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -672,7 +684,7 @@ loop:		while (from < len) {
 				case value				:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -690,12 +702,12 @@ loop:		while (from < len) {
 		}
 	}
 	
-	public static <T> StylePropValue<T> parseStylePropertyInheritance(final StylePropertiesSupported prop, final char[] content, final int from, final int to) throws SyntaxException {
+	public static <T> StylePropValue<T> parseStylePropertyInheritance(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final char[] content, final int from, final int to) throws SyntaxException {
 		long	id;
 		
 		if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 			if (id == INHERITED) {
-				return parseStylePropertyInherited(prop,content,from,to);
+				return parseStylePropertyInherited(prop,props,content,from,to);
 			}
 			else {
 				for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -708,12 +720,33 @@ loop:		while (from < len) {
 		return null;
 	}
 	
-	private static <T> StylePropValue<T> parseStylePropertyInherited(final StylePropertiesSupported prop, final char[] content, final int from, final int to) {
+	private static <T> StylePropValue<T> parseStylePropertyInherited(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final char[] content, final int from, final int to) throws SyntaxException {
 		for (StylePropertiesSupported parent : StylePropertiesSupported.values()) {
-			if (parent.getContentType() == ContentType.compoundChoise || parent.getContentType() == ContentType.compoundSequence) {
+			if (parent.getContentType() == ContentType.compoundChoise) {
 				for (String item : parent.getValues().getContent()) {
-					if (item.equals(prop.name())) {
-						return null;
+					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
+						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
+					
+						if (result == null) {
+							return null;
+						}
+						else {
+							return null;
+						}
+					}
+				}
+			}
+			else if (parent.getContentType() == ContentType.compoundSequence) {
+				for (String item : parent.getValues().getContent()) {
+					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
+						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
+						
+						if (result == null) {
+							return null;
+						}
+						else {
+							return null;
+						}
 					}
 				}
 			}
@@ -1221,6 +1254,15 @@ loop:		while (from < len) {
 		RECORD, SELECTORS, SELECTOR_GROUP, SUBTREE_SEL, STANDALONE_SEL, SEL_ITEM 
 	}
 
+	public static boolean isValidColor(final String color) throws SyntaxException {
+		if (color == null || color.isEmpty()) {
+			throw new IllegalArgumentException("Color content can't be null or empty");
+		}
+		else {
+			return isValidColor(UnsafedUtils.getStringContent(color));
+		}		
+	}
+	
 	public static Color asColor(final String color) throws SyntaxException {
 		if (color == null || color.isEmpty()) {
 			throw new IllegalArgumentException("Color content can't be null or empty");
@@ -1230,14 +1272,47 @@ loop:		while (from < len) {
 		}		
 	}
 	
+	public static boolean isValidColor(final char[] content) throws SyntaxException {
+		if (content == null || content.length == 0) {
+			throw new IllegalArgumentException("Color content can't be null or empty array");
+		}
+		else {
+			final Object[]	values = new Object[4];
+			int				from = 0;
+			
+			if (content[0] == '#') {
+				return CharUtils.tryExtract(content,from,COLOR_HEX_TEMPLATE) > 0;
+			}
+			if (content.length > 4) {
+				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_RGBA_TEMPLATE) > 0;
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_HSLA_TEMPLATE) > 0;
+				}
+			}
+			if (content.length > 3) {
+				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_RGB_TEMPLATE) > 0;
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_HSL_TEMPLATE) > 0;
+				}
+				else {
+					return PureLibSettings.colorByName(new String(content),null) != null; 
+				}
+			}
+			return PureLibSettings.colorByName(new String(content),null) != null; 
+		}
+	}
+
 	public static Color asColor(final char[] content) throws SyntaxException {
 		if (content == null || content.length == 0) {
 			throw new IllegalArgumentException("Color content can't be null or empty array");
 		}
 		else {
-			final int[]		result = new int[5];
 			final Object[]	values = new Object[4];
-			int				from = 0, index;
+			int				from = 0;
 			
 			if (content[0] == '#') {
 				from = CharUtils.extract(content,from,values,COLOR_HEX_TEMPLATE);
@@ -1251,7 +1326,7 @@ loop:		while (from < len) {
 				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_HSLA_TEMPLATE);
 					final Color 	temp = Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]); 
-					return new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),(int)(2.56f*(Integer)values[3]));
+					return new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),Math.min((int)(2.56f*(Float)values[3]),255));
 				}
 			}
 			if (content.length > 3) {
@@ -1284,7 +1359,7 @@ loop:		while (from < len) {
 			}
 		}
 	}
-
+	
 	public static class Distance {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name};
@@ -1320,22 +1395,56 @@ loop:		while (from < len) {
 			return unit;
 		}
 
-		public static Distance valueOf(final String value) {
+		public static boolean idValidDistance(final String value) {
 			if (value == null || value.isEmpty()) {
-				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
+				throw new IllegalArgumentException("Value can't be null or empty");
 			}
 			else {
-				final char[] 	content = UnsafedUtils.getStringContent(value);
+				try {
+					return CharUtils.tryExtract(UnsafedUtils.getStringContent(value),0,(Object[])LEXEMAS) > 0;
+				} catch (SyntaxException e) {
+					return false;
+				}
+			}
+		}
+		
+		public static Distance valueOf(final String value) {
+			if (value == null || value.isEmpty()) {
+				throw new IllegalArgumentException("Value can't ne null or empty");
+			}
+			else {
+				return valueOf(value.toCharArray());
+			}
+		}
+
+		public static boolean idValidDistance(final char[] value) {
+			if (value == null || value.length == 0) {
+				throw new IllegalArgumentException("Value can't be null or empty array");
+			}
+			else {
+				try {
+					return CharUtils.tryExtract(value,0,(Object[])LEXEMAS) > 0;
+				} catch (SyntaxException e) {
+					return false;
+				}
+			}
+		}
+		
+		public static Distance valueOf(final char[] content) {
+			if (content == null || content.length == 0) {
+				throw new IllegalArgumentException("Content can't ne null or empty array");
+			}
+			else {
 				final Object[]	result = new Object[2];
 				
 				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
 				} catch (SyntaxException e) {
-					throw new IllegalArgumentException("String ["+value+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+					throw new IllegalArgumentException("String ["+new String()+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
 				}
 				return valueOf(((Integer)result[0]).intValue(),Units.valueOf(result[1].toString()));
 			}
 		}
-
+		
 		public static Distance valueOf(final int value, final Units unit) {
 			if (value < 0) {
 				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
@@ -1395,6 +1504,15 @@ loop:		while (from < len) {
 		}
 	}
 
+	public static boolean isValidDistance(final String distance) throws SyntaxException {
+		if (distance == null || distance.isEmpty()) {
+			throw new IllegalArgumentException("Distance string can't be null or empty");
+		}
+		else {
+			return Distance.idValidDistance(distance);
+		}
+	}	
+	
 	public static Distance asDistance(final String distance) throws SyntaxException {
 		if (distance == null || distance.isEmpty()) {
 			throw new IllegalArgumentException("Distance string can't be null or empty");
@@ -1403,6 +1521,27 @@ loop:		while (from < len) {
 			try{return Distance.valueOf(distance);
 			} catch (NumberFormatException exc) {
 				throw new SyntaxException(0,0,"Distance ["+distance+"] has invalid syntax");
+			}
+		}
+	}	
+
+	public static boolean isValidDistance(final char[] distance) throws SyntaxException {
+		if (distance == null || distance.length == 0) {
+			throw new IllegalArgumentException("Distance can't be null or empty array");
+		}
+		else {
+			return Distance.idValidDistance(distance);
+		}
+	}	
+	
+	public static Distance asDistance(final char[] distance) throws SyntaxException {
+		if (distance == null || distance.length == 0) {
+			throw new IllegalArgumentException("Distance string can't be null or empty");
+		}
+		else {
+			try{return Distance.valueOf(distance);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Distance ["+new String(distance)+"] has invalid syntax");
 			}
 		}
 	}	

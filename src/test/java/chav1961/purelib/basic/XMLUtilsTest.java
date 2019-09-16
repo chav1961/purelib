@@ -26,6 +26,7 @@ import org.xml.sax.SAXException;
 import chav1961.purelib.basic.XMLUtils.Angle;
 import chav1961.purelib.basic.XMLUtils.Distance;
 import chav1961.purelib.basic.XMLUtils.Frequency;
+import chav1961.purelib.basic.XMLUtils.StylePropValue;
 import chav1961.purelib.basic.XMLUtils.StylePropertiesStack;
 import chav1961.purelib.basic.XMLUtils.Time;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -36,7 +37,7 @@ public class XMLUtilsTest {
 	//
 	//	Inner classes
 	//
-	
+
 	@Test
 	public void distanceClassTest() throws SyntaxException {
 		final XMLUtils.Distance	dist1 = new XMLUtils.Distance(100,XMLUtils.Distance.Units.mm),
@@ -67,7 +68,7 @@ public class XMLUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 		
-		try{XMLUtils.Distance.valueOf(null);
+		try{XMLUtils.Distance.valueOf((String)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -76,6 +77,19 @@ public class XMLUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		try{XMLUtils.Distance.valueOf("illegal");
+			Assert.fail("Mandatory exception was not detected (1-st agrument has wrong syntax)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{XMLUtils.Distance.valueOf((char[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st agrument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.Distance.valueOf("".toCharArray()); 
+			Assert.fail("Mandatory exception was not detected (empty 1-st agrument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.Distance.valueOf("illegal".toCharArray());
 			Assert.fail("Mandatory exception was not detected (1-st agrument has wrong syntax)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -273,55 +287,51 @@ public class XMLUtilsTest {
 	
 	@Test
 	public void parseAsColorTest() throws SyntaxException {
-		Color	color = XMLUtils.asColor("#000000");
+		Color 	temp;
 		
-		Assert.assertEquals(255,color.getAlpha());
-		Assert.assertEquals(0,color.getRed());
-		Assert.assertEquals(0,color.getGreen());
-		Assert.assertEquals(0,color.getBlue());
+		Assert.assertTrue(XMLUtils.isValidColor("#0f0f0f"));
+		Assert.assertEquals(new Color(0x0F,0x0F,0x0F),XMLUtils.asColor("#0f0f0f"));
+		
+		Assert.assertTrue(XMLUtils.isValidColor("rgba(1,1,1,1)"));
+		Assert.assertEquals(new Color(1,1,1,1),XMLUtils.asColor("rgba(1,1,1,1)"));
+		
+		Assert.assertTrue(XMLUtils.isValidColor("hsla(1,1%,1%,1%)"));
+		temp = Color.getHSBColor(1/256.0f,0.01f,0.01f); 
+		Assert.assertEquals(new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),255),XMLUtils.asColor("hsla(1,1%,1%,100%)"));
+		
+		Assert.assertTrue(XMLUtils.isValidColor("rgb(1,1,1)"));
+		Assert.assertEquals(new Color(1,1,1),XMLUtils.asColor("rgb(1,1,1)"));
+		
+		Assert.assertTrue(XMLUtils.isValidColor("hsl(1,1%,1%)"));
+		temp = Color.getHSBColor(1/256.0f,0.01f,0.01f); 
+		Assert.assertEquals(new Color(temp.getRed(),temp.getGreen(),temp.getBlue()),XMLUtils.asColor("hsl(1,1%,1%)"));
+		
+		Assert.assertTrue(XMLUtils.isValidColor("black"));
+		Assert.assertEquals(Color.BLACK,XMLUtils.asColor("black"));
+		
+		Assert.assertFalse(XMLUtils.isValidColor("unknown"));
+		try{XMLUtils.asColor("unknown");
+			Assert.fail("Mandatory exception was not detected (invalid color description)");
+		} catch (SyntaxException exc) {
+		}
 
-		color = XMLUtils.asColor("#FF0000");
-		
-		Assert.assertEquals(255,color.getAlpha());
-		Assert.assertEquals(255,color.getRed());
-		Assert.assertEquals(0,color.getGreen());
-		Assert.assertEquals(0,color.getBlue());
+		try{XMLUtils.isValidColor((String)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.isValidColor("");
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.isValidColor((char[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.isValidColor("".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
 
-		color = XMLUtils.asColor("#FF");
-		
-		Assert.assertEquals(255,color.getAlpha());
-		Assert.assertEquals(0,color.getRed());
-		Assert.assertEquals(0,color.getGreen());
-		Assert.assertEquals(255,color.getBlue());
-
-		color = XMLUtils.asColor("rgba(0,127,255,63)");
-		
-		Assert.assertEquals(63,color.getAlpha());
-		Assert.assertEquals(0,color.getRed());
-		Assert.assertEquals(127,color.getGreen());
-		Assert.assertEquals(255,color.getBlue());
-		
-		color = XMLUtils.asColor("rgb(0,127,255)");
-		
-		Assert.assertEquals(255,color.getAlpha());
-		Assert.assertEquals(0,color.getRed());
-		Assert.assertEquals(127,color.getGreen());
-		Assert.assertEquals(255,color.getBlue());
-		
-		color = XMLUtils.asColor("hsl(0,100%,100%)");
-		
-		Assert.assertEquals(255,color.getAlpha());
-		Assert.assertEquals(255,color.getRed());
-		Assert.assertEquals(0,color.getGreen());
-		Assert.assertEquals(0,color.getBlue());
-		
-		color = XMLUtils.asColor("hsla(0,100%,100%,50%)");
-		
-		Assert.assertEquals(128,color.getAlpha());
-		Assert.assertEquals(255,color.getRed());
-		Assert.assertEquals(0,color.getGreen());
-		Assert.assertEquals(0,color.getBlue());
-		
 		try{XMLUtils.asColor((String)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
@@ -329,20 +339,41 @@ public class XMLUtilsTest {
 		try{XMLUtils.asColor("");
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {
-		}		
-		try{XMLUtils.asColor("illegal");
-			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
-		} catch (SyntaxException exc) {
-		}		
+		}
+		try{XMLUtils.asColor((char[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.asColor("".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
 
 	@Test
 	public void parseAsDistanceTest() throws SyntaxException {
-		Distance	dist = XMLUtils.asDistance("2mm");
 		
+		Assert.assertTrue(XMLUtils.isValidDistance("2mm"));
+		Assert.assertTrue(XMLUtils.isValidDistance("2mm".toCharArray()));
+		
+		Distance	dist = XMLUtils.asDistance("2mm");
+		Assert.assertEquals(2,dist.getValue());
+		dist = XMLUtils.asDistance("2mm".toCharArray());
 		Assert.assertEquals(2,dist.getValue());
 		
-		try{XMLUtils.asDistance(null);
+		Assert.assertFalse(XMLUtils.isValidDistance("illegal"));
+		Assert.assertFalse(XMLUtils.isValidDistance("illegal".toCharArray()));
+
+		try{XMLUtils.isValidDistance((String)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.isValidDistance("");
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		
+		try{XMLUtils.asDistance((String)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -351,6 +382,28 @@ public class XMLUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}		
 		try{XMLUtils.asDistance("illegal");
+			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+
+		try{XMLUtils.isValidDistance((char[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.isValidDistance("".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		
+		try{XMLUtils.asDistance((char[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.asDistance("".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		try{XMLUtils.asDistance("illegal".toCharArray());
 			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}		
@@ -463,22 +516,22 @@ public class XMLUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		Map<String,Object>		result;
+		Map<String,StylePropValue<Object>>		result;
 		
 		result = XMLUtils.parseStyle("key:value;");
 		Assert.assertEquals(1,result.size());
-		Assert.assertEquals("value",result.get("key"));
+		Assert.assertEquals("value",result.get("key").getValue());
 
 		result = XMLUtils.parseStyle("color:red;");
 		Assert.assertEquals(1,result.size());
-		Assert.assertEquals(Color.RED,((XMLUtils.StylePropValue<?>)result.get("color")).getValue());
+		Assert.assertEquals(Color.RED,result.get("color").getValue());
 
 		result = XMLUtils.parseStyle("background-position:20px;");
 		Assert.assertEquals(1,result.size());
-		Assert.assertEquals(Distance.valueOf(20,Distance.Units.px),((XMLUtils.StylePropValue<?>)result.get("background-position")).getValue());
+		Assert.assertEquals(Distance.valueOf(20,Distance.Units.px),result.get("background-position").getValue());
 		result = XMLUtils.parseStyle("background-position:inherited;");
 		Assert.assertEquals(1,result.size());
-		Assert.assertEquals(Distance.valueOf(20,Distance.Units.px),((XMLUtils.StylePropValue<?>)result.get("background-position")).getValue());
+		Assert.assertEquals(Distance.valueOf(20,Distance.Units.px),result.get("background-position").getValue());
 
 	}
 

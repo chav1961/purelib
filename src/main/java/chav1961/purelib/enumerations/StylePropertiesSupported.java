@@ -2,6 +2,11 @@ package chav1961.purelib.enumerations;
 
 import java.util.Arrays;
 
+import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.XMLUtils;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+
 public enum StylePropertiesSupported {
 		background("background",true,ContentType.compoundChoise,1,Integer.MAX_VALUE,new ValueListDescriptor(ContentType.subStyle,1,1,"background-attachment","background-color","background-image","background-position","background-repeat")),
 		background_attachment("background-attachment",true,ContentType.value,new ValueListDescriptor(ContentType.value,0,Integer.MAX_VALUE,"fixed","scroll","local")),
@@ -210,6 +215,9 @@ public enum StylePropertiesSupported {
 			return "ValueListDescriptor [type=" + type + ", minOccur=" + minOccur + ", maxOccur=" + maxOccur + ", content=" + Arrays.toString(content) + "]";
 		}
 	}
+
+	private static final SyntaxTreeInterface<Object>	NAMES = new AndOrTree<>();
+	private static final long							INHERITED;
 	
     private final String 				externalName;
     private final boolean				canBeInherited;
@@ -217,6 +225,11 @@ public enum StylePropertiesSupported {
     private final String				masterProperty;
     private final int					minOccurence, maxOccurence;
     private final ValueListDescriptor 	values;
+    private final long[]				valueIds;
+    
+    static {
+    	INHERITED = NAMES.placeName("inherited",null);
+    }
 
     private StylePropertiesSupported(final String externalName) {
         this.externalName = externalName;
@@ -226,6 +239,7 @@ public enum StylePropertiesSupported {
         this.values = null;
         this.minOccurence = 1;
         this.maxOccurence = 1;
+        this.valueIds = new long[0];
     }
 
     private StylePropertiesSupported(final String externalName, final ContentType type) {
@@ -264,9 +278,10 @@ public enum StylePropertiesSupported {
         this.values = values;
         this.minOccurence = minOccurence;
         this.maxOccurence = maxOccurence;
+        this.valueIds = parseValues(values);
     }
     
-    public String getExternalName() {
+	public String getExternalName() {
         return externalName;
     }
     
@@ -303,4 +318,112 @@ public enum StylePropertiesSupported {
     		throw new IllegalArgumentException("Unsupported enum value for external name ["+externalName+"]");
     	}
     }
+	
+	public boolean isValidValue(final String value) {
+		if (value == null || value.isEmpty()) {
+			throw new IllegalArgumentException("Value can't be null or empty"); 
+		}
+		else {
+			return isValidValue(value.toCharArray());
+		}
+	}
+
+	public boolean isValidValue(final char[] value) {
+		if (value == null || value.length == 0) {
+			throw new IllegalArgumentException("Value can't be null or empty array"); 
+		}
+		else {
+			try {
+				final long	id = NAMES.seekName(value,0,value.length);
+				
+				if (canBeInherited() && id == INHERITED) {
+					return true;
+				}
+				switch (getContentType()) {
+					case asIs	:
+						return true;
+					case colorOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case color	:
+						return XMLUtils.isValidColor(value);
+					case compoundChoise	:
+						break;
+					case compoundSequence	:
+						break;
+					case distanceOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case distance	:
+						return XMLUtils.isValidDistance(value);
+					case functionOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case function	:
+						break;
+					case integerOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case integer	:
+						break;
+					case numberOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case number	:
+						break;
+					case stringOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case string	:
+						break;
+					case subStyle	:
+						break;
+					case timeOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case time	:
+						break;
+					case urlOrKeyword	:
+						if (id >= 0) {
+							return isKeywordValid(id,this);
+						}
+					case url	:
+						break;
+					case value	:
+						return id >= 0;
+					default :
+						throw new UnsupportedOperationException("Content type ["+getContentType()+"] is not supported yet"); 
+				}
+			} catch (SyntaxException e) {
+				return false;
+			}
+			return false;
+		}
+	}
+
+	private long[] parseValues(final ValueListDescriptor values) {
+    	if (values.content == null) {
+    		return new long[0];
+    	}
+    	else {
+        	final long[]	result = new long[values.content.length];
+
+        	for (int index = 0; index < result.length; index++) {
+        		NAMES.placeName(values.content[index],this);
+        	}
+    		return result;
+    	}
+	}
+	
+    private boolean isKeywordValid(long id, StylePropertiesSupported stylePropertiesSupported) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }
