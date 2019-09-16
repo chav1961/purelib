@@ -967,6 +967,84 @@ public class CharUtils {
 	public enum ArgumentType {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, name, hyphenedName
 	}
+
+	public static int tryExtract(final char[] source, final int from, Object... lexemas) throws SyntaxException {
+		int	len, start = from;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source char array can't be null or empty");
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From location ["+from+"] out of range 0.."+(len-1));
+		}
+		else if (lexemas == null || lexemas.length == 0) {
+			throw new IllegalArgumentException("Lexemas list can't be null or empty");
+		}
+		else {
+			final int[]		intResult = new int[2];
+			final long[]	longResult = new long[2];
+			final float[]	floatResult = new float[2];
+			
+			for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++) {
+				final Object	lexema = lexemas[index];
+				
+				start = UnsafedCharUtils.uncheckedSkipBlank(source,start,true);
+				if (lexema instanceof char[]) {
+					final char[]	item = (char[])lexema; 
+					
+					if (UnsafedCharUtils.uncheckedCompare(source,start,item,0,item.length)) {
+						start += item.length;
+					}
+					else {
+						return -start; 
+					}
+				}
+				else if (lexema instanceof Character) {
+					if (source[start] == ((Character)lexema).charValue()) {
+						start++;
+					}
+					else {
+						return -start; 
+					}
+				}
+				else if (lexema instanceof ArgumentType) {
+					try {
+						switch ((ArgumentType)lexema) {
+							case hexInt			:
+								start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
+								break;
+							case hexLong		:
+								start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
+								break;
+							case ordinalInt		:
+								start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
+								break;
+							case ordinalLong	:
+								start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
+								break;
+							case ordinalFloat	:
+								start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
+								break;
+							case name			:
+								start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+								break;
+							case hyphenedName	:
+								start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+								break;
+							default				:
+								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
+						}
+					} catch (IllegalArgumentException exc) {
+						return -start; 
+					}
+				}
+				else {
+					throw new IllegalArgumentException("Unsupported Lexema type ["+lexema+"] at index ["+index+"]"); 
+				}
+			}
+		}
+		return start;
+	}
 	
 	public static int extract(final char[] source, final int from, final Object[] result, Object... lexemas) throws SyntaxException {
 		int	len, start = from;
@@ -1023,37 +1101,41 @@ public class CharUtils {
 					}
 				}
 				else if (lexema instanceof ArgumentType) {
-					switch ((ArgumentType)lexema) {
-						case hexInt			:
-							start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
-							result[resultIndex++] = intResult[0];
-							break;
-						case hexLong		:
-							start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
-							result[resultIndex++] = longResult[0];
-							break;
-						case ordinalInt		:
-							start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
-							result[resultIndex++] = intResult[0];
-							break;
-						case ordinalLong	:
-							start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
-							result[resultIndex++] = longResult[0];
-							break;
-						case ordinalFloat	:
-							start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
-							result[resultIndex++] = floatResult[0];
-							break;
-						case name			:
-							start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
-							result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
-							break;
-						case hyphenedName	:
-							start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
-							result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
-							break;
-						default				:
-							throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
+					try {
+						switch ((ArgumentType)lexema) {
+							case hexInt			:
+								start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
+								result[resultIndex++] = intResult[0];
+								break;
+							case hexLong		:
+								start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
+								result[resultIndex++] = longResult[0];
+								break;
+							case ordinalInt		:
+								start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
+								result[resultIndex++] = intResult[0];
+								break;
+							case ordinalLong	:
+								start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
+								result[resultIndex++] = longResult[0];
+								break;
+							case ordinalFloat	:
+								start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
+								result[resultIndex++] = floatResult[0];
+								break;
+							case name			:
+								start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+								result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+								break;
+							case hyphenedName	:
+								start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+								result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+								break;
+							default				:
+								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
+						}
+					} catch (IllegalArgumentException exc) {
+						throw new SyntaxException(0,start,"Parse error: "+exc.getLocalizedMessage()); 
 					}
 				}
 				else {

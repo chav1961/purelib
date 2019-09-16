@@ -119,7 +119,7 @@ public class NewPureLibDoclet extends Standard {
 			for (int index = 0; index < list.getLength(); index++) {
 				final Node	item = list.item(index);
 				
-				if (TAG_PACKAGE.equals(item.getNodeName()) && current.equals(item.getAttributes().getNamedItem(ATTR_NAME))) {
+				if (TAG_PACKAGE.equals(item.getNodeName()) && current.equals(item.getAttributes().getNamedItem(ATTR_NAME).getNodeValue())) {
 					return placePackage((Element)item,doc,tail);
 				}
 			}
@@ -135,7 +135,7 @@ public class NewPureLibDoclet extends Standard {
 			for (int index = 0; index < list.getLength(); index++) {
 				final Node	item = list.item(index);
 				
-				if (TAG_PACKAGE.equals(item.getNodeName()) && packageName.equals(item.getAttributes().getNamedItem(ATTR_NAME))) {
+				if (TAG_PACKAGE.equals(item.getNodeName()) && packageName.equals(item.getAttributes().getNamedItem(ATTR_NAME).getNodeValue())) {
 					return (Element)item;
 				}
 			}

@@ -47,34 +47,6 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	}
 
 	/**
-	 * <p>This interface describes error and warning processor</p>
-	 * @param <Common> data type for the information shared with all the WizardStep instances (usually some descriptor to fill with wizard) 
-	 * @param <ErrorType> type of the errors can be detected on the wizard execution stages
-	 * @author chav1961
-	 * @since 0.0.2
-	 */
-	public interface ErrorProcessing<Common, ErrorType extends Enum<?>> {
-		/**
-		 * <p>Process errors detected</p>
-		 * @param content data type for the information shared with all the WizardStep instances (usually some descriptor to fill with wizard)
-		 * @param err type of the errors can be detected on the wizard execution stages
-		 * @param parameters advanced parameters
-		 * @throws FlowException usually need be thrown to indicate error
-		 * @throws LocalizationException when any localization errors were detected
-		 */
-		void processError(Common content,ErrorType err,Object... parameters) throws FlowException, LocalizationException;
-		
-		/**
-		 * <p>Process warnings detected</p>
-		 * @param content data type for the information shared with all the WizardStep instances (usually some descriptor to fill with wizard)
-		 * @param err type of the errors can be detected on the wizard execution stages
-		 * @param parameters advanced parameters
-		 * @throws LocalizationException when any localization errors were detected
-		 */
-		void processWarning(Common content,ErrorType err,Object... parameters) throws LocalizationException;
-	}
-	
-	/**
 	 * <p>Get current step id</p>
 	 * @return any non-null and non-empty string. Need be unique in the given wizard steps chain
 	 */

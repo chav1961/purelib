@@ -26,7 +26,12 @@ class UnsafedUtils {
 				
 				try{final Field		ff = String.class.getDeclaredField("value");		
 					
-					valueDispl = unsafe.objectFieldOffset(ff);
+					if (ff.getDeclaringClass() == char[].class) {
+						valueDispl = unsafe.objectFieldOffset(ff);
+					}
+					else {
+						valueDispl = -1;
+					}
 				} catch (NoSuchFieldException  e) {
 				}
 			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
@@ -44,10 +49,15 @@ class UnsafedUtils {
 		MethodHandle		mh;
 		
 		try{final Field 	f = String.class.getDeclaredField("value");
-	        
-		 	f.setAccessible(true);
-		 	mh = lookup.unreflectGetter(f);
-		 	f.setAccessible(true);
+
+			if (f.getDeclaringClass() == char[].class) {
+			 	f.setAccessible(true);
+			 	mh = lookup.unreflectGetter(f);
+			 	f.setAccessible(false);
+			}
+			else {
+				mh = null;
+			}
 		} catch (NoSuchFieldException | IllegalAccessException e) {
 			mh = null;
 		}
@@ -62,7 +72,7 @@ class UnsafedUtils {
 			return (char[])unsafe.getObject(source,STRING_VALUE_DISPL);
 		}
 		else if (ACCESS_STRING_CONTENT != null) {
-			try{return (char[])ACCESS_STRING_CONTENT.invokeExact(source);
+			try{return (char[])ACCESS_STRING_CONTENT.invokeExact(source); 
 			} catch (ThreadDeath e) {
 				throw e; 
 			} catch (Throwable e) {

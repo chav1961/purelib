@@ -10,13 +10,11 @@ import java.util.Arrays;
 import java.util.EmptyStackException;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -51,16 +49,17 @@ public class XMLUtils {
 
 	private static final Object[]	COLOR_HEX_TEMPLATE = {'#',ArgumentType.hexInt};	
 	private static final char[]		COLOR_RGBA = "rgba".toCharArray();
-	private static final Object[]	COLOR_RGBA_TEMPLATE = {"rgba".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
+	private static final Object[]	COLOR_RGBA_TEMPLATE = {COLOR_RGBA,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
 	private static final char[]		COLOR_RGB = "rgb".toCharArray();
-	private static final Object[]	COLOR_RGB_TEMPLATE = {"rgb".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
+	private static final Object[]	COLOR_RGB_TEMPLATE = {COLOR_RGB,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,',',ArgumentType.ordinalInt,')'};
 	private static final char[]		COLOR_HSLA = "hsla".toCharArray();
-	private static final Object[]	COLOR_HSLA_TEMPLATE = {"hsla".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalInt,'%',')'};
+	private static final Object[]	COLOR_HSLA_TEMPLATE = {COLOR_HSLA,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
 	private static final char[]		COLOR_HSL = "hsl".toCharArray();
-	private static final Object[]	COLOR_HSL_TEMPLATE = {"hsl".toCharArray(),'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
+	private static final Object[]	COLOR_HSL_TEMPLATE = {COLOR_HSL,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
 
-	private static final SyntaxTreeInterface<StylePropValue<?>[]>	KEYWORDS = new AndOrTree<>();
-	private static final long										INHERITED;
+	private static final SyntaxTreeInterface<StylePropValue<?>[]>		KEYWORDS = new AndOrTree<>();
+	private static final SyntaxTreeInterface<StylePropertiesSupported>	STYLES = new AndOrTree<>();
+	private static final long											INHERITED;
 
 	@FunctionalInterface
 	private interface StyleValueConverter {
@@ -70,7 +69,12 @@ public class XMLUtils {
 	static {
 		INHERITED = KEYWORDS.placeName("inherited",null);
 		for (StylePropertiesSupported item : StylePropertiesSupported.values()) {
-			switch (item.getContentType()) {
+			final ContentType 	ct;
+			
+			switch (ct = item.getContentType()) {
+				case color:
+					addName(KEYWORDS,item,item.getValues());
+					break;
 				case colorOrKeyword		:
 					addName(KEYWORDS,item,item.getValues());
 					break;
@@ -98,9 +102,24 @@ public class XMLUtils {
 				case value				:
 					addName(KEYWORDS,item,item.getValues());
 					break;
-				default:
+				case asIs:
+				case compoundChoise:
+				case compoundSequence:
+				case distance:
+				case function:
+				case integer:
+				case number:
+				case string:
+				case subStyle:
+				case time:
+				case url:
+					addName(KEYWORDS,item,item.getValues());
 					break;
+				default:
+					throw new UnsupportedOperationException("Content type ["+ct+"] is not supported yet");
 			}
+			STYLES.placeName(item.name(),item);
+			STYLES.placeName(item.getExternalName(),item);
 		}
 	}
 	
@@ -201,23 +220,41 @@ public class XMLUtils {
 		<operValue>::='"'<any>'"'
 		<properties>::='{'<property>':'<value>[';'...]'}'
 	 */
-	
+
 	public static Map<String,Properties> parseCSS(final String cssContent) throws SyntaxException, IllegalArgumentException {
 		if (cssContent == null || cssContent.isEmpty()) {
-			throw new IllegalArgumentException("CSS content can't be null or empty");
+			throw new IllegalArgumentException("CSS content can't be null or empty string");
+		}
+		else {
+			final Map<String,Properties>	result = new HashMap<>();
+			
+			parseCSS(cssContent.toCharArray(),0,result);
+			return result;
+		}		
+	}
+
+	public static int parseCSS(final char[] src, final int from, final Map<String,Properties> result) throws SyntaxException, IllegalArgumentException {
+		return parseCSS(src,from,result,new int[2]);
+	}
+	
+	static int parseCSS(final char[] src, int from, final Map<String,Properties> result, final int[] nameRange) throws SyntaxException, IllegalArgumentException {
+		final int len;
+		
+		if (src == null || (len = src.length) == 0) {
+			throw new IllegalArgumentException("CSS content can't be null or empty array");
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From index ["+from+"] out of range 0.."+(len-1));
 		}
 		else {
 			final List<CSSLex>	lexemas = new ArrayList<>();
 			final StringBuilder	sb = new StringBuilder();
-			final int[]			nameRange = new int[2];
-			final char[]		src = (cssContent+'\uFFFF').toCharArray();
-			int					from = 0;
 			
-loop:		for (;;) {
-				switch (src[from = CharUtils.skipBlank(src,from,false)]) {
-					case '\uFFFF' 	:
-						lexemas.add(new CSSLex(from,CSSLex.CSSLExType.EOF));
-						break loop;
+loop:		while (from < len) {
+				if ((from = CharUtils.skipBlank(src,from,false)) >= len) {
+					break;
+				}
+				switch (src[from]) {
 					case '/'	:
 						if (src[from+1] == '*') {
 							final int 	start = from;
@@ -385,7 +422,7 @@ loop:		for (;;) {
 					case '{'	:
 						final Properties	props = new Properties();
 						
-						from = parseInnerCSS(src,from,nameRange,sb,props);
+						from = parseInnerCSS(src,from+1,nameRange,sb,props);
 						lexemas.add(new CSSLex(from,CSSLex.CSSLExType.PROPS,props));
 						break;
 					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
@@ -405,8 +442,9 @@ loop:		for (;;) {
 						}
 				}
 			}
+			lexemas.add(new CSSLex(from,CSSLex.CSSLExType.EOF));
+			
 			final CSSLex[]			lex = lexemas.toArray(new CSSLex[lexemas.size()]);
-			final Map<String,Properties>	result = new HashMap<>();
 			int						pos = 0;
 			
 			lexemas.clear();
@@ -420,11 +458,11 @@ loop:		for (;;) {
 				result.put(convertCSSTree2XPath((SyntaxNode<CSSSyntaxNode, SyntaxNode<CSSSyntaxNode, ?>>) node.children[0]),(Properties)node.cargo);
 			} while (pos < lex.length && lex[pos].type != CSSLex.CSSLExType.EOF);
 			
-			return result;
+			return from;
 		}
 	}	
 	
-	public static Map<String,Object> parseStyle(final String style) throws SyntaxException {
+	public static <T> Map<String,StylePropValue<T>> parseStyle(final String style) throws SyntaxException {
 		if (style == null || style.isEmpty()) {
 			throw new IllegalArgumentException("Style can't be null or empty");
 		}
@@ -434,43 +472,60 @@ loop:		for (;;) {
 
 			parseInnerCSS((style+"}").toCharArray(),0,new int[2],sb,props);
 			
-			final Map<String,Object>	result = new HashMap<>();
+			final Map<String,StylePropValue<T>>	result = new HashMap<>();
 			
 			for (Map.Entry<Object,Object> item : props.entrySet()) {
+				final String	key = ((String)item.getKey());
+				final long 		id = STYLES.seekName(key);
 				
+				if (id >= 0) {
+					result.put(key,parseStyleProperty(STYLES.getCargo(id),result,(String)item.getValue()));
+				}
+				else {
+					result.put(key,new StylePropValue<T>(ContentType.asIs,null,(T)item.getValue()));
+				}
 			}
 			
 			return result;
 		}
 	}
 	
-	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final String content) {
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final String content) throws SyntaxException {
 		if (prop == null) {
 			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (props == null) {
+			throw new NullPointerException("Properties can't be null");
 		}
 		else if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content can't be null or empty");
 		}
 		else {
-			return parseStyleProperty(prop,content);
+			return parseStyleProperty(prop,props,content,0,content.length());
 		}
 	}
 
-	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final String content, final int from, final int to) {
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final String content, final int from, final int to) throws SyntaxException {
 		if (prop == null) {
 			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (props == null) {
+			throw new NullPointerException("Properties can't be null");
 		}
 		else if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content can't be null or empty");
 		}
 		else {
-			return parseStyleProperty(prop,UnsafedUtils.getStringContent(content),from,to);
+			return parseStyleProperty(prop,props,UnsafedUtils.getStringContent(content),from,to);
 		}
 	}
 
-	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final char[] content, final int from, final int to) {
+	public static <T> StylePropValue<T> parseStyleProperty(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final char[] content, final int from, final int to) throws SyntaxException {
 		if (prop == null) {
 			throw new NullPointerException("Property descriptor can't be null");
+		}
+		else if (props == null) {
+			throw new NullPointerException("Properties can't be null");
 		}
 		else if (content == null || content.length == 0) {
 			throw new IllegalArgumentException("Content can't be null or empty array");
@@ -478,15 +533,16 @@ loop:		for (;;) {
 		else if (from < 0 || from >= content.length) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length-1));
 		}
-		else if (to < 0 || to >= content.length) {
-			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(content.length-1));
+		else if (to < 0 || to > content.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(content.length));
 		}
 		else if (to < from) {
 			throw new IllegalArgumentException("To position ["+to+"] is less than from position ["+from+"]");
 		}
 		else {
-			int		end;
-			long	id;
+			int					end;
+			long				id;
+			StylePropValue<T>	result;
 			
 			switch (prop.getContentType()) {
 				case asIs				:
@@ -494,41 +550,35 @@ loop:		for (;;) {
 				case colorOrKeyword		:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
-						}
-						else {
-							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
-								if (item.getProp() == prop) {
-									return (StylePropValue<T>) item;
-								}
-							}
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 					}
 				case color				:
-					break;
+					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+						for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+							if (item.getProp() == prop) {
+								return (StylePropValue<T>) item;
+							}
+						}
+					}
+					return new StylePropValue<T>(prop.getContentType(),prop,(T)asColor(content));
 				case compoundChoise		:
+					for (String item : prop.getValues().getContent()) {
+						
+					}
 					break;
 				case compoundSequence	:
 					break;
 				case distanceOrKeyword	:
-					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
-						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
-						}
-						else {
-							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
-								if (item.getProp() == prop) {
-									return (StylePropValue<T>) item;
-								}
-							}
-						}
+					if ((result = parseStylePropertyInheritance(prop,props,content,from,to)) !=null) {
+						return result;
 					}
 				case distance			:
-					break;
+					return new StylePropValue<T>(prop.getContentType(),prop,(T)asDistance(new String(content)));
 				case functionOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -543,7 +593,7 @@ loop:		for (;;) {
 				case integerOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -565,7 +615,7 @@ loop:		for (;;) {
 				case numberOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -587,7 +637,7 @@ loop:		for (;;) {
 				case stringOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -604,7 +654,7 @@ loop:		for (;;) {
 				case timeOrKeyword		:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -619,7 +669,7 @@ loop:		for (;;) {
 				case urlOrKeyword		:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -634,7 +684,7 @@ loop:		for (;;) {
 				case value				:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
-							return parseStylePropertyInherited(prop,content,from,to);
+							return parseStylePropertyInherited(prop,props,content,from,to);
 						}
 						else {
 							for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
@@ -652,8 +702,55 @@ loop:		for (;;) {
 		}
 	}
 	
-	private static <T> StylePropValue<T> parseStylePropertyInherited(StylePropertiesSupported prop, char[] content, int from, int to) {
-		// TODO Auto-generated method stub
+	public static <T> StylePropValue<T> parseStylePropertyInheritance(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final char[] content, final int from, final int to) throws SyntaxException {
+		long	id;
+		
+		if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
+			if (id == INHERITED) {
+				return parseStylePropertyInherited(prop,props,content,from,to);
+			}
+			else {
+				for (StylePropValue<?> item : KEYWORDS.getCargo(id)) {
+					if (item.getProp() == prop) {
+						return (StylePropValue<T>) item;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	private static <T> StylePropValue<T> parseStylePropertyInherited(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final char[] content, final int from, final int to) throws SyntaxException {
+		for (StylePropertiesSupported parent : StylePropertiesSupported.values()) {
+			if (parent.getContentType() == ContentType.compoundChoise) {
+				for (String item : parent.getValues().getContent()) {
+					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
+						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
+					
+						if (result == null) {
+							return null;
+						}
+						else {
+							return null;
+						}
+					}
+				}
+			}
+			else if (parent.getContentType() == ContentType.compoundSequence) {
+				for (String item : parent.getValues().getContent()) {
+					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
+						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
+						
+						if (result == null) {
+							return null;
+						}
+						else {
+							return null;
+						}
+					}
+				}
+			}
+		}
 		return null;
 	}
 
@@ -715,7 +812,7 @@ loop:		for (;;) {
 	}
 
 	static int parseInnerCSS(final char[] src, final int start, final int[] nameRange, final StringBuilder sb, final Properties props) throws SyntaxException {
-		int	from = start, begin = start;
+		int	from = start-1, begin = start;
 
 		try{do {from = CharUtils.parseNameExtended(src, CharUtils.skipBlank(src,from+1,false), nameRange, AVAILABLE_IN_NAMES);
 				if (nameRange[0] == nameRange[1]) {
@@ -1157,15 +1254,65 @@ loop:		for (;;) {
 		RECORD, SELECTORS, SELECTOR_GROUP, SUBTREE_SEL, STANDALONE_SEL, SEL_ITEM 
 	}
 
-	public static Color asColor(final String color) throws SyntaxException {
+	public static boolean isValidColor(final String color) throws SyntaxException {
 		if (color == null || color.isEmpty()) {
-			throw new IllegalArgumentException("Color string can't be null or empty");
+			throw new IllegalArgumentException("Color content can't be null or empty");
 		}
 		else {
-			final char[]	content = UnsafedUtils.getStringContent(color);
-			final int[]		result = new int[5];
+			return isValidColor(UnsafedUtils.getStringContent(color));
+		}		
+	}
+	
+	public static Color asColor(final String color) throws SyntaxException {
+		if (color == null || color.isEmpty()) {
+			throw new IllegalArgumentException("Color content can't be null or empty");
+		}
+		else {
+			return asColor(UnsafedUtils.getStringContent(color));
+		}		
+	}
+	
+	public static boolean isValidColor(final char[] content) throws SyntaxException {
+		if (content == null || content.length == 0) {
+			throw new IllegalArgumentException("Color content can't be null or empty array");
+		}
+		else {
 			final Object[]	values = new Object[4];
-			int				from = 0, index;
+			int				from = 0;
+			
+			if (content[0] == '#') {
+				return CharUtils.tryExtract(content,from,COLOR_HEX_TEMPLATE) > 0;
+			}
+			if (content.length > 4) {
+				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_RGBA_TEMPLATE) > 0;
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_HSLA_TEMPLATE) > 0;
+				}
+			}
+			if (content.length > 3) {
+				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_RGB_TEMPLATE) > 0;
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
+					return CharUtils.tryExtract(content,from,COLOR_HSL_TEMPLATE) > 0;
+				}
+				else {
+					return PureLibSettings.colorByName(new String(content),null) != null; 
+				}
+			}
+			return PureLibSettings.colorByName(new String(content),null) != null; 
+		}
+	}
+
+	public static Color asColor(final char[] content) throws SyntaxException {
+		if (content == null || content.length == 0) {
+			throw new IllegalArgumentException("Color content can't be null or empty array");
+		}
+		else {
+			final Object[]	values = new Object[4];
+			int				from = 0;
 			
 			if (content[0] == '#') {
 				from = CharUtils.extract(content,from,values,COLOR_HEX_TEMPLATE);
@@ -1179,7 +1326,7 @@ loop:		for (;;) {
 				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_HSLA_TEMPLATE);
 					final Color 	temp = Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]); 
-					return new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),(int)(2.56f*(Integer)values[3]));
+					return new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),Math.min((int)(2.56f*(Float)values[3]),255));
 				}
 			}
 			if (content.length > 3) {
@@ -1192,27 +1339,27 @@ loop:		for (;;) {
 					return Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]);
 				}
 				else {
-					final Color	toRet = PureLibSettings.colorByName(color,null); 
+					final Color		toRet = PureLibSettings.colorByName(new String(content),null); 
 					
 					if (toRet != null) {
 						return toRet;
 					}
 					else {
-						throw new SyntaxException(0,0,"Color name ["+color+"] is unknown"); 
+						throw new SyntaxException(0,0,"Color name ["+new String(content)+"] is unknown"); 
 					}
 				}
 			}
-			final Color	toRet = PureLibSettings.colorByName(color,null); 
+			final Color	toRet = PureLibSettings.colorByName(new String(content),null); 
 			
 			if (toRet != null) {
 				return toRet;
 			}
 			else {
-				throw new SyntaxException(0,0,"Color name ["+color+"] is unknown"); 
+				throw new SyntaxException(0,0,"Color name ["+new String(content)+"] is unknown"); 
 			}
 		}
 	}
-
+	
 	public static class Distance {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name};
@@ -1248,22 +1395,56 @@ loop:		for (;;) {
 			return unit;
 		}
 
-		public static Distance valueOf(final String value) {
+		public static boolean idValidDistance(final String value) {
 			if (value == null || value.isEmpty()) {
-				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
+				throw new IllegalArgumentException("Value can't be null or empty");
 			}
 			else {
-				final char[] 	content = UnsafedUtils.getStringContent(value);
+				try {
+					return CharUtils.tryExtract(UnsafedUtils.getStringContent(value),0,(Object[])LEXEMAS) > 0;
+				} catch (SyntaxException e) {
+					return false;
+				}
+			}
+		}
+		
+		public static Distance valueOf(final String value) {
+			if (value == null || value.isEmpty()) {
+				throw new IllegalArgumentException("Value can't ne null or empty");
+			}
+			else {
+				return valueOf(value.toCharArray());
+			}
+		}
+
+		public static boolean idValidDistance(final char[] value) {
+			if (value == null || value.length == 0) {
+				throw new IllegalArgumentException("Value can't be null or empty array");
+			}
+			else {
+				try {
+					return CharUtils.tryExtract(value,0,(Object[])LEXEMAS) > 0;
+				} catch (SyntaxException e) {
+					return false;
+				}
+			}
+		}
+		
+		public static Distance valueOf(final char[] content) {
+			if (content == null || content.length == 0) {
+				throw new IllegalArgumentException("Content can't ne null or empty array");
+			}
+			else {
 				final Object[]	result = new Object[2];
 				
 				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
 				} catch (SyntaxException e) {
-					throw new IllegalArgumentException("String ["+value+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+					throw new IllegalArgumentException("String ["+new String()+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
 				}
 				return valueOf(((Integer)result[0]).intValue(),Units.valueOf(result[1].toString()));
 			}
 		}
-
+		
 		public static Distance valueOf(final int value, final Units unit) {
 			if (value < 0) {
 				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
@@ -1323,6 +1504,15 @@ loop:		for (;;) {
 		}
 	}
 
+	public static boolean isValidDistance(final String distance) throws SyntaxException {
+		if (distance == null || distance.isEmpty()) {
+			throw new IllegalArgumentException("Distance string can't be null or empty");
+		}
+		else {
+			return Distance.idValidDistance(distance);
+		}
+	}	
+	
 	public static Distance asDistance(final String distance) throws SyntaxException {
 		if (distance == null || distance.isEmpty()) {
 			throw new IllegalArgumentException("Distance string can't be null or empty");
@@ -1331,6 +1521,27 @@ loop:		for (;;) {
 			try{return Distance.valueOf(distance);
 			} catch (NumberFormatException exc) {
 				throw new SyntaxException(0,0,"Distance ["+distance+"] has invalid syntax");
+			}
+		}
+	}	
+
+	public static boolean isValidDistance(final char[] distance) throws SyntaxException {
+		if (distance == null || distance.length == 0) {
+			throw new IllegalArgumentException("Distance can't be null or empty array");
+		}
+		else {
+			return Distance.idValidDistance(distance);
+		}
+	}	
+	
+	public static Distance asDistance(final char[] distance) throws SyntaxException {
+		if (distance == null || distance.length == 0) {
+			throw new IllegalArgumentException("Distance string can't be null or empty");
+		}
+		else {
+			try{return Distance.valueOf(distance);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Distance ["+new String(distance)+"] has invalid syntax");
 			}
 		}
 	}	
@@ -1901,7 +2112,7 @@ loop:		for (;;) {
 				if (prop == null) {
 					throw new NullPointerException("Styled properties type can't be null");
 				}
-				else if (description == null || description == null) {
+				else if (description == null || description.isEmpty()) {
 					throw new IllegalArgumentException("Description can't be null or empty");
 				}
 				else if (template == null) {
@@ -1920,7 +2131,7 @@ loop:		for (;;) {
 				if (prop == null) {
 					throw new NullPointerException("Styled properties type can't be null");
 				}
-				else if (description == null || description == null) {
+				else if (description == null || description.isEmpty()) {
 					throw new IllegalArgumentException("Description can't be null or empty");
 				}
 				else if (details == null) {
@@ -1974,7 +2185,9 @@ loop:		for (;;) {
 	}
 
 	private static void addName(final SyntaxTreeInterface<StylePropValue<?>[]> keywords, final StylePropertiesSupported prop, final ValueListDescriptor values) {
-		for (String item : values.getContent()) {
+		final String[]	content = values.getContent(); 
+		
+		for (String item : content) {
 			final StylePropValue<String>	newValue = new StylePropValue<String>(ContentType.value,prop,item);
 			final long						id = keywords.seekName(item);
 			
@@ -1982,7 +2195,8 @@ loop:		for (;;) {
 				keywords.placeName(item,new StylePropValue[]{newValue});
 			}
 			else {
-				final StylePropValue<?>[]	currentList = keywords.getCargo(id), newList = Arrays.copyOf(currentList,currentList.length+1);  
+				final StylePropValue<?>[]	currentList = keywords.getCargo(id);
+				final StylePropValue<?>[]	newList = Arrays.copyOf(currentList,currentList.length+1);  
 						
 				newList[newList.length-1] = newValue; 
 				keywords.setCargo(id, newList);

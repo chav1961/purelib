@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root SYSTEM "./src/test/resources/chav1961/purelib/basic/walkingXML.dtd">
+<root id="root">
+	<level1 id="id1">
+		<level11 id="id11" key11="value11">content11</level11>
+		<level12 id="id12" key12="value12">content12</level12>
+	</level1>
+	<level2 id="id2">
+		<level21 id="id21">content21</level21>
+		<level21 id="id22">content22</level21>
+	</level2>
+</root>

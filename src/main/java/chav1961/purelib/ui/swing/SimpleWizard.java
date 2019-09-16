@@ -49,8 +49,8 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
+import chav1961.purelib.ui.interfaces.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.WizardStep;
-import chav1961.purelib.ui.interfaces.WizardStep.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.WizardStep.StepType;
 
 /**

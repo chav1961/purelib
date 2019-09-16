@@ -2,6 +2,7 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.io.Flushable;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +24,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -34,39 +36,59 @@ import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.SimpleContentMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.sql.interfaces.ORMProvider;
+import chav1961.purelib.ui.interfaces.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.interfaces.RecordFormManager;
+import chav1961.purelib.ui.interfaces.RefreshMode;
 
-public class ORMProvidedTableModel<Record> extends DefaultTableModel implements LocaleChangeListener {
-	private static final long serialVersionUID = 5818266099123995333L;
+public class ORMProvidedTableModel<Key,Record> extends DefaultTableModel implements LocaleChangeListener {
+	private static final long 					serialVersionUID = 5818266099123995333L;
+	private static final int					DEFAULT_PAGE_SIZE = 100;
 
 	private final Localizer						localizer;
 	private final LoggerFacade					logger;	
-	private final ORMProvider<Record, Record>	provider;
+	private final ORMProvider<Key, Record>		provider;
 	private final Record						instance;
 	private final boolean						isReadOnly;
-	private final FormManager<Object,Record> 	mgr;
+	private final FormManager<Key,Record> 		mgr;
 	private final ColumnDescriptor[]			columnDesc;
 	private final RecordCache<Record>			cache = null;
-	private int									currentLine = -1;
 
-	public ORMProvidedTableModel(final Localizer localizer, final ContentNodeMetadata clazzModel, final ORMProvider<Record,Record> provider, final Record instance, final String[] fields) {
+    private int									currentLine = -1, pageSize = DEFAULT_PAGE_SIZE;
+
+	public ORMProvidedTableModel(final Localizer localizer, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields) {
 		this(localizer,PureLibSettings.SYSTEM_ERR_LOGGER,clazzModel,provider,instance,fields);
 	}
 	
-	public ORMProvidedTableModel(final Localizer localizer, final ContentNodeMetadata clazzModel, final ORMProvider<Record,Record> provider, final Record instance, final String[] fields, final FormManager<Object,Record> mgr) {
+	public ORMProvidedTableModel(final Localizer localizer, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields, final FormManager<Key,Record> mgr) {
 		this(localizer,PureLibSettings.SYSTEM_ERR_LOGGER,clazzModel,provider,instance,fields,mgr);
 	}
 
-	public ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Record,Record> provider, final Record instance, final String[] fields) {
-		this(localizer,logger,clazzModel,provider,instance,fields,true,null);
+	public ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields) {
+		this(localizer,logger,clazzModel,provider,instance,fields,true,new FormManager<Key,Record>() {
+			@Override
+			public RefreshMode onField(Record inst, Key id, String fieldName, Object oldValue) throws FlowException, LocalizationException {
+				return RefreshMode.FIELD_ONLY;
+			}
+
+			@Override
+			public LoggerFacade getLogger() {
+				return logger;
+			}
+		});
 	}	
 
-	public ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Record,Record> provider, final Record instance, final String[] fields, final FormManager<Object,Record> mgr) {
+	public ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields, final FormManager<Key,Record> mgr) {
+		this(localizer,logger,clazzModel,provider,instance,fields,false,mgr);
+	}
+
+	public <Err extends Enum<?>> ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields, final FormManager<Key,Record> mgr, final ErrorProcessing<Record,Err> errProc) {
 		this(localizer,logger,clazzModel,provider,instance,fields,false,mgr);
 	}
 	
-	private ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Record,Record> provider, final Record instance, final String[] fields, final boolean readOnly, final FormManager<Object,Record> mgr) {
+	private <Err extends Enum<?>> ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields, final boolean readOnly, final FormManager<Key,Record> mgr) {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -98,7 +120,7 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 			this.instance = instance;
 			this.isReadOnly = readOnly;
 			this.mgr = mgr;
-			
+
 			final List<ColumnDescriptor>	cols = new ArrayList<>();
 			final ContentMetadataInterface	metadata = new SimpleContentMetadata(clazzModel);
 			
@@ -106,7 +128,8 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 				metadata.walkDown((mode,appPath,uiPath,node)->{
 					if (mode == NodeEnterMode.ENTER && Utils.hasSubScheme(appPath,ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
 						if (node.getName().equalsIgnoreCase(field)) {
-							try{cols.add(new ColumnDescriptor(node.getLabelId(),node.getTooltipId(),node.getType()
+							try{cols.add(new ColumnDescriptor(node.getName()
+										,node.getLabelId(),node.getTooltipId(),node.getType()
 										,GettersAndSettersFactory.buildGetterAndSetter(appPath)));
 							} catch (ContentException  e) {
 								logger.message(Severity.error,e,"Error building getter/setter for ["+appPath+"]: "+e.getLocalizedMessage());
@@ -194,13 +217,46 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 		return isReadOnly;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+	public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
 		if (!isCellEditable(rowIndex,columnIndex)) {
 			throw new IllegalStateException("Attempt to change value for read-only cell"); 
 		}
 		else {
-			// TODO:
+			final GetterAndSetter	gas = columnDesc[columnIndex].gas;
+			final Record			rec = cache.getRecord(rowIndex);
+			final Object			oldVal = getValueAt(rowIndex,columnIndex);
+			final RefreshMode		rm;
+			
+			try{setValueAt(instance,gas,aValue);
+				try{switch (rm = mgr.onField(instance,provider.getKey(instance),columnDesc[columnIndex].fieldName,oldVal)) {
+						case REJECT : case EXIT :
+							setValueAt(instance,gas,oldVal);
+							break;
+						case DEFAULT : case FIELD_ONLY : case NONE :
+							provider.update(provider.getKey(instance),instance);
+							cache.markAsChanged(rowIndex);
+							fireTableCellUpdated(rowIndex,columnIndex);
+							break;
+						case RECORD_ONLY :
+							provider.update(provider.getKey(instance),instance);
+							cache.markAsChanged(rowIndex);
+							fireTableRowsUpdated(rowIndex,rowIndex);
+							break;
+						case TOTAL :
+							provider.update(provider.getKey(instance),instance);
+							cache.markAsChanged(rowIndex);
+							fireTableDataChanged();
+							break;
+						default	: throw new UnsupportedOperationException("Refresh mode ["+rm+"] is not supported yet");
+					}
+				} catch (SQLException e) {
+					mgr.getLogger().message(Severity.error,e,"Error setting cell: "+e.getLocalizedMessage());
+				}
+			} catch (ContentException | LocalizationException | FlowException e) {
+				logger.message(Severity.error,e,"Error setting cell: "+e.getLocalizedMessage());
+			}
 		}
 	}
 	
@@ -238,8 +294,13 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 		}
 	}
 	
-	public void setPageSize(int pageSize) {
-		
+	public void setPageSize(final int pageSize) {
+		if (pageSize <= 0) {
+			throw new IllegalArgumentException("Page size ["+pageSize+"] must be positive");
+		}
+		else {
+			this.pageSize = pageSize;
+		}
 	}
 	
 	public void insert() {
@@ -247,16 +308,60 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 			throw new IllegalStateException("Attach to call insert on read-only content");
 		}
 		else {
-			// TODO:
+			try{
+				try{final RefreshMode	rm;
+					final Key 			newKey = (Key)provider.newKey();
+			
+					switch (rm = mgr.onRecord(RecordFormManager.Action.INSERT,null,null,instance,newKey)) {
+						case REJECT : case EXIT :
+							break;
+						case DEFAULT : case FIELD_ONLY : case NONE : case RECORD_ONLY :
+							provider.create(newKey,instance);
+							reload();
+							break;
+						case TOTAL :
+							provider.create(newKey,instance);
+							reload();
+							break;
+						default	: throw new UnsupportedOperationException("Refresh mode ["+rm+"] is not supported yet");
+					}
+				} catch (SQLException e) {
+					mgr.getLogger().message(Severity.error,e,"Error inserting record: "+e.getLocalizedMessage());
+				}
+			} catch (LocalizationException | FlowException e) {
+				logger.message(Severity.error,e,"Error inserting record: "+e.getLocalizedMessage());
+			}
 		}
 	}
 
 	public void duplicate(int currentLine) {
 		if (isReadOnly) {
-			throw new IllegalStateException("Attach to call duplicate on read-only content");
+			throw new IllegalStateException("Attach to call insert on read-only content");
 		}
 		else {
-			// TODO:
+			try{
+				try{final RefreshMode	rm;
+					final Key 			newKey = (Key)provider.newKey();
+			
+					switch (rm = mgr.onRecord(RecordFormManager.Action.DUPLICATE,instance,provider.getKey(instance),instance,newKey)) {
+						case REJECT : case EXIT :
+							break;
+						case DEFAULT : case FIELD_ONLY : case NONE : case RECORD_ONLY :
+							provider.create(newKey,instance);
+							reload();
+							break;
+						case TOTAL :
+							provider.create(newKey,instance);
+							reload();
+							break;
+						default	: throw new UnsupportedOperationException("Refresh mode ["+rm+"] is not supported yet");
+					}
+				} catch (SQLException e) {
+					mgr.getLogger().message(Severity.error,e,"Error duplication record: "+e.getLocalizedMessage());
+				}
+			} catch (LocalizationException | FlowException e) {
+				logger.message(Severity.error,e,"Error duplicating record: "+e.getLocalizedMessage());
+			}
 		}
 	}
 
@@ -265,7 +370,33 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 			throw new IllegalStateException("Attach to call delete on read-only content");
 		}
 		else {
-			// TODO:
+			if (isReadOnly) {
+				throw new IllegalStateException("Attach to call insert on read-only content");
+			}
+			else {
+				try{
+					try{final RefreshMode	rm;
+				
+						switch (rm = mgr.onRecord(RecordFormManager.Action.DELETE,instance,null,instance,null)) {
+							case REJECT : case EXIT :
+								break;
+							case DEFAULT : case FIELD_ONLY : case NONE : case RECORD_ONLY :
+								provider.delete(provider.getKey(instance));
+								reload();
+								break;
+							case TOTAL :
+								provider.delete(provider.getKey(instance));
+								reload();
+								break;
+							default	: throw new UnsupportedOperationException("Refresh mode ["+rm+"] is not supported yet");
+						}
+					} catch (SQLException e) {
+						mgr.getLogger().message(Severity.error,e,"Error deleting record: "+e.getLocalizedMessage());
+					}
+				} catch (LocalizationException | FlowException e) {
+					logger.message(Severity.error,e,"Error duplicating record: "+e.getLocalizedMessage());
+				}
+			}
 		}
 	}
 	
@@ -279,6 +410,40 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 		}
 	}
 
+	private <T> T convert(final Object aValue, final Class<T> awaited) throws ContentException {
+		return SQLUtils.convert(awaited,aValue);
+	}
+
+	private void setValueAt(final Record rec, final GetterAndSetter gas, final Object aValue) throws ContentException {
+		if (gas instanceof BooleanGetterAndSetter) {
+			((BooleanGetterAndSetter)gas).set(rec,convert(aValue,boolean.class));
+		}
+		else if (gas instanceof ByteGetterAndSetter) {
+			((ByteGetterAndSetter)gas).set(rec,convert(aValue,byte.class));
+		}
+		else if (gas instanceof CharGetterAndSetter) {
+			((CharGetterAndSetter)gas).set(rec,convert(aValue,char.class));
+		}
+		else if (gas instanceof DoubleGetterAndSetter) {
+			((DoubleGetterAndSetter)gas).set(rec,convert(aValue,double.class));
+		}
+		else if (gas instanceof FloatGetterAndSetter) {
+			((FloatGetterAndSetter)gas).set(rec,convert(aValue,float.class));
+		}
+		else if (gas instanceof IntGetterAndSetter) {
+			((IntGetterAndSetter)gas).set(rec,convert(aValue,int.class));
+		}
+		else if (gas instanceof LongGetterAndSetter) {
+			((LongGetterAndSetter)gas).set(rec,convert(aValue,long.class));
+		}
+		else if (gas instanceof ShortGetterAndSetter) {
+			((ShortGetterAndSetter)gas).set(rec,convert(aValue,short.class));
+		}
+		else {
+			((ObjectGetterAndSetter<Object>)gas).set(rec,aValue);
+		}
+	}
+	
 	private static class RecordCache<Record> implements Flushable {
 		@Override
 		public void flush() throws IOException {
@@ -309,12 +474,14 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 	}
 	
 	private static class ColumnDescriptor {
+		final String			fieldName;
 		final String			columnLabel;
 		final String			columnTooltip;
 		final Class<?>			columnClass;
 		final GetterAndSetter	gas;
 		
-		private ColumnDescriptor(final String columnLabel, final String columnTooltip, final Class<?> columnClass, final GetterAndSetter gas) {
+		private ColumnDescriptor(final String fieldName, final String columnLabel, final String columnTooltip, final Class<?> columnClass, final GetterAndSetter gas) {
+			this.fieldName = fieldName;
 			this.columnLabel = columnLabel;
 			this.columnTooltip = columnTooltip;
 			this.columnClass = columnClass;
@@ -323,7 +490,7 @@ public class ORMProvidedTableModel<Record> extends DefaultTableModel implements 
 
 		@Override
 		public String toString() {
-			return "ColumnDescriptor [columnLabel=" + columnLabel + ", columnTooltip=" + columnTooltip + ", columnClass=" + columnClass + "]";
+			return "ColumnDescriptor [fieldName=" + fieldName + ", columnLabel=" + columnLabel + ", columnTooltip=" + columnTooltip + ", columnClass=" + columnClass + ", gas=" + gas + "]";
 		}
 	}
 }

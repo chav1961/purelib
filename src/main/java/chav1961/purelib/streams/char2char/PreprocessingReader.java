@@ -890,7 +890,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 	private void processUndef(final int lineNo, final char[] data, int from, final int to) throws SyntaxException {
 		int		location[] = new int[2];
 
-		from = CharUtils.parseName(data,from,location);
+		CharUtils.parseName(data,from,location);
 		final long	id = definitions.seekName(data,location[0],location[1]+1);
 		
 		if (id >= 0) {
@@ -916,10 +916,10 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		final int		location[] = new int[2];
 		
 		if (data[from] == '\"') {
-			from = CharUtils.parseUnescapedString(data,from+1,'\"',false,location);
+			CharUtils.parseUnescapedString(data,from+1,'\"',false,location);
 		}
 		else if (data[from] == '<') {
-			from = CharUtils.parseUnescapedString(data,from+1,'>',false,location);
+			CharUtils.parseUnescapedString(data,from+1,'>',false,location);
 		}
 		else {
 			final long		valueLocation = extractTail(data,from,to);
