@@ -1,8 +1,11 @@
 package chav1961.purelib.enumerations;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -216,8 +219,10 @@ public enum StylePropertiesSupported {
 		}
 	}
 
-	private static final SyntaxTreeInterface<Object>	NAMES = new AndOrTree<>();
-	private static final long							INHERITED;
+	private static final SyntaxTreeInterface<StylePropertiesSupported[]>	NAMES = new AndOrTree<>();
+	private static final long			INHERITED;
+	private static final long[]			EMPTY_CONTENT = new long[0];
+	private static final Object[]		URL_LEXEMAS = {"url",'(',CharUtils.ArgumentType.name,')'};
 	
     private final String 				externalName;
     private final boolean				canBeInherited;
@@ -226,6 +231,7 @@ public enum StylePropertiesSupported {
     private final int					minOccurence, maxOccurence;
     private final ValueListDescriptor 	values;
     private final long[]				valueIds;
+    private final Object[]				obj2Use = new Object[1];
     
     static {
     	INHERITED = NAMES.placeName("inherited",null);
@@ -395,7 +401,17 @@ public enum StylePropertiesSupported {
 							return isKeywordValid(id,this);
 						}
 					case url	:
-						break;
+						if (CharUtils.extract(value,0,obj2Use,URL_LEXEMAS) > 0) {
+							try {
+								new URI((String)obj2Use[0]);
+								return true;
+							} catch (URISyntaxException e) {
+								return false;
+							}							
+						}
+						else {
+							return false;
+						}
 					case value	:
 						return id >= 0;
 					default :
@@ -410,20 +426,45 @@ public enum StylePropertiesSupported {
 
 	private long[] parseValues(final ValueListDescriptor values) {
     	if (values.content == null) {
-    		return new long[0];
+    		return EMPTY_CONTENT;
     	}
     	else {
         	final long[]	result = new long[values.content.length];
 
         	for (int index = 0; index < result.length; index++) {
-        		NAMES.placeName(values.content[index],this);
+        		if ((result[index] = NAMES.seekName(values.content[index])) < 0) {
+        			result[index] = NAMES.placeName(values.content[index],new StylePropertiesSupported[] {this});
+        		}
+        		else {
+        			final StylePropertiesSupported[]	cargo = NAMES.getCargo(result[index]);
+        			final StylePropertiesSupported[]	newCargo = Arrays.copyOf(cargo,cargo.length+1);
+        			
+        			newCargo[newCargo.length-1] = this;
+            		NAMES.setCargo(result[index], newCargo);
+        		}
         	}
     		return result;
     	}
 	}
 	
-    private boolean isKeywordValid(long id, StylePropertiesSupported stylePropertiesSupported) {
-		// TODO Auto-generated method stub
-		return false;
+    private boolean isKeywordValid(final long id, final StylePropertiesSupported stylePropertiesSupported) {
+    	if (id >= 0) {
+			final StylePropertiesSupported[]	cargo = NAMES.getCargo(id);
+			
+			if (cargo == null) {
+				return false;
+			}
+			else {
+				for (StylePropertiesSupported item : cargo) {
+					if (item == this) {
+						return true;
+					}
+				}
+				return false;
+			}
+    	}
+    	else {
+    		return false;
+    	}
 	}
 }
