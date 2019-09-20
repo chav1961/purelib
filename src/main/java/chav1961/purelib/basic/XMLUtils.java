@@ -31,7 +31,6 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.StylePropertiesSupported;
 import chav1961.purelib.enumerations.StylePropertiesSupported.ContentType;
-import chav1961.purelib.enumerations.StylePropertiesSupported.ValueListDescriptor;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
@@ -68,59 +67,59 @@ public class XMLUtils {
 	
 	static {
 		INHERITED = KEYWORDS.placeName("inherited",null);
-		for (StylePropertiesSupported item : StylePropertiesSupported.values()) {
-			final ContentType 	ct;
-			
-			switch (ct = item.getContentType()) {
-				case color:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case colorOrKeyword		:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case distanceOrKeyword	:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case functionOrKeyword	:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case integerOrKeyword	:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case numberOrKeyword	:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case stringOrKeyword	:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case timeOrKeyword		:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case urlOrKeyword		:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case value				:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				case asIs:
-				case compoundChoise:
-				case compoundSequence:
-				case distance:
-				case function:
-				case integer:
-				case number:
-				case string:
-				case subStyle:
-				case time:
-				case url:
-					addName(KEYWORDS,item,item.getValues());
-					break;
-				default:
-					throw new UnsupportedOperationException("Content type ["+ct+"] is not supported yet");
-			}
-			STYLES.placeName(item.name(),item);
-			STYLES.placeName(item.getExternalName(),item);
-		}
+//		for (StylePropertiesSupported item : StylePropertiesSupported.values()) {
+//			final ContentType 	ct;
+//			
+//			switch (ct = item.getContentType()) {
+//				case color:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case colorOrKeyword		:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case distanceOrKeyword	:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case functionOrKeyword	:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case integerOrKeyword	:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case numberOrKeyword	:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case stringOrKeyword	:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case timeOrKeyword		:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case urlOrKeyword		:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case value				:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				case asIs:
+//				case compoundChoise:
+//				case compoundSequence:
+//				case distance:
+//				case function:
+//				case integer:
+//				case number:
+//				case string:
+//				case subStyle:
+//				case time:
+//				case url:
+//					addName(KEYWORDS,item,item.getValues());
+//					break;
+//				default:
+//					throw new UnsupportedOperationException("Content type ["+ct+"] is not supported yet");
+//			}
+//			STYLES.placeName(item.name(),item);
+//			STYLES.placeName(item.getExternalName(),item);
+//		}
 	}
 	
 	@FunctionalInterface
@@ -563,9 +562,9 @@ loop:		while (from < len) {
 					}
 					return new StylePropValue<T>(prop.getContentType(),prop,(T)asColor(content));
 				case compoundChoise		:
-					for (String item : prop.getValues().getContent()) {
-						
-					}
+//					for (String item : prop.getValues().getContent()) {
+//						
+//					}
 					break;
 				case compoundSequence	:
 					break;
@@ -723,32 +722,32 @@ loop:		while (from < len) {
 	private static <T> StylePropValue<T> parseStylePropertyInherited(final StylePropertiesSupported prop, final Map<String,StylePropValue<T>> props, final char[] content, final int from, final int to) throws SyntaxException {
 		for (StylePropertiesSupported parent : StylePropertiesSupported.values()) {
 			if (parent.getContentType() == ContentType.compoundChoise) {
-				for (String item : parent.getValues().getContent()) {
-					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
-						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
-					
-						if (result == null) {
-							return null;
-						}
-						else {
-							return null;
-						}
-					}
-				}
+//				for (String item : parent.getValues().getContent()) {
+//					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
+//						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
+//					
+//						if (result == null) {
+//							return null;
+//						}
+//						else {
+//							return null;
+//						}
+//					}
+//				}
 			}
 			else if (parent.getContentType() == ContentType.compoundSequence) {
-				for (String item : parent.getValues().getContent()) {
-					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
-						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
-						
-						if (result == null) {
-							return null;
-						}
-						else {
-							return null;
-						}
-					}
-				}
+//				for (String item : parent.getValues().getContent()) {
+//					if (item.equals(prop.name()) || item.equals(prop.getExternalName())) {
+//						final StylePropValue<T> result = parseStyleProperty(parent, props, content, from, to);
+//						
+//						if (result == null) {
+//							return null;
+//						}
+//						else {
+//							return null;
+//						}
+//					}
+//				}
 			}
 		}
 		return null;
@@ -1733,9 +1732,22 @@ loop:		while (from < len) {
 			return unit;
 		}
 
+		public static boolean isValidTime(final String value) {
+			if (value == null || value.isEmpty()) {
+				throw new IllegalArgumentException("Value can't be null or empty");
+			}
+			else {
+				try {
+					return CharUtils.tryExtract(UnsafedUtils.getStringContent(value),0,(Object[])LEXEMAS) > 0;
+				} catch (SyntaxException e) {
+					return false;
+				}
+			}
+		}
+		
 		public static Time valueOf(final String value) {
 			if (value == null || value.isEmpty()) {
-				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
+				throw new IllegalArgumentException("Value can't ne null or empty");
 			}
 			else {
 				final char[] 	content = UnsafedUtils.getStringContent(value);
@@ -1749,6 +1761,34 @@ loop:		while (from < len) {
 			}
 		}
 
+		public static boolean isValidTime(final char[] time) throws SyntaxException {
+			if (time == null || time.length == 0) {
+				throw new IllegalArgumentException("Distance can't be null or empty array");
+			}
+			else {
+				try {
+					return CharUtils.tryExtract(time,0,(Object[])LEXEMAS) > 0;
+				} catch (SyntaxException e) {
+					return false;
+				}
+			}
+		}			
+		
+		public static Time valueOf(final char[] content) {
+			if (content == null || content.length == 0) {
+				throw new IllegalArgumentException("Content can't ne null or empty array");
+			}
+			else {
+				final Object[]	result = new Object[2];
+				
+				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
+				} catch (SyntaxException e) {
+					throw new IllegalArgumentException("String ["+new String(content)+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+				}
+				return valueOf(((Float)result[0]).floatValue(),Units.valueOf(result[1].toString()));
+			}
+		}
+		
 		public static Time valueOf(final float value, final Units unit) {
 			if (value < 0) {
 				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
@@ -1810,6 +1850,30 @@ loop:		while (from < len) {
 		}
 	}
 
+	public static boolean isValidTime(final String time) throws SyntaxException {
+		if (time == null || time.isEmpty()) {
+			throw new IllegalArgumentException("Time string can't be null or empty");
+		}
+		else {
+			try{return Time.isValidTime(time);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Time ["+time+"] has invalid syntax");
+			}
+		}
+	}			
+
+	public static boolean isValidTime(final char[] time) throws SyntaxException {
+		if (time == null || time.length == 0) {
+			throw new IllegalArgumentException("Time string can't be null or empty array");
+		}
+		else {
+			try{return Time.isValidTime(time);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Time ["+new String(time)+"] has invalid syntax");
+			}
+		}
+	}			
+	
 	public static Time asTime(final String time) throws SyntaxException {
 		if (time == null || time.isEmpty()) {
 			throw new IllegalArgumentException("Time string can't be null or empty");
@@ -1818,6 +1882,18 @@ loop:		while (from < len) {
 			try{return Time.valueOf(time);
 			} catch (NumberFormatException exc) {
 				throw new SyntaxException(0,0,"Time ["+time+"] has invalid syntax");
+			}
+		}
+	}			
+
+	public static Time asTime(final char[] time) throws SyntaxException {
+		if (time == null || time.length == 0) {
+			throw new IllegalArgumentException("Time string can't be null or empty array");
+		}
+		else {
+			try{return Time.valueOf(time);
+			} catch (NumberFormatException exc) {
+				throw new SyntaxException(0,0,"Time ["+new String(time)+"] has invalid syntax");
 			}
 		}
 	}			
@@ -2184,25 +2260,25 @@ loop:		while (from < len) {
 		}
 	}
 
-	private static void addName(final SyntaxTreeInterface<StylePropValue<?>[]> keywords, final StylePropertiesSupported prop, final ValueListDescriptor values) {
-		final String[]	content = values.getContent(); 
-		
-		for (String item : content) {
-			final StylePropValue<String>	newValue = new StylePropValue<String>(ContentType.value,prop,item);
-			final long						id = keywords.seekName(item);
-			
-			if (id < 0) {
-				keywords.placeName(item,new StylePropValue[]{newValue});
-			}
-			else {
-				final StylePropValue<?>[]	currentList = keywords.getCargo(id);
-				final StylePropValue<?>[]	newList = Arrays.copyOf(currentList,currentList.length+1);  
-						
-				newList[newList.length-1] = newValue; 
-				keywords.setCargo(id, newList);
-			}
-		}
-	}
+//	private static void addName(final SyntaxTreeInterface<StylePropValue<?>[]> keywords, final StylePropertiesSupported prop, final ValueListDescriptor values) {
+//		final String[]	content = values.getContent(); 
+//		
+//		for (String item : content) {
+//			final StylePropValue<String>	newValue = new StylePropValue<String>(ContentType.value,prop,item);
+//			final long						id = keywords.seekName(item);
+//			
+//			if (id < 0) {
+//				keywords.placeName(item,new StylePropValue[]{newValue});
+//			}
+//			else {
+//				final StylePropValue<?>[]	currentList = keywords.getCargo(id);
+//				final StylePropValue<?>[]	newList = Arrays.copyOf(currentList,currentList.length+1);  
+//						
+//				newList[newList.length-1] = newValue; 
+//				keywords.setCargo(id, newList);
+//			}
+//		}
+//	}
 
 	private static class CSSLex {
 		private static final int	OPER_ENDSWITH = 0;

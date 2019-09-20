@@ -595,6 +595,126 @@ class UnsafedCharUtils {
 		return index;
 	}
 
+	static int uncheckedValidateNumber(final char[] source, final int from, final int preferences, final boolean checkOverflow) {
+		long	temp = 0;
+		int		index = from, len = source.length;
+		char	symbol = ' ';
+		boolean	continueParsing = false;
+		
+		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+			if (checkOverflow) {
+				if (temp > INTMAX_10 && (preferences & (CharUtils.PREF_LONG | CharUtils.PREF_FLOAT)) == 0) {
+					return -index-1;
+				}
+				if (temp > LONGMAX_10 && (preferences & CharUtils.PREF_DOUBLE) == 0) {
+					return -index-1;
+				}
+			}
+			if (temp > LONGMAX_10) {
+				continueParsing = true;
+				break;
+			}
+			temp = temp * 10 + symbol - '0';
+			index++;
+		}
+		if (index < len && (source[index] == 'l' || source[index] == 'L')) {
+			if ((preferences & CharUtils.PREF_LONG) == 0) {
+				return -index-1;
+			}
+			else {
+				return index+1;
+			}
+		}
+		
+		if (index == from) {
+			return -index-1;
+		}
+		else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E' || symbol == 'f' || symbol == 'F') || continueParsing) {
+			if ((preferences & (CharUtils.PREF_FLOAT | CharUtils.PREF_DOUBLE)) != 0) {
+				double	tempInt = temp;
+				
+				if (continueParsing) {
+					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+						tempInt = tempInt * 10 + symbol - '0';
+						index++;
+					}
+				}
+				
+				if (symbol == '.') {
+					double	frac = 0, scale = 1;
+					int		fracFrom = ++index;
+					
+					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+						frac = frac * 10 + symbol - '0';
+						scale *= 0.1;
+						index++;
+					}
+					
+					if (index == fracFrom) {
+						return -index-1;
+					}
+					else {
+						tempInt += frac * scale;
+					}
+				}
+				if (symbol == 'e' || symbol == 'E') {
+					int		multiplier = 1;
+					
+					index++;
+					if (index < len && (symbol = source[index]) == '-') {
+						multiplier = -1;
+						index++;
+					}
+					else if (symbol == '+') {
+						index++;
+					}
+					int		exp = 0, expFrom = index;
+					
+					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+						exp = exp * 10 + symbol - '0';
+						index++;
+					}
+					exp *= multiplier;
+					
+					if (checkOverflow && (exp > EXP_BOUND || exp < -EXP_BOUND)) {
+						return -index-1;
+					}
+					
+					if (index == expFrom) {
+						return -index-1;
+					}
+					else {
+						tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
+					}
+				}
+
+				if (symbol == 'f' || symbol == 'F') {
+					index++;
+					if ((preferences & CharUtils.PREF_FLOAT) == 0) {
+						throw new NumberFormatException("Float number is not waited here");
+					}
+					else if (Math.abs(tempInt) < Float.MAX_VALUE) {
+					}
+					else {
+						return -index-1;
+					}
+				}
+				else {
+					if ((preferences & CharUtils.PREF_DOUBLE) != 0) {
+					}
+					else {
+						return -index-1;
+					}
+				}
+			}
+			else {
+			}
+		}
+		else {
+		}
+		return index;
+	}
+	
 	static int uncheckedParseName(final char[] source, final int from, final int[] result) {
 		if (!Character.isJavaIdentifierStart(source[from])) {
 			throw new IllegalArgumentException("No valid beginning of the name"); 

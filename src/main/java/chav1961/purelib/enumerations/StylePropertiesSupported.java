@@ -172,6 +172,8 @@ public enum StylePropertiesSupported {
 		
 		writing_mode("writing-mode",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"lr-tb","rl-tb","tb-rl","bt-rl","tb-lr","bt-lr")),
 		z_index("z-index",true,ContentType.integerOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto"));
+
+	public static final String	INHERITED_KEYWORD = "inherited";
 	
 	public enum ContentType {
 		value, integer, 
@@ -180,7 +182,54 @@ public enum StylePropertiesSupported {
 		compoundChoise, compoundSequence, subStyle, asIs
 	}
 	
-	public static class ValueListDescriptor {
+	public static class Keyword {
+		public static final Keyword	INHERITED = new Keyword(StylePropertiesSupported.INHERITED_ID,StylePropertiesSupported.INHERITED_KEYWORD); 
+		
+		private final long		id;
+		private final String	name;
+		
+		public Keyword(long id, String name) {
+			this.id = id;
+			this.name = name;
+		}
+		
+		public long getId() {
+			return id;
+		}
+		
+		public String getName() {
+			return name;
+		}
+		
+		@Override
+		public String toString() {
+			return "Keyword [id=" + id + ", name=" + name + "]";
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (id ^ (id >>> 32));
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			Keyword other = (Keyword) obj;
+			if (id != other.id) return false;
+			if (name == null) {
+				if (other.name != null) return false;
+			} else if (!name.equals(other.name)) return false;
+			return true;
+		}
+	}
+	
+	private static class ValueListDescriptor {
 		private final ContentType	type;
 		private final int			minOccur, maxOccur;
 		private final String[]		content;
@@ -220,7 +269,7 @@ public enum StylePropertiesSupported {
 	}
 
 	private static final SyntaxTreeInterface<StylePropertiesSupported[]>	NAMES = new AndOrTree<>();
-	private static final long			INHERITED;
+	private static final long			INHERITED_ID;
 	private static final long[]			EMPTY_CONTENT = new long[0];
 	private static final Object[]		URL_LEXEMAS = {"url",'(',CharUtils.ArgumentType.name,')'};
 	
@@ -231,10 +280,12 @@ public enum StylePropertiesSupported {
     private final int					minOccurence, maxOccurence;
     private final ValueListDescriptor 	values;
     private final long[]				valueIds;
+    private final Keyword[]				valueKeywords;
     private final Object[]				obj2Use = new Object[1];
     
     static {
-    	INHERITED = NAMES.placeName("inherited",null);
+    	INHERITED_ID = NAMES.placeName(INHERITED_KEYWORD,null);
+    	advancedPreparation();
     }
 
     private StylePropertiesSupported(final String externalName) {
@@ -246,9 +297,10 @@ public enum StylePropertiesSupported {
         this.minOccurence = 1;
         this.maxOccurence = 1;
         this.valueIds = new long[0];
+        this.valueKeywords = new Keyword[0];
     }
 
-    private StylePropertiesSupported(final String externalName, final ContentType type) {
+	private StylePropertiesSupported(final String externalName, final ContentType type) {
     	this(externalName, false, type, 1, 1, null, new ValueListDescriptor(type,0,0));
     }
 
@@ -284,7 +336,8 @@ public enum StylePropertiesSupported {
         this.values = values;
         this.minOccurence = minOccurence;
         this.maxOccurence = maxOccurence;
-        this.valueIds = parseValues(values);
+        this.valueIds = new long[values.content.length];
+        this.valueKeywords = new Keyword[calculateAmountOfKeywords(contentType,values)];
     }
     
 	public String getExternalName() {
@@ -293,6 +346,10 @@ public enum StylePropertiesSupported {
     
     public boolean canBeInherited() {
     	return canBeInherited;
+    }
+
+    public boolean canUseKeywords() {
+    	return valueKeywords.length > 0;
     }
     
     public ContentType getContentType() {
@@ -307,10 +364,14 @@ public enum StylePropertiesSupported {
 		return maxOccurence;
 	}
 
-    public ValueListDescriptor getValues() {
-		return values;
-	}
-
+    public Keyword[] getKeywordsSupported() {
+    	return this.valueKeywords;
+    }
+    
+    public StylePropertiesSupported[] getInheritance() {
+    	return null;
+    }
+    
 	public static StylePropertiesSupported forName(final String externalName) {
     	if (externalName == null || externalName.isEmpty()) {
     		throw new IllegalArgumentException("External name can't be null or empty");
@@ -341,81 +402,84 @@ public enum StylePropertiesSupported {
 		else {
 			try {
 				final long	id = NAMES.seekName(value,0,value.length);
+				final int	from = 0;
 				
-				if (canBeInherited() && id == INHERITED) {
-					return true;
+				if (id == INHERITED_ID) {
+					return canBeInherited();
 				}
-				switch (getContentType()) {
-					case asIs	:
-						return true;
-					case colorOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case color	:
-						return XMLUtils.isValidColor(value);
-					case compoundChoise	:
-						break;
-					case compoundSequence	:
-						break;
-					case distanceOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case distance	:
-						return XMLUtils.isValidDistance(value);
-					case functionOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case function	:
-						break;
-					case integerOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case integer	:
-						break;
-					case numberOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case number	:
-						break;
-					case stringOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case string	:
-						break;
-					case subStyle	:
-						break;
-					case timeOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case time	:
-						break;
-					case urlOrKeyword	:
-						if (id >= 0) {
-							return isKeywordValid(id,this);
-						}
-					case url	:
-						if (CharUtils.extract(value,0,obj2Use,URL_LEXEMAS) > 0) {
-							try {
-								new URI((String)obj2Use[0]);
-								return true;
-							} catch (URISyntaxException e) {
+				else {
+					switch (getContentType()) {
+						case asIs	:
+							return true;
+						case colorOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case color	:
+							return XMLUtils.isValidColor(value);
+						case compoundChoise	:
+							break;
+						case compoundSequence	:
+							break;
+						case distanceOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case distance	:
+							return XMLUtils.isValidDistance(value);
+						case functionOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case function	:
+							break;
+						case integerOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case integer	:
+							return CharUtils.validateNumber(value,from,CharUtils.PREF_INT|CharUtils.PREF_LONG,true) >= 0;
+						case numberOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case number	:
+							return CharUtils.validateNumber(value,from,CharUtils.PREF_ANY,true) >= 0;
+						case stringOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case string	:
+							break;
+						case subStyle	:
+							break;
+						case timeOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case time	:
+							return XMLUtils.isValidTime(value);
+						case urlOrKeyword	:
+							if (id >= 0) {
+								return isKeywordValid(id,this);
+							}
+						case url	:
+							if (CharUtils.extract(value,0,obj2Use,URL_LEXEMAS) > 0) {
+								try {
+									new URI((String)obj2Use[0]);
+									return true;
+								} catch (URISyntaxException e) {
+									return false;
+								}							
+							}
+							else {
 								return false;
-							}							
-						}
-						else {
-							return false;
-						}
-					case value	:
-						return id >= 0;
-					default :
-						throw new UnsupportedOperationException("Content type ["+getContentType()+"] is not supported yet"); 
+							}
+						case value	:
+							return id >= 0;
+						default :
+							throw new UnsupportedOperationException("Content type ["+getContentType()+"] is not supported yet"); 
+					}
 				}
 			} catch (SyntaxException e) {
 				return false;
@@ -424,27 +488,182 @@ public enum StylePropertiesSupported {
 		}
 	}
 
-	private long[] parseValues(final ValueListDescriptor values) {
-    	if (values.content == null) {
-    		return EMPTY_CONTENT;
+	public <T> T forValue(final String value) {
+		if (value == null || value.isEmpty()) {
+			throw new IllegalArgumentException("Value can't be null or empty");
+		}
+		else {
+			return forValue(value.toCharArray());
+		}
+	}
+	
+	public <T> T forValue(final char[] value) {
+		if (value == null || value.length == 0) {
+			throw new IllegalArgumentException("Value can't be null or empty array");
+		}
+		else {
+			try {
+				final long	id = NAMES.seekName(value,0,value.length);
+				final int	from = 0;
+				
+				if (id == INHERITED_ID) {
+					return (T) Keyword.INHERITED;
+				}
+				else {
+					switch (getContentType()) {
+						case asIs	:
+							return null;
+						case colorOrKeyword	:
+							if (id >= 0) {
+								return seekKeyword(id);
+							}
+						case color	:
+							return (T) XMLUtils.asColor(value);
+						case compoundChoise	:
+							break;
+						case compoundSequence	:
+							break;
+						case distanceOrKeyword	:
+							if (id >= 0) {
+								return seekKeyword(id);
+							}
+						case distance	:
+							return (T) XMLUtils.asDistance(value);
+						case functionOrKeyword	:
+							if (id >= 0) {
+								return null;
+							}
+						case function	:
+							break;
+						case integerOrKeyword	:
+							if (id >= 0) {
+								return seekKeyword(id);
+							}
+						case integer	:
+							final long[]	result = new long[2];
+									
+							CharUtils.parseNumber(value,from,result,CharUtils.PREF_INT|CharUtils.PREF_LONG,true);
+							if (result[1] == CharUtils.PREF_INT || result[1] == CharUtils.PREF_LONG) {
+								return (T) Long.valueOf(result[0]);
+							}
+							else {
+								throw new IllegalArgumentException("Value [] contains invalid number");
+							}
+						case numberOrKeyword	:
+							if (id >= 0) {
+								return seekKeyword(id);
+							}
+						case number	:
+							final long[]	numResult = new long[2];
+							
+							CharUtils.parseNumber(value,from,numResult,CharUtils.PREF_ANY,true);
+							if (numResult[1] == CharUtils.PREF_INT || numResult[1] == CharUtils.PREF_LONG) {
+								return (T) Double.valueOf(numResult[0]);
+							}
+							else if (numResult[1] == CharUtils.PREF_FLOAT) {
+								return (T) Double.valueOf(Float.intBitsToFloat((int)numResult[0]));
+							}
+							else {
+								return (T) Double.valueOf(Double.longBitsToDouble(numResult[0]));
+							}
+						case stringOrKeyword	:
+							if (id >= 0) {
+								return null;
+							}
+						case string	:
+							break;
+						case subStyle	:
+							break;
+						case timeOrKeyword	:
+							if (id >= 0) {
+								return seekKeyword(id);
+							}
+						case time	:
+							return (T) XMLUtils.asTime(value);
+						case urlOrKeyword	:
+							if (id >= 0) {
+								return null;
+							}
+						case url	:
+							if (CharUtils.extract(value,0,obj2Use,URL_LEXEMAS) > 0) {
+								try {
+									new URI((String)obj2Use[0]);
+									return null;
+								} catch (URISyntaxException e) {
+									return null;
+								}							
+							}
+							else {
+								return null;
+							}
+						case value	:
+							return null;
+						default :
+							throw new UnsupportedOperationException("Content type ["+getContentType()+"] is not supported yet"); 
+					}
+				}
+			} catch (SyntaxException e) {
+				return null;
+			}
+			return null;
+		}
+	}	
+	
+	private static void advancedPreparation() {
+		for (StylePropertiesSupported item : values()) {
+			parseValues(item.values,item.valueIds,item);
+			if (item.canUseKeywords()) {
+				parseKeywords(item.values,item.valueKeywords);
+			}
+		}
+	}
+	
+	private static void parseValues(final ValueListDescriptor values, final long[] result, final StylePropertiesSupported item) {
+    	for (int index = 0; index < result.length; index++) {
+    		if ((result[index] = NAMES.seekName(values.content[index])) < 0) {
+    			result[index] = NAMES.placeName(values.content[index],new StylePropertiesSupported[] {item});
+    		}
+    		else {
+    			final StylePropertiesSupported[]	cargo = NAMES.getCargo(result[index]);
+    			final StylePropertiesSupported[]	newCargo = Arrays.copyOf(cargo,cargo.length+1);
+    			
+    			newCargo[newCargo.length-1] = item;
+        		NAMES.setCargo(result[index], newCargo);
+    		}
     	}
-    	else {
-        	final long[]	result = new long[values.content.length];
+	}
 
-        	for (int index = 0; index < result.length; index++) {
-        		if ((result[index] = NAMES.seekName(values.content[index])) < 0) {
-        			result[index] = NAMES.placeName(values.content[index],new StylePropertiesSupported[] {this});
-        		}
-        		else {
-        			final StylePropertiesSupported[]	cargo = NAMES.getCargo(result[index]);
-        			final StylePropertiesSupported[]	newCargo = Arrays.copyOf(cargo,cargo.length+1);
-        			
-        			newCargo[newCargo.length-1] = this;
-            		NAMES.setCargo(result[index], newCargo);
-        		}
-        	}
-    		return result;
+	private static void parseKeywords(final ValueListDescriptor values, final Keyword[] result) {
+    	for (int index = 0; index < values.getContent().length; index++) {
+    		final long	id = NAMES.seekName(values.getContent()[index]);
+    		result[index] = new Keyword(id,NAMES.getName(id));
     	}
+	}
+	
+	private static int calculateAmountOfKeywords(final ContentType contentType, final ValueListDescriptor values) {
+		int		result = 0;
+		
+		switch (contentType) {
+			case asIs : case color : case compoundChoise : case compoundSequence : case distance : case function : case integer :
+			case number : case string : case subStyle : case time : case url : case value :
+				break;
+			case colorOrKeyword : case distanceOrKeyword : case functionOrKeyword : case integerOrKeyword : case numberOrKeyword : case stringOrKeyword :
+			case timeOrKeyword : case urlOrKeyword :
+				result += values.content.length;
+				break;
+			default	:
+				throw new UnsupportedOperationException("Content type ["+contentType+"] is not supported yet");
+		}
+		return result;
+	}
+	
+    private <T> T seekKeyword(final long id) {
+		for (Keyword item : getKeywordsSupported()) {
+			if (item.getId() == id) {
+				return (T)item;
+			}
+		}
+    	return null;
 	}
 	
     private boolean isKeywordValid(final long id, final StylePropertiesSupported stylePropertiesSupported) {
