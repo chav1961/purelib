@@ -166,23 +166,23 @@ public class SubstitutableProperties extends Properties {
 			return true;
 		}
 	}
-	
-	protected String extendedGetProperty(final String key) {
-		if (containsKey(key)) {
-			return super.getProperty(key);
-		}
-		else {
-			return System.getProperties().getProperty(key);
-		}
-	}
+
+	/**
+	 * <p>Convert value content to type awaited</p> 
+	 * @param key key associated with the given value
+	 * @param value value to convert
+	 * @param awaited awaited class for value converted
+	 * @return value converted
+	 * @since 0.0.3
+	 */
 	
 	@SuppressWarnings("unchecked")
-	protected static <T> T convert(final String key, final String value, final Class<T> awaited) {
+	public static <T> T convert(final String key, final String value, final Class<T> awaited) {
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");
 		}
 		else if (awaited.isEnum()) {
-			try{return awaited.cast(awaited.getMethod("valueOf",String.class).invoke(null,value));
+			try{return awaited.cast(Enum.valueOf((Class<Enum>)awaited,value));
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Can't convert value ["+value+"] to enum class ["+awaited+"] for key ["+key+"]: "+e.getMessage());
 			}
@@ -234,6 +234,16 @@ public class SubstitutableProperties extends Properties {
 		}
 		else {
 			throw new UnsupportedOperationException("Unsupported class ["+awaited+"] to convert");
+		}
+	}
+	
+	
+	protected String extendedGetProperty(final String key) {
+		if (containsKey(key)) {
+			return super.getProperty(key);
+		}
+		else {
+			return System.getProperties().getProperty(key);
 		}
 	}
 }
