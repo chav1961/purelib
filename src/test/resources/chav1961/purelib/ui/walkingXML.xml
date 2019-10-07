@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE root SYSTEM "./src/test/resources/chav1961/purelib/basic/walkingXML.dtd">
+<!DOCTYPE root SYSTEM "./src/test/resources/chav1961/purelib/ui/walkingXML.dtd">
 <root id="root">
 	<level1 id="id1">
 		<level11 id="id11" key11="value11">content11</level11>

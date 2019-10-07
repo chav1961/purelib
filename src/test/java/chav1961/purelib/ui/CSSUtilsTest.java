@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,8 +23,8 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.ui.CSSUtils.Angle;
 import chav1961.purelib.ui.CSSUtils.CSSDistance;
+import chav1961.purelib.ui.CSSUtils.CSSDistance.Units;
 import chav1961.purelib.ui.CSSUtils.Frequency;
 import chav1961.purelib.ui.CSSUtils.Time;
 
@@ -39,21 +39,37 @@ public class CSSUtilsTest {
 								dist2 = new CSSUtils.CSSDistance(100,CSSUtils.CSSDistance.Units.mm),
 								dist3 = new CSSUtils.CSSDistance(200,CSSUtils.CSSDistance.Units.mm);
 		
-		Assert.assertEquals(100,dist1.getValue());
+		Assert.assertEquals(100,dist1.getValue(),0.001);
 		Assert.assertEquals(CSSUtils.CSSDistance.Units.mm,dist1.getUnit());
 		
 		Assert.assertEquals(dist1,dist2);
 		Assert.assertEquals(dist1.hashCode(),dist2.hashCode());
 		Assert.assertFalse(dist1.equals(dist3));
+
+		Assert.assertTrue(dist1.isAbsolute());
+		Assert.assertFalse(dist1.isRelative());
 		
 		Assert.assertEquals("100mm",dist1.toString());
 		Assert.assertEquals("100mm",CSSUtils.CSSDistance.valueOf(100,CSSUtils.CSSDistance.Units.mm).toString());
 		Assert.assertEquals("100mm",CSSUtils.CSSDistance.valueOf("100mm").toString());
 		Assert.assertEquals(dist1,CSSUtils.CSSDistance.valueOf(dist2.toString()));
 		
-		Assert.assertTrue(CSSUtils.CSSDistance.valueOf("100mm") == CSSUtils.CSSDistance.valueOf("100mm"));
-		Assert.assertFalse(CSSUtils.CSSDistance.valueOf("200mm") == CSSUtils.CSSDistance.valueOf("200mm"));
+		Assert.assertTrue(CSSUtils.CSSDistance.isValidDistance("10mm"));
+		Assert.assertFalse(CSSUtils.CSSDistance.isValidDistance("illegal"));
+		Assert.assertTrue(CSSUtils.CSSDistance.isValidDistance("10mm".toCharArray(),0));
+		Assert.assertFalse(CSSUtils.CSSDistance.isValidDistance("illegal".toCharArray(),0));
 
+		final CSSDistance[] result = new CSSDistance[1];
+		
+		Assert.assertEquals(6,CSSUtils.CSSDistance.parse(" 100mm ".toCharArray(),0,result));
+		Assert.assertEquals(dist1,result[0]);
+
+		for (Units item : Units.values()) {
+			if (CSSUtils.CSSDistance.isAbsolute(item)) {
+				Assert.assertEquals("Check failed for item ["+item+"]: ",dist1.getValue(),CSSUtils.CSSDistance.valueOf(dist1.getValueAs(item),item).getValueAs(dist1.getUnit()),0.001);
+			}
+		}
+		
 		try{new CSSUtils.CSSDistance(-1,CSSUtils.CSSDistance.Units.mm);
 			Assert.fail("Mandatory exception was not detected (negative 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
@@ -76,21 +92,30 @@ public class CSSUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{CSSUtils.CSSDistance.valueOf((char[])null);
+		try{CSSUtils.CSSDistance.isValidDistance((String)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{CSSUtils.CSSDistance.valueOf("".toCharArray()); 
+		try{CSSUtils.CSSDistance.isValidDistance(""); 
 			Assert.fail("Mandatory exception was not detected (empty 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{CSSUtils.CSSDistance.valueOf("illegal".toCharArray());
-			Assert.fail("Mandatory exception was not detected (1-st agrument has wrong syntax)");
+
+		try{CSSUtils.CSSDistance.isValidDistance((char[])null,0);
+			Assert.fail("Mandatory exception was not detected (null 1-st agrument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CSSUtils.CSSDistance.isValidDistance("".toCharArray(),0); 
+			Assert.fail("Mandatory exception was not detected (empty 1-st agrument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CSSUtils.CSSDistance.isValidDistance("10mm".toCharArray(),100); 
+			Assert.fail("Mandatory exception was not detected (2-nd agrument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
 		try{CSSUtils.CSSDistance.valueOf(-1,CSSUtils.CSSDistance.Units.mm);
-			Assert.fail("Mandatory exception was not detected (negative 1-st agrument)");
+			Assert.fail("Mandatory exception was not detected (negative 1-st agrument for absolute units)");
 		} catch (IllegalArgumentException exc) {
 		}
 		try{CSSUtils.CSSDistance.valueOf(1,null);
@@ -101,31 +126,28 @@ public class CSSUtilsTest {
 	
 	@Test
 	public void angleClassTest() throws SyntaxException {
-		final CSSUtils.Angle	angle1 = new CSSUtils.Angle(1,CSSUtils.Angle.Units.rad),
-								angle2 = new CSSUtils.Angle(1,CSSUtils.Angle.Units.rad),
-								angle3 = new CSSUtils.Angle(200,CSSUtils.Angle.Units.rad);
+		final CSSUtils.CSSAngle	angle1 = new CSSUtils.CSSAngle(1,CSSUtils.CSSAngle.Units.rad),
+								angle2 = new CSSUtils.CSSAngle(1,CSSUtils.CSSAngle.Units.rad),
+								angle3 = new CSSUtils.CSSAngle(200,CSSUtils.CSSAngle.Units.rad);
 
 		Assert.assertEquals(1,angle1.getValue(),0.0001f);
-		Assert.assertEquals(CSSUtils.Angle.Units.rad,angle1.getUnit());
+		Assert.assertEquals(CSSUtils.CSSAngle.Units.rad,angle1.getUnit());
 		
 		Assert.assertEquals(angle1,angle2);
-		Assert.assertEquals(angle1.hashCode(),angle2.hashCode());
+		Assert.assertEquals(angle1.hashCode(),angle2.hashCode()); 
 		Assert.assertFalse(angle1.equals(angle3));
 		
 		Assert.assertEquals("1.0rad",angle1.toString());
-		Assert.assertEquals("1.0rad",CSSUtils.Angle.valueOf(1,CSSUtils.Angle.Units.rad).toString());
-		Assert.assertEquals("1.0rad",CSSUtils.Angle.valueOf("1rad").toString());
-		Assert.assertEquals(angle1,CSSUtils.Angle.valueOf(angle2.toString()));
+		Assert.assertEquals("1.0rad",CSSUtils.CSSAngle.valueOf(1,CSSUtils.CSSAngle.Units.rad).toString());
+		Assert.assertEquals("1.0rad",CSSUtils.CSSAngle.valueOf("1rad").toString());
+		Assert.assertEquals(angle1,CSSUtils.CSSAngle.valueOf(angle2.toString()));
 		
-		Assert.assertTrue(CSSUtils.Angle.valueOf("1rad") == CSSUtils.Angle.valueOf("1rad"));
-		Assert.assertFalse(CSSUtils.Angle.valueOf("200rad") == CSSUtils.Angle.valueOf("200rad"));
+		Assert.assertEquals(angle1.getValue(),new CSSUtils.CSSAngle(angle1.getValueAs(CSSUtils.CSSAngle.Units.rad),CSSUtils.CSSAngle.Units.rad).getValueAs(CSSUtils.CSSAngle.Units.rad),0.0001f);
+		Assert.assertEquals(angle1.getValue(),new CSSUtils.CSSAngle(angle1.getValueAs(CSSUtils.CSSAngle.Units.deg),CSSUtils.CSSAngle.Units.deg).getValueAs(CSSUtils.CSSAngle.Units.rad),0.0001f);
+		Assert.assertEquals(angle1.getValue(),new CSSUtils.CSSAngle(angle1.getValueAs(CSSUtils.CSSAngle.Units.grad),CSSUtils.CSSAngle.Units.grad).getValueAs(CSSUtils.CSSAngle.Units.rad),0.0001f);
+		Assert.assertEquals(angle1.getValue(),new CSSUtils.CSSAngle(angle1.getValueAs(CSSUtils.CSSAngle.Units.turn),CSSUtils.CSSAngle.Units.turn).getValueAs(CSSUtils.CSSAngle.Units.rad),0.0001f);
 		
-		Assert.assertEquals(angle1.getValue(),new CSSUtils.Angle(angle1.getValueAs(CSSUtils.Angle.Units.rad),CSSUtils.Angle.Units.rad).getValueAs(CSSUtils.Angle.Units.rad),0.0001f);
-		Assert.assertEquals(angle1.getValue(),new CSSUtils.Angle(angle1.getValueAs(CSSUtils.Angle.Units.deg),CSSUtils.Angle.Units.deg).getValueAs(CSSUtils.Angle.Units.rad),0.0001f);
-		Assert.assertEquals(angle1.getValue(),new CSSUtils.Angle(angle1.getValueAs(CSSUtils.Angle.Units.grad),CSSUtils.Angle.Units.grad).getValueAs(CSSUtils.Angle.Units.rad),0.0001f);
-		Assert.assertEquals(angle1.getValue(),new CSSUtils.Angle(angle1.getValueAs(CSSUtils.Angle.Units.turn),CSSUtils.Angle.Units.turn).getValueAs(CSSUtils.Angle.Units.rad),0.0001f);
-		
-		try{new CSSUtils.Angle(1,null);
+		try{new CSSUtils.CSSAngle(1,null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd agrument)");
 		} catch (NullPointerException exc) {
 		}
@@ -135,24 +157,24 @@ public class CSSUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 		
-		try{CSSUtils.Angle.valueOf(null);
+		try{CSSUtils.CSSAngle.valueOf(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{CSSUtils.Angle.valueOf("");
+		try{CSSUtils.CSSAngle.valueOf("");
 			Assert.fail("Mandatory exception was not detected (empty 1-st agrument)"); 
 		} catch (IllegalArgumentException exc) {
 		}
-		try{CSSUtils.Angle.valueOf("illegal");
+		try{CSSUtils.CSSAngle.valueOf("illegal");
 			Assert.fail("Mandatory exception was not detected (1-st agrument has wrong syntax)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{CSSUtils.Angle.valueOf(-1,CSSUtils.Angle.Units.rad);
+		try{CSSUtils.CSSAngle.valueOf(-1,CSSUtils.CSSAngle.Units.rad);
 			Assert.fail("Mandatory exception was not detected (negative 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{CSSUtils.Angle.valueOf(1,null);
+		try{CSSUtils.CSSAngle.valueOf(1,null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd agrument)");
 		} catch (NullPointerException exc) {
 		}
@@ -358,86 +380,7 @@ public class CSSUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}
-
-	@Test
-	public void parseAsDistanceTest() throws SyntaxException {
-		
-		Assert.assertTrue(CSSUtils.isValidDistance("2mm"));
-		Assert.assertTrue(CSSUtils.isValidDistance("2mm".toCharArray()));
-		
-		CSSDistance	dist = CSSUtils.asDistance("2mm");
-		Assert.assertEquals(2,dist.getValue());
-		dist = CSSUtils.asDistance("2mm".toCharArray());
-		Assert.assertEquals(2,dist.getValue());
-		
-		Assert.assertFalse(CSSUtils.isValidDistance("illegal"));
-		Assert.assertFalse(CSSUtils.isValidDistance("illegal".toCharArray()));
-
-		try{CSSUtils.isValidDistance((String)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{CSSUtils.isValidDistance("");
-			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-		
-		try{CSSUtils.asDistance((String)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{CSSUtils.asDistance("");
-			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-		try{CSSUtils.asDistance("illegal");
-			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-
-		try{CSSUtils.isValidDistance((char[])null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{CSSUtils.isValidDistance("".toCharArray());
-			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-		
-		try{CSSUtils.asDistance((char[])null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{CSSUtils.asDistance("".toCharArray());
-			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-		try{CSSUtils.asDistance("illegal".toCharArray());
-			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-	}
 	
-	@Test
-	public void parseAsAngleTest() throws SyntaxException {
-		Angle	angle = CSSUtils.asAngle("1rad");
-		
-		Assert.assertEquals(1.0f,angle.getValue(),0.0001f);
-		
-		try{CSSUtils.asAngle(null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{CSSUtils.asAngle("");
-			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-		try{CSSUtils.asAngle("illegal");
-			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-	}
-
 	@Test
 	public void parseAsTimeTest() throws SyntaxException {
 		Time	time = CSSUtils.asTime("1msec");
