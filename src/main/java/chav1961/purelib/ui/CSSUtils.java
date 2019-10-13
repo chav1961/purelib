@@ -1,4 +1,5 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.ui;
+
 
 import java.awt.Color;
 import java.io.IOException;
@@ -9,21 +10,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EmptyStackException;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.ArgumentType;
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
@@ -35,7 +43,7 @@ import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
-public class XMLUtils {
+public class CSSUtils {
 	private static final char[]		AVAILABLE_IN_NAMES = {'-'};
 	private static final String		PROP_ATTR_NAME_HAS_FIXED = "hasFixed";
 	private static final String		PROP_ATTR_NAME_VALUE_TYPE = "valueType";
@@ -515,7 +523,7 @@ loop:		while (from < len) {
 			throw new IllegalArgumentException("Content can't be null or empty");
 		}
 		else {
-			return parseStyleProperty(prop,props,UnsafedUtils.getStringContent(content),from,to);
+			return parseStyleProperty(prop,props,content.toCharArray(),from,to);
 		}
 	}
 
@@ -573,7 +581,7 @@ loop:		while (from < len) {
 						return result;
 					}
 				case distance			:
-					return new StylePropValue<T>(prop.getContentType(),prop,(T)asDistance(new String(content)));
+					return new StylePropValue<T>(prop.getContentType(),prop,(T)CSSDistance.valueOf(new String(content)));
 				case functionOrKeyword	:
 					if ((id = KEYWORDS.seekName(content,from,to)) >= 0) {
 						if (id == INHERITED) {
@@ -605,7 +613,7 @@ loop:		while (from < len) {
 				case integer			:
 					final int[]		intResult = new int[1];
 					
-					if ((end = UnsafedCharUtils.uncheckedParseInt(content,from,intResult,true)) != to) {
+					if ((end = CharUtils.parseInt(content,from,intResult,true)) != to) {
 						throw new IllegalArgumentException();
 					}
 					else {
@@ -627,7 +635,7 @@ loop:		while (from < len) {
 				case number				:
 					final float[]		floatResult = new float[1];
 					
-					if ((end = UnsafedCharUtils.uncheckedParseFloat(content,from,floatResult,true)) != to) {
+					if ((end = CharUtils.parseFloat(content,from,floatResult,true)) != to) {
 						throw new IllegalArgumentException();
 					}
 					else {
@@ -1258,7 +1266,7 @@ loop:		while (from < len) {
 			throw new IllegalArgumentException("Color content can't be null or empty");
 		}
 		else {
-			return isValidColor(UnsafedUtils.getStringContent(color));
+			return isValidColor(color.toCharArray());
 		}		
 	}
 	
@@ -1267,7 +1275,7 @@ loop:		while (from < len) {
 			throw new IllegalArgumentException("Color content can't be null or empty");
 		}
 		else {
-			return asColor(UnsafedUtils.getStringContent(color));
+			return asColor(color.toCharArray());
 		}		
 	}
 	
@@ -1283,18 +1291,18 @@ loop:		while (from < len) {
 				return CharUtils.tryExtract(content,from,COLOR_HEX_TEMPLATE) > 0;
 			}
 			if (content.length > 4) {
-				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
+				if (CharUtils.compare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
 					return CharUtils.tryExtract(content,from,COLOR_RGBA_TEMPLATE) > 0;
 				}
-				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
+				else if (CharUtils.compare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
 					return CharUtils.tryExtract(content,from,COLOR_HSLA_TEMPLATE) > 0;
 				}
 			}
 			if (content.length > 3) {
-				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
+				if (CharUtils.compare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
 					return CharUtils.tryExtract(content,from,COLOR_RGB_TEMPLATE) > 0;
 				}
-				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
+				else if (CharUtils.compare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
 					return CharUtils.tryExtract(content,from,COLOR_HSL_TEMPLATE) > 0;
 				}
 				else {
@@ -1318,22 +1326,22 @@ loop:		while (from < len) {
 				return new Color((Integer)values[0]);
 			}
 			if (content.length > 4) {
-				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
+				if (CharUtils.compare(content,0,COLOR_RGBA,0,COLOR_RGBA.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_RGBA_TEMPLATE);
 					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2],(Integer)values[3]);
 				}
-				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
+				else if (CharUtils.compare(content,0,COLOR_HSLA,0,COLOR_HSLA.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_HSLA_TEMPLATE);
 					final Color 	temp = Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]); 
 					return new Color(temp.getRed(),temp.getGreen(),temp.getBlue(),Math.min((int)(2.56f*(Float)values[3]),255));
 				}
 			}
 			if (content.length > 3) {
-				if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
+				if (CharUtils.compare(content,0,COLOR_RGB,0,COLOR_RGB.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_RGB_TEMPLATE);
 					return new Color((Integer)values[0],(Integer)values[1],(Integer)values[2]);
 				}
-				else if (UnsafedCharUtils.uncheckedCompare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
+				else if (CharUtils.compare(content,0,COLOR_HSL,0,COLOR_HSL.length)) {
 					from = CharUtils.extract(content,from,values,COLOR_HSL_TEMPLATE);
 					return Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]);
 				}
@@ -1358,22 +1366,67 @@ loop:		while (from < len) {
 			}
 		}
 	}
+
+	public interface CSSUnits<U extends Enum<U>> {
+		double getValue();
+		double getValueAs(U unit);
+		U getUnit();
+	}
 	
-	public static class Distance {
-		private static final int					MAX_CACHEABLE = 128;
-		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name};
-		private static final Map<Units,Distance[]> 	microCache = new EnumMap<>(Units.class);
-		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
+	public static class CSSDistance implements CSSUnits<CSSDistance.Units> {
+		private static final ArgumentType[]					LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name};
+		private static final Map<Units,Map<Units,Double>> 	CONVERTOR = new EnumMap<>(Units.class);
+		private static final EnumSet<Units>					ABSOLUTES = EnumSet.range(Units.cm, Units.pc);
+		private static final EnumSet<Units>					RELATIVES = EnumSet.complementOf(ABSOLUTES);
+		
+		static {
+			Map<Units,Double>	toMap = new HashMap<>();
+			
+			toMap.put(Units.cm,1.0D);		toMap.put(Units.mm,10.0D);
+			toMap.put(Units.in,1/2.54D);	toMap.put(Units.px,1.0D);
+			toMap.put(Units.pt,1.0D);		toMap.put(Units.pc,1.0D);
+			CONVERTOR.put(Units.cm,toMap);
+
+			toMap = new HashMap<>();
+			toMap.put(Units.cm,0.1D);		toMap.put(Units.mm,1.0D);
+			toMap.put(Units.in,1/25.4D);	toMap.put(Units.px,1.0D);
+			toMap.put(Units.pt,1.0D);		toMap.put(Units.pc,1.0D);
+			CONVERTOR.put(Units.mm,toMap);
+
+			toMap = new HashMap<>();
+			toMap.put(Units.cm,2.54D);		toMap.put(Units.mm,25.4D);
+			toMap.put(Units.in,1.0D);		toMap.put(Units.px,1.0D);
+			toMap.put(Units.pt,1.0D);		toMap.put(Units.pc,1.0D);
+			CONVERTOR.put(Units.in,toMap);
+
+			toMap = new HashMap<>();
+			toMap.put(Units.cm,1.0D);		toMap.put(Units.mm,1.0D);
+			toMap.put(Units.in,1.0D);		toMap.put(Units.px,1.0D);
+			toMap.put(Units.pt,1.0D);		toMap.put(Units.pc,1.0D);
+			CONVERTOR.put(Units.px,toMap);
+
+			toMap = new HashMap<>();
+			toMap.put(Units.cm,1.0D);		toMap.put(Units.mm,1.0D);
+			toMap.put(Units.in,1.0D);		toMap.put(Units.px,1.0D);
+			toMap.put(Units.pt,1.0D);		toMap.put(Units.pc,1.0D);
+			CONVERTOR.put(Units.pt,toMap);
+
+			toMap = new HashMap<>();
+			toMap.put(Units.cm,1.0D);		toMap.put(Units.mm,1.0D);
+			toMap.put(Units.in,1.0D);		toMap.put(Units.px,1.0D);
+			toMap.put(Units.pt,1.0D);		toMap.put(Units.pc,1.0D);
+			CONVERTOR.put(Units.pc,toMap);
+		}
 		
 		public enum Units {
 			cm, mm, in, px, pt, pc,							// Absolute			
 			em, ex, ch, rem, vw, vh, vmin, vmax, percent	// Relative
 		}
 		
-		private final int 	value;
-		private final Units	unit;
+		private final double 	value;
+		private final Units		unit;
 		
-		public Distance(final int value, final Units unit) {
+		public CSSDistance(final double value, final Units unit) {
 			if (value < 0) {
 				throw new IllegalArgumentException("Value ["+value+"] must not be negative");
 			}
@@ -1386,100 +1439,138 @@ loop:		while (from < len) {
 			}
 		}
 
-		public int getValue() {
-			return value;
+		@Override
+		public double getValueAs(final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit can't be null");
+			}
+			else if (isRelative()) {
+				throw new IllegalStateException("Attempt to convert relative value");
+			}
+			else {
+				return getValue()*CONVERTOR.get(getUnit()).get(unit);
+			}
 		}
 
+		@Override
+		public double getValue() {
+			return value;
+		}
+		
+		@Override
 		public Units getUnit() {
 			return unit;
 		}
 
-		public static boolean idValidDistance(final String value) {
+		public boolean isAbsolute() {
+			return isAbsolute(getUnit());
+		}
+
+		public boolean isRelative() {
+			return isRelative(getUnit());
+		}
+		
+		public static boolean isAbsolute(final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit value can't be null");
+			}
+			else {
+				return ABSOLUTES.contains(unit);
+			}
+		}
+
+		public static boolean isRelative(final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit value can't be null");
+			}
+			else {
+				return RELATIVES.contains(unit);
+			}
+		}
+		
+		public static CSSDistance valueOf(final double value, final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit value can't be null");
+			}
+			else if (value < 0 && ABSOLUTES.contains(unit)) {
+				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
+			}
+			else {
+				return new CSSDistance(value, unit);
+			}
+		}
+		
+		public static boolean isValidDistance(final String value) {
 			if (value == null || value.isEmpty()) {
 				throw new IllegalArgumentException("Value can't be null or empty");
 			}
 			else {
 				try {
-					return CharUtils.tryExtract(UnsafedUtils.getStringContent(value),0,(Object[])LEXEMAS) > 0;
+					return CharUtils.tryExtract(value.toCharArray(),0,(Object[])LEXEMAS) > 0;
 				} catch (SyntaxException e) {
 					return false;
 				}
 			}
 		}
 		
-		public static Distance valueOf(final String value) {
+		public static CSSDistance valueOf(final String value) {
 			if (value == null || value.isEmpty()) {
 				throw new IllegalArgumentException("Value can't ne null or empty");
 			}
 			else {
-				return valueOf(value.toCharArray());
+				final CSSDistance[]	result = new CSSDistance[1];
+				
+				try{parse(value.toCharArray(),0,result);
+					return result[0];
+				} catch (SyntaxException e) {
+					throw new IllegalArgumentException("Syntax error in ["+value+"]: "+e.getLocalizedMessage());
+				}
 			}
 		}
 
-		public static boolean idValidDistance(final char[] value) {
+		public static boolean isValidDistance(final char[] value, final int from) {
 			if (value == null || value.length == 0) {
 				throw new IllegalArgumentException("Value can't be null or empty array");
 			}
+			else if (from < 0 || from >= value.length) {
+				throw new IllegalArgumentException("From  position ["+from+"] out of range 0.."+(value.length-1));
+			}
 			else {
 				try {
-					return CharUtils.tryExtract(value,0,(Object[])LEXEMAS) > 0;
+					return CharUtils.tryExtract(value,from,(Object[])LEXEMAS) > 0;
 				} catch (SyntaxException e) {
 					return false;
 				}
 			}
 		}
 		
-		public static Distance valueOf(final char[] content) {
+		public static int parse(final char[] content, final int from, final CSSDistance[] result) throws SyntaxException {
 			if (content == null || content.length == 0) {
 				throw new IllegalArgumentException("Content can't ne null or empty array");
 			}
-			else {
-				final Object[]	result = new Object[2];
-				
-				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
-				} catch (SyntaxException e) {
-					throw new IllegalArgumentException("String ["+new String()+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
-				}
-				return valueOf(((Integer)result[0]).intValue(),Units.valueOf(result[1].toString()));
+			else if (from < 0 || from >= content.length) {
+				throw new IllegalArgumentException("From  position ["+from+"] out of range 0.."+(content.length-1));
 			}
-		}
-		
-		public static Distance valueOf(final int value, final Units unit) {
-			if (value < 0) {
-				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
-			}
-			else if (unit == null) {
-				throw new NullPointerException("Unit value can't be null");
-			}
-			else if (value >= MAX_CACHEABLE) {
-				return new Distance(value, unit);
+			else if (result == null || result.length == 0) {
+				throw new IllegalArgumentException("result can't ne null or empty array");
 			}
 			else {
-				try(final Locker	lock = locker.lock(true)) {
-					Distance[]		list = microCache.get(unit);
-					
-					if (list != null && list[value] != null) {
-						return list[value];
-					}
-				}
+				final Object[]	temp = new Object[2];
+				final int 		to = CharUtils.extract(content,from,temp,(Object[])LEXEMAS);
 				
-				try(final Locker	lock = locker.lock(false)) {
-					Distance[]		list = microCache.get(unit);
-					
-					if (list == null) {
-						microCache.put(unit,list = new Distance[MAX_CACHEABLE]);
-					}
-					if (list[value] == null) {
-						list[value] = new Distance(value, unit);
-					}
-					return list[value];
-				}
+				result[0] = valueOf(((Integer)temp[0]).intValue(),Units.valueOf(temp[1].toString()));
+				return to;
 			}
-		}
+		}		
 		
 		@Override
 		public String toString() {
-			return ""+value+unit;
+			if (Math.rint(value) == value) {
+				return ""+((long)Math.rint(value))+unit;
+			}
+			else {
+				return ""+value+unit;
+			}
 		}
 
 		@Override
@@ -1487,7 +1578,7 @@ loop:		while (from < len) {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((unit == null) ? 0 : unit.hashCode());
-			result = prime * result + value;
+			result = prime * result + (int)value;
 			return result;
 		}
 
@@ -1496,57 +1587,14 @@ loop:		while (from < len) {
 			if (this == obj) return true;
 			if (obj == null) return false;
 			if (getClass() != obj.getClass()) return false;
-			Distance other = (Distance) obj;
+			CSSDistance other = (CSSDistance) obj;
 			if (unit != other.unit) return false;
 			if (value != other.value) return false;
 			return true;
 		}
 	}
 
-	public static boolean isValidDistance(final String distance) throws SyntaxException {
-		if (distance == null || distance.isEmpty()) {
-			throw new IllegalArgumentException("Distance string can't be null or empty");
-		}
-		else {
-			return Distance.idValidDistance(distance);
-		}
-	}	
-	
-	public static Distance asDistance(final String distance) throws SyntaxException {
-		if (distance == null || distance.isEmpty()) {
-			throw new IllegalArgumentException("Distance string can't be null or empty");
-		}
-		else {
-			try{return Distance.valueOf(distance);
-			} catch (NumberFormatException exc) {
-				throw new SyntaxException(0,0,"Distance ["+distance+"] has invalid syntax");
-			}
-		}
-	}	
-
-	public static boolean isValidDistance(final char[] distance) throws SyntaxException {
-		if (distance == null || distance.length == 0) {
-			throw new IllegalArgumentException("Distance can't be null or empty array");
-		}
-		else {
-			return Distance.idValidDistance(distance);
-		}
-	}	
-	
-	public static Distance asDistance(final char[] distance) throws SyntaxException {
-		if (distance == null || distance.length == 0) {
-			throw new IllegalArgumentException("Distance string can't be null or empty");
-		}
-		else {
-			try{return Distance.valueOf(distance);
-			} catch (NumberFormatException exc) {
-				throw new SyntaxException(0,0,"Distance ["+new String(distance)+"] has invalid syntax");
-			}
-		}
-	}	
-	
-	public static class Angle {
-		private static final int					MAX_CACHEABLE = 128;
+	public static class CSSAngle implements CSSUnits<CSSAngle.Units> {
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
 		private static final float[][]				KOEFFS = new float[][] {
 														//       deg 						grad 						rad 						turn
@@ -1555,17 +1603,14 @@ loop:		while (from < len) {
 														/*rad*/ {(float)(180.0f/Math.PI), 	(float)(200.0f/Math.PI), 	1.0f, 						(float)(0.5f/Math.PI)},
 														/*turn*/{360.0f/90.0f,				360.0f/100.0f,				(float)(Math.PI/0.5f), 		1.0f},
 													};				
-		private static final Map<Units,Angle[]> 	microCache = new EnumMap<>(Units.class);
-		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
-		
 		public enum Units {
 			deg, grad, rad, turn					// Absolute			
 		}
 		
-		private final float	value;
-		private final Units	unit;
+		private final double 	value;
+		private final Units		unit;
 		
-		public Angle(final float value, final Units unit) {
+		public CSSAngle(final double value, final Units unit) {
 			if (unit == null) {
 				throw new NullPointerException("Unit type can't be null");
 			}
@@ -1575,11 +1620,8 @@ loop:		while (from < len) {
 			}
 		}
 
-		public float getValue() {
-			return value;
-		}
-
-		public float getValueAs(final Units unit) {
+		@Override
+		public double getValueAs(final Units unit) {
 			if (unit == null) {
 				throw new NullPointerException("Unit type can't be null");
 			}
@@ -1590,17 +1632,23 @@ loop:		while (from < len) {
 				return KOEFFS[this.unit.ordinal()][unit.ordinal()]*getValue();
 			}
 		}
-		
+
+		@Override
+		public double getValue() {
+			return value;
+		}
+
+		@Override
 		public Units getUnit() {
 			return unit;
 		}
 
-		public static Angle valueOf(final String value) {
+		public static CSSAngle valueOf(final String value) {
 			if (value == null || value.isEmpty()) {
 				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
 			}
 			else {
-				final char[] 	content = UnsafedUtils.getStringContent(value);
+				final char[] 	content = value.toCharArray();
 				final Object[]	result = new Object[2];
 				
 				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
@@ -1611,44 +1659,26 @@ loop:		while (from < len) {
 			}
 		}
 
-		public static Angle valueOf(final float value, final Units unit) {
+		public static CSSAngle valueOf(final double value, final Units unit) {
 			if (value < 0) {
 				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
 			}
 			else if (unit == null) {
 				throw new NullPointerException("Unit value can't be null");
 			}
-			else if (value < 0 || value >= MAX_CACHEABLE || value != (float)((int)value)) {
-				return new Angle(value, unit);
-			}
 			else {
-				final int	intValue = (int)value;
-				
-				try(final Locker	lock = locker.lock(true)) {
-					Angle[]			list = microCache.get(unit);
-					
-					if (list != null && list[intValue] != null) {
-						return list[intValue];
-					}
-				}
-				
-				try(final Locker	lock = locker.lock(false)) {
-					Angle[]			list = microCache.get(unit);
-					
-					if (list == null) {
-						microCache.put(unit,list = new Angle[MAX_CACHEABLE]);
-					}
-					if (list[intValue] == null) {
-						list[intValue] = new Angle(value, unit);
-					}
-					return list[intValue];
-				}
+				return new CSSAngle(value, unit);
 			}
 		}
 		
 		@Override
 		public String toString() {
-			return ""+value+unit;
+			if (Math.rint(value) == value) {
+				return ""+((long)Math.rint(value))+unit;
+			}
+			else {
+				return ""+value+unit;
+			}
 		}
 
 		@Override
@@ -1656,7 +1686,9 @@ loop:		while (from < len) {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((unit == null) ? 0 : unit.hashCode());
-			result = prime * result + Float.floatToIntBits(value);
+			long temp;
+			temp = Double.doubleToLongBits(value);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
 			return result;
 		}
 
@@ -1665,25 +1697,14 @@ loop:		while (from < len) {
 			if (this == obj) return true;
 			if (obj == null) return false;
 			if (getClass() != obj.getClass()) return false;
-			Angle other = (Angle) obj;
+			CSSAngle other = (CSSAngle) obj;
 			if (unit != other.unit) return false;
-			if (Float.floatToIntBits(value) != Float.floatToIntBits(other.value)) return false;
+			if (Double.doubleToLongBits(value) != Double.doubleToLongBits(other.value))
+				return false;
 			return true;
 		}
 	}
 
-	public static Angle asAngle(final String angle) throws SyntaxException {
-		if (angle == null || angle.isEmpty()) {
-			throw new IllegalArgumentException("Angle string can't be null or empty");
-		}
-		else {
-			try{return Angle.valueOf(angle);
-			} catch (NumberFormatException exc) {
-				throw new SyntaxException(0,0,"Angle ["+angle+"] has invalid syntax");
-			}
-		}
-	}		
-	
 	public static class Time {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
@@ -1738,7 +1759,7 @@ loop:		while (from < len) {
 			}
 			else {
 				try {
-					return CharUtils.tryExtract(UnsafedUtils.getStringContent(value),0,(Object[])LEXEMAS) > 0;
+					return CharUtils.tryExtract(value.toCharArray(),0,(Object[])LEXEMAS) > 0;
 				} catch (SyntaxException e) {
 					return false;
 				}
@@ -1750,7 +1771,7 @@ loop:		while (from < len) {
 				throw new IllegalArgumentException("Value can't ne null or empty");
 			}
 			else {
-				final char[] 	content = UnsafedUtils.getStringContent(value);
+				final char[] 	content = value.toCharArray();
 				final Object[]	result = new Object[2];
 				
 				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);
@@ -1954,7 +1975,7 @@ loop:		while (from < len) {
 				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
 			}
 			else {
-				final char[] 	content = UnsafedUtils.getStringContent(value);
+				final char[] 	content = value.toCharArray();
 				final Object[]	result = new Object[2];
 				
 				try{CharUtils.extract(content,0,result,(Object[])LEXEMAS);

@@ -197,7 +197,7 @@ public class XMLUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 		
-		try{XMLUtils.Time.valueOf(null);
+		try{XMLUtils.Time.valueOf((String)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -209,6 +209,20 @@ public class XMLUtilsTest {
 			Assert.fail("Mandatory exception was not detected (1-st agrument has wrong syntax)");
 		} catch (IllegalArgumentException exc) {
 		}
+
+		try{XMLUtils.Time.valueOf((char[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st agrument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.Time.valueOf(new char[0]);
+			Assert.fail("Mandatory exception was not detected (empty 1-st agrument)"); 
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.Time.valueOf("illegal".toCharArray());
+			Assert.fail("Mandatory exception was not detected (1-st agrument has wrong syntax)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
 		
 		try{XMLUtils.Time.valueOf(-1,XMLUtils.Time.Units.msec);
 			Assert.fail("Mandatory exception was not detected (negative 1-st agrument)");
@@ -435,7 +449,7 @@ public class XMLUtilsTest {
 		
 		Assert.assertEquals(1.0f,time.getValue(),0.0001f);
 		
-		try{XMLUtils.asTime(null);
+		try{XMLUtils.asTime((String)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}

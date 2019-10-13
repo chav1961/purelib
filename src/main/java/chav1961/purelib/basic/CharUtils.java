@@ -387,6 +387,33 @@ public class CharUtils {
 		}
 	}
 
+
+	/**
+	 * <p>Validate syntax of number value</p>
+	 * @param source content to validate number
+	 * @param from start position to parse number
+	 * @param preferences available data types you wish to get (see {@link #parseNumber(char[], int, long[], int, boolean)}) 
+	 * @param checkOverflow check number overflow
+	 * @return number of chars really parsed. Negative value means invalid value. It's absolute value marks the first invalid char location - 1.
+	 * @since 0.0.3
+	 */
+	public static int validateNumber(final char[] source, final int from, final int preferences, final boolean checkOverflow) {
+		int		len;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
+		}
+		else if (preferences == 0) {
+			throw new IllegalArgumentException("Prefeferences bits can't be all zeroes"); 
+		}
+		else {
+			return UnsafedCharUtils.uncheckedValidateNumber(source,from,preferences,checkOverflow);
+		}
+	}
+	
 	
 	/**
 	 * <p>Test weather the given char need escaping in the external representation</p>
@@ -965,9 +992,11 @@ public class CharUtils {
 	}
 
 	public enum ArgumentType {
-		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, name, hyphenedName
+		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat,
+		name, hyphenedName, simpleTerminatedString, specialTerminatedString
 	}
 
+	
 	public static int tryExtract(final char[] source, final int from, Object... lexemas) throws SyntaxException {
 		int	len, start = from;
 		
@@ -1030,6 +1059,9 @@ public class CharUtils {
 								break;
 							case hyphenedName	:
 								start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+								break;
+							case simpleTerminatedString	:
+							case specialTerminatedString	:
 								break;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
