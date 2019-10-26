@@ -198,8 +198,10 @@ public class BitCharSet implements Cloneable {
 	 * @return true if contains
 	 */
 	public boolean contains(final char symbol) {
-		try{return (data[symbol >> 6] & (1L << (symbol & 0x3F))) != 0;
-		} catch (ArrayIndexOutOfBoundsException exc) {
+		if ((symbol >> 6) < data.length) {
+			return (data[symbol >> 6] & (1L << (symbol & 0x3F))) != 0;
+		}
+		else {
 			return false; 
 		}
 	}

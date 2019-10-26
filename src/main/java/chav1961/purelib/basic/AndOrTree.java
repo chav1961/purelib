@@ -35,6 +35,8 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * <li>placement of existent string ~1.2 microseconds/item</li> 
  * <li>seeking of existent string ~0.9 microseconds/item</li> 
  * </ul>
+ *
+ * This class is not thread-safe.
  * 
  * @param <T> any king of data associated with the tree elements
  * 
@@ -815,8 +817,8 @@ seek:	while (root != null && from < to) {
 	
 	private static void fillName(Node node, final char[] where, int endPoz) {
 		while (node != null) {
-			if (node instanceof AndNode) {
-//			if (node.type == TYPE_AND) {
+//			if (node instanceof AndNode) {
+			if (node.type == TYPE_AND) {
 				final int	len = ((AndNode)node).chars.length;
 				System.arraycopy(((AndNode)node).chars,0,where,endPoz-len,len);
 				endPoz -= len;

@@ -77,16 +77,6 @@ public class ExtendedBitCharSet extends BitCharSet {
 	}
 
 	@Override
-	public boolean contains(final char symbol) {
-		if ((symbol >> 6) < data.length) {
-			return super.contains(symbol);
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
 	public ExtendedBitCharSet clone() {
 		return new ExtendedBitCharSet(this); 
 	}
