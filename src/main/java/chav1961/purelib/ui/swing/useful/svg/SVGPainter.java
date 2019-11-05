@@ -285,7 +285,7 @@ public class SVGPainter {
 		private final Color		drawColor, fillColor;
 		private final Stroke	stroke;
 		
-		PolylinePainter(float x[], float y[], final Color drawColor, final Stroke drawStroke) {
+		PolylinePainter(Point2D[] points, final Color drawColor, final Stroke drawStroke) {
 			this.polyline = new GeneralPath();
  			this.drawColor = drawColor;
 			this.fillColor = null;
@@ -293,6 +293,20 @@ public class SVGPainter {
 		}
 	}
 
+	protected static class PolygonPainter extends AbstractPainter {
+//		private final float		x, y, rx, ry;
+		private final GeneralPath	polyline;
+		private final Color		drawColor, fillColor;
+		private final Stroke	stroke;
+		
+		PolygonPainter(Point2D[] points, final Color drawColor, final Stroke drawStroke) {
+			this.polyline = new GeneralPath();
+ 			this.drawColor = drawColor;
+			this.fillColor = null;
+			this.stroke = drawStroke;
+		}
+	}
+	
 
 	public static final void arcTo(GeneralPath path, float rx, float ry, float theta, boolean largeArcFlag, boolean sweepFlag, float x, float y) {
         // Ensure radii are valid

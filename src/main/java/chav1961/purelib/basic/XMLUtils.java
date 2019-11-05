@@ -124,14 +124,14 @@ public class XMLUtils {
 	
 	@FunctionalInterface
 	public interface XMLWalkerCallback {
-		ContinueMode process(NodeEnterMode mode, Element node);
+		ContinueMode process(NodeEnterMode mode, Element node) throws SyntaxException;
 	}
 	
-	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws NullPointerException {
+	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws NullPointerException, SyntaxException {
 		return walkDownXML(root,-1L,callback);
 	}
 
-	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws NullPointerException {
+	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws NullPointerException, SyntaxException {
 		if (root == null) {
 			throw new NullPointerException("Root element can't be null"); 
 		}
@@ -778,7 +778,7 @@ loop:		while (from < len) {
 		}
 	}
 
-	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) {
+	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) throws SyntaxException {
 		ContinueMode	before = null, after = ContinueMode.CONTINUE;
 		
 		if (node != null && (nodeTypes & (1 << node.getNodeType())) != 0) {
