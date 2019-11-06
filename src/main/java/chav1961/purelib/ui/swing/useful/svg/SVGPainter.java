@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
@@ -49,18 +48,38 @@ public class SVGPainter {
 	
 	public void paint(final Graphics2D g2d, final int fillWidth, final int fillHeight) {
 		final AffineTransform	oldAt = g2d.getTransform();
-		final AffineTransform	newAt = pickCoordinates(oldAt);
+
+		g2d.setTransform(pickCoordinates(oldAt,fillWidth,fillHeight));
+		paint(g2d);
+		g2d.setTransform(oldAt);
+	}
+
+	public void paint(final Graphics2D g2d) {
+		if (background != null) {
+			fillBackground(g2d,background);
+		}
 		
 		for (AbstractPainter item : primitives) {
 			item.paint(g2d);
 		}
+	}
+	
+	protected AffineTransform pickCoordinates(final AffineTransform oldAt, final int fillWidth, final int fillHeight) {
+		final AffineTransform	at = new AffineTransform(oldAt);
+		final double			scaleX = 1.0*getWidth()/fillWidth, scaleY = 1.0*getHeight()/fillHeight;  
 		
-		g2d.setTransform(oldAt);
+		at.scale(scaleX,-scaleY);
+		at.translate(0,scaleY);
+		return at;
 	}
 
-	protected AffineTransform pickCoordinates(final AffineTransform oldAt) {
-		// TODO Auto-generated method stub
-		return oldAt;
+	protected void fillBackground(final Graphics2D g2d, final Color background) {
+		final Color			oldColor = g2d.getColor();
+		final Rectangle2D	rect = new Rectangle2D.Float(0, 0, getWidth(), getHeight());
+		
+		g2d.setColor(background);
+		g2d.fill(rect);
+		g2d.setColor(oldColor);
 	}
 
 	protected static class AbstractPainter implements PrimitivePainter {
@@ -280,128 +299,112 @@ public class SVGPainter {
 	}
 
 	protected static class PolylinePainter extends AbstractPainter {
-//		private final float		x, y, rx, ry;
-		private final GeneralPath	polyline;
-		private final Color		drawColor, fillColor;
-		private final Stroke	stroke;
+		private final GeneralPath	path;
+		private final Color			drawColor, fillColor;
+		private final Stroke		stroke;
 		
-		PolylinePainter(Point2D[] points, final Color drawColor, final Stroke drawStroke) {
-			this.polyline = new GeneralPath();
+		PolylinePainter(final Point2D[] points, final Color drawColor, final Stroke drawStroke) {
+			this.path = new GeneralPath();			
+			path.moveTo(points[0].getX(),points[0].getY());
+			for (int index = 1; index < points.length; index++) {
+				path.lineTo(points[index].getX(),points[index].getY());
+			}
+			
  			this.drawColor = drawColor;
 			this.fillColor = null;
 			this.stroke = drawStroke;
+		}
+
+		@Override
+		public void paint(final Graphics2D g2d) {
+			final Color				oldColor = g2d.getColor();
+			final Stroke			oldStroke = g2d.getStroke();
+			
+			g2d.setColor(drawColor);
+			g2d.setStroke(stroke);
+			g2d.draw(path);
+			g2d.setStroke(oldStroke);
+			g2d.setColor(oldColor);			
+		}
+
+		@Override
+		public String toString() {
+			return "PolylinePainter [path=" + path + ", drawColor=" + drawColor + ", fillColor=" + fillColor + ", stroke=" + stroke + "]";
 		}
 	}
 
 	protected static class PolygonPainter extends AbstractPainter {
-//		private final float		x, y, rx, ry;
-		private final GeneralPath	polyline;
-		private final Color		drawColor, fillColor;
-		private final Stroke	stroke;
+		private final GeneralPath	path;
+		private final Color			drawColor, fillColor;
+		private final Stroke		stroke;
 		
-		PolygonPainter(Point2D[] points, final Color drawColor, final Stroke drawStroke) {
-			this.polyline = new GeneralPath();
+		PolygonPainter(final Point2D[] points, final Color drawColor, final Stroke drawStroke) {
+			this.path = new GeneralPath();			
+			path.moveTo(points[0].getX(),points[0].getY());
+			for (int index = 1; index < points.length; index++) {
+				path.lineTo(points[index].getX(),points[index].getY());
+			}
+			path.closePath();
+			
  			this.drawColor = drawColor;
 			this.fillColor = null;
 			this.stroke = drawStroke;
 		}
+
+		@Override
+		public void paint(final Graphics2D g2d) {
+			final Color				oldColor = g2d.getColor();
+			final Stroke			oldStroke = g2d.getStroke();
+			
+			if (fillColor != null) {
+				g2d.setColor(fillColor);
+				g2d.fill(path);
+			}
+			g2d.setColor(drawColor);
+			g2d.setStroke(stroke);
+			g2d.draw(path);
+			g2d.setStroke(oldStroke);
+			g2d.setColor(oldColor);			
+		}
+
+		@Override
+		public String toString() {
+			return "PolygonPainter [path=" + path + ", drawColor=" + drawColor + ", fillColor=" + fillColor + ", stroke=" + stroke + "]";
+		}
 	}
-	
 
-	public static final void arcTo(GeneralPath path, float rx, float ry, float theta, boolean largeArcFlag, boolean sweepFlag, float x, float y) {
-        // Ensure radii are valid
-        if (rx == 0 || ry == 0) {
-                path.lineTo(x, y);
-                return;
-        }
-        // Get the current (x, y) coordinates of the path
-        Point2D p2d = path.getCurrentPoint();
-        float x0 = (float) p2d.getX();
-        float y0 = (float) p2d.getY();
-        // Compute the half distance between the current and the final point
-        float dx2 = (x0 - x) / 2.0f;
-        float dy2 = (y0 - y) / 2.0f;
-        // Convert theta from degrees to radians
-        theta = (float) Math.toRadians(theta % 360f);
+	protected static class PathPainter extends AbstractPainter {
+		private final GeneralPath	path;
+		private final Color			drawColor, fillColor;
+		private final Stroke		stroke;
+		
+		PathPainter(final GeneralPath path, final Color drawColor, final Stroke drawStroke) {
+			this.path = path;
+ 			this.drawColor = drawColor;
+			this.fillColor = null;
+			this.stroke = drawStroke;
+		}
 
-        //
-        // Step 1 : Compute (x1, y1)
-        //
-        float x1 = (float) (Math.cos(theta) * (double) dx2 + Math.sin(theta)
-                        * (double) dy2);
-        float y1 = (float) (-Math.sin(theta) * (double) dx2 + Math.cos(theta)
-                        * (double) dy2);
-        // Ensure radii are large enough
-        rx = Math.abs(rx);
-        ry = Math.abs(ry);
-        float Prx = rx * rx;
-        float Pry = ry * ry;
-        float Px1 = x1 * x1;
-        float Py1 = y1 * y1;
-        double d = Px1 / Prx + Py1 / Pry;
-        if (d > 1) {
-                rx = Math.abs((float) (Math.sqrt(d) * (double) rx));
-                ry = Math.abs((float) (Math.sqrt(d) * (double) ry));
-                Prx = rx * rx;
-                Pry = ry * ry;
-        }
+		@Override
+		public void paint(final Graphics2D g2d) {
+			final Color				oldColor = g2d.getColor();
+			final Stroke			oldStroke = g2d.getStroke();
+			
+			if (fillColor != null) {
+				g2d.setColor(fillColor);
+				g2d.fill(path);
+			}
+			g2d.setColor(drawColor);
+			g2d.setStroke(stroke);
+			g2d.draw(path);
+			g2d.setStroke(oldStroke);
+			g2d.setColor(oldColor);			
+		}
 
-        //
-        // Step 2 : Compute (cx1, cy1)
-        //
-        double sign = (largeArcFlag == sweepFlag) ? -1d : 1d;
-        float coef = (float) (sign * Math
-                        .sqrt(((Prx * Pry) - (Prx * Py1) - (Pry * Px1))
-                                        / ((Prx * Py1) + (Pry * Px1))));
-        float cx1 = coef * ((rx * y1) / ry);
-        float cy1 = coef * -((ry * x1) / rx);
-
-        //
-        // Step 3 : Compute (cx, cy) from (cx1, cy1)
-        //
-        float sx2 = (x0 + x) / 2.0f;
-        float sy2 = (y0 + y) / 2.0f;
-        float cx = sx2
-                        + (float) (Math.cos(theta) * (double) cx1 - Math.sin(theta)
-                                        * (double) cy1);
-        float cy = sy2
-                        + (float) (Math.sin(theta) * (double) cx1 + Math.cos(theta)
-                                        * (double) cy1);
-
-        //
-        // Step 4 : Compute the angleStart (theta1) and the angleExtent (dtheta)
-        //
-        float ux = (x1 - cx1) / rx;
-        float uy = (y1 - cy1) / ry;
-        float vx = (-x1 - cx1) / rx;
-        float vy = (-y1 - cy1) / ry;
-        float p, n;
-        // Compute the angle start
-        n = (float) Math.sqrt((ux * ux) + (uy * uy));
-        p = ux; // (1 * ux) + (0 * uy)
-        sign = (uy < 0) ? -1d : 1d;
-        float angleStart = (float) Math.toDegrees(sign * Math.acos(p / n));
-        // Compute the angle extent
-        n = (float) Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
-        p = ux * vx + uy * vy;
-        sign = (ux * vy - uy * vx < 0) ? -1d : 1d;
-        float angleExtent = (float) Math.toDegrees(sign * Math.acos(p / n));
-        if (!sweepFlag && angleExtent > 0) {
-                angleExtent -= 360f;
-        } else if (sweepFlag && angleExtent < 0) {
-                angleExtent += 360f;
-        }
-        angleExtent %= 360f;
-        angleStart %= 360f;
-
-        Arc2D.Float arc = new Arc2D.Float();
-        arc.x = cx - rx;
-        arc.y = cy - ry;
-        arc.width = rx * 2.0f;
-        arc.height = ry * 2.0f;
-        arc.start = -angleStart;
-        arc.extent = -angleExtent;
-        path.append(arc, true);
+		@Override
+		public String toString() {
+			return "PathPainter [path=" + path + ", drawColor=" + drawColor + ", fillColor=" + fillColor + ", stroke=" + stroke + "]";
+		}
 	}
 }
 

@@ -33,6 +33,7 @@ import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.XMLUtils;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -175,18 +176,22 @@ public class XMLContentParser implements ResultSetContentParser {
 					for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
 						final Object[]		result = new Object[content.length];
 						
-						XMLUtils.walkDownXML((Element)list.item(index),(mode,xmlNode)->{
-							if (mode == NodeEnterMode.ENTER) {
-								if (xmlNode.getNodeType() == Node.ELEMENT_NODE) {
-									final long	found = names.seekName(xmlNode.getNodeName());
-									
-									if (found >= 0) {
-										result[(int)found] = xmlNode.getTextContent();
+						try {
+							XMLUtils.walkDownXML((Element)list.item(index),(mode,xmlNode)->{
+								if (mode == NodeEnterMode.ENTER) {
+									if (xmlNode.getNodeType() == Node.ELEMENT_NODE) {
+										final long	found = names.seekName(xmlNode.getNodeName());
+										
+										if (found >= 0) {
+											result[(int)found] = xmlNode.getTextContent();
+										}
 									}
 								}
-							}
-							return ContinueMode.CONTINUE;
-						});
+								return ContinueMode.CONTINUE;
+							});
+						} catch (ContentException e) {
+							throw new IOException(e.getLocalizedMessage(),e); 
+						}
 						data.add(result);
 					}
 
