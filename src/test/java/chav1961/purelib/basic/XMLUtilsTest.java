@@ -29,6 +29,7 @@ import chav1961.purelib.basic.XMLUtils.Frequency;
 import chav1961.purelib.basic.XMLUtils.StylePropValue;
 import chav1961.purelib.basic.XMLUtils.StylePropertiesStack;
 import chav1961.purelib.basic.XMLUtils.Time;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -670,7 +671,7 @@ public class XMLUtilsTest {
 	//	Walking and attributes test
 	//
 	@Test
-	public void walkingXMLTest() throws SyntaxException, ParserConfigurationException, SAXException, IOException {
+	public void walkingXMLTest() throws ParserConfigurationException, SAXException, IOException, ContentException {
 		final DocumentBuilderFactory 	factory = DocumentBuilderFactory.newInstance();
 		final DocumentBuilder 			builder = factory.newDocumentBuilder();
 		final Document 					document = builder.parse(this.getClass().getResourceAsStream("walkingXML.xml"));

@@ -22,6 +22,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import chav1961.purelib.basic.CharUtils.ArgumentType;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
@@ -124,14 +125,14 @@ public class XMLUtils {
 	
 	@FunctionalInterface
 	public interface XMLWalkerCallback {
-		ContinueMode process(NodeEnterMode mode, Element node);
+		ContinueMode process(NodeEnterMode mode, Element node) throws ContentException;
 	}
 	
-	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws NullPointerException {
+	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws ContentException {
 		return walkDownXML(root,-1L,callback);
 	}
 
-	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws NullPointerException {
+	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws ContentException {
 		if (root == null) {
 			throw new NullPointerException("Root element can't be null"); 
 		}
@@ -778,7 +779,7 @@ loop:		while (from < len) {
 		}
 	}
 
-	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) {
+	private static ContinueMode walkDownXMLInternal(final Element node, final long nodeTypes, final XMLWalkerCallback callback) throws ContentException {
 		ContinueMode	before = null, after = ContinueMode.CONTINUE;
 		
 		if (node != null && (nodeTypes & (1 << node.getNodeType())) != 0) {
