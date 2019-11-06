@@ -17,7 +17,7 @@ public class SVGPainter {
 		void paint(Graphics2D g2d);
 	}
 	
-	private final Color				background = null;
+	private final Color				background = Color.WHITE;
 	private final AbstractPainter[]	primitives;
 	private final int				width, height;
 	
@@ -66,10 +66,9 @@ public class SVGPainter {
 	
 	protected AffineTransform pickCoordinates(final AffineTransform oldAt, final int fillWidth, final int fillHeight) {
 		final AffineTransform	at = new AffineTransform(oldAt);
-		final double			scaleX = 1.0*getWidth()/fillWidth, scaleY = 1.0*getHeight()/fillHeight;  
+		final double			scaleX = 1.0*fillWidth/getWidth(), scaleY = 1.0*fillHeight/getHeight();  
 		
-		at.scale(scaleX,-scaleY);
-		at.translate(0,scaleY);
+		at.scale(scaleX,scaleY);
 		return at;
 	}
 

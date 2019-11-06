@@ -184,23 +184,18 @@ public class SVGParser {
 		int 			pointCount = 0, from = 0;
 		
 		for (char symbol : content) {
-			if (symbol == ',') {
+			if (symbol == ' ') {
 				pointCount++;
 			}
 		}
 		
-		final Point2D[]	result = new Point[pointCount];
+		pointCount = (pointCount + 1) / 2;
+		final Point2D[]	result = new Point2D[pointCount];
 		
 		for (int index = 0; index < pointCount; index++) {
-			from = CharUtils.skipBlank(content,CharUtils.parseSignedFloat(content,from,number,true),false);
+			from = CharUtils.parseSignedFloat(content,CharUtils.skipBlank(content,from,false),number,true);
 			x = number[0];
-			if (content[from] == ',') {
-				from++;
-			}
-			else {
-				throw new SyntaxException(0,from,"Missing (,)"); 
-			}
-			from = CharUtils.skipBlank(content,CharUtils.parseSignedFloat(content,CharUtils.skipBlank(content,from,false),number,true),false);
+			from = CharUtils.parseSignedFloat(content,CharUtils.skipBlank(content,from,false),number,true);
 			y = number[0];
 			result[index] = new Point2D.Float(x,y); 
 		}
@@ -239,11 +234,16 @@ loop:	for (;;) {
 					x = xOld;
 					y = yOld;
 				case 'L' :
-					from = CharUtils.parseSignedFloat(content,CharUtils.skipBlank(content,from+1,true),number,true);
-					x += number[0];
-					from = CharUtils.parseSignedFloat(content,CharUtils.skipBlank(content,from,true),number,true);
-					y += number[0];
-					result.lineTo(x, y);
+					float	deltaX, deltaY;
+					
+					from++;
+					do {from = CharUtils.parseSignedFloat(content,CharUtils.skipBlank(content,from,true),number,true);
+						deltaX = number[0];
+						from = CharUtils.parseSignedFloat(content,CharUtils.skipBlank(content,from,true),number,true);
+						deltaY = number[0];
+						result.lineTo(deltaX+x, deltaY+y);
+						from = CharUtils.skipBlank(content,from,true);
+					} while (content[from] >= '0' && content[from] <= '9' || content[from] == '-');
 					break;
 				case 'h' :
 					x = xOld;
@@ -329,7 +329,7 @@ loop:	for (;;) {
 					result.append(computeArc(xPrev,yPrev,rx,ry,rotation,large != 0,sweep != 0,x,y),true);
 					break;
 				default :
-					throw new SyntaxException(0,from,"Unknown path command in ["+SyntaxException.extractFragment(source,0,from,10)+"]"); 					
+					throw new SyntaxException(0,from,"Unknown path command ["+content[from]+"] in ["+SyntaxException.extractFragment(source,0,from,10)+"]"); 					
 			}
 			xOld = (float)result.getCurrentPoint().getX(); 
 			yOld = (float)result.getCurrentPoint().getY();

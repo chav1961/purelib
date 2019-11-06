@@ -1,6 +1,7 @@
 eclipse.preferences.version=1
 encoding//src/main/java/chav1961/purelib/basic/XMLUtils.java=UTF-8
 encoding//src/main/java/chav1961/purelib/basic/gettersandsettersmacros.txt=UTF-8
+encoding//src/main/java/chav1961/purelib/basic/xsd/SVG.xsd=UTF-8
 encoding//src/main/java/chav1961/purelib/model/macros.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/nanoservice/macros.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/streams/char2byte/asm/macro/macrocompiler.txt=UTF-8
@@ -38,6 +39,7 @@ encoding//src/test/resources/chav1961/purelib/ui/singleform.txt=UTF-8
 encoding//src/test/resources/chav1961/purelib/ui/swing/helpcontent.cre=UTF-8
 encoding//src/test/resources/chav1961/purelib/ui/swing/test_en.properties=UTF-8
 encoding//src/test/resources/chav1961/purelib/ui/swing/test_ru.properties=UTF-8
+encoding//src/test/resources/chav1961/purelib/ui/swing/useful/svg/svgtest.SVG=UTF-8
 encoding//src/test/resources/test/plan.txt=UTF-8
 encoding/LICENSE.md=UTF-8
 encoding/README.md=UTF-8
