@@ -1,5 +1,7 @@
 package chav1961.purelib.basic;
 
+import chav1961.purelib.basic.exceptions.SyntaxException;
+
 class UnsafedCharUtils {
 	private static final int		INTMAX_2 = Integer.MAX_VALUE / 2;
 	private static final int		INTMAX_8 = Integer.MAX_VALUE / 8;
@@ -34,21 +36,21 @@ class UnsafedCharUtils {
 	}
 	
 	
-	static int uncheckedParseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	static int uncheckedParseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
 		
 		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
 			if (checkOverflow && temp > INTMAX_10) {
-				throw new NumberFormatException("Number is greater then maximal available integer");
+				throw new SyntaxException(0,index,"Number is greater then maximal available integer");
 			}
 			temp = temp * 10 + symbol - '0';
 			index++;
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -56,21 +58,21 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseBinaryInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	static int uncheckedParseBinaryInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
 		
 		while (index < len && (symbol = source[index]) >= '0' && symbol <= '1') {
 			if (checkOverflow && temp > INTMAX_2) {
-				throw new NumberFormatException("Number is greater then maximal available integer");
+				throw new SyntaxException(0,index,"Number is greater then maximal available integer");
 			}
 			temp = temp * 2 + symbol - '0';
 			index++;
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -78,21 +80,21 @@ class UnsafedCharUtils {
 		}
 	}
 	
-	static int uncheckedParseOctalInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	static int uncheckedParseOctalInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
 		
 		while (index < len && (symbol = source[index]) >= '0' && symbol <= '7') {
 			if (checkOverflow && temp > INTMAX_8) {
-				throw new NumberFormatException("Number is greater then maximal available integer");
+				throw new SyntaxException(0,index,"Number is greater then maximal available integer");
 			}
 			temp = temp * 8 + symbol - '0';
 			index++;
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -100,14 +102,14 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseHexInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	static int uncheckedParseHexInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
 		
 		while (index < len && ((symbol = source[index]) >= '0' && symbol <= '9' || symbol >= 'a' && symbol <= 'f' || symbol >= 'A' && symbol <= 'F')) {
 			if (checkOverflow && temp > INTMAX_16) {
-				throw new NumberFormatException("Number is greater then maximal available integer");
+				throw new SyntaxException(0,index,"Number is greater then maximal available integer");
 			}
 			if (symbol >= '0' && symbol <= '9') {
 				temp = temp * 16 + symbol - '0';
@@ -122,7 +124,7 @@ class UnsafedCharUtils {
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -130,7 +132,7 @@ class UnsafedCharUtils {
 		}
 	}
 	
-	static int uncheckedParseIntExtended(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	static int uncheckedParseIntExtended(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		index = from, len = source.length;
 		
 		if (source[index] == '0') {
@@ -163,7 +165,7 @@ class UnsafedCharUtils {
 		}
 	}	
 	
-	static int uncheckedParseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	static int uncheckedParseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -171,14 +173,14 @@ class UnsafedCharUtils {
 		
 		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
 			if (checkOverflow && temp > LONGMAX_10) {
-				throw new NumberFormatException("Number is greater then maximal available long");
+				throw new SyntaxException(0,index,"Number is greater then maximal available long");
 			}
 			temp = temp * 10 + symbol - '0';
 			index++;
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -186,7 +188,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseBinaryLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	static int uncheckedParseBinaryLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -194,14 +196,14 @@ class UnsafedCharUtils {
 		
 		while (index < len && (symbol = source[index]) >= '0' && symbol <= '1') {
 			if (checkOverflow && temp > LONGMAX_2) {
-				throw new NumberFormatException("Number is greater then maximal available long");
+				throw new SyntaxException(0,index,"Number is greater then maximal available long");
 			}
 			temp = temp * 2 + symbol - '0';
 			index++;
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -209,7 +211,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseOctalLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	static int uncheckedParseOctalLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -217,14 +219,14 @@ class UnsafedCharUtils {
 		
 		while (index < len && (symbol = source[index]) >= '0' && symbol <= '7') {
 			if (checkOverflow && temp > LONGMAX_8) {
-				throw new NumberFormatException("Number is greater then maximal available long");
+				throw new SyntaxException(0,index,"Number is greater then maximal available long");
 			}
 			temp = temp * 8 + symbol - '0';
 			index++;
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -232,7 +234,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseHexLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	static int uncheckedParseHexLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -240,7 +242,7 @@ class UnsafedCharUtils {
 		
 		while (index < len && ((symbol = source[index]) >= '0' && symbol <= '9' || symbol >= 'a' && symbol <= 'f' || symbol >= 'A' && symbol <= 'F')) {
 			if (checkOverflow && temp > LONGMAX_16) {
-				throw new NumberFormatException("Number is greater then maximal available integer");
+				throw new SyntaxException(0,index,"Number is greater then maximal available integer");
 			}
 			if (symbol >= '0' && symbol <= '9') {
 				temp = temp * 16 + symbol - '0';
@@ -255,7 +257,7 @@ class UnsafedCharUtils {
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else {
 			result[0] = temp;
@@ -263,7 +265,7 @@ class UnsafedCharUtils {
 		}
 	}
 	
-	static int uncheckedParseLongExtended(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	static int uncheckedParseLongExtended(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		index = from, len = source.length;
 		
 		if (source[index] == '0') {
@@ -296,7 +298,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) {
+	static int uncheckedParseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -313,7 +315,7 @@ class UnsafedCharUtils {
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E') || continueParsing) {
 			double	tempInt = temp;
@@ -336,7 +338,7 @@ class UnsafedCharUtils {
 				}
 				
 				if (index == fracFrom) {
-					throw new NumberFormatException("No one digits in the fractional part of float was detected!");
+					throw new SyntaxException(0,index,"No one digits in the fractional part of float was detected!");
 				}
 				else {
 					tempInt += frac * scale;
@@ -363,11 +365,11 @@ class UnsafedCharUtils {
 				
 				
 				if (checkOverflow && (exp > Float.MAX_EXPONENT || exp < Float.MIN_EXPONENT)) {
-					throw new NumberFormatException("Number is greater then maximal available float");
+					throw new SyntaxException(0,index,"Number is greater then maximal available float");
 				}
 				
 				if (index == expFrom) {
-					throw new NumberFormatException("No one digits in the exponent part of float was detected!");
+					throw new SyntaxException(0,index,"No one digits in the exponent part of float was detected!");
 				}
 				else {
 					tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
@@ -381,7 +383,7 @@ class UnsafedCharUtils {
 		return index;
 	}
 
-	static int uncheckedParseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) {
+	static int uncheckedParseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -398,7 +400,7 @@ class UnsafedCharUtils {
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E') || continueParsing) {
 			double	tempInt = temp;
@@ -421,7 +423,7 @@ class UnsafedCharUtils {
 				}
 				
 				if (index == fracFrom) {
-					throw new NumberFormatException("No one digits in the fractional part of double was detected!");
+					throw new SyntaxException(0,index,"No one digits in the fractional part of double was detected!");
 				}
 				else {
 					tempInt += frac * scale;
@@ -447,11 +449,11 @@ class UnsafedCharUtils {
 				exp *= multiplier;					
 				
 				if (checkOverflow && (exp > Double.MAX_EXPONENT || exp < Double.MIN_EXPONENT)) {
-					throw new NumberFormatException("Number is greater then maximal available double");
+					throw new SyntaxException(0,index,"Number is greater then maximal available double");
 				}
 				
 				if (index == expFrom) {
-					throw new NumberFormatException("No one digits in the exponent part of double was detected!");
+					throw new SyntaxException(0,index,"No one digits in the exponent part of double was detected!");
 				}
 				else {
 					tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
@@ -465,7 +467,7 @@ class UnsafedCharUtils {
 		return index;
 	}
 
-	static int uncheckedParseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) {
+	static int uncheckedParseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) throws SyntaxException {
 		long	temp = 0;
 		int		index = from, len = source.length;
 		char	symbol = ' ';
@@ -474,10 +476,10 @@ class UnsafedCharUtils {
 		while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
 			if (checkOverflow) {
 				if (temp > INTMAX_10 && (preferences & (CharUtils.PREF_LONG | CharUtils.PREF_FLOAT)) == 0) {
-					throw new NumberFormatException("Number is greater then maximal available integer");
+					throw new SyntaxException(0,index,"Number is greater then maximal available integer");
 				}
 				if (temp > LONGMAX_10 && (preferences & CharUtils.PREF_DOUBLE) == 0) {
-					throw new NumberFormatException("Number is greater then maximal available long");
+					throw new SyntaxException(0,index,"Number is greater then maximal available long");
 				}
 			}
 			if (temp > LONGMAX_10) {
@@ -489,7 +491,7 @@ class UnsafedCharUtils {
 		}
 		if (index < len && (source[index] == 'l' || source[index] == 'L')) {
 			if ((preferences & CharUtils.PREF_LONG) == 0) {
-				throw new NumberFormatException("Long constant is not waited here");
+				throw new SyntaxException(0,index,"Long constant is not waited here");
 			}
 			else {
 				result[0] = temp; 
@@ -499,7 +501,7 @@ class UnsafedCharUtils {
 		}
 		
 		if (index == from) {
-			throw new NumberFormatException("No one digits in the number was detected!");
+			throw new SyntaxException(0,index,"No one digits in the number was detected!");
 		}
 		else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E' || symbol == 'f' || symbol == 'F') || continueParsing) {
 			if ((preferences & (CharUtils.PREF_FLOAT | CharUtils.PREF_DOUBLE)) != 0) {
@@ -523,7 +525,7 @@ class UnsafedCharUtils {
 					}
 					
 					if (index == fracFrom) {
-						throw new NumberFormatException("No one digits in the fractional part of double was detected!");
+						throw new SyntaxException(0,index,"No one digits in the fractional part of double was detected!");
 					}
 					else {
 						tempInt += frac * scale;
@@ -549,11 +551,11 @@ class UnsafedCharUtils {
 					exp *= multiplier;
 					
 					if (checkOverflow && (exp > EXP_BOUND || exp < -EXP_BOUND)) {
-						throw new NumberFormatException("Number is greater then maximal available double");
+						throw new SyntaxException(0,index,"Number is greater then maximal available double");
 					}
 					
 					if (index == expFrom) {
-						throw new NumberFormatException("No one digits in the exponent part of double was detected!");
+						throw new SyntaxException(0,index,"No one digits in the exponent part of double was detected!");
 					}
 					else {
 						tempInt *= DOUBLE_EXPS[EXP_BOUND+Math.max(-EXP_BOUND,Math.min(EXP_BOUND,exp))];
@@ -563,14 +565,14 @@ class UnsafedCharUtils {
 				if (symbol == 'f' || symbol == 'F') {
 					index++;
 					if ((preferences & CharUtils.PREF_FLOAT) == 0) {
-						throw new NumberFormatException("Float number is not waited here");
+						throw new SyntaxException(0,index,"Float number is not waited here");
 					}
 					else if (Math.abs(tempInt) < Float.MAX_VALUE) {
 						result[0] = Float.floatToIntBits((float)tempInt);
 						result[1] = CharUtils.PREF_FLOAT;
 					}
 					else {
-						throw new NumberFormatException("Float number is greater then maximal available float");
+						throw new SyntaxException(0,index,"Float number is greater then maximal available float");
 					}
 				}
 				else {
@@ -579,7 +581,7 @@ class UnsafedCharUtils {
 						result[1] = CharUtils.PREF_DOUBLE;
 					}
 					else {
-						throw new NumberFormatException("Double number is not waited here");
+						throw new SyntaxException(0,index,"Double number is not waited here");
 					}
 				}
 			}

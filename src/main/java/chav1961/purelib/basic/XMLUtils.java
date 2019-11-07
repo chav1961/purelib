@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -57,10 +58,14 @@ public class XMLUtils {
 	private static final char[]		COLOR_HSL = "hsl".toCharArray();
 	private static final Object[]	COLOR_HSL_TEMPLATE = {COLOR_HSL,'(',ArgumentType.ordinalInt,',',ArgumentType.ordinalFloat,'%',',',ArgumentType.ordinalFloat,'%',')'};
 
+	private static final char[]		TRANSFORM_ROTATE = "rotate".toCharArray();
+	private static final char[]		TRANSFORM_SCALE = "scale".toCharArray();
+	private static final char[]		TRANSFORM_TRANSLATE = "translate".toCharArray();
+	
 	private static final SyntaxTreeInterface<StylePropValue<?>[]>		KEYWORDS = new AndOrTree<>();
 	private static final SyntaxTreeInterface<StylePropertiesSupported>	STYLES = new AndOrTree<>();
 	private static final long											INHERITED;
-
+	
 	@FunctionalInterface
 	private interface StyleValueConverter {
 		Object convert(String source) throws SyntaxException; 
@@ -1365,6 +1370,8 @@ loop:		while (from < len) {
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name};
 		private static final Map<Units,Distance[]> 	microCache = new EnumMap<>(Units.class);
 		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
+		private static final float					INCH = 25.4f;
+		private static final float[]				KOEFFS = {10, 1, INCH, INCH/96, INCH/72, 12*INCH/72, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 		
 		public enum Units {
 			cm, mm, in, px, pt, pc,							// Absolute			
@@ -1394,8 +1401,20 @@ loop:		while (from < len) {
 		public Units getUnit() {
 			return unit;
 		}
+		
+		public float getValueAs(final Units unit) {
+			if (unit == null) {
+				throw new NullPointerException("Unit type can't be null");
+			}
+			else if (this.unit == unit) {
+				return getValue();
+			}
+			else {
+				return getValue()*KOEFFS[this.unit.ordinal()]/KOEFFS[unit.ordinal()];
+			}
+		}
 
-		public static boolean idValidDistance(final String value) {
+		public static boolean isValidDistance(final String value) {
 			if (value == null || value.isEmpty()) {
 				throw new IllegalArgumentException("Value can't be null or empty");
 			}
@@ -1417,7 +1436,7 @@ loop:		while (from < len) {
 			}
 		}
 
-		public static boolean idValidDistance(final char[] value) {
+		public static boolean isValidDistance(final char[] value) {
 			if (value == null || value.length == 0) {
 				throw new IllegalArgumentException("Value can't be null or empty array");
 			}
@@ -1509,7 +1528,7 @@ loop:		while (from < len) {
 			throw new IllegalArgumentException("Distance string can't be null or empty");
 		}
 		else {
-			return Distance.idValidDistance(distance);
+			return Distance.isValidDistance(distance);
 		}
 	}	
 	
@@ -1530,7 +1549,7 @@ loop:		while (from < len) {
 			throw new IllegalArgumentException("Distance can't be null or empty array");
 		}
 		else {
-			return Distance.idValidDistance(distance);
+			return Distance.isValidDistance(distance);
 		}
 	}	
 	
@@ -2038,7 +2057,144 @@ loop:		while (from < len) {
 			}
 		}
 	}			
+	
+	public static AffineTransform asTransform(final String transform) throws SyntaxException, IllegalArgumentException {
+		if (transform == null || transform.isEmpty()) {
+			throw new IllegalArgumentException("Transform string to parse can't be null or empty");
+		}
+		else {
+			final AffineTransform	result = new AffineTransform(); 
+			final char[]			content = new char[transform.length()+1];
+			final float[]			number = new float[1];
+			float					x, y;
+			boolean					wasMinus;
+			int						from = 0;
+			
+			transform.getChars(0,content.length-1,content,0);
+			content[content.length-1] = '\n';
+			
+			for (;;) {
+				from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
+				if (content[from] == '\n') {
+					break;
+				}
+				else if (!Character.isJavaIdentifierStart(content[from])) {
+					throw new SyntaxException(0,from,"Reserved word is missing at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,from,TRANSFORM_ROTATE,0,TRANSFORM_ROTATE.length)) {
+					from = UnsafedCharUtils.uncheckedSkipBlank(content,from+TRANSFORM_ROTATE.length,true);
+					if (content[from] != '(') {
+						throw new SyntaxException(0,from,"Missing '(' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+					}
+					else {
+						from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+						
+						if ((wasMinus = content[from] == '-')) {
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+						}
+						from = UnsafedCharUtils.uncheckedSkipBlank(content,UnsafedCharUtils.uncheckedParseFloat(content,from,number,true),true);
+						if (content[from] != ')') {
+							throw new SyntaxException(0,from,"Missing ')' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+						}
+						else {
+							from++;
+							result.rotate(wasMinus ? -number[0] : number[0]);
+						}
+					}
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,from,TRANSFORM_SCALE,0,TRANSFORM_SCALE.length)) {
+					from = UnsafedCharUtils.uncheckedSkipBlank(content,from+TRANSFORM_SCALE.length,true);
+					if (content[from] != '(') {
+						throw new SyntaxException(0,from,"Missing '(' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+					}
+					else {
+						from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+						
+						if ((wasMinus = content[from] == '-')) {
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+						}
+						from = UnsafedCharUtils.uncheckedSkipBlank(content,UnsafedCharUtils.uncheckedParseFloat(content,from,number,true),true);
+						if (content[from] != ',') {
+							throw new SyntaxException(0,from,"Missing ',' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+						}
+						else {
+							x = wasMinus ? -number[0] : number[0];
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+							
+							if ((wasMinus = content[from] == '-')) {
+								from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+							}
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,UnsafedCharUtils.uncheckedParseFloat(content,from,number,true),true);
+							if (content[from] != ')') {
+								throw new SyntaxException(0,from,"Missing ')' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+							}
+							else {
+								from++;
+								y = wasMinus ? -number[0] : number[0];
+								result.scale(x,y);
+							}							
+						}
+					}
+				}
+				else if (UnsafedCharUtils.uncheckedCompare(content,from,TRANSFORM_TRANSLATE,0,TRANSFORM_TRANSLATE.length)) {
+					from = UnsafedCharUtils.uncheckedSkipBlank(content,from+TRANSFORM_TRANSLATE.length,true);
+					if (content[from] != '(') {
+						throw new SyntaxException(0,from,"Missing '(' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+					}
+					else {
+						from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+						
+						if ((wasMinus = content[from] == '-')) {
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+						}
+						from = UnsafedCharUtils.uncheckedSkipBlank(content,UnsafedCharUtils.uncheckedParseFloat(content,from,number,true),true);
+						if (content[from] != ',') {
+							throw new SyntaxException(0,from,"Missing ',' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+						}
+						else {
+							x = wasMinus ? -number[0] : number[0];
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+							
+							if ((wasMinus = content[from] == '-')) {
+								from = UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true);
+							}
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,UnsafedCharUtils.uncheckedParseFloat(content,from,number,true),true);
+							if (content[from] != ')') {
+								throw new SyntaxException(0,from,"Missing ')' at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+							}
+							else {
+								from++;
+								y = wasMinus ? -number[0] : number[0];
+								result.translate(x,y);
+							}							
+						}
+					}
+				}
+				else {
+					throw new SyntaxException(0,from,"Unknown reserved word at ["+SyntaxException.extractFragment(transform,0,from,20)+"]");
+				}
+			}
+			return result;
+		}
+	}
 
+	public static String getAggregateName4PropertyName(final String propName) {
+		return null;
+	}
+
+	public static String[] getPropertyNames4AggregateName(final String aggregateName) {
+		return null;
+	}
+	
+	public static Map<String,Object>[] splitCSSProperty(final Map<String,Object> attributes, final String propName) {
+		return null;
+	}	
+
+	public static Map<String,Object> joinCSSProperty(final Map<String,Object> attributes, final String aggregateName) {
+		return null;
+	}	
+	
+	
 	public static class StylePropValue<T> {
 		private final StylePropertiesSupported.ContentType	type;
 		private final StylePropertiesSupported				prop;

@@ -59,9 +59,9 @@ public class SyntaxException extends ContentException {
 		}
 		else {
 			long 	rowCount = 0, columnCount = 0;
-			int 	location = -1;
+			int 	location = -1, index = 0, maxIndex = source.length();
 			
-			for (int index = 0, maxIndex = source.length(); index < maxIndex; index++) {
+			for (; index < maxIndex; index++) {
 				if (rowCount >= row && columnCount >= col) {
 					location = index;
 					break;
@@ -74,6 +74,10 @@ public class SyntaxException extends ContentException {
 					columnCount++;
 				}
 			}
+			if (index >= maxIndex) {
+				location = index-1;
+			}
+			
 			if (location == -1) {
 				throw new IllegalArgumentException("No location (row="+row+",col="+col+") found in th source"); 
 			}

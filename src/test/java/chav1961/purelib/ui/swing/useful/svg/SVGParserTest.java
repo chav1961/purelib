@@ -18,7 +18,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 public class SVGParserTest {
 
 	@Test
-	public void test() throws IOException, ContentException {
+	public void visualTest() throws IOException, ContentException {
 		try(final InputStream	is = SVGParserTest.class.getResourceAsStream("svgtest.SVG")) {
 			final JSVGComponent	jc = new JSVGComponent(is);
 			
@@ -26,6 +26,7 @@ public class SVGParserTest {
 			JOptionPane.showMessageDialog(null,jc);
 		}
 	}
+	
 }
 
 

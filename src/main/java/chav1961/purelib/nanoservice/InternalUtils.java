@@ -276,7 +276,7 @@ public class InternalUtils {
 		}
 	}
 	
-	public static byte buildByte(final char[] source) {
+	public static byte buildByte(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -285,7 +285,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static short buildShort(final char[] source) {
+	public static short buildShort(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -294,7 +294,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static int buildInt(final char[] source) {
+	public static int buildInt(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -306,7 +306,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static long buildLong(final char[] source) {
+	public static long buildLong(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -318,7 +318,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static float buildFloat(final char[] source) {
+	public static float buildFloat(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -327,7 +327,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static double buildDouble(final char[] source) {
+	public static double buildDouble(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -363,7 +363,7 @@ public class InternalUtils {
 		}
 	}
 	
-	public static byte[] buildByteArray(final char[] source) {
+	public static byte[] buildByteArray(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -379,7 +379,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static short[] buildShortArray(final char[] source) {
+	public static short[] buildShortArray(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -395,7 +395,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static int[] buildIntArray(final char[] source) {
+	public static int[] buildIntArray(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -411,7 +411,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static long[] buildLongArray(final char[] source) {
+	public static long[] buildLongArray(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -427,7 +427,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static float[] buildFloatArray(final char[] source) {
+	public static float[] buildFloatArray(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
@@ -443,7 +443,7 @@ public class InternalUtils {
 		}
 	}
 
-	public static double[] buildDoubleArray(final char[] source) {
+	public static double[] buildDoubleArray(final char[] source) throws SyntaxException {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}

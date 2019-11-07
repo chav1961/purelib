@@ -84,7 +84,7 @@ public class InternalUtilsTest {
 	}
 	
 	@Test
-	public void parseConstantTest() throws CalculationException {
+	public void parseConstantTest() throws CalculationException, SyntaxException {
 		final ExpressionNode[]	result = new ExpressionNode[1];
 		
 		Assert.assertEquals(InternalUtils.parseConstant(" \"123\" ".toCharArray(),0,false,result),6);

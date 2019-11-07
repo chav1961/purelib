@@ -6,6 +6,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
@@ -1135,8 +1136,12 @@ class FuncToIntNode extends FuncNode {
 														case INTEGER	: return list[0].getLong();
 														case REAL		: return (long)list[0].getDouble(); 
 														case STRING		: 
-															CharUtils.parseLong(list[0].getString(),0,temp,true);
-															return temp[0];
+															try {
+																CharUtils.parseLong(list[0].getString(),0,temp,true);
+																return temp[0];
+															} catch (SyntaxException e) {
+																throw new CalculationException("Error converting string to long: "+e.getLocalizedMessage());
+															}
 														case BOOLEAN	: throw new CalculationException("Boolean value can't be converted to integer!");
 														default : throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
 													}
@@ -1158,8 +1163,12 @@ class FuncToRealNode extends FuncNode {
 														case INTEGER	: return list[0].getLong();
 														case REAL		: return list[0].getDouble(); 
 														case STRING		: 
-															CharUtils.parseDouble(list[0].getString(),0,temp,true);
-															return temp[0];
+															try{
+																CharUtils.parseDouble(list[0].getString(),0,temp,true);
+																return temp[0];
+															} catch (SyntaxException e) {
+																throw new CalculationException("Error converting string to double: "+e.getLocalizedMessage());
+															}
 														case BOOLEAN	: throw new CalculationException("Boolean value can't be converted to real!");
 														default : throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
 													}

@@ -11,7 +11,7 @@ public class CharUtilsTest {
 	public static final double		EPSILON = 0.000000001;
 	
 	@Test
-	public void intConversionTest() {
+	public void intConversionTest() throws SyntaxException {
 		final int[]		value = new int[1];
 		
 		Assert.assertEquals(CharUtils.parseInt("0".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],0);
@@ -41,7 +41,7 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseInt("1234567890123".toCharArray(),0,value,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 
 		Assert.assertEquals(CharUtils.parseIntExtended("0".toCharArray(),0,value,false),1);				Assert.assertEquals(value[0],0);
@@ -75,12 +75,12 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseIntExtended("1234567890123".toCharArray(),0,value,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 	}
 
 	@Test
-	public void longConversionTest() {
+	public void longConversionTest() throws SyntaxException {
 		final long[]		value = new long[1];
 		
 		Assert.assertEquals(CharUtils.parseLong("0".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],0);
@@ -110,7 +110,7 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseLong("123456789012345678901234567890".toCharArray(),0,value,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 
 		Assert.assertEquals(CharUtils.parseLongExtended("0".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],0);
@@ -144,12 +144,12 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseLongExtended("123456789012345678901234567890".toCharArray(),0,value,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 	}
 
 	@Test
-	public void floatConversionTest() {
+	public void floatConversionTest() throws SyntaxException {
 		final float[]		value = new float[1];
 		
 		Assert.assertEquals(CharUtils.parseFloat("0".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],0,EPSILON_FLOAT);
@@ -187,28 +187,28 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseFloat("1.".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing fractional)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseFloat("1E".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseFloat("1E-".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseFloat("1E+".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseFloat(("1E"+(Float.MAX_EXPONENT+10)).toCharArray(),0,value,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 	}
 
 	@Test
-	public void doubleConversionTest() {
+	public void doubleConversionTest() throws SyntaxException {
 		final double[]		value = new double[1];
 		
 		Assert.assertEquals(CharUtils.parseDouble("0".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],0,EPSILON);
@@ -246,28 +246,28 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseDouble("1.".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing fractional)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseDouble("1E".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseDouble("1E-".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseDouble("1E+".toCharArray(),0,value,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseDouble(("1E"+(Double.MAX_EXPONENT+10)).toCharArray(),0,value,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 	}
 	
 	@Test
-	public void numberConversionTest() {
+	public void numberConversionTest() throws SyntaxException {
 		final long[]		value = new long[2];
 		
 		Assert.assertEquals(CharUtils.parseNumber("0".toCharArray(),0,value,CharUtils.PREF_ANY,false),1);			Assert.assertEquals(value[0],0,EPSILON);
@@ -305,31 +305,31 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseNumber("1.".toCharArray(),0,value,CharUtils.PREF_ANY,false);
 			Assert.fail("Mandatory exception was not detected (missing fractional)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseNumber("1E".toCharArray(),0,value,CharUtils.PREF_ANY,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseNumber("1E-".toCharArray(),0,value,CharUtils.PREF_ANY,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseNumber("1E+".toCharArray(),0,value,CharUtils.PREF_ANY,false);
 			Assert.fail("Mandatory exception was not detected (missing exponent)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseNumber(("1E"+(Double.MAX_EXPONENT+10)).toCharArray(),0,value,CharUtils.PREF_ANY,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseNumber("1234567890123456789012345".toCharArray(),0,value,CharUtils.PREF_INT|CharUtils.PREF_LONG,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.parseNumber("12345678901".toCharArray(),0,value,CharUtils.PREF_INT,true);
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
-		} catch (IllegalArgumentException exc) {
+		} catch (SyntaxException exc) {
 		}
 	}
 

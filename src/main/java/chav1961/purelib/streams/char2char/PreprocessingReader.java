@@ -800,7 +800,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 				case CMP_LE : return left[0] <= value;
 				default : throw new UnsupportedOperationException("Comparison operator ["+oper+"] is not supported yet"); 
 			}
-		} catch (NumberFormatException exc) {
+		} catch (SyntaxException exc) {
 			return oper == ComparisonType.CMP_NE;
 		}
 	}

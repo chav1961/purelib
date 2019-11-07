@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.EmptyStackException;
@@ -20,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import chav1961.purelib.basic.XMLUtils.Angle;
@@ -60,6 +60,9 @@ public class XMLUtilsTest {
 		Assert.assertTrue(XMLUtils.Distance.valueOf("100mm") == XMLUtils.Distance.valueOf("100mm"));
 		Assert.assertFalse(XMLUtils.Distance.valueOf("200mm") == XMLUtils.Distance.valueOf("200mm"));
 
+		Assert.assertEquals(2.54,XMLUtils.Distance.valueOf("1in").getValueAs(Distance.Units.cm),0.001);
+		Assert.assertEquals(25.4,XMLUtils.Distance.valueOf("1in").getValueAs(Distance.Units.mm),0.001);
+		
 		try{new XMLUtils.Distance(-1,XMLUtils.Distance.Units.mm);
 			Assert.fail("Mandatory exception was not detected (negative 1-st agrument)");
 		} catch (IllegalArgumentException exc) {
@@ -484,6 +487,120 @@ public class XMLUtilsTest {
 		}		
 	}
 
+	@Test
+	public void parseAsTransformTest() throws SyntaxException {
+		final double[]	result = new double[6];
+		AffineTransform	trans = XMLUtils.asTransform("rotate("+Math.PI+")");
+
+		trans.getMatrix(result);
+		Assert.assertArrayEquals(new double[] {-1,0,0,-1,0,0},result,0.0001);
+		
+		trans = XMLUtils.asTransform("scale(2,2)");
+
+		trans.getMatrix(result);
+		Assert.assertArrayEquals(new double[] {2,0,0,2,0,0},result,0.0001);
+		
+		trans = XMLUtils.asTransform("translate(1,1)");
+
+		trans.getMatrix(result);
+		Assert.assertArrayEquals(new double[] {1,0,0,1,1,1},result,0.0001);
+
+		trans = XMLUtils.asTransform("rotate("+Math.PI+") scale(2,2) translate(1,1)");
+
+		trans.getMatrix(result);
+		Assert.assertArrayEquals(new double[] {-2,0,0,-2,-2,-2},result,0.0001);
+		
+		try{XMLUtils.asTransform(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{XMLUtils.asTransform("");
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{XMLUtils.asTransform("unknown");
+			Assert.fail("Mandatory exception was not detected (unknown reserved word)");
+		} catch (SyntaxException exc) {
+		}
+
+		try{XMLUtils.asTransform("rotate");
+			Assert.fail("Mandatory exception was not detected (missing '(' )");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("rotate(");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("rotate(-");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("rotate(-100");
+			Assert.fail("Mandatory exception was not detected (missing ')')");
+		} catch (SyntaxException exc) {
+		}
+
+		try{XMLUtils.asTransform("scale");
+			Assert.fail("Mandatory exception was not detected (missing '(' )");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("scale(");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("scale(-");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("scale(-100");
+			Assert.fail("Mandatory exception was not detected (missing ',')");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("scale(-100,");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("scale(-100,-");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("scale(-100,-100");
+			Assert.fail("Mandatory exception was not detected (missing ')')");
+		} catch (SyntaxException exc) {
+		}
+
+		try{XMLUtils.asTransform("translate");
+			Assert.fail("Mandatory exception was not detected (missing '(' )");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("translate(");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("translate(-");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("translate(-100");
+			Assert.fail("Mandatory exception was not detected (missing ',')");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("translate(-100,");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("translate(-100,-");
+			Assert.fail("Mandatory exception was not detected (illegal number)");
+		} catch (SyntaxException exc) {
+		}
+		try{XMLUtils.asTransform("translate(-100,-100");
+			Assert.fail("Mandatory exception was not detected (missing ')')");
+		} catch (SyntaxException exc) {
+		}
+	}
+	
+	
 	//
 	//	Style properties parsers
 	//

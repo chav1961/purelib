@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.nanoservice.InternalUtils;
 
 public class InternalUtilsTest {
@@ -107,7 +108,7 @@ public class InternalUtilsTest {
 	}
 
 	@Test
-	public void primitiveAndStringBuildersTest() throws MimeTypeParseException, IOException {
+	public void primitiveAndStringBuildersTest() throws MimeTypeParseException, IOException, SyntaxException {
 		Assert.assertTrue(InternalUtils.buildBoolean("true".toCharArray()));
 		Assert.assertFalse(InternalUtils.buildBoolean("false".toCharArray()));
 		

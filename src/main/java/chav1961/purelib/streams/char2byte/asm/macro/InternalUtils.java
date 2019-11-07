@@ -250,7 +250,7 @@ class InternalUtils {
 		return from;
 	}
 
-	static int parseConstant(final char[] data, int from, final boolean treatUnknownAsString, final ExpressionNode[] result) throws CalculationException {
+	static int parseConstant(final char[] data, int from, final boolean treatUnknownAsString, final ExpressionNode[] result) throws CalculationException, SyntaxException {
 		switch (data[from = skipBlank(data,from)]) {
 			case '\"' :
 				final StringBuilder	sb = new StringBuilder();
@@ -349,7 +349,7 @@ class InternalUtils {
 		}
 	}
 
-	private static ExpressionNode parseExpression(final int order, final char[] data, final int[] from, final MacroCommand macro) throws IllegalArgumentException {
+	private static ExpressionNode parseExpression(final int order, final char[] data, final int[] from, final MacroCommand macro) throws IllegalArgumentException, SyntaxException {
 		ExpressionNode	operand;
 		OperatorNode	operator;
 		
@@ -692,7 +692,7 @@ class InternalUtils {
 		}
 	}
 
-	private static ExpressionNode parseFunction(final FuncDecription desc, final char[] data, final int[] from, final MacroCommand macro) {
+	private static ExpressionNode parseFunction(final FuncDecription desc, final char[] data, final int[] from, final MacroCommand macro) throws SyntaxException, IllegalArgumentException {
 		from[0] = skipBlank(data,from[0]+1);
 		if (desc.numberOfParameters == 0) {
 			if (data[from[0]] == ')') {

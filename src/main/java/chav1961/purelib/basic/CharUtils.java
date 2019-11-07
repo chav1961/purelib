@@ -52,9 +52,11 @@ public class CharUtils {
 	 * @param result array (at least new int[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	public static int parseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -78,10 +80,12 @@ public class CharUtils {
 	 * @param result array (at least new int[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseSignedInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	public static int parseSignedInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -116,9 +120,11 @@ public class CharUtils {
 	 * @param result array (new int[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseIntExtended(final char[] source, final int from, final int[] result, final boolean checkOverflow) {
+	public static int parseIntExtended(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -142,9 +148,11 @@ public class CharUtils {
 	 * @param result array (new long[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected 
+	 * @throws IllegalArgumentException if any argument errors ware detected 
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	public static int parseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -168,10 +176,12 @@ public class CharUtils {
 	 * @param result array (new long[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseSignedLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	public static int parseSignedLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -206,9 +216,11 @@ public class CharUtils {
 	 * @param result array (new long[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseLongExtended(final char[] source, final int from, final long[] result, final boolean checkOverflow) {
+	public static int parseLongExtended(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -232,9 +244,11 @@ public class CharUtils {
 	 * @param result array (new double[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) {
+	public static int parseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -258,10 +272,12 @@ public class CharUtils {
 	 * @param result array (new double[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseSignedFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) {
+	public static int parseSignedFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -296,9 +312,11 @@ public class CharUtils {
 	 * @param result array (new double[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) {
+	public static int parseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -322,10 +340,12 @@ public class CharUtils {
 	 * @param result array (new double[1]) to store parsed value
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseSignedDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) {
+	public static int parseSignedDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -364,10 +384,12 @@ public class CharUtils {
 	 * @param preferences available data types you wish to get 
 	 * @param checkOverflow need check overflow when parsing data
 	 * @return position of the first char in the source after successful parsing of the current integer 
-	 * @throws IllegalArgumentException if any parsing errors ware detected
-	 * @since 0.0.1 last update 0.0.3 
+	 * @throws SyntaxException if any parsing errors ware detected
+	 * @throws IllegalArgumentException if any argument errors ware detected
+	 * @since 0.0.1 
+	 * @lastUpdate 0.0.3
 	 */
-	public static int parseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) {
+	public static int parseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) throws SyntaxException {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {

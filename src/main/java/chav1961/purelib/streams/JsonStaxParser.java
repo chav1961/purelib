@@ -461,7 +461,7 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 						detected = new SyntaxException(currentRow,currentCol,"Illegal char ["+temp[cursor]+"] in the stream");
 						return currentLex = JsonStaxParserLexType.ERROR;
 				}
-			} catch (IOException e) {
+			} catch (IOException | SyntaxException e) {
 				detected = e;
 				return currentLex = JsonStaxParserLexType.ERROR;
 			}
