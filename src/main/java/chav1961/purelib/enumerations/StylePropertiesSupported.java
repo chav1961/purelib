@@ -3,6 +3,8 @@ package chav1961.purelib.enumerations;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
@@ -496,6 +498,22 @@ public enum StylePropertiesSupported {
 			return forValue(value.toCharArray());
 		}
 	}
+
+	public StylePropertiesSupported getAggregate() {
+		return getAggregateProperty(this);
+	}
+	
+	public StylePropertiesSupported[] getDetails() {
+		return getProperties4Aggregate(this);
+	}
+	
+	public EnumMap<StylePropertiesSupported,String> split(final String value) {
+		return null;
+	}
+	
+	public String join(final EnumMap<StylePropertiesSupported,String> content) {
+		return null;
+	}
 	
 	public <T> T forValue(final char[] value) {
 		if (value == null || value.length == 0) {
@@ -608,6 +626,568 @@ public enum StylePropertiesSupported {
 			return null;
 		}
 	}	
+
+	public static StylePropertiesSupported getAggregateProperty(final StylePropertiesSupported property) {
+		if (property == null) {
+			throw new NullPointerException("Property name can't be null");
+		}
+		else {
+			switch (property) {
+				case _float:
+					break;
+				case background:
+					break;
+				case background_attachment:
+					break;
+				case background_clip:
+					break;
+				case background_color:
+					break;
+				case background_image:
+					break;
+				case background_origin:
+					break;
+				case background_position:
+					break;
+				case background_repeat:
+					break;
+				case background_size:
+					break;
+				case border:
+					break;
+				case border_bottom:
+					break;
+				case border_bottom_color:
+					break;
+				case border_bottom_left_radius:
+					break;
+				case border_bottom_right_radius:
+					break;
+				case border_bottom_style:
+					break;
+				case border_bottom_width:
+					break;
+				case border_collapse:
+					break;
+				case border_color:
+					break;
+				case border_image:
+					break;
+				case border_left:
+					break;
+				case border_left_color:
+					break;
+				case border_left_style:
+					break;
+				case border_left_width:
+					break;
+				case border_radius:
+					break;
+				case border_right:
+					break;
+				case border_right_color:
+					break;
+				case border_right_style:
+					break;
+				case border_right_width:
+					break;
+				case border_spacing:
+					break;
+				case border_style:
+					break;
+				case border_top:
+					break;
+				case border_top_color:
+					break;
+				case border_top_left_radius:
+					break;
+				case border_top_right_radius:
+					break;
+				case border_top_style:
+					break;
+				case border_top_width:
+					break;
+				case border_width:
+					break;
+				case bottom:
+					break;
+				case box_shadow:
+					break;
+				case box_sizing:
+					break;
+				case caption_side:
+					break;
+				case clear:
+					break;
+				case clip:
+					break;
+				case color:
+					break;
+				case column_count:
+					break;
+				case column_gap:
+					break;
+				case column_rule:
+					break;
+				case column_width:
+					break;
+				case columns:
+					break;
+				case content:
+					break;
+				case counter_increment:
+					break;
+				case counter_reset:
+					break;
+				case cursor:
+					break;
+				case direction:
+					break;
+				case display:
+					break;
+				case empty_cells:
+					break;
+				case font:
+					break;
+				case font_family:
+					break;
+				case font_size:
+					break;
+				case font_stretch:
+					break;
+				case font_style:
+					break;
+				case font_variant:
+					break;
+				case font_weight:
+					break;
+				case height:
+					break;
+				case left:
+					break;
+				case letter_spacing:
+					break;
+				case line_height:
+					break;
+				case list_style:
+					break;
+				case list_style_image:
+					break;
+				case list_style_position:
+					break;
+				case list_style_type:
+					break;
+				case margin:
+					break;
+				case margin_bottom:
+					break;
+				case margin_left:
+					break;
+				case margin_right:
+					break;
+				case margin_top:
+					break;
+				case max_height:
+					break;
+				case max_width:
+					break;
+				case min_height:
+					break;
+				case min_width:
+					break;
+				case opacity:
+					break;
+				case orphans:
+					break;
+				case outline:
+					break;
+				case outline_color:
+					break;
+				case outline_offset:
+					break;
+				case outline_style:
+					break;
+				case outline_width:
+					break;
+				case overflow:
+					break;
+				case overflow_x:
+					break;
+				case overflow_y:
+					break;
+				case padding:
+					break;
+				case padding_bottom:
+					break;
+				case padding_left:
+					break;
+				case padding_right:
+					break;
+				case padding_top:
+					break;
+				case page_break_after:
+					break;
+				case page_break_before:
+					break;
+				case page_break_inside:
+					break;
+				case position:
+					break;
+				case quotes:
+					break;
+				case resize:
+					break;
+				case right:
+					break;
+				case tab_size:
+					break;
+				case table_layout:
+					break;
+				case text_align:
+					break;
+				case text_align_last:
+					break;
+				case text_decoration:
+					break;
+				case text_decoration_color:
+					break;
+				case text_decoration_line:
+					break;
+				case text_decoration_style:
+					break;
+				case text_indent:
+					break;
+				case text_overflow:
+					break;
+				case text_shadow:
+					break;
+				case text_transform:
+					break;
+				case top:
+					break;
+				case transform:
+					break;
+				case transform_origin:
+					break;
+				case transition:
+					break;
+				case transition_delay:
+					break;
+				case transition_duration:
+					break;
+				case transition_property:
+					break;
+				case transition_timing_function:
+					break;
+				case unicode_bidi:
+					break;
+				case vertical_align:
+					break;
+				case visibility:
+					break;
+				case white_space:
+					break;
+				case widows:
+					break;
+				case width:
+					break;
+				case word_break:
+					break;
+				case word_spacing:
+					break;
+				case word_wrap:
+					break;
+				case writing_mode:
+					break;
+				case z_index:
+					break;
+				default :
+					throw new UnsupportedOperationException("Property name ["+property+"] is not supported yet");
+			}
+		}
+		return null;
+	}
+
+	public static StylePropertiesSupported[] getProperties4Aggregate(final StylePropertiesSupported aggregateProperty) {
+		if (aggregateProperty == null) {
+			throw new NullPointerException("Aggregate property name can't be null");
+		}
+		else {
+			switch (aggregateProperty) {
+				case _float:
+					break;
+				case background:
+					break;
+				case background_attachment:
+					break;
+				case background_clip:
+					break;
+				case background_color:
+					break;
+				case background_image:
+					break;
+				case background_origin:
+					break;
+				case background_position:
+					break;
+				case background_repeat:
+					break;
+				case background_size:
+					break;
+				case border:
+					break;
+				case border_bottom:
+					break;
+				case border_bottom_color:
+					break;
+				case border_bottom_left_radius:
+					break;
+				case border_bottom_right_radius:
+					break;
+				case border_bottom_style:
+					break;
+				case border_bottom_width:
+					break;
+				case border_collapse:
+					break;
+				case border_color:
+					break;
+				case border_image:
+					break;
+				case border_left:
+					break;
+				case border_left_color:
+					break;
+				case border_left_style:
+					break;
+				case border_left_width:
+					break;
+				case border_radius:
+					break;
+				case border_right:
+					break;
+				case border_right_color:
+					break;
+				case border_right_style:
+					break;
+				case border_right_width:
+					break;
+				case border_spacing:
+					break;
+				case border_style:
+					break;
+				case border_top:
+					break;
+				case border_top_color:
+					break;
+				case border_top_left_radius:
+					break;
+				case border_top_right_radius:
+					break;
+				case border_top_style:
+					break;
+				case border_top_width:
+					break;
+				case border_width:
+					break;
+				case bottom:
+					break;
+				case box_shadow:
+					break;
+				case box_sizing:
+					break;
+				case caption_side:
+					break;
+				case clear:
+					break;
+				case clip:
+					break;
+				case color:
+					break;
+				case column_count:
+					break;
+				case column_gap:
+					break;
+				case column_rule:
+					break;
+				case column_width:
+					break;
+				case columns:
+					break;
+				case content:
+					break;
+				case counter_increment:
+					break;
+				case counter_reset:
+					break;
+				case cursor:
+					break;
+				case direction:
+					break;
+				case display:
+					break;
+				case empty_cells:
+					break;
+				case font:
+					break;
+				case font_family:
+					break;
+				case font_size:
+					break;
+				case font_stretch:
+					break;
+				case font_style:
+					break;
+				case font_variant:
+					break;
+				case font_weight:
+					break;
+				case height:
+					break;
+				case left:
+					break;
+				case letter_spacing:
+					break;
+				case line_height:
+					break;
+				case list_style:
+					break;
+				case list_style_image:
+					break;
+				case list_style_position:
+					break;
+				case list_style_type:
+					break;
+				case margin:
+					break;
+				case margin_bottom:
+					break;
+				case margin_left:
+					break;
+				case margin_right:
+					break;
+				case margin_top:
+					break;
+				case max_height:
+					break;
+				case max_width:
+					break;
+				case min_height:
+					break;
+				case min_width:
+					break;
+				case opacity:
+					break;
+				case orphans:
+					break;
+				case outline:
+					break;
+				case outline_color:
+					break;
+				case outline_offset:
+					break;
+				case outline_style:
+					break;
+				case outline_width:
+					break;
+				case overflow:
+					break;
+				case overflow_x:
+					break;
+				case overflow_y:
+					break;
+				case padding:
+					break;
+				case padding_bottom:
+					break;
+				case padding_left:
+					break;
+				case padding_right:
+					break;
+				case padding_top:
+					break;
+				case page_break_after:
+					break;
+				case page_break_before:
+					break;
+				case page_break_inside:
+					break;
+				case position:
+					break;
+				case quotes:
+					break;
+				case resize:
+					break;
+				case right:
+					break;
+				case tab_size:
+					break;
+				case table_layout:
+					break;
+				case text_align:
+					break;
+				case text_align_last:
+					break;
+				case text_decoration:
+					break;
+				case text_decoration_color:
+					break;
+				case text_decoration_line:
+					break;
+				case text_decoration_style:
+					break;
+				case text_indent:
+					break;
+				case text_overflow:
+					break;
+				case text_shadow:
+					break;
+				case text_transform:
+					break;
+				case top:
+					break;
+				case transform:
+					break;
+				case transform_origin:
+					break;
+				case transition:
+					break;
+				case transition_delay:
+					break;
+				case transition_duration:
+					break;
+				case transition_property:
+					break;
+				case transition_timing_function:
+					break;
+				case unicode_bidi:
+					break;
+				case vertical_align:
+					break;
+				case visibility:
+					break;
+				case white_space:
+					break;
+				case widows:
+					break;
+				case width:
+					break;
+				case word_break:
+					break;
+				case word_spacing:
+					break;
+				case word_wrap:
+					break;
+				case writing_mode:
+					break;
+				case z_index:
+					break;
+				default :
+					throw new UnsupportedOperationException("Property name ["+aggregateProperty+"] is not supported yet");
+			}
+		}
+		return null;
+	}
 	
 	private static void advancedPreparation() {
 		for (StylePropertiesSupported item : values()) {

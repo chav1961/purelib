@@ -2178,23 +2178,6 @@ loop:		while (from < len) {
 		}
 	}
 
-	public static String getAggregateName4PropertyName(final String propName) {
-		return null;
-	}
-
-	public static String[] getPropertyNames4AggregateName(final String aggregateName) {
-		return null;
-	}
-	
-	public static Map<String,Object>[] splitCSSProperty(final Map<String,Object> attributes, final String propName) {
-		return null;
-	}	
-
-	public static Map<String,Object> joinCSSProperty(final Map<String,Object> attributes, final String aggregateName) {
-		return null;
-	}	
-	
-	
 	public static class StylePropValue<T> {
 		private final StylePropertiesSupported.ContentType	type;
 		private final StylePropertiesSupported				prop;

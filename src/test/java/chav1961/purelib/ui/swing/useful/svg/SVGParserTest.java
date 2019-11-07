@@ -1,6 +1,6 @@
 package chav1961.purelib.ui.swing.useful.svg;
 
-import static org.junit.Assert.*;
+import org.junit.Assert;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
