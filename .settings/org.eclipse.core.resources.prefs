@@ -1,7 +1,7 @@
 eclipse.preferences.version=1
 encoding//src/main/java/chav1961/purelib/basic/XMLUtils.java=UTF-8
 encoding//src/main/java/chav1961/purelib/basic/gettersandsettersmacros.txt=UTF-8
-encoding//src/main/java/chav1961/purelib/basic/xsd/SVG.xsd=UTF-8
+encoding//src/main/java/chav1961/purelib/basic/xsd/SVG_restricted.xsd=UTF-8
 encoding//src/main/java/chav1961/purelib/model/macros.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/nanoservice/macros.txt=UTF-8
 encoding//src/main/java/chav1961/purelib/streams/char2byte/asm/macro/macrocompiler.txt=UTF-8

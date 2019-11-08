@@ -183,7 +183,7 @@ public enum StylePropertiesSupported {
 		distance, distanceOrKeyword, time, timeOrKeyword, url, urlOrKeyword, function, functionOrKeyword,
 		compoundChoise, compoundSequence, subStyle, asIs
 	}
-	
+
 	public static class Keyword {
 		public static final Keyword	INHERITED = new Keyword(StylePropertiesSupported.INHERITED_ID,StylePropertiesSupported.INHERITED_KEYWORD); 
 		
@@ -747,20 +747,13 @@ public enum StylePropertiesSupported {
 					break;
 				case empty_cells:
 					break;
-				case font:
-					break;
-				case font_family:
-					break;
-				case font_size:
-					break;
-				case font_stretch:
-					break;
-				case font_style:
-					break;
-				case font_variant:
-					break;
-				case font_weight:
-					break;
+				case font			: return null;
+				case font_family	: return font;
+				case font_size		: return font;
+				case font_stretch	: return font;
+				case font_style		: return font;
+				case font_variant	: return font;
+				case font_weight	: return font;
 				case height:
 					break;
 				case left:
@@ -1028,20 +1021,13 @@ public enum StylePropertiesSupported {
 					break;
 				case empty_cells:
 					break;
-				case font:
-					break;
-				case font_family:
-					break;
-				case font_size:
-					break;
-				case font_stretch:
-					break;
-				case font_style:
-					break;
-				case font_variant:
-					break;
-				case font_weight:
-					break;
+				case font			: return new StylePropertiesSupported[]{font_family, font_size, font_stretch, font_style, font_variant, font_weight};
+				case font_family	: return null;
+				case font_size		: return null;
+				case font_stretch	: return null;
+				case font_style		: return null;
+				case font_variant	: return null;
+				case font_weight	: return null;
 				case height:
 					break;
 				case left:
@@ -1188,6 +1174,15 @@ public enum StylePropertiesSupported {
 		}
 		return null;
 	}
+
+	
+	public static EnumMap<StylePropertiesSupported,String> disassemble(final StylePropertiesSupported prop, final String value) {
+		return null;
+	}	
+	
+	public static String assemble(final StylePropertiesSupported prop, final EnumMap<StylePropertiesSupported,String> values) {
+		return null;
+	}	
 	
 	private static void advancedPreparation() {
 		for (StylePropertiesSupported item : values()) {

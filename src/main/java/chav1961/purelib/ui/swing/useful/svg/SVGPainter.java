@@ -13,25 +13,44 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 
+import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.CharUtils.SubstitutionSource;
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.interfaces.ConvertorInterface;
+import chav1961.purelib.basic.interfaces.OnlineBooleanGetter;
+import chav1961.purelib.basic.interfaces.OnlineCharGetter;
+import chav1961.purelib.basic.interfaces.OnlineDoubleGetter;
 import chav1961.purelib.basic.interfaces.OnlineFloatGetter;
+import chav1961.purelib.basic.interfaces.OnlineGetter;
+import chav1961.purelib.basic.interfaces.OnlineIntGetter;
+import chav1961.purelib.basic.interfaces.OnlineLongGetter;
 import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
 import chav1961.purelib.basic.interfaces.OnlineStringGetter;
 
 public class SVGPainter {
+	public enum FillPolicy {
+		AS_IS, FILL_MIN, FILL_MAX, FILL_X, FILL_Y, FILL_BOTH
+	}
+	
+	
 	interface PrimitivePainter {
 		void paint(Graphics2D g2d);
 	}
-	
+
 	private final Color				background = Color.WHITE;
-	private final AbstractPainter[]	primitives;
 	private final int				width, height;
+	private final FillPolicy		policy;
+	private final AbstractPainter[]	primitives;
 	
-	protected SVGPainter(final int width, final int height, final AbstractPainter... primitives) {
+	protected SVGPainter(final int width, final int height, final FillPolicy policy, final AbstractPainter... primitives) {
 		if (width <= 0) {
 			throw new IllegalArgumentException("Width ["+width+"] must be positive"); 
 		}
 		else if (height <= 0) {
 			throw new IllegalArgumentException("Height ["+height+"] must be positive"); 
+		}
+		else if (policy == null) {
+			throw new NullPointerException("Fill policy can't be null"); 
 		}
 		else if (primitives == null || primitives.length == 0) {
 			throw new IllegalArgumentException("Primitive list can't be null or empty"); 
@@ -39,6 +58,7 @@ public class SVGPainter {
 		else {
 			this.width = width;
 			this.height = height;
+			this.policy = policy;
 			this.primitives = primitives;
 		}
 	}
@@ -71,7 +91,33 @@ public class SVGPainter {
 	
 	protected AffineTransform pickCoordinates(final AffineTransform oldAt, final int fillWidth, final int fillHeight) {
 		final AffineTransform	at = new AffineTransform(oldAt);
-		final double			scaleX = 1.0*fillWidth/getWidth(), scaleY = 1.0*fillHeight/getHeight();  
+		double					scaleX = 1.0, scaleY = 1.0;  
+		
+		switch (policy) {
+			case AS_IS	:
+				scaleX = scaleY = 1.0;
+				break;
+			case FILL_BOTH:
+				scaleX = 1.0*fillWidth/getWidth();
+				scaleY = 1.0*fillHeight/getHeight();  
+				break;
+			case FILL_MAX:
+				scaleX = 1.0*fillWidth/getWidth();
+				scaleY = 1.0*fillHeight/getHeight();
+				scaleX = scaleY = Math.max(scaleX,scaleY);
+				break;
+			case FILL_MIN:
+				scaleX = 1.0*fillWidth/getWidth();
+				scaleY = 1.0*fillHeight/getHeight();
+				scaleX = scaleY = Math.min(scaleX,scaleY);
+				break;
+			case FILL_X:
+				break;
+			case FILL_Y:
+				break;
+			default:
+				throw new UnsupportedOperationException("Fill policy ["+policy+"] is not implemented yet");
+		}
 		
 		at.scale(scaleX,scaleY);
 		return at;
@@ -121,16 +167,40 @@ public class SVGPainter {
 
 	protected static class DynamicLinePainter extends AbstractPainter {
 		private final OnlineFloatGetter				x1, y1, x2, y2;
+		private final Line2D						line;
 		private final OnlineObjectGetter<Color>		drawColorGetter;
+		private final Color							drawColor;
 		private final OnlineObjectGetter<Stroke>	strokeGetter;
+		private final Stroke						stroke;
 		
 		DynamicLinePainter(final OnlineFloatGetter x1, final OnlineFloatGetter y1, final OnlineFloatGetter x2, final OnlineFloatGetter y2, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Stroke> drawStrokeGetter) {
-			this.x1 = x1;
-			this.y1 = y1;
-			this.x2 = x2;
-			this.y2 = y2;
-			this.drawColorGetter = drawColorGetter;
-			this.strokeGetter = drawStrokeGetter;
+			if (x1.isImmutable() && y1.isImmutable() && x2.isImmutable() && y2.isImmutable()) {
+				this.line = new Line2D.Float(x1.get(), y1.get(), x2.get(), y2.get());
+				this.x1 = this.y1 = this.x2 = this.y2 = null;    
+			}
+			else {
+				this.line = null;
+				this.x1 = x1;
+				this.y1 = y1;
+				this.x2 = x2;
+				this.y2 = y2;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (drawStrokeGetter.isImmutable()) {
+				this.stroke = drawStrokeGetter.get();
+				this.strokeGetter = null;
+			}
+			else {
+				this.stroke = null;
+				this.strokeGetter = drawStrokeGetter;
+			}
 		}
 		
 		@Override
@@ -138,9 +208,9 @@ public class SVGPainter {
 			final Color				oldColor = g2d.getColor();
 			final Stroke			oldStroke = g2d.getStroke();
 			
-			g2d.setColor(drawColorGetter.get());
-			g2d.setStroke(strokeGetter.get());
-			g2d.draw(new Line2D.Float(x1.get(), y1.get(), x2.get(), y2.get()));
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
+			g2d.draw(line != null ? line : new Line2D.Float(x1.get(), y1.get(), x2.get(), y2.get()));
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
 		}
@@ -208,69 +278,86 @@ public class SVGPainter {
 
 	protected static class DynamicRectPainter extends AbstractPainter {
 		private final OnlineFloatGetter				x, y, w, h, rx, ry;
-		private final OnlineObjectGetter<Color>		drawColor, fillColor;
-		private final OnlineObjectGetter<Stroke>	stroke;
+		private final RectangularShape				shape;
+		private final OnlineObjectGetter<Color>		drawColorGetter, fillColorGetter;
+		private final Color							drawColor, fillColor;		 
+		private final OnlineObjectGetter<Stroke>	strokeGetter;
+		private final Stroke						stroke;
 		
 		DynamicRectPainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter w, final OnlineFloatGetter h, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> stroke) {
-			this.x = x;
-			this.y = y;
-			this.w = w;
-			this.h = h;
-			this.rx = OnlineFloatGetter.forValue(0);
-			this.ry = OnlineFloatGetter.forValue(0);
-			this.drawColor = drawColor;
-			this.fillColor = null;
-			this.stroke = stroke;
+			this(x,y,w,h,OnlineFloatGetter.forValue(0),OnlineFloatGetter.forValue(0),drawColor,null,stroke);
 		}
 
 		DynamicRectPainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter w, final OnlineFloatGetter h, final OnlineFloatGetter rx, final OnlineFloatGetter ry, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> stroke) {
-			this.x = x;
-			this.y = y;
-			this.w = w;
-			this.h = h;
-			this.rx = rx;
-			this.ry = ry;
-			this.drawColor = drawColor;
-			this.fillColor = null;
-			this.stroke = stroke;
+			this(x,y,w,h,rx,ry,drawColor,null,stroke);
 		}
 
 		DynamicRectPainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter w, final OnlineFloatGetter h, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Color> fillColor, final OnlineObjectGetter<Stroke> stroke) {
-			this.x = x;
-			this.y = y;
-			this.w = w;
-			this.h = h;
-			this.rx = OnlineFloatGetter.forValue(0);
-			this.ry = OnlineFloatGetter.forValue(0);
-			this.drawColor = drawColor;
-			this.fillColor = fillColor;
-			this.stroke = stroke;
+			this(x,y,w,h,OnlineFloatGetter.forValue(0),OnlineFloatGetter.forValue(0),drawColor,fillColor,stroke);
 		}
 
-		DynamicRectPainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter w, final OnlineFloatGetter h, final OnlineFloatGetter rx, final OnlineFloatGetter ry, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Color> fillColor, final OnlineObjectGetter<Stroke> stroke) {
-			this.x = x;
-			this.y = y;
-			this.w = w;
-			this.h = h;
-			this.rx = rx;
-			this.ry = ry;
-			this.drawColor = drawColor;
-			this.fillColor = fillColor;
-			this.stroke = stroke;
+		DynamicRectPainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter w, final OnlineFloatGetter h, final OnlineFloatGetter rx, final OnlineFloatGetter ry, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
+			if (x.isImmutable() && y.isImmutable() && w.isImmutable() && h.isImmutable()) {
+				this.shape = new RoundRectangle2D.Float(x.get(), y.get(), w.get(), h.get(), rx.get(), ry.get());
+				this.x = this.y = this.w = this.h = this.rx = this.ry = null;
+			}
+			else {
+				this.shape = null;
+				this.x = x;
+				this.y = y;
+				this.w = w;
+				this.h = h;
+				this.rx = rx;
+				this.ry = ry;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (fillColorGetter != null) {
+				if (fillColorGetter.isImmutable()) {
+					this.fillColor = fillColorGetter.get(); 
+					this.fillColorGetter = null;
+				}
+				else {
+					this.fillColor = null;
+					this.fillColorGetter = fillColorGetter;
+				}
+			}
+			else {
+				this.fillColor = null;
+				this.fillColorGetter = null;
+			}
+			if (strokeGetter.isImmutable()) {
+				this.stroke = strokeGetter.get();
+				this.strokeGetter = null;
+			}
+			else {
+				this.stroke = null;
+				this.strokeGetter = strokeGetter;
+			}
 		}
 		
 		@Override
 		public void paint(final Graphics2D g2d) {
 			final Color				oldColor = g2d.getColor();
 			final Stroke			oldStroke = g2d.getStroke();
-			final RectangularShape	rect = new RoundRectangle2D.Float(x.get(), y.get(), w.get(), h.get(), rx.get(), ry.get());
+			final RectangularShape	rect = shape != null ? shape : new RoundRectangle2D.Float(x.get(), y.get(), w.get(), h.get(), rx.get(), ry.get());
 
 			if (fillColor != null) {
-				g2d.setColor(fillColor.get());
+				g2d.setColor(fillColor);
 				g2d.fill(rect);
 			}
-			g2d.setColor(drawColor.get());
-			g2d.setStroke(stroke.get());
+			else if (fillColorGetter != null) {
+				g2d.setColor(fillColorGetter.get());
+				g2d.fill(rect);
+			}
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
 			g2d.draw(rect);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
@@ -325,25 +412,59 @@ public class SVGPainter {
 
 	protected static class DynamicCirclePainter extends AbstractPainter {
 		private final OnlineFloatGetter				x, y, r;
-		private final OnlineObjectGetter<Color>		drawColor, fillColor;
-		private final OnlineObjectGetter<Stroke>	stroke;
+		private final Ellipse2D						ellipse;
+		private final OnlineObjectGetter<Color>		drawColorGetter, fillColorGetter;
+		private final Color							drawColor, fillColor;
+		private final OnlineObjectGetter<Stroke>	strokeGetter;
+		private final Stroke						stroke;
 		
 		DynamicCirclePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter r, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.drawColor = drawColor;
-			this.fillColor = null;
-			this.stroke = drawStroke;
-			this.x = x;
-			this.y = y;
-			this.r = r;
+			this(x, y, r, drawColor, null, drawStroke);
 		}
 
-		DynamicCirclePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter r, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Color> fillColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.drawColor = drawColor;
-			this.fillColor = fillColor;
-			this.stroke = drawStroke;
-			this.x = x;
-			this.y = y;
-			this.r = r;
+		DynamicCirclePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter r, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
+			if (x.isImmutable() && y.isImmutable() && r.isImmutable()) {
+				final float				radius = r.get();
+				
+				this.ellipse = new Ellipse2D.Float(x.get()-radius, y.get()-radius, 2*radius, 2*radius);
+				this.x = this.y = this.r = null;
+			}
+			else {
+				this.ellipse = null;
+				this.x = x;
+				this.y = y;
+				this.r = r;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (fillColorGetter != null) {
+				if (fillColorGetter.isImmutable()) {
+					this.fillColor = fillColorGetter.get(); 
+					this.fillColorGetter = null;
+				}
+				else {
+					this.fillColor = null;
+					this.fillColorGetter = fillColorGetter;
+				}
+			}
+			else {
+				this.fillColor = null;
+				this.fillColorGetter = null;
+			}
+			if (strokeGetter.isImmutable()) {
+				this.stroke = strokeGetter.get();
+				this.strokeGetter = null;
+			}
+			else {
+				this.stroke = null;
+				this.strokeGetter = strokeGetter;
+			}
 		}
 		
 		@Override
@@ -351,15 +472,19 @@ public class SVGPainter {
 			final Color				oldColor = g2d.getColor();
 			final Stroke			oldStroke = g2d.getStroke();
 			final float				radius = r.get();
-			final Ellipse2D			ellipse = new Ellipse2D.Float(x.get()-radius, y.get()-radius, 2*radius, 2*radius);
+			final Ellipse2D			ell = ellipse != null ? ellipse : new Ellipse2D.Float(x.get()-radius, y.get()-radius, 2*radius, 2*radius);
 					
 			if (fillColor != null) {
-				g2d.setColor(fillColor.get());
-				g2d.fill(ellipse);
+				g2d.setColor(fillColor);
+				g2d.fill(ell);
 			}
-			g2d.setColor(drawColor.get());
-			g2d.setStroke(stroke.get());
-			g2d.draw(ellipse);
+			else if (fillColorGetter != null) {
+				g2d.setColor(fillColorGetter.get());
+				g2d.fill(ell);
+			}
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
+			g2d.draw(ell);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
 		}
@@ -413,43 +538,80 @@ public class SVGPainter {
 
 	protected static class DynamicEllipsePainter extends AbstractPainter {
 		private final OnlineFloatGetter				x, y, rx, ry;
-		private final OnlineObjectGetter<Color>		drawColor, fillColor;
-		private final OnlineObjectGetter<Stroke>	stroke;
+		private final Ellipse2D						ellipse;
+		private final OnlineObjectGetter<Color>		drawColorGetter, fillColorGetter;
+		private final Color							drawColor, fillColor;
+		private final OnlineObjectGetter<Stroke>	strokeGetter;
+		private final Stroke						stroke;
 		
 		DynamicEllipsePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter rx, final OnlineFloatGetter ry, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.drawColor = drawColor;
-			this.fillColor = null;
-			this.stroke = drawStroke;
-			this.x = x;
-			this.y = y;
-			this.rx = rx;
-			this.ry = ry;
+			this(x, y, rx, ry, drawColor, null, drawStroke);
 		}
 
-		DynamicEllipsePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter rx, final OnlineFloatGetter ry, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Color> fillColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.drawColor = drawColor;
-			this.fillColor = fillColor;
-			this.stroke = drawStroke;
-			this.x = x;
-			this.y = y;
-			this.rx = rx;
-			this.ry = ry;
+		DynamicEllipsePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter rx, final OnlineFloatGetter ry, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
+			if (x.isImmutable() && y.isImmutable() && rx.isImmutable() && ry.isImmutable()) {
+				final float		radiusX = rx.get(), radiusY = ry.get();
+				
+				this.ellipse = new Ellipse2D.Float(x.get()-radiusX, y.get()-radiusY, 2*radiusX, 2*radiusY);
+				this.x = this.y = this.rx = this.ry = null;    
+			}
+			else {
+				this.ellipse = null;
+				this.x = x;
+				this.y = y;
+				this.rx = rx;
+				this.ry = ry;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (fillColorGetter != null) {
+				if (fillColorGetter.isImmutable()) {
+					this.fillColor = fillColorGetter.get(); 
+					this.fillColorGetter = null;
+				}
+				else {
+					this.fillColor = null;
+					this.fillColorGetter = fillColorGetter;
+				}
+			}
+			else {
+				this.fillColor = null;
+				this.fillColorGetter = null;
+			}
+			if (strokeGetter.isImmutable()) {
+				this.stroke = strokeGetter.get();
+				this.strokeGetter = null;
+			}
+			else {
+				this.stroke = null;
+				this.strokeGetter = strokeGetter;
+			}
 		}
 		
 		@Override
 		public void paint(final Graphics2D g2d) {
-			final Color		oldColor = g2d.getColor();
-			final Stroke	oldStroke = g2d.getStroke();
-			final float		radiusX = rx.get(), radiusY = ry.get();
-			final Ellipse2D	ellipse = new Ellipse2D.Float(x.get()-radiusX, y.get()-radiusY, 2*radiusX, 2*radiusY);
-			
+			final Color				oldColor = g2d.getColor();
+			final Stroke			oldStroke = g2d.getStroke();
+			final float				radiusX = rx.get(), radiusY = ry.get();
+			final Ellipse2D			ell = ellipse != null ? ellipse : new Ellipse2D.Float(x.get()-radiusX, y.get()-radiusY, 2*radiusX, 2*radiusY);
+					
 			if (fillColor != null) {
-				g2d.setColor(fillColor.get());
-				g2d.fill(ellipse);
+				g2d.setColor(fillColor);
+				g2d.fill(ell);
 			}
-			g2d.setColor(drawColor.get());
-			g2d.setStroke(stroke.get());
-			g2d.draw(ellipse);
+			else if (fillColorGetter != null) {
+				g2d.setColor(fillColorGetter.get());
+				g2d.fill(ell);
+			}
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
+			g2d.draw(ell);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
 		}
@@ -496,14 +658,38 @@ public class SVGPainter {
 	}
 
 	protected static class DynamicPolylinePainter extends AbstractPainter {
-		private final OnlineObjectGetter<Point2D[]>	points;
-		private final OnlineObjectGetter<Color>		drawColor;
-		private final OnlineObjectGetter<Stroke>	stroke;
-		
-		DynamicPolylinePainter(final OnlineObjectGetter<Point2D[]> points, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.points = points;
- 			this.drawColor = drawColor;
-			this.stroke = drawStroke;
+		private final OnlineObjectGetter<Point2D[]>	pointsGetter;
+		private final Point2D[]						points;
+		private final OnlineObjectGetter<Color>		drawColorGetter;
+		private final Color							drawColor;
+		private final OnlineObjectGetter<Stroke>	strokeGetter;
+		private final Stroke						stroke;
+
+		DynamicPolylinePainter(final OnlineObjectGetter<Point2D[]> pointsGetter, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
+			if (pointsGetter.isImmutable()) {
+				this.points = pointsGetter.get();
+				this.pointsGetter = null;
+			}
+			else {
+				this.points = null;
+				this.pointsGetter = pointsGetter;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (strokeGetter.isImmutable()) {
+				this.stroke = strokeGetter.get();
+				this.strokeGetter = null;
+			}
+			else {
+				this.stroke = null;
+				this.strokeGetter = strokeGetter;
+			}
 		}
 
 		@Override
@@ -511,15 +697,15 @@ public class SVGPainter {
 			final Color			oldColor = g2d.getColor();
 			final Stroke		oldStroke = g2d.getStroke();
 			final GeneralPath	path = new GeneralPath();
-			final Point2D[] 	pointList = points.get(); 
+			final Point2D[] 	pointList = points != null ? points : pointsGetter.get(); 
 			
 			path.moveTo(pointList[0].getX(),pointList[0].getY());
 			for (int index = 1; index < pointList.length; index++) {
 				path.lineTo(pointList[index].getX(),pointList[index].getY());
 			}
 			
-			g2d.setColor(drawColor.get());
-			g2d.setStroke(stroke.get());
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
 			g2d.draw(path);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
@@ -585,22 +771,56 @@ public class SVGPainter {
 	}
 
 	protected static class DynamicPolygonPainter extends AbstractPainter {
-		private final OnlineObjectGetter<Point2D[]>	points;
-		private final OnlineObjectGetter<Color>		drawColor, fillColor;
-		private final OnlineObjectGetter<Stroke>	stroke;
+		private final OnlineObjectGetter<Point2D[]>	pointsGetter;
+		private final Point2D[]						points;
+		private final OnlineObjectGetter<Color>		drawColorGetter, fillColorGetter;
+		private final Color							drawColor, fillColor;
+		private final OnlineObjectGetter<Stroke>	strokeGetter;
+		private final Stroke						stroke;
 		
 		DynamicPolygonPainter(final OnlineObjectGetter<Point2D[]> points, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.points = points;
- 			this.drawColor = drawColor;
- 			this.fillColor = null;
-			this.stroke = drawStroke;
+			this(points,drawColor,null,drawStroke);
 		}
 
-		DynamicPolygonPainter(final OnlineObjectGetter<Point2D[]> points, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Color> fillColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.points = points;
- 			this.drawColor = drawColor;
- 			this.fillColor = fillColor;
-			this.stroke = drawStroke;
+		DynamicPolygonPainter(final OnlineObjectGetter<Point2D[]> pointsGetter, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
+			if (pointsGetter.isImmutable()) {
+				this.points = pointsGetter.get();
+				this.pointsGetter = null;
+			}
+			else {
+				this.points = null;
+				this.pointsGetter = pointsGetter;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (fillColorGetter != null) {
+				if (fillColorGetter.isImmutable()) {
+					this.fillColor = fillColorGetter.get(); 
+					this.fillColorGetter = null;
+				}
+				else {
+					this.fillColor = null;
+					this.fillColorGetter = fillColorGetter;
+				}
+			}
+			else {
+				this.fillColor = null;
+				this.fillColorGetter = null;
+			}
+			if (strokeGetter.isImmutable()) {
+				this.stroke = strokeGetter.get();
+				this.strokeGetter = null;
+			}
+			else {
+				this.stroke = null;
+				this.strokeGetter = strokeGetter;
+			}
 		}
 		
 		@Override
@@ -608,7 +828,7 @@ public class SVGPainter {
 			final Color			oldColor = g2d.getColor();
 			final Stroke		oldStroke = g2d.getStroke();
 			final GeneralPath	path = new GeneralPath();
-			final Point2D[] 	pointList = points.get(); 
+			final Point2D[] 	pointList = points != null ? points : pointsGetter.get(); 
 			
 			path.moveTo(pointList[0].getX(),pointList[0].getY());
 			for (int index = 1; index < pointList.length; index++) {
@@ -617,12 +837,16 @@ public class SVGPainter {
 			path.closePath();
 			
 			if (fillColor != null) {
-				g2d.setColor(fillColor.get());
+				g2d.setColor(fillColor);
+				g2d.fill(path);
+			}
+			else if (fillColorGetter != null) {
+				g2d.setColor(fillColorGetter.get());
 				g2d.fill(path);
 			}
 			
-			g2d.setColor(drawColor.get());
-			g2d.setStroke(stroke.get());
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
 			g2d.draw(path);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
@@ -676,37 +900,76 @@ public class SVGPainter {
 	}
 
 	protected static class DynamicPathPainter extends AbstractPainter {
-		private final OnlineObjectGetter<GeneralPath>	path;
-		private final OnlineObjectGetter<Color>			drawColor, fillColor;
-		private final OnlineObjectGetter<Stroke>		stroke;
+		private final OnlineObjectGetter<GeneralPath>	pathGetter;
+		private final GeneralPath						path;
+		private final OnlineObjectGetter<Color>			drawColorGetter, fillColorGetter;
+		private final Color								drawColor, fillColor;
+		private final OnlineObjectGetter<Stroke>		strokeGetter;
+		private final Stroke							stroke;
 		
 		DynamicPathPainter(final OnlineObjectGetter<GeneralPath> path, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.path = path;
- 			this.drawColor = drawColor;
-			this.fillColor = null;
-			this.stroke = drawStroke;
+			this(path,drawColor,null,drawStroke);
 		}
 
-		DynamicPathPainter(final OnlineObjectGetter<GeneralPath> path, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Color> fillColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this.path = path;
- 			this.drawColor = drawColor;
-			this.fillColor = fillColor;
-			this.stroke = drawStroke;
+		DynamicPathPainter(final OnlineObjectGetter<GeneralPath> pathGetter, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
+			if (pathGetter.isImmutable()) {
+				this.path = pathGetter.get();
+				this.pathGetter = null;
+			}
+			else {
+				this.path = null;
+				this.pathGetter = pathGetter;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (fillColorGetter != null) {
+				if (fillColorGetter.isImmutable()) {
+					this.fillColor = fillColorGetter.get(); 
+					this.fillColorGetter = null;
+				}
+				else {
+					this.fillColor = null;
+					this.fillColorGetter = fillColorGetter;
+				}
+			}
+			else {
+				this.fillColor = null;
+				this.fillColorGetter = null;
+			}
+			if (strokeGetter.isImmutable()) {
+				this.stroke = strokeGetter.get();
+				this.strokeGetter = null;
+			}
+			else {
+				this.stroke = null;
+				this.strokeGetter = strokeGetter;
+			}
 		}
 		
 		@Override
 		public void paint(final Graphics2D g2d) {
 			final Color			oldColor = g2d.getColor();
 			final Stroke		oldStroke = g2d.getStroke();
-			final GeneralPath	path2Draw = path.get();
+			final GeneralPath	path2Draw = path != null ? path : pathGetter.get();
 			
 			if (fillColor != null) {
-				g2d.setColor(fillColor.get());
-				g2d.fill(path2Draw);
+				g2d.setColor(fillColor);
+				g2d.fill(path);
 			}
-			g2d.setColor(drawColor.get());
-			g2d.setStroke(stroke.get());
-			g2d.draw(path2Draw);
+			else if (fillColorGetter != null) {
+				g2d.setColor(fillColorGetter.get());
+				g2d.fill(path);
+			}
+			
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
+			g2d.draw(path);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
 		}
@@ -757,18 +1020,50 @@ public class SVGPainter {
 
 	protected static class DynamicTextPainter extends AbstractPainter {
 		private final OnlineFloatGetter						x, y;
-		private final OnlineStringGetter					text;
-		private final OnlineObjectGetter<Font>				font;
-		private final OnlineObjectGetter<Color>				drawColor;
-		private final OnlineObjectGetter<AffineTransform>	transform;
+		private final OnlineStringGetter					textGetter;
+		private final String								text;
+		private final OnlineObjectGetter<Font>				fontGetter;
+		private final Font									font;
+		private final OnlineObjectGetter<Color>				drawColorGetter;
+		private final Color									drawColor;
+		private final OnlineObjectGetter<AffineTransform>	transformGetter;
+		private final AffineTransform						transform;
 		
-		DynamicTextPainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineStringGetter text, final OnlineObjectGetter<Font> font, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<AffineTransform> transform) {
+		DynamicTextPainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineStringGetter textGetter, final OnlineObjectGetter<Font> fontGetter, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<AffineTransform> transformGetter) {
 			this.x = x;
 			this.y = y;
-			this.text = text;
-			this.font = font;
- 			this.drawColor = drawColor;
- 			this.transform = transform;
+			if (textGetter.isImmutable()) {
+				this.text = textGetter.get();
+				this.textGetter = null;
+			}
+			else {
+				this.text = null;
+				this.textGetter = textGetter;
+			}
+			if (fontGetter.isImmutable()) {
+				this.font = fontGetter.get();
+				this.fontGetter = null;
+			}
+			else {
+				this.font = null;
+				this.fontGetter = fontGetter;
+			}
+			if (drawColorGetter.isImmutable()) {
+				this.drawColor = drawColorGetter.get(); 
+				this.drawColorGetter = null;
+			}
+			else {
+				this.drawColor = null;
+				this.drawColorGetter = drawColorGetter;
+			}
+			if (transformGetter.isImmutable()) {
+				this.transform = transformGetter.get(); 
+				this.transformGetter = null;
+			}
+			else {
+				this.transform = null;
+				this.transformGetter = transformGetter;
+			}
 		}
 
 		@Override
@@ -777,11 +1072,11 @@ public class SVGPainter {
 			final Font				oldFont = g2d.getFont();
 			final AffineTransform	oldAt = g2d.getTransform(), clone = (AffineTransform)oldAt.clone();
 			
-			g2d.setColor(drawColor.get());
-			g2d.setFont(font.get());
-			clone.concatenate(transform.get());
+			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
+			g2d.setFont(font != null ? font : fontGetter.get());
+			clone.concatenate(transform != null ? transform : transformGetter.get());
 			g2d.setTransform(clone);
-			g2d.drawString(text.get(), x.get(), y.get());
+			g2d.drawString(text != null ? text : textGetter.get(), x.get(), y.get());
 			g2d.setTransform(oldAt);
 			g2d.setFont(oldFont);
 			g2d.setColor(oldColor);			

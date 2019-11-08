@@ -48,5 +48,5 @@ public enum XSDCollection {
 	/**
 	 * <p>Official XSD scheme for SVG format (see https://www.w3.org/TR/2002/WD-SVG11-20020108/SVG.xsd)</p>
 	 */
-	SVG,
+	SVG_restricted,
 }
