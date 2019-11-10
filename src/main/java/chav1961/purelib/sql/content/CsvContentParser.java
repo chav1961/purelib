@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
@@ -77,7 +78,7 @@ public class CsvContentParser implements ResultSetContentParser {
 	
 	@Override
 	public boolean canServe(final URI request) {
-		return Utils.canServeURI(request,URI_TEMPLATE);
+		return URIUtils.canServeURI(request,URI_TEMPLATE);
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.util.Map;
 
+import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.CharUtils.SubstitutionSource;
@@ -388,7 +389,7 @@ loop:		for (;;) {
 
 	static <T> T convertTo(final Class<T> awaited, final String source) throws SyntaxException {
 		if (awaited.isAssignableFrom(Color.class)) {
-			return awaited.cast(XMLUtils.asColor(source));
+			return awaited.cast(CSSUtils.asColor(source));
 		}
 		else if (awaited.isAssignableFrom(Stroke.class)) {
 			final char[]	widthContent = source.toCharArray();
@@ -398,7 +399,7 @@ loop:		for (;;) {
 			return awaited.cast(new BasicStroke(result[0]));
 		}
 		else if (awaited.isAssignableFrom(AffineTransform.class)) {
-			return awaited.cast(XMLUtils.asTransform(source));
+			return awaited.cast(CSSUtils.asTransform(source));
 		}
 		else if (awaited.isAssignableFrom(Point2D[].class)) {
 			return awaited.cast(SVGUtils.extractPoints(source));
@@ -444,7 +445,7 @@ loop:		for (;;) {
 				final String	fontSize = (String)(attributes.containsKey("font-size") ? attributes.get("font-size").toString() : "12pt");
 				final String	fontWeight = (String)(attributes.containsKey("font-weight") ? attributes.get("font-weight").toString() : "normal");
 				final String	fontStyle = (String)(attributes.containsKey("font-style") ? attributes.get("font-style").toString() : "normal");
-				final int		size = (int)XMLUtils.asDistance(fontSize).getValueAs(XMLUtils.Distance.Units.pt);
+				final int		size = (int)CSSUtils.asDistance(fontSize).getValueAs(CSSUtils.Distance.Units.pt);
 				
 				return instrumentType.cast(new Font(fontFamily,Font.PLAIN,size));
 			default : 

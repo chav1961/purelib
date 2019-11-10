@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -93,9 +94,9 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 									final FieldFormat	ff = node.getFormatAssociated();
 									final JComponent 	field = SwingUtils.prepareRenderer(node, ff, this);
 								
-									label.setName(Utils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
+									label.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
 									add(label,LabelledLayout.LABEL_AREA);
-									field.setName(Utils.removeQueryFromURI(node.getUIPath()).toString());
+									field.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
 									add(field,LabelledLayout.CONTENT_AREA);
 									labelIds.add(node.getLabelId());
 									if (!ff.isReadOnly(false) && !ff.isReadOnly(true)) {
@@ -120,7 +121,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 					else if (mode == NodeEnterMode.ENTER && node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
 						final JButton		button = new JButton();
 						
-						button.setName(Utils.removeQueryFromURI(node.getUIPath()).toString());
+						button.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
 						button.setActionCommand(node.getApplicationPath().toString());
 						button.addActionListener((e)->{callback.process(e.getActionCommand());});
 						actions.add(button);

@@ -18,8 +18,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
+import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils.SubstitutionSource;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -27,6 +29,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.ConvertorInterface;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.OnlineFloatGetter;
+import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
 import chav1961.purelib.basic.interfaces.OnlineStringGetter;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -103,10 +106,10 @@ public class SVGParser {
 	private static final String[]	PATH_ATTRIBUTES = {PATH_ATTR_D, PATH_ATTR_STROKE, PATH_ATTR_FILL, PATH_ATTR_STROKE_WIDTH};
 
 	private static final String		TEXT_ATTR_X = "x";
-	private static final String		TEXT_ATTR_Y = "x";
+	private static final String		TEXT_ATTR_Y = "y";
 	private static final String		TEXT_ATTR_FONT = "font";
 	private static final String		TEXT_ATTR_FILL = "fill";
-	private static final String		TEXT_ATTR_TRANSFORM = "x";
+	private static final String		TEXT_ATTR_TRANSFORM = "transform";
 	private static final String[]	TEXT_ATTRIBUTES = {TEXT_ATTR_X, TEXT_ATTR_Y, TEXT_ATTR_FONT, TEXT_ATTR_FILL, TEXT_ATTR_TRANSFORM};
 	
 	
@@ -122,6 +125,10 @@ public class SVGParser {
 	public static SVGPainter parse(final InputStream svgXml, final InstrumentGetter getter, final FillPolicy policy) throws NullPointerException, ContentException {
 		return parse(svgXml,PureLibSettings.NULL_LOGGER,getter,(src)->src,policy);
 	}
+
+	public static SVGPainter parse(final InputStream svgXml, final SubstitutionSource ss) throws NullPointerException, ContentException {
+		return parse(svgXml,PureLibSettings.NULL_LOGGER,(propName,attributes,instrumentType)->{return SVGUtils.extractInstrument(propName,attributes,instrumentType);},(src)->ss.getValue(src),FillPolicy.FILL_BOTH);
+	}
 	
 	public static SVGPainter parse(final InputStream svgXml, final LoggerFacade logger, final InstrumentGetter getter, final SubstitutionSource ss, final FillPolicy policy) throws NullPointerException, ContentException {
 		if (svgXml == null) {
@@ -134,19 +141,19 @@ public class SVGParser {
 			throw new NullPointerException("Instrument getter can't be null");
 		}
 		else {
-			final Document			doc = Utils.validateAndLoadXML(svgXml,Utils.getPurelibXSD(XSDCollection.SVG_restricted),logger);
+			final Document			doc = XMLUtils.validateAndLoadXML(svgXml,XMLUtils.getPurelibXSD(XSDCollection.SVG_restricted),logger);
 			
 			doc.normalizeDocument();
 			XMLUtils.walkDownXML(doc.getDocumentElement(),(mode,node)->{	// Extract all styles from the content
 				if (mode == NodeEnterMode.ENTER && "style".equals(node.getTagName())) {
 					if (node.hasAttribute("href")) {
-						try{XMLUtils.parseCSS(new String(Utils.loadCharsFromURI(XMLUtils.getAttribute(node,"href",URI.class),"UTF-8")));
+						try{CSSUtils.parseCSS(new String(URIUtils.loadCharsFromURI(XMLUtils.getAttribute(node,"href",URI.class),"UTF-8")));
 						} catch (IOException | SyntaxException e) {
 							e.printStackTrace();
 						}
 					}
 					else {
-						try{XMLUtils.parseCSS(node.getTextContent());
+						try{CSSUtils.parseCSS(node.getTextContent());
 						} catch (SyntaxException e) {
 							e.printStackTrace();
 						}
@@ -317,12 +324,13 @@ public class SVGParser {
 						break;
 					case "text"	:
 						if (SVGUtils.hasAnySubstitutions(props,TEXT_ATTRIBUTES) || SVGUtils.hasSubstitutionInside(node.getTextContent())) {
-							primitives.add(new DynamicTextPainter(SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_X,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_Y,String.class),ss)
+							primitives.add(new DynamicTextPainter(OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,TEXT_ATTR_X,float.class))//SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_X,String.class),ss)
+														,OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,TEXT_ATTR_Y,float.class))//SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_Y,String.class),ss)
 														,SVGUtils.buildOnlineGetter(OnlineStringGetter.class,node.getTextContent(),ss)
-														,SVGUtils.buildOnlineObjectGetter(Font.class,XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(AffineTransform.class,XMLUtils.getAttribute(node,TEXT_ATTR_TRANSFORM,String.class),ss,ci))
+														,OnlineObjectGetter.<Font>forValue((Font)getter.getInstrument(TEXT_ATTR_FONT,props,Font.class))//SVGUtils.buildOnlineObjectGetter(Font.class,XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class),ss,ci)
+														,OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(TEXT_ATTR_FILL,props,Color.class))//SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class),ss,ci)
+														,OnlineObjectGetter.<AffineTransform>forValue((AffineTransform)getter.getInstrument(TEXT_ATTR_TRANSFORM,props,AffineTransform.class))//SVGUtils.buildOnlineObjectGetter(AffineTransform.class,XMLUtils.getAttribute(node,TEXT_ATTR_TRANSFORM,String.class),ss,ci)
+														)
 							);
 						}
 						else {

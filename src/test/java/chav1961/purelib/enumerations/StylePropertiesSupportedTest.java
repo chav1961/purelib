@@ -5,8 +5,7 @@ import java.awt.Color;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.XMLUtils.Distance;
-import chav1961.purelib.basic.XMLUtils.Time;
+import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.enumerations.StylePropertiesSupported.ContentType;
 import chav1961.purelib.enumerations.StylePropertiesSupported.Keyword;
 
@@ -60,13 +59,13 @@ public class StylePropertiesSupportedTest {
 				Assert.assertFalse(item.canUseKeywords());
 				Assert.assertTrue(item.isValidValue("10mm"));
 				Assert.assertFalse(item.isValidValue("unknown"));
-				Assert.assertEquals(new Distance(10,Distance.Units.mm),item.forValue("10mm"));
+				Assert.assertEquals(new CSSUtils.Distance(10,CSSUtils.Distance.Units.mm),item.forValue("10mm"));
 			}
 			if (item.getContentType() == ContentType.distanceOrKeyword) {
 				Assert.assertTrue(item.canUseKeywords());
 				Assert.assertTrue(item.isValidValue("10mm"));
 				Assert.assertFalse(item.isValidValue("unknown"));
-				Assert.assertEquals(new Distance(10,Distance.Units.mm),item.forValue("10mm"));
+				Assert.assertEquals(new CSSUtils.Distance(10,CSSUtils.Distance.Units.mm),item.forValue("10mm"));
 				for (Keyword kwd : item.getKeywordsSupported()) {
 					Assert.assertEquals(kwd,item.forValue(kwd.getName()));
 				}
@@ -123,13 +122,13 @@ public class StylePropertiesSupportedTest {
 				Assert.assertFalse(item.canUseKeywords());
 				Assert.assertTrue(item.isValidValue("10sec"));
 				Assert.assertFalse(item.isValidValue("unknown"));
-				Assert.assertEquals(new Time(10,Time.Units.sec),item.forValue("10sec"));
+				Assert.assertEquals(new CSSUtils.Time(10,CSSUtils.Time.Units.sec),item.forValue("10sec"));
 			}
 			if (item.getContentType() == ContentType.timeOrKeyword) {
 				Assert.assertTrue(item.canUseKeywords());
 				Assert.assertTrue(item.isValidValue("10sec"));
 				Assert.assertFalse(item.isValidValue("unknown"));
-				Assert.assertEquals(new Time(10,Time.Units.sec),item.forValue("10sec"));
+				Assert.assertEquals(new CSSUtils.Time(10,CSSUtils.Time.Units.sec),item.forValue("10sec"));
 				for (Keyword kwd : item.getKeywordsSupported()) {
 					Assert.assertEquals(kwd,item.forValue(kwd.getName()));
 				}
@@ -144,13 +143,13 @@ public class StylePropertiesSupportedTest {
 				Assert.assertFalse(item.canUseKeywords());
 				Assert.assertTrue(item.isValidValue("10sec"));
 				Assert.assertFalse(item.isValidValue("unknown"));
-				Assert.assertEquals(new Time(10,Time.Units.sec),item.forValue("10sec"));
+				Assert.assertEquals(new CSSUtils.Time(10,CSSUtils.Time.Units.sec),item.forValue("10sec"));
 			}
 			if (item.getContentType() == ContentType.urlOrKeyword) {
 				Assert.assertTrue(item.canUseKeywords());
 				Assert.assertTrue(item.isValidValue("10sec"));
 				Assert.assertFalse(item.isValidValue("unknown"));
-				Assert.assertEquals(new Time(10,Time.Units.sec),item.forValue("10sec"));
+				Assert.assertEquals(new CSSUtils.Time(10,CSSUtils.Time.Units.sec),item.forValue("10sec"));
 				for (Keyword kwd : item.getKeywordsSupported()) {
 					Assert.assertEquals(kwd,item.forValue(kwd.getName()));
 				}

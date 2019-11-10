@@ -24,6 +24,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -108,7 +109,7 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 
 	@Override
 	public boolean canServe(final URI resource) {
-		return Utils.canServeURI(resource,SERVE);
+		return URIUtils.canServeURI(resource,SERVE);
 	}
 	
 	@Override

@@ -16,6 +16,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Arc2D;
@@ -132,6 +134,7 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_FORWARD = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_HELP = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
 	public static final KeyStroke			KS_EXIT = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	public static final KeyStroke			KS_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.CTRL_DOWN_MASK);
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";
@@ -867,302 +870,27 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 					pane.getActionMap().remove(SwingUtils.ACTION_EXIT);
 				}
 			});
+			pane.addMouseListener(new MouseListener() {
+				@Override public void mouseReleased(MouseEvent e) {}
+				@Override public void mousePressed(MouseEvent e) {}
+				@Override public void mouseEntered(MouseEvent e) {}
+				@Override public void mouseClicked(MouseEvent e) {}
+				
+				@Override
+				public void mouseExited(MouseEvent e) {
+					popup.hide();
+					pane.removeHyperlinkListener(hll);
+					pane.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).remove(SwingUtils.KS_EXIT);
+					pane.getActionMap().remove(SwingUtils.ACTION_EXIT);
+					pane.removeMouseListener(this);
+				}
+			});
 			pane.addHyperlinkListener(hll);
 			
 			popup.show();
 		}
 	}
 
-	/**
-	 * <p>Build general path in the SVG 'path' tag style. This method supports the following commands:</p>
-	 * <ul>
-	 * <li>M x y - absolute move</li>
-	 * <li>m - x y - relative move</li>
-	 * <li>L x y - absolute line</li>
-	 * <li>l x y - relative line</li>
-	 * <li>H x - absolute horizontal line</li>
-	 * <li>h h - relative horizontal line</li>
-	 * <li>V x - absolute vertical line</li>
-	 * <li>v x - relative vertical line</li>
-	 * <li>Z - close path. No any commands available after it</li>
-	 * <li>z - close path. No any commands available after it</li>
-	 * <li>C x1 y1 x2 y2 x y - absolute Besier cubic</li>
-	 * <li>c x1 y1 x2 y2 x y - relative Besier cubic</li>
-	 * <li>S x2 y2 x y - absolute Besier cubic (continued for 'C'/'c')</li>
-	 * <li>s  y2 x y - relative Besier cubic (continued for 'C'/'c')</li>
-	 * <li>Q x1 y1 x y - absolute Besier quadratic</li>
-	 * <li>q x1 y1 x y - relative Besier quadratic</li>
-	 * <li>T x y - absolute Besier quadratic (continued for 'Q'/'q')</li>
-	 * <li>t x y - relative Besier quadratic (continued for 'Q'/'q')</li>
-	 * <li>A rx ry x_axis_angle large_arc sweep_flag x y - absolute arc</li>
-	 * <li>a rx ry x_axis_angle large_arc sweep_flag x y - relative arc</li>
-	 * </ul>
-	 * <p>Specific parameters for the 'A'/'a' commands are:</p>
-	 * <ul>
-	 * <li>large_arc = 0 - arc angle < 180 degrees</li>
-	 * <li>large_arc = 1 - arc angle >= 180 degrees</li>
-	 * <li>sweep_flag = 0 - clockwise rotation</li>
-	 * <li>sweep_flag = 1 - counterclockwise rotation</li>
-	 * </ul>
-	 * @param source
-	 * @return general path built. Can't be null
-	 * @throws SyntaxException any syntax errors in the source string
-	 * @throws IllegalArgumentException source string is null or empty
-	 * @see https://developer.mozilla.org/ru/docs/Web/SVG/Tutorial/Paths
-	 */
-	public static GeneralPath buildGeneralPath(final String source) throws SyntaxException, IllegalArgumentException {
-		if (source == null || source.isEmpty()) {
-			throw new IllegalArgumentException("Source string can't be null or empty");
-		}
-		else {
-			final GeneralPath	path = new GeneralPath();
-			final char[]		src = (source+';').toCharArray();
-			final float[]		parsedX = new float[1], parsedY = new float[1];
-			final int[]			parsedFlags = new int[1];
-			Point2D.Float		prevPoint = null;
-			int					from = 0;
-			
-			for (;;) {
-				Point2D			start = path.getCurrentPoint();
-				
-				if (start == null) {	// The same first call
-					start = ZERO_POINT;
-				}
-				
-				try{switch (src[from = CharUtils.skipBlank(src,from,false)]) {
-						case 'M'	:
-							start = ZERO_POINT;
-						case 'm'	:
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							path.moveTo(start.getX()+parsedX[0],start.getY()+parsedY[0]);
-							prevPoint = null;
-							break;
-						case 'L'	:
-							start = ZERO_POINT;
-						case 'l'	:
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							path.lineTo(start.getX()+parsedX[0],start.getY()+parsedY[0]);
-							prevPoint = null;
-							break;
-						case 'H'	:
-							start = ZERO_POINT;
-						case 'h'	:
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							path.lineTo(start.getX()+parsedX[0],start.getY());
-							prevPoint = null;
-							break;
-						case 'V'	:
-							start = ZERO_POINT;
-						case 'v'	:
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							path.lineTo(start.getX(),start.getY()+parsedY[0]);
-							prevPoint = null;
-							break;
-						case 'Z' : case 'z' :
-							if (src[from = CharUtils.skipBlank(src,from+1,false)] != ';') {
-								throw new SyntaxException(0,from,"Dust in the tail of command");
-							}
-							path.closePath();
-							prevPoint = null;
-							break;
-						case 'C'	:
-							start = ZERO_POINT;
-						case 'c'	:
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							final float 	x1c = (float)(start.getX()+parsedX[0]), y1c = (float)(start.getY()+parsedY[0]);
-							
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							final float 	x2c = (float)(start.getX()+parsedX[0]), y2c = (float)(start.getY()+parsedY[0]);
-							
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							final float 	x1cEnd = (float)(start.getX()+parsedX[0]), y1cEnd = (float)(start.getY()+parsedY[0]);
-							
-							path.curveTo(x1c,y1c,x2c,y2c,x1cEnd,y1cEnd);
-							prevPoint = new Point2D.Float(x2c + 2*(x1cEnd - x2c),y2c + 2*(y1cEnd - y2c));
-							break;
-						case 'S'	:
-							start = ZERO_POINT;
-						case 's'	:
-							if (prevPoint == null) {
-								throw new SyntaxException(0,from,"This command should be used after 'C'/'c' or 'S'/'s' commands only!");
-							}
-							else {
-								final float 	x1s = prevPoint.x, y1s = prevPoint.y;
-								
-								from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-								from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-								final float 	x2s = (float)(start.getX()+parsedX[0]), y2s = (float)(start.getY()+parsedY[0]);
-								
-								from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-								from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-								final float 	x1sEnd = (float)(start.getX()+parsedX[0]), y1sEnd = (float)(start.getY()+parsedY[0]);
-								
-								path.curveTo(x1s,y1s,x2s,y2s,x1sEnd,y1sEnd);
-								prevPoint = new Point2D.Float(x2s + 2*(x1sEnd - x2s),y2s + 2*(y1sEnd - y2s));
-							}
-							break;
-						case 'Q'	:
-							start = ZERO_POINT;
-						case 'q'	:
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							final float 	x1q = (float)(start.getX()+parsedX[0]), y1q = (float)(start.getY()+parsedY[0]);
-							
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							final float 	x1qEnd = (float)(start.getX()+parsedX[0]), y1qEnd = (float)(start.getY()+parsedY[0]);
-							
-							path.quadTo(start.getX()+x1q,start.getY()+y1q,x1qEnd,y1qEnd);
-							prevPoint = new Point2D.Float(x1q + 2*(x1qEnd - x1q),y1q + 2*(y1qEnd - y1q));
-							break;
-						case 'T'	:
-							start = ZERO_POINT;
-						case 't'	:
-							if (prevPoint == null) {
-								throw new SyntaxException(0,from,"This command should be used after 'Q'/'q' or 'T'/'t' commands only!");
-							}
-							else {
-								final float 	x1t = prevPoint.x, y1t = prevPoint.y;
-								
-								from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-								from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-								final float 	x1tEnd = (float)(start.getX()+parsedX[0]), y1tEnd = (float)(start.getY()+parsedY[0]);
-								
-								path.quadTo(x1t,y1t,x1tEnd,y1tEnd);
-								prevPoint = new Point2D.Float(x1t + 2*(x1tEnd - x1t),y1t + 2*(y1tEnd - y1t));
-							}
-							break;
-						case 'A'	:
-							start = ZERO_POINT;
-						case 'a'	:	// code from 'stackoverflow'
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							float 	rx = parsedX[0], ry = parsedY[0];
-							
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							final float		xAngle = (float) Math.toRadians(parsedX[0] % 360);
-							
-							from = CharUtils.parseInt(src,CharUtils.skipBlank(src,from+1,false),parsedFlags,true);
-							final boolean	fLargeArc;
-							
-							if (parsedFlags[0] != 0 && parsedFlags[0] != 1) {
-								throw new SyntaxException(0,from,"Large arc flag can be 0 or 1 only");
-							}
-							else {
-								fLargeArc = parsedFlags[0] == 1;
-							}
-							
-							from = CharUtils.parseInt(src,CharUtils.skipBlank(src,from+1,false),parsedFlags,true);
-							final boolean	fSweep;
-	
-							if (parsedFlags[0] != 0 && parsedFlags[0] != 1) {
-								throw new SyntaxException(0,from,"Sweep flag can be 0 or 1 only");
-							}
-							else {
-								fSweep = parsedFlags[0] == 1;
-							}
-							
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedX,true);
-							from = CharUtils.parseSignedFloat(src,CharUtils.skipBlank(src,from+1,false),parsedY,true);
-							final float 	xA = parsedX[0], yA = parsedY[0];
-							
-					        if (rx == 0 || ry == 0) {
-				                path.lineTo(xA, yA);
-					        }
-					        else {
-						        // Get the current (x, y) coordinates of the path
-						        final float 	x0 = (float) start.getX();
-						        final float 	y0 = (float) start.getY();
-						        
-						        // Compute the half distance between the current and the final point
-						        final float 	dx2 = (xA - x0) / 2.0f;
-						        final float 	dy2 = (yA - y0) / 2.0f;
-	
-						        //
-						        // Step 1 : Compute (x1, y1)
-						        //
-						        final double 	sin = Math.sin(xAngle), cos = Math.cos(xAngle); 
-						        final float 	x1 = (float) (cos*dx2 + sin*dy2);
-						        final float 	y1 = (float) (-sin*dx2 + cos*dy2);
-				        
-						        // Ensure radius are large enough
-						        float 			Prx = rx * rx, Pry = ry * ry, Px1 = x1 * x1, Py1 = y1 * y1;
-						        final double 	d = Px1 / Prx + Py1 / Pry;
-	
-						        rx = Math.abs(rx);
-						        ry = Math.abs(ry);
-						        if (d > 1) {
-						        	final double	sqrt = Math.sqrt(d);
-						        	
-					                rx = (float) Math.abs(sqrt*rx);
-					                ry = (float) Math.abs(sqrt*ry);
-					                Prx = rx * rx;
-					                Pry = ry * ry;
-						        }
-	
-						        //
-						        // Step 2 : Compute (cx1, cy1)
-						        //
-						        double			sign = (fLargeArc == fSweep) ? -1 : 1;
-						        final float 	coef = (float) (sign * Math.sqrt(((Prx * Pry) - (Prx * Py1) - (Pry * Px1)) / ((Prx * Py1) + (Pry * Px1))));
-						        final float 	cx1 = coef * ((rx * y1) / ry);
-						        final float 	cy1 = coef * -((ry * x1) / rx);
-			
-						        //
-						        // Step 3 : Compute (cx, cy) from (cx1, cy1)
-						        //
-						        final float 	sx2 = (x0 + xA) / 2.0f, sy2 = (y0 + yA) / 2.0f;
-						        final float 	cx = sx2 + (float) (cos*cx1 - sin*cy1), cy = sy2 + (float) (sin*cx1 + cos*cy1);
-			
-						        //
-						        // Step 4 : Compute the angleStart and the angleExtent
-						        //
-						        final float 	ux = (x1 - cx1) / rx, uy = (y1 - cy1) / ry, vx = (-x1 - cx1) / rx, vy = (-y1 - cy1) / ry;
-						        float 			p, n;
-						        
-						        // Compute the angle start
-						        n = (float) Math.sqrt(ux*ux + uy*uy);
-						        p = ux; // (1 * ux) + (0 * uy)
-						        sign = (uy < 0) ? -1 : 1;
-						        
-						        float angleStart = (float) Math.toDegrees(sign * Math.acos(p / n));
-						        
-						        // Compute the angle extent
-						        n = (float) Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
-						        p = ux * vx + uy * vy;
-						        sign = (ux * vy - uy * vx < 0) ? -1 : 1;
-						        
-						        float angleExtent = (float) Math.toDegrees(sign * Math.acos(p / n));
-						        
-						        if (!fSweep && angleExtent > 0) {
-						        	angleExtent -= 360f;
-						        } else if (fSweep && angleExtent < 0) {
-						        	angleExtent += 360f;
-						        }
-						        
-						        path.append(new Arc2D.Double(cx - rx, cy - ry, rx * 2.0, ry * 2.0, -angleStart % 360f, -angleExtent % 360f, Arc2D.OPEN), true);
-					        }
-							prevPoint = null;
-							break;
-						case ';'	:
-							return path;
-						default		:
-							throw new SyntaxException(0,from,"Unknown command ["+src[from]+"] in source string");
-					}
-				} catch (IllegalArgumentException exc) {
-					throw new SyntaxException(0,from,"Error parsing number: "+exc.getLocalizedMessage());
-				}
-			}
-			
-		}
-	}
-
-	 
 	private static class MethodHandleAndAsync {
 		final MethodHandle	handle;
 		final boolean		async;

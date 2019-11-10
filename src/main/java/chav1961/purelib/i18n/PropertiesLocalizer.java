@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 import java.util.ResourceBundle.Control;
 import java.util.Set;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -59,7 +60,7 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 
 	@Override
 	public boolean canServe(final URI localizer) {
-		return Utils.canServeURI(localizer, SERVE); 
+		return URIUtils.canServeURI(localizer, SERVE); 
 	}
 
 	@Override

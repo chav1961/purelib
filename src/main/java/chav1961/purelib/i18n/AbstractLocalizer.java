@@ -28,6 +28,7 @@ import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -224,7 +225,7 @@ public abstract class AbstractLocalizer implements Localizer {
 				final URI			uriRef = URI.create(uriName);		
 				
 				if (uriRef.getScheme() == null) {
-					final String	query = Utils.extractQueryFromURI(uriRef);
+					final String	query = URIUtils.extractQueryFromURI(uriRef);
 					final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
 					final String	temp = getHelp(uriRef.getPath(),queryParsed.containsKey(CONTENT_ENCODING) ? queryParsed.get(CONTENT_ENCODING)[0] : DEFAULT_CONTENT_ENCODING); 
 					
@@ -484,7 +485,7 @@ loop:		do {if (cursor.child != null) {
 			node.child = new LocalizerNode[]{newNode};
 			newLocalizer.setParent(this);
 			newLocalizer.setCurrentLocale(currentLocale().getLocale());
-			return this;
+			return newLocalizer;
 		}
 	}
 

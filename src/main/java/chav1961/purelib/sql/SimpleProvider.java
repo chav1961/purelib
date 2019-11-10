@@ -32,6 +32,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.IntGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
@@ -800,7 +801,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 						desc[0] = indexNumber[0]++;
 						new SimpleContentMetadata(tableModel).walkDown((modeT,applicationPathT,uiPathT,nodeT)->{
 							if (modeT == NodeEnterMode.ENTER && nodeT.getName().equalsIgnoreCase(node.getName())) {
-								desc[1] = Integer.valueOf(Utils.parseQuery(Utils.extractQueryFromURI(applicationPathT)).get("type").toString());
+								desc[1] = Integer.valueOf(Utils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
 								return ContinueMode.STOP;
 							}
 							else {
@@ -834,7 +835,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 						desc[1] = index + 1;
 						new SimpleContentMetadata(tableModel).walkDown((modeT,applicationPathT,uiPathT,nodeT)->{
 							if (modeT == NodeEnterMode.ENTER && nodeT.getName().equalsIgnoreCase(node.getName())) {
-								desc[2] = Integer.valueOf(Utils.parseQuery(Utils.extractQueryFromURI(applicationPathT)).get("type").toString());
+								desc[2] = Integer.valueOf(Utils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
 								return ContinueMode.STOP;
 							}
 							else {

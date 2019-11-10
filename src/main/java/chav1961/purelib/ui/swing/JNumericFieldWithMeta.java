@@ -42,6 +42,8 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 			serialVersionUID = -7990739033479280548L;
+	private static final int			MAX_FORMAT_LEN = 100;
+	private static final int			MAX_FORMAT_FRAC = 100;
 
 	static final int[]					NAVIGATION_KEYS = {
 											 KeyEvent.VK_BACK_SPACE			,KeyEvent.VK_TAB
@@ -97,6 +99,13 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				final StringBuilder	sb = new StringBuilder("0");
 				final int 			len = format.getLength() == 0 ? 15 : format.getLength();
 				final int 			frac = format.getPrecision() == 0 ? 2 : format.getPrecision();
+				
+				if (len > MAX_FORMAT_LEN) {
+					throw new IllegalArgumentException("Format error: field length for number ["+len+"] greater than "+MAX_FORMAT_LEN); 
+				}
+				if (frac > MAX_FORMAT_FRAC) {
+					throw new IllegalArgumentException("Format error: field fractional length for number ["+frac+"] greater than "+MAX_FORMAT_FRAC); 
+				}
 				
 				for (int index = 1, maxIndex = len - frac -1; index < maxIndex; index++) {
 					sb.insert(0,"#");

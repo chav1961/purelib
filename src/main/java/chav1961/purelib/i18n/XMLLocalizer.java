@@ -14,6 +14,7 @@ import java.util.Set;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SequenceIterator;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -82,7 +83,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 
 	@Override
 	public boolean canServe(final URI localizer) throws NullPointerException {
-		return Utils.canServeURI(localizer, SERVE); 
+		return URIUtils.canServeURI(localizer, SERVE); 
 	}
 
 	@Override
@@ -117,7 +118,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}
 		else {
-			try{return new String(Utils.loadCharsFromURI(URI.create("file:"+helpId),encoding));
+			try{return new String(URIUtils.loadCharsFromURI(URI.create("file:"+helpId),encoding));
 			} catch (IOException e) {
 				throw new LocalizationException(e.getLocalizedMessage(),e);
 			}
@@ -142,7 +143,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 		final Map<String,URI>		helpRefs = new HashMap<>();
 		final String[]				langName = new String[1];
 		
-		XMLUtils.walkDownXML(Utils.validateAndLoadXML(is,XSDConst.class.getResourceAsStream("XMLLocalizerContent.xsd"),logger).getDocumentElement(), (mode,node)->{
+		XMLUtils.walkDownXML(XMLUtils.validateAndLoadXML(is,XSDConst.class.getResourceAsStream("XMLLocalizerContent.xsd"),logger).getDocumentElement(), (mode,node)->{
 			switch (mode) {
 				case ENTER	:
 					switch (node.getNodeName()) {

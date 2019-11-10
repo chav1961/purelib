@@ -157,10 +157,16 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	
 	protected void addChild(final ContentNodeMetadata child) {
 		children.add(child);
+		if (child instanceof MutableContentNodeMetadata) {
+			((MutableContentNodeMetadata)child).setParent(this);
+		}
 	}
 	
 	protected void removeChild(final ContentNodeMetadata child) {
 		children.remove(child);
+		if (child instanceof MutableContentNodeMetadata) {
+			((MutableContentNodeMetadata)child).setParent(null);
+		}
 	}
 	
 	protected void setParent(final ContentNodeMetadata parent) {

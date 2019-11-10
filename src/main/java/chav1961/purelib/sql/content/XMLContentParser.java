@@ -31,6 +31,7 @@ import org.xml.sax.SAXException;
 
 import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -114,7 +115,7 @@ public class XMLContentParser implements ResultSetContentParser {
 	
 	@Override
 	public boolean canServe(final URI request) {
-		return Utils.canServeURI(request,URI_TEMPLATE);
+		return URIUtils.canServeURI(request,URI_TEMPLATE);
 	}
 
 	@Override

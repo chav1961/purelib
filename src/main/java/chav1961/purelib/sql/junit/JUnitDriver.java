@@ -22,6 +22,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.IntGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -74,7 +75,7 @@ public class JUnitDriver implements Driver {
 
 	@Override
 	public boolean acceptsURL(final String url) throws SQLException {
-		return Utils.canServeURI(URI.create(url),JUNIT_URI);
+		return URIUtils.canServeURI(URI.create(url),JUNIT_URI);
 	}
 
 	@Override

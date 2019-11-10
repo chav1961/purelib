@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.Hashtable;
 import java.util.ServiceLoader;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.AbstractContent;
@@ -27,7 +28,7 @@ public class ResultSetFactory {
 		else if (!RESULTSET_PARSERS_SCHEMA.equals(resource.getScheme())) {
 			throw new IllegalArgumentException("Resource scheme ["+resource.getScheme()+"] is not ["+RESULTSET_PARSERS_SCHEMA+"]");
 		}
-		else if ((query = Utils.extractQueryFromURI(resource)) == null) {
+		else if ((query = URIUtils.extractQueryFromURI(resource)) == null) {
 			throw new IllegalArgumentException("Resource ["+resource+"]: query string is missing in the URI!");
 		}
 		else {
@@ -37,7 +38,7 @@ public class ResultSetFactory {
 					if (item.canServe(resource)) {
 						final Hashtable<String,String[]>	content = Utils.parseQuery(query);
 						final RsMetaDataElement[]			fields = SQLContentUtils.buildMetadataFromQueryString(query,item.filter(content));
-						final ResultSetContentParser		parser = item.newInstance(Utils.removeQueryFromURI(URI.create(source.getRawSchemeSpecificPart())).toURL()
+						final ResultSetContentParser		parser = item.newInstance(URIUtils.removeQueryFromURI(URI.create(source.getRawSchemeSpecificPart())).toURL()
 																	,resultSetType
 																	,fields
 																	,SQLContentUtils.extractOptions(content,item.filter(content)));

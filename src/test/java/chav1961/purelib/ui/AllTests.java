@@ -5,8 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AbstractInMemoryFormModelTest.class, ColorPairTest.class, ConstraintCheckerFactoryTest.class,
-		CSSUtilsTest.class })
+@SuiteClasses({ AbstractInMemoryFormModelTest.class, ColorPairTest.class, ConstraintCheckerFactoryTest.class})
 public class AllTests {
 
 }

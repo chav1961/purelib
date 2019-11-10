@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -84,7 +85,7 @@ loop:				for (JsonStaxParserLexType item : parser) {
 	
 	@Override
 	public boolean canServe(final URI request) {
-		return Utils.canServeURI(request,URI_TEMPLATE);
+		return URIUtils.canServeURI(request,URI_TEMPLATE);
 	}
 
 	@Override

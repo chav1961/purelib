@@ -34,6 +34,7 @@ import org.xml.sax.SAXParseException;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -180,7 +181,7 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 
 	@Override
 	public boolean canServe(final URI resource) {
-		return Utils.canServeURI(resource,SERVE);
+		return URIUtils.canServeURI(resource,SERVE);
 	}
 	
 	@Override

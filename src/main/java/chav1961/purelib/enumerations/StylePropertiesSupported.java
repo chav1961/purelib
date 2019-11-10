@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -418,7 +419,7 @@ public enum StylePropertiesSupported {
 								return isKeywordValid(id,this);
 							}
 						case color	:
-							return XMLUtils.isValidColor(value);
+							return CSSUtils.isValidColor(value);
 						case compoundChoise	:
 							break;
 						case compoundSequence	:
@@ -428,7 +429,7 @@ public enum StylePropertiesSupported {
 								return isKeywordValid(id,this);
 							}
 						case distance	:
-							return XMLUtils.isValidDistance(value);
+							return CSSUtils.isValidDistance(value);
 						case functionOrKeyword	:
 							if (id >= 0) {
 								return isKeywordValid(id,this);
@@ -460,7 +461,7 @@ public enum StylePropertiesSupported {
 								return isKeywordValid(id,this);
 							}
 						case time	:
-							return XMLUtils.isValidTime(value);
+							return CSSUtils.isValidTime(value);
 						case urlOrKeyword	:
 							if (id >= 0) {
 								return isKeywordValid(id,this);
@@ -536,7 +537,7 @@ public enum StylePropertiesSupported {
 								return seekKeyword(id);
 							}
 						case color	:
-							return (T) XMLUtils.asColor(value);
+							return (T) CSSUtils.asColor(value);
 						case compoundChoise	:
 							break;
 						case compoundSequence	:
@@ -546,7 +547,7 @@ public enum StylePropertiesSupported {
 								return seekKeyword(id);
 							}
 						case distance	:
-							return (T) XMLUtils.asDistance(value);
+							return (T) CSSUtils.asDistance(value);
 						case functionOrKeyword	:
 							if (id >= 0) {
 								return null;
@@ -597,7 +598,7 @@ public enum StylePropertiesSupported {
 								return seekKeyword(id);
 							}
 						case time	:
-							return (T) XMLUtils.asTime(value);
+							return (T) CSSUtils.asTime(value);
 						case urlOrKeyword	:
 							if (id >= 0) {
 								return null;

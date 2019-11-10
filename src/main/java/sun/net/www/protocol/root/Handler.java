@@ -7,6 +7,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 
 public class Handler extends URLStreamHandler {
@@ -14,9 +15,9 @@ public class Handler extends URLStreamHandler {
 	protected URLConnection openConnection(final URL url) throws IOException {
 		try{final URI 			content = url.toURI();
 		
-			if (Utils.containsNestedURI(content)) {
-				final URI		nested = Utils.extractNestedURI(content);
-				final URI		path = Utils.extractPathInNestedURI(content);
+			if (URIUtils.containsNestedURI(content)) {
+				final URI		nested = URIUtils.extractNestedURI(content);
+				final URI		path = URIUtils.extractPathInNestedURI(content);
 				
 				if (nested.getScheme() != null) {
 					final URL		newURL = nested.resolve(path).toURL();

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -190,7 +191,7 @@ public class ContentMetadataFilter implements ContentMetadataInterface {
 			
 			walkDown((mode,appPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (Utils.removeQueryFromURI(uiPath).equals(userInterfacePath)) {
+					if (URIUtils.removeQueryFromURI(uiPath).equals(userInterfacePath)) {
 						result[0] = node;
 						return ContinueMode.STOP;
 					}

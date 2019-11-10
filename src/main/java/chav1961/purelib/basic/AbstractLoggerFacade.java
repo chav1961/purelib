@@ -138,7 +138,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 
 	@Override
 	public Set<Reducing> getReducing() {
-		return stack.get(0);
+		return stack.isEmpty() ? new HashSet<>() : stack.get(0);
 	}
 
 	@Override

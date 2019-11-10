@@ -22,6 +22,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
@@ -126,7 +127,7 @@ public class ORMProvidedTableModel<Key,Record> extends DefaultTableModel impleme
 			
 			for (String field : fields) {
 				metadata.walkDown((mode,appPath,uiPath,node)->{
-					if (mode == NodeEnterMode.ENTER && Utils.hasSubScheme(appPath,ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+					if (mode == NodeEnterMode.ENTER && URIUtils.hasSubScheme(appPath,ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
 						if (node.getName().equalsIgnoreCase(field)) {
 							try{cols.add(new ColumnDescriptor(node.getName()
 										,node.getLabelId(),node.getTooltipId(),node.getType()

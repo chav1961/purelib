@@ -32,6 +32,7 @@ import javax.swing.KeyStroke;
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
@@ -173,7 +174,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
 								final JButton		button = new JButton();
 								
-								button.setName(Utils.removeQueryFromURI(node.getUIPath()).toString());
+								button.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
 								trans.message(Severity.trace,"Append button [%1$s]",node.getApplicationPath());
 	
 								button.setActionCommand(node.getApplicationPath().toString());
@@ -196,9 +197,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 									final FieldFormat	ff = node.getFormatAssociated();
 									final JComponent 	field = SwingUtils.prepareRenderer(node, ff, this);
 								
-									label.setName(Utils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
+									label.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
 									childPanel.add(label,LabelledLayout.LABEL_AREA);
-									field.setName(Utils.removeQueryFromURI(node.getUIPath()).toString());
+									field.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
 									childPanel.add(field,LabelledLayout.CONTENT_AREA);
 									trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",node.getUIPath(),field.getClass().getCanonicalName());
 									labelIds.add(node.getLabelId());
@@ -266,6 +267,14 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 */
 	public FormManager<Object,T> getFormManagerAssociated() {
 		return formManager;
+	}
+	
+	/**
+	 * <p>Get content model for instance </p>
+	 * @return content model. Can.t be null
+	 */
+	public ContentMetadataInterface getContentModel() {
+		return mdi;
 	}
 	
 	/**
@@ -371,9 +380,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				break;
 			case FocusGained:
 				final URI s1 = metadata.getUIPath();
-				final URI s2 = Utils.appendRelativePath2URI(metadata.getUIPath(),"./label");
+				final URI s2 = URIUtils.appendRelativePath2URI(metadata.getUIPath(),"./label");
 				
-				try{final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,Utils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
+				try{final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,URIUtils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
 				
 					oldForeground4Label = label.getForeground();
 					label.setForeground(Color.BLUE);
@@ -388,7 +397,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				}
 				break;
 			case FocusLost:
-				final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,Utils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
+				final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,URIUtils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
 				
 				label.setForeground(oldForeground4Label);
 				messages.setText("");
@@ -397,13 +406,13 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				final GetterAndSetter	gas = accessors.get(metadata.getUIPath().toString());
 				
 				if (gas == null) {
-					System.err.println("SD1");
+					//System.err.println("SD1");
 				}
 				else {
 					final Object			value = ModelUtils.getValueByGetter(instance, gas, metadata);
 					
 					if (value == null || component == null) {
-						System.err.println("SD2");
+						//System.err.println("SD2");
 					}
 					((JComponentInterface)component).assignValueToComponent(value);
 				}

@@ -64,6 +64,7 @@ import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.TemporaryStore;
 import chav1961.purelib.basic.TemporaryStore.InputOutputPair;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -503,7 +504,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 							int 	rc = 200;
 							
 							try(final OutputStream	os = pair.getOutputStream()) {
-								final String 						query = Utils.extractQueryFromURI(call.getRequestURI());
+								final String 						query = URIUtils.extractQueryFromURI(call.getRequestURI());
 								final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
 								final URI							callPath = call.getRequestURI();
 								final String						pathTail = callPath.getPath().replace(pluginRoot,"");
@@ -685,7 +686,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						final List<String>			inputContent = call.getRequestHeaders().get(HEAD_CONTENT_TYPE); 
 						final List<String>			outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
 						
-						try{final String						query = Utils.extractQueryFromURI(call.getRequestURI());
+						try{final String						query = URIUtils.extractQueryFromURI(call.getRequestURI());
 							final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
 							final URI							callPath = call.getRequestURI();
 							final String						pathTail = callPath.getPath().replace(pluginRoot,"");

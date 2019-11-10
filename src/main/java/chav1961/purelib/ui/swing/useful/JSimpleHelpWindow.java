@@ -29,6 +29,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -44,7 +45,7 @@ public class JSimpleHelpWindow {
 	
 	JSimpleHelpWindow(final Component parent, final URI source) throws ContentException {
 		try{final Hashtable<String,String[]>	parsed = Utils.parseQuery(source);
-			final char[]		content = Utils.loadCharsFromURI(source, parsed.containsKey(AbstractLocalizer.CONTENT_ENCODING) ? parsed.get(AbstractLocalizer.CONTENT_ENCODING)[0] : Charset.defaultCharset().name());
+			final char[]		content = URIUtils.loadCharsFromURI(source, parsed.containsKey(AbstractLocalizer.CONTENT_ENCODING) ? parsed.get(AbstractLocalizer.CONTENT_ENCODING)[0] : Charset.defaultCharset().name());
 			final JEditorPane	editor = new JEditorPane("text/html",convertContent(content,extractSourceMime(parsed),extractTargetMime(parsed)));
 			final JScrollPane	scroll = new JScrollPane(editor);
 			final Point			parentPointUL = new Point(0,0), parentPointDR = new Point(parent.getWidth(),parent.getHeight());
