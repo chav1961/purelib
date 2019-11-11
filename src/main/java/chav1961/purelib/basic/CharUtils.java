@@ -2,6 +2,8 @@ package chav1961.purelib.basic;
 
 import java.util.Arrays;
 
+import com.sun.source.doctree.SinceTree;
+
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 
@@ -44,6 +46,8 @@ public class CharUtils {
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
+	
+	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	
 	/**
 	 * <p>Extract unsigned integer value from the current position of the source data</p>
@@ -1181,10 +1185,25 @@ public class CharUtils {
 								start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
 								result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 								break;
-							case hyphenedName	:
-								start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+							case simpleTerminatedString	:
+								if (source[start] == '\"') {
+									start = CharUtils.parseUnescapedString(source,start+1,'\"',false,intResult);
+								}
+								else if (source[start] == '\'') {
+									start = CharUtils.parseUnescapedString(source,start+1,'\'',false,intResult);
+								}
+								else {
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+								}
 								result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 								break;
+							case hyphenedName	:
+								final int	startName = start--;
+								
+								do {start = UnsafedCharUtils.uncheckedParseName(source,++start,intResult);
+								} while (start < source.length && source[start] == '-');
+								result[resultIndex++] = new String(source,startName,intResult[1]-startName+1);
+								break; 
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
 						}
@@ -1747,15 +1766,24 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		}
 	}
 
-	public static char[] join(final char[] delimiter, final char[]... content) {
-		if (delimiter == null) {
-			throw new NullPointerException("String delimiter can't be null");
+	/**
+	 * <p>Concatenate character content to character array using given delimiters</p>
+	 * @param delimiter delimiter to use
+	 * @param content content to concatenate. Can't contain nulls
+	 * @return char array concatenated. Can't be null
+	 * @throws IllegalArgumentException any parameters errors
+	 * @throws NullPointerException any parameters errors
+	 * @since 0.0.3
+	 */
+	public static char[] join(final char[] delimiter, final char[]... content) throws IllegalArgumentException, NullPointerException {
+		if (delimiter == null || delimiter.length == 0) {
+			throw new IllegalArgumentException("String delimiter can't be null or empty array");
 		}
 		else if (content == null) {
 			throw new NullPointerException("Content to join can't be null");
 		}
 		else if (content.length == 0) {
-			return new char[0];
+			return EMPTY_CHAR_ARRAY;
 		}
 		else {
 			int		dlen = delimiter.length, clen = content.length - 1, counter = dlen * clen;
@@ -1779,22 +1807,46 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		}
 	}
 	
-	public static String join(final String delimiter, final String... content) {
-		if (delimiter == null) {
-			throw new NullPointerException("String delimiter can't be null");
+	/**
+	 * <p>Concatenate string content to string array using given delimiters</p>
+	 * @param delimiter delimiter to use
+	 * @param content content to concatenate. Can't contain nulls
+	 * @return String concatenated. Can't be null
+	 * @throws IllegalArgumentException any parameters errors
+	 * @throws NullPointerException any parameters errors
+	 * @since 0.0.3
+	 */
+	public static String join(final String delimiter, final String... content) throws IllegalArgumentException, NullPointerException {
+		if (delimiter == null || delimiter.isEmpty()) {
+			throw new IllegalArgumentException("String delimiter can't be null or empty");
 		}
 		else if (content == null) {
 			throw new NullPointerException("Content to join can't be null");
 		}
+		else if (Utils.checkArrayContent4Nulls(content) != -1) {
+			throw new NullPointerException("Nulls inside content");
+		}
 		else {
-			final StringBuilder	sb = new StringBuilder();
-			String				prefix = "";
+			int	total = 0, count = 0;
 			
 			for (String item : content) {
-				sb.append(prefix).append(item);
-				prefix = delimiter;
+				total += item.length();
+				count++;
 			}
-			return sb.toString();
+
+			final char[]	result = new char[total + (count-1) * delimiter.length()], delim = delimiter.toCharArray();
+			int				displ = 0, delimLength = delim.length;
+
+			for (int index = 0, maxIndex = content.length - 1; index < maxIndex; index++) {
+				final int	len = content[index].length();
+				
+				content[index].getChars(0,len,result,displ);
+				displ += len;
+				System.arraycopy(delim,0,result,displ,delimLength);
+				displ += delimLength;
+			}
+			content[content.length - 1].getChars(0,content[content.length - 1].length(),result,displ);
+			return new String(result);
 		}
 	}
 	

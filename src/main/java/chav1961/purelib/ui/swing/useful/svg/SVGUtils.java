@@ -13,7 +13,11 @@ import java.util.Map;
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.XMLUtils;
+import chav1961.purelib.basic.CSSUtils.Distance;
+import chav1961.purelib.basic.CSSUtils.Distance.Units;
+import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.CharUtils.SubstitutionSource;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.ConvertorInterface;
@@ -388,12 +392,18 @@ loop:		for (;;) {
 	}
 
 	static <T> T convertTo(final Class<T> awaited, final String source) throws SyntaxException {
-		if (awaited.isAssignableFrom(Color.class)) {
+		if (awaited == null) {
+			throw new NullPointerException("Awaited class can't be null");
+		}
+		else if (source == null || source.isEmpty()) {
+			throw new IllegalArgumentException("Source content to convert can't be null or empty");
+		}
+		else if (awaited.isAssignableFrom(Color.class)) {
 			return awaited.cast(CSSUtils.asColor(source));
 		}
 		else if (awaited.isAssignableFrom(Stroke.class)) {
 			final char[]	widthContent = source.toCharArray();
-			final float[]	result = new float[1];
+			final float[]	result = new float[1]; 
 			
 			CharUtils.parseSignedFloat(widthContent,0,result,true);
 			return awaited.cast(new BasicStroke(result[0]));
@@ -408,11 +418,23 @@ loop:		for (;;) {
 			return awaited.cast(SVGUtils.extractCommands(source));
 		}
 		else if (awaited.isAssignableFrom(Font.class)) {
-			return awaited.cast(new Font("Arial",Font.PLAIN,12));
+			final Object[]			result = new Object[3];
+			final ArgumentType[]	LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name,ArgumentType.simpleTerminatedString};
+			
+			try{CharUtils.extract(source.toCharArray(),0,result,(Object[])LEXEMAS);
+			} catch (SyntaxException e) {
+				throw new IllegalArgumentException("String ["+new String()+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
+			}
+			
+			return awaited.cast(new Font(result[2].toString(),Font.PLAIN,(int)CSSUtils.asDistance((result[0].toString()+result[1].toString())).getValueAs(Distance.Units.pt)));
 		}
 		else {
 			throw new SyntaxException(0,0,"Conversion ["+source+"] to ["+awaited+"] is not supported");
 		}
+	}
+	
+	static String buildFontDescriptor(final Map<String,Object> attributes) throws SyntaxException {
+		return new StringBuilder().append(CSSUtils.asDistance(attributes.get("font-size").toString())).append(" \"").append(attributes.get("font-family")).append("\"").toString();
 	}
 	
 	static <T> T extractInstrument(final String propName, final Map<String,Object> attributes, final Class<T> instrumentType) throws SyntaxException {
@@ -454,21 +476,37 @@ loop:		for (;;) {
 	}	
 
 	static boolean hasSubstitutionInside(final CharSequence content) {
-		for (int index = 0, maxIndex = content.length(); index < maxIndex; index++) {
-			if (content.charAt(index) == '$' && index < maxIndex - 1 && content.charAt(index+1) == '{') {
-				return true;
-			}
+		if (content == null) {
+			throw new NullPointerException("Content to test can't be null");
 		}
-		return false;
+		else {
+			for (int index = 0, maxIndex = content.length(); index < maxIndex; index++) {
+				if (content.charAt(index) == '$' && index < maxIndex - 1 && content.charAt(index+1) == '{') {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 	
 	static boolean hasAnySubstitutions(final Map<String,Object> attributes, final String... attributeNames) {
-		for (String item : attributeNames) {
-			if (attributes.containsKey(item) && hasSubstitutionInside(attributes.get(item).toString())) {
-				return true;
-			}
+		if (attributes == null) {
+			throw new NullPointerException("Attribute map can't be null");
 		}
-		return false;
+		else if (attributeNames == null || attributeNames.length == 0) {
+			throw new IllegalArgumentException("Attribute names can't be null or empty array");
+		}
+		else if (Utils.checkArrayContent4Nulls(attributeNames) != -1) {
+			throw new NullPointerException("Attribute names contain nulls inside");
+		}
+		else {
+			for (String item : attributeNames) {
+				if (attributes.containsKey(item) && hasSubstitutionInside(attributes.get(item).toString())) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 	
 	static <T extends OnlineGetter> T buildOnlineGetter(final Class<T> clazz, final String content, final SubstitutionSource ss) {
@@ -571,7 +609,7 @@ loop:		for (;;) {
 					@Override
 					public boolean isImmutable() {
 						return false;
-					}
+					} 
 					
 					@Override
 					public boolean get() {
@@ -629,7 +667,7 @@ loop:		for (;;) {
 		}
 	}
 
-	static <T> OnlineObjectGetter<T> buildOnlineObjectGetter(final Class<T> clazz, final String content, final SubstitutionSource ss, final ConvertorInterface conv) {
+	static <T> OnlineObjectGetter<T> buildOnlineObjectGetter(final Class<T> clazz, final String content, final SubstitutionSource ss, final ConvertorInterface conv) throws ContentException {
 		if (clazz == null) {
 			throw new NullPointerException("Getter class can't be null"); 
 		}
@@ -643,27 +681,28 @@ loop:		for (;;) {
 			throw new NullPointerException("Convertor can't be null"); 
 		}
 		else {
-			return new OnlineObjectGetter<T>() {
-				@Override
-				public boolean isImmutable() {
-					return false;
-				}
-				
-				@Override
-				public T get() {
-					try{return clazz.cast(conv.convertTo(clazz,CharUtils.substitute(SVGPainter.class.getSimpleName(),content,ss)));
-					} catch (ContentException e) {
-						return null;
+			if (hasSubstitutionInside(content)) {
+				return new OnlineObjectGetter<T>() {
+					@Override
+					public boolean isImmutable() {
+						return false;
 					}
-				}
-			};
+					
+					@Override
+					public T get() {
+						try{return clazz.cast(conv.convertTo(clazz,CharUtils.substitute(SVGPainter.class.getSimpleName(),content,ss)));
+						} catch (ContentException e) {
+							return null;
+						}
+					}
+				};
+			}
+			else {
+				return OnlineObjectGetter.forValue(clazz.cast(conv.convertTo(clazz,content)));
+			}
 		}
 	}
 
-	static String buildFontStringByItsComponent(final Map<String,Object> props) {
-		return props.get("font-size")+" '"+props.get("font-family")+"'";
-	}
-	
 	// got from https://github.com/iconfinder/batik/blob/master/sources/org/apache/batik/ext/awt/geom/ExtendedGeneralPath.java
 	private static Arc2D computeArc(final double x0, final double y0, final double radx, final double rady, final double rotation, final boolean largeArcFlag, final boolean sweepFlag, final double x, final double y) {
 		final double 	dx2 = (x0 - x) / 2.0;

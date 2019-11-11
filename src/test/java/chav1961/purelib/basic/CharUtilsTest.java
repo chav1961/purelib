@@ -19,6 +19,11 @@ public class CharUtilsTest {
 		Assert.assertEquals(CharUtils.parseInt("1 ".toCharArray(),0,value,false),1);		Assert.assertEquals(value[0],1);
 		Assert.assertEquals(CharUtils.parseInt("123456".toCharArray(),0,value,false),6);	Assert.assertEquals(value[0],123456);
 		
+		Assert.assertEquals(6,CharUtils.parseSignedInt("123456".toCharArray(),0,value,false));	
+		Assert.assertEquals(123456,value[0]);
+		Assert.assertEquals(7,CharUtils.parseSignedInt("-123456".toCharArray(),0,value,false));	
+		Assert.assertEquals(-123456,value[0]);
+		
 		try{CharUtils.parseInt(null,0,value,false);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
@@ -29,7 +34,7 @@ public class CharUtilsTest {
 		}
 		try{CharUtils.parseInt("0".toCharArray(),1,value,false);
 			Assert.fail("Mandatory exception was not detected (1-nd argument outside the bound)");
-		} catch (IllegalArgumentException exc) {
+ 		} catch (IllegalArgumentException exc) {
 		}
 		try{CharUtils.parseInt("0".toCharArray(),0,null,false);
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
@@ -87,6 +92,11 @@ public class CharUtilsTest {
 		Assert.assertEquals(CharUtils.parseLong("1".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],1);
 		Assert.assertEquals(CharUtils.parseLong("1 ".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],1);
 		Assert.assertEquals(CharUtils.parseLong("123456".toCharArray(),0,value,false),6);		Assert.assertEquals(value[0],123456);
+
+		Assert.assertEquals(6,CharUtils.parseSignedLong("123456".toCharArray(),0,value,false));
+		Assert.assertEquals(123456,value[0]);
+		Assert.assertEquals(7,CharUtils.parseSignedLong("-123456".toCharArray(),0,value,false));
+		Assert.assertEquals(-123456,value[0]);
 		
 		try{CharUtils.parseLong(null,0,value,false);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -157,6 +167,11 @@ public class CharUtilsTest {
 		Assert.assertEquals(CharUtils.parseFloat("1 ".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],1,EPSILON_FLOAT);
 		Assert.assertEquals(CharUtils.parseFloat("123456".toCharArray(),0,value,false),6);		Assert.assertEquals(value[0],123456,EPSILON_FLOAT);
 		Assert.assertEquals(CharUtils.parseFloat("1234567".toCharArray(),0,value,false),7);		Assert.assertEquals(value[0],1234567.0,EPSILON_FLOAT);
+
+		Assert.assertEquals(7,CharUtils.parseSignedFloat("1234567".toCharArray(),0,value,false));
+		Assert.assertEquals(1234567.0,value[0],EPSILON_FLOAT);
+		Assert.assertEquals(8,CharUtils.parseSignedFloat("-1234567".toCharArray(),0,value,false));
+		Assert.assertEquals(-1234567.0,value[0],EPSILON_FLOAT);
 		
 		Assert.assertEquals(CharUtils.parseFloat("0.1".toCharArray(),0,value,false),3);			Assert.assertEquals(value[0],0.1,EPSILON_FLOAT);
 		Assert.assertEquals(CharUtils.parseFloat("0.0000000000000000001".toCharArray(),0,value,false),21);			Assert.assertEquals(value[0],0.0000000000000000001,EPSILON_FLOAT);
@@ -216,6 +231,11 @@ public class CharUtilsTest {
 		Assert.assertEquals(CharUtils.parseDouble("1 ".toCharArray(),0,value,false),1);			Assert.assertEquals(value[0],1,EPSILON);
 		Assert.assertEquals(CharUtils.parseDouble("123456".toCharArray(),0,value,false),6);		Assert.assertEquals(value[0],123456,EPSILON);
 		Assert.assertEquals(CharUtils.parseDouble("12345678901234567890".toCharArray(),0,value,false),20);		Assert.assertEquals(value[0],12345678901234567890.0,EPSILON);
+
+		Assert.assertEquals(20,CharUtils.parseSignedDouble("12345678901234567890".toCharArray(),0,value,false));
+		Assert.assertEquals(12345678901234567890.0,value[0],EPSILON);
+		Assert.assertEquals(21,CharUtils.parseSignedDouble("-12345678901234567890".toCharArray(),0,value,false));
+		Assert.assertEquals(-12345678901234567890.0,value[0],EPSILON);
 		
 		Assert.assertEquals(CharUtils.parseDouble("0.1".toCharArray(),0,value,false),3);		Assert.assertEquals(value[0],0.1,EPSILON);
 		Assert.assertEquals(CharUtils.parseDouble("0.0000000000000000001".toCharArray(),0,value,false),21);			Assert.assertEquals(value[0],0.0000000000000000001,EPSILON);
@@ -282,7 +302,7 @@ public class CharUtilsTest {
 		Assert.assertEquals(CharUtils.parseNumber("1.2E10".toCharArray(),0,value,CharUtils.PREF_ANY,false),6);		Assert.assertEquals(Double.longBitsToDouble(value[0]),1.2E10,EPSILON);
 		Assert.assertEquals(CharUtils.parseNumber("1.2E+10".toCharArray(),0,value,CharUtils.PREF_ANY,false),7);		Assert.assertEquals(Double.longBitsToDouble(value[0]),1.2E10,EPSILON);
 		Assert.assertEquals(CharUtils.parseNumber("1.2E-10".toCharArray(),0,value,CharUtils.PREF_ANY,false),7);		Assert.assertEquals(Double.longBitsToDouble(value[0]),1.2E-10,EPSILON);
-
+		
 		try{CharUtils.parseNumber(null,0,value,CharUtils.PREF_ANY,false);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
@@ -331,8 +351,24 @@ public class CharUtilsTest {
 			Assert.fail("Mandatory exception was not detected (overflow on conversion)");
 		} catch (SyntaxException exc) {
 		}
+		
 	}
 
+	@Test
+	public void numberValidationTest() throws SyntaxException {
+		final long[]		value = new long[2];
+
+		Assert.assertEquals(8,CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_DOUBLE,false));
+		Assert.assertEquals(8,CharUtils.validateNumber("1.2E-30F".toCharArray(),0,CharUtils.PREF_FLOAT,false));
+		Assert.assertEquals(19,CharUtils.validateNumber("12345678901234567890".toCharArray(),0,CharUtils.PREF_LONG,false));
+		Assert.assertEquals(9,CharUtils.validateNumber("123456789".toCharArray(),0,CharUtils.PREF_INT,false));
+
+		Assert.assertTrue(CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_INT,false) < 0);
+		Assert.assertTrue(CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_LONG,false) < 0);
+		Assert.assertTrue(CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_FLOAT,false) < 0);
+		
+	}	
+	
 	@Test
 	public void numberPrintingTest() {
 		final char[]	content = new char[100], emptyContent = new char[1];
@@ -654,7 +690,6 @@ public class CharUtilsTest {
 		} catch (SyntaxException exc) {
 		}
 		
-		
 		// Lexemas
 		Assert.assertEquals(3,CharUtils.extract("120".toCharArray(),0,result,ArgumentType.ordinalInt));	
 		Assert.assertEquals(120,((Integer)result[0]).intValue());
@@ -677,11 +712,16 @@ public class CharUtilsTest {
 		Assert.assertEquals(9,CharUtils.extract("test-test".toCharArray(),0,result,ArgumentType.hyphenedName));
 		Assert.assertEquals("test-test",result[0].toString());
 
+		Assert.assertEquals(4,CharUtils.extract("test".toCharArray(),0,result,ArgumentType.simpleTerminatedString));
+		Assert.assertEquals("test",result[0].toString());
+		Assert.assertEquals(6,CharUtils.extract("'test'".toCharArray(),0,result,ArgumentType.simpleTerminatedString));
+		Assert.assertEquals("test",result[0].toString());
+		Assert.assertEquals(6,CharUtils.extract("\"test\"".toCharArray(),0,result,ArgumentType.simpleTerminatedString));
+		Assert.assertEquals("test",result[0].toString());
 		
 		// Complex test
 		Assert.assertEquals(13,CharUtils.extract("test 120 test".toCharArray(),0,result,"test".toCharArray(),ArgumentType.ordinalInt,"test".toCharArray()));	// Complex
 		Assert.assertEquals(120,((Integer)result[0]).intValue());
-
 		
 		// Invalid argumenrs
 		try{CharUtils.extract(null,0,result,"z".toCharArray());		
@@ -838,6 +878,50 @@ public class CharUtilsTest {
 		}
 	}
 
+	@Test
+	public void joinTest() {
+		Assert.assertArrayEquals("test1,test2".toCharArray(),CharUtils.join(",".toCharArray(),"test1".toCharArray(),"test2".toCharArray()));
+		Assert.assertArrayEquals("test1".toCharArray(),CharUtils.join(",".toCharArray(),"test1".toCharArray()));
+		
+		try{CharUtils.join(null,"test1".toCharArray());
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.join("".toCharArray(),"test1".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.join(",".toCharArray(),(char[][])null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.join(",".toCharArray(),(char[])null);
+			Assert.fail("Mandatory exception was not detected (nulls inside 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		Assert.assertEquals("test1,test2",CharUtils.join(",","test1","test2"));
+		Assert.assertEquals("test1",CharUtils.join(",","test1"));
+		
+		try{CharUtils.join(null,"test1");
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.join("","test1");
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.join(",",(String[])null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.join(",",(String)null);
+			Assert.fail("Mandatory exception was not detected (nulls inside 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+	}
+	
 	@Test
 	public void likeTest() {
 		Assert.assertEquals(5,CharUtils.like("first".toCharArray(),"first".toCharArray(),0));

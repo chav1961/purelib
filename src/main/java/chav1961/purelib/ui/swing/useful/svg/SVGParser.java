@@ -154,7 +154,7 @@ public class SVGParser {
 					}
 					else {
 						try{CSSUtils.parseCSS(node.getTextContent());
-						} catch (SyntaxException e) {
+						} catch (SyntaxException e) { 
 							e.printStackTrace();
 						}
 					}
@@ -166,7 +166,7 @@ public class SVGParser {
 		}
 	}
 	
-	private static SVGPainter buildPainter(final Element root, final InstrumentGetter getter, final SubstitutionSource ss, final FillPolicy policy) throws ContentException {
+	static SVGPainter buildPainter(final Element root, final InstrumentGetter getter, final SubstitutionSource ss, final FillPolicy policy) throws ContentException {
 		final int[]					widthAndHeight = new int[2];
 		final List<AbstractPainter>	primitives = new ArrayList<>();
 		final ConvertorInterface	ci = new ConvertorInterface() {
@@ -188,13 +188,32 @@ public class SVGParser {
 					case "line"	:
 //						<line x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,LINE_ATTRIBUTES)) {
-							primitives.add(new DynamicLinePainter(SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_X1,String.class),ss)
+							primitives.add(new DynamicLinePainter(
+//													SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_X1,String.class)) 
+//														? 
+													SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_X1,String.class),ss)
+//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_X1,float.class))
+//													SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_Y1,String.class))
+//														? 
 													,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_Y1,String.class),ss)
+//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_Y1,float.class))
+//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_X2,String.class))
+//														? 
 													,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_X2,String.class),ss)
+//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_X2,float.class))
+//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_Y2,String.class))
+//														? 
 													,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_Y2,String.class),ss)
+//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_Y2,float.class))
+//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_STROKE,String.class))
+//														? 
 													,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,LINE_ATTR_STROKE,String.class),ss,ci)
-													,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,LINE_ATTR_STROKE_WIDTH,String.class),ss,ci))
-							);
+//														: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(LINE_ATTR_STROKE,props,Color.class))
+//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_STROKE_WIDTH,String.class))
+//														? 
+													,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,LINE_ATTR_STROKE_WIDTH,String.class),ss,ci)
+//														: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(LINE_ATTR_STROKE_WIDTH,props,Stroke.class))
+							));
 						}
 						else {
 							primitives.add(new LinePainter(XMLUtils.getAttribute(node,LINE_ATTR_X1,float.class)
@@ -209,14 +228,36 @@ public class SVGParser {
 					case "rect"	:
 // 						<rect width="100" height="50" x="0" y="0" rx="0" ry="0"  style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,RECT_ATTRIBUTES)) {
-							primitives.add(new DynamicRectPainter(SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_X1,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_Y1,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_X2,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_Y2,String.class),ss)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,RECT_ATTR_STROKE,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,RECT_ATTR_FILL,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,RECT_ATTR_STROKE_WIDTH,String.class),ss,ci))
-							);
+							primitives.add(new DynamicRectPainter(
+//														SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_X1,String.class))
+//															? 
+														SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_X1,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_X1,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_Y1,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_Y1,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_Y1,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_X2,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_X2,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_X2,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_Y2,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,RECT_ATTR_Y2,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_Y2,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,RECT_ATTR_STROKE,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,RECT_ATTR_STROKE,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(RECT_ATTR_STROKE,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,RECT_ATTR_FILL,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,RECT_ATTR_FILL,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(RECT_ATTR_FILL,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_STROKE_WIDTH,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,RECT_ATTR_STROKE_WIDTH,String.class),ss,ci)
+//															: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(RECT_ATTR_STROKE_WIDTH,props,Stroke.class))
+							));
 						} 
 						else {
 							primitives.add(new RectPainter(XMLUtils.getAttribute(node,RECT_ATTR_X1,float.class)
@@ -232,13 +273,32 @@ public class SVGParser {
 					case "circle"	:
 // 						<circle r="50" cx="0" cy="0" style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,CIRCLE_ATTRIBUTES)) {
-							primitives.add(new DynamicCirclePainter(SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_CX,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_CY,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_R,String.class),ss)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_STROKE,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_FILL,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_STROKE_WIDTH,String.class),ss,ci))
-							);
+							primitives.add(new DynamicCirclePainter(
+//														SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,CIRCLE_ATTR_CX,String.class))
+//															? 
+														SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_CX,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,CIRCLE_ATTR_CX,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,CIRCLE_ATTR_CY,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_CY,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,CIRCLE_ATTR_CY,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,CIRCLE_ATTR_R,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_R,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,CIRCLE_ATTR_R,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,CIRCLE_ATTR_STROKE,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_STROKE,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(CIRCLE_ATTR_STROKE,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,CIRCLE_ATTR_FILL,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_FILL,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(CIRCLE_ATTR_FILL,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,CIRCLE_ATTR_STROKE_WIDTH,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,CIRCLE_ATTR_STROKE_WIDTH,String.class),ss,ci)
+//															: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(CIRCLE_ATTR_STROKE_WIDTH,props,Stroke.class))
+							));
 						}
 						else {
 							primitives.add(new CirclePainter(XMLUtils.getAttribute(node,CIRCLE_ATTR_CX,float.class)
@@ -253,14 +313,36 @@ public class SVGParser {
 					case "ellipse"	:
 // 						<ellipse rx="50" ry="25" cx="0" cy="0" style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,ELLIPSE_ATTRIBUTES)) {
-							primitives.add(new DynamicEllipsePainter(SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_CX,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_CY,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RX,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RX,String.class),ss)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_STROKE,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_FILL,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_STROKE_WIDTH,String.class),ss,ci))
-							);
+							primitives.add(new DynamicEllipsePainter(
+//														SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,ELLIPSE_ATTR_CX,String.class))
+//															? 
+														SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_CX,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,ELLIPSE_ATTR_CX,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,ELLIPSE_ATTR_CY,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_CY,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,ELLIPSE_ATTR_CY,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,ELLIPSE_ATTR_RX,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RX,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,ELLIPSE_ATTR_RX,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,ELLIPSE_ATTR_RY,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RY,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,ELLIPSE_ATTR_RY,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,ELLIPSE_ATTR_STROKE,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_STROKE,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(ELLIPSE_ATTR_STROKE,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,ELLIPSE_ATTR_FILL,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_FILL,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(ELLIPSE_ATTR_FILL,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,ELLIPSE_ATTR_STROKE_WIDTH,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,ELLIPSE_ATTR_STROKE_WIDTH,String.class),ss,ci)
+//															: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(ELLIPSE_ATTR_STROKE_WIDTH,props,Stroke.class))
+							));
 						}
 						else {
 							primitives.add(new EllipsePainter(XMLUtils.getAttribute(node,ELLIPSE_ATTR_CX,float.class)
@@ -276,10 +358,20 @@ public class SVGParser {
 					case "polyline"	:
 // 						<polyline points="10,10 50,100 81,100 140,10" style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,POLYLINE_ATTRIBUTES)) {
-							primitives.add(new DynamicPolylinePainter(SVGUtils.buildOnlineObjectGetter(Point2D[].class,XMLUtils.getAttribute(node,POLYLINE_ATTR_POINTS,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,POLYLINE_ATTR_STROKE,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,POLYLINE_ATTR_STROKE_WIDTH,String.class),ss,ci))
-							);
+							primitives.add(new DynamicPolylinePainter(
+//														SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,POLYLINE_ATTR_POINTS,String.class))
+//															? 
+														SVGUtils.buildOnlineObjectGetter(Point2D[].class,XMLUtils.getAttribute(node,POLYLINE_ATTR_POINTS,String.class),ss,ci)
+//															: OnlineObjectGetter.<Point2D[]>forValue((Point2D[])getter.getInstrument(POLYLINE_ATTR_POINTS,props,Point2D[].class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,POLYLINE_ATTR_STROKE,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,POLYLINE_ATTR_STROKE,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(POLYLINE_ATTR_STROKE,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,POLYLINE_ATTR_STROKE_WIDTH,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,POLYLINE_ATTR_STROKE_WIDTH,String.class),ss,ci)
+//															: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(POLYLINE_ATTR_STROKE_WIDTH,props,Stroke.class))
+							));
 						}
 						else {
 							primitives.add(new PolylinePainter(SVGUtils.extractPoints(XMLUtils.getAttribute(node,POLYLINE_ATTR_POINTS,String.class))
@@ -291,11 +383,24 @@ public class SVGParser {
 					case "polygon"	:
 // 						<polyline points="10,10 50,100 81,100 140,10" style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,POLYGON_ATTRIBUTES)) {
-							primitives.add(new DynamicPolygonPainter(SVGUtils.buildOnlineObjectGetter(Point2D[].class,XMLUtils.getAttribute(node,POLYGON_ATTR_POINTS,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,POLYGON_ATTR_STROKE,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,POLYGON_ATTR_FILL,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,POLYGON_ATTR_STROKE_WIDTH,String.class),ss,ci))
-							);
+							primitives.add(new DynamicPolygonPainter(
+//														SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,POLYGON_ATTR_POINTS,String.class))
+//															? 
+														SVGUtils.buildOnlineObjectGetter(Point2D[].class,XMLUtils.getAttribute(node,POLYGON_ATTR_POINTS,String.class),ss,ci)
+//															: OnlineObjectGetter.<Point2D[]>forValue((Point2D[])getter.getInstrument(POLYGON_ATTR_POINTS,props,Point2D[].class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,POLYGON_ATTR_STROKE,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,POLYGON_ATTR_STROKE,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(POLYGON_ATTR_STROKE,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,POLYGON_ATTR_FILL,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,POLYGON_ATTR_FILL,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(POLYGON_ATTR_FILL,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,POLYGON_ATTR_STROKE_WIDTH,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,POLYGON_ATTR_STROKE_WIDTH,String.class),ss,ci)
+//															: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(POLYGON_ATTR_STROKE_WIDTH,props,Stroke.class))
+							));
 						}
 						else {
 							primitives.add(new PolygonPainter(SVGUtils.extractPoints(XMLUtils.getAttribute(node,POLYGON_ATTR_POINTS,String.class))
@@ -308,11 +413,24 @@ public class SVGParser {
 					case "path"	:
 // 						<path d="M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z" style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,PATH_ATTRIBUTES)) {
-							primitives.add(new DynamicPathPainter(SVGUtils.buildOnlineObjectGetter(GeneralPath.class,XMLUtils.getAttribute(node,PATH_ATTR_D,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,PATH_ATTR_STROKE,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,PATH_ATTR_FILL,String.class),ss,ci)
-														,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,PATH_ATTR_STROKE_WIDTH,String.class),ss,ci))
-							);
+							primitives.add(new DynamicPathPainter(
+//														SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,PATH_ATTR_D,String.class))
+//															? 
+														SVGUtils.buildOnlineObjectGetter(GeneralPath.class,XMLUtils.getAttribute(node,PATH_ATTR_D,String.class),ss,ci)
+//															: OnlineObjectGetter.<GeneralPath>forValue((GeneralPath)getter.getInstrument(PATH_ATTR_D,props,GeneralPath.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,PATH_ATTR_STROKE,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,PATH_ATTR_STROKE,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(PATH_ATTR_STROKE,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,PATH_ATTR_STROKE,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,PATH_ATTR_FILL,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(PATH_ATTR_FILL,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,PATH_ATTR_STROKE_WIDTH,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,PATH_ATTR_STROKE_WIDTH,String.class),ss,ci)
+//															: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(PATH_ATTR_STROKE_WIDTH,props,Stroke.class))
+							));
 						}
 						else {
 							primitives.add(new PathPainter(SVGUtils.extractCommands(XMLUtils.getAttribute(node,PATH_ATTR_D,String.class))
@@ -324,14 +442,33 @@ public class SVGParser {
 						break;
 					case "text"	:
 						if (SVGUtils.hasAnySubstitutions(props,TEXT_ATTRIBUTES) || SVGUtils.hasSubstitutionInside(node.getTextContent())) {
-							primitives.add(new DynamicTextPainter(OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,TEXT_ATTR_X,float.class))//SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_X,String.class),ss)
-														,OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,TEXT_ATTR_Y,float.class))//SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_Y,String.class),ss)
-														,SVGUtils.buildOnlineGetter(OnlineStringGetter.class,node.getTextContent(),ss)
-														,OnlineObjectGetter.<Font>forValue((Font)getter.getInstrument(TEXT_ATTR_FONT,props,Font.class))//SVGUtils.buildOnlineObjectGetter(Font.class,XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class),ss,ci)
-														,OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(TEXT_ATTR_FILL,props,Color.class))//SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class),ss,ci)
-														,OnlineObjectGetter.<AffineTransform>forValue((AffineTransform)getter.getInstrument(TEXT_ATTR_TRANSFORM,props,AffineTransform.class))//SVGUtils.buildOnlineObjectGetter(AffineTransform.class,XMLUtils.getAttribute(node,TEXT_ATTR_TRANSFORM,String.class),ss,ci)
-														)
-							);
+							primitives.add(new DynamicTextPainter(
+//														SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,TEXT_ATTR_X,String.class))
+//															? 
+														SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_X,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,TEXT_ATTR_X,float.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,TEXT_ATTR_Y,String.class))
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,TEXT_ATTR_Y,String.class),ss)
+//															: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,TEXT_ATTR_Y,float.class))
+//														,SVGUtils.hasSubstitutionInside(node.getTextContent())
+//															? 
+														, SVGUtils.buildOnlineGetter(OnlineStringGetter.class,node.getTextContent(),ss)
+//															: OnlineStringGetter.forValue(node.getTextContent())
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,TEXT_ATTR_FONT,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Font.class,SVGUtils.buildFontDescriptor(props),ss,ci)
+//														, SVGUtils.buildOnlineObjectGetter(Font.class,XMLUtils.getAttribute(node,TEXT_ATTR_FONT,String.class),ss,ci)
+//															: OnlineObjectGetter.<Font>forValue((Font)getter.getInstrument(TEXT_ATTR_FONT,props,Font.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,TEXT_ATTR_FILL,String.class),ss,ci)
+//															: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(TEXT_ATTR_FILL,props,Color.class))
+//														,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,TEXT_ATTR_TRANSFORM,String.class))
+//															? 
+														, SVGUtils.buildOnlineObjectGetter(AffineTransform.class,XMLUtils.getAttribute(node,TEXT_ATTR_TRANSFORM,String.class),ss,ci)
+//															: OnlineObjectGetter.<AffineTransform>forValue((AffineTransform)getter.getInstrument(TEXT_ATTR_TRANSFORM,props,AffineTransform.class))
+							));
 						}
 						else {
 							primitives.add(new TextPainter(XMLUtils.getAttribute(node,TEXT_ATTR_X,float.class)
@@ -361,5 +498,4 @@ public class SVGParser {
 		}
 		return result;
 	}
-	
 }

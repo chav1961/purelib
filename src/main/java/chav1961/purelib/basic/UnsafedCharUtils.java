@@ -714,7 +714,7 @@ class UnsafedCharUtils {
 		}
 		else {
 		}
-		return index;
+		return index; 
 	}
 	
 	static int uncheckedParseName(final char[] source, final int from, final int[] result) {
