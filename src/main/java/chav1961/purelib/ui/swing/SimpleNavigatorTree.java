@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -136,9 +137,13 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 						 if (getRowForLocation(e.getX(), e.getY()) != -1) {
 							final TreePath 		curPath = getPathForLocation(e.getX(), e.getY());
 							final TreeNode 		node = (TreeNode)curPath.getLastPathComponent();
-							final JMenuItem		item = (JMenuItem) ((DefaultMutableTreeNode)node).getUserObject();
+							final Object		association = ((DefaultMutableTreeNode)node).getUserObject();
 							
-							processAction(item,new ActionEvent(item,0,null));
+							if (association instanceof JMenuItem) {
+								final JMenuItem		item = (JMenuItem)association; 
+										
+								processAction(item,new ActionEvent(item,0,null));
+							}
 						 }
 					}
 					else if (e.getButton() == MouseEvent.BUTTON3 && e.getClickCount() == 1) {
@@ -170,9 +175,9 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 			return null;
 		}
 		else {
-			final TreePath 	curPath = getPathForLocation(event.getX(), event.getY());
-			final TreeNode 	node = (TreeNode)curPath.getLastPathComponent();
-			final JMenuItem	comp = (JMenuItem) ((DefaultMutableTreeNode)node).getUserObject();
+			final TreePath 		curPath = getPathForLocation(event.getX(), event.getY());
+			final TreeNode 		node = (TreeNode)curPath.getLastPathComponent();
+			final JComponent	comp = (JComponent) ((DefaultMutableTreeNode)node).getUserObject();
 			
 			return comp.getToolTipText();					
 		}
@@ -237,6 +242,15 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 		return root;
 	}
 
+	private static MutableTreeNode menuBar2Tree(final JMenu menu) throws LocalizationException {
+		final DefaultMutableTreeNode	root = new DefaultMutableTreeNode(new JLabel(menu.getText()),true);
+		
+		for (int index = 0; index < menu.getMenuComponentCount(); index++) {
+			root.add(menuBar2Tree((JMenuItem)menu.getMenuComponent(index)));
+		}
+		return root;
+	}
+	
 	private static MutableTreeNode menuBar2Tree(final JMenuItem menu) throws LocalizationException {
 //		if (menu instanceof JLocalizedMenu) {
 //			final JLocalizedMenuItem		item = new JLocalizedMenuItem(((JLocalizedMenu)menu).localizer,((JLocalizedMenu)menu).textId,((JLocalizedMenu)menu).tooltipId);
@@ -248,7 +262,12 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 //			return node;
 //		}
 //		else {
-			return new DefaultMutableTreeNode(menu,false);
+			if (menu instanceof JMenu) {
+				return menuBar2Tree((JMenu)menu);
+			}
+			else {
+				return new DefaultMutableTreeNode(menu,false);
+			}
 //		}
 	}
 	
