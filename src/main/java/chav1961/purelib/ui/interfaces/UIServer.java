@@ -9,6 +9,8 @@ import javax.swing.text.html.parser.ContentModel;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.basic.interfaces.InputStreamGetter;
+import chav1961.purelib.basic.interfaces.OutputStreamGetter;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.i18n.interfaces.Localizer;
 

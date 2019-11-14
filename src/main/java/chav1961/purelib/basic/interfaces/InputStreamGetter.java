@@ -1,5 +1,6 @@
-package chav1961.purelib.ui.interfaces;
+package chav1961.purelib.basic.interfaces;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -13,5 +14,5 @@ public interface InputStreamGetter {
 	 * <p>Get entity content to save</p>
 	 * @return content stream. Can't be null
 	 */
-	InputStream getContent();
+	InputStream getContent() throws IOException;
 }

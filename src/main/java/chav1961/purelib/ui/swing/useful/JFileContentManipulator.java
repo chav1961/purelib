@@ -20,12 +20,12 @@ import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.interfaces.InputStreamGetter;
+import chav1961.purelib.basic.interfaces.OutputStreamGetter;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.ui.interfaces.InputStreamGetter;
-import chav1961.purelib.ui.interfaces.OutputStreamGetter;
 
 /**
  * <p>This class is used to support opening/editing/saving any content in the Swing applications. It implements very popular
