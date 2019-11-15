@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -20,6 +21,21 @@ public class SequenceIterator<T> implements Iterator<T> {
 	private final Iterator<T>[]	list;
 	private int					current = 0;
 
+	public SequenceIterator(@SuppressWarnings("unchecked") final List<Iterator<T>> list) {
+		if (list == null) {
+			throw new NullPointerException("List of iterators can't be null");
+		}
+		else {
+			for (int index = 0; index < list.size(); index++) {
+				if (list.get(index) == null) {
+					throw new NullPointerException("The ["+index+"]-th element of the iterator list is null!");
+				}
+			}
+			this.list = list.toArray(new Iterator[list.size()]); 
+		}
+	}
+	
+	
 	public SequenceIterator(@SuppressWarnings("unchecked") final Iterator<T>... list) {
 		if (list == null) {
 			throw new NullPointerException("List of iterators can't be null");
