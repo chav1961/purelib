@@ -48,6 +48,7 @@ import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
@@ -171,7 +172,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				mdi.walkDown((mode,applicationPath,uiPath,node)->{
 					if (mode == NodeEnterMode.ENTER) {
 						if (node.getApplicationPath() != null){ 
-							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
+							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
 								final JButton		button = new JButton();
 								
 								button.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
@@ -192,7 +193,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 								
 								buttonPanel.add(button);							
 							}
-							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 								try{final JLabel		label = new JLabel();
 									final FieldFormat	ff = node.getFormatAssociated();
 									final JComponent 	field = SwingUtils.prepareRenderer(node, ff, this);
@@ -523,7 +524,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				if(node.getApplicationPath() != null) {
-					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
 						final JButton		button = (JButton) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{button.setText(localizer.getValue(node.getLabelId()));
@@ -532,7 +533,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 							logger.message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 						}
 					}
-					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 						final JLabel		label = (JLabel) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/label");
 						final JComponent	field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
@@ -623,13 +624,13 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if(node.getApplicationPath() != null) {
-						if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_CLASS)) {
+						if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS)) {
 							try{dlg.setTitle(localizer.getValue(node.getLabelId()));
 							} catch (LocalizationException exc) {
 								form.formManager.getLogger().message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 							}
 						}
-						else if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+						else if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 							final JComponent	item = (JComponent) SwingUtils.findComponentByName(form,uiPath.toString());
 							
 							item.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"ask.cancel");

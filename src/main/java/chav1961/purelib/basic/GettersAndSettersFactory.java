@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import sun.misc.Unsafe;
@@ -409,7 +409,7 @@ public class GettersAndSettersFactory {
 		else {
 			final URI	subScheme = URI.create(applicationPath.getSchemeSpecificPart());
 			
-			if (ContentModelFactory.APPLICATION_SCHEME_FIELD.equals(subScheme.getScheme())) {
+			if (Constants.MODEL_APPLICATION_SCHEME_FIELD.equals(subScheme.getScheme())) {
 				final String[]	parts = CharUtils.split(subScheme.getPath(),'/');
 				
 				if (parts.length != 3) {
@@ -422,7 +422,7 @@ public class GettersAndSettersFactory {
 				}
 			}
 			else {
-				throw new IllegalArgumentException("Illegal subscheme ["+subScheme.getScheme()+"] for getters/setters, must be ["+ContentModelFactory.APPLICATION_SCHEME_FIELD+"]");
+				throw new IllegalArgumentException("Illegal subscheme ["+subScheme.getScheme()+"] for getters/setters, must be ["+Constants.MODEL_APPLICATION_SCHEME_FIELD+"]");
 			}
 		}
 	}

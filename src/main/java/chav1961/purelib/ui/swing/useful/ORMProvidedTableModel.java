@@ -33,7 +33,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.SimpleContentMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -127,7 +127,7 @@ public class ORMProvidedTableModel<Key,Record> extends DefaultTableModel impleme
 			
 			for (String field : fields) {
 				metadata.walkDown((mode,appPath,uiPath,node)->{
-					if (mode == NodeEnterMode.ENTER && URIUtils.hasSubScheme(appPath,ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+					if (mode == NodeEnterMode.ENTER && URIUtils.hasSubScheme(appPath,Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 						if (node.getName().equalsIgnoreCase(field)) {
 							try{cols.add(new ColumnDescriptor(node.getName()
 										,node.getLabelId(),node.getTooltipId(),node.getType()

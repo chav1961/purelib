@@ -27,6 +27,7 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
@@ -87,7 +88,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 			
 			mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (node.getApplicationPath() != null){ 
-					if (node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+					if (node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 						switch (mode) {
 							case ENTER	:
 								try{final JLabel		label = new JLabel();
@@ -118,7 +119,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 								throw new UnsupportedOperationException("Node enter mode ["+mode+"] is not supported yet");
 						}
 					}
-					else if (mode == NodeEnterMode.ENTER && node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
+					else if (mode == NodeEnterMode.ENTER && node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
 						final JButton		button = new JButton();
 						
 						button.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
@@ -165,7 +166,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				if(node.getApplicationPath() != null) {
-					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 						final JComponent		field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{if (field instanceof JComponentInterface) {
@@ -189,7 +190,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				if(node.getApplicationPath() != null) {
-					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 						final JComponent		field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{if (field instanceof JComponentInterface) {
@@ -213,7 +214,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				if(node.getApplicationPath() != null) {
-					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_ACTION)) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
 						final JButton		button = (JButton) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						if (button != null) {
@@ -224,7 +225,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 							}
 						}
 					}
-					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+ContentModelFactory.APPLICATION_SCHEME_FIELD)) {
+					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 						final JLabel		label = (JLabel) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/label");
 						final JComponent	field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		

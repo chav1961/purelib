@@ -54,28 +54,26 @@ import chav1961.purelib.ui.interfaces.MultiAction;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
 public class ContentModelFactory {
-	public static final String			APPLICATION_SCHEME_CLASS = "class";	
-	public static final String			APPLICATION_SCHEME_FIELD = "field";	
-	public static final String			APPLICATION_SCHEME_TABLE = "table";	
-	public static final String			APPLICATION_SCHEME_COLUMN = "column";	
-	public static final String			APPLICATION_SCHEME_ID = "id";	
-	public static final String			APPLICATION_SCHEME_NAVIGATOR = "navigator";	
-	public static final String			APPLICATION_SCHEME_ACTION = "action";
-	public static final String			APPLICATION_SCHEME_BUILTIN_ACTION = "builtin";
-	
-	public static final String			BUILTIN_LANGUAGE = "builtin.languages";
-	public static final String			BUILTIN_STYLE = "style";	
-
 	private static final String			NAMESPACE_PREFIX = "app";
 	private static final String			NAMESPACE_VALUE = "http://ui.purelib.chav1961/";
-	private static final String			TAG_I18N = NAMESPACE_PREFIX+":i18n";
+
+	private static final String			XML_TAG_APP_ROOT = NAMESPACE_PREFIX+":root";
+	private static final String			XML_TAG_APP_I18N = NAMESPACE_PREFIX+":i18n";
+	private static final String			XML_TAG_APP_MENU = NAMESPACE_PREFIX+":menu";
+	private static final String			XML_TAG_APP_SUBMENU = NAMESPACE_PREFIX+"app:submenu";
+	private static final String			XML_TAG_APP_ITEM = NAMESPACE_PREFIX+":item";	
+	private static final String			XML_TAG_APP_SEPARATOR = NAMESPACE_PREFIX+":separator";
+	private static final String			XML_TAG_APP_BUILTIN_SUBMENU = NAMESPACE_PREFIX+":builtinSubmenu";
+	private static final String			XML_TAG_APP_KEYSET = NAMESPACE_PREFIX+":keyset";
+	private static final String			XML_TAG_APP_KEY = NAMESPACE_PREFIX+":key";	
 	
-	private static final Set<String>	AVAILABLE_BUILTINS = new HashSet<>();
-	
-	static {
-		AVAILABLE_BUILTINS.add(BUILTIN_LANGUAGE);
-		AVAILABLE_BUILTINS.add(BUILTIN_STYLE);
-	}
+	private static final String			XML_ATTR_ID = "id";
+	private static final String			XML_ATTR_NAME = "name";
+	private static final String			XML_ATTR_CAPTION = "caption";
+	private static final String			XML_ATTR_TOOLTIP = "tooltip";
+	private static final String			XML_ATTR_ACTION = "action";
+	private static final String			XML_ATTR_KEYSET = "keyset";
+	private static final String			XML_ATTR_GROUP = "group";	
 	
 	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (clazz == null) {
@@ -101,7 +99,7 @@ public class ContentModelFactory {
 															, localeResource.tooltip() 
 															, localeResource.help()
 															, null
-															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_CLASS+":/"+clazz.getName()));
+															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName()));
 				
 				collectFields(clazz,fields);
 				if (fields.size() == 0) {
@@ -194,7 +192,7 @@ public class ContentModelFactory {
 				
 				doc.getDocumentElement().normalize();
 				
-				final String						localizerResource = (String)xpath.compile("//"+TAG_I18N+"/@location").evaluate(doc,XPathConstants.STRING);
+				final String						localizerResource = (String)xpath.compile("//"+XML_TAG_APP_I18N+"/@location").evaluate(doc,XPathConstants.STRING);
 				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("root"
 														, Document.class
 														, "model"
@@ -241,7 +239,7 @@ public class ContentModelFactory {
 													, schema+"."+table+".tt" 
 													, schema+"."+table+".help"
 													, null
-													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_TABLE+":/"+TableContainer.class.getCanonicalName()));
+													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_TABLE+":/"+TableContainer.class.getCanonicalName()));
 			
 			
 			try(final ResultSet	rs = dbDescription.getColumns(catalog, schema, table, "%")) {
@@ -255,7 +253,7 @@ public class ContentModelFactory {
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".tt" 
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".help"
 																	, new FieldFormat(type,buildColumnFormat(rs))
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_COLUMN+":/"+table+"/"+rs.getString("COLUMN_NAME")+"?seq="+rs.getString("ORDINAL_POSITION")+"&type"+rs.getString("DATA_TYPE"))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+table+"/"+rs.getString("COLUMN_NAME")+"?seq="+rs.getString("ORDINAL_POSITION")+"&type"+rs.getString("DATA_TYPE"))
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);
@@ -275,7 +273,7 @@ public class ContentModelFactory {
 																	, "?" 
 																	, "?"
 																	, null
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ID+":/"+table+"/"+rs.getString("PKCOLUMN_NAME"))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ID+":/"+table+"/"+rs.getString("PKCOLUMN_NAME"))
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);
@@ -304,7 +302,7 @@ public class ContentModelFactory {
 			
 			new SimpleContentMetadata(clazz).walkDown((mode, applicationPath, uiPath, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (applicationPath.toString().contains(APPLICATION_SCHEME_FIELD)) {
+					if (applicationPath.toString().contains(Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 						classFields.add(node.getName().toUpperCase());
 					}
 				}
@@ -312,10 +310,10 @@ public class ContentModelFactory {
 			},clazz.getUIPath());
 			new SimpleContentMetadata(table).walkDown((mode, applicationPath, uiPath, node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (applicationPath.toString().contains(APPLICATION_SCHEME_COLUMN)) {
+					if (applicationPath.toString().contains(Constants.MODEL_APPLICATION_SCHEME_COLUMN)) {
 						tableFields.add(node.getName().toUpperCase());
 					}
-					else if (applicationPath.toString().contains(APPLICATION_SCHEME_ID)) {
+					else if (applicationPath.toString().contains(Constants.MODEL_APPLICATION_SCHEME_ID)) {
 						pkFields.add(node.getName().toUpperCase());
 					}
 				}
@@ -333,149 +331,146 @@ public class ContentModelFactory {
 	}
 
 	static URI buildClassFieldApplicationURI(final Class<?> clazz, final Field f) {
-		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName());
+		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName());
 	}
 
 	static URI buildClassMethodApplicationURI(final Class<?> clazz, final String action) {
-		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"."+action);
+		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"."+action);
 	}
 
 	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) throws EnvironmentException {
 		MutableContentNodeMetadata	child;
 		
-//		if (document.getNodeType() == Document.ENTITY_NODE) {
-			switch (document.getTagName()) {
-				case "app:menu" 			:
-					final String	menuId = getAttribute(document,"id");
-					final String	keySet = getAttribute(document,"keyset");
-					
-					child = new MutableContentNodeMetadata(menuId
-							, String.class
-							, "navigation.top."+menuId+(keySet == null ? "" : "?keyset="+keySet)
-							, null
-							, menuId
-							, null 
-							, null
-							, null
-							, null);
-					break;
-				case "app:submenu"			:
-					final String	submenuName = getAttribute(document,"name");
-					final String	submenuCaption = getAttribute(document,"caption");
-					final String	submenuTooltip = getAttribute(document,"tooltip");
-					
-					child = new MutableContentNodeMetadata(submenuName
-							, String.class
-							, "navigation.node."+submenuName
-							, null
-							, submenuCaption
-							, submenuTooltip 
-							, null
-							, null
-							, null);
-					break;
-				case "app:item"				:
-					final String	itemName = getAttribute(document,"name");
-					final String	itemCaption = getAttribute(document,"caption");
-					final String	itemTooltip = getAttribute(document,"tooltip");
-					final String	itemAction = getAttribute(document,"action");
-					final String	groupAction = getAttribute(document,"group");
-					
-					child = new MutableContentNodeMetadata(itemName
-							, String.class
-							, "navigation.leaf."+itemName
-							, null
-							, itemCaption
-							, itemTooltip 
-							, null
-							, null
-							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : "")));
-					break;
-				case "app:separator"		:
-					child = new MutableContentNodeMetadata("_"
-							, String.class
-							, "navigation.separator"
-							, null
-							, "_"
-							, null 
-							, null
-							, null
-							, null);
-					break;
-				case "app:builtinSubmenu"	:
-					final String	builtinName = getAttribute(document,"name");
-					final String	builtinCaption = getAttribute(document,"caption");
-					final String	builtinTooltip = getAttribute(document,"tooltip");
-					final String	builtinAction = getAttribute(document,"action");
-					
-					if (!AVAILABLE_BUILTINS.contains(builtinName)) {
-						throw new EnvironmentException("Illegal name ["+builtinName+"] for built-in navigation. Available names are "+AVAILABLE_BUILTINS);						
-					}
-					else {
-						child = new MutableContentNodeMetadata(builtinName
-								, String.class
-								, "navigation.node."+builtinName
-								, null
-								, builtinCaption
-								, builtinTooltip 
-								, null
-								, null
-								, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":"+APPLICATION_SCHEME_BUILTIN_ACTION+":/"+builtinAction));
-					}
-					break;
-				case "app:keyset"		:
-					final String	keysetName = getAttribute(document,"id");
-					
-					child = new MutableContentNodeMetadata(keysetName
-							, String.class
-							, "navigation.keyset."+keysetName
-							, null
-							, keysetName 
-							, null
-							, null
-							, null
-							, null);
-					break;
-				case "app:key"			:
-					final String	keyName = getAttribute(document,"id");
-					final String	keyAction = getAttribute(document,"action");
-					final String	keyCode = getAttribute(document,"code");
-					final String	keyCtrl = getAttribute(document,"ctrl");
-					final String	keyShift = getAttribute(document,"shift");
-					final String	keyAlt = getAttribute(document,"alt");
-					final String	keyLabel = (keyCtrl != null || "true".equals(keyCtrl) ? "ctrl " : "")+(keyShift != null || "true".equals(keyShift) ? "shift " : "")+(keyAlt != null || "true".equals(keyAlt) ? "alt " : "") + keyCode; 
-					
-					child = new MutableContentNodeMetadata(keyName == null ? keyLabel : keyName
-							, String.class
-							, "keyset.key."+(keyName == null ? keyLabel.replace(' ','_') : keyName)
-							, null
-							, keyLabel
-							, null 
-							, null
-							, null
-							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+keyAction));
-					break;
-				case "app:root"	:	// Top level
-					for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
-						if (((NodeList)document).item(index) instanceof Element) {
-							buildSubtree((Element) ((NodeList)document).item(index),node);
-						}
-					}
-					return;
-				case "app:i18n"	:	// Was processed at the top
-					return;
-				default :
-					System.err.println("Tag="+document.getTagName());
-					return;
-			}
-			for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
-				if (((NodeList)document).item(index) instanceof Element) {
-					buildSubtree((Element) ((NodeList)document).item(index),child);
+		switch (document.getTagName()) {
+			case XML_TAG_APP_MENU		:
+				final String	menuId = getAttribute(document,XML_ATTR_ID);
+				final String	keySet = getAttribute(document,XML_ATTR_KEYSET);
+				
+				child = new MutableContentNodeMetadata(menuId
+						, String.class
+						, Constants.MODEL_NAVIGATION_TOP_PREFIX+'.'+menuId+(keySet == null ? "" : "?keyset="+keySet)
+						, null
+						, menuId
+						, null 
+						, null
+						, null
+						, null);
+				break;
+			case XML_TAG_APP_SUBMENU	:
+				final String	submenuName = getAttribute(document,XML_ATTR_NAME);
+				final String	submenuCaption = getAttribute(document,XML_ATTR_CAPTION);
+				final String	submenuTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
+				
+				child = new MutableContentNodeMetadata(submenuName
+						, String.class
+						, Constants.MODEL_NAVIGATION_NODE_PREFIX+'.'+submenuName
+						, null
+						, submenuCaption
+						, submenuTooltip 
+						, null
+						, null
+						, null);
+				break;
+			case XML_TAG_APP_ITEM		:
+				final String	itemName = getAttribute(document,XML_ATTR_NAME);
+				final String	itemCaption = getAttribute(document,XML_ATTR_CAPTION);
+				final String	itemTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
+				final String	itemAction = getAttribute(document,XML_ATTR_ACTION);
+				final String	groupAction = getAttribute(document,XML_ATTR_GROUP);
+				
+				child = new MutableContentNodeMetadata(itemName
+						, String.class
+						, Constants.MODEL_NAVIGATION_LEAF_PREFIX+'.'+itemName
+						, null
+						, itemCaption
+						, itemTooltip 
+						, null
+						, null
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : "")));
+				break;
+			case XML_TAG_APP_SEPARATOR	:
+				child = new MutableContentNodeMetadata("_"
+						, String.class
+						, Constants.MODEL_NAVIGATION_SEPARATOP
+						, null
+						, "_"
+						, null 
+						, null
+						, null
+						, null);
+				break;
+			case XML_TAG_APP_BUILTIN_SUBMENU	:
+				final String	builtinName = getAttribute(document,XML_ATTR_NAME);
+				final String	builtinCaption = getAttribute(document,XML_ATTR_CAPTION);
+				final String	builtinTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
+				final String	builtinAction = getAttribute(document,XML_ATTR_ACTION);
+				
+				if (!Constants.MODEL_AVAILABLE_BUILTINS.contains(builtinName)) {
+					throw new EnvironmentException("Illegal name ["+builtinName+"] for built-in navigation. Available names are "+Constants.MODEL_AVAILABLE_BUILTINS);						
 				}
+				else {
+					child = new MutableContentNodeMetadata(builtinName
+							, String.class
+							, Constants.MODEL_NAVIGATION_NODE_PREFIX+'.'+builtinName
+							, null
+							, builtinCaption
+							, builtinTooltip 
+							, null
+							, null
+							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":"+Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION+":/"+builtinAction));
+				}
+				break;
+			case XML_TAG_APP_KEYSET	:
+				final String	keysetName = getAttribute(document,XML_ATTR_ID);
+				
+				child = new MutableContentNodeMetadata(keysetName
+						, String.class
+						, Constants.MODEL_NAVIGATION_KEYSET_PREFIX+'.'+keysetName
+						, null
+						, keysetName 
+						, null
+						, null
+						, null
+						, null);
+				break;
+			case XML_TAG_APP_KEY	:
+				final String	keyName = getAttribute(document,XML_ATTR_ID);
+				final String	keyAction = getAttribute(document,XML_ATTR_ACTION);
+				final String	keyCode = getAttribute(document,"code");
+				final String	keyCtrl = getAttribute(document,"ctrl");
+				final String	keyShift = getAttribute(document,"shift");
+				final String	keyAlt = getAttribute(document,"alt");
+				final String	keyLabel = (keyCtrl != null || "true".equals(keyCtrl) ? "ctrl " : "")+(keyShift != null || "true".equals(keyShift) ? "shift " : "")+(keyAlt != null || "true".equals(keyAlt) ? "alt " : "") + keyCode; 
+				
+				child = new MutableContentNodeMetadata(keyName == null ? keyLabel : keyName
+						, String.class
+						, Constants.MODEL_KEYSET_KEY_PREFIX+'.'+(keyName == null ? keyLabel.replace(' ','_') : keyName)
+						, null
+						, keyLabel
+						, null 
+						, null
+						, null
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+keyAction));
+				break;
+			case XML_TAG_APP_ROOT	:	// Top level
+				for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
+					if (((NodeList)document).item(index) instanceof Element) {
+						buildSubtree((Element) ((NodeList)document).item(index),node);
+					}
+				}
+				return;
+			case XML_TAG_APP_I18N	:	// Was processed at the top
+				return;
+			default :
+				throw new UnsupportedOperationException("Tag ["+document.getTagName()+"] is not supported yet"); 
+		}
+		for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
+			if (((NodeList)document).item(index) instanceof Element) {
+				buildSubtree((Element) ((NodeList)document).item(index),child);
 			}
-			node.addChild(child);
+		}
+		node.addChild(child);
 			child.setParent(node);
-//		}
 	}
 
 	private static String getAttribute(final Element document, final String attribute) {
@@ -573,7 +568,7 @@ public class ContentModelFactory {
 										, item.resource().tooltip()
 										, item.resource().help()
 										, null
-										, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+method.getName()+"()."+item.actionString())
+										, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+method.getName()+"()."+item.actionString())
 						)
 				);
 			}

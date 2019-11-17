@@ -22,9 +22,6 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
-import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
-import chav1961.purelib.ui.swing.interfaces.UITestInterface;
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -32,12 +29,14 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.LocalizerFactory;
-import chav1961.purelib.i18n.LocalizerFactory.FillLocalizedContentCallback;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
+import chav1961.purelib.ui.swing.interfaces.UITestInterface;
 
 public class SwingModelUtils {
 	public static <T extends JComponent> T toMenuEntity(final ContentNodeMetadata node, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
@@ -47,7 +46,7 @@ public class SwingModelUtils {
 		else if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null"); 
 		}
-		else if (!node.getRelativeUIPath().getPath().startsWith("./navigation.top")) {
+		else if (!node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_TOP_PREFIX)) {
 			throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
 		}
 		else if (awaited.isAssignableFrom(JMenuBar.class)) {
@@ -78,7 +77,7 @@ public class SwingModelUtils {
 		else if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null"); 
 		}
-		else if (!node.getRelativeUIPath().getPath().startsWith("./navigation.top")) {
+		else if (!node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_TOP_PREFIX)) {
 			throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
 		}
 		else if (awaited.isAssignableFrom(JToolBar.class)) {
@@ -185,7 +184,7 @@ public class SwingModelUtils {
 	}
 	
 	private static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
-		if (node.getRelativeUIPath().getPath().startsWith("./navigation.node.")) {
+		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	menu = new JMenuWithMeta(node);
 			
 			for (ContentNodeMetadata child : node) {
@@ -193,13 +192,13 @@ public class SwingModelUtils {
 			}
 			bar.add(menu);
 		} 
-		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.leaf.")) {
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
 			bar.add(new JMenuItemWithMeta(node));
 		}
 	}
 
 	private static void toMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) throws NullPointerException, IllegalArgumentException{
-		if (node.getRelativeUIPath().getPath().startsWith("./navigation.node.")) {
+		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	menu = new JMenuWithMeta(node);
 			
 			for (ContentNodeMetadata child : node) {
@@ -207,18 +206,18 @@ public class SwingModelUtils {
 			}
 			popup.add(menu);
 		} 
-		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.leaf.")) {
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
 			popup.add(new JMenuItemWithMeta(node));
 		}
 	}
 	
 	private static void toMenuEntity(final ContentNodeMetadata node, final JMenu menu) throws NullPointerException, IllegalArgumentException{
-		if (node.getRelativeUIPath().getPath().startsWith("./navigation.node.")) {
+		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	submenu = new JMenuWithMeta(node);
 			
-			if (node.getApplicationPath() != null && node.getApplicationPath().toString().contains(ContentModelFactory.APPLICATION_SCHEME_BUILTIN_ACTION)) {
+			if (node.getApplicationPath() != null && node.getApplicationPath().toString().contains(Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION)) {
 				switch (node.getName()) {
-					case ContentModelFactory.BUILTIN_LANGUAGE	:
+					case Constants.MODEL_BUILTIN_LANGUAGE	:
 						AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
 							final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
 							
@@ -228,7 +227,7 @@ public class SwingModelUtils {
 							submenu.add(item);
 						});
 						break;
-					case ContentModelFactory.BUILTIN_STYLE		:
+					case Constants.MODEL_BUILTIN_STYLE		:
 						for (LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
 							final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
 							
@@ -271,7 +270,7 @@ public class SwingModelUtils {
 				menu.add(submenu);
 			}
 		} 
-		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.leaf.")) {
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
 			if (node.getApplicationPath().getFragment() != null) {
 				final JRadioMenuItemWithMeta	item = new JRadioMenuItemWithMeta(node);
 				
@@ -284,7 +283,7 @@ public class SwingModelUtils {
 			}
 			
 		}
-		else if (node.getRelativeUIPath().getPath().startsWith("./navigation.separator")) {
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOP)) {
 			menu.add(new JSeparator());
 		}
 	}
