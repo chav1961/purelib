@@ -264,6 +264,15 @@ public abstract class AbstractLocalizer implements Localizer {
 		}
 	}
 
+	@Override
+	public String getValue(final String key, final Object... parameters) throws LocalizationException, IllegalArgumentException {
+		if (key == null || key.isEmpty()) {
+			throw new IllegalArgumentException("Key to check can't be null or empty");
+		}
+		else {
+			return String.format(getValue(key),parameters);
+		}
+	}	
 	
 	@Override
 	public Reader getContent(final String key) throws LocalizationException, IllegalArgumentException {

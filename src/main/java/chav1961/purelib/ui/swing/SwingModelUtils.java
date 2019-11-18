@@ -70,6 +70,34 @@ public class SwingModelUtils {
 		}
 	}
 
+	public static <T extends JComponent> T actionToMenuEntity(final ContentNodeMetadata node, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
+		if (node == null) {
+			throw new NullPointerException("Model node can't be null"); 
+		}
+		else if (awaited == null) {
+			throw new NullPointerException("Awaited class can't be null"); 
+		}
+		else if (awaited.isAssignableFrom(JMenuBar.class)) {
+			final JMenuBar	result = new JMenuBarWithMeta(node);
+			
+			for (ContentNodeMetadata child : node) {
+				actionToMenuEntity(child,result);
+			}
+			return (T) result;
+		}
+		else if (awaited.isAssignableFrom(JPopupMenu.class)) {
+			final JPopupMenu	result = new JMenuPopupWithMeta(node);
+			
+			for (ContentNodeMetadata child : node) {
+				actionToMenuEntity(child,result);
+			}
+			return (T) result;
+		}
+		else {
+			throw new IllegalArgumentException("Illegal awaited class ["+awaited.getCanonicalName()+"], only JMenuBar and JPopupMenu are available"); 
+		}
+	}
+	
 	public static <T extends JComponent> T toToolbar(final ContentNodeMetadata node, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
 		if (node == null) {
 			throw new NullPointerException("Model node can't be null"); 
@@ -197,6 +225,13 @@ public class SwingModelUtils {
 		}
 	}
 
+	private static void actionToMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) {
+		if (node.getApplicationPath().getSchemeSpecificPart().startsWith(Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
+			bar.add(new JMenuItemWithMeta(node));
+		}
+	}
+	
+	
 	private static void toMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	menu = new JMenuWithMeta(node);
@@ -210,6 +245,13 @@ public class SwingModelUtils {
 			popup.add(new JMenuItemWithMeta(node));
 		}
 	}
+
+	private static void actionToMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) {
+		if (node.getApplicationPath().getSchemeSpecificPart().startsWith(Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
+			popup.add(new JMenuItemWithMeta(node));
+		}
+	}
+	
 	
 	private static void toMenuEntity(final ContentNodeMetadata node, final JMenu menu) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {

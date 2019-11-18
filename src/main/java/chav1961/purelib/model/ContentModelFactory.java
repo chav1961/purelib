@@ -60,7 +60,7 @@ public class ContentModelFactory {
 	private static final String			XML_TAG_APP_ROOT = NAMESPACE_PREFIX+":root";
 	private static final String			XML_TAG_APP_I18N = NAMESPACE_PREFIX+":i18n";
 	private static final String			XML_TAG_APP_MENU = NAMESPACE_PREFIX+":menu";
-	private static final String			XML_TAG_APP_SUBMENU = NAMESPACE_PREFIX+"app:submenu";
+	private static final String			XML_TAG_APP_SUBMENU = NAMESPACE_PREFIX+":submenu";
 	private static final String			XML_TAG_APP_ITEM = NAMESPACE_PREFIX+":item";	
 	private static final String			XML_TAG_APP_SEPARATOR = NAMESPACE_PREFIX+":separator";
 	private static final String			XML_TAG_APP_BUILTIN_SUBMENU = NAMESPACE_PREFIX+":builtinSubmenu";

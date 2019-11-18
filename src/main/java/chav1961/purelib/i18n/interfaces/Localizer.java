@@ -173,6 +173,20 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	String getValue(String key) throws LocalizationException, IllegalArgumentException;
 
 	/**
+	 * <p>Get localization value for the given key. Extracts and substitute values (see {@linkplain SubstitutableProperties}) from localization content. Also processed a set of URLs inside the localization string. 
+	 * Each url inside the localization string has syntax:</p>
+	 * <p><code><b>url(</b>&lt;valid_url&gt;[<b>,</b>&lt;valid_MIME&gt;]<b>)</b></code></p>
+	 * <p>Relative URL (with the missing scheme) points to resource inside the JRE class tree. Duplicated keys in the localizer hierarchy always are resolved to the deepest localizer content</p>
+	 * @param key key to get localization string for. Key content is case-sensitive
+	 * @param parameters additional parameters for string formatter
+	 * @return string localized
+	 * @throws LocalizationException if the key is missing anywhere.
+	 * @throws IllegalArgumentException if key to get is null or empty
+	 * @since 0.0.3
+	 */
+	String getValue(String key, Object... parameters) throws LocalizationException, IllegalArgumentException;
+	
+	/**
 	 * <p>Get localization value for the given key in the current Localizer only.</p>
 	 * @param key key to get localization string for. Key content is case-sensitive
 	 * @return string localized

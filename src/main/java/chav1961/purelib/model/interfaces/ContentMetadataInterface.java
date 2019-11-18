@@ -2,6 +2,8 @@ package chav1961.purelib.model.interfaces;
 
 import java.net.URI;
 
+import javax.swing.Icon;
+
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.model.FieldFormat;
@@ -27,6 +29,9 @@ public interface ContentMetadataInterface {
 		ContentNodeMetadata getParent();
 		int getChildrenCount();
 		ContentMetadataInterface getOwner();
+		default Icon getIcon() {
+			return null;
+		}
 	}
 
 	@FunctionalInterface
