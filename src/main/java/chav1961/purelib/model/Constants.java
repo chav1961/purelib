@@ -7,7 +7,7 @@ public class Constants {
 	public static final String	MODEL_NAVIGATION_TOP_PREFIX = "navigation.top";
 	public static final String	MODEL_NAVIGATION_NODE_PREFIX = "navigation.node";
 	public static final String	MODEL_NAVIGATION_LEAF_PREFIX = "navigation.leaf";
-	public static final String	MODEL_NAVIGATION_SEPARATOP = "navigation.separator";
+	public static final String	MODEL_NAVIGATION_SEPARATOR = "navigation.separator";
 	public static final String	MODEL_NAVIGATION_KEYSET_PREFIX = "navigation.keyset";
 
 	public static final String	MODEL_KEYSET_KEY_PREFIX = "keyset.key";

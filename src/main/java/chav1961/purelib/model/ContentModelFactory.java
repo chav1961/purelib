@@ -391,7 +391,7 @@ public class ContentModelFactory {
 			case XML_TAG_APP_SEPARATOR	:
 				child = new MutableContentNodeMetadata("_"
 						, String.class
-						, Constants.MODEL_NAVIGATION_SEPARATOP
+						, Constants.MODEL_NAVIGATION_SEPARATOR
 						, null
 						, "_"
 						, null 

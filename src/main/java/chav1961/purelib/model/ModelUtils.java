@@ -12,6 +12,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
@@ -27,6 +30,10 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
+import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ORMSerializer;
@@ -60,6 +67,18 @@ public class ModelUtils {
 		}
 		writer = temp;
 		initExc = tempExc;
+	}
+	
+	public interface ModelComparisonCallback {
+		public enum DifferenceType {
+			INSERTED, DELETED, CHANGED 
+		}
+		
+		public enum DifferenceLocalization {
+			IN_TYPE, IN_UI_PATH, IN_LOCALIZER, IN_LABEL, IN_TOOLTIP, IN_HELP, IN_FORMAT, IN_APP_PATH
+		}
+		
+		ContinueMode difference(ContentNodeMetadata left, ContentNodeMetadata right, DifferenceType diffType, Set<DifferenceLocalization> details);
 	}
 	
 	public static <Key,Content> ORMSerializer<Key,Content> buildORMSerializer(final ContentMetadataInterface metadata, final ClassLoader deploy) {
@@ -394,6 +413,137 @@ public class ModelUtils {
 		}
 	}	
 	
+	
+	public static ContentNodeMetadata clone(final ContentNodeMetadata source) {
+		if (source == null) {
+			throw new NullPointerException("SOurce node to clone can't be null");
+		}
+		else {
+			return innerClone(source);
+		}
+	}
+	
+	private static ContentNodeMetadata innerClone(final ContentNodeMetadata source) {
+		final MutableContentNodeMetadata	result = new MutableContentNodeMetadata(source.getName(),
+													source.getType(),
+													source.getRelativeUIPath().toString(),
+													source.getLocalizerAssociated(),
+													source.getLabelId(),
+													source.getTooltipId(),
+													source.getHelpId(),
+													source.getFormatAssociated(),
+													source.getApplicationPath());
+		for (ContentNodeMetadata item : source) {
+			result.addChild(innerClone(item));
+		}
+		return result;
+	}
+
+	public static void compare(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelComparisonCallback callback) {
+		if (left == null) {
+			throw new NullPointerException("Left node to compare can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right node to compare can't be null");
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Callback to compare can't be null");
+		}
+		else {
+			innerCompare(left,right,callback,new HashSet<>(),new HashSet<>());
+		}
+	}	
+	
+	private static boolean innerCompare(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelComparisonCallback callback, final Set<DifferenceLocalization> details, final Set<String> rightNames) {
+		if (left != null && right == null) {
+			details.clear();
+			return callback.difference(left,right,DifferenceType.DELETED,details) == ContinueMode.CONTINUE; 
+		}
+		else if (left == null && right != null) {
+			details.clear();
+			return callback.difference(left,right,DifferenceType.INSERTED,details) == ContinueMode.CONTINUE; 
+		}
+		else if (left.getName().equals(right.getName())) {
+			details.clear();
+			if (!(left.getType().isAssignableFrom(right.getType()) || left.getType().isAssignableFrom(right.getType()))) {
+				details.add(DifferenceLocalization.IN_TYPE);
+			}
+			if (!left.getRelativeUIPath().equals(right.getRelativeUIPath())) {
+				details.add(DifferenceLocalization.IN_UI_PATH);
+			}
+			if (!left.getLabelId().equals(right.getLabelId())) {
+				details.add(DifferenceLocalization.IN_LABEL);
+			}
+			if (!left.getLocalizerAssociated().equals(right.getLocalizerAssociated())) {
+				details.add(DifferenceLocalization.IN_LOCALIZER);
+			}
+			if (!left.getApplicationPath().equals(right.getApplicationPath())) {
+				details.add(DifferenceLocalization.IN_APP_PATH);
+			}
+			
+			if (!Objects.equals(left.getTooltipId(),right.getTooltipId())) {
+				details.add(DifferenceLocalization.IN_TOOLTIP);
+			}
+			if (!Objects.equals(left.getHelpId(),right.getHelpId())) {
+				details.add(DifferenceLocalization.IN_HELP);
+			}
+			if (!Objects.equals(left.getFormatAssociated(),right.getFormatAssociated())) {
+				details.add(DifferenceLocalization.IN_FORMAT);
+			}
+			if (callback.difference(left,right,DifferenceType.CHANGED,details) == ContinueMode.CONTINUE) {
+				final Set<String>	leftNames = new HashSet<>();
+				rightNames.clear();
+				
+				for (ContentNodeMetadata item : left) {
+					leftNames.add(item.getName());
+				}
+				for (ContentNodeMetadata item : right) {
+					rightNames.add(item.getName());
+				}
+				leftNames.retainAll(rightNames);
+				
+				for (ContentNodeMetadata item : left) {
+					if (!leftNames.contains(item.getName())) {
+						details.clear();
+						if (callback.difference(left,null,DifferenceType.DELETED,details) != ContinueMode.CONTINUE) {
+							return false;
+						}
+					}
+				}
+				
+				for (ContentNodeMetadata item : right) {
+					if (!leftNames.contains(item.getName())) {
+						details.clear();
+						if (callback.difference(null,right,DifferenceType.INSERTED,details) != ContinueMode.CONTINUE) {
+							return false;
+						}
+					}
+				}
+				
+				for (ContentNodeMetadata itemLeft : left) {
+					if (leftNames.contains(itemLeft.getName())) {
+						for (ContentNodeMetadata itemRight : right) {
+							if (itemLeft.getName().equals(itemRight.getName())) {
+								details.clear();
+								if (!innerCompare(itemLeft,itemRight,callback,details,rightNames)) {
+									return false;
+								}
+							}
+						}
+					}
+				}
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			details.clear();
+			return callback.difference(left,null,DifferenceType.DELETED,details) == ContinueMode.CONTINUE && callback.difference(null,right,DifferenceType.INSERTED,details) == ContinueMode.CONTINUE; 
+		}
+	}
+
 	private static void toString(final String prefix, final ContentNodeMetadata node, final StringBuilder sb) {
 		sb.append(prefix).append(node.getRelativeUIPath()).append('\n');
 		sb.append(prefix).append('\t').append(node.getName()).append(", app=").append(node.getApplicationPath()).append('\n');

@@ -35,6 +35,7 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.SwingUtils.InnerActionNode;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.UITestInterface;
 
@@ -112,7 +113,20 @@ public class SwingModelUtils {
 			final JToolBar	result = new JToolBarWithMeta(node);
 			
 			for (ContentNodeMetadata child : node) {
-				if (child.getRelativeUIPath().toString().startsWith("./navigation.leaf.")) {
+				if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
+					final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child);
+					final JButton 				btn = new JButtonWithMetaAndActions(child,menu);					
+					
+					for (ContentNodeMetadata item : child) {
+						toMenuEntity(item,menu);
+					}
+					
+					btn.addActionListener((e)->{
+						menu.show(btn,btn.getWidth()/2,btn.getHeight()/2);
+					});
+					result.add(btn);
+				}
+				else if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
 					result.add(new JButtonWithMeta(child));
 				}
 				else if (URI.create("./navigation.separator").equals(child.getRelativeUIPath())) {
@@ -244,6 +258,9 @@ public class SwingModelUtils {
 		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
 			popup.add(new JMenuItemWithMeta(node));
 		}
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
+			popup.add(new JSeparator());
+		}
 	}
 
 	private static void actionToMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) {
@@ -325,7 +342,7 @@ public class SwingModelUtils {
 			}
 			
 		}
-		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOP)) {
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
 			menu.add(new JSeparator());
 		}
 	}
@@ -576,6 +593,30 @@ public class SwingModelUtils {
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
 			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
 			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+
+	private static class JButtonWithMetaAndActions extends JButtonWithMeta implements InnerActionNode {
+		private static final long serialVersionUID = 366031204608808220L;
+		
+		private final JComponent[]	actionable;
+		
+		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, JComponent... actionable) {
+			super(metadata);
+			this.actionable = actionable;
+		}
+
+		@Override
+		public JComponent[] getActionNodes() {
+			return actionable;
+		}
+
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			super.localeChanged(oldLocale, newLocale);
+			for (JComponent item : getActionNodes()) {
+				SwingUtils.refreshLocale(item,oldLocale, newLocale);
+			}
 		}
 	}
 }

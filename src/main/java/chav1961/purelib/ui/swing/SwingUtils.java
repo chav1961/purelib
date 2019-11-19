@@ -179,6 +179,11 @@ public abstract class SwingUtils {
 		ContinueMode process(final NodeEnterMode mode, final Component node);
 	}
 
+	@FunctionalInterface
+	interface InnerActionNode {
+		JComponent[] getActionNodes();
+	}
+	
 	/**
 	 * <p>Walk on the swing components tree</p>
 	 * @param node root node to walk from
@@ -763,6 +768,11 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				}
 			}
 			else {
+				if (root instanceof InnerActionNode) {
+					for (JComponent item : ((InnerActionNode)root).getActionNodes()) {
+						assignActionListeners(item,listener);
+					}
+				}
 				for (int index = 0; index < root.getComponentCount(); index++) {
 					assignActionListeners((JComponent)root.getComponent(index),listener);
 				}
