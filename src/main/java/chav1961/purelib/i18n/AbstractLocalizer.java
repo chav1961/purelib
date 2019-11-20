@@ -27,12 +27,15 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.Localizer.LocaleParametersGetter;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.streams.StreamsUtil;
 
@@ -103,6 +106,7 @@ public abstract class AbstractLocalizer implements Localizer {
 														};
 	
 	private final List<LocaleChangeListener>		listeners = new ArrayList<>();
+	private final SyntaxTreeInterface<LocaleParametersGetter>	associations = new OrdinalSyntaxTree<>();	
 	private LocaleDescriptor						currentDesc = new LocaleDescriptorImpl(Locale.getDefault(),SupportedLanguages.valueOf(Locale.getDefault().getLanguage()),"",new ImageIcon());
 	private Localizer								parent = null;
 	private LocalizerNode							node = new LocalizerNode(this);
@@ -218,6 +222,30 @@ public abstract class AbstractLocalizer implements Localizer {
 				return ContinueMode.CONTINUE;
 			});
 			String			result = sb.toString();
+			
+			if (sb.length() != 0) {
+				@SuppressWarnings("resource")
+				Localizer 	current = this;
+				long		id;
+				
+				while (current != null) {
+					if (current instanceof AbstractLocalizer) {
+						if ((id = associations.seekName(key)) >= 0) {
+							try{result = String.format(result,associations.getCargo(id).getParameters());
+							} catch (Exception e) {
+							}
+							break;
+						}
+						else {
+							current = current.getParent();						
+						}
+					}
+					else {
+						break;
+					}
+				}
+			}
+			
 			final Matcher	m = URI_PATTERN.matcher(result);
 		
 			if (m.matches()) {
@@ -271,6 +299,19 @@ public abstract class AbstractLocalizer implements Localizer {
 		}
 		else {
 			return String.format(getValue(key),parameters);
+		}
+	}	
+
+	@Override
+	public void associateValue(final String key, final LocaleParametersGetter parametersGetter) throws IllegalArgumentException, NullPointerException {
+		if (key == null || key.isEmpty()) {
+			throw new IllegalArgumentException("String key can't be null or empty");
+		}
+		else if (parametersGetter == null) {
+			throw new NullPointerException("Parameter's getter can't be null or empty");
+		}
+		else {
+			associations.placeOrChangeName(key,parametersGetter);
 		}
 	}	
 	

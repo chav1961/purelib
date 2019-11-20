@@ -538,6 +538,7 @@ public class SwingModelUtils {
 		
 		private JToolBarWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
+			this.setName(metadata.getName());
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
@@ -571,6 +572,8 @@ public class SwingModelUtils {
 		
 		private JButtonWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
+			this.setName(metadata.getName());
+			this.setActionCommand(metadata.getApplicationPath() != null ? metadata.getApplicationPath().getSchemeSpecificPart() : "action:/"+metadata.getName());
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();

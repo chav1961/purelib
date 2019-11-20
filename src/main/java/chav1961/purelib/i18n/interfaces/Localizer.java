@@ -113,6 +113,16 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	public interface LocaleWalking {
 		ContinueMode process(Localizer current, int depth) throws LocalizationException;
 	}
+
+	/**
+	 * <p>This interface describes associations for the givan key with the given parameters (to build substitutable content)</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
+	@FunctionalInterface
+	public interface LocaleParametersGetter {
+		Object[] getParameters() throws Exception;
+	}
 	
 	/**
 	 * <p>Get current locale descriptor</p>
@@ -185,6 +195,17 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @since 0.0.3
 	 */
 	String getValue(String key, Object... parameters) throws LocalizationException, IllegalArgumentException;
+
+	/**
+	 * <p>Associate key with localized parameters. Uses for automatic substitutions for the localized parameters</p>
+	 * @param key key to associate getter for
+	 * @param parametersGetter getter associated
+	 * @throws IllegalArgumentException if key to get is null or empty
+	 * @throws NullPointerException if getter is null
+	 * @since 0.0.3
+	 */
+	void associateValue(String key, LocaleParametersGetter parametersGetter) throws IllegalArgumentException, NullPointerException;
+	
 	
 	/**
 	 * <p>Get localization value for the given key in the current Localizer only.</p>

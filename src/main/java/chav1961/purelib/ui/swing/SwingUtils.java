@@ -745,7 +745,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 									mha.handle.invoke(entity);
 								}
 							} catch (Throwable t) {
-								logger.message(Severity.error, t, t.getLocalizedMessage());
+								logger.message(Severity.error, t, t.getLocalizedMessage() == null ? "" : t.getLocalizedMessage());
 							}
 						}
 						else {

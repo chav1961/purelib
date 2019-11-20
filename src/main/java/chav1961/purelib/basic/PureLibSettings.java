@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.awt.Color;
+import java.awt.datatransfer.DataFlavor;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +34,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.content.ResultSetFactory;
 import chav1961.purelib.ui.swing.SwingUtils;
@@ -244,6 +246,10 @@ public class PureLibSettings {
 	 */
 	public static final MimeType	MIME_OCTET_STREAM = buildMime("application","octet-stream");
 
+	
+	public static final String		MODEL_DATA_FLAVOR_NAME = "chav1961.purelib.model.node";
+	public static final DataFlavor	MODEL_DATA_FLAVOR = new DataFlavor(ContentNodeMetadata.class, MODEL_DATA_FLAVOR_NAME);	
+	
 	/**
 	 * <p>Common-accessible localizer for the Pure Library</p> 
 	 */
