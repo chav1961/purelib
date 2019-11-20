@@ -108,15 +108,12 @@ public class DnDManager implements AutoCloseable {
 	private Cursor						savedCursor = null, dragCursor = null;
 	private Class<?>					class2Process = null;
 	
-	public DnDManager(final Container container, final DnDInterface dndInterface, final Class<?>... supportedClasses) {
+	public DnDManager(final Container container, final DnDInterface dndInterface) {
 		if (container == null) {
 			throw new NullPointerException("Container can't be null");
 		}
 		else if (dndInterface == null) {
 			throw new NullPointerException("Drag&Drop interface can't be null");
-		}
-		else if (supportedClasses == null || supportedClasses.length == 0) {
-			throw new IllegalArgumentException("Supported classes can't be null");
 		}
 		else {
 			this.owner = container;
