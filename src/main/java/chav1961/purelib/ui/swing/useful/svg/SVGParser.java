@@ -119,15 +119,15 @@ public class SVGParser {
 	}
 	
 	public static SVGPainter parse(final InputStream svgXml) throws NullPointerException, ContentException {
-		return parse(svgXml,PureLibSettings.NULL_LOGGER,(propName,attributes,instrumentType)->{return SVGUtils.extractInstrument(propName,attributes,instrumentType);},(src)->src,FillPolicy.FILL_BOTH);
+		return parse(svgXml,PureLibSettings.CURRENT_LOGGER,(propName,attributes,instrumentType)->{return SVGUtils.extractInstrument(propName,attributes,instrumentType);},(src)->src,FillPolicy.FILL_BOTH);
 	}
 
 	public static SVGPainter parse(final InputStream svgXml, final InstrumentGetter getter, final FillPolicy policy) throws NullPointerException, ContentException {
-		return parse(svgXml,PureLibSettings.NULL_LOGGER,getter,(src)->src,policy);
+		return parse(svgXml,PureLibSettings.CURRENT_LOGGER,getter,(src)->src,policy);
 	}
 
 	public static SVGPainter parse(final InputStream svgXml, final SubstitutionSource ss) throws NullPointerException, ContentException {
-		return parse(svgXml,PureLibSettings.NULL_LOGGER,(propName,attributes,instrumentType)->{return SVGUtils.extractInstrument(propName,attributes,instrumentType);},(src)->ss.getValue(src),FillPolicy.FILL_BOTH);
+		return parse(svgXml,PureLibSettings.CURRENT_LOGGER,(propName,attributes,instrumentType)->{return SVGUtils.extractInstrument(propName,attributes,instrumentType);},(src)->ss.getValue(src),FillPolicy.FILL_BOTH);
 	}
 	
 	public static SVGPainter parse(final InputStream svgXml, final LoggerFacade logger, final InstrumentGetter getter, final SubstitutionSource ss, final FillPolicy policy) throws NullPointerException, ContentException {

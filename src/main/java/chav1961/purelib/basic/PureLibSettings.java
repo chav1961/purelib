@@ -72,6 +72,7 @@ public class PureLibSettings {
 	 */
 	public static final String		CURRENT_VERSION = "0.0.3";
 
+
 	/**
 	 * <p>This is a vendor of the Pure Library</p>
 	 */
@@ -253,7 +254,7 @@ public class PureLibSettings {
 	/**
 	 * <p>Common-accessible localizer for the Pure Library</p> 
 	 */
-	public static final Localizer	PURELIB_LOCALIZER = createPureLibLocalizer();
+	public static final Localizer		PURELIB_LOCALIZER = createPureLibLocalizer();
 	
 	/**
 	 * <p>Null logger facade for any purposes</p>
@@ -264,6 +265,12 @@ public class PureLibSettings {
 	 * <p>System.err logger facade for any purposes</p>
 	 */
 	public static final LoggerFacade	SYSTEM_ERR_LOGGER = new SystemErrLoggerFacade();
+
+	/**
+	 * <p>Current logger to put purelib debug trace to</p>
+	 * @since 0.0.3
+	 */
+	public static final LoggerFacade	CURRENT_LOGGER = "true".equalsIgnoreCase(System.getProperty("purelib.debug","true")) ? SYSTEM_ERR_LOGGER : NULL_LOGGER;
 	
 	/**
 	 * <p>Shared timer to process common maintenance for any pure library consumers</p>
@@ -274,6 +281,7 @@ public class PureLibSettings {
 	 * <p>HTTP port for built-in help</p>
 	 */
 	public static final String			BUILTIN_HELP_PORT = "purelib.settings.help.port";
+
 	
 	/**
 	 * <p>This interface describes well-known factories in the Pure Library</p>

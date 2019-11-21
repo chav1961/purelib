@@ -676,7 +676,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	 * @throws NullPointerException when entity reference is null
 	 */
 	public static ActionListener buildAnnotatedActionListener(final Object entity, final FailedActionListenerCallback onUnknown) throws IllegalArgumentException, NullPointerException {
-		return buildAnnotatedActionListener(entity, onUnknown, PureLibSettings.NULL_LOGGER);
+		return buildAnnotatedActionListener(entity, onUnknown, PureLibSettings.CURRENT_LOGGER);
 	}
 
 	/**
@@ -745,7 +745,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 									mha.handle.invoke(entity);
 								}
 							} catch (Throwable t) {
-								logger.message(Severity.error, t, t.getLocalizedMessage() == null ? "" : t.getLocalizedMessage());
+								logger.message(Severity.error, t, t.getLocalizedMessage() == null ? t.getClass().getSimpleName() : t.getLocalizedMessage());
 							}
 						}
 						else {

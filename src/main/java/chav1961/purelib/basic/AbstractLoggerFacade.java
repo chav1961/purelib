@@ -263,7 +263,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 	
 	private Throwable convert(final Throwable exception) {
-		final StringBuilder	sb = new StringBuilder(exception.getMessage());
+		final StringBuilder	sb = new StringBuilder(exception.getLocalizedMessage() == null ? exception.getClass().getSimpleName() : exception.getLocalizedMessage());
 		StackTraceElement[]	list = exception.getStackTrace();		
 		
 		if (getReducing().contains(Reducing.reduceCause) && exception.getCause() != null) {
