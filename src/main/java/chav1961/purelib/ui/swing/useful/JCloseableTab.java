@@ -13,6 +13,7 @@ import java.awt.event.MouseListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -65,7 +66,11 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.text = meta.getLabelId();
 			this.tooltip = meta.getTooltipId();
 			if (meta.getIcon() != null) {
-				label.setIcon(meta.getIcon());
+				try{
+					label.setIcon(new ImageIcon(meta.getIcon().toURL()));
+				} catch (MalformedURLException e) {
+					PureLibSettings.CURRENT_LOGGER.message(Severity.warning,e,"Icon loading failure: "+e.getLocalizedMessage());
+				}
 			}
 			prepare();
 		}
@@ -219,72 +224,6 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		super.paintComponent(g);
 		paintChildren(g);
 	}
-	
-//	private void popup() {
-//		if (popup != null) {
-//			final List<Object>	submenus = new ArrayList<>();
-//			
-//			SwingUtils.walkDown(popup,(mode,component)->{
-//				switch (mode) {
-//					case ENTER	:
-//						if (component instanceof JMenu) {
-//							final JMenu	newMenu = new JMenu();
-//							
-//							newMenu.setIcon(((JMenu)component).getIcon());
-//							newMenu.setText(((JMenu)component).getText());
-//							newMenu.setToolTipText(((JMenu)component).getToolTipText());
-//							if (submenus.size() == 0) {
-//								submenus.add(0,new JPopupMenu());								
-//							}
-//							else {
-//								submenus.add(0,new JPopupMenu());
-//							}
-//						}
-//						else if (component instanceof JMenuItem) {
-//							final JMenuItem	newItem = new JMenuItem();
-//							
-//							newItem.setIcon(((JMenuItem)component).getIcon());
-//							newItem.setText(((JMenuItem)component).getText());
-//							newItem.setToolTipText(((JMenuItem)component).getToolTipText());
-//							newItem.setActionCommand(((JMenuItem)component).getActionCommand());
-//							for (ActionListener listener : ((JMenuItem)component).getActionListeners()) {
-//								newItem.addActionListener(listener);
-//							}
-//							
-//							if (submenus.size() >= 1) {
-//								((JMenu)submenus.get(0)).add(newItem);
-//							}
-//							else {
-//								((JPopupMenu)submenus.get(0)).add(newItem);
-//							}
-//						}
-//						else if (component instanceof JSeparator) {
-//							if (submenus.size() >= 1) {
-//								((JMenu)submenus.get(0)).addSeparator();
-//							}
-//							else {
-//								((JPopupMenu)submenus.get(0)).addSeparator();
-//							}
-//						}
-//						break;
-//					case EXIT	:
-//						if (submenus.size() >= 2) {
-//							final JMenu	menu = (JMenu)submenus.remove(0);
-//							
-//							((JMenu)submenus.get(0)).add(menu);
-//						}
-//						else if (submenus.size() >= 1) {
-//							final JMenu	menu = (JMenu)submenus.remove(0);
-//							
-//							((JPopupMenu)submenus.get(0)).add(menu);
-//						}
-//						break;
-//				}
-//				return ContinueMode.CONTINUE;
-//			});
-//			((JPopupMenu)submenus.remove(0)).show(this,getWidth()/2,getHeight()/2);
-//		}
-//	}
 
 	private void popup() {
 		if (popup != null) {
@@ -302,7 +241,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		if (tab instanceof AutoCloseable) {
 			try{((AutoCloseable)tab).close();
 			} catch (Exception exc) {
-				PureLibSettings.SYSTEM_ERR_LOGGER.message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
+				PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
 			}
 		}
 		container.remove(tab);

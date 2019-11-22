@@ -82,7 +82,7 @@ public class JSimpleHelpWindow {
 						}
 					}
 				} catch (LocalizationException exc) {
-					PureLibSettings.SYSTEM_ERR_LOGGER.message(Severity.error, exc, "Internal localization error at JSimpleHelpWindow");
+					PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc, "Internal localization error at JSimpleHelpWindow");
 				}
 			});
 			popup.show();

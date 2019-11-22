@@ -26,12 +26,10 @@ public interface ContentMetadataInterface {
 		URI getUIPath();
 		URI getRelativeUIPath();
 		URI getLocalizerAssociated();
+		URI getIcon();
 		ContentNodeMetadata getParent();
 		int getChildrenCount();
 		ContentMetadataInterface getOwner();
-		default Icon getIcon() {
-			return null;
-		}
 	}
 
 	@FunctionalInterface

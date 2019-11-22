@@ -44,6 +44,7 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.LocalizerStore;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -87,7 +88,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 	private final T							instance;
 	private final LoggerFacade				logger;
-	private final Localizer					localizer, personalLocalizer;
+	private final LocalizerStore			localizer;
 	private final FormManager<Object,T>		formManager;
 	private final ContentMetadataInterface	mdi;
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
@@ -144,29 +145,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				this.formManager = formMgr;
 				this.mdi = ContentModelFactory.forAnnotatedClass(instanceClass);
 				
-				if (mdi.getRoot().getLocalizerAssociated() != null) {
-					trans.message(Severity.trace, "Localizer associated=%1$s",mdi.getRoot().getLocalizerAssociated());
-					if (!localizer.containsLocalizerHere(mdi.getRoot().getLocalizerAssociated().toString())) {
-						try{this.personalLocalizer = LocalizerFactory.getLocalizer(mdi.getRoot().getLocalizerAssociated());
-							this.localizer = localizer.push(this.personalLocalizer);
-							this.localizerPushed = true;
-							trans.message(Severity.trace, "Localizer push=%1$s",mdi.getRoot().getLocalizerAssociated());
-						} catch (IOException e) {
-							trans.message(Severity.error,e, "personal localizer failure");
-							throw new ContentException(e); 
-						}
-					}
-					else {
-						this.localizer = localizer;
-						this.personalLocalizer = localizer.getLocalizerById(mdi.getRoot().getLocalizerAssociated().toString());
-						trans.message(Severity.trace, "Localizer found=%1$s",mdi.getRoot().getLocalizerAssociated());
-					}
-				}
-				else {
-					this.localizer = localizer;
-					this.personalLocalizer = null;
-					trans.message(Severity.trace, "No localizers associated");
-				}
+				this.localizer = new LocalizerStore(localizer,mdi.getRoot().getLocalizerAssociated());
 
 				buttonPanel.add(messages);
 				mdi.walkDown((mode,applicationPath,uiPath,node)->{
@@ -250,6 +229,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	public void close() {
 		if (!closed){
 			listeners.clear();
+			localizer.close();
 			closed = true;
 		}
 	}
@@ -259,7 +239,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @return localizer associated. Can't be null
 	 */
 	public Localizer getLocalizerAssociated() {
-		return personalLocalizer != null ? personalLocalizer : localizer;
+		return localizer.getLocalizer();
 	}
 
 	/**
@@ -527,8 +507,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
 						final JButton		button = (JButton) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
-						try{button.setText(localizer.getValue(node.getLabelId()));
-						button.setToolTipText(localizer.getValue(node.getTooltipId()));
+						try{button.setText(getLocalizerAssociated().getValue(node.getLabelId()));
+						button.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId()));
 						} catch (LocalizationException exc) {
 							logger.message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 						}
@@ -537,8 +517,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						final JLabel		label = (JLabel) SwingUtils.findComponentByName(this,node.getUIPath().toString()+"/label");
 						final JComponent	field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
-						try{label.setText(localizer.getValue(node.getLabelId()));
-							field.setToolTipText(localizer.getValue(node.getTooltipId()));
+						try{label.setText(getLocalizerAssociated().getValue(node.getLabelId()));
+							field.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId()));
 						} catch (LocalizationException exc) {
 							logger.message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 						}

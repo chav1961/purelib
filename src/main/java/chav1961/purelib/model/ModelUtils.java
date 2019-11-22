@@ -432,7 +432,8 @@ public class ModelUtils {
 													source.getTooltipId(),
 													source.getHelpId(),
 													source.getFormatAssociated(),
-													source.getApplicationPath());
+													source.getApplicationPath(),
+													source.getIcon());
 		for (ContentNodeMetadata item : source) {
 			result.addChild(innerClone(item));
 		}

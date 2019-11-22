@@ -15,13 +15,13 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private final Class<?>				type;
 	private final String				labelId, tooltipId, helpId, relativeUIPath;
 	private final FieldFormat			formatAssociated;
-	private final URI					localizerAssociated, applicationPath;
+	private final URI					localizerAssociated, applicationPath, iconURI;
 
 	private ContentMetadataInterface	owner = null;
 	private ContentNodeMetadata			parent = null;
 	private boolean 					mounted = false;	
 	
-	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final FieldFormat formatAssociated, final URI applicationPath) {
+	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final FieldFormat formatAssociated, final URI applicationPath, final URI iconURI) {
 		if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Node name can't be null or empty");
 		}
@@ -50,6 +50,7 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 			this.helpId = helpId;
 			this.formatAssociated = formatAssociated;
 			this.applicationPath = applicationPath;
+			this.iconURI = iconURI;
 		}
 	}
 	
@@ -127,6 +128,11 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	public URI getRelativeUIPath() {
 		return URI.create("./"+relativeUIPath);
 	}
+
+	@Override
+	public URI getIcon() {
+		return iconURI;
+	}
 	
 	@Override
 	public ContentNodeMetadata getParent() {
@@ -176,12 +182,12 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	protected void setOwner(final ContentMetadataInterface owner) {
 		this.owner = owner;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "MutableContentNodeMetadata [children=" + children + ", name=" + name + ", type=" + type + ", labelId="
-				+ labelId + ", tooltipId=" + tooltipId + ", helpId=" + helpId + ", formatAssociated=" + formatAssociated
-				+ ", relativeUIPath=" + relativeUIPath + ", applicationPath=" + applicationPath + ", mounted=" + mounted
-				+ "]";
+		return "MutableContentNodeMetadata [name=" + name + ", type=" + type + ", labelId=" + labelId + ", tooltipId="
+				+ tooltipId + ", helpId=" + helpId + ", relativeUIPath=" + relativeUIPath + ", formatAssociated="
+				+ formatAssociated + ", localizerAssociated=" + localizerAssociated + ", applicationPath="
+				+ applicationPath + ", iconURI=" + iconURI + "]";
 	}
 }

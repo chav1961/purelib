@@ -20,7 +20,8 @@ public class ContentNodeMetadataTest {
 											"tooltip", 
 											"help", 
 											null, 
-											URI.create("app:test"));
+											URI.create("app:test"),
+											null);
 		Assert.assertEquals("nodeName",metadata.getName());
 		Assert.assertEquals(String.class,metadata.getType());
 		Assert.assertEquals(URI.create("ui:/test"),metadata.getUIPath());
@@ -35,52 +36,52 @@ public class ContentNodeMetadataTest {
 		Assert.assertNull(metadata.getParent());
 		
 		try{new MutableContentNodeMetadata(null,String.class,"test",URI.create(Localizer.LOCALIZER_SCHEME+":memory"),"label"
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		try{new MutableContentNodeMetadata("",String.class,"test",URI.create(Localizer.LOCALIZER_SCHEME+":memory"),"label"
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
 		try{new MutableContentNodeMetadata("nodeName",null,"test",URI.create(Localizer.LOCALIZER_SCHEME+":memory"),"label"
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
 		
 		try{new MutableContentNodeMetadata("nodeName",String.class,null,URI.create(Localizer.LOCALIZER_SCHEME+":memory"),"label"
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		try{new MutableContentNodeMetadata("nodeName",String.class,"",URI.create(Localizer.LOCALIZER_SCHEME+":memory"),"label"
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (empty 3-rd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
 		try{new MutableContentNodeMetadata("nodeName",String.class,"test",URI.create("memory"),"label"
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (illegal scheme in 4-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
 		try{new MutableContentNodeMetadata("nodeName",String.class,"test",URI.create(Localizer.LOCALIZER_SCHEME+":memory"),null
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (null 5-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		try{new MutableContentNodeMetadata("nodeName",String.class,"test",URI.create(Localizer.LOCALIZER_SCHEME+":memory"),""
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 			Assert.fail("Mandatory exception was not detected (empty 5-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
 		try{new MutableContentNodeMetadata("nodeName",String.class,"test",URI.create(Localizer.LOCALIZER_SCHEME+":memory"),"label"
-						,"tooltip","help",null,URI.create("test"));
+						,"tooltip","help",null,URI.create("test"),null);
 		Assert.fail("Mandatory exception was not detected (null 9-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -97,7 +98,8 @@ public class ContentNodeMetadataTest {
 												"tooltip", 
 												"help", 
 												null, 
-												URI.create("app:test"));
+												URI.create("app:test"),
+												null);
 		final MutableContentNodeMetadata	child = new MutableContentNodeMetadata(
 												"childNodeName", 
 												String.class, 
@@ -107,7 +109,8 @@ public class ContentNodeMetadataTest {
 												"childTooltip", 
 												"childHelp", 
 												null, 
-												URI.create("app:childTest"));
+												URI.create("app:childTest"),
+												null);
 		
 		Assert.assertEquals(0,root.getChildrenCount());
 

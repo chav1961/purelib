@@ -21,7 +21,8 @@ public class ContentMetadataTest {
 												"tooltip", 
 												"help", 
 												null, 
-												URI.create("app:test"));
+												URI.create("app:test"),
+												null);
 		final MutableContentNodeMetadata	child1 = new MutableContentNodeMetadata(
 												"child1Name", 
 												String.class, 
@@ -31,7 +32,8 @@ public class ContentMetadataTest {
 												"childTooltip1", 
 												"childHelp1", 
 												null, 
-												URI.create("app:child1Test"));
+												URI.create("app:child1Test"),
+												null);
 		final MutableContentNodeMetadata	child2 = new MutableContentNodeMetadata(
 												"child2Name", 
 												String.class, 
@@ -41,7 +43,8 @@ public class ContentMetadataTest {
 												"childTooltip2", 
 												"childHelp2", 
 												null, 
-												URI.create("app:child2Test"));
+												URI.create("app:child2Test"),
+												null);
 		final MutableContentNodeMetadata	child11 = new MutableContentNodeMetadata(
 												"child11Name", 
 												String.class, 
@@ -51,7 +54,8 @@ public class ContentMetadataTest {
 												"childTooltip11", 
 												"childHelp11", 
 												null, 
-												URI.create("app:child11Test"));
+												URI.create("app:child11Test"),
+												null);
 		final MutableContentNodeMetadata	child12 = new MutableContentNodeMetadata(
 												"child12Name", 
 												String.class, 
@@ -61,7 +65,8 @@ public class ContentMetadataTest {
 												"childTooltip12", 
 												"childHelp12", 
 												null, 
-												URI.create("app:child12Test"));
+												URI.create("app:child12Test"),
+												null);
 		final MutableContentNodeMetadata	child21 = new MutableContentNodeMetadata(
 												"child21Name", 
 												String.class, 
@@ -71,7 +76,8 @@ public class ContentMetadataTest {
 												"childTooltip21", 
 												"childHelp21", 
 												null, 
-												URI.create("app:child21Test"));
+												URI.create("app:child21Test"),
+												null);
 		final MutableContentNodeMetadata	child22 = new MutableContentNodeMetadata(
 												"child22Name", 
 												String.class, 
@@ -81,7 +87,8 @@ public class ContentMetadataTest {
 												"childTooltip22", 
 												"childHelp22", 
 												null, 
-												URI.create("app:child22Test"));
+												URI.create("app:child22Test"),
+												null);
 		
 		root.addChild(child1);		child1.setParent(root);
 		child1.addChild(child11);	child11.setParent(child1);

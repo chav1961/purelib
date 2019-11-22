@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -115,7 +116,7 @@ public class SwingModelUtils {
 			for (ContentNodeMetadata child : node) {
 				if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 					final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child);
-					final JButton 				btn = new JButtonWithMetaAndActions(child,menu);					
+					final JButton 				btn = new JButtonWithMetaAndActions(child,JButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
 					
 					for (ContentNodeMetadata item : child) {
 						toMenuEntity(item,menu);
@@ -127,7 +128,7 @@ public class SwingModelUtils {
 					result.add(btn);
 				}
 				else if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-					result.add(new JButtonWithMeta(child));
+					result.add(new JButtonWithMeta(child,JButtonWithMeta.LAFType.ICON_THEN_TEXT));
 				}
 				else if (URI.create("./navigation.separator").equals(child.getRelativeUIPath())) {
 					result.addSeparator();
@@ -568,10 +569,20 @@ public class SwingModelUtils {
 	private static class JButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = 366031204608808220L;
 		
-		private final ContentNodeMetadata	metadata;
+		protected enum LAFType {
+			TEXT_ONLY, ICON_INLY, BOTH, ICON_THEN_TEXT
+		}
 		
+		private final ContentNodeMetadata	metadata;
+		private final LAFType				type;
+
 		private JButtonWithMeta(final ContentNodeMetadata metadata) {
+			this(metadata,LAFType.BOTH);
+		}		
+		
+		private JButtonWithMeta(final ContentNodeMetadata metadata, final LAFType type) {
 			this.metadata = metadata;
+			this.type = type;
 			this.setName(metadata.getName());
 			this.setActionCommand(metadata.getApplicationPath() != null ? metadata.getApplicationPath().getSchemeSpecificPart() : "action:/"+metadata.getName());
 			try{fillLocalizedStrings();
@@ -594,8 +605,33 @@ public class SwingModelUtils {
 		}
 
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
-			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
-			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			if (getNodeMetadata().getTooltipId() != null) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			}
+			switch (type) {
+				case BOTH			:
+					if (getNodeMetadata().getIcon() != null) {
+						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
+					}
+					setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+					break;
+				case ICON_INLY		:
+					if (getNodeMetadata().getIcon() != null) {
+						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
+					}
+					break;
+				case ICON_THEN_TEXT	:
+					if (getNodeMetadata().getIcon() != null) {
+						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
+						break;
+					}
+					// break doesn't need!
+				case TEXT_ONLY		:
+					setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+					break;
+				default:
+					throw new UnsupportedOperationException("LAF type ["+type+"] is not supported yet"); 
+			}
 		}
 	}
 
@@ -603,9 +639,15 @@ public class SwingModelUtils {
 		private static final long serialVersionUID = 366031204608808220L;
 		
 		private final JComponent[]	actionable;
-		
-		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, JComponent... actionable) {
+
+		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final JComponent... actionable) {
 			super(metadata);
+			this.actionable = actionable;
+		}
+		
+		
+		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final LAFType type, final JComponent... actionable) {
+			super(metadata,type);
 			this.actionable = actionable;
 		}
 

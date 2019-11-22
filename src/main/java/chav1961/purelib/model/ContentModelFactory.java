@@ -74,6 +74,7 @@ public class ContentModelFactory {
 	private static final String			XML_ATTR_ACTION = "action";
 	private static final String			XML_ATTR_KEYSET = "keyset";
 	private static final String			XML_ATTR_GROUP = "group";	
+	private static final String			XML_ATTR_ICON = "icon";	
 	
 	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (clazz == null) {
@@ -99,7 +100,8 @@ public class ContentModelFactory {
 															, localeResource.tooltip() 
 															, localeResource.help()
 															, null
-															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName()));
+															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName())
+															, null);
 				
 				collectFields(clazz,fields);
 				if (fields.size() == 0) {
@@ -120,6 +122,7 @@ public class ContentModelFactory {
 																				? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
 																				: null
 																		, buildClassFieldApplicationURI(clazz,f)
+																		, null
 																	);
 						if (f.isAnnotationPresent(MultiAction.class) || f.isAnnotationPresent(Action.class)) {
 							collectActions(clazz,f,metadata);
@@ -201,7 +204,8 @@ public class ContentModelFactory {
 														, null 
 														, null
 														, null
-														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"));
+														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/")
+														, null);
 				buildSubtree(doc.getDocumentElement(),root);
 				
 				final SimpleContentMetadata result = new SimpleContentMetadata(root);
@@ -239,7 +243,8 @@ public class ContentModelFactory {
 													, schema+"."+table+".tt" 
 													, schema+"."+table+".help"
 													, null
-													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_TABLE+":/"+TableContainer.class.getCanonicalName()));
+													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_TABLE+":/"+TableContainer.class.getCanonicalName())
+													, null);
 			
 			
 			try(final ResultSet	rs = dbDescription.getColumns(catalog, schema, table, "%")) {
@@ -254,6 +259,7 @@ public class ContentModelFactory {
 																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".help"
 																	, new FieldFormat(type,buildColumnFormat(rs))
 																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+table+"/"+rs.getString("COLUMN_NAME")+"?seq="+rs.getString("ORDINAL_POSITION")+"&type"+rs.getString("DATA_TYPE"))
+																	, null
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);
@@ -274,6 +280,7 @@ public class ContentModelFactory {
 																	, "?"
 																	, null
 																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ID+":/"+table+"/"+rs.getString("PKCOLUMN_NAME"))
+																	, null
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);
@@ -354,12 +361,14 @@ public class ContentModelFactory {
 						, null 
 						, null
 						, null
+						, null
 						, null);
 				break;
 			case XML_TAG_APP_SUBMENU	:
 				final String	submenuName = getAttribute(document,XML_ATTR_NAME);
 				final String	submenuCaption = getAttribute(document,XML_ATTR_CAPTION);
 				final String	submenuTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
+				final String	submenuIcon = getAttribute(document,XML_ATTR_ICON);
 				
 				child = new MutableContentNodeMetadata(submenuName
 						, String.class
@@ -369,7 +378,8 @@ public class ContentModelFactory {
 						, submenuTooltip 
 						, null
 						, null
-						, null);
+						, null
+						, submenuIcon == null || submenuIcon.isEmpty() ? null : URI.create(submenuIcon));
 				break;
 			case XML_TAG_APP_ITEM		:
 				final String	itemName = getAttribute(document,XML_ATTR_NAME);
@@ -377,6 +387,7 @@ public class ContentModelFactory {
 				final String	itemTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
 				final String	itemAction = getAttribute(document,XML_ATTR_ACTION);
 				final String	groupAction = getAttribute(document,XML_ATTR_GROUP);
+				final String	itemIcon = getAttribute(document,XML_ATTR_ICON);
 				
 				child = new MutableContentNodeMetadata(itemName
 						, String.class
@@ -386,7 +397,8 @@ public class ContentModelFactory {
 						, itemTooltip 
 						, null
 						, null
-						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : "")));
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : ""))
+						, itemIcon == null || itemIcon.isEmpty() ? null : URI.create(itemIcon));
 				break;
 			case XML_TAG_APP_SEPARATOR	:
 				child = new MutableContentNodeMetadata("_"
@@ -395,6 +407,7 @@ public class ContentModelFactory {
 						, null
 						, "_"
 						, null 
+						, null
 						, null
 						, null
 						, null);
@@ -417,7 +430,8 @@ public class ContentModelFactory {
 							, builtinTooltip 
 							, null
 							, null
-							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":"+Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION+":/"+builtinAction));
+							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":"+Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION+":/"+builtinAction)
+							, null);
 				}
 				break;
 			case XML_TAG_APP_KEYSET	:
@@ -428,6 +442,7 @@ public class ContentModelFactory {
 						, Constants.MODEL_NAVIGATION_KEYSET_PREFIX+'.'+keysetName
 						, null
 						, keysetName 
+						, null
 						, null
 						, null
 						, null
@@ -450,7 +465,8 @@ public class ContentModelFactory {
 						, null 
 						, null
 						, null
-						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+keyAction));
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+keyAction)
+						, null);
 				break;
 			case XML_TAG_APP_ROOT	:	// Top level
 				for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
@@ -525,6 +541,7 @@ public class ContentModelFactory {
 											, item.resource().help()
 											, null
 											, buildClassMethodApplicationURI(clazz,item.actionString())
+											, null
 							)
 					);
 				}
@@ -548,6 +565,7 @@ public class ContentModelFactory {
 										, item.resource().help()
 										, null
 										, buildClassMethodApplicationURI(clazz,field.getName()+"."+item.actionString())
+										, null
 						)
 				);
 			}
@@ -569,6 +587,7 @@ public class ContentModelFactory {
 										, item.resource().help()
 										, null
 										, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+method.getName()+"()."+item.actionString())
+										, null
 						)
 				);
 			}
