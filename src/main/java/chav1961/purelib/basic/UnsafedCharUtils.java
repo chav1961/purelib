@@ -627,21 +627,21 @@ class UnsafedCharUtils {
 				return index+1;
 			}
 		}
+
+		double	tempInt = temp;
+		
+		if (continueParsing) {
+			while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
+				tempInt = tempInt * 10 + symbol - '0';
+				index++;
+			}
+		}
 		
 		if (index == from) {
 			return -index-1;
 		}
 		else if (index < len && (symbol == '.' || symbol == 'e' || symbol == 'E' || symbol == 'f' || symbol == 'F') || continueParsing) {
 			if ((preferences & (CharUtils.PREF_FLOAT | CharUtils.PREF_DOUBLE)) != 0) {
-				double	tempInt = temp;
-				
-				if (continueParsing) {
-					while (index < len && (symbol = source[index]) >= '0' && symbol <= '9') {
-						tempInt = tempInt * 10 + symbol - '0';
-						index++;
-					}
-				}
-				
 				if (symbol == '.') {
 					double	frac = 0, scale = 1;
 					int		fracFrom = ++index;
@@ -710,6 +710,7 @@ class UnsafedCharUtils {
 				}
 			}
 			else {
+				return -index-1;
 			}
 		}
 		else {

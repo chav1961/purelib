@@ -22,6 +22,6 @@ public class FakeResultSetMetaDataTest {
 		Assert.assertEquals("F2",rsmd.getColumnName(2));
 		Assert.assertEquals("table",rsmd.getTableName(1));
 		Assert.assertEquals("schema",rsmd.getSchemaName(1));
-		Assert.assertEquals("catalog",rsmd.getCatalogName(1));
+		Assert.assertNull(rsmd.getCatalogName(1));
 	}
 }

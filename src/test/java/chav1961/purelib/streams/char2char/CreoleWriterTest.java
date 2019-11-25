@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.FSM;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.FlowException;
@@ -105,18 +106,14 @@ public class CreoleWriterTest {
 			}
 			processed = wr.toString().replace("\r","");
 		}
-		
+		System.err.println(processed);
 		
 		try(final InputStream	xsd = XMLUtils.getPurelibXSD(coll);
-			final InputStream	xml = new ByteArrayInputStream(processed.getBytes("UTF-8"));
-			final LoggerFacade	logger = new AbstractLoggerFacade() {
-										@Override protected void toLogger(Severity level, String text, Throwable throwable) {System.err.println(text+": "+throwable);}
-										@Override protected AbstractLoggerFacade getAbstractLoggerFacade(String mark, Class<?> root) {return this;}
-									}) {
+			final InputStream	xml = new ByteArrayInputStream(processed.getBytes("UTF-8"));) {
 			
-			Assert.assertTrue(XMLUtils.validateXMLByXSD(xml,xsd,logger));
+			Assert.assertTrue(XMLUtils.validateXMLByXSD(xml,xsd,PureLibSettings.SYSTEM_ERR_LOGGER));
 		}
-	}
+	} 
 	
 	private void testLoop(final MarkupOutputFormat type, final String extension) throws IOException {
 //		final String	processed;

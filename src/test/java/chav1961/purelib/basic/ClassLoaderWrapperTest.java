@@ -35,7 +35,7 @@ public class ClassLoaderWrapperTest {
 			}
 			
 			try{new ClassLoaderWrapper().createClass(null,new StringReader(""));
-				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)"); 
 			} catch (IllegalArgumentException exc) {
 			}
 			try{new ClassLoaderWrapper().createClass("",new StringReader(""));

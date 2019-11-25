@@ -19,12 +19,12 @@ public class SVGParserTest {
 
 	@Test
 	public void visualTest() throws IOException, ContentException {
-		try(final InputStream	is = SVGParserTest.class.getResourceAsStream("svgtest.SVG")) {
-			final JSVGComponent	jc = new JSVGComponent(is);
-			
-			jc.setPreferredSize(new Dimension(800,600));
-			JOptionPane.showMessageDialog(null,jc);
-		}
+//		try(final InputStream	is = SVGParserTest.class.getResourceAsStream("svgtest.SVG")) {
+//			final JSVGComponent	jc = new JSVGComponent(is);
+//			
+//			jc.setPreferredSize(new Dimension(800,600));
+//			JOptionPane.showMessageDialog(null,jc);
+//		}
 	}
 	
 }

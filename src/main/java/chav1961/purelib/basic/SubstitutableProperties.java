@@ -182,7 +182,7 @@ public class SubstitutableProperties extends Properties {
 			throw new NullPointerException("Awaited class can't be null");
 		}
 		else if (awaited.isEnum()) {
-			try{return awaited.cast(Enum.valueOf((Class<Enum>)awaited,value));
+			try{return (T)Enum.valueOf((Class<Enum>)awaited,value);
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Can't convert value ["+value+"] to enum class ["+awaited+"] for key ["+key+"]: "+e.getMessage());
 			}

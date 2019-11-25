@@ -48,7 +48,7 @@ public class ConnectorsTest {
 						tw.getExecutionControl().suspend();							// Suspend main thread
 						Assert.assertEquals("running",tw.getCurrentState());
 						Assert.assertTrue(tw.getExecutionControl().isStarted());
-						Assert.assertTrue(tw.getExecutionControl().isSuspended());
+				 		Assert.assertTrue(tw.getExecutionControl().isSuspended());
 
 																					// Suspend location access
 						Assert.assertEquals(FileInputStream.class,tw.getCurrentLocation().getClassInside().contentType());

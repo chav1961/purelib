@@ -67,7 +67,8 @@ public class StreamContent extends AbstractContent {
 		}
 		else {
 			this.currentRow = row;
-			return this.endOfData = !getter.next(currentData);
+			this.endOfData = !getter.next(currentData);
+			return !this.endOfData;
 		}
 	}
 

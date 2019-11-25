@@ -28,7 +28,7 @@ public class VisualControlsTest {
 													metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0]
 													, new FieldFormat(Date.class,"")
 													, (event,meta,component,parameters)->{return true;}													
-													);
+										 			);
 		
 		JOptionPane.showMessageDialog(null,item);
 	}

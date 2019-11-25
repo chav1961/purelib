@@ -360,13 +360,12 @@ public class CharUtilsTest {
 
 		Assert.assertEquals(8,CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_DOUBLE,false));
 		Assert.assertEquals(8,CharUtils.validateNumber("1.2E-30F".toCharArray(),0,CharUtils.PREF_FLOAT,false));
-		Assert.assertEquals(19,CharUtils.validateNumber("12345678901234567890".toCharArray(),0,CharUtils.PREF_LONG,false));
+		Assert.assertEquals(19,CharUtils.validateNumber("1234567890123456789".toCharArray(),0,CharUtils.PREF_LONG,false));
 		Assert.assertEquals(9,CharUtils.validateNumber("123456789".toCharArray(),0,CharUtils.PREF_INT,false));
 
 		Assert.assertTrue(CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_INT,false) < 0);
 		Assert.assertTrue(CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_LONG,false) < 0);
 		Assert.assertTrue(CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_FLOAT,false) < 0);
-		
 	}	
 	
 	@Test

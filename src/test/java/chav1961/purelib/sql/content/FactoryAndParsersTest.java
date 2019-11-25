@@ -59,7 +59,7 @@ public class FactoryAndParsersTest {
 			test(rs);
 		}
 	}
-
+ 
 	private void test(final ResultSet rs) throws SQLException {
 		int		count = 0, total = 0;
 		

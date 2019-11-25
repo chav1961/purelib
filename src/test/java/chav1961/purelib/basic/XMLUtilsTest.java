@@ -37,12 +37,12 @@ public class XMLUtilsTest {
 			if (mode == NodeEnterMode.ENTER) {
 				content.add(node.getTagName());
 				if (node.getChildNodes().getLength() == 1) {
-					content.add(node.getTextContent());
+					content.add(node.getTextContent().trim());
 				}
 			}
 			return ContinueMode.CONTINUE;
 		});
-		toCompare.addAll(Arrays.asList("content21","content11","content22","content12","root","level21","level1","level11","level12","level2"));
+		toCompare.addAll(Arrays.asList("content21","content11","content22","content12","root","level21","level1","level11","level12","level2","level22"));
 		Assert.assertEquals(toCompare,content);
 		
 		try{XMLUtils.walkDownXML(null,(mode,node)->{return ContinueMode.CONTINUE;});
@@ -52,7 +52,7 @@ public class XMLUtilsTest {
 		try{XMLUtils.walkDownXML(document.getDocumentElement(), null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
-		}
+		} 
 	}	
 
 	@Test

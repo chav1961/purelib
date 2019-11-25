@@ -23,10 +23,10 @@ public class PureLibSettingsTest {
 
 	@Test
 	public void colorsTest() {
-		Assert.assertEquals(PureLibSettings.colorByName("green",Color.GREEN),Color.GREEN);
-		Assert.assertEquals(PureLibSettings.colorByName("unknown",Color.GREEN),Color.GREEN);
-		Assert.assertEquals(PureLibSettings.nameByColor(Color.GREEN,"green"),"green");
-		Assert.assertEquals(PureLibSettings.nameByColor(new Color(1,2,3),"unknown"),"unknown");
+		Assert.assertEquals(Color.BLACK,PureLibSettings.colorByName("black",Color.BLACK));
+		Assert.assertEquals(Color.GREEN,PureLibSettings.colorByName("unknown",Color.GREEN));
+		Assert.assertEquals("green",PureLibSettings.nameByColor(Color.GREEN,"green"));
+		Assert.assertEquals("unknown",PureLibSettings.nameByColor(new Color(1,2,3),"unknown"));
 		
 		try{PureLibSettings.colorByName(null,Color.gray);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

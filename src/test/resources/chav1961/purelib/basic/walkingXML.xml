@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Input file for traverseDOM.java -->
+<!DOCTYPE root [
+   <!ATTLIST level11 id ID "1"> 
+   <!ATTLIST level11 key11 CDATA "1"> 
+]>
+<root>
+	<level1>
+		<level11 id="id11" key11="value11">
+			content11
+		</level11>
+		<level12>
+			content12
+		</level12>
+	</level1>
+	<level2>
+		<level21>
+			content21
+		</level21>
+		<level22>
+			content22
+		</level22>
+	</level2>
+</root>

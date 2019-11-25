@@ -51,32 +51,32 @@ public class JVisualsTest {
 //		
 //		jdc.showDialog();
 //	}
-	
-	@Test
+	 
+//	@Test
 	public void dialogContainerWizardText() throws LocalizationException, IOException, ContentException{
-		final ErrorProcessing<String,ContinueMode>	proc = new ErrorProcessing<String,ContinueMode>() {
-			@Override public void processError(String content, ContinueMode err, Object... parameters) throws FlowException, LocalizationException {}
-			@Override public void processWarning(String content, ContinueMode err, Object... parameters) throws LocalizationException {}
-		}; 
-		final JDialogContainer<String,ContinueMode,JComponent>	jdc = new JDialogContainer<String,ContinueMode,JComponent>
-									(PureLibSettings.PURELIB_LOCALIZER,(JDialog)null,"test",proc,
-											new AbstractWizardStep<String, ContinueMode, JComponent>() {
-												@Override public StepType getStepType() {return StepType.INITIAL;}
-												@Override public String getCaption() {return "testSet1";}
-												@Override public JComponent getContent() {return new JLabel("sdds");}
-												@Override public void beforeShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-												@Override public void afterShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-											},
-										new AbstractWizardStep<String, ContinueMode, JComponent>() {
-											@Override public StepType getStepType() {return StepType.TERM_SUCCESS;}
-											@Override public String getCaption() {return "testSet2";}
-											@Override public JComponent getContent() {return new JLabel("12345");}
-											@Override public void beforeShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-											@Override public void afterShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-										}
-									);
-		
-		jdc.showDialog();
+//		final ErrorProcessing<String,ContinueMode>	proc = new ErrorProcessing<String,ContinueMode>() {
+//			@Override public void processError(String content, ContinueMode err, Object... parameters) throws FlowException, LocalizationException {}
+//			@Override public void processWarning(String content, ContinueMode err, Object... parameters) throws LocalizationException {}
+//		}; 
+//		final JDialogContainer<String,ContinueMode,JComponent>	jdc = new JDialogContainer<String,ContinueMode,JComponent>
+//									(PureLibSettings.PURELIB_LOCALIZER,(JDialog)null,"test",proc,
+//											new AbstractWizardStep<String, ContinueMode, JComponent>() {
+//												@Override public StepType getStepType() {return StepType.INITIAL;}
+//												@Override public String getCaption() {return "testSet1";}
+//												@Override public JComponent getContent() {return new JLabel("sdds");}
+//												@Override public void beforeShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
+//												@Override public void afterShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
+//											},
+//										new AbstractWizardStep<String, ContinueMode, JComponent>() {
+//											@Override public StepType getStepType() {return StepType.TERM_SUCCESS;}
+//											@Override public String getCaption() {return "testSet2";}
+//											@Override public JComponent getContent() {return new JLabel("12345");}
+//											@Override public void beforeShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
+//											@Override public void afterShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
+//										}
+//									);
+//		
+//		jdc.showDialog();
 	}
 	
 }

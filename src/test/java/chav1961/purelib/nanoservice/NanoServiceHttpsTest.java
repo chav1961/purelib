@@ -92,7 +92,7 @@ public class NanoServiceHttpsTest {
 			conn.setSSLSocketFactory(factory);
 			System.setProperty("javax.net.debug","all");
 			System.out.println("ASAS");
-			try(final InputStream	is = conn.getInputStream()) {
+			try(final InputStream	is = conn.getInputStream()) { 
 				
 				Utils.copyStream(is,new OutputStream() {
 					@Override public void write(int b) throws IOException {}
