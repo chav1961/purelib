@@ -8,11 +8,16 @@ import javax.swing.JComponent;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
+import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
+import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -23,7 +28,7 @@ public class LogicControlsTest {
 	@Test
 	public void jColorPickerTest() throws SyntaxException, LocalizationException, PreparationException, ContentException {
 		final ContentMetadataInterface 	total = ContentModelFactory.forAnnotatedClass(LogicControlTestRabbit.class);
-		final ContentNodeMetadata		metadata = total.byUIPath(URI.create(""));
+		final ContentNodeMetadata		metadata = total.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+LogicControlTestRabbit.class.getName()+"/currentColor"))[0];
 		final TestMonitor				monitor = new TestMonitor(metadata);
 		final JColorPickerWithMeta		cp = new JColorPickerWithMeta(metadata,metadata.getFormatAssociated(), monitor);
 		
@@ -38,7 +43,6 @@ public class LogicControlsTest {
 
 		@Override
 		public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) throws ContentException {
-			// TODO Auto-generated method stub
 			Assert.assertEquals(this.metadata,metadata);
 			
 			return true;
@@ -46,8 +50,9 @@ public class LogicControlsTest {
 	}
 }
 
+@LocaleResourceLocation(PureLibLocalizer.LOCALIZER_SCHEME_STRING)
 @LocaleResource(value="value",tooltip="tooltip")
 class LogicControlTestRabbit {
-	@Format("")
+	@Format("m")
 	final Color		currentColor = Color.BLACK;	
 }

@@ -4,12 +4,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.EnumMap;
-import java.util.Map;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
@@ -274,7 +272,7 @@ public enum StylePropertiesSupported {
 	private static final SyntaxTreeInterface<StylePropertiesSupported[]>	NAMES = new AndOrTree<>();
 	private static final long			INHERITED_ID;
 	private static final long[]			EMPTY_CONTENT = new long[0];
-	private static final Object[]		URL_LEXEMAS = {"url",'(',CharUtils.ArgumentType.name,')'};
+	private static final Object[]		URL_LEXEMAS = {"url".toCharArray(),'(',CharUtils.ArgumentType.simpleTerminatedString,')'};
 	
     private final String 				externalName;
     private final boolean				canBeInherited;

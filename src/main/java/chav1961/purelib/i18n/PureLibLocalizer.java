@@ -18,7 +18,8 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 public class PureLibLocalizer extends PropertiesLocalizer {
 	public static final String		LOCALIZER_SUBSCHEME = "prop";
 	public static final String		LOCALIZER_TAIL = "chav1961/purelib/i18n/localization";
-	public static final URI			LOCALIZER_SCHEME = URI.create(Localizer.LOCALIZER_SCHEME+":"+LOCALIZER_SUBSCHEME+":"+LOCALIZER_TAIL);
+	public static final String		LOCALIZER_SCHEME_STRING = Localizer.LOCALIZER_SCHEME+":"+LOCALIZER_SUBSCHEME+":"+LOCALIZER_TAIL;
+	public static final URI			LOCALIZER_SCHEME = URI.create(LOCALIZER_SCHEME_STRING);
 
 	public static final String		BUTTON_ACCEPT = "ACEPT";
 	public static final String		BUTTON_CANCEL = "CANCEL";

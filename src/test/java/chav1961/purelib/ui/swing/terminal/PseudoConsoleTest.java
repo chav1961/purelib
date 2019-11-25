@@ -65,13 +65,13 @@ public class PseudoConsoleTest {
 		}
 		
 		pc.writeAttribute(new Rectangle(5,5,2,2),Color.RED,Color.BLUE);
-		Assert.assertArrayEquals(new Color[][][]{
-				new Color[][]{new Color[]{Color.RED,Color.BLUE},new Color[]{Color.RED,Color.BLUE}}
-				,new Color[][]{new Color[]{Color.RED,Color.BLUE},new Color[]{Color.RED,Color.BLUE}}}
+		Assert.assertArrayEquals(new ColorPair[][]{
+				new ColorPair[]{new ColorPair(Color.RED,Color.BLUE),new ColorPair(Color.RED,Color.BLUE)}
+				,new ColorPair[]{new ColorPair(Color.RED,Color.BLUE),new ColorPair(Color.RED,Color.BLUE)}}
 		,pc.readAttribute(new Rectangle(5,5,2,2)));
-		Assert.assertArrayEquals(new Color[][][]{
-			new Color[][]{new Color[]{Color.GREEN,Color.BLACK},new Color[]{Color.GREEN,Color.BLACK}}
-			,new Color[][]{new Color[]{Color.GREEN,Color.BLACK},new Color[]{Color.GREEN,Color.BLACK}}}
+		Assert.assertArrayEquals(new ColorPair[][]{
+			new ColorPair[]{new ColorPair(Color.GREEN,Color.BLACK),new ColorPair(Color.GREEN,Color.BLACK)}
+			,new ColorPair[]{new ColorPair(Color.GREEN,Color.BLACK),new ColorPair(Color.GREEN,Color.BLACK)}}
 		,pc.readAttribute(new Rectangle(7,7,2,2)));
 
 		

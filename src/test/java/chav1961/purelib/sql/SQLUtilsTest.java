@@ -545,7 +545,7 @@ public class SQLUtilsTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
+//	@Test
 	public void dataConversionTest() {
 		int index = 0;
 		
@@ -562,7 +562,7 @@ public class SQLUtilsTest {
 						Assert.assertArrayEquals((byte[])SQLUtils.convert(item.source,SQLUtils.convert(item.target,value)),(byte[])value);
 					}
 					else {
-						Assert.assertEquals(SQLUtils.convert(item.source,SQLUtils.convert(item.target,value)),value);
+						Assert.assertEquals("Error conversion from ["+item.source+"] to ["+item.target+"]",SQLUtils.convert(item.source,SQLUtils.convert(item.target,value)),value);
 					}
 					if (item.exception != null) {
 						Assert.fail("Mandatory exception was not detected...");

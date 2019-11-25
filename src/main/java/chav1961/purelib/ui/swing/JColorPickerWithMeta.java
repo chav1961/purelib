@@ -122,7 +122,9 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	@Override
 	public void setBorder(Border border) {
 		super.setBorder(border);
-		new ComponentKeepedBorder(0,callSelect).install(this);
+		if (!(border instanceof ComponentKeepedBorder)) {
+			new ComponentKeepedBorder(0,callSelect).install(this);
+		}
 	}
 
 	@Override
@@ -198,7 +200,9 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+			if (getNodeMetadata().getTooltipId() != null) {
+				setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+			}
 		} catch (IOException e) {
 			throw new LocalizationException(e);
 		}

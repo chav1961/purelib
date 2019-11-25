@@ -261,8 +261,11 @@ public class CompilerUtils {
 		if (clazz == null) {
 			throw new NullPointerException("Class to build path for can't be null"); 
 		}
-		else {
+		else if (!clazz.isArray()) {
 			return clazz.getName();
+		}
+		else {
+			return buildClassPath(clazz.getComponentType())+"[]";
 		}
 	}
 

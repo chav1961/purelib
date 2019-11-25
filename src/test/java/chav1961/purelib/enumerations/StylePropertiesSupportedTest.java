@@ -147,12 +147,8 @@ public class StylePropertiesSupportedTest {
 			}
 			if (item.getContentType() == ContentType.urlOrKeyword) {
 				Assert.assertTrue(item.canUseKeywords());
-				Assert.assertTrue(item.isValidValue("10sec"));
+				Assert.assertTrue(item.isValidValue("url(\"https://mail.ru\")"));
 				Assert.assertFalse(item.isValidValue("unknown"));
-				Assert.assertEquals(new CSSUtils.Time(10,CSSUtils.Time.Units.sec),item.forValue("10sec"));
-				for (Keyword kwd : item.getKeywordsSupported()) {
-					Assert.assertEquals(kwd,item.forValue(kwd.getName()));
-				}
 			}
 		}
 	}

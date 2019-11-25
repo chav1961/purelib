@@ -206,7 +206,6 @@ public abstract class AbstractLocalizer implements Localizer {
 			throw new IllegalArgumentException("Key to check can't be null or empty");
 		}
 		else if (!containsKey(key)) {
-			containsKey(key);
 			throw new LocalizationException("Key ["+key+"] to get value is missing anywhere");
 		}
 		else {

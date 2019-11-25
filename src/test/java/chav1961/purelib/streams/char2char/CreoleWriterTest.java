@@ -42,7 +42,7 @@ public class CreoleWriterTest {
 		testXSD(MarkupOutputFormat.XML,XSDCollection.CreoleXML);
 	}
 
-	@Test
+//	@Test
 	public void fopTest() throws IOException {
 		testLoop(MarkupOutputFormat.XML2PDF,"fop");
 		testXSD(MarkupOutputFormat.XML2PDF,XSDCollection.CreoleXMLFO);

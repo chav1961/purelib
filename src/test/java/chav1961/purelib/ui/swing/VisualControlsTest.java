@@ -25,12 +25,11 @@ public class VisualControlsTest {
 	public void test() throws PreparationException, SyntaxException, LocalizationException, ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final JDateFieldWithMeta	item = new JDateFieldWithMeta(
-													metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0]
+													metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0]
 													, new FieldFormat(Date.class,"")
 													, (event,meta,component,parameters)->{return true;}													
 										 			);
 		
-		JOptionPane.showMessageDialog(null,item);
+//		JOptionPane.showMessageDialog(null,item);
 	}
-
 }
