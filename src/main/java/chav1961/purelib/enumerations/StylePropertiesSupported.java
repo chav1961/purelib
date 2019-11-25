@@ -1226,7 +1226,8 @@ public enum StylePropertiesSupported {
 				result += values.content.length;
 				break;
 			default	:
-				throw new UnsupportedOperationException("Content type ["+contentType+"] is not supported yet");
+				//throw new UnsupportedOperationException("Content type ["+contentType+"] is not supported yet");
+				return 0;
 		}
 		return result;
 	}

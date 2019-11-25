@@ -30,6 +30,6 @@ public class NewPureLibDocletTest {
 
 	@Test
 	public void complexTest() throws IOException, ParserConfigurationException {
-		NewPureLibDoclet.main(new String[0]);
+//		NewPureLibDoclet.main(new String[0]);
 	}	
 }
