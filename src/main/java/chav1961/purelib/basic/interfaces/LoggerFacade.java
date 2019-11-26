@@ -90,7 +90,7 @@ public interface LoggerFacade extends Closeable {
 	 * @param parameters message parameters
 	 * @return self
 	 */
-	LoggerFacade message(Severity level, String format, Object... parameters);
+	LoggerFacade message(Severity level, String format, Object... parameters) throws NullPointerException;
 
 	/**
 	 * <p>Log message to logger file if the severity level is available now</p>
@@ -98,7 +98,7 @@ public interface LoggerFacade extends Closeable {
 	 * @param callback callback to create message
 	 * @return self
 	 */
-	LoggerFacade message(Severity level, LoggerCallbackInterface callback);
+	LoggerFacade message(Severity level, LoggerCallbackInterface callback) throws NullPointerException;
 	
 	/**
 	 * <p>Log message and exception to logger file</p>
@@ -108,7 +108,7 @@ public interface LoggerFacade extends Closeable {
 	 * @param parameters message parameters
 	 * @return self
 	 */
-	LoggerFacade message(Severity level, Throwable exception, String format, Object... parameters);
+	LoggerFacade message(Severity level, Throwable exception, String format, Object... parameters) throws NullPointerException;
 
 	/**
 	 * <p>Log message and exception to logger file if the severity level is available now</p>
@@ -117,14 +117,15 @@ public interface LoggerFacade extends Closeable {
 	 * @param callback callback to create message
 	 * @return self
 	 */
-	LoggerFacade message(Severity level, Throwable exception, LoggerCallbackInterface callback);
+	LoggerFacade message(Severity level, Throwable exception, LoggerCallbackInterface callback) throws NullPointerException;
 	
 	/**
 	 * <p>Are the severity level message logged now for the given logger. Use this method to reduce logger calls</p> 
 	 * @param level severity level to test
 	 * @return true if yes
+	 * @throws NullPointerException when redicing set is null
 	 */
-	boolean isLoggedNow(Severity level);
+	boolean isLoggedNow(Severity level) throws NullPointerException;
 	
 	/**
 	 * <p>Get current reducing algorithms for the given logger</p>
@@ -136,31 +137,35 @@ public interface LoggerFacade extends Closeable {
 	 * <p>Set current reducing algorithms for the given logger</p>
 	 * @param reducing reducing algorithm to set
 	 * @return self
+	 * @throws NullPointerException when redicing set is null
 	 */
-	LoggerFacade setReducing(Set<Reducing> reducing);
+	LoggerFacade setReducing(Set<Reducing> reducing) throws NullPointerException;
 
 	/**
 	 * <p>Set current reducing algorithms for the given logger</p>
 	 * @param reducing reducing algorithm to set
 	 * @return self
+	 * @throws NullPointerException when redicing set is null
 	 */
-	LoggerFacade setReducing(Reducing... reducing);
+	LoggerFacade setReducing(Reducing... reducing) throws NullPointerException;
 	
 	/**
 	 * <p>Push current reducing algorithms and set them to new values. Uses as pair to {@link #popReducing()}</p>
 	 * @param reducing reducing algorithm to set
 	 * @return self
+	 * @throws NullPointerException when redicing set is null
 	 * @see #popReducing()
 	 */
-	LoggerFacade pushReducing(Set<Reducing> reducing);
+	LoggerFacade pushReducing(Set<Reducing> reducing) throws NullPointerException;
 
 	/**
 	 * <p>Push current reducing algorithms and set them to new values. Uses as pair to {@link #popReducing()}</p>
 	 * @param reducing reducing algorithm to set
 	 * @return self
+	 * @throws NullPointerException when any redicing is null
 	 * @see #popReducing()
 	 */
-	LoggerFacade pushReducing(Reducing... reducing);
+	LoggerFacade pushReducing(Reducing... reducing) throws NullPointerException;
 	
 	/**
 	 * <p>Restore current reducing algorithms from the stack. Uses as pair to {@link #pushReducing(Set)}</p>
@@ -182,10 +187,32 @@ public interface LoggerFacade extends Closeable {
 	 * &nbsp;&nbsp;&nbsp;logger.rollback(); // scratch all logger content on successful ending<br>
 	 * }<br>
 	 * </code>
-	 * @param mark any string to mark transaction logger trace for identification purposes
+	 * @param mark any string to mark transaction logger trace for identification purposes. Can't be null or empty
 	 * @return new logger instance. It must be closed mandatory
+	 * @throws IllegalArgumentException when mark string is null or empty
 	 */
-	LoggerFacade transaction(final String mark);
+	LoggerFacade transaction(final String mark) throws IllegalArgumentException;
+
+	/**
+	 * <p>Create <b>transaction</b> logger instance. Use this call in the <b>try-with-resource</b> statement! Any messages to transaction logger will not be send anywhere before
+	 * transaction end. Real transferring will be initiated when {@linkplain #close()} method would be called. Calling {@linkplain #rollback()} method immediately before calling
+	 * {@linkplain #close()} scratches all messages from the transaction logger. This functionality is designed especially for reducing logger output:
+	 * successful ending of the transaction doesn't produce any messages, but fatal ending keeps detailed trace for the longer analysis:</p>
+	 * <code>
+	 * try(LoggerFacade logger = ...transaction("MyTransaction")) {<br>
+	 * . . .<br>
+	 * &nbsp;&nbsp;&nbsp;logger.message(...);<br>
+	 * . . .<br>
+	 * &nbsp;&nbsp;&nbsp;logger.rollback(); // scratch all logger content on successful ending<br>
+	 * }<br>
+	 * </code>
+	 * @param mark any string to mark transaction logger trace for identification purposes
+	 * @param root root class where transaction logger was created
+	 * @return new logger instance. It must be closed mandatory
+	 * @throws IllegalArgumentException when mark string is null or empty
+	 * @throws NullPointerException when root class is null
+	 */
+	LoggerFacade transaction(final String mark, final Class<?> root) throws NullPointerException, IllegalArgumentException;
 	
 	/**
 	 * <p>Rollback transaction trace. If the logger instance is not a transaction logger, this call has no effect. Use this method as the last call in the <b>try-with-resource</b> 

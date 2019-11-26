@@ -1,7 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.util.HashMap;
-
+import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -17,6 +17,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 public class DefaultLoggerFacade extends AbstractLoggerFacade {
@@ -39,7 +40,7 @@ public class DefaultLoggerFacade extends AbstractLoggerFacade {
 	}
 
 	public DefaultLoggerFacade(String mark, Class<?> root) {
-		super(mark, root);
+		super(mark, root, new HashSet<>());
 		this.logger = Logger.getLogger(mark);
 	}
 

@@ -10,6 +10,8 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
@@ -409,6 +411,12 @@ public class SQLUtils {
 		toMap.put(URL.class,(source)->{
 			try{return new URL(source.toString());
 			} catch (MalformedURLException e) {
+				throw new ContentException("String ["+source.toString()+"] can't be converted to URL: "+e.getLocalizedMessage());
+			}
+		});
+		toMap.put(URI.class,(source)->{
+			try{return new URI(source.toString());
+			} catch (URISyntaxException e) {
 				throw new ContentException("String ["+source.toString()+"] can't be converted to URL: "+e.getLocalizedMessage());
 			}
 		});

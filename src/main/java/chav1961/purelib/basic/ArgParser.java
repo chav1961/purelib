@@ -14,6 +14,8 @@ import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.CommandLineParametersException;
 import chav1961.purelib.basic.exceptions.ConsoleCommandException;
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.sql.SQLUtils;
 
 /**
  * <p>This class is used to parse and access command line arguments for console-based applications. Recommended template to use it is produce
@@ -56,33 +58,31 @@ public class ArgParser {
 		if (desc == null || desc.length == 0) {
 			throw new IllegalArgumentException("Argument description list can't be null or empty array");
 		}
+		else if (Utils.checkArrayContent4Nulls(desc) >= 0) {
+			throw new IllegalArgumentException("Nulls inside desc argument");
+		}
 		else {
 			final Set<String>	names = new HashSet<>();
 			boolean 			prevPosWasList = false;
 			
 			for (ArgDescription item : desc) {
-				if (item == null) {
-					throw new NullPointerException("Null value inside argument description list");
+				final String	key = caseSensitive ? item.getName() : item.getName().toLowerCase();
+				
+				if (names.contains(key)) {
+					throw new IllegalArgumentException("Duplicate key name ["+item.getName()+"] in the parameters list");
+				}
+				else if (item.isPositional() && !item.hasValue()) {
+					throw new IllegalArgumentException("Positional parameter ["+item.getName()+"] is marked as has no value!");
+				}
+				else if (item.isList() && !item.hasValue()) {
+					throw new IllegalArgumentException("List value parameter ["+item.getName()+"] is marked as has no value!");
+				}
+				else if (item.isPositional() && prevPosWasList) {
+					throw new IllegalArgumentException("List-specified positional parameter ["+item.getName()+"] has list-specified predecessor!");
 				}
 				else {
-					final String	key = caseSensitive ? item.getName() : item.getName().toLowerCase();
-					
-					if (names.contains(key)) {
-						throw new IllegalArgumentException("Duplicate key name ["+item.getName()+"] in the parameters list");
-					}
-					else if (item.isPositional() && !item.hasValue()) {
-						throw new IllegalArgumentException("Positional parameter ["+item.getName()+"] is marked as has no value!");
-					}
-					else if (item.isList() && !item.hasValue()) {
-						throw new IllegalArgumentException("List value parameter ["+item.getName()+"] is marked as has no value!");
-					}
-					else if (item.isPositional() && prevPosWasList) {
-						throw new IllegalArgumentException("List-specified positional parameter ["+item.getName()+"] has list-specified predecessor!");
-					}
-					else {
-						prevPosWasList = item.isList();
-						names.add(item.getName());
-					}
+					prevPosWasList = item.isList();
+					names.add(item.getName());
 				}
 			}
 			
@@ -100,7 +100,7 @@ public class ArgParser {
 		this.pairs = Collections.unmodifiableMap(pairs);
 	}
 	
-	public ArgParser parse(final String... args) throws ConsoleCommandException {
+	public ArgParser parse(final String... args) throws CommandLineParametersException {
 		if (this.pairs != null) {
 			throw new IllegalStateException("Attempt to call parse(...) on parsed instance. This method can be called on 'parent' instance only");
 		}
@@ -190,11 +190,11 @@ public class ArgParser {
 		}
 	}
 	
-	static void parseParameters(final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final String[] args, final Map<String, String[]> pairs) throws ConsoleCommandException {
+	static void parseParameters(final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final String[] args, final Map<String, String[]> pairs) throws CommandLineParametersException {
 		int 	positional = 0;
 		
 loop:	for (int index = 0; index < args.length; index++) {
-			if (args[index].charAt(0) != keyPrefix) {
+			if (args[index].isEmpty() || args[index].charAt(0) != keyPrefix) {
 				int	found = 0;
 				
 				for (ArgDescription item : desc) {
@@ -221,7 +221,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 						}
 					}
 				}
-				throw new ConsoleCommandException("Extra positional parameter ["+args[index]+"] was detected");
+				throw new CommandLineParametersException("Extra positional parameter ["+args[index]+"] was detected");
 			}
 			else {
 				final String			key = args[index].substring(1);
@@ -229,11 +229,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 				final ArgDescription	found = forKey(keyFind,desc,caseSensitive);
 				
 				if (found == null) {
-					throw new ConsoleCommandException("Key parameter [-"+key+"] is not supported for the parser");
+					throw new CommandLineParametersException("Key parameter [-"+key+"] is not supported for the parser");
 				}
 				else if (found.hasValue()) {
 					if (index == args.length-1) {
-						throw new ConsoleCommandException("Key parameter [-"+key+"] has no value awaited");
+						throw new CommandLineParametersException("Key parameter [-"+key+"] has no value awaited");
 					}
 					else if (found.isList()) {
 						final List<String>	collection = new ArrayList<>();
@@ -267,7 +267,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			}
 		}
 		if (sb.length() > 0) {
-			throw new ConsoleCommandException("Mandatory argument(s) ["+sb.toString().substring(1)+"] are missing in the parameters");
+			throw new CommandLineParametersException("Mandatory argument(s) ["+sb.toString().substring(1)+"] are missing in the parameters");
 		}
 	}
 
@@ -324,7 +324,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		boolean isPositional();
 		boolean isList();
 		boolean hasValue();
-		void validate(String value) throws ConsoleCommandException;
+		void validate(String value) throws CommandLineParametersException;
 	}
 
 	protected abstract static class AbstractArg implements ArgDescription {
@@ -351,7 +351,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override public abstract <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException;
 		@Override public abstract String[] getDefaultValue();
 		@Override public abstract boolean isList();
-		@Override public abstract void validate(final String value) throws ConsoleCommandException;
+		@Override public abstract void validate(final String value) throws CommandLineParametersException;
 		
 		@Override
 		public String getName() {
@@ -385,6 +385,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 	}
 
 	protected static class BooleanArg extends AbstractArg {
+		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
+		
+		static {
+			SUPPORTED_CONVERSIONS.add(boolean.class);
+			SUPPORTED_CONVERSIONS.add(Boolean.class);
+			SUPPORTED_CONVERSIONS.add(String.class);
+		}
+		
 		private final String[]	defaults;	
 
 		public BooleanArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
@@ -400,11 +408,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
-			if (boolean.class.isAssignableFrom(awaited) || Boolean.class.isAssignableFrom(awaited)) {
-				return (T)Boolean.valueOf("true".equalsIgnoreCase(value));
-			}
-			else {
-				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to booleans only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
+					return (T)SQLUtils.convert(awaited, value);
+				}
+				else {
+					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to boolean or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				}
+			} catch (ContentException e) {
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
 			}
 		}
 
@@ -419,13 +430,13 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
-		public void validate(final String value) throws ConsoleCommandException {
+		public void validate(final String value) throws CommandLineParametersException {
 			if (value == null || value.isEmpty()) {
-				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
 				if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
-					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid boolean: "+value);
+					throw new CommandLineParametersException("Argument ["+getName()+"]: value doesn't have valid boolean: "+value);
 				}
 			}
 		}
@@ -442,6 +453,20 @@ loop:	for (int index = 0; index < args.length; index++) {
 	}
 
 	protected static class IntegerArg extends AbstractArg {
+		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
+		
+		static {
+			SUPPORTED_CONVERSIONS.add(long.class);
+			SUPPORTED_CONVERSIONS.add(Long.class);
+			SUPPORTED_CONVERSIONS.add(int.class);
+			SUPPORTED_CONVERSIONS.add(Integer.class);
+			SUPPORTED_CONVERSIONS.add(short.class);
+			SUPPORTED_CONVERSIONS.add(Short.class);
+			SUPPORTED_CONVERSIONS.add(byte.class);
+			SUPPORTED_CONVERSIONS.add(Byte.class);
+			SUPPORTED_CONVERSIONS.add(String.class);
+		}
+		
 		private final String[]	defaults;
 		private final long[][]	ranges;
 
@@ -468,20 +493,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
-			if (long.class.isAssignableFrom(awaited) || Long.class.isAssignableFrom(awaited)) {
-				return (T)Long.valueOf(value);
-			}
-			else if (int.class.isAssignableFrom(awaited) || Integer.class.isAssignableFrom(awaited)) {
-				return (T)Integer.valueOf(value);
-			}
-			else if (short.class.isAssignableFrom(awaited) || Short.class.isAssignableFrom(awaited)) {
-				return (T)Short.valueOf(value);
-			}
-			else if (byte.class.isAssignableFrom(awaited) || Byte.class.isAssignableFrom(awaited)) {
-				return (T)Byte.valueOf(value);
-			}
-			else {
-				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to integer type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
+					return (T)SQLUtils.convert(awaited, value);
+				}
+				else {
+					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to integer or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				}
+			} catch (ContentException e) {
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
 			}
 		}
 
@@ -496,9 +515,9 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
-		public void validate(final String value) throws ConsoleCommandException {
+		public void validate(final String value) throws CommandLineParametersException {
 			if (value == null || value.isEmpty()) {
-				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
 				try{final long	longValue = Long.valueOf(value).longValue();
@@ -518,9 +537,9 @@ loop:	for (int index = 0; index < args.length; index++) {
 							sb.append(',').append(range[0]).append("..").append(range[1]);
 						}
 					}
-					throw new ConsoleCommandException("Argument ["+getName()+"]: value ["+longValue+"] out of range. Available values are "+sb.delete(0, 0).toString());
+					throw new CommandLineParametersException("Argument ["+getName()+"]: value ["+longValue+"] out of range. Available values are "+sb.delete(0, 0).toString());
 				} catch (NumberFormatException exc) {
-					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid integer: "+value);
+					throw new CommandLineParametersException("Argument ["+getName()+"]: value doesn't have valid integer: "+value);
 				}
 			}
 		}
@@ -532,6 +551,16 @@ loop:	for (int index = 0; index < args.length; index++) {
 	}
 	
 	protected static class RealArg extends AbstractArg {
+		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
+		
+		static {
+			SUPPORTED_CONVERSIONS.add(float.class);
+			SUPPORTED_CONVERSIONS.add(Float.class);
+			SUPPORTED_CONVERSIONS.add(double.class);
+			SUPPORTED_CONVERSIONS.add(Double.class);
+			SUPPORTED_CONVERSIONS.add(String.class);
+		}
+		
 		private final String[]	defaults;	
 
 		public RealArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
@@ -547,14 +576,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
-			if (double.class.isAssignableFrom(awaited) || Double.class.isAssignableFrom(awaited)) {
-				return (T)Double.valueOf(value);
-			}
-			else if (float.class.isAssignableFrom(awaited) || Float.class.isAssignableFrom(awaited)) {
-				return (T)Float.valueOf(value);
-			}
-			else {
-				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to real type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
+					return (T)SQLUtils.convert(awaited, value);
+				}
+				else {
+					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to floating or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				}
+			} catch (ContentException e) {
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
 			}
 		}
 
@@ -569,14 +598,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
-		public void validate(final String value) throws ConsoleCommandException {
+		public void validate(final String value) throws CommandLineParametersException {
 			if (value == null || value.isEmpty()) {
-				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
 				try{Double.valueOf(value).doubleValue();
 				} catch (NumberFormatException exc) {
-					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid real: "+value);
+					throw new CommandLineParametersException("Argument ["+getName()+"]: value doesn't have valid real: "+value);
 				}
 			}
 		}
@@ -622,9 +651,9 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
-		public void validate(final String value) throws IllegalArgumentException {
+		public void validate(final String value) throws CommandLineParametersException {
 			if (value == null) {
-				throw new IllegalArgumentException("Argument ["+getName()+"]: value can't be null");
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null");
 			}
 		}
 
@@ -635,6 +664,13 @@ loop:	for (int index = 0; index < args.length; index++) {
 	}
 
 	protected static class URIArg extends AbstractArg {
+		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
+		
+		static {
+			SUPPORTED_CONVERSIONS.add(URI.class);
+			SUPPORTED_CONVERSIONS.add(String.class);
+		}
+		
 		private final String[]	defaults;	
 
 		public URIArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
@@ -650,17 +686,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
-			if (URI.class.isAssignableFrom(awaited)) {
-				try{return (T)URI.create(value);
-				} catch (IllegalArgumentException exc) {
-					throw new CommandLineParametersException("Argument ["+getName()+"] has invalid URI value ("+exc.getLocalizedMessage()+")"); 
+			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
+					return (T)SQLUtils.convert(awaited, value);
 				}
-			}
-			else if (String.class.isAssignableFrom(awaited)) {
-				return (T)value;
-			}
-			else {
-				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to string or URI type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				else {
+					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				}
+			} catch (ContentException e) {
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
 			}
 		}
 
@@ -675,14 +708,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
-		public void validate(final String value) throws ConsoleCommandException {
+		public void validate(final String value) throws CommandLineParametersException {
 			if (value == null || value.isEmpty()) {
-				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
 				try{URI.create(value);
 				} catch (IllegalArgumentException exc) {
-					throw new ConsoleCommandException("Argument ["+getName()+"]: value doesn't have valid URI: "+value+" ("+exc.getLocalizedMessage()+")");
+					throw new CommandLineParametersException("Argument ["+getName()+"]: value doesn't have valid URI: "+value+" ("+exc.getLocalizedMessage()+")");
 				}
 			}
 		}
@@ -713,9 +746,9 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (enumType.isAssignableFrom(awaited)) {
-				try{return (T)enumType.getMethod("valueOf",String.class).invoke(null,value);
-				} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-					throw new IllegalArgumentException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
+				try{return (T)Enum.valueOf((Class<Enum>)awaited,value);
+				} catch (IllegalArgumentException e) {
+					throw new CommandLineParametersException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
 				}
 			}
 			else {
@@ -734,14 +767,14 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
-		public void validate(final String value) throws ConsoleCommandException {
+		public void validate(final String value) throws CommandLineParametersException {
 			if (value == null || value.isEmpty()) {
-				throw new ConsoleCommandException("Argument ["+getName()+"]: value can't be null or empty");
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
-				try{enumType.getMethod("valueOf",String.class).invoke(null,value);
-				} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-					throw new ConsoleCommandException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
+				try{Enum.valueOf((Class<Enum>)enumType,value);
+				} catch (IllegalArgumentException e) {
+					throw new CommandLineParametersException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
 				}
 			}
 		}
@@ -749,6 +782,53 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override
 		public String toString() {
 			return "EnumArg [defaults=" + Arrays.toString(defaults) + ", enumType=" + enumType + ", toString()=" + super.toString() + "]";
+		}
+	}
+
+	protected static class StringListArg extends AbstractArg {
+		private final String[]	defaults;	
+
+		public StringListArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
+			super(name, isMandatory, isPositional, helpDescriptor);
+			this.defaults = new String[0];
+		}
+
+		public StringListArg(final String name, final boolean isPositional, final String helpDescriptor, final String... defaultValue) {
+			super(name, false, isPositional, helpDescriptor);
+			this.defaults = defaultValue;
+		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
+			if (String.class.isAssignableFrom(awaited)) {
+				return (T)value;
+			}
+			else {
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+			}
+		}
+
+		@Override
+		public String[] getDefaultValue() {
+			return defaults;
+		}
+
+		@Override
+		public boolean isList() {
+			return true;
+		}
+
+		@Override
+		public void validate(final String value) throws IllegalArgumentException {
+			if (value == null) {
+				throw new IllegalArgumentException("Argument ["+getName()+"]: value can't be null");
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "StringListArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
 		}
 	}
 }

@@ -23,6 +23,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 public abstract class AbstractLoggerFacade implements LoggerFacade {
@@ -39,10 +40,11 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		this.stack.add(0,new HashSet<Reducing>());
 	}
 
-	protected AbstractLoggerFacade(final String mark, final Class<?> root) {
+	protected AbstractLoggerFacade(final String mark, final Class<?> root, final Set<Reducing> reducing) {
 		this.inTransaction = true;
 		this.transactionRoot = root;
 		this.messages = new ArrayList<TransactionMessage>();
+		this.stack.add(0,reducing);
 	}
 
 	protected abstract AbstractLoggerFacade getAbstractLoggerFacade(final String mark, final Class<?> root);
@@ -56,16 +58,17 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			}
 			messages.clear();
 		}
+		repeatables.clear();
 		stack.clear();
 	}
 	
 	@Override
-	public LoggerFacade message(final Severity level, final String format, final Object... parameters) {
+	public LoggerFacade message(final Severity level, final String format, final Object... parameters) throws NullPointerException {
 		if (level == null) {
 			throw new NullPointerException("Level can't be null");
 		}
-		else if (format == null || format.isEmpty()) {
-			throw new IllegalArgumentException("Message format can't be null or empty");
+		else if (format == null) {
+			throw new NullPointerException("Message format can't be null");
 		}
 		else if (isLoggedNow(level)) {
 			if (parameters != null && parameters.length > 0) {
@@ -79,7 +82,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 
 	@Override
-	public LoggerFacade message(final Severity level, final LoggerCallbackInterface callback) {
+	public LoggerFacade message(final Severity level, final LoggerCallbackInterface callback) throws NullPointerException {
 		if (level == null) {
 			throw new NullPointerException("Level can't be null");
 		}
@@ -93,15 +96,15 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 	
 	@Override
-	public LoggerFacade message(final Severity level, final Throwable exception, final String format, final Object... parameters) {
+	public LoggerFacade message(final Severity level, final Throwable exception, final String format, final Object... parameters) throws NullPointerException {
 		if (level == null) {
 			throw new NullPointerException("Level can't be null");
 		}
 		else if (exception == null) {
 			throw new NullPointerException("Exception can't be null");
 		}
-		else if (format == null || format.isEmpty()) {
-			throw new IllegalArgumentException("Message format can't be null or empty");
+		else if (format == null) {
+			throw new NullPointerException("Message format can't be null");
 		}
 		else if (isLoggedNow(level)) {
 			if (parameters != null && parameters.length > 0) {
@@ -115,7 +118,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 
 	@Override
-	public LoggerFacade message(final Severity level, final Throwable exception, final LoggerCallbackInterface callback) {
+	public LoggerFacade message(final Severity level, final Throwable exception, final LoggerCallbackInterface callback) throws NullPointerException {
 		if (level == null) {
 			throw new NullPointerException("Level can't be null");
 		}
@@ -133,12 +136,17 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	
 	@Override 
 	public boolean isLoggedNow(final Severity level) {
-		return true;
+		if (level == null) {
+			throw new NullPointerException("Severity level to test can't be null");
+		}
+		else {
+			return true;
+		}
 	}
 
 	@Override
 	public Set<Reducing> getReducing() {
-		return stack.isEmpty() ? new HashSet<>() : stack.get(0);
+		return stack.get(0);
 	}
 
 	@Override
@@ -153,9 +161,12 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 
 	@Override
-	public LoggerFacade setReducing(final Reducing... reducing) {
+	public LoggerFacade setReducing(final Reducing... reducing) throws NullPointerException {
 		if (reducing == null) {
 			throw new NullPointerException("Reducing list can't be null");
+		}
+		else if (Utils.checkArrayContent4Nulls(reducing) >= 0) {
+			throw new NullPointerException("Nulls inside redicung list");
 		}
 		else {
 			final Set<Reducing>	set = new HashSet<>();
@@ -166,7 +177,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 
 	@Override
-	public LoggerFacade pushReducing(final Set<Reducing> reducing) {
+	public LoggerFacade pushReducing(final Set<Reducing> reducing) throws NullPointerException {
 		if (reducing == null) {
 			throw new NullPointerException("Reducing set can't be null");
 		}
@@ -177,7 +188,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 
 	@Override
-	public LoggerFacade pushReducing(final Reducing... reducing) {
+	public LoggerFacade pushReducing(final Reducing... reducing) throws NullPointerException {
 		if (reducing == null) {
 			throw new NullPointerException("Reducing list can't be null");
 		}
@@ -191,7 +202,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	
 	@Override
 	public LoggerFacade popReducing() {
-		if (stack.size() == 0) {
+		if (stack.size() <= 1) {
 			throw new IllegalStateException("Reducing stack exhausted!");
 		}
 		else {
@@ -202,15 +213,34 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 
 	@Override
 	public LoggerFacade transaction(final String mark) {
-		final Throwable		t = new Throwable();
-		
-		try{final Class<?>	root = Class.forName(t.getStackTrace()[1].getClassName());
-			return getAbstractLoggerFacade(mark,root); 
-		} catch (ClassNotFoundException e) {
-			return getAbstractLoggerFacade(mark,this.getClass()); 
+		if (mark == null || mark.isEmpty()) {
+			throw new IllegalArgumentException("String mark ca't be null or empty");
+		}
+		else {
+			try{final Throwable	t = new Throwable();
+				final Class<?>	root = Thread.currentThread().getContextClassLoader().loadClass(t.getStackTrace()[1].getClassName());
+				
+				return transaction(mark,root); 
+			} catch (ClassNotFoundException e) {
+				return transaction(mark,this.getClass()); 
+			}
 		}
 	}
 
+	@Override
+	public LoggerFacade transaction(final String mark, final Class<?> root) throws NullPointerException, IllegalArgumentException {
+		if (mark == null || mark.isEmpty()) {
+			throw new IllegalArgumentException("String mark can't be null or empty");
+		}
+		else if (root == null) {
+			throw new NullPointerException("Root class can't be null");
+		}
+		else {
+			return getAbstractLoggerFacade(mark,root); 
+		}
+	}
+	
+	
 	@Override
 	public void rollback() {
 		if (messages != null) {
@@ -237,13 +267,13 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 	
 	private void sendWithThrowable(final Severity level, final String text, final Throwable exception) {
-		if (needPrintException(exception)) {
-			send(level,text,convert(exception));
+		if (needPrintException(exception,getReducing(),repeatables)) {
+			send(level,text,convert(exception,getReducing(),transactionRoot));
 		}
 	}
 
-	private boolean needPrintException(final Throwable exception) {
-		if (getReducing().contains(Reducing.reduceRuntimeExceptions)) {
+	static boolean needPrintException(final Throwable exception, final Set<Reducing> reducing, final Set<StackTraceElement> repeatables) {
+		if (reducing.contains(Reducing.reduceRuntimeExceptions)) {
 			if (exception instanceof RuntimeException) {
 				if (repeatables.contains(exception.getStackTrace()[0])) {
 					return false;
@@ -262,37 +292,61 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 	
-	private Throwable convert(final Throwable exception) {
-		final StringBuilder	sb = new StringBuilder(exception.getLocalizedMessage() == null ? exception.getClass().getSimpleName() : exception.getLocalizedMessage());
+	static Throwable convert(final Throwable exception, final Set<Reducing> reducing, final Class<?> transactionRoot) {
 		StackTraceElement[]	list = exception.getStackTrace();		
 		
-		if (getReducing().contains(Reducing.reduceCause) && exception.getCause() != null) {
+		if (reducing.contains(Reducing.reduceCause) && exception.getCause() != null) {
+			final StringBuilder	sb = new StringBuilder();
+			
 			for(Throwable forStack = exception; forStack != null; forStack = forStack.getCause()){
-				sb.append('\n').append(forStack.getMessage());
-				list = exception.getStackTrace();
+				sb.append('\n').append(forStack.getClass().getSimpleName()).append(": ").append(forStack.getLocalizedMessage());
+				list = forStack.getStackTrace();
 			}
-			try{final Field		causeField = exception.getClass().getDeclaredField("cause"), messageField = exception.getClass().getDeclaredField("detailMessage");
-				
-				causeField.setAccessible(true);			causeField.set(exception,null);
-				messageField.setAccessible(true);		messageField.set(exception,sb.toString());
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			exception.setStackTrace(list);
+			try{Class<?>	cl = exception.getClass();
+				Field		causeField = null, messageField = null;
+			
+				while (cl != null && (causeField == null || messageField == null)) {
+					for (Field f : cl.getDeclaredFields()) {
+						if (causeField == null && "cause".equals(f.getName())) {
+							causeField = f;
+						}
+						if (causeField == null && "detailMessage".equals(f.getName())) {
+							messageField = f;
+						}
+					} 
+					cl = cl.getSuperclass();
+				}
+
+				if (causeField != null && messageField != null) {
+					causeField.setAccessible(true);			causeField.set(exception,null);
+					messageField.setAccessible(true);		messageField.set(exception,sb.substring(1));
+				}
+			} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			}  
 		}
 		
 		final List<StackTraceElement>	source = new ArrayList<StackTraceElement>();
 		
 		source.addAll(Arrays.asList(list));
-		if (getReducing().contains(Reducing.reduceJREPath)) {
+		if (reducing.contains(Reducing.reduceJREPath)) {
 			for (int index = source.size()-1; index >= 0; index--) {
-				if (source.get(index).getClassName().startsWith("java.") || source.get(index).getClassName().startsWith("javax.") || source.get(index).getClassName().startsWith("sun.")) {
+				final String	className = source.get(index).getClassName();
+				
+				if (className.startsWith("java.") || className.startsWith("javax.") || className.startsWith("sun.")) {
 					source.remove(index);
 				}
 			}
 		}
-		if (getReducing().contains(Reducing.reduceOverSubtree) && transactionRoot != null) {
-			for (int index = source.size()-1; index >= 0; index--) {
-				if (source.get(index).getClassName().startsWith(transactionRoot.getPackage().getName())) {
-					source.remove(index);
+		if (reducing.contains(Reducing.reduceOverSubtree) && transactionRoot != null) {
+			final String	subtreeRoot = transactionRoot.getCanonicalName();
+			
+			for (int index = 0, maxIndex = source.size(); index < maxIndex; index++) {
+				if (source.get(index).getClassName().equals(subtreeRoot)) {
+					while (source.size() > index+1) {
+						source.remove(index);
+					}
+					break;
 				}
 			}
 		}
@@ -315,6 +369,11 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			this.level = level;
 			this.text = text;
 			this.exception = null;
+		}
+
+		@Override
+		public String toString() {
+			return "TransactionMessage [level=" + level + ", text=" + text + ", exception=" + exception + "]";
 		}
 	}
 }

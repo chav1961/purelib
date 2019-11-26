@@ -453,6 +453,11 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	@Override
+	public LoggerFacade transaction(String mark, Class<?> root) throws NullPointerException, IllegalArgumentException {
+		return delegate.transaction(mark,root);
+	}
+	
+	@Override
 	public void rollback() {
 		delegate.rollback();
 	}
@@ -621,13 +626,13 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		private InternalLoggerFacade() {
 		}
 
-		private InternalLoggerFacade(final String mark, final Class<?> root) {
-			super(mark,root);
+		private InternalLoggerFacade(final String mark, final Class<?> root, final Set<Reducing> reducing) {
+			super(mark,root, reducing);
 		}
 
 		@Override
 		protected AbstractLoggerFacade getAbstractLoggerFacade(final String mark, final Class<?> root) {
-			return new InternalLoggerFacade(mark,root);
+			return new InternalLoggerFacade(mark,root,getReducing());
 		}
 
 		@Override

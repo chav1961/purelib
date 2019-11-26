@@ -13,6 +13,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 public class PureLogger extends Logger implements LoggerFacade {
@@ -95,6 +96,11 @@ public class PureLogger extends Logger implements LoggerFacade {
 	public void rollback() {
 	}
 
+	@Override
+	public LoggerFacade transaction(String mark, Class<?> root) throws NullPointerException, IllegalArgumentException {
+		return stdLogger.transaction(mark,root);
+	}
+	
 	@Override
 	public void close() {
 	}

@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +15,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
+ * @lastUpdate 0.0.3
  */
 
 public class StandardJRELoggerFacade extends AbstractLoggerFacade {
@@ -24,8 +26,8 @@ public class StandardJRELoggerFacade extends AbstractLoggerFacade {
 		this.actualLogger = Logger.getGlobal();
 	}
 
-	public StandardJRELoggerFacade(final String mark, final Class<?> root) {
-		super(mark, root);
+	public StandardJRELoggerFacade(final String mark, final Class<?> root, final Set<Reducing> reducing) {
+		super(mark, root, reducing);
 		this.actualLogger = Logger.getLogger(root.getCanonicalName());
 	}
 
@@ -36,7 +38,7 @@ public class StandardJRELoggerFacade extends AbstractLoggerFacade {
 	
 	@Override
 	protected AbstractLoggerFacade getAbstractLoggerFacade(final String mark, final Class<?> root) {
-		return new StandardJRELoggerFacade(mark,root);
+		return new StandardJRELoggerFacade(mark,root,getReducing());
 	}
 
 	@Override
