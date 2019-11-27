@@ -418,7 +418,7 @@ public class JsonSaxDeserializerFactory {
 					settingPairs.add(new SettingPairs(desc.clazzId,desc.clazz,item.getKey().longValue(),item.getValue().clazz,(int)(desc.clazzId * lastTreeId + item.getKey())));
 				}
 			}
-		}
+		} 
 	}
 
 	private static void printClassSettingsLabels(final Writer wr, final List<SettingPairs> settingPairs) throws IOException {
@@ -433,14 +433,14 @@ public class JsonSaxDeserializerFactory {
 			wr.write("L"+item.labelId+": 	aload_1\n");
 			wr.write("			checkcast "+tree.getName(item.classId)+"\n");
 			wr.write("			aload_3\n");
-			switch (Utils.defineClassType(item.targetField)) {
-				case Utils.CLASSTYPE_REFERENCE	:
+			switch (CompilerUtils.defineClassType(item.targetField)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	:
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
-				case Utils.CLASSTYPE_BYTE		:
-				case Utils.CLASSTYPE_SHORT		:
-				case Utils.CLASSTYPE_CHAR		:
-				case Utils.CLASSTYPE_INT		:
+				case CompilerUtils.CLASSTYPE_BYTE		:
+				case CompilerUtils.CLASSTYPE_SHORT		:
+				case CompilerUtils.CLASSTYPE_CHAR		:
+				case CompilerUtils.CLASSTYPE_INT		:
 					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
@@ -450,7 +450,7 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			l2i\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
-				case Utils.CLASSTYPE_LONG		:
+				case CompilerUtils.CLASSTYPE_LONG		:
 					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
@@ -459,7 +459,7 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_LONGVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
-				case Utils.CLASSTYPE_FLOAT		:
+				case CompilerUtils.CLASSTYPE_FLOAT		:
 					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
@@ -469,7 +469,7 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			d2f\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
-				case Utils.CLASSTYPE_DOUBLE		:
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
@@ -478,7 +478,7 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_DOUBLEVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
-				case Utils.CLASSTYPE_BOOLEAN	:
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:
 					wr.write("			checkcast "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
@@ -624,32 +624,32 @@ public class JsonSaxDeserializerFactory {
 				throw new ContentException("Json and class description conflict: object waiting, but array started");
 			}
 			else {
-				switch (Utils.defineClassType(actualDesc.arrayContent.clazz)) {
-					case Utils.CLASSTYPE_REFERENCE	:
+				switch (CompilerUtils.defineClassType(actualDesc.arrayContent.clazz)) {
+					case CompilerUtils.CLASSTYPE_REFERENCE	:
 						objectStack[++stackLevel] = new ArrayList<Object>();
 						break;
-					case Utils.CLASSTYPE_BYTE		:
+					case CompilerUtils.CLASSTYPE_BYTE		:
 						objectStack[++stackLevel] = new GrowableByteArray(true);
 						break;
-					case Utils.CLASSTYPE_SHORT		:
+					case CompilerUtils.CLASSTYPE_SHORT		:
 						objectStack[++stackLevel] = new GrowableShortArray(true);
 						break;
-					case Utils.CLASSTYPE_CHAR		:
+					case CompilerUtils.CLASSTYPE_CHAR		:
 						objectStack[++stackLevel] = new GrowableCharArray(true);
 						break;
-					case Utils.CLASSTYPE_INT		:
+					case CompilerUtils.CLASSTYPE_INT		:
 						objectStack[++stackLevel] = new GrowableIntArray(true);
 						break;
-					case Utils.CLASSTYPE_LONG		:
+					case CompilerUtils.CLASSTYPE_LONG		:
 						objectStack[++stackLevel] = new GrowableLongArray(true);
 						break;
-					case Utils.CLASSTYPE_FLOAT		:
+					case CompilerUtils.CLASSTYPE_FLOAT		:
 						objectStack[++stackLevel] = new GrowableFloatArray(true);
 						break;
-					case Utils.CLASSTYPE_DOUBLE		:
+					case CompilerUtils.CLASSTYPE_DOUBLE		:
 						objectStack[++stackLevel] = new GrowableDoubleArray(true);
 						break;
-					case Utils.CLASSTYPE_BOOLEAN	:
+					case CompilerUtils.CLASSTYPE_BOOLEAN	:
 						objectStack[++stackLevel] = new GrowableBooleanArray(true);
 						break;
 				}
@@ -659,11 +659,11 @@ public class JsonSaxDeserializerFactory {
 
 		@Override
 		public void endArr() throws ContentException {
-			switch (Utils.defineClassType(actualDesc.clazz)) {
-				case Utils.CLASSTYPE_REFERENCE	:
+			switch (CompilerUtils.defineClassType(actualDesc.clazz)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	:
 					objectStack[stackLevel] = ((ArrayList<?>)objectStack[stackLevel]).toArray(); 
 					break;
-				case Utils.CLASSTYPE_BYTE		:
+				case CompilerUtils.CLASSTYPE_BYTE		:
 					final byte[]	byteResult = new byte[((GrowableByteArray)objectStack[stackLevel]).length()];
 					
 					if (byteResult.length > 0) {
@@ -672,7 +672,7 @@ public class JsonSaxDeserializerFactory {
 					}
 					objectStack[stackLevel] = byteResult;
 					break;
-				case Utils.CLASSTYPE_SHORT		:
+				case CompilerUtils.CLASSTYPE_SHORT		:
 					final short[]	shortResult = new short[((GrowableShortArray)objectStack[stackLevel]).length()];
 					
 					if (shortResult.length > 0) {
@@ -681,7 +681,7 @@ public class JsonSaxDeserializerFactory {
 					}
 					objectStack[stackLevel] = shortResult;
 					break;
-				case Utils.CLASSTYPE_CHAR		:
+				case CompilerUtils.CLASSTYPE_CHAR		:
 					final char[]	charResult = new char[((GrowableCharArray)objectStack[stackLevel]).length()];
 					
 					if (charResult.length > 0) {
@@ -690,7 +690,7 @@ public class JsonSaxDeserializerFactory {
 					}
 					objectStack[stackLevel] = charResult;
 					break;
-				case Utils.CLASSTYPE_INT		:
+				case CompilerUtils.CLASSTYPE_INT		:
 					final int[]		intResult = new int[((GrowableIntArray)objectStack[stackLevel]).length()];
 					
 					if (intResult.length > 0) {
@@ -699,7 +699,7 @@ public class JsonSaxDeserializerFactory {
 					}
 					objectStack[stackLevel] = intResult;
 					break;
-				case Utils.CLASSTYPE_LONG		:
+				case CompilerUtils.CLASSTYPE_LONG		:
 					final long[]	longResult = new long[((GrowableLongArray)objectStack[stackLevel]).length()];
 					
 					if (longResult.length > 0) {
@@ -708,7 +708,7 @@ public class JsonSaxDeserializerFactory {
 					}
 					objectStack[stackLevel] = longResult;
 					break;
-				case Utils.CLASSTYPE_FLOAT		:
+				case CompilerUtils.CLASSTYPE_FLOAT		:
 					final float[]	floatResult = new float[((GrowableFloatArray)objectStack[stackLevel]).length()];
 					
 					if (floatResult.length > 0) {
@@ -717,7 +717,7 @@ public class JsonSaxDeserializerFactory {
 					}
 					objectStack[stackLevel] = floatResult;
 					break;
-				case Utils.CLASSTYPE_DOUBLE		:
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					final double[]	doubleResult = new double[((GrowableDoubleArray)objectStack[stackLevel]).length()];
 					
 					if (doubleResult.length > 0) {
@@ -726,7 +726,7 @@ public class JsonSaxDeserializerFactory {
 					}
 					objectStack[stackLevel] = doubleResult;
 					break;
-				case Utils.CLASSTYPE_BOOLEAN	:
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:
 					final boolean[]	booleanResult = new boolean[((GrowableBooleanArray)objectStack[stackLevel]).length()];
 					
 					if (booleanResult.length > 0) {
@@ -769,8 +769,8 @@ public class JsonSaxDeserializerFactory {
 					final MethodHandle	f = tree.getCargo(objectIds[stackLevel-1]).access.get(actualDesc.parent.clazzId);
 					final Field			t = tree.getCargo(objectIds[stackLevel-1]).type.get(actualDesc.parent.clazzId);
 					
-					switch (Utils.defineClassType(t.getType())) {
-						case Utils.CLASSTYPE_BYTE		:
+					switch (CompilerUtils.defineClassType(t.getType())) {
+						case CompilerUtils.CLASSTYPE_BYTE		:
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 								f.invoke(objectStack[stackLevel-1],(byte)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 							}
@@ -781,7 +781,7 @@ public class JsonSaxDeserializerFactory {
 								throw new ContentException("Json and class conflict: type of field name ["+tree.getName(objectIds[oldStackLevel-1])+"] is incompatible with long value ["+objectStack[oldStackLevel]+"]");
 							}
 							break;
-						case Utils.CLASSTYPE_SHORT		:
+						case CompilerUtils.CLASSTYPE_SHORT		:
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 								f.invoke(objectStack[stackLevel-1],(short)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 							}
@@ -792,7 +792,7 @@ public class JsonSaxDeserializerFactory {
 								throw new ContentException("Json and class conflict: type of field name ["+tree.getName(objectIds[oldStackLevel-1])+"] is incompatible with long value ["+objectStack[oldStackLevel]+"]");
 							}
 							break;
-						case Utils.CLASSTYPE_CHAR		:	
+						case CompilerUtils.CLASSTYPE_CHAR		:	
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 								f.invoke(objectStack[stackLevel-1],(char)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 							}
@@ -803,7 +803,7 @@ public class JsonSaxDeserializerFactory {
 								throw new ContentException("Json and class conflict: type of field name ["+tree.getName(objectIds[oldStackLevel-1])+"] is incompatible with long value ["+objectStack[oldStackLevel]+"]");
 							}
 							break;
-						case Utils.CLASSTYPE_INT		:	
+						case CompilerUtils.CLASSTYPE_INT		:	
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 								f.invoke(objectStack[stackLevel-1],(int)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 							}
@@ -814,7 +814,7 @@ public class JsonSaxDeserializerFactory {
 								throw new ContentException("Json and class conflict: type of field name ["+tree.getName(objectIds[oldStackLevel-1])+"] is incompatible with long value ["+objectStack[oldStackLevel]+"]");
 							}
 							break;
-						case Utils.CLASSTYPE_LONG		:	
+						case CompilerUtils.CLASSTYPE_LONG		:	
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 								f.invoke(objectStack[stackLevel-1],((PrimitiveCollection)objectStack[stackLevel]).longValue);
 							}
@@ -825,7 +825,7 @@ public class JsonSaxDeserializerFactory {
 								throw new ContentException("Json and class conflict: type of field name ["+tree.getName(objectIds[oldStackLevel-1])+"] is incompatible with long value ["+objectStack[oldStackLevel]+"]");
 							}
 							break;
-						case Utils.CLASSTYPE_FLOAT		:	
+						case CompilerUtils.CLASSTYPE_FLOAT		:	
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 								f.invoke(objectStack[stackLevel-1],((PrimitiveCollection)objectStack[stackLevel]).longValue);
 							}
@@ -839,7 +839,7 @@ public class JsonSaxDeserializerFactory {
 								throw new ContentException("Json and class conflict: type of field name ["+tree.getName(objectIds[oldStackLevel-1])+"] is incompatible with double value ["+objectStack[oldStackLevel]+"]");
 							}
 							break;
-						case Utils.CLASSTYPE_DOUBLE		:	
+						case CompilerUtils.CLASSTYPE_DOUBLE		:	
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 								f.invoke(objectStack[stackLevel-1],((PrimitiveCollection)objectStack[stackLevel]).longValue);
 							}
@@ -853,7 +853,7 @@ public class JsonSaxDeserializerFactory {
 								throw new ContentException("Json and class conflict: type of field name ["+tree.getName(objectIds[oldStackLevel-1])+"] is incompatible with boolean value ["+objectStack[oldStackLevel]+"]");
 							}
 							break;
-						case Utils.CLASSTYPE_BOOLEAN	:	
+						case CompilerUtils.CLASSTYPE_BOOLEAN	:	
 							if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_BOOLEAN) {
 								f.invoke(objectStack[stackLevel-1],((PrimitiveCollection)objectStack[stackLevel]).booleanValue);
 							}
@@ -889,11 +889,11 @@ public class JsonSaxDeserializerFactory {
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
 		public void endIndex() throws ContentException {
-			switch (Utils.defineClassType(actualDesc.clazz)) {
-				case Utils.CLASSTYPE_REFERENCE	:
+			switch (CompilerUtils.defineClassType(actualDesc.clazz)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	:
 					((ArrayList)objectStack[stackLevel - 1]).add(objectStack[stackLevel]);
 					break;
-				case Utils.CLASSTYPE_BYTE		:
+				case CompilerUtils.CLASSTYPE_BYTE		:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 						((GrowableByteArray)objectStack[stackLevel - 1]).append((byte)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 					}
@@ -901,7 +901,7 @@ public class JsonSaxDeserializerFactory {
 						throw new ContentException("Incompatible data type for byte array");
 					}
 					break;
-				case Utils.CLASSTYPE_SHORT		:
+				case CompilerUtils.CLASSTYPE_SHORT		:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 						((GrowableShortArray)objectStack[stackLevel - 1]).append((short)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 					}
@@ -909,7 +909,7 @@ public class JsonSaxDeserializerFactory {
 						throw new ContentException("Incompatible data type for short array");
 					}
 					break;
-				case Utils.CLASSTYPE_CHAR		:
+				case CompilerUtils.CLASSTYPE_CHAR		:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 						((GrowableCharArray)objectStack[stackLevel - 1]).append((char)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 					}
@@ -917,7 +917,7 @@ public class JsonSaxDeserializerFactory {
 						throw new ContentException("Incompatible data type for char array");
 					}
 					break;
-				case Utils.CLASSTYPE_INT		:
+				case CompilerUtils.CLASSTYPE_INT		:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 						((GrowableIntArray)objectStack[stackLevel - 1]).append((int)((PrimitiveCollection)objectStack[stackLevel]).longValue);
 					}
@@ -925,7 +925,7 @@ public class JsonSaxDeserializerFactory {
 						throw new ContentException("Incompatible data type for int array");
 					}
 					break;
-				case Utils.CLASSTYPE_LONG		:
+				case CompilerUtils.CLASSTYPE_LONG		:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 						((GrowableLongArray)objectStack[stackLevel - 1]).append(((PrimitiveCollection)objectStack[stackLevel]).longValue);
 					}
@@ -933,7 +933,7 @@ public class JsonSaxDeserializerFactory {
 						throw new ContentException("Incompatible data type for long array");
 					}
 					break;
-				case Utils.CLASSTYPE_FLOAT		:
+				case CompilerUtils.CLASSTYPE_FLOAT		:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 						((GrowableFloatArray)objectStack[stackLevel - 1]).append(((PrimitiveCollection)objectStack[stackLevel]).longValue);
 					}
@@ -944,7 +944,7 @@ public class JsonSaxDeserializerFactory {
 						throw new ContentException("Incompatible data type for float array");
 					}
 					break;
-				case Utils.CLASSTYPE_DOUBLE		:
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_LONG) {
 						((GrowableDoubleArray)objectStack[stackLevel - 1]).append(((PrimitiveCollection)objectStack[stackLevel]).longValue);
 					}
@@ -955,7 +955,7 @@ public class JsonSaxDeserializerFactory {
 						throw new ContentException("Incompatible data type for double array");
 					}
 					break;
-				case Utils.CLASSTYPE_BOOLEAN	:
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:
 					if ((objectStack[stackLevel] instanceof PrimitiveCollection) && ((PrimitiveCollection)objectStack[stackLevel]).contentType == PrimitiveCollection.CONTENT_BOOLEAN) {
 						((GrowableBooleanArray)objectStack[stackLevel - 1]).append(((PrimitiveCollection)objectStack[stackLevel]).booleanValue);
 					}
@@ -1039,15 +1039,15 @@ public class JsonSaxDeserializerFactory {
 		}
 
 		private Object toArray(final Class<?> componentType, final Object[] source) throws ContentException {
-			switch (Utils.defineClassType(componentType)) {
-				case Utils.CLASSTYPE_BYTE	:
-				case Utils.CLASSTYPE_SHORT	:
-				case Utils.CLASSTYPE_CHAR	:	
-				case Utils.CLASSTYPE_INT	:	
-				case Utils.CLASSTYPE_LONG	:	
-				case Utils.CLASSTYPE_FLOAT	:	
-				case Utils.CLASSTYPE_DOUBLE	:	
-				case Utils.CLASSTYPE_BOOLEAN:
+			switch (CompilerUtils.defineClassType(componentType)) {
+				case CompilerUtils.CLASSTYPE_BYTE	:
+				case CompilerUtils.CLASSTYPE_SHORT	:
+				case CompilerUtils.CLASSTYPE_CHAR	:	
+				case CompilerUtils.CLASSTYPE_INT	:	
+				case CompilerUtils.CLASSTYPE_LONG	:	
+				case CompilerUtils.CLASSTYPE_FLOAT	:	
+				case CompilerUtils.CLASSTYPE_DOUBLE	:	
+				case CompilerUtils.CLASSTYPE_BOOLEAN:
 					return source;
 				default :
 					final Object[]	refResult = (Object[]) Array.newInstance(componentType,source.length);

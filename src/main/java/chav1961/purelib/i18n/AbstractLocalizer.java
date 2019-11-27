@@ -253,11 +253,11 @@ public abstract class AbstractLocalizer implements Localizer {
 				
 				if (uriRef.getScheme() == null) {
 					final String	query = URIUtils.extractQueryFromURI(uriRef);
-					final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
+					final Hashtable<String,String[]>	queryParsed = URIUtils.parseQuery(query == null ? "" : query);
 					final String	temp = getHelp(uriRef.getPath(),queryParsed.containsKey(CONTENT_ENCODING) ? queryParsed.get(CONTENT_ENCODING)[0] : DEFAULT_CONTENT_ENCODING); 
 					
 					if (uriRef.getQuery() != null) {
-						try{final Hashtable<String,String[]>	mimes = Utils.parseQuery(uriRef.getQuery());
+						try{final Hashtable<String,String[]>	mimes = URIUtils.parseQuery(uriRef.getQuery());
 							final MimeType		fromMime = mimes.containsKey(CONTENT_MIME) ? PureLibSettings.MIME_PLAIN_TEXT : new MimeType(mimes.get(CONTENT_MIME_SOURCE)[0]);
 							final MimeType 		toMime = mimes.containsKey(CONTENT_MIME) ? new MimeType(mimes.get(CONTENT_MIME)[0]) : new MimeType(mimes.get(CONTENT_MIME_TARGET)[0]);
 						

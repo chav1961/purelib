@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.RsMetaDataElement;
@@ -31,9 +32,9 @@ public class SQLContentUtils {
 		else if (includes == null || includes.isEmpty()) {
 			throw new IllegalArgumentException("Field includes list can't be null or empty");
 		}
-		else {
+		else { 
 			final List<String>					names = new ArrayList<>();
-			final Hashtable<String,String[]>	parsed = Utils.parseQuery(query);
+			final Hashtable<String,String[]>	parsed = URIUtils.parseQuery(query);
 			
 			for (String item : CharUtils.split(query,'&')) {	// To avoid loosing of fields ordering
 				final int	eqPlace;

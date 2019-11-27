@@ -93,7 +93,7 @@ public class DbgClient {
 		STATES.put(ThreadReference.THREAD_STATUS_WAIT,"wait");
 		STATES.put(ThreadReference.THREAD_STATUS_ZOMBIE,"zombie");
 	}
-	
+	 
 	public static AppDebugInterface connectTo(final long pid) throws DebuggingException {
         final VirtualMachineManager 	vmManager = Bootstrap.virtualMachineManager();
 
@@ -389,8 +389,8 @@ public class DbgClient {
 	}
 	
 	private static Object value2Object(final AppDebugInterfaceImpl adi, final ThreadReference ref, final StackFrame frame, final Class<?> clazz, final Value val) throws ClassNotLoadedException, DebuggingException {
-		switch (Utils.defineClassType(clazz)) {
-			case Utils.CLASSTYPE_REFERENCE	:
+		switch (CompilerUtils.defineClassType(clazz)) {
+			case CompilerUtils.CLASSTYPE_REFERENCE	:
 				if (val instanceof StringReference) {
 					return ((StringReference)val).value();
 				}
@@ -412,21 +412,21 @@ public class DbgClient {
 				else {
 					return new ObjectWrapperImpl(adi,ref,frame,((ObjectReference)val).referenceType(),(ObjectReference)val);
 				}
-			case Utils.CLASSTYPE_BYTE		:
+			case CompilerUtils.CLASSTYPE_BYTE		:
 				return ((ByteValue)val).byteValue();
-			case Utils.CLASSTYPE_SHORT		:
+			case CompilerUtils.CLASSTYPE_SHORT		:
 				return ((ShortValue)val).shortValue();
-			case Utils.CLASSTYPE_CHAR		:	
+			case CompilerUtils.CLASSTYPE_CHAR		:	
 				return ((CharValue)val).charValue();
-			case Utils.CLASSTYPE_INT		:
+			case CompilerUtils.CLASSTYPE_INT		:
 				return ((IntegerValue)val).intValue();
-			case Utils.CLASSTYPE_LONG		:	
+			case CompilerUtils.CLASSTYPE_LONG		:	
 				return ((LongValue)val).longValue();
-			case Utils.CLASSTYPE_FLOAT		:
+			case CompilerUtils.CLASSTYPE_FLOAT		:
 				return ((FloatValue)val).floatValue();
-			case Utils.CLASSTYPE_DOUBLE		:
+			case CompilerUtils.CLASSTYPE_DOUBLE		:
 				return ((DoubleValue)val).doubleValue();
-			case Utils.CLASSTYPE_BOOLEAN	:
+			case CompilerUtils.CLASSTYPE_BOOLEAN	:
 				return ((BooleanValue)val).booleanValue();
 			default : return null;
 		}
@@ -800,16 +800,16 @@ public class DbgClient {
 			for (int index = 0; index < length; index++) {
 				try{final Object	value =	value2Object(adi,ref,frame,contentType(),obj.getValue(index));
 				
-					switch (Utils.defineClassType(contentType())) {
-						case Utils.CLASSTYPE_REFERENCE	: Array.set(result,index,value); break;
-						case Utils.CLASSTYPE_BYTE		: Array.setByte(result,index,((Byte)value).byteValue()); break;
-						case Utils.CLASSTYPE_SHORT		: Array.setShort(result,index,((Short)value).shortValue()); break;
-						case Utils.CLASSTYPE_CHAR		: Array.setChar(result,index,((Character)value).charValue()); break;	
-						case Utils.CLASSTYPE_INT		: Array.setInt(result,index,((Integer)value).intValue()); break;
-						case Utils.CLASSTYPE_LONG		: Array.setLong(result,index,((Long)value).longValue()); break;	
-						case Utils.CLASSTYPE_FLOAT		: Array.setFloat(result,index,((Float)value).floatValue()); break;
-						case Utils.CLASSTYPE_DOUBLE		: Array.setDouble(result,index,((Double)value).doubleValue()); break;
-						case Utils.CLASSTYPE_BOOLEAN	: Array.setBoolean(result,index,((Boolean)value).booleanValue()); break;
+					switch (CompilerUtils.defineClassType(contentType())) {
+						case CompilerUtils.CLASSTYPE_REFERENCE	: Array.set(result,index,value); break;
+						case CompilerUtils.CLASSTYPE_BYTE		: Array.setByte(result,index,((Byte)value).byteValue()); break;
+						case CompilerUtils.CLASSTYPE_SHORT		: Array.setShort(result,index,((Short)value).shortValue()); break;
+						case CompilerUtils.CLASSTYPE_CHAR		: Array.setChar(result,index,((Character)value).charValue()); break;	
+						case CompilerUtils.CLASSTYPE_INT		: Array.setInt(result,index,((Integer)value).intValue()); break;
+						case CompilerUtils.CLASSTYPE_LONG		: Array.setLong(result,index,((Long)value).longValue()); break;	
+						case CompilerUtils.CLASSTYPE_FLOAT		: Array.setFloat(result,index,((Float)value).floatValue()); break;
+						case CompilerUtils.CLASSTYPE_DOUBLE		: Array.setDouble(result,index,((Double)value).doubleValue()); break;
+						case CompilerUtils.CLASSTYPE_BOOLEAN	: Array.setBoolean(result,index,((Boolean)value).booleanValue()); break;
 						default : return null;
 					}
 				} catch (ClassNotLoadedException e) {

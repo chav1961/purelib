@@ -17,9 +17,11 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import sun.misc.Unsafe;
 
 /**
@@ -98,7 +100,7 @@ public class GettersAndSettersFactory {
 			}
 			writer = tempWriter;
 		} catch (NullPointerException | IOException e) {
-			PureLibSettings.logger.log(Level.WARNING,"Attempt to get AsmWriter functionality failed: "+e.getMessage()+". This problem will reduce performance for getters and setters functionality", e);
+			PureLibSettings.CURRENT_LOGGER.message(Severity.warning,"Attempt to get AsmWriter functionality failed: "+e.getMessage()+". This problem will reduce performance for getters and setters functionality", e);
 			writer = null;
 		}
 	}
@@ -622,43 +624,43 @@ public class GettersAndSettersFactory {
 		final Class<?>	container = f.getDeclaringClass();
 		final long		displ = unsafe.staticFieldOffset(f);
 		
-		switch (Utils.defineClassType(fType)) {
-			case Utils.CLASSTYPE_BOOLEAN	:
+		switch (CompilerUtils.defineClassType(fType)) {
+			case CompilerUtils.CLASSTYPE_BOOLEAN	:
 				return new BooleanGetterAndSetter() {
 					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(container,displ);}
 					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(container,displ,value);}
 				};
-			case Utils.CLASSTYPE_BYTE		:
+			case CompilerUtils.CLASSTYPE_BYTE		: 
 				return new ByteGetterAndSetter() {
 					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(container,displ);}
 					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(container,displ,value);}
 				};
-			case Utils.CLASSTYPE_CHAR		:
+			case CompilerUtils.CLASSTYPE_CHAR		:
 				return new CharGetterAndSetter() {
 					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(container,displ);}
 					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(container,displ,value);}
 				};
-			case Utils.CLASSTYPE_DOUBLE		:
+			case CompilerUtils.CLASSTYPE_DOUBLE		:
 				return new DoubleGetterAndSetter() {
 					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(container,displ);}
 					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(container,displ,value);}					
 				};
-			case Utils.CLASSTYPE_FLOAT		:
+			case CompilerUtils.CLASSTYPE_FLOAT		:
 				return new FloatGetterAndSetter() {
 					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(container,displ);}
 					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(container,displ,value);}
 				};
-			case Utils.CLASSTYPE_INT		:
+			case CompilerUtils.CLASSTYPE_INT		:
 				return new IntGetterAndSetter() {
 					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(container,displ);}
 					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(container,displ,value);}
 				};
-			case Utils.CLASSTYPE_LONG		:
+			case CompilerUtils.CLASSTYPE_LONG		:
 				return new LongGetterAndSetter() {
 					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(container,displ);}
 					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(container,displ,value);}
 				};
-			case Utils.CLASSTYPE_SHORT		:
+			case CompilerUtils.CLASSTYPE_SHORT		:
 				return new ShortGetterAndSetter() {
 					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(container,displ);}
 					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(container,displ,value);}
@@ -670,43 +672,43 @@ public class GettersAndSettersFactory {
 	private static GetterAndSetter buildPrimitiveUnsafeInstance(final Unsafe unsafe, final Field f, final Class<?> fType) {
 		final long	displ = unsafe.objectFieldOffset(f);
 		
-		switch (Utils.defineClassType(fType)) {
-			case Utils.CLASSTYPE_BOOLEAN	:
+		switch (CompilerUtils.defineClassType(fType)) {
+			case CompilerUtils.CLASSTYPE_BOOLEAN	:
 				return new BooleanGetterAndSetter() {
 					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(instance,displ);}
 					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(instance,displ,value);}
 				};
-			case Utils.CLASSTYPE_BYTE		:
+			case CompilerUtils.CLASSTYPE_BYTE		:
 				return new ByteGetterAndSetter() {
 					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(instance,displ);}
 					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(instance,displ,value);}
 				};
-			case Utils.CLASSTYPE_CHAR		:
+			case CompilerUtils.CLASSTYPE_CHAR		:
 				return new CharGetterAndSetter() {
 					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(instance,displ);}
 					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(instance,displ,value);}
 				};
-			case Utils.CLASSTYPE_DOUBLE		:
+			case CompilerUtils.CLASSTYPE_DOUBLE		:
 				return new DoubleGetterAndSetter() {
 					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(instance,displ);}
 					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(instance,displ,value);}					
 				};
-			case Utils.CLASSTYPE_FLOAT		:
+			case CompilerUtils.CLASSTYPE_FLOAT		:
 				return new FloatGetterAndSetter() {
 					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(instance,displ);}
 					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(instance,displ,value);}
 				};
-			case Utils.CLASSTYPE_INT		:
+			case CompilerUtils.CLASSTYPE_INT		:
 				return new IntGetterAndSetter() {
 					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(instance,displ);}
 					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(instance,displ,value);}
 				};
-			case Utils.CLASSTYPE_LONG		:
+			case CompilerUtils.CLASSTYPE_LONG		:
 				return new LongGetterAndSetter() {
 					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(instance,displ);}
 					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(instance,displ,value);}
 				};
-			case Utils.CLASSTYPE_SHORT		:
+			case CompilerUtils.CLASSTYPE_SHORT		:
 				return new ShortGetterAndSetter() {
 					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(instance,displ);}
 					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(instance,displ,value);}
@@ -719,22 +721,22 @@ public class GettersAndSettersFactory {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
-		switch (Utils.defineClassType(fType)) {
-			case Utils.CLASSTYPE_BOOLEAN	:
+		switch (CompilerUtils.defineClassType(fType)) {
+			case CompilerUtils.CLASSTYPE_BOOLEAN	:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_BYTE		:
+			case CompilerUtils.CLASSTYPE_BYTE		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_CHAR		:
+			case CompilerUtils.CLASSTYPE_CHAR		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_DOUBLE		:
+			case CompilerUtils.CLASSTYPE_DOUBLE		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_FLOAT		:
+			case CompilerUtils.CLASSTYPE_FLOAT		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_INT		:
+			case CompilerUtils.CLASSTYPE_INT		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_LONG		:
+			case CompilerUtils.CLASSTYPE_LONG		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_SHORT		:
+			case CompilerUtils.CLASSTYPE_SHORT		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveStaticShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
 		}
@@ -744,22 +746,22 @@ public class GettersAndSettersFactory {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
-		switch (Utils.defineClassType(fType)) {
-			case Utils.CLASSTYPE_BOOLEAN	:
+		switch (CompilerUtils.defineClassType(fType)) {
+			case CompilerUtils.CLASSTYPE_BOOLEAN	:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_BYTE		:
+			case CompilerUtils.CLASSTYPE_BYTE		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_CHAR		:
+			case CompilerUtils.CLASSTYPE_CHAR		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_DOUBLE		:
+			case CompilerUtils.CLASSTYPE_DOUBLE		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_FLOAT		:
+			case CompilerUtils.CLASSTYPE_FLOAT		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_INT		:
+			case CompilerUtils.CLASSTYPE_INT		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_LONG		:
+			case CompilerUtils.CLASSTYPE_LONG		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
-			case Utils.CLASSTYPE_SHORT		:
+			case CompilerUtils.CLASSTYPE_SHORT		:
 				return buildCode(writer,owner,fType,className," buildPrimitiveInstanceShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
 		}
@@ -771,8 +773,8 @@ public class GettersAndSettersFactory {
 		try{final MethodHandle	getter = MethodHandles.lookup().unreflectGetter(f);
 			final MethodHandle	setter = MethodHandles.lookup().unreflectSetter(f);
 		
-			switch (Utils.defineClassType(fType)) {
-				case Utils.CLASSTYPE_BOOLEAN	:
+			switch (CompilerUtils.defineClassType(fType)) {
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:
 					return new BooleanGetterAndSetter() {
 						@Override
 						public boolean get(final Object instance) throws ContentException {
@@ -790,7 +792,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_BYTE		:
+				case CompilerUtils.CLASSTYPE_BYTE		:
 					return new ByteGetterAndSetter() {
 						@Override
 						public byte get(final Object instance) throws ContentException {
@@ -808,7 +810,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_CHAR		:
+				case CompilerUtils.CLASSTYPE_CHAR		:
 					return new CharGetterAndSetter() {
 						@Override
 						public char get(final Object instance) throws ContentException {
@@ -826,7 +828,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_DOUBLE		:
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					return new DoubleGetterAndSetter() {
 						@Override
 						public double get(final Object instance) throws ContentException {
@@ -844,7 +846,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_FLOAT		:
+				case CompilerUtils.CLASSTYPE_FLOAT		:
 					return new FloatGetterAndSetter() {
 						@Override
 						public float get(final Object instance) throws ContentException {
@@ -862,7 +864,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_INT		:
+				case CompilerUtils.CLASSTYPE_INT		:
 					return new IntGetterAndSetter() {
 						@Override
 						public int get(final Object instance) throws ContentException {
@@ -880,7 +882,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_LONG		:
+				case CompilerUtils.CLASSTYPE_LONG		:
 					return new LongGetterAndSetter() {
 						@Override
 						public long get(final Object instance) throws ContentException {
@@ -898,7 +900,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_SHORT		:
+				case CompilerUtils.CLASSTYPE_SHORT		:
 					return new ShortGetterAndSetter() {
 						@Override
 						public short get(final Object instance) throws ContentException {
@@ -929,8 +931,8 @@ public class GettersAndSettersFactory {
 		try{final MethodHandle	getter = MethodHandles.lookup().unreflectGetter(f);
 			final MethodHandle	setter = MethodHandles.lookup().unreflectSetter(f);
 		
-			switch (Utils.defineClassType(fType)) {
-				case Utils.CLASSTYPE_BOOLEAN	:
+			switch (CompilerUtils.defineClassType(fType)) {
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:
 					return new BooleanGetterAndSetter() {
 						@Override
 						public boolean get(final Object instance) throws ContentException {
@@ -948,7 +950,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_BYTE		:
+				case CompilerUtils.CLASSTYPE_BYTE		:
 					return new ByteGetterAndSetter() {
 						@Override
 						public byte get(final Object instance) throws ContentException {
@@ -966,7 +968,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_CHAR		:
+				case CompilerUtils.CLASSTYPE_CHAR		:
 					return new CharGetterAndSetter() {
 						@Override
 						public char get(final Object instance) throws ContentException {
@@ -984,7 +986,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_DOUBLE		:
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					return new DoubleGetterAndSetter() {
 						@Override
 						public double get(final Object instance) throws ContentException {
@@ -1002,7 +1004,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_FLOAT		:
+				case CompilerUtils.CLASSTYPE_FLOAT		:
 					return new FloatGetterAndSetter() {
 						@Override
 						public float get(final Object instance) throws ContentException {
@@ -1020,7 +1022,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_INT		:
+				case CompilerUtils.CLASSTYPE_INT		:
 					return new IntGetterAndSetter() {
 						@Override
 						public int get(final Object instance) throws ContentException {
@@ -1038,7 +1040,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_LONG		:
+				case CompilerUtils.CLASSTYPE_LONG		:
 					return new LongGetterAndSetter() {
 						@Override
 						public long get(final Object instance) throws ContentException {
@@ -1056,7 +1058,7 @@ public class GettersAndSettersFactory {
 							}
 						}
 					};
-				case Utils.CLASSTYPE_SHORT		:
+				case CompilerUtils.CLASSTYPE_SHORT		:
 					return new ShortGetterAndSetter() {
 						@Override
 						public short get(final Object instance) throws ContentException {

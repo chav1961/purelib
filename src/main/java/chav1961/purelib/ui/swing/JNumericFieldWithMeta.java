@@ -36,6 +36,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -61,7 +62,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 											,KeyEvent.VK_SHIFT				,KeyEvent.VK_ALT_GRAPH
 											,KeyEvent.VK_ALT				,KeyEvent.VK_META
 											,KeyEvent.VK_CONTEXT_MENU
-										};
+										}; 
 	
 	static {
 		Arrays.sort(NAVIGATION_KEYS);
@@ -284,8 +285,8 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			final DecimalFormatSymbols	dfs = new DecimalFormatSymbols(localizer.currentLocale().getLocale());
 			final String				test = value.replace(dfs.getDecimalSeparator(),'.').replace(dfs.getMinusSign(),'-');
 			
-			switch (Utils.defineClassType(getValueType())) {
-				case Utils.CLASSTYPE_REFERENCE	:
+			switch (CompilerUtils.defineClassType(getValueType())) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	:
 					if (getValueType().isAssignableFrom(Float.class)) {
 						try{Float.parseFloat(test);
 							return null;
@@ -310,13 +311,13 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 					else {
 						return "Unsupported value class ["+getValueType().getCanonicalName()+"] in the field metadata";
 					}
-				case Utils.CLASSTYPE_FLOAT		:
+				case CompilerUtils.CLASSTYPE_FLOAT		:
 					try{Float.parseFloat(test);
 						return null;
 					} catch (NumberFormatException exc) {
 						return "Invalid value ["+value+"]: "+exc.getLocalizedMessage();
 					}
-				case Utils.CLASSTYPE_DOUBLE		:
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					try{Double.parseDouble(test);
 						return null;
 					} catch (NumberFormatException exc) {

@@ -1,8 +1,11 @@
 package chav1961.purelib.basic;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Hashtable;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,11 +29,11 @@ public class URIUtilsTest {
 			Assert.fail("Mandatory exception was not detected (missing subscheme in the 2-nd argument)");
 		} catch (IllegalArgumentException exc) {			
 		}
-		try{URIUtils.canServeURI(URI.create("scheme:unknown:/path"),URI.create("/path"));
+ 		try{URIUtils.canServeURI(URI.create("scheme:unknown:/path"),URI.create("/path"));
 			Assert.fail("Mandatory exception was not detected (missing scheme in the 2-nd argument)");
 		} catch (IllegalArgumentException exc) {			
 		}
-	}
+	} 
 
 	@Test
 	public void loadFromURI() throws IOException, NullPointerException, URISyntaxException {
@@ -116,6 +119,95 @@ public class URIUtilsTest {
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
+		
+		Assert.assertEquals("q=1",URIUtils.extractQueryFromURI(URI.create("self:/test:part#from?q=1")));
+		Assert.assertNull(URIUtils.extractQueryFromURI(URI.create("self:/test:part#from")));
+		
+		try{URIUtils.extractQueryFromURI(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		Assert.assertTrue(URIUtils.hasSubScheme(URI.create("self:/sub"),"self"));
+		Assert.assertTrue(URIUtils.hasSubScheme(URI.create("none:self:/sub"),"self"));
+		Assert.assertFalse(URIUtils.hasSubScheme(URI.create("self:/sub"),"none"));
+		Assert.assertFalse(URIUtils.hasSubScheme(URI.create("/sub"),"none"));
+		
+		try{URIUtils.hasSubScheme(null,"self");
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{URIUtils.hasSubScheme(URI.create("self:/sub"),null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{URIUtils.hasSubScheme(URI.create("self:/sub"),"");
+			Assert.fail("Mandatory exception was not detected (empty 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
+
+	@Test
+	public void buildSelfUriTest() throws IOException, NullPointerException, URISyntaxException {
+		final URI	self = URIUtils.convert2selfURI("test".getBytes());
+		
+		try(final InputStream			is = self.toURL().openStream();
+			final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			
+			Utils.copyStream(is, baos);
+			
+			Assert.assertEquals("test",new String(baos.toByteArray()));
+		}
+
+		final URI	self2 = URIUtils.convert2selfURI("test".toCharArray(),"cp1251");
+		
+		try(final InputStream			is = self.toURL().openStream();
+			final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			
+			Utils.copyStream(is, baos);
+			
+			Assert.assertEquals("test",new String(baos.toByteArray()));
+		}
+		
+		try{URIUtils.convert2selfURI(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{URIUtils.convert2selfURI(null,"UTF-8");
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{URIUtils.convert2selfURI("".toCharArray(),null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{URIUtils.convert2selfURI("".toCharArray(),"");
+			Assert.fail("Mandatory exception was not detected (empty 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{URIUtils.convert2selfURI("".toCharArray(),"unknown");
+			Assert.fail("Mandatory exception was not detected (unknown encoding 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
+	
+	@Test
+	public void parseQueryTest() throws IOException, NullPointerException, URISyntaxException {
+		final Hashtable<String,String[]>	query = URIUtils.parseQuery(URI.create("self:/?q=1&q=2&t=3"));
+
+		Assert.assertEquals(2,query.size());
+		Assert.assertArrayEquals(new String[] {"1","2"},query.get("q"));
+		Assert.assertArrayEquals(new String[] {"3"},query.get("t"));
+		
+		try{URIUtils.parseQuery((URI)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{URIUtils.parseQuery((String)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+	}	
 }
 

@@ -34,10 +34,6 @@ public class ArgParserTest {
 			Assert.fail("Mandatory exception was not detected (duplicate names inside argument list)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new ArgParser(new ArgParser.BooleanArg("key1",true,true,"help"),new ArgParser.BooleanArg("key2",true,true,"help")) {};
-			Assert.fail("Mandatory exception was not detected (positionals without value)");
-		} catch (IllegalArgumentException exc) {
-		}
 		try{new ArgParser(new ArgParser.StringListArg("key1",false,true,"help"),new ArgParser.StringListArg("key2",false,true,"help")) {};
 			Assert.fail("Mandatory exception was not detected (positional list after positional list)");
 		} catch (IllegalArgumentException exc) {

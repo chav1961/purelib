@@ -39,10 +39,7 @@ public class XMLUtils {
 	 * @throws NullPointerException if any parameters are null
 	 */
 	public static boolean validateXMLByXSD(final InputStream xml, final InputStream xsd) throws NullPointerException {
-		return validateXMLByXSD(xml,xsd, new AbstractLoggerFacade() {
-			@Override protected void toLogger(Severity level, String text, Throwable throwable) {}
-			@Override protected AbstractLoggerFacade getAbstractLoggerFacade(String mark, Class<?> root) {return this;}
-		});
+		return validateXMLByXSD(xml,xsd, PureLibSettings.CURRENT_LOGGER);
 	}
 
 	/**

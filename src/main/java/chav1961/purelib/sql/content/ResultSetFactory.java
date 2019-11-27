@@ -36,9 +36,9 @@ public class ResultSetFactory {
 			
 				for (ResultSetContentParser item : ServiceLoader.load(ResultSetContentParser.class)) {
 					if (item.canServe(resource)) {
-						final Hashtable<String,String[]>	content = Utils.parseQuery(query);
+						final Hashtable<String,String[]>	content = URIUtils.parseQuery(query);
 						final RsMetaDataElement[]			fields = SQLContentUtils.buildMetadataFromQueryString(query,item.filter(content));
-						final ResultSetContentParser		parser = item.newInstance(URIUtils.removeQueryFromURI(URI.create(source.getRawSchemeSpecificPart())).toURL()
+			 			final ResultSetContentParser		parser = item.newInstance(URIUtils.removeQueryFromURI(URI.create(source.getRawSchemeSpecificPart())).toURL()
 																	,resultSetType
 																	,fields
 																	,SQLContentUtils.extractOptions(content,item.filter(content)));

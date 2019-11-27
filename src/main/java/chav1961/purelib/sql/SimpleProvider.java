@@ -68,7 +68,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	public SimpleProvider(final ContentNodeMetadata tableModel, final ContentNodeMetadata clazzModel, final Class<Record> clazz, final String[] fields, final String[] primaryKeys) throws IOException, ContentException {
 		if (tableModel == null) {
 			throw new NullPointerException("Table model metadata can't be null");
-		}
+		} 
 		else if (clazzModel == null) {
 			throw new NullPointerException("Class model metadata can't be null");
 		}
@@ -801,7 +801,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 						desc[0] = indexNumber[0]++;
 						new SimpleContentMetadata(tableModel).walkDown((modeT,applicationPathT,uiPathT,nodeT)->{
 							if (modeT == NodeEnterMode.ENTER && nodeT.getName().equalsIgnoreCase(node.getName())) {
-								desc[1] = Integer.valueOf(Utils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
+								desc[1] = Integer.valueOf(URIUtils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
 								return ContinueMode.STOP;
 							}
 							else {
@@ -835,7 +835,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 						desc[1] = index + 1;
 						new SimpleContentMetadata(tableModel).walkDown((modeT,applicationPathT,uiPathT,nodeT)->{
 							if (modeT == NodeEnterMode.ENTER && nodeT.getName().equalsIgnoreCase(node.getName())) {
-								desc[2] = Integer.valueOf(Utils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
+								desc[2] = Integer.valueOf(URIUtils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
 								return ContinueMode.STOP;
 							}
 							else {

@@ -37,6 +37,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 public class SQLUtils {
 	public static final int							UNKNOWN_TYPE = 666;
@@ -58,7 +59,7 @@ public class SQLUtils {
 		LENGTH_PRESENTS.add(Types.VARCHAR);
 
 		LENGTH_AND_FRACTIONS_PRESENTS.add(Types.DECIMAL);
-		LENGTH_AND_FRACTIONS_PRESENTS.add(Types.NUMERIC);
+		LENGTH_AND_FRACTIONS_PRESENTS.add(Types.NUMERIC); 
 	}
 	
 	@FunctionalInterface
@@ -295,16 +296,16 @@ public class SQLUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T convert(final Class<T> awaited, final Object value) throws ContentException {
 		if (value == null) {
-			switch (Utils.defineClassType(awaited)) {
-				case Utils.CLASSTYPE_REFERENCE	:	return null;
-				case Utils.CLASSTYPE_BYTE		:	return (T)Byte.valueOf((byte)0);
-				case Utils.CLASSTYPE_SHORT		:	return (T)Short.valueOf((short)0);
-				case Utils.CLASSTYPE_INT		:	return (T)Integer.valueOf((int)0);
-				case Utils.CLASSTYPE_LONG		:	return (T)Long.valueOf((long)0);
-				case Utils.CLASSTYPE_FLOAT	 	:	return (T)Float.valueOf(0.0f);
-				case Utils.CLASSTYPE_DOUBLE		:	return (T)Double.valueOf(0.0);
-				case Utils.CLASSTYPE_CHAR		:	return (T)Character.valueOf(' ');
-				case Utils.CLASSTYPE_BOOLEAN	:	return (T)Boolean.valueOf(false);
+			switch (CompilerUtils.defineClassType(awaited)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	:	return null;
+				case CompilerUtils.CLASSTYPE_BYTE		:	return (T)Byte.valueOf((byte)0);
+				case CompilerUtils.CLASSTYPE_SHORT		:	return (T)Short.valueOf((short)0);
+				case CompilerUtils.CLASSTYPE_INT		:	return (T)Integer.valueOf((int)0);
+				case CompilerUtils.CLASSTYPE_LONG		:	return (T)Long.valueOf((long)0);
+				case CompilerUtils.CLASSTYPE_FLOAT	 	:	return (T)Float.valueOf(0.0f);
+				case CompilerUtils.CLASSTYPE_DOUBLE		:	return (T)Double.valueOf(0.0);
+				case CompilerUtils.CLASSTYPE_CHAR		:	return (T)Character.valueOf(' ');
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:	return (T)Boolean.valueOf(false);
 				default : throw new UnsupportedOperationException("Primitive type ["+awaited.getSimpleName()+"] is not supported yet"); 
 			}
 		}
@@ -312,15 +313,15 @@ public class SQLUtils {
 			return (T)value;
 		}
 		else if (awaited.isPrimitive()) {
-			switch (Utils.defineClassType(awaited)) {
-				case Utils.CLASSTYPE_BYTE		:	return (T)convert(Byte.class,value);
-				case Utils.CLASSTYPE_SHORT		:	return (T)convert(Short.class,value);
-				case Utils.CLASSTYPE_INT		:	return (T)convert(Integer.class,value);
-				case Utils.CLASSTYPE_LONG		:	return (T)convert(Long.class,value);
-				case Utils.CLASSTYPE_FLOAT	 	:	return (T)convert(Float.class,value);
-				case Utils.CLASSTYPE_DOUBLE		:	return (T)convert(Double.class,value);
-				case Utils.CLASSTYPE_CHAR		:	return (T)convert(Character.class,value);
-				case Utils.CLASSTYPE_BOOLEAN	:	return (T)convert(Boolean.class,value);
+			switch (CompilerUtils.defineClassType(awaited)) {
+				case CompilerUtils.CLASSTYPE_BYTE		:	return (T)convert(Byte.class,value);
+				case CompilerUtils.CLASSTYPE_SHORT		:	return (T)convert(Short.class,value);
+				case CompilerUtils.CLASSTYPE_INT		:	return (T)convert(Integer.class,value);
+				case CompilerUtils.CLASSTYPE_LONG		:	return (T)convert(Long.class,value);
+				case CompilerUtils.CLASSTYPE_FLOAT	 	:	return (T)convert(Float.class,value);
+				case CompilerUtils.CLASSTYPE_DOUBLE		:	return (T)convert(Double.class,value);
+				case CompilerUtils.CLASSTYPE_CHAR		:	return (T)convert(Character.class,value);
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:	return (T)convert(Boolean.class,value);
 				default : throw new UnsupportedOperationException("Primitive type ["+awaited.getSimpleName()+"] is not supported yet"); 
 			}
 		}

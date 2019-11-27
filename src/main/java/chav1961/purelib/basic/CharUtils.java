@@ -479,22 +479,22 @@ public class CharUtils {
 		else if (from < 0 || from >= len) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
 		}
-		else if (result == null || result.length == 1) {
+		else if (result == null || result.length == 0) {
 			throw new IllegalArgumentException("Result array can't be null or empty array"); 
 		}
 		else if (source[from] == '\\') {
 			if (from < len - 1) {
 				switch (source[from+1]) {
 					case '\"' 	: result[0] = '\"'; from += 2; break;
+					case '\'' 	: result[0] = '\''; from += 2; break;
 					case '\\' 	: result[0] = '\\'; from += 2; break;
-					case '/' 	: result[0] = '/';  from += 2; break;
 					case 'b' 	: result[0] = '\b'; from += 2; break;
 					case 'f' 	: result[0] = '\f'; from += 2; break;
 					case 'n' 	: result[0] = '\n'; from += 2; break;
 					case 'r' 	: result[0] = '\r'; from += 2; break;
 					case 't' 	: result[0] = '\t'; from += 2; break;
 					case '0' 	:
-						if (from + 1 >= len - OCT_ESCAPE_SIZE) {
+						if (from + 1 > len - OCT_ESCAPE_SIZE) {
 							throw new IllegalArgumentException("Escape \\0nn sequence at the "+from+"-th char is too short");
 						}
 						else {
@@ -514,7 +514,7 @@ public class CharUtils {
 						}
 						break;
 					case 'u' 	:
-						if (from + 2 >= len - U_ESCAPE_SIZE) {
+						if (from + 2 > len - U_ESCAPE_SIZE) {
 							throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+from+"-th char is too short");
 						}
 						else {
@@ -1380,8 +1380,8 @@ public class CharUtils {
 		if (content == null || content.length == 0) {
 			throw new IllegalArgumentException("Content buffer can't be null or empty array"); 
 		}
-		else if (from < 0) {
-			throw new IllegalArgumentException("From position ["+from+"] can't be negative"); 
+		else if (from < 0 || from >= content.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length-1)); 
 		}
 		else {
 			return UnsafedCharUtils.printUncheckedEscapedChar(content,from,value,reallyFill,strongEscaping);
@@ -1399,9 +1399,20 @@ public class CharUtils {
 	 * @return new from position to continue filling content. Negative value marks that content is too short to keep value.
 	 * @throws IllegalArgumentException on any argument errors
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.3
 	 */
 	public static int printEscapedString(final char[] content, final int from, final String value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
-		return printEscapedCharArray(content,from,value.toCharArray(),0,value.length(),reallyFill,strongEscaping); 
+		int		len;
+		
+		if (value == null) {
+			throw new IllegalArgumentException("String to print can't be null");
+		}
+		else if ((len = value.length()) == 0) {
+			return from;
+		}
+		else {
+			return printEscapedCharArray(content,from,value.toCharArray(),0,len,reallyFill,strongEscaping); 
+		}
 	}
 
 	
@@ -1415,9 +1426,15 @@ public class CharUtils {
 	 * @return new from position to continue filling content. Negative value marks that content is too short to keep value.
 	 * @throws IllegalArgumentException on any argument errors
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.3
 	 */
 	public static int printEscapedCharArray(final char[] content, final int from, final char[] value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
-		return printEscapedCharArray(content,from,value,0,value.length,reallyFill,strongEscaping); 
+		if (value == null) {
+			throw new IllegalArgumentException("VLaue can't be null array"); 
+		}
+		else {
+			return printEscapedCharArray(content,from,value,0,value.length,reallyFill,strongEscaping); 
+		}
 	}
 
 	/**
@@ -1437,8 +1454,8 @@ public class CharUtils {
 		if (content == null || content.length == 0) {
 			throw new IllegalArgumentException("Content buffer can't be null or empty array"); 
 		}
-		else if (from < 0) {
-			throw new IllegalArgumentException("From position ["+from+"] can't be negative"); 
+		else if (from < 0 || from >= content.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length-1)); 
 		}
 		else if (value == null) {
 			throw new IllegalArgumentException("Value can't be null array"); 
@@ -1447,7 +1464,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("CharFrom position ["+charFrom+"] out of range 0.."+(value.length-1)); 
 		}
 		else if (charTo < 0 || charTo > value.length) {
-			throw new IllegalArgumentException("CharTo position ["+charTo+"] out of range 0.."+(value.length)); 
+			throw new IllegalArgumentException("CharTo position ["+charTo+"] out of range 0.."+(value.length-1)); 
 		}
 		else {
 			final int	to = content.length;

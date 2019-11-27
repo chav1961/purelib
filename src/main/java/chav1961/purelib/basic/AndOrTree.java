@@ -740,55 +740,10 @@ seek:	while (root != null && from < to) {
 
 	private void placeRevert(final Node node, final long id) {
 		revert.put(id,node);
-//		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
-//
-//		if (part1 >= revert.length) {
-//			revert = Arrays.copyOf(revert,nearest2N(part1));
-//		}
-//		if (revert[part1] == null) {
-//			revert[part1] = new Node[nearest2N(part2)][][];
-//		}
-//		else if (part2 >= revert[part1].length) {
-//			revert[part1] = Arrays.copyOf(revert[part1],nearest2N(part2));
-//		}
-//		if (revert[part1][part2] == null) {
-//			revert[part1][part2] = new Node[nearest2N(part3)][];
-//		}
-//		else if (part3 >= revert[part1][part2].length) {
-//			revert[part1][part2] = Arrays.copyOf(revert[part1][part2],nearest2N(part3));
-//		}
-//		if (revert[part1][part2][part3] == null) {
-//			revert[part1][part2][part3] = new Node[nearest2N(part4)];
-//		}
-//		else if (part4 >= revert[part1][part2][part3].length) {
-//			revert[part1][part2][part3] = Arrays.copyOf(revert[part1][part2][part3],nearest2N(part4));
-//		}
-//		revert[part1][part2][part3][part4] = node; 
 	}
 
-//	private static int nearest2N(final int source) {
-//		return Math.min(65536,((source+RANGE_STEP-1)/RANGE_STEP + 1)*RANGE_STEP);
-//	}
-	
 	private Node getRevert(final long id) {
 		return revert.get(id);
-//		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
-//		
-//		if (part1 >= revert.length || revert[part1] == null) {
-//			return null;
-//		}
-//		if (part2 >= revert[part1].length || revert[part1][part2] == null) {
-//			return null;
-//		}
-//		if (part3 >= revert[part1][part2].length || revert[part1][part2][part3] == null) {
-//			return null;
-//		}
-//		if (part4 >= revert[part1][part2][part3].length) {
-//			return null;
-//		}
-//		else {
-//			return revert[part1][part2][part3][part4]; 
-//		}
 	}
 
 	private static void clear(final Node root) {
@@ -817,7 +772,6 @@ seek:	while (root != null && from < to) {
 	
 	private static void fillName(Node node, final char[] where, int endPoz) {
 		while (node != null) {
-//			if (node instanceof AndNode) {
 			if (node.type == TYPE_AND) {
 				final int	len = ((AndNode)node).chars.length;
 				System.arraycopy(((AndNode)node).chars,0,where,endPoz-len,len);

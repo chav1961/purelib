@@ -33,12 +33,17 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.streams.charsource.StringCharSource;
+import chav1961.purelib.streams.chartarget.StringBuilderCharTarget;
+import chav1961.purelib.streams.interfaces.CharacterSource;
+import chav1961.purelib.streams.interfaces.CharacterTarget;
 
 public class UtilsTest {
 	@Test
-	public void copyStreamTest() throws IOException {
+	public void copyStreamTest() throws IOException, PrintingException, ContentException {
 		try(final ByteArrayInputStream	bais = new ByteArrayInputStream("test string".getBytes());
 			final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 		
@@ -51,7 +56,7 @@ public class UtilsTest {
 			}
 			try{Utils.copyStream(bais,null);
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-			} catch (NullPointerException exc) {				
+			} catch (NullPointerException exc) {				 
 			}
 		}
 
@@ -69,7 +74,22 @@ public class UtilsTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {				
 			}
-		}		
+		}
+		
+		final StringBuilder		sb = new StringBuilder();
+		final CharacterSource	cs = new StringCharSource("test");
+		final CharacterTarget	ct = new StringBuilderCharTarget(sb);
+		
+		Utils.copyStream(cs,ct);
+		Assert.assertEquals("test",sb.toString());
+		try{Utils.copyStream(null,ct);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {				
+		}
+		try{Utils.copyStream(cs,null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {				
+		}
 	}
 
 	@Test
@@ -151,9 +171,54 @@ public class UtilsTest {
 		Assert.assertArrayEquals(Utils.unwrapArray(Utils.wrapArray(new float[]{1,2,3})),new float[]{1,2,3},0.0001f);
 		Assert.assertArrayEquals(Utils.unwrapArray(Utils.wrapArray(new double[]{1,2,3})),new double[]{1,2,3},0.0001);
 		Assert.assertArrayEquals(Utils.unwrapArray(Utils.wrapArray(new char[]{'1','2','3'})),new char[]{'1','2','3'});
+		
+		for (Class<?> clazz : new Class[]{boolean.class,byte.class,char.class,double.class,float.class,int.class,long.class,short.class,void.class}) {
+			Assert.assertEquals(clazz,Utils.wrapper2Primitive(Utils.primitive2Wrapper(clazz)));
+		}
+		
+		try{Utils.primitive2Wrapper(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{Utils.primitive2Wrapper(String.class);
+			Assert.fail("Mandatory exception was not detected (1-st argument is not primitive class)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
+		try{Utils.wrapper2Primitive(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{Utils.wrapper2Primitive(String.class);
+			Assert.fail("Mandatory exception was not detected (1-st argument is not primitive class)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
 
-
+	@Test
+	public void extractValuesTest() throws IOException {
+		Assert.assertEquals(100L,Utils.extractLongValue(Long.valueOf(100)));
+		
+		try {Utils.extractLongValue(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {Utils.extractLongValue("");
+			Assert.fail("Mandatory exception was not detected (1-st argument is not a number)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		
+		Assert.assertEquals(100.0,Utils.extractDoubleValue(Double.valueOf(100)),0.001);
+		
+		try {Utils.extractDoubleValue(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {Utils.extractDoubleValue("");
+			Assert.fail("Mandatory exception was not detected (1-st argument is not a number)");
+		} catch (IllegalArgumentException exc) {
+		}		
+	}
 	
 	@Test
 	public void fileMask2RegexTest() throws IOException, NullPointerException, URISyntaxException {

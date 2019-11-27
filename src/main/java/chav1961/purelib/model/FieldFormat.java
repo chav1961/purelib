@@ -13,6 +13,7 @@ import javax.swing.text.MaskFormatter;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 public class FieldFormat {
 	public enum ContentType {
@@ -30,7 +31,7 @@ public class FieldFormat {
 		ArrayContent,
 		NestedContent,
 		Unclassified
-	}
+	} 
 	
 	public enum Alignment {
 		LeftAlignment,
@@ -256,8 +257,8 @@ public class FieldFormat {
 	}
 
 	static ContentType defineContentType(final Class<?> clazz, final String mask) {
-		switch (Utils.defineClassType(clazz)) {
-			case Utils.CLASSTYPE_REFERENCE	:
+		switch (CompilerUtils.defineClassType(clazz)) {
+			case CompilerUtils.CLASSTYPE_REFERENCE	:
 				if (clazz.isEnum()) {
 					return ContentType.EnumContent;
 				}
@@ -296,15 +297,15 @@ public class FieldFormat {
 				else  {
 					return ContentType.Unclassified;
 				}
-			case Utils.CLASSTYPE_BYTE : case Utils.CLASSTYPE_SHORT : case Utils.CLASSTYPE_INT : case Utils.CLASSTYPE_LONG :	
+			case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_INT : case CompilerUtils.CLASSTYPE_LONG :	
 				return ContentType.IntegerContent;
-			case Utils.CLASSTYPE_FLOAT : case Utils.CLASSTYPE_DOUBLE	:	
+			case CompilerUtils.CLASSTYPE_FLOAT : case CompilerUtils.CLASSTYPE_DOUBLE	:	
 				return ContentType.NumericContent;
-			case Utils.CLASSTYPE_CHAR	:	
+			case CompilerUtils.CLASSTYPE_CHAR	:	
 				return ContentType.StringContent;
-			case Utils.CLASSTYPE_BOOLEAN:	
+			case CompilerUtils.CLASSTYPE_BOOLEAN:	
 				return ContentType.BooleanContent;
-			default : throw new UnsupportedOperationException("Class type ["+Utils.defineClassType(clazz)+"] is not supported yet");
+			default : throw new UnsupportedOperationException("Class type ["+CompilerUtils.defineClassType(clazz)+"] is not supported yet");
 		}
 	}
 

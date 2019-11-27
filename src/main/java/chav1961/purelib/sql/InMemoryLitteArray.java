@@ -8,6 +8,7 @@ import java.util.Map;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 public class InMemoryLitteArray implements Array {
 	private final int		contentType;
@@ -21,21 +22,21 @@ public class InMemoryLitteArray implements Array {
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null"); 
 		}
-		else {
+		else { 
 			this.contentType = contentType;
 			this.content = content;
 			if (SQLUtils.DEFAULT_CONVERTOR.containsKey(SQLUtils.typeNameByTypeId(contentType))) {
 				this.returnedClass = SQLUtils.DEFAULT_CONVERTOR.get(SQLUtils.typeNameByTypeId(contentType));
-				switch (Utils.defineClassType(this.returnedClass)) {
-					case Utils.CLASSTYPE_REFERENCE	:	this.wrappedClass = this.returnedClass; break;
-					case Utils.CLASSTYPE_BYTE		:	this.wrappedClass = Byte.class; break;
-					case Utils.CLASSTYPE_SHORT		:	this.wrappedClass = Short.class; break;
-					case Utils.CLASSTYPE_INT		:	this.wrappedClass = Integer.class; break;
-					case Utils.CLASSTYPE_LONG		:	this.wrappedClass = Long.class; break;
-					case Utils.CLASSTYPE_FLOAT 		:	this.wrappedClass = Float.class; break;
-					case Utils.CLASSTYPE_DOUBLE		:	this.wrappedClass = Double.class; break;
-					case Utils.CLASSTYPE_CHAR		:	this.wrappedClass = Character.class; break;
-					case Utils.CLASSTYPE_BOOLEAN	:	this.wrappedClass = Boolean.class; break;
+				switch (CompilerUtils.defineClassType(this.returnedClass)) {
+					case CompilerUtils.CLASSTYPE_REFERENCE	:	this.wrappedClass = this.returnedClass; break;
+					case CompilerUtils.CLASSTYPE_BYTE		:	this.wrappedClass = Byte.class; break;
+					case CompilerUtils.CLASSTYPE_SHORT		:	this.wrappedClass = Short.class; break;
+					case CompilerUtils.CLASSTYPE_INT		:	this.wrappedClass = Integer.class; break;
+					case CompilerUtils.CLASSTYPE_LONG		:	this.wrappedClass = Long.class; break;
+					case CompilerUtils.CLASSTYPE_FLOAT 		:	this.wrappedClass = Float.class; break;
+					case CompilerUtils.CLASSTYPE_DOUBLE		:	this.wrappedClass = Double.class; break;
+					case CompilerUtils.CLASSTYPE_CHAR		:	this.wrappedClass = Character.class; break;
+					case CompilerUtils.CLASSTYPE_BOOLEAN	:	this.wrappedClass = Boolean.class; break;
 					default : throw new UnsupportedOperationException("Primitive type ["+this.returnedClass.getSimpleName()+"] is not supported yet"); 
 				}
 			}
@@ -79,16 +80,16 @@ public class InMemoryLitteArray implements Array {
 			for (int curs = 0; curs < end; curs++) {
 				result[curs] = SQLUtils.convert((int)(curs+(index-1)),1,wrappedClass,content[(int)(curs + (index-1))]);
 			}
-			switch (Utils.defineClassType(this.returnedClass)) {
-				case Utils.CLASSTYPE_REFERENCE	:	return result;
-				case Utils.CLASSTYPE_BYTE		:	return Utils.unwrapArray((Byte[])result);
-				case Utils.CLASSTYPE_SHORT		:	return Utils.unwrapArray((Short[])result);
-				case Utils.CLASSTYPE_INT		:	return Utils.unwrapArray((Integer[])result);
-				case Utils.CLASSTYPE_LONG		:	return Utils.unwrapArray((Long[])result);
-				case Utils.CLASSTYPE_FLOAT	 	:	return Utils.unwrapArray((Float[])result);
-				case Utils.CLASSTYPE_DOUBLE		:	return Utils.unwrapArray((Double[])result);
-				case Utils.CLASSTYPE_CHAR		:	return Utils.unwrapArray((Character[])result);
-				case Utils.CLASSTYPE_BOOLEAN	:	return Utils.unwrapArray((Boolean[])result);
+			switch (CompilerUtils.defineClassType(this.returnedClass)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	:	return result;
+				case CompilerUtils.CLASSTYPE_BYTE		:	return Utils.unwrapArray((Byte[])result);
+				case CompilerUtils.CLASSTYPE_SHORT		:	return Utils.unwrapArray((Short[])result);
+				case CompilerUtils.CLASSTYPE_INT		:	return Utils.unwrapArray((Integer[])result);
+				case CompilerUtils.CLASSTYPE_LONG		:	return Utils.unwrapArray((Long[])result);
+				case CompilerUtils.CLASSTYPE_FLOAT	 	:	return Utils.unwrapArray((Float[])result);
+				case CompilerUtils.CLASSTYPE_DOUBLE		:	return Utils.unwrapArray((Double[])result);
+				case CompilerUtils.CLASSTYPE_CHAR		:	return Utils.unwrapArray((Character[])result);
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:	return Utils.unwrapArray((Boolean[])result);
 				default : throw new UnsupportedOperationException("Primitive type ["+this.returnedClass.getSimpleName()+"] is not supported yet"); 
 			}
 		}

@@ -40,6 +40,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
@@ -810,7 +811,7 @@ public abstract class JsonSerializer<T> {
 				
 				try{from = CharUtils.parseEscapedChar(content,from,buffer);
 				
-					if (from < to && content[from] == STRING_TERMINATOR) {
+					if (from < to && content[from] == STRING_TERMINATOR) { 
 						from++;
 					}
 					else {
@@ -4921,19 +4922,19 @@ loop:						for (JsonStaxParserLexType item : reader) {
 			else {
 				this.getter = MethodHandles.lookup().unreflectGetter(field);
 				this.setter = MethodHandles.lookup().unreflectSetter(field);
-			}
+			} 
 			this.serializer = serializer;
 			this.valueType = field.getType();
 			if (this.valueType.isPrimitive()) {
-				switch (Utils.defineClassType(this.valueType)) {
-					case Utils.CLASSTYPE_BOOLEAN	: this.typeSort = PRIMITIVE_BOOLEAN; break;
-					case Utils.CLASSTYPE_BYTE		: this.typeSort = PRIMITIVE_BYTE; break;
-					case Utils.CLASSTYPE_CHAR		: this.typeSort = PRIMITIVE_CHAR; break;
-					case Utils.CLASSTYPE_DOUBLE		: this.typeSort = PRIMITIVE_DOUBLE; break;
-					case Utils.CLASSTYPE_FLOAT		: this.typeSort = PRIMITIVE_FLOAT; break;
-					case Utils.CLASSTYPE_INT		: this.typeSort = PRIMITIVE_INT; break;
-					case Utils.CLASSTYPE_LONG		: this.typeSort = PRIMITIVE_LONG; break;
-					case Utils.CLASSTYPE_SHORT		: this.typeSort = PRIMITIVE_SHORT; break;
+				switch (CompilerUtils.defineClassType(this.valueType)) {
+					case CompilerUtils.CLASSTYPE_BOOLEAN	: this.typeSort = PRIMITIVE_BOOLEAN; break;
+					case CompilerUtils.CLASSTYPE_BYTE		: this.typeSort = PRIMITIVE_BYTE; break;
+					case CompilerUtils.CLASSTYPE_CHAR		: this.typeSort = PRIMITIVE_CHAR; break;
+					case CompilerUtils.CLASSTYPE_DOUBLE		: this.typeSort = PRIMITIVE_DOUBLE; break;
+					case CompilerUtils.CLASSTYPE_FLOAT		: this.typeSort = PRIMITIVE_FLOAT; break;
+					case CompilerUtils.CLASSTYPE_INT		: this.typeSort = PRIMITIVE_INT; break;
+					case CompilerUtils.CLASSTYPE_LONG		: this.typeSort = PRIMITIVE_LONG; break;
+					case CompilerUtils.CLASSTYPE_SHORT		: this.typeSort = PRIMITIVE_SHORT; break;
 					default : throw new UnsupportedOperationException("Primitive type ["+this.valueType.getSimpleName()+"] is not supported yet");
 				}
 			}

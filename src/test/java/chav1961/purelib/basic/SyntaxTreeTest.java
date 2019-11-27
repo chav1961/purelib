@@ -23,6 +23,24 @@ public class SyntaxTreeTest {
 	public void basicFunctionalityTest() {
 		basicFunctionalityTest(new AndOrTree<Object>());
 		basicFunctionalityTest(new OrdinalSyntaxTree<Object>());
+		
+		try{new AndOrTree<Object>(-1,1);
+			Assert.fail("Mandatory exception was not detected (negative 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{new AndOrTree<Object>(1,0);
+			Assert.fail("Mandatory exception was not detected (non-positive 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{new OrdinalSyntaxTree<Object>(-1,1);
+			Assert.fail("Mandatory exception was not detected (negative 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{new OrdinalSyntaxTree<Object>(1,0);
+			Assert.fail("Mandatory exception was not detected (non-positive 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
 
 	@Test
@@ -278,15 +296,6 @@ public class SyntaxTreeTest {
 		Assert.assertNull(tt.getCargo(1));
 		tt.setCargo(1,"test string");
 		Assert.assertEquals(tt.getCargo(1),"test string");
-		
-		try{new AndOrTree<>(-1,10);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}		
-		try{new AndOrTree<>(1,100);
-			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
 		
 		try{tt.getNameLength(-1);
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");

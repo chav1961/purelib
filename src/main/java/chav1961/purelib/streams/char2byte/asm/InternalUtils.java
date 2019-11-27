@@ -136,19 +136,19 @@ public class InternalUtils {
 	private static String buildSignature(final Class<?> item) {
 		if (item.isArray()) {
 			return '['+buildSignature(item.getComponentType());
-		}
+		} 
 		else {
-			switch (Utils.defineClassType(item)) {
-				case Utils.CLASSTYPE_REFERENCE	: return 'L'+item.getName().replace('.','/')+';';
-				case Utils.CLASSTYPE_BOOLEAN	: return "Z";
-				case Utils.CLASSTYPE_BYTE		: return "B";
-				case Utils.CLASSTYPE_CHAR		: return "C";
-				case Utils.CLASSTYPE_DOUBLE		: return "D";
-				case Utils.CLASSTYPE_FLOAT		: return "F";
-				case Utils.CLASSTYPE_INT		: return "I";
-				case Utils.CLASSTYPE_LONG		: return "J";
-				case Utils.CLASSTYPE_SHORT		: return "S";
-				case Utils.CLASSTYPE_VOID		: return "V";
+			switch (CompilerUtils.defineClassType(item)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	: return 'L'+item.getName().replace('.','/')+';';
+				case CompilerUtils.CLASSTYPE_BOOLEAN	: return "Z";
+				case CompilerUtils.CLASSTYPE_BYTE		: return "B";
+				case CompilerUtils.CLASSTYPE_CHAR		: return "C";
+				case CompilerUtils.CLASSTYPE_DOUBLE		: return "D";
+				case CompilerUtils.CLASSTYPE_FLOAT		: return "F";
+				case CompilerUtils.CLASSTYPE_INT		: return "I";
+				case CompilerUtils.CLASSTYPE_LONG		: return "J";
+				case CompilerUtils.CLASSTYPE_SHORT		: return "S";
+				case CompilerUtils.CLASSTYPE_VOID		: return "V";
 				default : throw new UnsupportedOperationException("Primitive class ["+item.getSimpleName()+"] is not supported yet");
 			}
 		}

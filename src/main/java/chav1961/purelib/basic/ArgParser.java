@@ -63,7 +63,7 @@ public class ArgParser {
 		}
 		else {
 			final Set<String>	names = new HashSet<>();
-			boolean 			prevPosWasList = false;
+			boolean 			prevPosWasList = false; 
 			
 			for (ArgDescription item : desc) {
 				final String	key = caseSensitive ? item.getName() : item.getName().toLowerCase();

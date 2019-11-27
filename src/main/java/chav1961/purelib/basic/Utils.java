@@ -49,6 +49,7 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
 
@@ -70,56 +71,6 @@ public class Utils {
 												@Override public void end() {}
 											}; 
 	
-	/**
-	 * <p>This class is a reference class</p>
-	 */
-	public static final int		CLASSTYPE_REFERENCE = 0;
-	
-	/**
-	 * <p>This class is a primitive byte</p>
-	 */
-	public static final int		CLASSTYPE_BYTE = 1;
-	
-	/**
-	 * <p>This class is a primitive short</p>
-	 */
-	public static final int		CLASSTYPE_SHORT = 2;
-	
-	/**
-	 * <p>This class is a primitive char</p>
-	 */
-	public static final int		CLASSTYPE_CHAR = 3;	
-	
-	/**
-	 * <p>This class is a primitive int</p>
-	 */
-	public static final int		CLASSTYPE_INT = 4;	
-	
-	/**
-	 * <p>This class is a primitive long</p>
-	 */
-	public static final int		CLASSTYPE_LONG = 5;	
-	
-	/**
-	 * <p>This class is a primitive float</p>
-	 */
-	public static final int		CLASSTYPE_FLOAT = 6;	
-	
-	/**
-	 * <p>This class is a primitive double</p>
-	 */
-	public static final int		CLASSTYPE_DOUBLE = 7;	
-	
-	/**
-	 * <p>This class is a primitive boolean</p>
-	 */
-	public static final int		CLASSTYPE_BOOLEAN = 8;	
-
-	/**
-	 * <p>This class is a primitive void</p>
-	 */
-	public static final int		CLASSTYPE_VOID = 9;	
-
 	private Utils() {
 	}
 	
@@ -395,47 +346,6 @@ public class Utils {
 				}
 			}
 			return sb.toString();
-		}
-	}
-	
-	/**
-	 * <p>Classify the given class by it's primitive type</p>
-	 * @param clazz class to classify
-	 * @return one of the CLASSTYPE_ZZZ constants (see description) 
-	 */
-	public static int defineClassType(final Class<?> clazz) {
-		if (clazz == null) {
-			throw new NullPointerException("Class to define can't be null"); 
-		}
-		else if (!clazz.isPrimitive()) {
-			return CLASSTYPE_REFERENCE;
-		}
-		else if (clazz == byte.class) {
-			return CLASSTYPE_BYTE;
-		}
-		else if (clazz == short.class) {
-			return CLASSTYPE_SHORT;
-		}
-		else if (clazz == char.class) {
-			return CLASSTYPE_CHAR;
-		}
-		else if (clazz == int.class) {
-			return CLASSTYPE_INT;
-		}
-		else if (clazz == long.class) {
-			return CLASSTYPE_LONG;
-		}
-		else if (clazz == float.class) {
-			return CLASSTYPE_FLOAT;
-		}
-		else if (clazz == double.class) {
-			return CLASSTYPE_DOUBLE;
-		}
-		else if (clazz == boolean.class) {
-			return CLASSTYPE_BOOLEAN;
-		}
-		else {
-			return CLASSTYPE_VOID;
 		}
 	}
 	
@@ -756,18 +666,18 @@ public class Utils {
 			throw new NullPointerException("Class to get wrapper for can't be null");
 		}
 		else {
-			switch (defineClassType(clazz)) {
-				case CLASSTYPE_REFERENCE	: throw new IllegalArgumentException("Class ["+clazz+"] must be primitive");
-				case CLASSTYPE_BYTE			: return Byte.class;
-				case CLASSTYPE_SHORT		: return Short.class;
-				case CLASSTYPE_CHAR			: return Character.class;
-				case CLASSTYPE_INT			: return Integer.class;
-				case CLASSTYPE_LONG			: return Long.class;
-				case CLASSTYPE_FLOAT		: return Float.class;
-				case CLASSTYPE_DOUBLE		: return Double.class;
-				case CLASSTYPE_BOOLEAN		: return Boolean.class;
-				case CLASSTYPE_VOID			: return Void.class;
-				default : throw new UnsupportedOperationException("Class type ["+defineClassType(clazz)+"] is not supported yet"); 
+			switch (CompilerUtils.defineClassType(clazz)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	: throw new IllegalArgumentException("Class ["+clazz+"] must be primitive");
+				case CompilerUtils.CLASSTYPE_BYTE		: return Byte.class;
+				case CompilerUtils.CLASSTYPE_SHORT		: return Short.class;
+				case CompilerUtils.CLASSTYPE_CHAR		: return Character.class;
+				case CompilerUtils.CLASSTYPE_INT		: return Integer.class;
+				case CompilerUtils.CLASSTYPE_LONG		: return Long.class;
+				case CompilerUtils.CLASSTYPE_FLOAT		: return Float.class;
+				case CompilerUtils.CLASSTYPE_DOUBLE		: return Double.class;
+				case CompilerUtils.CLASSTYPE_BOOLEAN	: return Boolean.class;
+				case CompilerUtils.CLASSTYPE_VOID		: return Void.class;
+				default : throw new UnsupportedOperationException("Class type ["+CompilerUtils.defineClassType(clazz)+"] is not supported yet"); 
 			}
 		}
 	}
@@ -816,54 +726,40 @@ public class Utils {
 		}
 	}
 
-	public static long extractLongValue(final Object obj) {
+	/**
+	 * <p>Extract long value from Number object</p>
+	 * @param obj object to extract value from
+	 * @return value extracted
+	 * @throws NullPointerException object to extract value from is null
+	 * @throws IllegalArgumentException object is not a Number instance
+	 * @since 0.0.3
+	 */
+	public static long extractLongValue(final Object obj) throws NullPointerException, IllegalArgumentException {
 		if (obj == null) {
 			throw new NullPointerException("Object to extract value can't be null");
 		}
-		else if (obj instanceof Byte) {
-			return ((Byte)obj).longValue();
-		}
-		else if (obj instanceof Short) {
-			return ((Short)obj).longValue();
-		}
-		else if (obj instanceof Integer) {
-			return ((Integer)obj).longValue();
-		}
-		else if (obj instanceof Long) {
-			return ((Long)obj).longValue();
-		}
-		else if (obj instanceof Float) {
-			return ((Float)obj).longValue();
-		}
-		else if (obj instanceof Double) {
-			return ((Double)obj).longValue();
+		else if (obj instanceof Number) {
+			return ((Number)obj).longValue();
 		}
 		else {
 			throw new IllegalArgumentException("Object to extract long value has invalid type ["+obj.getClass().getCanonicalName()+"]");
 		}
 	}
 
-	public static double extractDoubleValue(final Object obj) {
+	/**
+	 * <p>Extract double value from Number object</p>
+	 * @param obj object to extract value from
+	 * @return value extracted
+	 * @throws NullPointerException object to extract value from is null
+	 * @throws IllegalArgumentException object is not a Number instance
+	 * @since 0.0.3
+	 */
+	public static double extractDoubleValue(final Object obj) throws NullPointerException, IllegalArgumentException {
 		if (obj == null) {
 			throw new NullPointerException("Object to extract value can't be null");
 		}
-		else if (obj instanceof Byte) {
-			return ((Byte)obj).doubleValue();
-		}
-		else if (obj instanceof Short) {
-			return ((Short)obj).doubleValue();
-		}
-		else if (obj instanceof Integer) {
-			return ((Integer)obj).doubleValue();
-		}
-		else if (obj instanceof Long) {
-			return ((Long)obj).doubleValue();
-		}
-		else if (obj instanceof Float) {
-			return ((Float)obj).doubleValue();
-		}
-		else if (obj instanceof Double) {
-			return ((Double)obj).doubleValue();
+		else if (obj instanceof Number) {
+			return ((Number)obj).doubleValue(); 
 		}
 		else {
 			throw new IllegalArgumentException("Object to extract double value has invalid type ["+obj.getClass().getCanonicalName()+"]");
@@ -1068,62 +964,6 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	}
 	
 	
-	/**
-	 * <p>Parse query string from uri</p>
-	 * @param uri uri to parse query string
-	 * @return key/value pair from parsed query. Can be empty but not null
-	 * @throws NullPointerException when uri is null
-	 * @throws link IllegalArgumentException when query contains syntax errors
-	 * @since 0.0.3
-	 */
-	public static Hashtable<String,String[]> parseQuery(final URI uri) throws NullPointerException {
-		if (uri == null) {
-			throw new NullPointerException("Uri to parsre can't be null"); 
-		}
-		else {
-			final String	query = URIUtils.extractQueryFromURI(uri);
-			
-			if (query != null && !query.isEmpty()) {
-				return parseQuery(query);
-			}
-			else {
-				return new Hashtable<>();
-			}
-		}
-	}
-
-	/**
-	 * <p>Parse query string (usually from uri query)</p>
-	 * @param query query string without preceding '?'
-	 * @return key/value pair from parsed query. Can be empty but not null
-	 * @throws NullPointerException when uri is null
-	 * @throws link IllegalArgumentException when query contains syntax errors
-	 * @since 0.0.3
-	 */
-	public static Hashtable<String,String[]> parseQuery(final String query) throws NullPointerException, IllegalArgumentException {
-		if (query == null) {
-			throw new NullPointerException("Query to parsre can't be null"); 
-		}
-		else if (query.isEmpty()) {
-			return new Hashtable<>();
-		}
-		else {
-			final Hashtable<String,String[]>	result = new Hashtable<>();
-			
-			for (String item : CharUtils.split(query,'&')) {
-				final int	index = item.indexOf('=');
-
-				if (index > 0) {
-					result.put(item.substring(0,index),new String[]{item.substring(index+1)});
-				}
-				else {
-					throw new IllegalArgumentException("Query item ["+item+"] doesn't contain equals sign");
-				}
-			}
-			return result;
-		}
-	}
-
 	/**
 	 * <p>Delete directory content and directory self.</p>
 	 * @param dir directory to delete

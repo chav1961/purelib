@@ -1136,7 +1136,7 @@ class LineParser implements LineByLineProcessorCallback {
 			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"field",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_VOLATILE,OPTION_TRANSIENT,OPTION_SYNTHETIC);
 			start = InternalUtils.skipBlank(data,start);
 			
-			if (data[start] == '=') {	// Initial values.
+			if (data[start] == '=') {	// Initial values. 
 				if ((forEntity.options & OPTION_STATIC) == 0) {
 					throw new ContentException("Initial values can be typed for static fields only!"); 
 				}
@@ -1147,8 +1147,8 @@ class LineParser implements LineByLineProcessorCallback {
 					final short		valueId;
 					
 					start = InternalUtils.skipBlank(data,start+1);
-					switch (Utils.defineClassType(type)) {
-						case Utils.CLASSTYPE_REFERENCE	:
+					switch (CompilerUtils.defineClassType(type)) {
+						case CompilerUtils.CLASSTYPE_REFERENCE	:
 							if (data[start] != '\"') {
 								throw new ContentException("Illegal initial value for String!"); 
 							}
@@ -1166,7 +1166,7 @@ class LineParser implements LineByLineProcessorCallback {
 								}
 							}							
 							break;
-						case Utils.CLASSTYPE_BOOLEAN :
+						case CompilerUtils.CLASSTYPE_BOOLEAN :
 							if (CharUtils.compare(data,start,TRUE)) {
 								valueId = cc.getConstantPool().asIntegerDescription(1); 
 							}
@@ -1177,25 +1177,25 @@ class LineParser implements LineByLineProcessorCallback {
 								throw new ContentException("Illegal initial value for boolean!"); 
 							}
 							break;
-						case Utils.CLASSTYPE_BYTE : case Utils.CLASSTYPE_SHORT : case Utils.CLASSTYPE_CHAR : case Utils.CLASSTYPE_INT :
+						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
 							final int[]		intValues = new int[1];
 							
 							CharUtils.parseSignedInt(data,start,intValues,true);
 							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
 							break;
-						case Utils.CLASSTYPE_FLOAT	:
+						case CompilerUtils.CLASSTYPE_FLOAT	:
 							final float[]		floatValues = new float[1];
 							
 							CharUtils.parseSignedFloat(data,start,floatValues,true);
 							valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
 							break;
-						case Utils.CLASSTYPE_LONG	:
+						case CompilerUtils.CLASSTYPE_LONG	:
 							final long[]		longValues = new long[1];
 							
 							CharUtils.parseSignedLong(data,start,longValues,true);
 							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
 							break;
-						case Utils.CLASSTYPE_DOUBLE	:
+						case CompilerUtils.CLASSTYPE_DOUBLE	:
 							final double[]		doubleValues = new double[1];
 							
 							CharUtils.parseSignedDouble(data,start,doubleValues,true);
@@ -1244,8 +1244,8 @@ class LineParser implements LineByLineProcessorCallback {
 					final short		valueId;
 					
 					start = InternalUtils.skipBlank(data,start+1);
-					switch (Utils.defineClassType(type)) {
-						case Utils.CLASSTYPE_REFERENCE	:
+					switch (CompilerUtils.defineClassType(type)) {
+						case CompilerUtils.CLASSTYPE_REFERENCE	:
 							if (data[start] != '\"') {
 								throw new ContentException("Illegal initial value for String!"); 
 							}
@@ -1263,7 +1263,7 @@ class LineParser implements LineByLineProcessorCallback {
 								}
 							}							
 							break;
-						case Utils.CLASSTYPE_BOOLEAN :
+						case CompilerUtils.CLASSTYPE_BOOLEAN :
 							if (CharUtils.compare(data,start,TRUE)) {
 								valueId = cc.getConstantPool().asIntegerDescription(1); 
 							}
@@ -1274,25 +1274,25 @@ class LineParser implements LineByLineProcessorCallback {
 								throw new ContentException("Illegal initial value for boolean!"); 
 							}
 							break;
-						case Utils.CLASSTYPE_BYTE : case Utils.CLASSTYPE_SHORT : case Utils.CLASSTYPE_CHAR : case Utils.CLASSTYPE_INT :
+						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
 							final int[]		intValues = new int[1];
 							
 							CharUtils.parseSignedInt(data,start,intValues,true);
 							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
 							break;
-						case Utils.CLASSTYPE_FLOAT	:
+						case CompilerUtils.CLASSTYPE_FLOAT	:
 							final float[]		floatValues = new float[1];
 							
 							CharUtils.parseSignedFloat(data,start,floatValues,true);
 							valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
 							break;
-						case Utils.CLASSTYPE_LONG	:
+						case CompilerUtils.CLASSTYPE_LONG	:
 							final long[]		longValues = new long[1];
 							
 							CharUtils.parseSignedLong(data,start,longValues,true);
 							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
 							break;
-						case Utils.CLASSTYPE_DOUBLE	:
+						case CompilerUtils.CLASSTYPE_DOUBLE	:
 							final double[]		doubleValues = new double[1];
 							
 							CharUtils.parseSignedDouble(data,start,doubleValues,true);

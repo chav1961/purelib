@@ -505,7 +505,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 							
 							try(final OutputStream	os = pair.getOutputStream()) {
 								final String 						query = URIUtils.extractQueryFromURI(call.getRequestURI());
-								final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
+								final Hashtable<String,String[]>	queryParsed = URIUtils.parseQuery(query == null ? "" : query);
 								final URI							callPath = call.getRequestURI();
 								final String						pathTail = callPath.getPath().replace(pluginRoot,"");
 										
@@ -687,7 +687,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						final List<String>			outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
 						
 						try{final String						query = URIUtils.extractQueryFromURI(call.getRequestURI());
-							final Hashtable<String,String[]>	queryParsed = Utils.parseQuery(query == null ? "" : query);
+							final Hashtable<String,String[]>	queryParsed = URIUtils.parseQuery(query == null ? "" : query);
 							final URI							callPath = call.getRequestURI();
 							final String						pathTail = callPath.getPath().replace(pluginRoot,"");
 							int 	rc = 200;

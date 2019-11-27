@@ -42,9 +42,9 @@ public class JSimpleHelpWindow {
 	private static final String	DESKTOP_ERROR = "JSimpleHelpWindow.desktopError";
 	private static final String	DESKTOP_NOT_SET = "JSimpleHelpWindow.desktopNotSet";
 	
-	
+	 
 	JSimpleHelpWindow(final Component parent, final URI source) throws ContentException {
-		try{final Hashtable<String,String[]>	parsed = Utils.parseQuery(source);
+		try{final Hashtable<String,String[]>	parsed = URIUtils.parseQuery(source);
 			final char[]		content = URIUtils.loadCharsFromURI(source, parsed.containsKey(AbstractLocalizer.CONTENT_ENCODING) ? parsed.get(AbstractLocalizer.CONTENT_ENCODING)[0] : Charset.defaultCharset().name());
 			final JEditorPane	editor = new JEditorPane("text/html",convertContent(content,extractSourceMime(parsed),extractTargetMime(parsed)));
 			final JScrollPane	scroll = new JScrollPane(editor);

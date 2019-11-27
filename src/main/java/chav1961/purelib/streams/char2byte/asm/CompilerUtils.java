@@ -29,6 +29,97 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
 
 public class CompilerUtils {
 	/**
+	 * <p>This class is a reference class</p>
+	 */
+	public static final int		CLASSTYPE_REFERENCE = 0;
+	
+	/**
+	 * <p>This class is a primitive byte</p>
+	 */
+	public static final int		CLASSTYPE_BYTE = 1;
+	
+	/**
+	 * <p>This class is a primitive short</p>
+	 */
+	public static final int		CLASSTYPE_SHORT = 2;
+	
+	/**
+	 * <p>This class is a primitive char</p>
+	 */
+	public static final int		CLASSTYPE_CHAR = 3;	
+	
+	/**
+	 * <p>This class is a primitive int</p>
+	 */
+	public static final int		CLASSTYPE_INT = 4;	
+	
+	/**
+	 * <p>This class is a primitive long</p>
+	 */
+	public static final int		CLASSTYPE_LONG = 5;	
+	
+	/**
+	 * <p>This class is a primitive float</p>
+	 */
+	public static final int		CLASSTYPE_FLOAT = 6;	
+	
+	/**
+	 * <p>This class is a primitive double</p>
+	 */
+	public static final int		CLASSTYPE_DOUBLE = 7;	
+	
+	/**
+	 * <p>This class is a primitive boolean</p>
+	 */
+	public static final int		CLASSTYPE_BOOLEAN = 8;	
+
+	/**
+	 * <p>This class is a primitive void</p>
+	 */
+	public static final int		CLASSTYPE_VOID = 9;	
+
+	/**
+	 * <p>Classify the given class by it's primitive type</p>
+	 * @param clazz class to classify
+	 * @return one of the CLASSTYPE_ZZZ constants (see description) 
+	 */
+	public static int defineClassType(final Class<?> clazz) {
+		if (clazz == null) {
+			throw new NullPointerException("Class to define can't be null"); 
+		}
+		else if (!clazz.isPrimitive()) {
+			return CLASSTYPE_REFERENCE;
+		}
+		else if (clazz == byte.class) {
+			return CLASSTYPE_BYTE;
+		}
+		else if (clazz == short.class) {
+			return CLASSTYPE_SHORT;
+		}
+		else if (clazz == char.class) {
+			return CLASSTYPE_CHAR;
+		}
+		else if (clazz == int.class) {
+			return CLASSTYPE_INT;
+		}
+		else if (clazz == long.class) {
+			return CLASSTYPE_LONG;
+		}
+		else if (clazz == float.class) {
+			return CLASSTYPE_FLOAT;
+		}
+		else if (clazz == double.class) {
+			return CLASSTYPE_DOUBLE;
+		}
+		else if (clazz == boolean.class) {
+			return CLASSTYPE_BOOLEAN;
+		}
+		else {
+			return CLASSTYPE_VOID;
+		}
+	}
+	
+	/**
 	 * <p>Find field description in the given class</p>
 	 * @param clazz class to find field in
 	 * @param name field name
@@ -283,23 +374,23 @@ public class CompilerUtils {
 			return '['+buildClassSignature(clazz.getComponentType());
 		}
 		else {
-			switch (Utils.defineClassType(clazz)) {
-				case Utils.CLASSTYPE_REFERENCE	:
+			switch (defineClassType(clazz)) {
+				case CLASSTYPE_REFERENCE	:
 					final StringBuilder	sb = new StringBuilder("L");
 					
 					for (String item : CharUtils.split(clazz.getPackage().getName(),'.')) {
 						sb.append(item).append('/');
 					}
 					return sb.append(clazz.getSimpleName()).append(';').toString();
-				case Utils.CLASSTYPE_BYTE		: return "B";
-				case Utils.CLASSTYPE_SHORT		: return "S";
-				case Utils.CLASSTYPE_CHAR		: return "C";	
-				case Utils.CLASSTYPE_INT		: return "I";	
-				case Utils.CLASSTYPE_LONG		: return "J";	
-				case Utils.CLASSTYPE_FLOAT		: return "F";	
-				case Utils.CLASSTYPE_DOUBLE		: return "D";	
-				case Utils.CLASSTYPE_BOOLEAN	: return "Z";
-				case Utils.CLASSTYPE_VOID		: return "V";
+				case CLASSTYPE_BYTE		: return "B";
+				case CLASSTYPE_SHORT	: return "S";
+				case CLASSTYPE_CHAR		: return "C";	
+				case CLASSTYPE_INT		: return "I";	
+				case CLASSTYPE_LONG		: return "J";	
+				case CLASSTYPE_FLOAT	: return "F";	
+				case CLASSTYPE_DOUBLE	: return "D";	
+				case CLASSTYPE_BOOLEAN	: return "Z";
+				case CLASSTYPE_VOID		: return "V";
 				default : throw new UnsupportedOperationException("Class ["+clazz.getCanonicalName()+"] is not supporet yet");
 			}
 		}

@@ -11,7 +11,9 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Hashtable;
 
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -61,17 +63,6 @@ public class URIUtils {
 		if (uri == null) {
 			throw new NullPointerException("URI to load data from can't be null");  
 		}
-		else if (uri.getScheme().equals(FileSystemInterface.FILESYSTEM_URI_SCHEME)) {
-			final URL			url = new URL(null,uri.getRawSchemeSpecificPart(),new FileSystemURLStreamHandler());
-			final URLConnection	conn = url.openConnection();
-			
-			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-				final InputStream			is = conn.getInputStream()) {
-				
-				Utils.copyStream(is,baos);
-				return baos.toByteArray();
-			}
-		}
 		else {
 			final URL			url = uri.toURL();
 			
@@ -94,18 +85,6 @@ public class URIUtils {
 	public static char[] loadCharsFromURI(final URI uri) throws NullPointerException, IOException {
 		if (uri == null) {
 			throw new NullPointerException("URI to load data from can't be null");  
-		}
-		else if (FileSystemInterface.FILESYSTEM_URI_SCHEME.equals(uri.getScheme())) {
-			final URL			url = new URL(null,uri.getRawSchemeSpecificPart(),new FileSystemURLStreamHandler());
-			final URLConnection	conn = url.openConnection();
-			
-			try(final Writer		wr = new CharArrayWriter();
-				final InputStream	is = conn.getInputStream();
-				final Reader		rdr = new InputStreamReader(is)) {
-				
-				Utils.copyStream(rdr,wr);
-				return wr.toString().toCharArray();
-			}
 		}
 		else {
 			final URL				url = uri.toURL();
@@ -134,18 +113,6 @@ public class URIUtils {
 		}
 		else if (encoding == null || encoding.isEmpty()) {
 			throw new IllegalArgumentException("Content encoding can't be null or empty string");  
-		}
-		else if (uri.getScheme().equals(FileSystemInterface.FILESYSTEM_URI_SCHEME)) {
-			final URL			url = new URL(null,uri.getRawSchemeSpecificPart(),new FileSystemURLStreamHandler());
-			final URLConnection	conn = url.openConnection();
-			
-			try(final Writer		wr = new CharArrayWriter();
-				final InputStream	is = conn.getInputStream();
-				final Reader		rdr = new InputStreamReader(is,encoding)) {
-				
-				Utils.copyStream(rdr,wr);
-				return wr.toString().toCharArray();
-			}
 		}
 		else {
 			final URL				url = uri.toURL();
@@ -322,25 +289,24 @@ public class URIUtils {
 	 * <p>Extract query string from multi-schemed URI</p>
 	 * @param uri uri to extract query from
 	 * @return query extracted or null if missing
-	 * @throws NullPointerException
+	 * @throws NullPointerException when URI is null
 	 * @since 0.0.3
 	 */
 	public static String extractQueryFromURI(final URI uri) throws NullPointerException {
-		URI		current = uri; 
-		String	query = null, previous = uri.toString();
-		
-		while ((query = current.getQuery()) == null) {
-			final String	ssp = current.getSchemeSpecificPart();
+		if (uri == null) {
+			throw new NullPointerException("URI to extract query from can't be null");
+		}
+		else {
+			final String	content = uri.toString();
+			final int		index = content.lastIndexOf('?');
 			
-			if (ssp == null || previous.equals(ssp)) {
-				break;
+			if (index == -1) {
+				return null;
 			}
 			else {
-				previous = ssp;
-				current = URI.create(ssp);
+				return content.substring(index+1);
 			}
 		}
-		return query;
 	}
 	
 	/**
@@ -354,7 +320,7 @@ public class URIUtils {
 		if (uri == null) {
 			throw new NullPointerException("URI to test can't be null");
 		}
-		else if (scheme == null) {
+		else if (scheme == null || scheme.isEmpty()) {
 			throw new IllegalArgumentException("Scheme string can'ty be null or empty");
 		}
 		else if (!uri.isAbsolute()) {
@@ -369,18 +335,111 @@ public class URIUtils {
 			}
 		}
 	}
-	
-	public static URI convert2selfURI(final byte[] content) {
-		return URI.create("self:/#"+new String(Base64.getEncoder().encode(content)));
-	}
-	
-	public static URI convert2selfURI(final char[] content, final String charSet) throws UnsupportedEncodingException {
-		return URI.create("self:/#"+new String(Base64.getEncoder().encode(new String(content).getBytes(charSet)))+"?encoding="+charSet);
-//		 CharBuffer charBuffer = CharBuffer.wrap(chars);
-//		  ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
-//		  byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
-//		            byteBuffer.position(), byteBuffer.limit());		
+
+	/**
+	 * <p>Parse query string from uri</p>
+	 * @param uri uri to parse query string
+	 * @return key/value pair from parsed query. Can be empty but not null
+	 * @throws NullPointerException when uri is null
+	 * @throws link IllegalArgumentException when query contains syntax errors
+	 * @since 0.0.3
+	 */
+	public static Hashtable<String,String[]> parseQuery(final URI uri) throws NullPointerException {
+		if (uri == null) {
+			throw new NullPointerException("Uri to parsre can't be null"); 
+		}
+		else {
+			final String	query = URIUtils.extractQueryFromURI(uri);
+			
+			if (query != null && !query.isEmpty()) {
+				return parseQuery(query);
+			}
+			else {
+				return new Hashtable<>();
+			}
+		}
 	}
 
+	/**
+	 * <p>Parse query string (usually from uri query)</p>
+	 * @param query query string without preceding '?'
+	 * @return key/value pair from parsed query. Can be empty but not null
+	 * @throws NullPointerException when uri is null
+	 * @throws link IllegalArgumentException when query contains syntax errors
+	 * @since 0.0.3
+	 */
+	public static Hashtable<String,String[]> parseQuery(final String query) throws NullPointerException, IllegalArgumentException {
+		if (query == null) {
+			throw new NullPointerException("Query to parsre can't be null"); 
+		}
+		else if (query.isEmpty()) {
+			return new Hashtable<>();
+		}
+		else {
+			final Hashtable<String,String[]>	result = new Hashtable<>();
+			
+			for (String item : CharUtils.split(query,'&')) {
+				final int	index = item.indexOf('=');
+
+				if (index > 0) {
+					final String	key = item.substring(0,index), value = item.substring(index+1);  
+					
+					if (result.containsKey(key)) {
+						final String[]	content = result.get(key), newContent = Arrays.copyOf(content,content.length+1);
+						
+						newContent[newContent.length-1] = value;
+						result.put(key,newContent);
+					}
+					else {
+						result.put(key,new String[]{value});
+					}
+				}
+				else {
+					throw new IllegalArgumentException("Query item ["+item+"] doesn't contain equals sign");
+				}
+			}
+			return result;
+		}
+	}
 	
+	/**
+	 * <p>Build 'self' URI from content</p>
+	 * @param content content to build 'self' URI for
+	 * @return 'self' URI built
+	 * @throws NullPointerException when content is null
+	 * @since 0.0.3
+	 */
+	public static URI convert2selfURI(final byte[] content) throws NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("Content for URI can't be null");
+		}
+		else {
+			return URI.create("self:/#"+new String(Base64.getEncoder().encode(content)));
+		}
+	}
+	
+	/**
+	 * <p>Build 'self' URI from content</p>
+	 * @param content content to build 'self' URI for
+	 * @param charSet character set for the content to use 
+	 * @return 'self' URI built with '?encoding=ZZZ' query string
+	 * @throws NullPointerException when content is null
+	 * @throws IllegalArgumentException when encoding is null, empty or unknown
+	 * @since 0.0.3
+	 */
+	public static URI convert2selfURI(final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {
+		if (content == null) {
+			throw new NullPointerException("Content for URI can't be null");
+		}
+		else if (charSet == null || charSet.isEmpty()) {
+			throw new IllegalArgumentException("Char set for for URI can't be null or empty");
+		}
+		else {
+			try {
+				return URI.create("self:/#"+new String(Base64.getEncoder().encode(new String(content).getBytes(charSet)))+"?encoding="+charSet);
+			} catch (UnsupportedEncodingException e) {
+				throw new IllegalArgumentException(e.getLocalizedMessage(),e);
+			}
+		}
+	}
 }

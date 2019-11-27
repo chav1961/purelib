@@ -1,5 +1,7 @@
 package chav1961.purelib.basic;
 
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -420,7 +422,81 @@ public class CharUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}
-	
+ 
+	@Test
+	public void charConversionTest() {
+		Assert.assertFalse(CharUtils.symbolNeedsEscaping(' ',false));
+		Assert.assertTrue(CharUtils.symbolNeedsEscaping('\n',false));
+		Assert.assertTrue(CharUtils.symbolNeedsEscaping('\u2020',true));
+		Assert.assertFalse(CharUtils.symbolNeedsEscaping('\u2020',false));
+		
+		final char[]	result = new char[1];
+		
+		Assert.assertEquals(1,CharUtils.parseEscapedChar(" ".toCharArray(),0,result));
+		Assert.assertEquals(' ',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\n".toCharArray(),0,result));
+		Assert.assertEquals('\n',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\b".toCharArray(),0,result));
+		Assert.assertEquals('\b',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\f".toCharArray(),0,result));
+		Assert.assertEquals('\f',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\r".toCharArray(),0,result));
+		Assert.assertEquals('\r',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\t".toCharArray(),0,result));
+		Assert.assertEquals('\t',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\\"".toCharArray(),0,result));
+		Assert.assertEquals('\"',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\'".toCharArray(),0,result));
+		Assert.assertEquals('\'',result[0]);
+		Assert.assertEquals(2,CharUtils.parseEscapedChar("\\\\".toCharArray(),0,result));
+		Assert.assertEquals('\\',result[0]);
+		Assert.assertEquals(4,CharUtils.parseEscapedChar("\\030".toCharArray(),0,result));
+		Assert.assertEquals('\030',result[0]);
+		Assert.assertEquals(6,CharUtils.parseEscapedChar("\\u20Fe".toCharArray(),0,result));
+		Assert.assertEquals('\u20Fe',result[0]);
+
+		try{CharUtils.parseEscapedChar(null,0,result);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar(new char[0],0,result);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar(" ".toCharArray(),-1,result);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar(" ".toCharArray(),100,result);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar(" ".toCharArray(),0,null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.parseEscapedChar("\\".toCharArray(),0,result);
+			Assert.fail("Mandatory exception was not detected (truncated escape)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar("\\Z".toCharArray(),0,result);
+			Assert.fail("Mandatory exception was not detected (unknown escape)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar("\\03".toCharArray(),0,result);
+			Assert.fail("Mandatory exception was not detected (truncated octal code)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar("\\038".toCharArray(),0,result);
+			Assert.fail("Mandatory exception was not detected (illegal octal digit)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseEscapedChar("\\u200Z".toCharArray(),0,result);
+			Assert.fail("Mandatory exception was not detected (illegal unicode digit)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
 	
 	@Test
 	public void stringConversionTest() {
@@ -524,6 +600,71 @@ public class CharUtilsTest {
 			Assert.fail("Mandatory exception was not detected (illegal escaping chars)");
 		} catch (IllegalArgumentException exc) {
 		}
+		
+		final char[]	target = new char[10];
+		
+		Arrays.fill(target,' ');
+		Assert.assertEquals(1,CharUtils.printEscapedChar(target,0,'0',true,true));
+		Assert.assertArrayEquals("0         ".toCharArray(),target);
+
+		Arrays.fill(target,' ');
+		Assert.assertEquals(2,CharUtils.printEscapedChar(target,0,'\n',true,true));
+		Assert.assertArrayEquals("\\n        ".toCharArray(),target);
+
+		Arrays.fill(target,' ');
+		Assert.assertEquals(6,CharUtils.printEscapedChar(target,0,'\u2020',true,true));
+		Assert.assertArrayEquals("\\u2020    ".toCharArray(),target);
+		
+		try{CharUtils.printEscapedChar(null,0,'\u2020',true,true);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.printEscapedChar(new char[0],0,'\u2020',true,true);
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.printEscapedChar(target,-1,'\u2020',true,true);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.printEscapedChar(target,100,'\u2020',true,true);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		Arrays.fill(target,' ');
+		Assert.assertEquals(1,CharUtils.printEscapedString(target,0,"0",true,true));
+		Assert.assertArrayEquals("0         ".toCharArray(),target);
+
+		Arrays.fill(target,' ');
+		Assert.assertEquals(2,CharUtils.printEscapedString(target,0,"\n",true,true));
+		Assert.assertArrayEquals("\\n        ".toCharArray(),target);
+
+		Arrays.fill(target,' ');
+		Assert.assertEquals(6,CharUtils.printEscapedString(target,0,"\\u2020",true,true));
+		Assert.assertArrayEquals("\\u2020    ".toCharArray(),target);
+
+		try{CharUtils.printEscapedString(null,0," ",true,true);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.printEscapedString(new char[0],0," ",true,true);
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.printEscapedString(target,-1," ",true,true);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.printEscapedString(target,100," ",true,true);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.printEscapedString(target,0,null,true,true);
+			Assert.fail("Mandatory exception was not detected (null 3-dr argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+	
 	}
 
 	@Test
