@@ -3,6 +3,7 @@ package chav1961.purelib.basic;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -64,6 +65,7 @@ import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptEngineController, Closeable {
@@ -99,15 +101,15 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 	
 	@Override
 	public Object eval(final String script, final ScriptContext context) throws ScriptException {
-		if (script == null || script.isEmpty()) {
-			throw new NullPointerException("Script string can't be null or empty");
+		if (script == null) {
+			throw new NullPointerException("Script string can't be null");
 		}
 		else {
-			try(final Reader	rdr = new StringReader(script)) {
-				return eval(rdr,context);
-			} catch (IOException e) {
-				throw new ScriptException(e);
-			}
+			final Bindings	bindings = new DefaultBindings();
+			
+			bindings.putAll(context.getBindings(ScriptContext.GLOBAL_SCOPE));
+			bindings.putAll(context.getBindings(ScriptContext.ENGINE_SCOPE));
+			return eval(script,bindings);
 		}
 	}
 
@@ -130,8 +132,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 	@Override
 	public Object eval(final String script) throws ScriptException {
-		if (script == null || script.isEmpty()) {
-			throw new NullPointerException("Script string can't be null or empty");
+		if (script == null) {
+			throw new NullPointerException("Script string can't be null");
 		}
 		else {
 			return eval(script,getContext());
@@ -150,8 +152,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 	@Override
 	public Object eval(final String script, final Bindings n) throws ScriptException {
-		if (script == null || script.isEmpty()) {
-			throw new NullPointerException("Script string can't be null or empty");
+		if (script == null) {
+			throw new NullPointerException("Script string can't be null");
 		}
 		else {
 			try(final Reader	rdr = new StringReader(script)) {
@@ -268,9 +270,10 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 		else {
 			final Manifest	manifest = new Manifest();
 			
-			manifest.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(),mainClass);
+			manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION,"1.0");
+			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS,mainClass);
 			try(final JarOutputStream		jos = new JarOutputStream(target,manifest);
-				final FileSystemInterface	fsi = fs.clone().open("/")) {
+				final FileSystemInterface	fsi = getFileSystem().clone().open("/")) {
 				
 				upload(fsi,jos);
 			} catch (IOException e) {
@@ -296,7 +299,7 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 	@Override
 	public void download(final InputStream source) throws ScriptException {
-		final InternalClassLoader	newLoader = new InternalClassLoader(this.getClass().getClassLoader(),fs);
+		final InternalClassLoader	newLoader = new InternalClassLoader(this.getClass().getClassLoader(),getFileSystem());
 		
 		try(final JarInputStream	jis = new JarInputStream(source,true){@Override public void close(){}}) {
 			final Manifest			manifest = jis.getManifest();
@@ -307,7 +310,7 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 			else {
 				JarEntry				je;
 
-				try(final FileSystemInterface	fsi = fs.clone().open("/")) {
+				try(final FileSystemInterface	fsi = getFileSystem().clone().open("/")) {
 					for (String item : fsi.list()) {
 						try(final FileSystemInterface	element = fsi.clone().open("./"+item)) {
 							element.deleteAll();
@@ -316,7 +319,7 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 				}
 				while ((je = jis.getNextJarEntry()) != null) {
 					if (je.isDirectory()) {
-						try(final FileSystemInterface	fsi = fs.clone().open(je.getName())) {
+						try(final FileSystemInterface	fsi = getFileSystem().clone().open(je.getName())) {
 							fsi.mkDir();
 						}
 					}
@@ -324,8 +327,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 						try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 							Utils.copyStream(jis,baos);
 							
-							try(final FileSystemInterface	fsi = fs.clone().open(je.getName()).create()) {
-								try(final OutputStream		os = fs.clone().open(je.getName()).create().write()) {
+							try(final FileSystemInterface	fsi = getFileSystem().clone().open(je.getName()).open("/..").mkDir()) {
+								try(final OutputStream		os = fsi.clone().open(je.getName()).create().write()) {
 									baos.writeTo(os);
 									os.flush();
 								}
@@ -354,13 +357,9 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 	@Override
 	public void close() throws IOException {
 		loader.close();
-		fs.close();
+		getFileSystem().close();
 	}
 
-	protected ScriptEngineFactory getEngineFactory() {
-		return factory;
-	}
-	
 	protected Reader beforeCompile(final Reader reader, final OutputStream os) throws IOException {
 		return reader;
 	}
@@ -375,20 +374,23 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 		}
 	}
 
+	protected FileSystemInterface getFileSystem() {
+		return fs;
+	}
+	
 	private void compile(final Reader reader, final OutputStream os) throws IOException, SyntaxException {
 		try(final LineByLineProcessor		lblp = new LineByLineProcessor(callback)) {
 			
 			lblp.write(beforeCompile(reader,os));
 		}
 		afterCompile(reader,os);
-		
 	}
 
 	private void upload(final FileSystemInterface fsi, final JarOutputStream jos) throws IOException {
-		final JarEntry	entry = new JarEntry(fsi.getPath());
-		
-		entry.setMethod(JarEntry.DEFLATED);
 		if (fsi.isDirectory()) {
+			final JarEntry	entry = new JarEntry(fsi.getPath()+'/');
+			
+			entry.setMethod(JarEntry.DEFLATED);
 			jos.putNextEntry(entry);
 			jos.closeEntry();
 			for (String item : fsi.list()) {
@@ -398,12 +400,14 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 			}
 		}
 		else {
+			final JarEntry	entry = new JarEntry(fsi.getPath());
+			
+			entry.setMethod(JarEntry.DEFLATED);
 			jos.putNextEntry(entry);
 			fsi.copy(jos);
 			jos.closeEntry();
 		}
 	}
-	
 	
 	private static class DefaultBindings extends HashMap<String,Object> implements Bindings {
 		private static final long serialVersionUID = -2491675201928839009L;
@@ -423,7 +427,7 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public void setBindings(final Bindings bindings, final int scope) {
-			if (bindings == null) {
+			if (bindings == null && scope == ScriptContext.ENGINE_SCOPE) {
 				throw new NullPointerException("Bindings to set can't be null");
 			}
 			else {
@@ -450,8 +454,11 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public void setAttribute(final String name, final Object value, final int scope) {
-			if (name == null || name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be null or empty");
+			if (name == null) {
+				throw new NullPointerException("Attribute name can't be null");
+			}
+			else if (name.isEmpty()) {
+				throw new IllegalArgumentException("Attribute name can't be empty");
 			}
 			else {
 				getBindings(scope).put(name,value);
@@ -460,8 +467,11 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public Object getAttribute(final String name, final int scope) {
-			if (name == null || name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be null or empty");
+			if (name == null) {
+				throw new NullPointerException("Attribute name can't be null");
+			}
+			else if (name.isEmpty()) {
+				throw new IllegalArgumentException("Attribute name can't be empty");
 			}
 			else {
 				return getBindings(scope).get(name);
@@ -470,8 +480,11 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public Object removeAttribute(final String name, final int scope) {
-			if (name == null || name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be null or empty");
+			if (name == null) {
+				throw new NullPointerException("Attribute name can't be null");
+			}
+			else if (name.isEmpty()) {
+				throw new IllegalArgumentException("Attribute name can't be empty");
 			}
 			else {
 				return getBindings(scope).remove(name);
@@ -492,8 +505,11 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public int getAttributesScope(final String name) {
-			if (name == null || name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be null or empty");
+			if (name == null) {
+				throw new NullPointerException("Attribute name can't be null");
+			}
+			else if (name.isEmpty()) {
+				throw new IllegalArgumentException("Attribute name can't be empty");
 			}
 			else {
 				return bindings[1].containsKey(name) 
@@ -525,12 +541,12 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 		}
 
 		@Override
-		public void setErrorWriter(final Writer writer) {
-			if (writer == null) {
+		public void setErrorWriter(final Writer errorWriter) {
+			if (errorWriter == null) {
 				throw new NullPointerException("Writer to set can't be null");
 			}
 			else {
-				this.errorWriter = writer;
+				this.errorWriter = errorWriter;
 			}
 		}
 
@@ -541,7 +557,7 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public void setReader(final Reader reader) {
-			if (writer == null) {
+			if (reader == null) {
 				throw new NullPointerException("Reader to set can't be null");
 			}
 			else {

@@ -19,6 +19,7 @@ import javax.script.ScriptEngineFactory;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 public abstract class AbstractScriptEngineFactory implements ScriptEngineFactory {
@@ -103,9 +104,9 @@ public abstract class AbstractScriptEngineFactory implements ScriptEngineFactory
 	}
 
 	@Override
-	public Object getParameter(final String key) throws NullPointerException {
+	public Object getParameter(final String key) throws IllegalArgumentException {
 		if (key == null || key.isEmpty()) {
-			throw new NullPointerException("Key parameter can't be null or empty");
+			throw new IllegalArgumentException("Key parameter can't be null or empty");
 		}
 		else {
 			switch (key) {
@@ -114,7 +115,6 @@ public abstract class AbstractScriptEngineFactory implements ScriptEngineFactory
 				case ScriptEngine.LANGUAGE : return getLanguageName();
 				case ScriptEngine.LANGUAGE_VERSION : return getLanguageVersion();
 				case ScriptEngine.NAME : return getLanguageName();
-				case "THREADING" : return null;
 				default : throw new UnsupportedOperationException("Key ["+key+"] is not supported yet"); 
 			}
 		}

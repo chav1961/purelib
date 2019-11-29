@@ -690,6 +690,11 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		return "FileSystemFS [currentPath=" + currentPath + ", appendMode=" + appendMode + "]";
 	}
 	
+	protected void purgeCurrentDataWrapper() {
+		prevPath = null;
+		prevWrapper = null;
+	}
+	
 	private DataWrapperInterface getDataWrapper(final URI entityPath) throws IOException {
 		if (prevPath != null && entityPath.equals(prevPath)) {	// Micro-cache to optimize chained operations
 			return prevWrapper;

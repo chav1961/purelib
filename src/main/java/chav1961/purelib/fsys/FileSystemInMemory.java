@@ -51,12 +51,16 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 	private static final Icon	ICON = new ImageIcon(FileSystemInMemory.class.getResource("memoryIcon.png"));
 	
 	private final Map<String,MemoryDesc>	content;
+	private final FileSystemInMemory		another;
+	private final boolean					cloned;
 
 	/**
 	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
 	 */
 	public FileSystemInMemory(){
 		this.content = new HashMap<>();
+		this.another = null;
+		this.cloned = false;
 	}
 
 	/**
@@ -68,13 +72,27 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 		super(rootPath);
 		this.content = new HashMap<>();
 		content.put("/",new MemoryDesc("/",Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, "/", DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true)));
+		this.another = null;
+		this.cloned = false;
 	}
 	
 	private FileSystemInMemory(final FileSystemInMemory another) {
 		super(another);
 		this.content = another.content;
+		this.another = another;
+		this.cloned = true;
 	}
 
+	@Override
+	public void close() throws IOException {
+		if (!cloned) {
+			super.close();
+		}
+		else {
+			another.purgeCurrentDataWrapper();
+		}
+	}
+	
 	@Override
 	public boolean canServe(final URI resource) {
 		return URIUtils.canServeURI(resource,SERVE);
@@ -236,7 +254,10 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 
 		@Override
 		public Map<String, Object> getAttributes() throws IOException {
-			if (content.containsKey(wrapper)) {
+			if ("/".equals(wrapper)) {
+				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, "/", DataWrapperInterface.ATTR_LASTMODIFIED, 0, DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true);						
+			}
+			else if (content.containsKey(wrapper)) {
 				return content.get(wrapper).attributes;
 			}
 			else {
