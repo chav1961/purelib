@@ -6,6 +6,9 @@
 3. Дополнить класс Utils универсальным методом обхода деревьев и растащить его на остальные классы библиотеки
 4. Написать класс XMLUtils и перенести в него полезный код из других классов
 5. Написать и отладить метод extract в классе CharUtils
+6. Добавить метод AboutPureLib в класс PureLibSettings
+Пакет basic.annotations
+1. Дополнить пакет аннотацией @Preliminary
 Пакет basic.growablrearrays
 Пакет concurrent
 Пакет exceptions
