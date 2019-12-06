@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
@@ -57,6 +58,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
 
 /**
@@ -713,28 +715,18 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	}
 
 	private void assignEnterAndEscape(JComponent component) {
-		component.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"accept");
-		component.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"cancel");
-		component.getActionMap().put("accept",new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (callback != null) {
-					callback.process(JFileSelectionDialog.this,true);
-					callback = null;
-				}
+		SwingUtils.assignActionKey(component, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e) -> {
+			if (callback != null) {
+				callback.process(JFileSelectionDialog.this,true);
+				callback = null;
 			}
-		});			
-		component.getActionMap().put("cancel",new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (callback != null) {
-					callback.process(JFileSelectionDialog.this,false);
-					callback = null;
-				}
+		}, SwingUtils.ACTION_ACCEPT);
+		SwingUtils.assignActionKey(component, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e) -> {
+			if (callback != null) {
+				callback.process(JFileSelectionDialog.this,false);
+				callback = null;
 			}
-		});			
+		}, SwingUtils.ACTION_EXIT);
 	}
 	
 	public static class SimpleFileFilter implements FilterCallback {

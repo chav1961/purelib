@@ -425,33 +425,27 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				getContentPane().add(currentComponent = (Component)centerId,BorderLayout.CENTER);
 				refreshButtons();
 			}
-			getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1,0),"help");
-			getRootPane().getActionMap().put("help",new AbstractAction(){
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					final String	help = steps[stepIndexById(currentStep)].getHelpId();
+			
+			SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{
+				final String	help = steps[stepIndexById(currentStep)].getHelpId();
+				
+				if (help != null && !help.isEmpty()) {
+					final URI	uri = URI.create(help);
 					
-					if (help != null && !help.isEmpty()) {
-						final URI	uri = URI.create(help);
-						
-						if (uri.isAbsolute() && Desktop.isDesktopSupported()) {
-							try{Desktop.getDesktop().browse(uri);
-							} catch (IOException exc) {
-								state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
-							}
+					if (uri.isAbsolute() && Desktop.isDesktopSupported()) {
+						try{Desktop.getDesktop().browse(uri);
+						} catch (IOException exc) {
+							state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
 						}
-						else {
-							try{SwingUtils.showCreoleHelpWindow(JDialogContainer.this,uri);
-							} catch (IOException exc) {
-								state.message(Severity.error,exc,"Help window error: "+exc.getLocalizedMessage());
-							}
+					}
+					else {
+						try{SwingUtils.showCreoleHelpWindow(JDialogContainer.this,uri);
+						} catch (IOException exc) {
+							state.message(Severity.error,exc,"Help window error: "+exc.getLocalizedMessage());
 						}
 					}
 				}
-			});
-		
+			}, SwingUtils.ACTION_HELP);
 			SwingUtils.centerMainWindow(this,0.5f);
 			
 			final JPanel		historyPanel = new JPanel(new GridLayout(1,1));
@@ -469,30 +463,20 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	}
 
 	private void assignKeys() {
-		getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"OK");
-		getRootPane().getActionMap().put("OK",new AbstractAction(){
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (isWizard) {
-					try{next();
-					} catch (LocalizationException | FlowException exc) {
-						state.message(Severity.error,exc,"Next jump error: "+exc.getLocalizedMessage());
-					}
-				}
-				else {
-					ok();
+		SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT,(e) ->{
+			if (isWizard) {
+				try{next();
+				} catch (LocalizationException | FlowException exc) {
+					state.message(Severity.error,exc,"Next jump error: "+exc.getLocalizedMessage());
 				}
 			}
-		});
-		getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"Cancel");
-		getRootPane().getActionMap().put("Cancel",new AbstractAction(){
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				cancel();
+			else {
+				ok();
 			}
-		});			
+		}, SwingUtils.ACTION_ACCEPT);
+		SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT,(e)->{
+			cancel();
+		}, SwingUtils.ACTION_EXIT);
 	}
 	
 	private void placeCurrentComponent(final String currentState, final String newState) throws LocalizationException, FlowException {

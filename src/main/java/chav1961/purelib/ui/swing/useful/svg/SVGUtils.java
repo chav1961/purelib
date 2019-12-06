@@ -11,10 +11,8 @@ import java.awt.geom.Point2D;
 import java.util.Map;
 
 import chav1961.purelib.basic.CSSUtils;
-import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.CSSUtils.Distance;
-import chav1961.purelib.basic.CSSUtils.Distance.Units;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.CharUtils.SubstitutionSource;
 import chav1961.purelib.basic.Utils;

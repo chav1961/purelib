@@ -8,19 +8,14 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -28,7 +23,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -40,19 +34,13 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
-import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.model.ContentModelFactory;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
@@ -222,28 +210,23 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		final URI[]					result = new URI[] {null};
 		final JFileSystemChanger	mgr = new JFileSystemChanger(localizer, (manager,mode)->{
 												if (mode) {
-													manager.getActionMap().get("ask.accept").actionPerformed(null);
+													manager.getActionMap().get(SwingUtils.ACTION_ACCEPT).actionPerformed(null);
 												}
 												dlg.setVisible(false);
 											}); 
 		
-		mgr.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"ask.accept");
-		mgr.getActionMap().put("ask.accept",new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (mgr.testUri == null) {
-					try{new JLocalizedOptionPane(localizer).message(dlg, ERROR_DESCRIPTION, ERROR_HEADER, JOptionPane.ERROR_MESSAGE);
-					} catch (LocalizationException exc) {
-						PureLibSettings.logger.severe(exc.getLocalizedMessage());
-					}
-				}
-				else {
-					result[0] = mgr.testUri;
-					dlg.setVisible(false);
+		SwingUtils.assignActionKey(mgr, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e) -> {
+			if (mgr.testUri == null) {
+				try{new JLocalizedOptionPane(localizer).message(dlg, ERROR_DESCRIPTION, ERROR_HEADER, JOptionPane.ERROR_MESSAGE);
+				} catch (LocalizationException exc) {
+					PureLibSettings.logger.severe(exc.getLocalizedMessage());
 				}
 			}
-		});			
+			else {
+				result[0] = mgr.testUri;
+				dlg.setVisible(false);
+			}
+		}, SwingUtils.ACTION_ACCEPT);
 		
 		dlg.getContentPane().add(mgr,BorderLayout.CENTER);
 		dlg.pack();

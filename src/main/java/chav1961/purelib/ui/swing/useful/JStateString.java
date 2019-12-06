@@ -593,13 +593,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		
 		final Popup 		window = PopupFactory.getSharedInstance().getPopup(this.getParent(),pane,location.x-parentSize.width/2,location.y-parentSize.height/2);
 
-		table.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).put(SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
-		table.getActionMap().put(SwingUtils.ACTION_EXIT,new AbstractAction() {private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				window.hide();
-			}
-		});
+		SwingUtils.assignActionKey(table, JPanel.WHEN_IN_FOCUSED_WINDOW, SwingUtils.KS_EXIT, (e)->window.hide(), SwingUtils.ACTION_EXIT);
 		window.show();
 	}
 

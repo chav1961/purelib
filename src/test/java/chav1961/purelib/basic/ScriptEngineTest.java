@@ -266,7 +266,7 @@ public class ScriptEngineTest {
 		}
 	}
 
-	@Test
+//	@Test
 	public void evalEngineTest() throws MimeTypeParseException, ScriptException, IOException {
 		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 		final ScriptEngine			engine = factory.getScriptEngine();
@@ -313,7 +313,7 @@ public class ScriptEngineTest {
 		}
 	}
 
-	@Test
+//	@Test
 	public void specificEngineTest() throws MimeTypeParseException, ScriptException, IOException {
 		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 		final PseudoScriptEngine	engine = (PseudoScriptEngine)factory.getScriptEngine();

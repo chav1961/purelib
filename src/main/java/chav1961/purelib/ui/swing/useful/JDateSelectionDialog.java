@@ -45,7 +45,7 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 	private static final String			MONTH_TOOLTIP = "JDateSelectionDialog.month.tooltip";
 	private static final String			DAY_NAMES = "JDateSelectionDialog.day.names";
 
-	private static final String			ESCAPE_ACTION = "commitAndEscape";
+//	private static final String			ESCAPE_ACTION = "commitAndEscape";
 	
 	private static final DateRefresher	NULL_REFRESHER = new DateRefresher() {
 											@Override
@@ -220,14 +220,7 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
             fillDays();
             
 			setPreferredSize(new Dimension(DIALOG_WIDTH,DIALOG_HEIGHT));
-			getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),ESCAPE_ACTION);
-			getActionMap().put(ESCAPE_ACTION,new AbstractAction() {
-				private static final long serialVersionUID = 1L;
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					refresher.refresh(currentDate,true);
-				}
-			});
+			SwingUtils.assignActionKey(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->refresher.refresh(currentDate,true),SwingUtils.ACTION_EXIT);
 			fillLocalizedStrings();
 			setFocusable(true);
 			enableEvents(AWTEvent.FOCUS_EVENT_MASK|AWTEvent.MOUSE_EVENT_MASK|AWTEvent.KEY_EVENT_MASK);

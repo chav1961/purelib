@@ -133,12 +133,14 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_BACKWARD = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_FORWARD = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_HELP = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
+	public static final KeyStroke			KS_ACCEPT = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 	public static final KeyStroke			KS_EXIT = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	public static final KeyStroke			KS_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.CTRL_DOWN_MASK);
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";
 	public static final String				ACTION_HELP = "help";
+	public static final String				ACTION_ACCEPT = "accept";
 	public static final String				ACTION_EXIT = "exit";
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
@@ -455,16 +457,21 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 		}
 	}
 
+	public static void assignActionKey(final JComponent component, final KeyStroke keyStroke, final ActionListener listener, final String actionId) throws NullPointerException, IllegalArgumentException {
+		assignActionKey(component,JPanel.WHEN_FOCUSED,keyStroke, listener, actionId);
+	}	
+	
 	/**
 	 * <p>Assign key to process action on component</p>
 	 * @param component component to assign key to
+	 * @param mode input map mode
 	 * @param keyStroke keystroke to assign
 	 * @param listener action listener to call
 	 * @param actionId action string to associate with the keystroke
 	 * @throws NullPointerException any parameters are null
 	 * @throws IllegalArgumentException some parameters are invalid
 	 */
-	public static void assignActionKey(final JComponent component, final KeyStroke keyStroke, final ActionListener listener, final String actionId) throws NullPointerException, IllegalArgumentException {
+	public static void assignActionKey(final JComponent component, final int mode, final KeyStroke keyStroke, final ActionListener listener, final String actionId) throws NullPointerException, IllegalArgumentException {
 		if (component == null) {
 			throw new NullPointerException("Component can't be null"); 
 		}
@@ -478,7 +485,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			throw new IllegalArgumentException("Action identifier can't be null or empty"); 
 		}
 		else {
-			component.getInputMap(JPanel.WHEN_FOCUSED).put(keyStroke,actionId);
+			component.getInputMap(mode).put(keyStroke,actionId);
 			component.getActionMap().put(actionId,new AbstractAction() {private static final long serialVersionUID = 1L;
 				@Override
 				public void actionPerformed(ActionEvent e) {
