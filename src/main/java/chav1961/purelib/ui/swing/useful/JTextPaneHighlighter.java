@@ -35,6 +35,7 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private static final long 					serialVersionUID = -1205048630967887904L;
 	private static final SimpleAttributeSet		ORDINAL_CHARACTER_STYLE = new SimpleAttributeSet();
 	private static final SimpleAttributeSet		ORDINAL_PARAGRAPH_STYLE = new SimpleAttributeSet();
+	private static final long					REFRESH_DELAY_MILLISECONDS = 100;
 
 	static {
 		StyleConstants.setBold(ORDINAL_CHARACTER_STYLE,false);
@@ -138,23 +139,21 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 				doc.setParagraphAttributes(0,doc.getLength(),getOrdinalParagraphStyle(),false);
 				
 				final String						text = getText().replace("\r","");
-				final HighlightItem<LexemaType>[]	lexList = parseString(text);
-
-				Arrays.sort(lexList,sorter);
-				for (HighlightItem<LexemaType> currentItem : lexList) {
-					final HighlightItem<LexemaType>	item = preprocessLexema(currentItem,text);
-					
-					if (item.length > 0) {
-//						try {
-//							System.err.println("Item: "+item.type+" for <<<"+text.substring(item.from,item.from+item.length)+">>>, from="+item.from+", to="+(item.from+item.length));
-//						} catch (Exception exc) {
-//							exc.printStackTrace();
-//						}
-						if (characterStyles.containsKey(item.type)) {
-							doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
-						}
-						if (paragraphStyles.containsKey(item.type)) {
-							doc.setParagraphAttributes(item.from,item.length,paragraphStyles.get(item.type),useNestedLexemas);
+				
+				if (!text.trim().isEmpty()) {
+					final HighlightItem<LexemaType>[]	lexList = parseString(text);
+	
+					Arrays.sort(lexList,sorter);
+					for (HighlightItem<LexemaType> currentItem : lexList) {
+						final HighlightItem<LexemaType>	item = preprocessLexema(currentItem,text);
+						
+						if (item.length > 0) {
+							if (characterStyles.containsKey(item.type)) {
+								doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
+							}
+							if (paragraphStyles.containsKey(item.type)) {
+								doc.setParagraphAttributes(item.from,item.length,paragraphStyles.get(item.type),useNestedLexemas);
+							}
 						}
 					}
 				}
@@ -176,6 +175,6 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 				}
 			};
 		}
-		PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,100);
+		PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,REFRESH_DELAY_MILLISECONDS);
 	}
 }

@@ -1,22 +1,43 @@
 package chav1961.purelib.basic.subscribable;
 
+/**
+ * <p>This class describes listenable long value. When it's value changes, all the listeners in the given instance will receive events.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ * @param <T> any referenced type to keep in the container
+ */
 public class SubscribableObject<T> extends Subscribable<SubscribableObjectListener>{
 	private final boolean	multithread;
 	private volatile T		value = null;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public SubscribableObject() {
 		this(false);
 	}
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param multithread use multithreaded version of the container
+	 */
 	public SubscribableObject(final boolean multithread) {
 		super(SubscribableObjectListener.class);
 		this.multithread = multithread;
 	}
 	
+	/**
+	 * <p>Get current value of the container content</p>
+	 * @return current value of the content;
+	 */
 	public T get() {
 		return value;
 	}
 	
+	/**
+	 * <p>Set new content value for the given container</p>
+	 * @param newValue new value to set
+	 */
 	public void set(final T newValue) {
 		if (multithread) {
 			synchronized(this) {

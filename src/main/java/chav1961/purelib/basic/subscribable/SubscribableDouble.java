@@ -1,22 +1,42 @@
 package chav1961.purelib.basic.subscribable;
 
+/**
+ * <p>This class describes listenable double value. When it's value changes, all the listeners in the given instance will receive events.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class SubscribableDouble extends Subscribable<SubscribableDoubleListener>{
 	private final boolean	multithread;
 	private volatile double	value = 0;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public SubscribableDouble() {
 		this(false);
 	}
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param multithread use multithreaded version of the container
+	 */
 	public SubscribableDouble(final boolean multithread) {
 		super(SubscribableDoubleListener.class);
 		this.multithread = multithread;
 	}
 	
+	/**
+	 * <p>Get current value of the container content</p>
+	 * @return current value of the content;
+	 */
 	public double get() {
 		return value;
 	}
 	
+	/**
+	 * <p>Set new content value for the given container</p>
+	 * @param newValue new value to set
+	 */
 	public void set(final double newValue) {
 		if (multithread) {
 			synchronized(this) {

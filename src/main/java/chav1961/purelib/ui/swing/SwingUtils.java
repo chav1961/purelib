@@ -8,7 +8,12 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -907,6 +912,77 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			popup.show();
 		}
 	}
+
+	/**
+	 * <p>Calculate location of left-top corner for the window to fit in into screen.</p>
+	 * @param xPosition x-coordinate of window anchor in the screen coordinates (for example, mouse hot spot)
+	 * @param yPosition y-coordinate of window anchor in the screen coordinates (for example, mouse hot spot)
+	 * @param popupWidth width of the window to fit
+	 * @param popupHeight height of the window to fit
+	 * @return left-top location of the window in the screen coordinates. If any moving is not required, returns window anchor coordinates
+	 * @since 0.0.3
+	 */
+	public static Point locateRelativeToAnchor(final int xPosition, final int yPosition, final int popupWidth, final int popupHeight) {
+		final Point 	popupLocation = new Point(xPosition, yPosition);
+
+        if(GraphicsEnvironment.isHeadless()) {
+            return popupLocation;
+        }
+
+        final GraphicsConfiguration gc = getCurrentGraphicsConfiguration(popupLocation);
+        final Toolkit 	toolkit = Toolkit.getDefaultToolkit();
+        final Rectangle scrBounds = gc != null ? gc.getBounds() : new Rectangle(toolkit.getScreenSize()); 
+
+        final long 		popupRightX = (long)popupLocation.x + (long)popupWidth;
+        final long 		popupBottomY = (long)popupLocation.y + (long)popupHeight;
+        final Insets 	scrInsets = toolkit.getScreenInsets(gc);
+        int				scrWidth = scrBounds.width;
+        int 			scrHeight = scrBounds.height;
+
+        scrBounds.x += scrInsets.left;
+        scrBounds.y += scrInsets.top;
+        scrWidth -= scrInsets.left + scrInsets.right;
+        scrHeight -= scrInsets.top + scrInsets.bottom;
+        
+        int 			scrRightX = scrBounds.x + scrWidth;
+        int 			scrBottomY = scrBounds.y + scrHeight;
+
+        if (popupRightX > (long) scrRightX) {
+            popupLocation.x = scrRightX - popupWidth;
+        }
+
+        if (popupBottomY > (long) scrBottomY) {
+            popupLocation.y = scrBottomY - popupHeight;
+        }
+
+        if (popupLocation.x < scrBounds.x) {
+            popupLocation.x = scrBounds.x;
+        }
+
+        if (popupLocation.y < scrBounds.y) {
+            popupLocation.y = scrBounds.y;
+        }
+
+        return popupLocation;
+	}
+
+    private static GraphicsConfiguration getCurrentGraphicsConfiguration(final Point popupLocation) {
+        final GraphicsEnvironment 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] 		gd = ge.getScreenDevices();
+        GraphicsConfiguration 		gc = null;
+        
+        for(int i = 0; i < gd.length; i++) {
+            if(gd[i].getType() == GraphicsDevice.TYPE_RASTER_SCREEN) {
+                final GraphicsConfiguration 	dgc = gd[i].getDefaultConfiguration();
+                
+                if(dgc.getBounds().contains(popupLocation)) {
+                    gc = dgc;
+                    break;
+                }
+            }
+        }
+        return gc;
+    }
 
 	private static class MethodHandleAndAsync {
 		final MethodHandle	handle;

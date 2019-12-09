@@ -236,8 +236,8 @@ public class FileSystemTest {
 		Assert.assertFalse(fs.isFile());
 		Assert.assertTrue(fs.canRead());
 		Assert.assertTrue(fs.canWrite());
-		Assert.assertTrue(fs.lastModified() > 0);
-		Assert.assertEquals(fs.size(),0);
+		Assert.assertTrue(fs.lastModified() >= 0);
+		Assert.assertEquals(fs.size(),0); 
 		
 		try{fs.open(null);
 			Assert.fail("Mandatory exceptin was not detected (null argument)");

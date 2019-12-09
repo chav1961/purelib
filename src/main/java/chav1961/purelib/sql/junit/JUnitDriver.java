@@ -46,7 +46,7 @@ public class JUnitDriver implements Driver {
 		else {
 			final Class<?>	cl = pseudoDatabase.getClass();
 			boolean			wasTable = false;
-			
+			 
 			for (Field item : cl.getFields()) {
 				if (item.isAnnotationPresent(AsSequence.class)) {
 					makeSequence(cl,item);

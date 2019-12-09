@@ -255,13 +255,13 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 		@Override
 		public Map<String, Object> getAttributes() throws IOException {
 			if ("/".equals(wrapper)) {
-				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, "/", DataWrapperInterface.ATTR_LASTMODIFIED, 0, DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true);						
+				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, "/", DataWrapperInterface.ATTR_LASTMODIFIED, 0L, DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true);						
 			}
 			else if (content.containsKey(wrapper)) {
 				return content.get(wrapper).attributes;
 			}
 			else {
-				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, getName(), DataWrapperInterface.ATTR_LASTMODIFIED, 0, DataWrapperInterface.ATTR_DIR, false, DataWrapperInterface.ATTR_EXIST, false, DataWrapperInterface.ATTR_CANREAD, false, DataWrapperInterface.ATTR_CANWRITE, false);						
+				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, getName(), DataWrapperInterface.ATTR_LASTMODIFIED, 0L, DataWrapperInterface.ATTR_DIR, false, DataWrapperInterface.ATTR_EXIST, false, DataWrapperInterface.ATTR_CANREAD, false, DataWrapperInterface.ATTR_CANWRITE, false);						
 			}
 		}
 

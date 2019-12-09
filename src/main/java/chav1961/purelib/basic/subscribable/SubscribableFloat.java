@@ -1,22 +1,42 @@
 package chav1961.purelib.basic.subscribable;
 
+/**
+ * <p>This class describes listenable float value. When it's value changes, all the listeners in the given instance will receive events.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class SubscribableFloat extends Subscribable<SubscribableFloatListener>{
 	private final boolean	multithread;
 	private volatile float	value = 0;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public SubscribableFloat() {
 		this(false);
 	}
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param multithread use multithreaded version of the container
+	 */
 	public SubscribableFloat(final boolean multithread) {
 		super(SubscribableFloatListener.class);
 		this.multithread = multithread;
 	}
 	
+	/**
+	 * <p>Get current value of the container content</p>
+	 * @return current value of the content;
+	 */
 	public float get() {
 		return value;
 	}
 	
+	/**
+	 * <p>Set new content value for the given container</p>
+	 * @param newValue new value to set
+	 */
 	public void set(final float newValue) {
 		if (multithread) {
 			synchronized(this) {

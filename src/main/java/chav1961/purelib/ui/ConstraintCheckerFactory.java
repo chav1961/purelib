@@ -184,7 +184,7 @@ public class ConstraintCheckerFactory {
 								pos += 2;
 							}
 							else {
-								throw new SyntaxException(0,pos, "");
+								throw new SyntaxException(0,pos, "Unknown lexema '-'");
 							}
 							break;
 						case '!' :
@@ -193,7 +193,7 @@ public class ConstraintCheckerFactory {
 								pos += 2;
 							}
 							else {
-								throw new SyntaxException(0,pos, "");
+								throw new SyntaxException(0,pos, "unknown lexema '!'");
 							}
 							break;
 					}
@@ -302,14 +302,15 @@ public class ConstraintCheckerFactory {
 						pos++;
 					}
 					else {
-						throw new SyntaxException(0,pos,"");
+						throw new SyntaxException(0,pos,"Missing ')'");
 					}
 				}
 				else {
-					throw new SyntaxException(0,pos,""); 
+					throw new SyntaxException(0,pos,"Unknonw term. Can be number or string canstant or bracket expression only"); 
 				}
 				break;
 			default :
+				throw new UnsupportedOperationException("Lexema priority level ["+level+"] is not supported yet");
 		}
 		return pos;
 	}

@@ -44,6 +44,20 @@ public class ConstraintCheckerFactoryTest {
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_TERM,"s7\n".toCharArray(),0,PseudoClass4Test.class,result);
 		Assert.assertEquals(ConstraintCheckerFactory.ExprType.Field,result[0].getType());
 		Assert.assertTrue(result[0].cargo instanceof ObjectGetterAndSetter);
+
+		try{ConstraintCheckerFactory.buildTree(666,"2.0\n".toCharArray(),0,PseudoClass4Test.class,result);
+			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
+		} catch (UnsupportedOperationException exc) {
+		}
+		
+		try{ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_OR,"(2.0\n".toCharArray(),0,PseudoClass4Test.class,result);
+			Assert.fail("Mandatory exception was not detected (missing ')')");
+		} catch (SyntaxException exc) {
+		}
+		try{ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_OR,"*\n".toCharArray(),0,PseudoClass4Test.class,result);
+			Assert.fail("Mandatory exception was not detected (missing ')')");
+		} catch (SyntaxException exc) {
+		}
 	}
 
 	@Test
@@ -214,8 +228,32 @@ public class ConstraintCheckerFactoryTest {
 		Assert.assertEquals(Boolean.valueOf(true),ConstraintCheckerFactory.calculate(inst,result[0]));
 		ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_OR,"s2==\"2\"\n".toCharArray(),0,PseudoClass4Test.class,result);
 		Assert.assertEquals(Boolean.valueOf(true),ConstraintCheckerFactory.calculate(inst,result[0]));
+		
+		try{ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_OR,"\"2\"=2.0\n".toCharArray(),0,PseudoClass4Test.class,result);
+			Assert.fail("Mandatory exception was not detected (unknown lexema '=')");
+		} catch (SyntaxException exc) {
+		}
+		try{ConstraintCheckerFactory.buildTree(ConstraintCheckerFactory.PRTY_OR,"\"2\"!2.0\n".toCharArray(),0,PseudoClass4Test.class,result);
+			Assert.fail("Mandatory exception was not detected (unknown lexema '!')");
+		} catch (SyntaxException exc) {
+		}
 	}	
 
+	@Test
+	public void exceptionTest() throws ContentException, NoSuchFieldException {
+		final PseudoClass4Test	inst = new PseudoClass4Test();
+		final Constraint		constr = inst.getClass().getDeclaredField("s7").getAnnotation(Constraint.class);
+		
+		try{ConstraintCheckerFactory.buildChecker(null,constr);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{ConstraintCheckerFactory.buildChecker(inst.getClass(),null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}	
+	
 	@Test
 	public void fullTest() throws ContentException, NoSuchFieldException {
 		final PseudoClass4Test	inst = new PseudoClass4Test();

@@ -104,8 +104,12 @@ public class LightWeightListenerList<Listener> {
 						@SuppressWarnings("unchecked")
 						final Listener[]	newContent = (Listener[]) Array.newInstance(listenerClass,list.length-1);
 						
-						System.arraycopy(list,index,newContent,index,index);
-						System.arraycopy(list,index+1,newContent,index,maxIndex-index);
+						if (index > 0) {
+							System.arraycopy(list,0,newContent,0,index);
+						}
+						if (index < maxIndex - 1) {
+							System.arraycopy(list,index+1,newContent,index,maxIndex-index-1);
+						}
 						list = newContent;
 						return;
 					}
@@ -137,7 +141,7 @@ public class LightWeightListenerList<Listener> {
 	 * (order to call listeners is not predictable). Can't be null.
 	 * @throws NullPointerException if callback is null
 	 */
-	public void fireEvent(final LightWeightListenerCallback<Listener> callback) {
+	public void fireEvent(final LightWeightListenerCallback<Listener> callback) throws NullPointerException {
 		if (callback == null) {
 			throw new NullPointerException("Listener's callback can't be null");
 		}

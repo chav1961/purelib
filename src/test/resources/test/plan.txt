@@ -7,9 +7,14 @@
 4. Написать класс XMLUtils и перенести в него полезный код из других классов
 5. Написать и отладить метод extract в классе CharUtils
 6. Добавить метод AboutPureLib в класс PureLibSettings
+7. Перенести отладочную печтаь класса из ClassLoaderWRapper и CompilerUtils
+8. Дополнить класс CharUtils методами toCharSequence/toWeakCharSequence для доступа к обернутому символьному массиву (в том числе cо слабой внешней ссылкой)
 Пакет basic.annotations
 1. Дополнить пакет аннотацией @Preliminary
 Пакет basic.growablrearrays
+1. Выделить обход дерева в отдельный утилитный класс 
+Пакет cdb
+1. Напистаь тесты для SyntaxNodeUtils
 Пакет concurrent
 Пакет exceptions
 Пакет fsys
@@ -34,6 +39,10 @@
 Пакет sql.content
 1. Дописать покрытие тестами на все классы пакета
 2. Дописать javadoc 
+Пакет sql.juint
+1. Реализовать все классы пакета
+2. Написать для них тесты
+3. Дописать javadoc
 Пакет streams
 1. Переделать JsonSaxHandlerFactory под новые возможности ассемблера и класса GettersAndSetters 
 2. Добавить опцию для BigInteger/BigDecimal
@@ -67,6 +76,7 @@
 4. Дописать javadoc 
 5. Дописать и отладить метод SwingUtils.buildGeneralPath
 6. Дописать и отладить метод SwingUtils.parseCSS 
+7. Написать метод locateRelativeToAnchor в класса SwingUtils
 Пакет ui.swing.terminal
 1. Дописать javadoc 
 Пакет ui.swing.useful

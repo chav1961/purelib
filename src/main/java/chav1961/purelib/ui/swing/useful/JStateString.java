@@ -56,6 +56,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private static final int		STATE_PLAIN = 0;
 	private static final int		STATE_COMMON = 1;
 	private static final int		STATE_STAGED = 2;
+	private static final Dimension	DEFAULT_HISTORY_SIZE = new Dimension(400,200);
 
 	/**
 	 * <p>This lambda-oriented interface will be called on pressing 'cancel' button 
@@ -467,6 +468,19 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		delegate.close();
 	}
 
+	protected void showHistory(final JTable historyContent) {
+		final Point			location = historyView.getLocationOnScreen();
+		final JScrollPane	pane = new JScrollPane(historyContent);
+		final Dimension		parentSize = getParent() != null ? getParent().getSize() : DEFAULT_HISTORY_SIZE;
+		final Dimension		windowSize = new Dimension(parentSize.width/2,parentSize.height/2);
+		final Point			leftTop = SwingUtils.locateRelativeToAnchor(location.x,location.y,windowSize.width,windowSize.height);
+		final Popup 		window = PopupFactory.getSharedInstance().getPopup(this.getParent(),pane,leftTop.x,leftTop.y);
+
+		pane.setPreferredSize(windowSize);
+		SwingUtils.assignActionKey(historyContent, JPanel.WHEN_IN_FOCUSED_WINDOW, SwingUtils.KS_EXIT, (e)->window.hide(), SwingUtils.ACTION_EXIT);
+		window.show();
+	}
+	
 	private void prepareControls() {
 		final SpringLayout	springStaged = new SpringLayout();
 		final JPanel		stagedPanel = new JPanel(springStaged);
@@ -584,17 +598,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 	
 	private void viewHistory() {
-		final JTable		table = new JTable(model);
-		final Point			location = historyView.getLocationOnScreen();
-		final JScrollPane	pane = new JScrollPane(table);
-		final Dimension		parentSize = getParent() != null ? getParent().getSize() : new Dimension(400,200); 
-		
-		pane.setPreferredSize(new Dimension(parentSize.width/2,parentSize.height/2));
-		
-		final Popup 		window = PopupFactory.getSharedInstance().getPopup(this.getParent(),pane,location.x-parentSize.width/2,location.y-parentSize.height/2);
-
-		SwingUtils.assignActionKey(table, JPanel.WHEN_IN_FOCUSED_WINDOW, SwingUtils.KS_EXIT, (e)->window.hide(), SwingUtils.ACTION_EXIT);
-		window.show();
+		showHistory(new JTable(model));
 	}
 
 	private static class Message {
