@@ -35,6 +35,23 @@ public class LocaleSpecificTextWrapperTest {
 		final LocaleSpecificTextWrapper<JLabel>			wc4 = LocaleSpecificTextWrapper.wrap(c4);
 		
 		testWrapper(wc4,c4,()->{return FOR_TEXT.equals(c4.getText());},()->{return FOR_TOOLTIP.equals(c4.getToolTipText());});
+		
+		try{LocaleSpecificTextWrapper.wrap((JComponent)null);
+			Assert.fail("Mandatory exception was not detetced (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{LocaleSpecificTextWrapper.wrap((JTextComponent)null);
+			Assert.fail("Mandatory exception was not detetced (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{LocaleSpecificTextWrapper.wrap((AbstractButton)null);
+			Assert.fail("Mandatory exception was not detetced (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{LocaleSpecificTextWrapper.wrap((JLabel)null);
+			Assert.fail("Mandatory exception was not detetced (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
 	}
 	
 	@FunctionalInterface

@@ -3,6 +3,9 @@ package chav1961.purelib.streams.char2byte.asm;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -11,6 +14,30 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 public class CompilerUtilsTest {
+	@Test
+	public void defineClasstypeTest() throws ContentException {
+		for (Class<?> cl : new Class[] {Object.class,byte.class,short.class,int.class,long.class,float.class,double.class,char.class,boolean.class,void.class}) {
+			switch (CompilerUtils.defineClassType(cl)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	: Assert.assertEquals(Object.class,cl); break;
+				case CompilerUtils.CLASSTYPE_BYTE		: Assert.assertEquals(byte.class,cl); break;
+				case CompilerUtils.CLASSTYPE_SHORT		: Assert.assertEquals(short.class,cl); break;
+				case CompilerUtils.CLASSTYPE_CHAR		: Assert.assertEquals(char.class,cl); break;	
+				case CompilerUtils.CLASSTYPE_INT		: Assert.assertEquals(int.class,cl); break;
+				case CompilerUtils.CLASSTYPE_LONG		: Assert.assertEquals(long.class,cl); break;
+				case CompilerUtils.CLASSTYPE_FLOAT		: Assert.assertEquals(float.class,cl); break;
+				case CompilerUtils.CLASSTYPE_DOUBLE		: Assert.assertEquals(double.class,cl); break;
+				case CompilerUtils.CLASSTYPE_BOOLEAN	: Assert.assertEquals(boolean.class,cl); break;
+				case CompilerUtils.CLASSTYPE_VOID		: Assert.assertEquals(void.class,cl); break;
+				default : Assert.fail("Unidentified answer");
+			}
+		}
+		
+		try{CompilerUtils.defineClassType(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+	}	
+	
 	@Test
 	public void findTest() throws ContentException {
 		final Class<?>	clazz = CompilerUtilsRabbitChild.class;
@@ -97,8 +124,17 @@ public class CompilerUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 
+		Assert.assertEquals("B",CompilerUtils.buildClassSignature(byte.class));
+		Assert.assertEquals("C",CompilerUtils.buildClassSignature(char.class));
+		Assert.assertEquals("D",CompilerUtils.buildClassSignature(double.class));
+		Assert.assertEquals("F",CompilerUtils.buildClassSignature(float.class));
+		Assert.assertEquals("I",CompilerUtils.buildClassSignature(int.class));
+		Assert.assertEquals("J",CompilerUtils.buildClassSignature(long.class));
 		Assert.assertEquals("L"+(clazz.getPackage().getName()+"."+clazz.getSimpleName()).replace(".","/")+";",CompilerUtils.buildClassSignature(clazz));
 		Assert.assertEquals("[L"+(clazz.getPackage().getName()+"."+clazz.getSimpleName()).replace(".","/")+";",CompilerUtils.buildClassSignature(array));
+		Assert.assertEquals("S",CompilerUtils.buildClassSignature(short.class));
+		Assert.assertEquals("V",CompilerUtils.buildClassSignature(void.class));
+		Assert.assertEquals("Z",CompilerUtils.buildClassSignature(boolean.class));
 		
 		try{CompilerUtils.buildClassSignature(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -165,6 +201,7 @@ public class CompilerUtilsTest {
 		
 		Assert.assertEquals("callMethod .method int public\narg0 .parameter java.lang.String final\narg1 .parameter int[] final\n",CompilerUtils.buildMethodHeader(m));
 		Assert.assertEquals("callMethod .method int public\np1 .parameter java.lang.String final\np2 .parameter int[] final\n",CompilerUtils.buildMethodHeader(m,"p1","p2"));
+		Assert.assertEquals("staticCall .method void public static synchronized strictfp throws java.lang.NullPointerException, java.lang.IllegalStateException\n",CompilerUtils.buildMethodHeader(s));
 		
 		try{CompilerUtils.buildMethodHeader(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -227,6 +264,61 @@ public class CompilerUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 	}
+
+	@Test
+	public void walkingTest() throws ContentException, NoSuchFieldException, SecurityException, NoSuchMethodException {
+		final Set<String>	fields = new HashSet<>();
+		final Set<String>	methods = new HashSet<>();
+		final Set<String>	constructors = new HashSet<>();
+		
+		CompilerUtils.walkFields(CompilerUtilsRabbitChild.class,(c,f)->{
+			if (!f.getName().startsWith("$")) {	// Jacoco shaize!
+				fields.add(f.getName());
+			}
+		});
+		Assert.assertEquals(new HashSet(){{addAll(Arrays.asList("field1","field2","field3","field4","str"));}},fields);
+		
+		try{CompilerUtils.walkFields(null,(c,f)->{});
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CompilerUtils.walkFields(CompilerUtilsRabbitChild.class,null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		CompilerUtils.walkMethods(CompilerUtilsRabbitChild.class,(c,m)->{
+			if (c != Object.class && !m.getName().startsWith("$")) {	// Jacoco shaize!
+				methods.add(m.getName());
+			}
+		});
+		Assert.assertEquals(new HashSet(){{addAll(Arrays.asList("callMethod", "callInterface", "call1", "call2", "call3", "call4", "staticCall"));}},methods);
+
+		try{CompilerUtils.walkMethods(null,(c,m)->{});
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CompilerUtils.walkMethods(CompilerUtilsRabbitChild.class,null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		CompilerUtils.walkConstructors(CompilerUtilsRabbitChild.class,(c,con)-> {
+			if (c != Object.class) {	// Jacoco shaize!
+				constructors.add(con.getName());
+			}
+		});
+		Assert.assertEquals(new HashSet(){{addAll(Arrays.asList(CompilerUtilsRabbitChild.class.getName(),CompilerUtilsRabbit.class.getName()));}},constructors);
+
+		try{CompilerUtils.walkConstructors(null,(c,con)->{});
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CompilerUtils.walkConstructors(CompilerUtilsRabbitChild.class,null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
 }
 
 class CompilerUtilsRabbit {
@@ -253,5 +345,5 @@ class CompilerUtilsRabbitChild extends CompilerUtilsRabbit implements RabbitInte
 	public int callMethod(String s, int[] t){return 0;}
 	@Override
 	public void callInterface(String value){}
-	public static void staticCall(){}
+	public static synchronized strictfp void staticCall() throws NullPointerException, IllegalStateException {}
 }

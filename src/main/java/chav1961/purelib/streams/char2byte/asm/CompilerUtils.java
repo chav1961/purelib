@@ -391,7 +391,7 @@ public class CompilerUtils {
 				case CLASSTYPE_DOUBLE	: return "D";	
 				case CLASSTYPE_BOOLEAN	: return "Z";
 				case CLASSTYPE_VOID		: return "V";
-				default : throw new UnsupportedOperationException("Class ["+clazz.getCanonicalName()+"] is not supporet yet");
+				default : throw new UnsupportedOperationException("Class type for ["+clazz.getCanonicalName()+"] is not supported yet");
 			}
 		}
 	}
@@ -509,10 +509,10 @@ public class CompilerUtils {
 				sb.append(" strictfp");
 			}
 			if (method.getExceptionTypes() != null && method.getExceptionTypes().length > 0) {
-				String	prefix = " throws";
+				String	prefix = " throws ";
 				for (Class<?> item : method.getExceptionTypes()) {
 					sb.append(prefix).append(buildClassPath(item));
-					prefix = ",";
+					prefix = ", ";
 				}
 			}
 			sb.append("\n");

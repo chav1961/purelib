@@ -138,7 +138,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private enum ParserState {
-		beforePackage, insideMacros, beforeImport, insideClass, insideInterface, insideInterfaceAbstractMethod, insideClassAbstractMethod, insideClassMethod, insideClassBody, insideBegin, insideMethodLookup, insideMethodTable, afterCLass
+		beforePackage, insideMacros, beforeImport, insideClass, insideInterface, insideInterfaceAbstractMethod, insideClassAbstractMethod, insideClassMethod, insideClassBody, insideBegin, insideMethodLookup, insideMethodTable, afterClass
 	}
 	
 	private enum CommandFormat{
@@ -546,7 +546,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processClassDir(id,data,InternalUtils.skipBlank(data,start));
 									state = ParserState.insideClass;
 									break;
-								case afterCLass :
+								case afterClass :
 									throw new ContentException("Second class directive in the same stream. Use separate streams for each class/interface!");
 								default :
 									throw new ContentException("Nested class directive!");
@@ -560,7 +560,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processInterfaceDir(id,data,InternalUtils.skipBlank(data,start));
 									state = ParserState.insideInterface;
 									break;
-								case afterCLass :
+								case afterClass :
 									throw new ContentException("Second interface directive in the same stream. Use separate streams for each class/interface!");
 								default :
 									throw new ContentException("Nested interface directive!");
@@ -577,7 +577,7 @@ class LineParser implements LineByLineProcessorCallback {
 									break;
 								case beforePackage :
 								case beforeImport :
-								case afterCLass :
+								case afterClass :
 									throw new ContentException("Field directive outside the class/interface!");
 								default :
 									throw new ContentException("Field directive inside the method!");
@@ -596,7 +596,7 @@ class LineParser implements LineByLineProcessorCallback {
 									break;
 								case beforePackage :
 								case beforeImport :
-								case afterCLass :
+								case afterClass :
 									throw new ContentException("Method directive outside the class/interface!");
 								default :
 									throw new ContentException("Nested method directive!");
@@ -651,7 +651,7 @@ class LineParser implements LineByLineProcessorCallback {
 										throw new ContentException("End directive closes class description, but it's label ["+tree.getName(id)+"] is differ from class name ["+tree.getName(classNameId)+"]");
 									}
 									else {
-										state = ParserState.afterCLass;
+										state = ParserState.afterClass;
 									}
 									break;
 								case insideClassAbstractMethod :

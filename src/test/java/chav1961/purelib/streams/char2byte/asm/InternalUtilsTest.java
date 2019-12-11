@@ -76,6 +76,15 @@ public class InternalUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}
+
+	@Test
+	public void skipTest() {
+		Assert.assertEquals(1,InternalUtils.skipBlank(" \n".toCharArray(),0));
+		Assert.assertEquals(5,InternalUtils.skipBlank(" // x\n".toCharArray(),0));
+		
+		Assert.assertEquals(0,InternalUtils.skipNonBlank(" \n".toCharArray(),0));
+		Assert.assertEquals(1,InternalUtils.skipNonBlank("a \n".toCharArray(),0));
+	}
 	
 	public static void testMethod(boolean value1,byte value2,char value3,double val4,float val5,int val6,long val7,String val8,short[][] val9) {}
 	

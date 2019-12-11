@@ -1,6 +1,7 @@
 package chav1961.purelib.i18n.interfaces;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -13,8 +14,10 @@ import java.lang.annotation.Target;
  * @see LocaleSpecificTextSetter
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
+@Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface LocaleResourceLocation {

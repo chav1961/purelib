@@ -20,7 +20,7 @@ import chav1961.purelib.ui.interfaces.UIServer;
  * @see CreoleWriter 
  * @since 0.0.2
  */
-public class UIUtils {
+class UIUtils {
 	private UIUtils(){
 	}
 

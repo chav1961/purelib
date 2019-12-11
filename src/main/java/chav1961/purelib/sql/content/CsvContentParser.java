@@ -18,9 +18,7 @@ import java.util.Map.Entry;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.sql.AbstractContent;
 import chav1961.purelib.sql.ArrayContent;
 import chav1961.purelib.sql.RsMetaDataElement;
@@ -98,11 +96,14 @@ public class CsvContentParser implements ResultSetContentParser {
 		if (access == null) {
 			throw new NullPointerException("Access URL can't be null");
 		}
+		else if (resultSetType != ResultSet.TYPE_FORWARD_ONLY && resultSetType != ResultSet.TYPE_SCROLL_SENSITIVE && resultSetType != ResultSet.TYPE_SCROLL_INSENSITIVE) {
+			throw new IllegalArgumentException("Illegal result set type ["+resultSetType+"]. Can be ResultSet.TYPE_FORWARD_ONLY, ResultSet.TYPE_SCROLL_SENSITIVE or ResultSet.TYPE_SCROLL_INSENSITIVE only");
+		}
 		else if (content == null || content.length == 0) {
 			throw new IllegalArgumentException("Content can't be null or empty array");
 		}
-		else if (resultSetType != ResultSet.TYPE_FORWARD_ONLY && resultSetType != ResultSet.TYPE_SCROLL_SENSITIVE && resultSetType != ResultSet.TYPE_SCROLL_INSENSITIVE) {
-			throw new IllegalArgumentException("Illegal result set type ["+resultSetType+"]. Can be ResultSet.TYPE_FORWARD_ONLY, ResultSet.TYPE_SCROLL_SENSITIVE or ResultSet.TYPE_SCROLL_INSENSITIVE only");
+		else if (options == null) {
+			throw new NullPointerException("Options can't be null");
 		}
 		else {
 			final String	separator = options.getProperty(SQLContentUtils.OPTION_SEPARATOR,String.class,",");
@@ -153,16 +154,13 @@ public class CsvContentParser implements ResultSetContentParser {
 					final List<Object[]>	values = new ArrayList<>();
 					final boolean[]			completed = new boolean[]{false};
 					
-					try(final LineByLineProcessor	lblp = new LineByLineProcessor(new LineByLineProcessorCallback() {
-														@Override
-														public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-															if (lineNo == 1 && processNames) {
-																processFirstLineInternal(lineNo,data,from,length,splitter,content,moveTo);
-																completed[0] = true;
-															}
-															else {
-																values.add(processLineInternal(lineNo,data,from,length,splitter,moveTo));
-															}
+					try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement, lineNo, data, from, length) -> {
+														if (lineNo == 1 && processNames) {
+															processFirstLineInternal(lineNo,data,from,length,splitter,content,moveTo);
+															completed[0] = true;
+														}
+														else {
+															values.add(processLineInternal(lineNo,data,from,length,splitter,moveTo));
 														}
 													}
 												);

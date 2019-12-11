@@ -18,6 +18,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.3
  * @param <T> any JComponent or it's child
  */
 
@@ -49,47 +50,75 @@ public abstract class LocaleSpecificTextWrapper<T extends JComponent> implements
 	 * <p>Create wrapper for the JComponent instance</p>
 	 * @param content wrapper content
 	 * @return wrapper created
+	 * @throws NullPointerException when content is null
+	 * @lastUpdate 0.0.3
 	 */
-	public static LocaleSpecificTextWrapper<JComponent> wrap(final JComponent content) {
-		return new LocaleSpecificTextWrapper<JComponent>(content){
-			@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text);}
-			@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
-		};
+	public static LocaleSpecificTextWrapper<JComponent> wrap(final JComponent content) throws NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("Content to build wrapeer for can't be null");
+		}
+		else {
+			return new LocaleSpecificTextWrapper<JComponent>(content){
+				@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text);}
+				@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
+			};
+		}
 	}
 
 	/**
 	 * <p>Create wrapper for the JTextComponent instance</p>
 	 * @param content wrapper content
 	 * @return wrapper created
+	 * @throws NullPointerException when content is null
+	 * @lastUpdate 0.0.3
 	 */
-	public static LocaleSpecificTextWrapper<JTextComponent> wrap(final JTextComponent content) {
-		return new LocaleSpecificTextWrapper<JTextComponent>(content){
-			@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text); content.setText(text);}
-			@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
-		};
+	public static LocaleSpecificTextWrapper<JTextComponent> wrap(final JTextComponent content) throws NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("Content to build wrapeer for can't be null");
+		}
+		else {
+			return new LocaleSpecificTextWrapper<JTextComponent>(content){
+				@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text); content.setText(text);}
+				@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
+			};
+		}
 	}
 
 	/**
 	 * <p>Create wrapper for the AbstractButton instance</p>
 	 * @param content wrapper content
 	 * @return wrapper created
+	 * @throws NullPointerException when content is null
+	 * @lastUpdate 0.0.3
 	 */
-	public static LocaleSpecificTextWrapper<AbstractButton> wrap(final AbstractButton content) {
-		return new LocaleSpecificTextWrapper<AbstractButton>(content){
-			@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text); content.setText(text);}
-			@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
-		};
+	public static LocaleSpecificTextWrapper<AbstractButton> wrap(final AbstractButton content) throws NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("Content to build wrapeer for can't be null");
+		}
+		else {
+			return new LocaleSpecificTextWrapper<AbstractButton>(content){
+				@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text); content.setText(text);}
+				@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
+			};
+		}
 	}
 
 	/**
 	 * <p>Create wrapper for the JLabel instance</p>
 	 * @param content wrapper content
 	 * @return wrapper created
+	 * @throws NullPointerException when content is null
+	 * @lastUpdate 0.0.3
 	 */
-	public static LocaleSpecificTextWrapper<JLabel> wrap(final JLabel content) {
-		return new LocaleSpecificTextWrapper<JLabel>(content){
-			@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text); content.setText(text);}
-			@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
-		};
+	public static LocaleSpecificTextWrapper<JLabel> wrap(final JLabel content) throws NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("Content to build wrapeer for can't be null");
+		}
+		else {
+			return new LocaleSpecificTextWrapper<JLabel>(content){
+				@Override public void setLocaleSpecificText(final String text) {checkParameter(PARM_TEXT,text); content.setText(text);}
+				@Override public void setLocaleSpecificToolTipText(final String toolTip) {checkParameter(PARM_TOOLTIP,toolTip); content.setToolTipText(toolTip);}
+			};
+		}
 	}
 }

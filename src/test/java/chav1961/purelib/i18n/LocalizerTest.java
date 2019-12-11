@@ -46,7 +46,7 @@ public class LocalizerTest {
 		Assert.assertEquals(pl.getValue("key2"),"value2");
 		Assert.assertEquals(pl.getValue("key3"),"HELP_test");
 		Assert.assertEquals(pl.getValue("key4"),"HELP_test");
-		
+
 		try {pl.getValue("");
 			Assert.fail("Mandatory exception was not detected (null or empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {

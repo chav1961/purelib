@@ -27,6 +27,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see LocaleSpecificTextSetter
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 
 public class LocalizerFactory {
@@ -79,18 +80,19 @@ public class LocalizerFactory {
 	 * <p>Build localizer instance for the given object instance. Object instance must be annotated with both {@linkplain LocaleResourceLocation} and
 	 * {@linkplain LocaleResource} annotations (see annotation descriptions).</p> 
 	 * @param instance object instance to build localizer for
-	 * @return localizer build or null on building process failure
+	 * @return localizer build or null if no any items were marked by {@linkplain LocaleResource} annotations
 	 * @throws NullPointerException if object instance was null
 	 * @throws IllegalArgumentException when any errors in the annotations were detected
 	 * @throws IOException when any I/O errors were detected on localizer building
 	 * @throws LocalizationException when any errors in the annotations were detected
+	 * @lastUpdate 0.0.3
 	 */
 	public static Localizer buildLocalizerForInstance(final Object instance) throws NullPointerException, IllegalArgumentException, IOException, LocalizationException {
 		if (instance == null) {
 			throw new NullPointerException("Instance to build for can't be null");
 		}
 		else {
-			final Class<?>	cl = instance.getClass();
+			Class<?>	cl = instance.getClass();
 			
 			if (!cl.isAnnotationPresent(LocaleResourceLocation.class)) {
 				return null;
@@ -100,27 +102,31 @@ public class LocalizerFactory {
 				final StringBuilder	sb = new StringBuilder();
 				boolean				wereErrors = false;
 				boolean				marked = false;
-				
-				
-				for (Field f : cl.getDeclaredFields()) {
-					if (f.isAnnotationPresent(LocaleResource.class)) {
-						if (!localizer.containsKey(f.getAnnotation(LocaleResource.class).value())) {
-							sb.append("field ["+f.getName()+"] - value reference ["+f.getAnnotation(LocaleResource.class).value()+"] is missing\n");
-							wereErrors = true;
+			
+				while (cl != null) {
+					for (Field f : cl.getDeclaredFields()) {
+						if (f.isAnnotationPresent(LocaleResource.class)) {
+							final LocaleResource	anno = f.getAnnotation(LocaleResource.class); 
+							
+							if (!anno.value().isEmpty() && !localizer.containsKey(anno.value())) {
+								sb.append("field ["+f.getName()+"] - value reference ["+f.getAnnotation(LocaleResource.class).value()+"] is missing\n");
+								wereErrors = true;
+							}
+							if (!localizer.containsKey(anno.tooltip())) {
+								sb.append("field ["+f.getName()+"] - tooltip reference ["+f.getAnnotation(LocaleResource.class).tooltip()+"] is missing\n");
+								wereErrors = true;
+							}
+							if (!JComponent.class.isAssignableFrom(f.getType()) && !LocaleSpecificTextSetter.class.isAssignableFrom(f.getType())) {
+								sb.append("field ["+f.getName()+"] must be a JComponent instance (or it's child) or must implements "+LocaleSpecificTextSetter.class+" interface\n");
+								wereErrors = true;
+							}
+							marked = true;
 						}
-						if (!localizer.containsKey(f.getAnnotation(LocaleResource.class).tooltip())) {
-							sb.append("field ["+f.getName()+"] - tooltip reference ["+f.getAnnotation(LocaleResource.class).tooltip()+"] is missing\n");
-							wereErrors = true;
-						}
-						if (!JComponent.class.isAssignableFrom(f.getType()) && !LocaleSpecificTextSetter.class.isAssignableFrom(f.getType())) {
-							sb.append("field ["+f.getName()+"] must be a JComponent instance (or it's child) or must implements "+LocaleSpecificTextSetter.class+" interface\n");
-							wereErrors = true;
-						}
-						marked = true;
 					}
+					cl = cl.getSuperclass();
 				}
 				if (wereErrors) {
-					throw new LocalizationException("Errors for the ["+cl.getAnnotation(LocaleResourceLocation.class).value()+"] resources from the given instance:\n"+sb.toString()); 
+					throw new LocalizationException("Errors for the ["+instance.getClass().getAnnotation(LocaleResourceLocation.class).value()+"] resources from the given instance:\n"+sb.toString()); 
 				}
 				else if (marked) {
 					return localizer;
@@ -223,57 +229,66 @@ public class LocalizerFactory {
 	 * @throws NullPointerException when any parameters are null
 	 * @throws IOException when I/O exception was detected
 	 * @throws LocalizationException when localization exception was detected
+	 * @lastUpdate 0.0.3
 	 */
 	public static <T> void fillLocalizedContent(final Localizer fillFrom, final T instance, final FillLocalizedContentCallback<T> callback, final PostProcessCallback<T> postprocess) throws NullPointerException, IOException, LocalizationException {
 		if (fillFrom == null) {
 			throw new NullPointerException("Localizer to fill from can't be null");
 		}
 		else if (instance == null) {
-			throw new NullPointerException("Instance to fill can't be null");
+			throw new NullPointerException("Instance to fill to can't be null");
 		}
 		else if (callback == null) {
 			throw new NullPointerException("Callback can't be null");
 		}
+		else if (postprocess == null) {
+			throw new NullPointerException("Postproces can't be null");
+		}
 		else {
-			final Class<?>	cl = instance.getClass();
+			Class<?>	cl = instance.getClass();
 			
-			for (Field f : cl.getDeclaredFields()) {
-				if (f.isAnnotationPresent(LocaleResource.class)) {
-					if (JComponent.class.isAssignableFrom(f.getType())) {
-						f.setAccessible(true);
-						try{final Object	field = f.get(instance); 
-
-							if (field != null) {
-								((JComponent)field).setToolTipText(postprocess.process(fillFrom, instance, f, fillFrom.getValue(f.getAnnotation(LocaleResource.class).tooltip())));
-								if (field instanceof JTextComponent) {
-									((JTextComponent)field).setText(postprocess.process(fillFrom,instance,f,fillFrom.getValue(f.getAnnotation(LocaleResource.class).value())));
+			while (cl != null) {
+				for (Field f : cl.getDeclaredFields()) {
+					if (f.isAnnotationPresent(LocaleResource.class)) {
+						final LocaleResource	anno = f.getAnnotation(LocaleResource.class);
+						
+						if (JComponent.class.isAssignableFrom(f.getType())) {
+							f.setAccessible(true);
+							try{final Object	field = f.get(instance); 
+	
+								if (field != null) {
+									((JComponent)field).setToolTipText(postprocess.process(fillFrom, instance, f, fillFrom.getValue(anno.tooltip())));
+									if (field instanceof JTextComponent) {
+										((JTextComponent)field).setText(postprocess.process(fillFrom,instance,f,fillFrom.getValue(anno.value())));
+									}
+									if (field instanceof JLabel) {
+										((JLabel)field).setText(postprocess.process(fillFrom,instance,f,fillFrom.getValue(anno.value())));
+									}
+									if ((field instanceof AbstractButton) && (!anno.value().isEmpty())){
+										((AbstractButton)field).setText(postprocess.process(fillFrom,instance,f,fillFrom.getValue(anno.value())));
+									}
 								}
-								if (field instanceof JLabel) {
-									((JLabel)field).setText(postprocess.process(fillFrom,instance,f,fillFrom.getValue(f.getAnnotation(LocaleResource.class).value())));
-								}
-								if (field instanceof AbstractButton) {
-									((AbstractButton)field).setText(postprocess.process(fillFrom,instance,f,fillFrom.getValue(f.getAnnotation(LocaleResource.class).value())));
-								}
+							} catch (IllegalArgumentException | IllegalAccessException e) {
+								throw new LocalizationException("Class ["+cl+"] field ["+f+"]: error setting values ("+e.getLocalizedMessage()+")"); 
 							}
-						} catch (IllegalArgumentException | IllegalAccessException e) {
-							throw new LocalizationException("Class ["+cl+"] field ["+f+"]: error setting values ("+e.getLocalizedMessage()+")"); 
 						}
-					}
-					else if (LocaleSpecificTextSetter.class.isAssignableFrom(f.getType())) {
-						f.setAccessible(true);
-						try{final Object	field = f.get(instance); 
-							
-							if (field != null) {
-								callback.fill(fillFrom,instance,f,fillFrom.getValue(f.getAnnotation(LocaleResource.class).value()),fillFrom.getValue(f.getAnnotation(LocaleResource.class).tooltip()),(LocaleSpecificTextSetter)field,postprocess);
+						else if (LocaleSpecificTextSetter.class.isAssignableFrom(f.getType())) {
+							f.setAccessible(true);
+							try{final Object	field = f.get(instance); 
+								
+								if (field != null) {
+									callback.fill(fillFrom,instance,f,fillFrom.getValue(anno.value()),fillFrom.getValue(anno.tooltip()),(LocaleSpecificTextSetter)field,postprocess);
+								}
+							} catch (IllegalArgumentException | IllegalAccessException e) {
+								throw new LocalizationException("Class ["+cl+"] field ["+f+"]: error setting values ("+e.getLocalizedMessage()+")"); 
 							}
-						} catch (IllegalArgumentException | IllegalAccessException e) {
-							throw new LocalizationException("Class ["+cl+"] field ["+f+"]: error setting values ("+e.getLocalizedMessage()+")"); 
 						}
-					}
-					else {
-						throw new LocalizationException("Class ["+cl+"] field ["+f+"] need be JComponent or it's child to use with the ["+LocaleResource.class.getSimpleName()+"] annotation"); 
+						else {
+							throw new LocalizationException("Class ["+cl+"] field ["+f+"] need be JComponent or it's child to use with the ["+LocaleResource.class.getSimpleName()+"] annotation"); 
+						}
 					}
 				}
+				cl = cl.getSuperclass();
 			}
 		}
 	}

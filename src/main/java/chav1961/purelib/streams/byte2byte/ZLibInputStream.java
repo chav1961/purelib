@@ -13,13 +13,15 @@ import java.util.zip.Inflater;
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.3
  */
 public class ZLibInputStream extends InputStream {
+	private static final int		MINIMUM_INNER_BUFFER = 4096;
 	private static final int		DEFAULT_INNER_BUFFER = 8192;
 	
 	protected final InputStream		nested;
 	private final Inflater			inflater = new Inflater(true);
-	private final byte[]			buffer = new byte[DEFAULT_INNER_BUFFER];
+	private final byte[]			buffer;
 	
 	/**
 	 * <p>Constructor of the class</p>
@@ -27,11 +29,26 @@ public class ZLibInputStream extends InputStream {
 	 * @throws NullPointerException if parameter is null
 	 */
 	public ZLibInputStream(final InputStream nested) throws NullPointerException {
+		this(nested,DEFAULT_INNER_BUFFER);
+	}
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param nested stream to load bytes from
+	 * @param bufferSize buffer size to read content
+	 * @throws NullPointerException if parameter is null
+	 * @throws IllegalArgumentException if buffer size is too small
+	 */
+	public ZLibInputStream(final InputStream nested, final int bufferSize) throws NullPointerException, IllegalArgumentException {
 		if (nested == null) {
 			throw new NullPointerException("Nested output stream can't be null");
 		}
+		else if (bufferSize < MINIMUM_INNER_BUFFER) {
+			throw new IllegalArgumentException("Buffer size ["+bufferSize+"] is too small. Must be at least "+MINIMUM_INNER_BUFFER);
+		}
 		else {
 			this.nested = nested;
+			this.buffer = new byte[bufferSize];
 		}
 	}
 

@@ -135,11 +135,14 @@ public class XMLContentParser implements ResultSetContentParser {
 		if (access == null) {
 			throw new NullPointerException("Access URL can't be null");
 		}
-		else if (content == null || content.length == 0) {
-			throw new NullPointerException("Content can't be null or empty array");
-		}
 		else if (resultSetType != ResultSet.TYPE_FORWARD_ONLY && resultSetType != ResultSet.TYPE_SCROLL_SENSITIVE && resultSetType != ResultSet.TYPE_SCROLL_INSENSITIVE) {
 			throw new IllegalArgumentException("Illegal result set type ["+resultSetType+"]. Can be ResultSet.TYPE_FORWARD_ONLY, ResultSet.TYPE_SCROLL_SENSITIVE or ResultSet.TYPE_SCROLL_INSENSITIVE only");
+		}
+		else if (content == null || content.length == 0) {
+			throw new IllegalArgumentException("Content can't be null or empty array");
+		}
+		else if (options == null) {
+			throw new NullPointerException("Options can't be null");
 		}
 		else if (!options.containsKey(SQLContentUtils.OPTION_ROW_TAG)) {
 			throw new IllegalArgumentException("Mandatory option ["+SQLContentUtils.OPTION_ROW_TAG+"] is missing in the URI query string");

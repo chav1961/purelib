@@ -45,7 +45,8 @@ public class ZLibStreamTest {
 				final Reader				rdr = new InputStreamReader(zlis);
 				final BufferedReader		brdr = new BufferedReader(rdr)) {
 				
-				Assert.assertEquals(brdr.readLine(),"test string");
+				final String				line = brdr.readLine(); 
+				Assert.assertEquals("test string",line);
 
 				try {zlis.read(null);
 					Assert.fail("Mandatory exception was not detected (null 1-st argument)");

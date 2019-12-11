@@ -1,16 +1,20 @@
 package chav1961.purelib.i18n;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Locale;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
+import chav1961.purelib.i18n.LocalizerFactory.PostProcessCallback;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -19,7 +23,10 @@ public class LocalizerFactoryTest {
 
 	@Test
 	public void getLocalizerTest() throws NullPointerException, IOException {
-		Assert.assertNotNull(LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")));
+		final Localizer	l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test"));
+		
+		Assert.assertNotNull(l);
+		Assert.assertEquals(l,LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")));
 		
 		try {LocalizerFactory.getLocalizer(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -70,6 +77,10 @@ public class LocalizerFactoryTest {
 		Assert.assertEquals(plc.f1.getToolTipText(),l.getValue("key2"));
 		Assert.assertEquals(plc.text,l.getValue("key1"));
 		Assert.assertEquals(plc.tooltip,l.getValue("key2"));
+		Assert.assertEquals(plc.f3.getText(),l.getValue("key1"));
+		Assert.assertEquals(plc.f3.getToolTipText(),l.getValue("key2"));
+		Assert.assertEquals(plc.f4.getText(),l.getValue("key1"));
+		Assert.assertEquals(plc.f4.getToolTipText(),l.getValue("key2"));
 		
 		try{LocalizerFactory.fillLocalizedContent(null,plc);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -77,6 +88,23 @@ public class LocalizerFactoryTest {
 		}
 		try{LocalizerFactory.fillLocalizedContent(l,null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{LocalizerFactory.fillLocalizedContent(l,new PseudoLocalizerErr3());
+			Assert.fail("Mandatory exception was not detected (unknown keys in the annotations)");
+		} catch (LocalizationException exc) {
+		}
+		try{LocalizerFactory.fillLocalizedContent(l,new PseudoLocalizerErr4());
+			Assert.fail("Mandatory exception was not detected (annotation for illegal field class)");
+		} catch (LocalizationException exc) {
+		}
+		
+		try{LocalizerFactory.fillLocalizedContent(l,plc,null,(localizer, instance, f, value)->value);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{LocalizerFactory.fillLocalizedContent(l,plc,(localizer,instance,f,text,tooltip,toFill,postprocess)->{},null);
+			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
 		} catch (NullPointerException exc) {
 		}
 	}
@@ -94,6 +122,12 @@ class PseudoLocalizerCheck {
 		@Override public void setLocaleSpecificText(String text) {PseudoLocalizerCheck.this.text = text;}
 		@Override public void setLocaleSpecificToolTipText(String toolTip) {PseudoLocalizerCheck.this.tooltip = toolTip;}
 	}; 
+
+	@LocaleResource(value="key1",tooltip="key2")
+	public final JTextField			f3 = new JTextField();
+
+	@LocaleResource(value="key1",tooltip="key2")
+	public final JButton			f4 = new JButton();
 }
 
 class PseudoLocalizerErr1 {
