@@ -1,0 +1,16 @@
+package chav1961.purelib.net.root;
+
+import java.net.URLStreamHandler;
+import java.net.spi.URLStreamHandlerProvider;
+
+public class RootHandlerProvider extends URLStreamHandlerProvider {
+	@Override
+	public URLStreamHandler createURLStreamHandler(final String protocol) {
+		if (Handler.PROTOCOL.equalsIgnoreCase(protocol)) {
+			return new Handler();
+		}
+		else {
+			return null;
+		}
+	}
+}

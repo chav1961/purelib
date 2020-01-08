@@ -1,5 +1,6 @@
 package chav1961.purelib.nanoservice;
 
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.FileInputStream;
@@ -37,8 +38,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
@@ -60,6 +59,7 @@ import com.sun.net.httpserver.HttpsServer;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.ClassLoaderWrapper;
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.TemporaryStore;

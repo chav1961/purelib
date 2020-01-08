@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.chav1961</groupId>
 	<artifactId>purelib</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 	<description>Pure Java library with some useful classes</description>
 	<url>https://github.com/chav1961/purelib</url>
 	<packaging>jar</packaging>
@@ -78,13 +78,13 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
-	    <dependency>
+<!-- 	    <dependency>
 	        <groupId>com.sun</groupId>
 	        <artifactId>tools</artifactId>
 	        <version>1.8.0</version>
 	        <scope>system</scope>
 	        <systemPath>${toolsjar}</systemPath>
-	    </dependency>
+	    </dependency>  -->
 	</dependencies>
 
 	<distributionManagement>

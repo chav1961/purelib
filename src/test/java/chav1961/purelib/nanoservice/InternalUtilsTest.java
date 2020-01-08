@@ -1,14 +1,13 @@
 package chav1961.purelib.nanoservice;
 
 
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.IOException;
-
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.nanoservice.InternalUtils;

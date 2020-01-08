@@ -6,6 +6,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.datatransfer.MimeTypeParseException;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.CharArrayReader;
@@ -17,8 +18,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Hashtable;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -28,6 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;

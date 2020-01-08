@@ -134,7 +134,7 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 					final XPath 			xpath = xPathfactory.newXPath();
 					final NamespaceContext	nsc = new NamespaceContext() {
 												@Override
-												public Iterator<?> getPrefixes(final String namespaceURI) {
+												public Iterator<String> getPrefixes(final String namespaceURI) {
 													return null;
 												}
 												

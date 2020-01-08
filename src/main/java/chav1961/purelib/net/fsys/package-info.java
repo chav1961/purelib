@@ -5,4 +5,4 @@
  * @author achernomyrdin
  *
  */
-package sun.net.www.protocol.fsys;
+package chav1961.purelib.net.fsys;

@@ -155,8 +155,8 @@ public class SwingUtilsTest {
 		final JFrame	frame = new JFrame();
 		
 		SwingUtils.centerMainWindow(frame);
-		Assert.assertTrue(frame.getWidth() >= 3*screenSize.getWidth()/4);
-		Assert.assertTrue(frame.getHeight() >= 3*screenSize.getHeight()/4);
+		Assert.assertTrue(frame.getWidth() >= 3*screenSize.getWidth()/4 - 1);
+		Assert.assertTrue(frame.getHeight() >= 3*screenSize.getHeight()/4 - 1);
 		Assert.assertTrue(frame.getX() <= screenSize.getWidth()/8);
 		Assert.assertTrue(frame.getY() <= screenSize.getHeight()/8);
 		

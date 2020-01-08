@@ -188,7 +188,8 @@ public class PluggableClassLoader extends ClassLoader implements AutoCloseable {
 			loadedClasses.clear();
 		}
 		
-		String getName() {
+		@Override
+		public String getName() {
 			return name;
 		}
 

@@ -1,9 +1,8 @@
 package chav1961.purelib.basic;
 
+import java.awt.datatransfer.MimeTypeParseException;
 import java.util.Arrays;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;

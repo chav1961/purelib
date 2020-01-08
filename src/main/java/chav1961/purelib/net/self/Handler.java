@@ -1,4 +1,4 @@
-package sun.net.www.protocol.self;
+package chav1961.purelib.net.self;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,6 +15,8 @@ import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class Handler extends URLStreamHandler {
+	public static final String	PROTOCOL = "self";
+	
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
 		return new SelfStreamHandler(){

@@ -1,6 +1,7 @@
 package chav1961.purelib.i18n;
 
 
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -21,12 +22,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;

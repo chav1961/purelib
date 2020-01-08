@@ -5,8 +5,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.activation.MimeType;
-
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.char2char.CreoleWriter;

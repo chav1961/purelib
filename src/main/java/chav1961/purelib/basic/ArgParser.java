@@ -1,7 +1,6 @@
 package chav1961.purelib.basic;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.CommandLineParametersException;
-import chav1961.purelib.basic.exceptions.ConsoleCommandException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.sql.SQLUtils;
 
@@ -726,7 +724,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 	
-	protected static class EnumArg<Type extends Enum<?>> extends AbstractArg {
+	protected static class EnumArg<Type extends Enum> extends AbstractArg {
 		private final String[]		defaults;
 		private final Class<Type>	enumType;
 
@@ -746,7 +744,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (enumType.isAssignableFrom(awaited)) {
-				try{return (T)Enum.valueOf((Class<Enum>)awaited,value);
+				try{return (T)Enum.valueOf((Class<Type>)awaited,value);
 				} catch (IllegalArgumentException e) {
 					throw new CommandLineParametersException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
 				}
@@ -772,7 +770,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
-				try{Enum.valueOf((Class<Enum>)enumType,value);
+				try{Enum.valueOf(enumType,value);
 				} catch (IllegalArgumentException e) {
 					throw new CommandLineParametersException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
 				}

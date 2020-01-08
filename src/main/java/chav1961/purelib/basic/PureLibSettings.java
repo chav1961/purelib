@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 import java.awt.Color;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +19,6 @@ import java.util.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;

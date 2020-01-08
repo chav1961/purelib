@@ -4,9 +4,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.activation.MimeType;
 import javax.swing.text.html.parser.ContentModel;
 
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.interfaces.InputStreamGetter;

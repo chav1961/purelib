@@ -3,7 +3,6 @@ package chav1961.purelib.basic;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.activation.MimeType;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 

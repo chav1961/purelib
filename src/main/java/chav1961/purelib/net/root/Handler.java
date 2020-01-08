@@ -1,4 +1,4 @@
-package sun.net.www.protocol.root;
+package chav1961.purelib.net.root;
 
 import java.io.IOException;
 import java.net.URI;
@@ -8,9 +8,10 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils;
 
 public class Handler extends URLStreamHandler {
+	public static final String	PROTOCOL = "root";
+	
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
 		try{final URI 			content = url.toURI();

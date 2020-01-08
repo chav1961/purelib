@@ -8,7 +8,7 @@ import java.net.URLConnection;
 import org.junit.Assert;
 import org.junit.Test;
 
-import sun.net.www.protocol.root.Handler;
+import chav1961.purelib.net.root.Handler;
 
 public class HandlersTest {
 	@Test

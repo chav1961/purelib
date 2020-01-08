@@ -1,5 +1,7 @@
 package chav1961.purelib.nanoservice;
 
+
+import java.awt.datatransfer.MimeTypeParseException;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -25,9 +27,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
-import javax.activation.MimetypesFileTypeMap;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -69,6 +68,8 @@ import org.xml.sax.SAXException;
 import com.sun.net.httpserver.Headers;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.MimeType;
+import chav1961.purelib.basic.MimetypesFileTypeMap;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -124,7 +125,7 @@ public class InternalUtils {
 		}
 	}
 	
-	public static MimeType[] buildMime(final String... source) throws MimeTypeParseException {
+	public static MimeType[] buildMime(final String... source) throws java.awt.datatransfer.MimeTypeParseException {
 		if (source == null) {
 			throw new NullPointerException("Source MIME list can't be null");
 		}

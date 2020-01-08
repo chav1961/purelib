@@ -5,4 +5,4 @@
  * @author sasa21
  *
  */
-package sun.net.www.protocol.root;
+package chav1961.purelib.net.root;

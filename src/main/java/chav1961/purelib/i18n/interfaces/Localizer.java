@@ -3,10 +3,10 @@ package chav1961.purelib.i18n.interfaces;
 import java.io.Reader;
 import java.util.Locale;
 
-import javax.activation.MimeType;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SpiService;
