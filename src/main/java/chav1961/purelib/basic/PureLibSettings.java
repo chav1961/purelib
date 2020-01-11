@@ -250,11 +250,6 @@ public class PureLibSettings {
 	public static final DataFlavor	MODEL_DATA_FLAVOR = new DataFlavor(ContentNodeMetadata.class, MODEL_DATA_FLAVOR_NAME);	
 	
 	/**
-	 * <p>Common-accessible localizer for the Pure Library</p> 
-	 */
-	public static final Localizer		PURELIB_LOCALIZER = createPureLibLocalizer();
-	
-	/**
 	 * <p>Null logger facade for any purposes</p>
 	 */
 	public static final LoggerFacade	NULL_LOGGER = new NullLoggerFacade();
@@ -264,6 +259,12 @@ public class PureLibSettings {
 	 */
 	public static final LoggerFacade	SYSTEM_ERR_LOGGER = new SystemErrLoggerFacade();
 
+	/**
+	 * <p>Common-accessible localizer for the Pure Library. This description must be after loggers descriptor because it uses them inside the PureLibLocalizer</p> 
+	 */
+	public static final Localizer		PURELIB_LOCALIZER = createPureLibLocalizer();
+	
+	
 	/**
 	 * <p>Current logger to put purelib debug trace to</p>
 	 * @since 0.0.3

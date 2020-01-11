@@ -123,7 +123,7 @@ public class SwingUtilsTest {
 
 		for (Class<?> item : new Class<?>[]{boolean.class,String.class,int.class,double.class,Date.class,ContinueMode.class,File.class,URI.class}) {
 			final FieldFormat			format = new FieldFormat(item,"");
-			final ContentNodeMetadata	meta = new MutableContentNodeMetadata("name",item,"test",URI.create(Localizer.LOCALIZER_SCHEME+":prop:./chav1961/purelib/i18n/localization"),"testSet1","testSet2","testSet3",format,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"),null);
+			final ContentNodeMetadata	meta = new MutableContentNodeMetadata("name",item,"test",URI.create(Localizer.LOCALIZER_SCHEME+":xml:file:./src/main/resources/chav1961/purelib/i18n/localization.xml"),"testSet1","testSet2","testSet3",format,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"),null);
 			final JComponent			component = SwingUtils.prepareRenderer(meta, format, monitor);
 			
 			Assert.assertNotNull(component);

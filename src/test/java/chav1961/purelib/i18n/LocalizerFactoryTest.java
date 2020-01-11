@@ -23,10 +23,10 @@ public class LocalizerFactoryTest {
 
 	@Test
 	public void getLocalizerTest() throws NullPointerException, IOException {
-		final Localizer	l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test"));
+		final Localizer	l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml"));
 		
 		Assert.assertNotNull(l);
-		Assert.assertEquals(l,LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")));
+		Assert.assertEquals(l,LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml")));
 		
 		try {LocalizerFactory.getLocalizer(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -110,7 +110,7 @@ public class LocalizerFactoryTest {
 	}
 }
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml")
 class PseudoLocalizerCheck {
 	public String					text = "", tooltip = "";
 	
@@ -133,11 +133,11 @@ class PseudoLocalizerCheck {
 class PseudoLocalizerErr1 {
 }
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml")
 class PseudoLocalizerErr2 {
 }
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml")
 class PseudoLocalizerErr3 {
 	
 @LocaleResource(value="unknown",tooltip="key2")
@@ -147,7 +147,7 @@ class PseudoLocalizerErr3 {
 	public final JLabel				f2 = new JLabel();
 }
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml")
 class PseudoLocalizerErr4 {
 	
 @LocaleResource(value="key1",tooltip="key2")

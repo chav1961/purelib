@@ -8,7 +8,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/localization")
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/main/resources/chav1961/purelib/i18n/localization.xml")
 @LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen")	
 @Action(resource=@LocaleResource(value="calculate",tooltip="calculateTooltip"),actionString="calculate",simulateCheck=true) 
 public class PseudoData {

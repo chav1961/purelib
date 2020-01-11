@@ -130,7 +130,7 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 
 	@Override
 	public URI getLocalizerAssociated() {
-		return PureLibLocalizer.LOCALIZER_SCHEME;
+		return PureLibLocalizer.LOCALIZER_SCHEME_URI;
 	}
 
 	@Override

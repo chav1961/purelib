@@ -132,7 +132,7 @@ public class FileSystemOnRMI extends AbstractFileSystem implements FileSystemInt
 
 	@Override
 	public URI getLocalizerAssociated() {
-		return PureLibLocalizer.LOCALIZER_SCHEME;
+		return PureLibLocalizer.LOCALIZER_SCHEME_URI;
 	}
 
 	@Override
