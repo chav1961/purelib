@@ -860,7 +860,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 											if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 												try{Desktop.getDesktop().browse(e.getURL().toURI());
 												} catch (URISyntaxException | IOException exc) {
-													PureLibSettings.SYSTEM_ERR_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
+													PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
 												}
 											}
 										}

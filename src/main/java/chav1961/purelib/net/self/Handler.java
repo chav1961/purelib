@@ -14,6 +14,17 @@ import java.util.Base64;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
+/**
+ * <p>This class is  handler to support "self" protocol URL. Format of self URL is:</p>
+ * <code><b>self:/#</b>&lt;base64Content&gt;</code>
+ * <ul>
+ * <li>base64Content - content that will be returned as byte stream on {@linkplain URL#openStream()} operation</li>
+ * </ul>
+ * @see URLStreamHandler   
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.2
+ * @lastUpdate 0.0.4
+ */
 public class Handler extends URLStreamHandler {
 	public static final String	PROTOCOL = "self";
 	
@@ -55,7 +66,7 @@ public class Handler extends URLStreamHandler {
 		@Override
 		protected URLConnection openConnection(final URL url) throws IOException {
 			if (url.getProtocol().equalsIgnoreCase("self")) {
-				try{final URI					uri = url.toURI();				
+				try{final URI	uri = url.toURI();				
 					
 					return new SelfURLConnection(url,loader,uri.getFragment());
 				} catch (URISyntaxException e) {

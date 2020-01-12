@@ -264,7 +264,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		SwingModelUtils.putToScreen(this.editor.mdi.getRoot(),target,this.editor);
 	}
 
-	@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/localization")
+	@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:root://chav1961.purelib.ui.swing.useful.JFileSystemChanger/chav1961/purelib/i18n/localization.xml")
 	@LocaleResource(value="JFileSystemChanger.descriptor.caption",tooltip="JFileSystemChanger.descriptor.tooltip")
 	public static class FileSystemDescription {
 		@LocaleResource(value="JFileSystemChanger.descriptor.className",tooltip="JFileSystemChanger.descriptor.className.tooltip")
