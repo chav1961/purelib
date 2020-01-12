@@ -12,27 +12,8 @@ import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
-import chav1961.purelib.streams.char2byte.asm.macro.AndNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ArithmeticNode;
-import chav1961.purelib.streams.char2byte.asm.macro.AssignableExpressionNode;
-import chav1961.purelib.streams.char2byte.asm.macro.CatNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ComparisonNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ConstantNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNode;
 import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNodeOperator;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncExistsNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToBooleanNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToIntNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToRealNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToStringNode;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCommand;
-import chav1961.purelib.streams.char2byte.asm.macro.NegNode;
-import chav1961.purelib.streams.char2byte.asm.macro.NotNode;
-import chav1961.purelib.streams.char2byte.asm.macro.OperatorListNode;
-import chav1961.purelib.streams.char2byte.asm.macro.OperatorNode;
-import chav1961.purelib.streams.char2byte.asm.macro.OrNode;
-import chav1961.purelib.streams.char2byte.asm.macro.TernaryOperatorNode;
 
 class InternalUtils {
 	private static final SyntaxTreeInterface<FuncDecription>	FUNCTIONS = new AndOrTree<>();

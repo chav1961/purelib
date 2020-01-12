@@ -46,6 +46,8 @@ module chav1961.purelib {
 	exports chav1961.purelib.streams.byte2byte;
 	exports chav1961.purelib.streams.byte2char;
 	exports chav1961.purelib.streams.char2byte;
+	exports chav1961.purelib.streams.char2byte.asm;
+	exports chav1961.purelib.streams.char2byte.asm.macro;
 	exports chav1961.purelib.streams.char2char;
 	exports chav1961.purelib.streams.charsource;
 	exports chav1961.purelib.streams.chartarget;

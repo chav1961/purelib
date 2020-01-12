@@ -5,23 +5,7 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
-import chav1961.purelib.streams.char2byte.asm.macro.AndNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ArithmeticNode;
-import chav1961.purelib.streams.char2byte.asm.macro.CatNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ComparisonNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ConstantNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNode;
 import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNodeOperator;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncExistsNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToBooleanNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToIntNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToRealNode;
-import chav1961.purelib.streams.char2byte.asm.macro.FuncToStringNode;
-import chav1961.purelib.streams.char2byte.asm.macro.NegNode;
-import chav1961.purelib.streams.char2byte.asm.macro.NotNode;
-import chav1961.purelib.streams.char2byte.asm.macro.OperatorListNode;
-import chav1961.purelib.streams.char2byte.asm.macro.OrNode;
-import chav1961.purelib.streams.char2byte.asm.macro.TernaryOperatorNode;
 
 public class ExpressionNodeTest {
 

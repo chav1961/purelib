@@ -493,6 +493,7 @@ class LineParser implements LineByLineProcessorCallback {
 							currentMacros.compile(loader.createClass(className,writer).getConstructor(char[].class).newInstance(stringRepo.extract()));
 							macros.placeOrChangeName(macroName,currentMacros);
 						} catch (CalculationException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+							e.printStackTrace();
 							throw new IOException(e.getLocalizedMessage(),e); 
 						}
 						state = ParserState.beforePackage;

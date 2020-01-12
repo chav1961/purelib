@@ -6,7 +6,6 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
-import chav1961.purelib.streams.char2byte.asm.MacroExecutorInterface;
 
 public abstract class MacroExecutor implements MacroExecutorInterface {
 	static final char[]				TRUE_CONTENT = "true".toCharArray();

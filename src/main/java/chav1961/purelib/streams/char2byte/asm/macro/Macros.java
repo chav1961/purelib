@@ -13,7 +13,6 @@ import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
-import chav1961.purelib.streams.char2byte.asm.MacroExecutorInterface;
 
 // 			Syntax of the macros:
 //	Name	.macro		&positional,...,&key=[defaultValue],...

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -103,8 +105,9 @@ public class MacroClassLoader extends URLClassLoader {
         }
         
         final String	resourceName = ANCHOR+name.substring(name.lastIndexOf('.')+1)+".class";
+        final URI		resourceNameURI = URI.create(resourceName);
 		
-        try{final URL	resource = this.getClass().getResource(resourceName);
+        try{final URL	resource = resourceNameURI.isAbsolute() ? resourceNameURI.toURL() : this.getClass().getResource(resourceNameURI.getSchemeSpecificPart());
 	    	
         	if (resource != null) {
 	    		try(final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -125,6 +128,8 @@ public class MacroClassLoader extends URLClassLoader {
         	else {
     			return this.getParent().loadClass(name);
         	}
+		} catch (MalformedURLException exc) {
+			return this.getParent().loadClass(name);
 		} catch (LinkageError exc) {
 			synchronized(antiRecursion) {
 				if (antiRecursion.contains(name)) {
@@ -142,7 +147,7 @@ public class MacroClassLoader extends URLClassLoader {
     }
 
     private boolean mustUseParentLoader(final String className) {
-        return !className.toLowerCase().startsWith(MacroClassLoader.class.getPackage().getName()); 
+        return !className.toLowerCase().startsWith(MacroClassLoader.class.getPackage().getName()) || className.equals(MacroExecutor.class.getCanonicalName()); 
 //        return !className.toLowerCase().startsWith("chav1961.purelib.streams.char2byte.asm.macro"); 
     }
     

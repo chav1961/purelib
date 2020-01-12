@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import chav1961.purelib.basic.exceptions.ReducedExceptionWrapper;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
@@ -23,7 +24,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public abstract class AbstractLoggerFacade implements LoggerFacade {
@@ -217,8 +218,8 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			throw new IllegalArgumentException("String mark ca't be null or empty");
 		}
 		else {
-			try{final Throwable	t = new Throwable();
-				final Class<?>	root = Thread.currentThread().getContextClassLoader().loadClass(t.getStackTrace()[1].getClassName());
+			try{final StackTraceElement[]	stack = Thread.currentThread().getStackTrace();
+				final Class<?>				root = stack.length > 1 ? Thread.currentThread().getContextClassLoader().loadClass(stack[1].getClassName()) : this.getClass();
 				
 				return transaction(mark,root); 
 			} catch (ClassNotFoundException e) {
@@ -292,7 +293,8 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 	
-	static Throwable convert(final Throwable exception, final Set<Reducing> reducing, final Class<?> transactionRoot) {
+	static Throwable convert(final Throwable sourceException, final Set<Reducing> reducing, final Class<?> transactionRoot) {
+		Throwable			exception = sourceException;
 		StackTraceElement[]	list = exception.getStackTrace();		
 		
 		if (reducing.contains(Reducing.reduceCause) && exception.getCause() != null) {
@@ -302,28 +304,8 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 				sb.append('\n').append(forStack.getClass().getSimpleName()).append(": ").append(forStack.getLocalizedMessage());
 				list = forStack.getStackTrace();
 			}
+			exception = new ReducedExceptionWrapper(sb.substring(1),exception);
 			exception.setStackTrace(list);
-			try{Class<?>	cl = exception.getClass();
-				Field		causeField = null, messageField = null;
-			
-				while (cl != null && (causeField == null || messageField == null)) {
-					for (Field f : cl.getDeclaredFields()) {
-						if (causeField == null && "cause".equals(f.getName())) {
-							causeField = f;
-						}
-						if (causeField == null && "detailMessage".equals(f.getName())) {
-							messageField = f;
-						}
-					} 
-					cl = cl.getSuperclass();
-				}
-
-				if (causeField != null && messageField != null) {
-					causeField.setAccessible(true);			causeField.set(exception,null);
-					messageField.setAccessible(true);		messageField.set(exception,sb.substring(1));
-				}
-			} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			}  
 		}
 		
 		final List<StackTraceElement>	source = new ArrayList<StackTraceElement>();
