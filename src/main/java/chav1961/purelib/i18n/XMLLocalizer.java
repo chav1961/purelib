@@ -1,8 +1,10 @@
 package chav1961.purelib.i18n;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
@@ -39,7 +41,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 	}
 
 	protected XMLLocalizer(final URI resourceAddress) throws LocalizationException, NullPointerException {
-		this(resourceAddress,PureLibSettings.SYSTEM_ERR_LOGGER);
+		this(resourceAddress,PureLibSettings.CURRENT_LOGGER);
 	}
 	
 	protected XMLLocalizer(final URI resourceAddress, final LoggerFacade facade) throws LocalizationException, NullPointerException {
@@ -64,10 +66,29 @@ public class XMLLocalizer extends AbstractLocalizer {
 					}
 				}
 				else {
-					try(final InputStream	is = new FileInputStream(resourceAddress.getPath())) {
-						loadDom(is,trans);
-					} catch (ContentException | IOException e) {
-						throw new LocalizationException(e.getLocalizedMessage(),e);
+					final String	resourcePath = resourceAddress.getPath();
+					final File		resource = new File(resourcePath);
+					
+					if (resource.exists() && resource.isFile()) {
+						try(final InputStream	is = new FileInputStream(resourceAddress.getPath())) {
+							loadDom(is,trans);
+						} catch (ContentException | IOException e) {
+							throw new LocalizationException(e.getLocalizedMessage(),e);
+						}
+					}
+					else {
+						final URL	possibleLocalResource = Thread.currentThread().getContextClassLoader().getResource(resourcePath.replace('\\','/'));
+
+						if (possibleLocalResource != null) {
+							try(final InputStream	is = possibleLocalResource.openStream()) {
+								loadDom(is,trans);
+							} catch (ContentException | IOException e) {
+								throw new LocalizationException(e.getLocalizedMessage(),e);
+							}
+						}
+						else {
+							throw new LocalizationException("Resource name ["+resourcePath+"] not found anywhere");
+						}
 					}
 				}
 				loadResource(currentLocale().getLocale());

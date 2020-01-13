@@ -9,6 +9,18 @@ import java.net.URLStreamHandler;
 
 import chav1961.purelib.basic.URIUtils;
 
+/**
+ * <p>This class is  handler to support "root" protocol URL. Format of root URL is:</p>
+ * <code><b>root://</b>&lt;className&gt;/&lt;pathTooResource&gt;</code>
+ * <ul>
+ * <li>className - qualified canonical name of any class in your application. It will be used in {@linkplain Class#forName(String)} call</li>
+ * <li>pathToResource - absolute path to your resource from the root of your application</li>
+ * </ul>
+ * @see URLStreamHandler   
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.2
+ * @lastUpdate 0.0.4
+ */
 public class Handler extends URLStreamHandler {
 	public static final String	PROTOCOL = "root";
 	

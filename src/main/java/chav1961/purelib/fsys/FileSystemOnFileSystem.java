@@ -155,7 +155,7 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 
 	@Override
 	public URI getLocalizerAssociated() {
-		return PureLibLocalizer.LOCALIZER_SCHEME;
+		return PureLibLocalizer.LOCALIZER_SCHEME_URI;
 	}
 
 	@Override

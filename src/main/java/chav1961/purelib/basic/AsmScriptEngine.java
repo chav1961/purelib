@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 
 import javax.script.Bindings;
 import javax.script.ScriptEngineFactory;
@@ -16,9 +17,10 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 class AsmScriptEngine extends AbstractScriptEngine {
-	private AsmWriter	asmWriter = null;
-	private byte[]		content = null;
-	private Class<?>	clazz = null;
+	private AsmWriter				asmWriter = null;
+	private byte[]					content = null;
+	private Class<?>				clazz = null;
+	private SimpleURLClassLoader	scl = new SimpleURLClassLoader(new URL[0]);
 	
 	AsmScriptEngine(final ScriptEngineFactory factory) {
 		super(factory);
@@ -51,7 +53,7 @@ class AsmScriptEngine extends AbstractScriptEngine {
 			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 				Utils.copyStream(source,baos);
 				content = baos.toByteArray();
-				clazz = new ClassLoaderWrapper().createClass(content);
+				clazz = scl.createClass(content);
 			} catch (IOException e) {
 				throw new ScriptException(e);
 			}

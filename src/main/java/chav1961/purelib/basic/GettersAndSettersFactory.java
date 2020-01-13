@@ -12,6 +12,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -69,7 +70,7 @@ import sun.misc.Unsafe;
 public class GettersAndSettersFactory {
 	private static sun.misc.Unsafe		unsafe;
 	private static AsmWriter			writer;
-	private static ClassLoaderWrapper	internalLoader = new ClassLoaderWrapper();
+	private static SimpleURLClassLoader	internalLoader = new SimpleURLClassLoader(new URL[0]);
 	private static Map<String,Map<String,GetterAndSetter>>	gettersAndSettersCache = new HashMap<>();
 	
 	static {

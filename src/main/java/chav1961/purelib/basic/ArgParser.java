@@ -97,8 +97,12 @@ public class ArgParser {
 		this.desc = desc;
 		this.pairs = Collections.unmodifiableMap(pairs);
 	}
-	
+
 	public ArgParser parse(final String... args) throws CommandLineParametersException {
+		return parse(false,false,args);
+	}
+	
+	public ArgParser parse(final boolean ignoreExtra, final boolean ignoreUnknown, final String... args) throws CommandLineParametersException {
 		if (this.pairs != null) {
 			throw new IllegalStateException("Attempt to call parse(...) on parsed instance. This method can be called on 'parent' instance only");
 		}
@@ -108,7 +112,7 @@ public class ArgParser {
 		else {
 			final Map<String,String[]>	pairs = new HashMap<>();
 			
-			parseParameters(keyPrefix,caseSensitive,desc,args,pairs);
+			parseParameters(ignoreExtra,ignoreUnknown,keyPrefix,caseSensitive,desc,args,pairs);
 			return new ArgParser(keyPrefix,caseSensitive,desc,pairs);
 		}
 	}
@@ -188,7 +192,7 @@ public class ArgParser {
 		}
 	}
 	
-	static void parseParameters(final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final String[] args, final Map<String, String[]> pairs) throws CommandLineParametersException {
+	static void parseParameters(final boolean ignoreExtra, final boolean ignoreUnknown, final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final String[] args, final Map<String, String[]> pairs) throws CommandLineParametersException {
 		int 	positional = 0;
 		
 loop:	for (int index = 0; index < args.length; index++) {
@@ -219,7 +223,9 @@ loop:	for (int index = 0; index < args.length; index++) {
 						}
 					}
 				}
-				throw new CommandLineParametersException("Extra positional parameter ["+args[index]+"] was detected");
+				if (!ignoreExtra) {
+					throw new CommandLineParametersException("Extra positional parameter ["+args[index]+"] was detected");
+				}
 			}
 			else {
 				final String			key = args[index].substring(1);
@@ -227,7 +233,9 @@ loop:	for (int index = 0; index < args.length; index++) {
 				final ArgDescription	found = forKey(keyFind,desc,caseSensitive);
 				
 				if (found == null) {
-					throw new CommandLineParametersException("Key parameter [-"+key+"] is not supported for the parser");
+					if (!ignoreUnknown) {
+						throw new CommandLineParametersException("Key parameter [-"+key+"] is not supported for the parser");
+					}
 				}
 				else if (found.hasValue()) {
 					if (index == args.length-1) {

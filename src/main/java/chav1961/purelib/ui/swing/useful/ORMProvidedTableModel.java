@@ -60,11 +60,11 @@ public class ORMProvidedTableModel<Key,Record> extends DefaultTableModel impleme
     private int									currentLine = -1, pageSize = DEFAULT_PAGE_SIZE;
 
 	public ORMProvidedTableModel(final Localizer localizer, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields) {
-		this(localizer,PureLibSettings.SYSTEM_ERR_LOGGER,clazzModel,provider,instance,fields);
+		this(localizer,PureLibSettings.CURRENT_LOGGER,clazzModel,provider,instance,fields);
 	}
 	
 	public ORMProvidedTableModel(final Localizer localizer, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields, final FormManager<Key,Record> mgr) {
-		this(localizer,PureLibSettings.SYSTEM_ERR_LOGGER,clazzModel,provider,instance,fields,mgr);
+		this(localizer,PureLibSettings.CURRENT_LOGGER,clazzModel,provider,instance,fields,mgr);
 	}
 
 	public ORMProvidedTableModel(final Localizer localizer, final LoggerFacade logger, final ContentNodeMetadata clazzModel, final ORMProvider<Key,Record> provider, final Record instance, final String[] fields) {

@@ -1,0 +1,54 @@
+package chav1961.purelib.fsys.adapter;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.nio.file.Path;
+
+interface MemoryContents {
+
+  long size();
+
+  long read(ByteBuffer dst, long position, long maximum) throws IOException;
+
+  int readShort(ByteBuffer dst, long position) throws IOException;
+
+  int read(byte[] dst, long position, int off, int len) throws IOException;
+
+  long transferFrom(ReadableByteChannel src, long position, long count) throws IOException;
+
+  long transferTo(WritableByteChannel target, long position, long count) throws IOException;
+
+  long transferTo(OutputStream target, long position) throws IOException;
+
+  long write(ByteBuffer src, long position, long maximum);
+
+  int writeShort(ByteBuffer src, long position);
+
+  int write(byte[] src, long position, int off, int len);
+
+  long writeAtEnd(ByteBuffer src, long maximum);
+
+  int writeAtEnd(ByteBuffer src);
+
+  int writeAtEnd(byte[] src, int off, int len);
+
+  void truncate(long newSize);
+
+  void unlock(MemoryFileLock lock);
+
+  MemoryFileLock lock(MemoryFileLock lock) throws IOException;
+
+  MemoryFileLock tryLock(MemoryFileLock lock);
+
+  void accessed();
+
+  void modified();
+
+  void closedStream(Path path, boolean delete);
+
+  void closedChannel(Path path, boolean delete);
+
+}

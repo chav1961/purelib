@@ -12,9 +12,6 @@ import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
-import chav1961.purelib.streams.char2byte.asm.macro.ConstantNode;
-import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNode;
-import chav1961.purelib.streams.char2byte.asm.macro.LocalVariable;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCommand;
 
 public class InternalUtilsTest {

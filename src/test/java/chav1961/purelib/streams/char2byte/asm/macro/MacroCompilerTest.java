@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -7,12 +8,13 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 
-import chav1961.purelib.basic.ClassLoaderWrapper;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -538,7 +540,7 @@ public class MacroCompilerTest {
 	}
 	
 	public static Class<?> loadClass(final ClassLoader parent, final String className, final ByteArrayOutputStream baos) {
-		final ClassLoaderWrapper	clw = new ClassLoaderWrapper(parent);
+		final SimpleURLClassLoader	clw = new SimpleURLClassLoader(new URL[0],parent);
 		final byte[]				buffer = baos.toByteArray();
 
 		System.err.println("----------");

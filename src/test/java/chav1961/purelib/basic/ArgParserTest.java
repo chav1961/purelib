@@ -44,11 +44,11 @@ public class ArgParserTest {
 	public void parseTest() throws ConsoleCommandException, ContentException {
 		final Map<String,String[]>	result = new HashMap<>();
 		
-		ArgParser.parseParameters('-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},CharUtils.split("-key",' '),result);
+		ArgParser.parseParameters(false,false,'-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},CharUtils.split("-key",' '),result);
 		Assert.assertTrue(result.containsKey("key"));
 		Assert.assertEquals("true",result.get("key")[0]);
 
-		try{ArgParser.parseParameters('-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},CharUtils.split("",' '),result);
+		try{ArgParser.parseParameters(false,false,'-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},CharUtils.split("",' '),result);
 			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
 		} catch (CommandLineParametersException exc) {
 		}

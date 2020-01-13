@@ -5,6 +5,9 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.lang.module.Configuration;
+import java.lang.module.ModuleFinder;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.AndOrTree;
@@ -34,7 +37,7 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 		this.diagnostics = null;
 		this.macros = new AndOrTree<>();	
 		try{this.cdr = new ClassDescriptionRepo();
-			this.asmLoader = new MacroClassLoader(Thread.currentThread().getContextClassLoader()/*this.getClass().getClassLoader()*/);
+			this.asmLoader = createLoader();
 			this.lp = new LineParser(cc,cdr,macros,asmLoader);
 		} catch (ContentException e) {
 			throw new IOException(e.getMessage(),e);
@@ -47,7 +50,7 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 		this.diagnostics = diagnostics;
 		this.macros = new AndOrTree<>();	
 		try{this.cdr = new ClassDescriptionRepo(diagnostics);
-			this.asmLoader = new MacroClassLoader(Thread.currentThread().getContextClassLoader()/*this.getClass().getClassLoader()*/,diagnostics);
+			this.asmLoader = createLoader();
 			this.lp = new LineParser(cc,cdr,macros,asmLoader,diagnostics);
 		} catch (ContentException e) {
 			throw new IOException(e.getMessage(),e);
@@ -110,5 +113,9 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	
 	public void importClass(final Class<?> clazz) throws ContentException {
 		cdr.addDescription(clazz,false);
-	}	
+	}
+	
+	private static MacroClassLoader createLoader() {
+		return new MacroClassLoader(Thread.currentThread().getContextClassLoader()); 
+	}
 }

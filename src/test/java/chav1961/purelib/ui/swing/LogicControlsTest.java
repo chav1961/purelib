@@ -50,7 +50,7 @@ public class LogicControlsTest {
 	}
 }
 
-@LocaleResourceLocation(PureLibLocalizer.LOCALIZER_SCHEME_STRING)
+@LocaleResourceLocation("i18n:xml:file:./src/main/resources/chav1961/purelib/i18n/localization.xml")
 @LocaleResource(value="value",tooltip="tooltip")
 class LogicControlTestRabbit {
 	@Format("m")

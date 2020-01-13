@@ -230,7 +230,7 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 
 	@Override
 	public URI getLocalizerAssociated() {
-		return PureLibLocalizer.LOCALIZER_SCHEME;
+		return PureLibLocalizer.LOCALIZER_SCHEME_URI;
 	}
 
 	@Override

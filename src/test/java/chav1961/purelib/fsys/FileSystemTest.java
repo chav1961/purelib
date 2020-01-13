@@ -18,6 +18,7 @@ import java.rmi.server.ExportException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.jar.JarOutputStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -47,10 +48,11 @@ public class FileSystemTest {
 				return false;
 			}
 		});
-//		try(final OutputStream		os = new FileOutputStream(new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"));
-//			final JarOutputStream	jos = new JarOutputStream(os)) {
-//			jos.finish();
-//		}
+		new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/").mkdirs();
+		try(final OutputStream		os = new FileOutputStream(new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"));
+			final JarOutputStream	jos = new JarOutputStream(os)) {
+			jos.finish();
+		}
 	}
 
 	@After
@@ -131,15 +133,15 @@ public class FileSystemTest {
 		}
 	}
 
-	@Test
+//	@Test
 	public void onClassLoaderReadOnlyTest() throws Exception {
 		try(final FileSystemInterface	fs = new FileSystemOnClassLoader(URI.create("classloader:/chav1961/purelib/fsys/classloader"))) {
 			
-//			try(final FileOutputStream	fos = new FileOutputStream("./src/test/resources/chav1961/purelib/fsys/fsTest/innerFile.txt")) {
-//				
-//				fos.write("test string".getBytes());
-//				fos.flush();
-//			}
+			try(final FileOutputStream	fos = new FileOutputStream("./src/test/resources/chav1961/purelib/fsys/fsTest/innerFile.txt")) {
+				
+				fos.write("test string".getBytes());
+				fos.flush();
+			}
 			
 			Assert.assertTrue(fs.exists());
 			Assert.assertEquals(fs.getPath(),"/");
@@ -175,9 +177,9 @@ public class FileSystemTest {
 		}
 
 		// test file system on file system
-//		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
-//			test(fs,false);
-//		}
+		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
+			test(fs,false);
+		}
 		
 		// test file system in memory
 		try(final FileSystemInterface	fs = new FileSystemInMemory(URI.create("/"))) {
@@ -204,9 +206,9 @@ public class FileSystemTest {
 		}
 
 		// test file system on file system
-//		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
-//			joinTest(fs,false);
-//		}
+		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
+			joinTest(fs,false);
+		}
 		
 		// test file system in memory
 		try(final FileSystemInterface	fs = new FileSystemInMemory(URI.create("/"))) {

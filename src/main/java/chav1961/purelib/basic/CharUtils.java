@@ -2,8 +2,6 @@ package chav1961.purelib.basic;
 
 import java.util.Arrays;
 
-import com.sun.source.doctree.SinceTree;
-
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 

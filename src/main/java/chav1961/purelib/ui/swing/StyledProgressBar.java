@@ -19,6 +19,7 @@ import javax.swing.JToolTip;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.interfaces.PureLibColorScheme;
 
 public class StyledProgressBar extends JProgressBar {
 	private static final long 	serialVersionUID = 2773678252437329000L;
@@ -26,8 +27,8 @@ public class StyledProgressBar extends JProgressBar {
 
 	public StyledProgressBar() {
 	    setUI(new StyledProgressBarUI());
-	    setBackground(PureLibSettings.instance().getProperty(PureLibSettings.UI_SWING_OPTIONAL_BACKGROUND,Color.class));
-	    setForeground(PureLibSettings.instance().getProperty(PureLibSettings.UI_SWING_OPTIONAL_FOREGROUND,Color.class));
+	    setBackground(PureLibSettings.instance().getProperty(PureLibColorScheme.OPTIONAL_BACKGROUND,Color.class));
+	    setForeground(PureLibSettings.instance().getProperty(PureLibColorScheme.OPTIONAL_FOREGROUND,Color.class));
 	}
 	
 	private static class StyledProgressBarUI extends BasicProgressBarUI {

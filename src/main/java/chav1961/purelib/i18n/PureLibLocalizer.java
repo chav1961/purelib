@@ -15,11 +15,14 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @lastUpdate 0.0.3
  */
 
-public class PureLibLocalizer extends PropertiesLocalizer {
-	public static final String		LOCALIZER_SUBSCHEME = "prop";
-	public static final String		LOCALIZER_TAIL = "chav1961/purelib/i18n/localization";
-	public static final String		LOCALIZER_SCHEME_STRING = Localizer.LOCALIZER_SCHEME+":"+LOCALIZER_SUBSCHEME+":"+LOCALIZER_TAIL;
-	public static final URI			LOCALIZER_SCHEME = URI.create(LOCALIZER_SCHEME_STRING);
+public class PureLibLocalizer extends XMLLocalizer {
+	public static final String		LOCALIZER_SUBSCHEME = "xml";
+	public static final String		LOCALIZER_TAIL = PureLibLocalizer.class.getResource("localization.xml").toString();
+	public static final String		LOCALIZER_SUBSCHEME_STRING = LOCALIZER_SUBSCHEME+":"+LOCALIZER_TAIL;
+	public static final String		LOCALIZER_SCHEME_STRING = Localizer.LOCALIZER_SCHEME+":"+LOCALIZER_SUBSCHEME_STRING;
+	public static final URI			LOCALIZER_TAIL_URI = URI.create(LOCALIZER_TAIL);
+	public static final URI			LOCALIZER_SUBSCHEME_URI = URI.create(LOCALIZER_SUBSCHEME_STRING);
+	public static final URI			LOCALIZER_SCHEME_URI = URI.create(LOCALIZER_SCHEME_STRING);
 
 	public static final String		BUTTON_ACCEPT = "ACEPT";
 	public static final String		BUTTON_CANCEL = "CANCEL";
@@ -51,6 +54,6 @@ public class PureLibLocalizer extends PropertiesLocalizer {
 	public static final String		TITLE_STANDARD_SELECTION_MARK_TOOLTIP = "titleStandardSelectionMarkTooltip";
 	
 	public PureLibLocalizer() throws LocalizationException, NullPointerException {
-		super(LOCALIZER_TAIL);
+		super(LOCALIZER_TAIL_URI);
 	}
 }

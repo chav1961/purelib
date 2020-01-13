@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localization xmlns="http://www.i18n.purelib.chav1961.ru/">
+	<lang name="en">
+<!-- Test set and common definitions  -->
+		<key name="testSet1">test set 1</key> 
+		<key name="testSet2">test set 2</key>
+		<key name="testSet3">test set 3</key>
+
+<!-- General keys  -->
+		<key name="ACCEPT">Accept</key>
+		<key name="CANCEL">Cancel</key>
+		<key name="NEXT">Next &gt;</key>
+		<key name="PREV">&lt; Previous</key>
+		<key name="FINISH">Finish</key>
+		<key name="OK">OK</key>
+		<key name="ACCEPT.tooltip">Accept changes and exit</key>
+		<key name="CANCEL.tooltip">Cancel changes and escape</key>
+		<key name="NEXT.tooltip">Go to next step</key>
+		<key name="PREV.tooltip">Go to previous step</key>
+		<key name="FINISH.tooltip">Accept changes and exit</key>
+		<key name="OK.tooltip">Confirm selection and exit</key>
+		<key name="VENDOR">aka chav1961</key>
+		<key name="vendor">${VENDOR}</key>
+		<key name="Advanced">...</key>
+		<key name="MIT">[[https://en.wikipedia.org/wiki/MIT_License|MIT license]]</key>
+		<key name="NAVIGATION.ROOT">Navigation</key>
+
+<!-- FileSystem descriptors  --> 
+		<key name="fileSystems.FileSystemInMemory.description">In-memory file system</key>
+		<key name="fileSystems.FileSystemInMemory.vendor">${VENDOR} </key>
+		<key name="fileSystems.FileSystemInMemory.license">MIT</key>
+		<key name="fileSystems.FileSystemInMemory.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemInMemory.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnFile.description">File-based file system</key>
+		<key name="fileSystems.FileSystemOnFile.vendor">${VENDOR}</key>
+		<key name="fileSystems.FileSystemOnFile.license">MIT</key>
+		<key name="fileSystems.FileSystemOnFile.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnFile.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnFileSystem.description">File-system based file system</key>
+		<key name="fileSystems.FileSystemOnFileSystem.vendor">${VENDOR}</key> 
+		<key name="fileSystems.FileSystemOnFileSystem.license">MIT</key>
+		<key name="fileSystems.FileSystemOnFileSystem.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnFileSystem.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnRMI.description">RMI-based file system</key>
+		<key name="fileSystems.FileSystemOnRMI.vendor">${VENDOR}</key> 
+		<key name="fileSystems.FileSystemOnRMI.license">MIT</key>
+		<key name="fileSystems.FileSystemOnRMI.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnRMI.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnXMLReadOnly.description">XML-based read-only file system</key>
+		<key name="fileSystems.FileSystemOnXMLReadOnly.vendor">${VENDOR}</key>
+		<key name="fileSystems.FileSystemOnXMLReadOnly.license">MIT</key>
+		<key name="fileSystems.FileSystemOnXMLReadOnly.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnXMLReadOnly.help">MIT</key>
+
+<!-- Titles for the standard windows of the library  -->
+		<key name="titleHelpScreen">Help</key>
+		<key name="titleAskParametersScreen">Type parameters...</key>
+		<key name="titleFileChooserOpen">Open file...</key>
+		<key name="titleFileChooserSaveAs">Save file as...</key>
+
+<!-- Titles Tooltips for the standard toolbars  --> 
+		<key name="toolbarHistoryForward">History forward (Alt + -&gt;)</key>
+		<key name="toolbarHistoryBackward">History backward (Alt + &lt;-)</key>
+		<key name="toolbarRefresh">Refresh content</key>
+		<key name="toolbarCommit">Commit changes</key>
+		<key name="toolBarRollback">Roll back changes</key>
+		<key name="toolbarInsert">Insert new record</key>
+		<key name="toolbarDuplicate">Duplicate current record</key>
+		<key name="toolbarDelete">Delete current record</key>
+		<key name="toolbarFilter">Set/reset filter</key>
+		<key name="toolbarOrder">Set/reset order</key>
+		<key name="toolbarSelect">Select</key>
+		<key name="toolbarSelectAll">Select all</key>
+		<key name="toolbarUnselect">Unselect</key>
+		<key name="toolbarUnselectAll">Unselect all</key>
+		<key name="toolbarExit">Exit</key>
+
+<!-- Titles Titles used in the standard controls  --> 
+		<key name="titleStandardSelected">Selected</key>
+		<key name="titleStandardAvailable">Available</key>
+		<key name="titleStandardSelectionMarkTooltip">Line is selected</key>
+
+<!-- File selection dialog localization  -->
+		<key name="JFileSelectionDialog.button.open">Open</key>
+		<key name="JFileSelectionDialog.button.open.tt">Open file selected</key>
+		<key name="JFileSelectionDialog.button.save">Save file</key>
+		<key name="JFileSelectionDialog.button.save.tt">Save content to selected file</key> 
+		<key name="JFileSelectionDialog.button.cancel">Cancel</key>
+		<key name="JFileSelectionDialog.button.cancel.tt">Cancel operation</key>
+		<key name="JFileSelectionDialog.label.fileName">File name</key>
+		<key name="JFileSelectionDialog.textfield.fileName.tt">Type file name selected here</key>
+		<key name="JFileSelectionDialog.label.filterList">File filter</key>
+		<key name="JFileSelectionDialog.combobox.filterList.tt">Select filter for file names</key> 
+		<key name="JFileSelectionDialog.combobox.parent.tt">Path from file system root to current point</key>
+		<key name="JFileSelectionDialog.button.levelUp.tt">Level up</key>
+		<key name="JFileSelectionDialog.button.mkDir.tt">Make new directory</key>
+		<key name="JFileSelectionDialog.button.delete.tt">Delete content selected</key>
+		<key name="JFileSelectionDialog.filter.acceptAll">All files</key>
+		<key name="JFileSelectionDialog.ask.mkdir.caption">Make new directory</key>
+		<key name="JFileSelectionDialog.ask.mkdir.message">Type name for the directory creating</key>  
+		<key name="JFileSelectionDialog.ask.delete.caption">Delete selected items</key>
+		<key name="JFileSelectionDialog.ask.delete.message">Confirm deletion of the %1$s item(s)</key>
+		<key name="JFileSelectionDialog.ask.alreadyexists.caption">Error!</key>
+		<key name="JFileSelectionDialog.ask.alreadyexists.message">Name typed [%1$s] already exists!</key>
+		<key name="JFileSelectionDialog.caption.open">Open file(s)...</key>
+		<key name="JFileSelectionDialog.caption.save">Save file(s)...</key>
+
+<!-- Localized option pane localization  -->
+		<key name="JLocalizedOptionPane.yesButton">Yes</key>
+		<key name="JLocalizedOptionPane.noButton">No</key>
+		<key name="JLocalizedOptionPane.okButton">OK</key>
+		<key name="JLocalizedOptionPane.cancelButton">Cancel</key>
+
+<!-- File content manipulator localization  -->
+		<key name="JFileContentManipulator.unsaved.title">WARNING!</key>
+		<key name="JFileContentManipulator.unsaved.body">You content was modified but still unsaved.\nSave it?</key> 
+		<key name="JFileContentManipulator.progress.loading">Loading %1$s...</key>
+		<key name="JFileContentManipulator.progress.saving">Saving %1$s...</key>
+		<key name="JFileContentManipulator.lru.missing.title">WARNING!</key>
+		<key name="JFileContentManipulator.lru.missing">File not exists.\nRemove it from file list?</key> 
+
+<!-- State string localization  -->
+		<key name="JStateString.history">Message history</key>
+
+<!-- Date selection dialog localization  -->
+		<key name="JDateSelectionDialog.yearLabel">Year</key>
+		<key name="JDateSelectionDialog.monthLabel">Month</key>
+		<key name="JDateSelectionDialog.year.tooltip">Select year of the date</key>
+		<key name="JDateSelectionDialog.month.tooltip">Select month of the date</key>
+		<key name="JDateSelectionDialog.day.names">Sun;Mon;Tue;Wed;Thu;Fri;Sat</key>
+
+<!-- File system selection dialog localization  -->
+		<key name="JFileSystemChanger.button.accept">${ACCEPT}</key>
+		<key name="JFileSystemChanger.button.cancel">${CANCEL}</key>
+		<key name="JFileSystemChanger.button.test">Test</key>
+		<key name="JFileSystemChanger.button.test.caption">Test connection</key>
+		<key name="JFileSystemChanger.button.accept.tooltip">Accept content</key>
+		<key name="JFileSystemChanger.button.cancel.tooltip">Cancel content</key>
+		<key name="JFileSystemChanger.button.test.tooltip">Test connection with URI</key>
+		<key name="JFileSystemChanger.test.uri.tooltip">Type URI to connect here</key>
+		<key name="JFileSystemChanger.descriptor.caption">Caption</key>
+		<key name="JFileSystemChanger.descriptor.tooltip">Tooltip</key>
+		<key name="JFileSystemChanger.descriptor.className">FS class name</key>
+		<key name="JFileSystemChanger.descriptor.className.tooltip">Class name of the file system interface</key>
+		<key name="JFileSystemChanger.descriptor.version">Version</key>
+		<key name="JFileSystemChanger.descriptor.version.tooltip">Version of the file system driver</key>
+		<key name="JFileSystemChanger.descriptor.description">Description</key>
+		<key name="JFileSystemChanger.descriptor.description.tooltip">Description of the file system</key>
+		<key name="JFileSystemChanger.descriptor.vendor">File system vendor</key>
+		<key name="JFileSystemChanger.descriptor.vendor.tooltip">Vendor of the file system</key>
+		<key name="JFileSystemChanger.descriptor.license">License</key>
+		<key name="JFileSystemChanger.descriptor.license.tooltip">License type</key>
+		<key name="JFileSystemChanger.descriptor.uriTemplate">URI template</key>
+		<key name="JFileSystemChanger.descriptor.uriTemplate.tooltip">URI template to access to file system</key>
+		<key name="JFileSystemChanger.message.error.header">ERROR!</key>
+		<key name="JFileSystemChanger.message.error.description">The new file system is not selected or not tested. Press 'Test' button</key>
+		<key name="JFileSystemChanger.descriptor.help.show.tooltip">Show help about file system</key>
+		<key name="JFileSystemChanger.descriptor.license.show.tooltip">Show license</key>
+		<key name="JFileSystemChanger.descriptor.uriTemplate.copyPaste.tooltip">Copy template to testing field</key>
+
+<!-- Simple help window localization  -->
+		<key name="JSimpleHelpWindow.desktopTitle">Browser error:</key>
+		<key name="JSimpleHelpWindow.desktopError">Error calling browser: %1$s</key>
+		<key name="JSimpleHelpWindow.desktopNotSet">Desktop tools are unavailable</key>
+	</lang>
+	<lang name="ru">
+<!-- Тестовый набор  -->
+		<key name="testSet1">test set 1</key>
+		<key name="testSet2">test set 2</key>
+		<key name="testSet3">test set 3</key>
+
+<!-- Общеупотребительные наименования  --> 
+		<key name="ACCEPT">Принять</key>
+		<key name="CANCEL">Отмена</key>
+		<key name="OK">OK</key>
+		<key name="NEXT">Далее &gt;</key>
+		<key name="PREV">&lt; Назад</key>
+		<key name="FINISH">Готово</key>
+		<key name="ACCEPT.tooltip">Принять изменения и выйти</key>
+		<key name="CANCEL.tooltip">Отменить изменения и выйти</key>
+		<key name="NEXT.tooltip">Переход к следующему шагу</key>
+		<key name="PREV.tooltip">Возврат к предыдущему шагу</key>
+		<key name="FINISH.tooltip">Подтвердить и закончить работу</key> 
+		<key name="OK.tooltip">Подтвердить и выйти</key>
+		<key name="VENDOR">aka chav1961</key>
+		<key name="vendor">${VENDOR}</key>
+		<key name="Advanced">...</key>
+		<key name="MIT">[[https://en.wikipedia.org/wiki/MIT_License|лицензия MIT]]</key>
+		<key name="NAVIGATION.ROOT">Навигация</key>
+
+<!-- Описания файловых систем   -->
+		<key name="fileSystems.FileSystemInMemory.description">ФС в памяти</key>
+		<key name="fileSystems.FileSystemInMemory.vendor">${vendor}</key>
+		<key name="fileSystems.FileSystemInMemory.license">MIT</key>
+		<key name="fileSystems.FileSystemInMemory.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemInMemory.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnFile.description">ФС на файлах</key>
+		<key name="fileSystems.FileSystemOnFile.vendor">${vendor}</key>
+		<key name="fileSystems.FileSystemOnFile.license">MIT</key>
+		<key name="fileSystems.FileSystemOnFile.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnFile.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnFileSystem.description">ФС на файловых системах</key>
+		<key name="fileSystems.FileSystemOnFileSystem.vendor">${vendor}</key>
+		<key name="fileSystems.FileSystemOnFileSystem.license">MIT</key>
+		<key name="fileSystems.FileSystemOnFileSystem.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnFileSystem.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnRMI.description">ФС на RMI</key>
+		<key name="fileSystems.FileSystemOnRMI.vendor">${vendor}</key>
+		<key name="fileSystems.FileSystemOnRMI.license">MIT</key>
+		<key name="fileSystems.FileSystemOnRMI.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnRMI.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnXMLReadOnly.description">ФС на XML (только чтение)</key>
+		<key name="fileSystems.FileSystemOnXMLReadOnly.vendor">${vendor}</key>
+		<key name="fileSystems.FileSystemOnXMLReadOnly.license">MIT</key>
+		<key name="fileSystems.FileSystemOnXMLReadOnly.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnXMLReadOnly.help">MIT</key>
+
+<!-- Заголовки различных стандартных окон библиотеки  -->
+		<key name="titleHelpScreen">Справка</key>
+		<key name="titleAskParametersScreen">Введите параметры...</key>
+		<key name="titleFileChooserOpen">Выбрать файл...</key>
+		<key name="titleFileChooserSaveAs">Сохранить файл...</key>
+
+<!-- Подсказки для кнопок стандартных панелей инструментов  --> 
+		<key name="toolbarHistoryForward">Вперед (Alt + -&gt;)</key>
+		<key name="toolbarHistoryBackward">Назад (Alt + &lt;-)</key>
+		<key name="toolbarRefresh">Обновить содержимое</key>
+		<key name="toolbarCommit">Сохранить изменения</key>
+		<key name="toolBarRollback">Отменить изменения</key>
+		<key name="toolbarInsert">Добавить запись</key>
+		<key name="toolbarDuplicate">Дублировать запись</key>
+		<key name="toolbarDelete">Удалить запись</key>
+		<key name="toolbarFilter">Установить/сбросить фильтр</key>
+		<key name="toolbarOrder">Установить/сбросить сортировку</key>
+		<key name="toolbarSelect">Выбрать</key>
+		<key name="toolbarSelectAll">Выбрать все</key>
+		<key name="toolbarUnselect">Отменить выбор</key>
+		<key name="toolbarUnselectAll">Отменить выбор все</key>
+		<key name="toolbarExit">Выход</key>
+
+<!-- Заголовки стандартных органов управления  -->
+		<key name="titleStandardSelected">Выбрано</key>
+		<key name="titleStandardAvailable">Доступно</key>
+		<key name="titleStandardSelectionMarkTooltip">Строчка выбрана</key>
+
+<!-- Заголовки диалога выбора файлов  -->
+		<key name="JFileSelectionDialog.button.open">Открыть</key>
+		<key name="JFileSelectionDialog.button.open.tt">Открыть выбранный(е) файл(ы)</key>
+		<key name="JFileSelectionDialog.button.save">Сохранить</key>
+		<key name="JFileSelectionDialog.button.save.tt">Сохранить содержимое в выбранный файл</key> 
+		<key name="JFileSelectionDialog.button.cancel">Отмена</key>
+		<key name="JFileSelectionDialog.button.cancel.tt">Отменить операцию</key> 
+		<key name="JFileSelectionDialog.label.fileName">Файл</key>
+		<key name="JFileSelectionDialog.textfield.fileName.tt">Задайте имя выбранного файла</key>
+		<key name="JFileSelectionDialog.label.filterList">Фильтр</key>
+		<key name="JFileSelectionDialog.combobox.filterList.tt">Выберить фильтр для имен файлов</key>  
+		<key name="JFileSelectionDialog.combobox.parent.tt">Путь от корня файловой системы до текущей точки</key>
+		<key name="JFileSelectionDialog.button.levelUp.tt">Вверх</key>
+		<key name="JFileSelectionDialog.button.mkDir.tt">Создать новую папку</key>
+		<key name="JFileSelectionDialog.button.delete.tt">Удалить выбранные элементы</key>
+		<key name="JFileSelectionDialog.filter.acceptAll">Все файлы</key>
+		<key name="JFileSelectionDialog.ask.mkdir.caption">Создать папку</key>
+		<key name="JFileSelectionDialog.ask.mkdir.message">Задайте имя создаваемой папки</key>  
+		<key name="JFileSelectionDialog.ask.delete.caption">Удалить выбранные элементы</key>
+		<key name="JFileSelectionDialog.ask.delete.message">Подтвердите удаление %1$s элемента(ов)</key>
+		<key name="JFileSelectionDialog.ask.alreadyexists.caption">Ошибка!</key>
+		<key name="JFileSelectionDialog.ask.alreadyexists.message">Заданное имя [%1$s] уже существует!</key>
+		<key name="JFileSelectionDialog.caption.open">Открыть файл(ы)...</key>
+		<key name="JFileSelectionDialog.caption.save">Сохранить файл(ы)...</key>
+
+<!-- Локализация локализованного JOptionPane  --> 
+		<key name="JLocalizedOptionPane.yesButton">Да</key>
+		<key name="JLocalizedOptionPane.noButton">Нет</key>
+		<key name="JLocalizedOptionPane.okButton">OK</key>
+		<key name="JLocalizedOptionPane.cancelButton">Отмена</key>
+
+<!-- Локализация манипулятора файлового контента  -->
+		<key name="JFileContentManipulator.unsaved.title">ВНИМАНИЕ!</key>
+		<key name="JFileContentManipulator.unsaved.body">Ваши данные были изменены, но так и не сохранены.\nСохранить их?</key> 
+		<key name="JFileContentManipulator.progress.loading">Загрузка %1$s...</key>
+		<key name="JFileContentManipulator.progress.saving">Сохранение %1$s...</key>
+		<key name="JFileContentManipulator.lru.missing.title">ВНИМАНИЕ!</key>
+		<key name="JFileContentManipulator.lru.missing">Файл не существует.\nУдалить его из списка последних?</key> 
+
+<!-- Локализация строки состояния  -->
+		<key name="JStateString.history">История сообщений</key>
+
+<!-- Локализация диалога выбора даты  -->
+		<key name="JDateSelectionDialog.yearLabel">Год</key>
+		<key name="JDateSelectionDialog.monthLabel">Месяц</key>
+		<key name="JDateSelectionDialog.year.tooltip">Выберите год даты</key>
+		<key name="JDateSelectionDialog.month.tooltip">Выберите месяц даты</key>
+		<key name="JDateSelectionDialog.day.names">Вс;Пн;Вт;Ср;Чт;Пт;Сб</key>
+		
+<!-- Локализация диалога выбора файловой системы  -->
+		<key name="JFileSystemChanger.button.accept">${ACCEPT}</key>
+		<key name="JFileSystemChanger.button.cancel">${CANCEL}</key>
+		<key name="JFileSystemChanger.button.test">Тест</key>
+		<key name="JFileSystemChanger.button.test.caption">Тест соединения</key>
+		<key name="JFileSystemChanger.button.accept.tooltip">Принять выбор</key>
+		<key name="JFileSystemChanger.button.cancel.tooltip">Отменить выбор</key>
+		<key name="JFileSystemChanger.button.test.tooltip">Проверить соединение с данным URI</key>
+		<key name="JFileSystemChanger.test.uri.tooltip">Задайте URI для проверки соединения</key>
+		<key name="JFileSystemChanger.descriptor.caption">Заголовок</key>
+		<key name="JFileSystemChanger.descriptor.tooltip">Подсказка</key>
+		<key name="JFileSystemChanger.descriptor.className">Имя класса ФС</key>
+		<key name="JFileSystemChanger.descriptor.className.tooltip">Имя класса интерфейса файловой системы</key>
+		<key name="JFileSystemChanger.descriptor.version">Версия</key>
+		<key name="JFileSystemChanger.descriptor.version.tooltip">Версия драйвера ФС</key>
+		<key name="JFileSystemChanger.descriptor.description">Описание</key>
+		<key name="JFileSystemChanger.descriptor.description.tooltip">Описание файловой системы</key>
+		<key name="JFileSystemChanger.descriptor.vendor">Производитель</key>
+		<key name="JFileSystemChanger.descriptor.vendor.tooltip">Производитель ФС</key>
+		<key name="JFileSystemChanger.descriptor.license">Лицензия</key>
+		<key name="JFileSystemChanger.descriptor.license.tooltip">Тип лицензии</key>
+		<key name="JFileSystemChanger.descriptor.uriTemplate">Шаблон URI</key>
+		<key name="JFileSystemChanger.descriptor.uriTemplate.tooltip">Шаблон URI для доступа к ФС</key>
+		<key name="JFileSystemChanger.message.error.header">ОШИБКА!</key>
+		<key name="JFileSystemChanger.message.error.description">Новая файловая система на выбрана или не протестирована. Нажмите кнопку 'Тест'</key>
+		<key name="JFileSystemChanger.descriptor.help.show.tooltip">Просмотреть справку о файловой системе</key>
+		<key name="JFileSystemChanger.descriptor.license.show.tooltip">Просмотр текста лицензии</key>
+		<key name="JFileSystemChanger.descriptor.uriTemplate.copyPaste.tooltip">Скопировать шаблон URI в поле для теста</key>
+
+<!-- Локализация простого окна подсказки  -->
+		<key name="JSimpleHelpWindow.desktopTitle">Ошибка просмотра:</key>
+		<key name="JSimpleHelpWindow.desktopError">Ошибка вызова браузера: %1$s</key>
+		<key name="JSimpleHelpWindow.desktopNotSet">Инструменты рабочего стола недоступны</key> 
+	</lang>
+</localization>

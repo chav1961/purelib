@@ -187,6 +187,7 @@ public interface LoggerFacade extends Closeable {
 	 * &nbsp;&nbsp;&nbsp;logger.rollback(); // scratch all logger content on successful ending<br>
 	 * }<br>
 	 * </code>
+	 * For performance reason, method {@linkplain #transaction(String, Class)} is more preferred to use.
 	 * @param mark any string to mark transaction logger trace for identification purposes. Can't be null or empty
 	 * @return new logger instance. It must be closed mandatory
 	 * @throws IllegalArgumentException when mark string is null or empty

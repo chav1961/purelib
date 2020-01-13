@@ -1,7 +1,7 @@
 {start} ---------------
 				.package 		chav1961.purelib.streams.char2byte.asm
 				.import			chav1961.purelib.streams.char2byte.asm.Asm
-				.import			chav1961.purelib.streams.char2byte.asm.MacroExecutorInterface
+				.import			chav1961.purelib.streams.char2byte.asm.macro.MacroExecutorInterface
 				.import			chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor
 				.import			chav1961.purelib.basic.exceptions.CalculationException
 				.import			chav1961.purelib.basic.growablearrays.GrowableCharArray
@@ -10,7 +10,7 @@
 				.import			java.util.Arrays
 				.import			java.lang.System
 				.import			java.util.concurrent.atomic.AtomicInteger
-${shortClassName}	.class			public extends chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor implements chav1961.purelib.streams.char2byte.asm.MacroExecutorInterface 
+${shortClassName}	.class			public extends chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor implements chav1961.purelib.streams.char2byte.asm.macro.MacroExecutorInterface 
 ${shortClassName}	.method			void public
 repo			.parameter		char[] final
 				.stack			3

@@ -58,9 +58,9 @@ import com.sun.net.httpserver.HttpsServer;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.ClassLoaderWrapper;
 import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.TemporaryStore;
 import chav1961.purelib.basic.TemporaryStore.InputOutputPair;
@@ -196,8 +196,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	private final boolean							disableLoopback;
 	private final boolean							localhostOnly;
 	private final TemporaryStore					tempStore;
-	private final URLClassLoader					urlClassLoader = new URLClassLoader(new URL[0]);
-	private final ClassLoaderWrapper				internalLoader = new ClassLoaderWrapper(urlClassLoader);
+	private final SimpleURLClassLoader				urlClassLoader = new SimpleURLClassLoader(new URL[0]);
 	private final AsmWriter							writer;
 	private final AtomicInteger						uniqueNumber = new AtomicInteger(0);
 	@SuppressWarnings("rawtypes")
@@ -845,9 +844,9 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 	
-	ClassLoaderWrapper getInternalLoader() {
-		return internalLoader;
-	}
+//	ClassLoaderWrapper getInternalLoader() {
+//		return internalLoader;
+//	}
 	
 	private HttpServer createHttpsServer(final SubstitutableProperties props) throws IOException {
 		final HttpsServer 		server = HttpsServer.create(new InetSocketAddress(props.getProperty(NANOSERVICE_PORT,int.class)), 0);
@@ -1143,7 +1142,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"GetExecutor").append(unique).append("\"\n");
 			
-			return (MethodExecutor) buildInstance(writer,"GetExecutor" + unique,result.toString(),internalLoader)
+			return (MethodExecutor) buildInstance(writer,"GetExecutor" + unique,result.toString(),urlClassLoader)
 									.getConstructor(AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,Object.class)
 									.newInstance(forPath,forQuery,forRequestHeader,forResponseHeader,instance);
 		} catch (VerifyError err) {
@@ -1209,7 +1208,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"PostExecutor").append(unique).append("\"\n");
 			
-			return (MethodExecutor) buildInstance(writer,"PostExecutor" + unique,result.toString(),internalLoader)
+			return (MethodExecutor) buildInstance(writer,"PostExecutor" + unique,result.toString(),urlClassLoader)
 									.getConstructor(AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,Object.class)
 									.newInstance(forPath,null,forRequestHeader,forResponseHeader,instance);
 		} catch (VerifyError err) {
@@ -1275,7 +1274,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"PostExecutor").append(unique).append("\"\n");
 			
-			return (MethodExecutor) buildInstance(writer,"PostExecutor" + unique,result.toString(),internalLoader)
+			return (MethodExecutor) buildInstance(writer,"PostExecutor" + unique,result.toString(),urlClassLoader)
 									.getConstructor(AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,Object.class)
 									.newInstance(forPath,null,forRequestHeader,forResponseHeader,instance);
 		} catch (VerifyError err) {
@@ -1336,7 +1335,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"PostExecutor").append(unique).append("\"\n");
 			
-			return (MethodExecutor) buildInstance(writer,"PostExecutor" + unique,result.toString(),internalLoader)
+			return (MethodExecutor) buildInstance(writer,"PostExecutor" + unique,result.toString(),urlClassLoader)
 									.getConstructor(AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,AnyKindParserAndSetter.class,Object.class)
 									.newInstance(forPath,null,forRequestHeader,forResponseHeader,instance);
 		} catch (VerifyError err) {
@@ -1422,7 +1421,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	 * Collection of methods to build byte code for parsing and setting parameters to the plug-in class
 	 */
 
-	static Class<?> buildInstance(final AsmWriter writer, final String className, final String content, final ClassLoaderWrapper wrapper) throws SyntaxException {
+	static Class<?> buildInstance(final AsmWriter writer, final String className, final String content, final SimpleURLClassLoader wrapper) throws SyntaxException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final Writer				wr = writer.clone(baos)) {
 			
@@ -1476,7 +1475,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					throw new SyntaxException(0,0,"Path ["+path+"]: astrisk should be the same last sign in the path only");
 				}
 				else {
-					try{return (PathParser)buildInstance(writer,"PathParser" + uniqueNumber,buildPathParserText(uniqueNumber,parts),internalLoader).newInstance();
+					try{return (PathParser)buildInstance(writer,"PathParser" + uniqueNumber,buildPathParserText(uniqueNumber,parts),urlClassLoader).newInstance();
 					} catch (InstantiationException | IllegalAccessException e) {
 						throw new SyntaxException(0,0,"Error instantiating path parser for ["+path+"]:"+e.getLocalizedMessage());
 					}
@@ -1519,7 +1518,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					throw new IllegalArgumentException("Parameter ["+parameters[index]+"] in the array at index ["+index+"] is too short or doesn't end with the (=) sign");
 				}
 			}
-			try{return (QueryParser)buildInstance(writer,"QueryParser" + uniqueNumber,buildQueryParserText(uniqueNumber,parameters),internalLoader).newInstance();
+			try{return (QueryParser)buildInstance(writer,"QueryParser" + uniqueNumber,buildQueryParserText(uniqueNumber,parameters),urlClassLoader).newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new SyntaxException(0,0,"Error instantiating query parser for ["+Arrays.toString(parameters)+"]:"+e.getLocalizedMessage());
 			}
@@ -1553,7 +1552,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					throw new IllegalArgumentException("Parameter in the array at index ["+index+"] is null or empty!");
 				}
 			}
-			try{return (RequestHeadParser)buildInstance(writer,"RequestParser" + uniqueNumber,buildRequestHeadParserText(uniqueNumber,parameters),internalLoader).newInstance();
+			try{return (RequestHeadParser)buildInstance(writer,"RequestParser" + uniqueNumber,buildRequestHeadParserText(uniqueNumber,parameters),urlClassLoader).newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new SyntaxException(0,0,"Error instantiating request head  parser for ["+Arrays.toString(parameters)+"]:"+e.getLocalizedMessage());
 			}
@@ -1585,7 +1584,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			throw new IllegalArgumentException("Parameter classes can't be null or empty array");
 		}
 		else {
-			try{return (ResponseHeadSetter)buildInstance(writer,"ResponseSetter" + uniqueNumber,buildResponseHeadSetterText(uniqueNumber,parameters,parameterClasses),internalLoader).newInstance();
+			try{return (ResponseHeadSetter)buildInstance(writer,"ResponseSetter" + uniqueNumber,buildResponseHeadSetterText(uniqueNumber,parameters,parameterClasses),urlClassLoader).newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new SyntaxException(0,0,"Error instantiating response setter for ["+Arrays.toString(parameters)+"]:"+e.getLocalizedMessage());
 			}

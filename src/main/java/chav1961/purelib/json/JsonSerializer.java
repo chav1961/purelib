@@ -2028,6 +2028,7 @@ public abstract class JsonSerializer<T> {
 			
 			try{final Method	m = enumClass.getMethod("valueOf",String.class);
 				
+				m.setAccessible(true);
 				this.toEnum = MethodHandles.lookup().unreflect(m);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException e) {
 				throw new EnvironmentException(e.getMessage(),e);

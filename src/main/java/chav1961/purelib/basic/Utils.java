@@ -1050,4 +1050,47 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			return -1;
 		}
 	}
+
+	/**
+	 * <p>Check file existence in the given path</p>
+	 * @param path2check path list to seek file in
+	 * @param file2check file to seek
+	 * @return true if file exists on any path, false othervise
+	 * @throws IllegalArgumentException when any argument is null or empty
+	 * @since 0.0.4
+	 */
+	public static boolean checkFileExistence(final String path2check, final String file2check) throws IllegalArgumentException {
+		return checkFileExistence(path2check, file2check,File.pathSeparatorChar,File.separatorChar);
+	}
+
+	/**
+	 * <p>Check file existence in the given path</p>
+	 * @param path2check path list to seek file in
+	 * @param file2check file to seek
+	 * @param pathSeparator path separator in the list
+	 * @param fileSeparator file separator in the list
+	 * @return true if file exists on any path, false othervise
+	 * @throws IllegalArgumentException when any argument is null or empty
+	 * @since 0.0.4
+	 */
+	public static boolean checkFileExistence(final String path2check, final String file2check, final char pathSeparator, final char fileSeparator) throws IllegalArgumentException {
+		if (path2check == null || path2check.isBlank()) {
+			throw new NullPointerException("Path to check can't be null or empty string");
+		} 
+		else if (file2check == null || file2check.isBlank()) {
+			throw new NullPointerException("File to check can't be null or empty string");
+		} 
+		else {
+			for (String item : CharUtils.split(path2check,pathSeparator)) {
+				if (!item.isBlank()) {
+					final File		f = new File(item.charAt(item.length()-1) == fileSeparator ? item + file2check : item + fileSeparator + file2check);
+					
+					if (f.exists() && f.isFile()) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+	}
 }
