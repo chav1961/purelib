@@ -10,6 +10,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.interfaces.CsvStaxParserInterface;
 import chav1961.purelib.streams.interfaces.CsvStaxParserLexType;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
@@ -273,10 +274,10 @@ loop:			for (;;) {
 		if (current() != CsvStaxParserLexType.BOOLEAN_VALUE) {
 			throw new IllegalStateException("Attempt to read boolean value from illegal lexema ["+current()+"]");
 		}
-		else if (CharUtils.compare(value,valueFrom,TRUE)) {
+		else if (UnsafedCharUtils.uncheckedCompare(value,valueFrom,TRUE,0,TRUE.length)) {
 			return true;
 		}
-		else if (CharUtils.compare(value,valueFrom,FALSE)) {
+		else if (UnsafedCharUtils.uncheckedCompare(value,valueFrom,FALSE,0,FALSE.length)) {
 			return false;
 		}
 		else {

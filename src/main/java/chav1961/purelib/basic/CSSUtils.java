@@ -22,6 +22,8 @@ import chav1961.purelib.basic.CharUtils.SubstitutionSource;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.basic.intern.UnsafedUtils;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;

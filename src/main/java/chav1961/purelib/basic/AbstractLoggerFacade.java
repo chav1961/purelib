@@ -1,6 +1,5 @@
 package chav1961.purelib.basic;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -347,7 +346,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			this.exception = exception;
 		}
 		
-		TransactionMessage(Severity level, String text) {
+		TransactionMessage(final Severity level, final String text) {
 			this.level = level;
 			this.text = text;
 			this.exception = null;

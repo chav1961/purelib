@@ -3,6 +3,8 @@ package chav1961.purelib.basic;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.intern.UnsafedUtils;
+
 public class UnsafedUtilsTest {
 
 	@Test

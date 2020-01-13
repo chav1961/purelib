@@ -19,6 +19,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 class AssemblerTemplateRepo {
 	private static final char[]		THE_END = "\n{_theend_}\n".toCharArray();
@@ -144,7 +145,7 @@ class AssemblerTemplateRepo {
 		}
 		else {
 			for (int index = 0, maxIndex = partNames.length; index < maxIndex; index++) {
-				if (CharUtils.compare(partName,0,partNames[index].name)) {
+				if (UnsafedCharUtils.uncheckedCompare(partName,0,partNames[index].name,0,partNames[index].name.length)) {
 					arr.append(CharUtils.substitute("",partNames[index].content,0,partNames[index].content.length,callback));
 					return this;
 				}

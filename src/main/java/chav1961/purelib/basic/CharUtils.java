@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
  * <p>This class contains implementation of the most-commonly-used char data parsing/printing functions in the system.</p> 
@@ -1882,7 +1883,7 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		int	amount = 0;
 		
 		for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
-			if (source[index] == first && compare(source,index,splitter)) {
+			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
 				index += splitterLen - 1;
 				amount++;
 			}
@@ -1907,7 +1908,7 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		int	start = 0, splitterLen = splitter.length, maxIndex = source.length, targetIndex = 0;
 		
 		for (int index = 0; index < maxIndex; index++) {
-			if (source[index] == first && compare(source,index,splitter)) {
+			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
 				target[targetIndex++] = new String(source,start,index-start);
 				index += splitterLen - 1;
 				start = index + 1;

@@ -23,7 +23,6 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.ReusableInstances;
 import chav1961.purelib.basic.GettersAndSettersFactory;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -38,6 +37,7 @@ import chav1961.purelib.basic.growablearrays.GrowableLongArray;
 import chav1961.purelib.basic.growablearrays.GrowableShortArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
@@ -415,15 +415,15 @@ public abstract class JsonSerializer<T> {
 				while (from < to && content[from] <= ' ') {
 					from++;
 				}
-				if (CharUtils.compare(content,from,FOR_NULL)) {
+				if (UnsafedCharUtils.uncheckedCompare(content,from,FOR_NULL,0,FOR_NULL.length)) {
 					from += FOR_NULL.length;
 					result[0] = null;
 				}
-				else if (CharUtils.compare(content,from,FOR_TRUE)) {
+				else if (UnsafedCharUtils.uncheckedCompare(content,from,FOR_TRUE,0,FOR_TRUE.length)) {
 					from += FOR_TRUE.length;
 					result[0] = Boolean.valueOf(true);
 				}
-				else if (CharUtils.compare(content,from,FOR_FALSE)) {
+				else if (UnsafedCharUtils.uncheckedCompare(content,from,FOR_FALSE,0,FOR_FALSE.length)) {
 					from += FOR_FALSE.length;
 					result[0] = Boolean.valueOf(false);
 				}
@@ -566,7 +566,7 @@ public abstract class JsonSerializer<T> {
 					}
 					reader.back();
 					
-					CharUtils.parseInt(content,0,result,true);
+					UnsafedCharUtils.uncheckedParseInt(content,0,result,true);
 					return Byte.valueOf((byte)(result[0]*multiplier));
 				} finally {
 					if (result != null) {
@@ -1363,7 +1363,7 @@ public abstract class JsonSerializer<T> {
 					}
 					reader.back();
 					
-					CharUtils.parseInt(content,0,result,true);
+					UnsafedCharUtils.uncheckedParseInt(content,0,result,true);
 					return Integer.valueOf(result[0]*multiplier);
 				} finally {
 					if (result != null) {
@@ -1715,7 +1715,7 @@ public abstract class JsonSerializer<T> {
 					}
 					reader.back();
 					
-					CharUtils.parseInt(content,0,result,true);
+					UnsafedCharUtils.uncheckedParseInt(content,0,result,true);
 					return Short.valueOf((short)(result[0]*multiplier));
 				} finally {
 					if (result != null) {
@@ -2364,10 +2364,10 @@ public abstract class JsonSerializer<T> {
 							} while (location < bufferLen && AVAILABLE.contains(symbol));
 							reader.back();
 
-							if (CharUtils.compare(buffer,0,BooleanSerializer.FOR_TRUE)) {
+							if (UnsafedCharUtils.uncheckedCompare(buffer,0,BooleanSerializer.FOR_TRUE,0,BooleanSerializer.FOR_TRUE.length)) {
 								content.append(true);
 							}
-							else if (CharUtils.compare(buffer,0,BooleanSerializer.FOR_FALSE)) {
+							else if (UnsafedCharUtils.uncheckedCompare(buffer,0,BooleanSerializer.FOR_FALSE,0,BooleanSerializer.FOR_FALSE.length)) {
 								content.append(false);
 							}
 							else {
@@ -2417,7 +2417,7 @@ public abstract class JsonSerializer<T> {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -2434,11 +2434,11 @@ public abstract class JsonSerializer<T> {
 						if (newFrom < to && content[newFrom] == ARRAY_TERMINATOR) {
 							break;
 						}
-						if (CharUtils.compare(content,newFrom,BooleanSerializer.FOR_TRUE)) {
+						if (UnsafedCharUtils.uncheckedCompare(content,newFrom,BooleanSerializer.FOR_TRUE,0,BooleanSerializer.FOR_TRUE.length)) {
 							temp.append(true);
 							newFrom += BooleanSerializer.FOR_TRUE.length;
 						}
-						else if (CharUtils.compare(content,newFrom,BooleanSerializer.FOR_FALSE)) {
+						else if (UnsafedCharUtils.uncheckedCompare(content,newFrom,BooleanSerializer.FOR_FALSE,0,BooleanSerializer.FOR_FALSE.length)) {
 							temp.append(false);
 							newFrom += BooleanSerializer.FOR_FALSE.length;
 						}
@@ -2666,7 +2666,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							reader.back();
 							
 							buffer[location] = ' ';
-							CharUtils.parseInt(buffer,0,value,true);
+							UnsafedCharUtils.uncheckedParseInt(buffer,0,value,true);
 							content.append((byte) (value[0]*multiplier));
 							
 							while ((symbol = reader.next()) <= ' ') {
@@ -2714,7 +2714,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -3035,7 +3035,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -3347,7 +3347,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Double array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -3654,7 +3654,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -3913,7 +3913,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							reader.back();
 							
 							buffer[location] = ' ';
-							CharUtils.parseInt(buffer,0,value,true);
+							UnsafedCharUtils.uncheckedParseInt(buffer,0,value,true);
 							content.append(value[0]*multiplier);
 							
 							while ((symbol = reader.next()) <= ' ') {
@@ -3961,7 +3961,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -4227,7 +4227,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -4497,7 +4497,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							reader.back();
 							
 							buffer[location] = ' ';
-							CharUtils.parseInt(buffer,0,value,true);
+							UnsafedCharUtils.uncheckedParseInt(buffer,0,value,true);
 							content.append((short) (value[0]*multiplier));
 						
 							while ((symbol = reader.next()) <= ' ') {
@@ -4545,7 +4545,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -4819,7 +4819,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != ARRAY_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}
@@ -5182,7 +5182,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					throw new SyntaxException(0,newFrom,"Boolean array value is missing"); 
 				}
 				else if (content[newFrom] != OBJECT_STARTER){
-					if (CharUtils.compare(content,newFrom,FOR_NULL)) {
+					if (UnsafedCharUtils.uncheckedCompare(content,newFrom,FOR_NULL,0,FOR_NULL.length)) {
 						result[0] = null;
 						return newFrom + FOR_NULL.length;
 					}

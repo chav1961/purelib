@@ -75,6 +75,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.json.JsonSerializer;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
@@ -266,10 +267,10 @@ public class InternalUtils {
 		if (source == null) {
 			throw new NullPointerException("Source array can't be null"); 
 		}
-		else if (CharUtils.compare(source,0,TRUE)) {
+		else if (UnsafedCharUtils.uncheckedCompare(source,0,TRUE,0,TRUE.length)) {
 			return true;
 		}
-		else if (CharUtils.compare(source,0,FALSE)) {
+		else if (UnsafedCharUtils.uncheckedCompare(source,0,FALSE,0,FALSE.length)) {
 			return false;
 		}
 		else {
@@ -302,7 +303,7 @@ public class InternalUtils {
 		else {
 			final int[]	result = new int[2];
 			
-			CharUtils.parseInt(source,0, result,false);
+			UnsafedCharUtils.uncheckedParseInt(source,0, result,false);
 			return result[0];
 		}
 	}
@@ -314,7 +315,7 @@ public class InternalUtils {
 		else {
 			final long[]	result = new long[2];
 			
-			CharUtils.parseLong(source,0, result,false);
+			UnsafedCharUtils.uncheckedParseLong(source,0, result,false);
 			return result[0];
 		}
 	}
@@ -348,11 +349,11 @@ public class InternalUtils {
 			final boolean[]	result = new boolean[calculateNL(source)+1];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				if (CharUtils.compare(source,start,TRUE)) {
+				if (UnsafedCharUtils.uncheckedCompare(source,start,TRUE,0,TRUE.length)) {
 					result[index] = true;
 					start += TRUE.length;
 				}
-				else if (CharUtils.compare(source,start,FALSE)) {
+				else if (UnsafedCharUtils.uncheckedCompare(source,start,FALSE,0,FALSE.length)) {
 					result[index] = false;
 					start += FALSE.length;
 				}

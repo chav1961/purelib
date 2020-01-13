@@ -1,8 +1,9 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.intern;
 
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
-class UnsafedCharUtils {
+public class UnsafedCharUtils {
 	private static final int		INTMAX_2 = Integer.MAX_VALUE / 2;
 	private static final int		INTMAX_8 = Integer.MAX_VALUE / 8;
 	private static final int		INTMAX_10 = Integer.MAX_VALUE / 10;
@@ -36,7 +37,7 @@ class UnsafedCharUtils {
 	}
 	
 	
-	static int uncheckedParseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
@@ -58,7 +59,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseBinaryInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseBinaryInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
@@ -80,7 +81,7 @@ class UnsafedCharUtils {
 		}
 	}
 	
-	static int uncheckedParseOctalInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseOctalInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
@@ -102,7 +103,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseHexInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseHexInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		int			temp = 0, index = from;
 		char		symbol;
@@ -132,7 +133,7 @@ class UnsafedCharUtils {
 		}
 	}
 	
-	static int uncheckedParseIntExtended(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseIntExtended(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		index = from, len = source.length;
 		
 		if (source[index] == '0') {
@@ -165,7 +166,7 @@ class UnsafedCharUtils {
 		}
 	}	
 	
-	static int uncheckedParseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -188,7 +189,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseBinaryLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseBinaryLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -211,7 +212,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseOctalLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseOctalLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -234,7 +235,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseHexLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseHexLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -265,7 +266,7 @@ class UnsafedCharUtils {
 		}
 	}
 	
-	static int uncheckedParseLongExtended(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseLongExtended(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		index = from, len = source.length;
 		
 		if (source[index] == '0') {
@@ -298,7 +299,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -383,7 +384,7 @@ class UnsafedCharUtils {
 		return index;
 	}
 
-	static int uncheckedParseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
 		int			index = from;
@@ -467,7 +468,7 @@ class UnsafedCharUtils {
 		return index;
 	}
 
-	static int uncheckedParseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) throws SyntaxException {
+	public static int uncheckedParseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) throws SyntaxException {
 		long	temp = 0;
 		int		index = from, len = source.length;
 		char	symbol = ' ';
@@ -597,7 +598,7 @@ class UnsafedCharUtils {
 		return index;
 	}
 
-	static int uncheckedValidateNumber(final char[] source, final int from, final int preferences, final boolean checkOverflow) {
+	public static int uncheckedValidateNumber(final char[] source, final int from, final int preferences, final boolean checkOverflow) {
 		long	temp = 0;
 		int		index = from, len = source.length;
 		char	symbol = ' ';
@@ -718,7 +719,7 @@ class UnsafedCharUtils {
 		return index; 
 	}
 	
-	static int uncheckedParseName(final char[] source, final int from, final int[] result) {
+	public static int uncheckedParseName(final char[] source, final int from, final int[] result) {
 		if (!Character.isJavaIdentifierStart(source[from])) {
 			throw new IllegalArgumentException("No valid beginning of the name"); 
 		}
@@ -737,7 +738,7 @@ class UnsafedCharUtils {
 		}
 	}
 
-	static int uncheckedParseNameExtended(final char[] source, final int from, final int[] result, final char... availableChars) {
+	public static int uncheckedParseNameExtended(final char[] source, final int from, final int[] result, final char... availableChars) {
 		if (!Character.isJavaIdentifierStart(source[from])) {
 			throw new IllegalArgumentException("No valid beginning of the name"); 
 		}
@@ -761,7 +762,7 @@ loop:			for (index = from; index < len; index++) {
 		}
 	}	
 	
-	static final int uncheckedSkipBlank(final char[] source, final int from, final boolean stopOnEOL) {
+	public static final int uncheckedSkipBlank(final char[] source, final int from, final boolean stopOnEOL) {
 		if (stopOnEOL) {
 			for (int index = from, maxIndex = source.length; index < maxIndex; index++) {
 				if (source[index] > ' ' || source[index] == '\n') {
@@ -780,7 +781,7 @@ loop:			for (index = from; index < len; index++) {
 		}
 	}
 	
-	static int uncheckedPrintLong(final char[] content, final int from, final long value, boolean reallyFill) throws IllegalArgumentException {
+	public static int uncheckedPrintLong(final char[] content, final int from, final long value, boolean reallyFill) throws IllegalArgumentException {
 		final int	to = content.length;
 		long		currentVal = value;
 		int			newFrom = from,  delta = 0;
@@ -875,7 +876,7 @@ loop:			for (index = from; index < len; index++) {
 		return reallyFill ? newFrom : -newFrom;
 	}
 
-	static int unckeckedPrintDouble(final char[] content, final int from, double value, boolean reallyFill) throws IllegalArgumentException {
+	public static int unckeckedPrintDouble(final char[] content, final int from, double value, boolean reallyFill) throws IllegalArgumentException {
 		final int	to = content.length;
 		int			newFrom = from;
 		
@@ -996,7 +997,7 @@ loop:			for (index = from; index < len; index++) {
 		return reallyFill ? newFrom : -newFrom;
 	}
 
-	static int printUncheckedEscapedChar(final char[] content, final int from, final char value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
+	public static int printUncheckedEscapedChar(final char[] content, final int from, final char value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
 		final int	to = content.length;
 		int			newFrom = from;
 
@@ -1100,7 +1101,7 @@ loop:			for (index = from; index < len; index++) {
 		return newFrom;
 	}
 	
-	static boolean uncheckedCompare(final char[] source, final int from, final char[] template, final int templateFrom, final int templateLen) {
+	public static boolean uncheckedCompare(final char[] source, final int from, final char[] template, final int templateFrom, final int templateLen) {
 		if (source.length - from < templateLen) {
 			return false;
 		}

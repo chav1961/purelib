@@ -26,13 +26,13 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroClassLoader;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCompiler;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
@@ -1168,10 +1168,10 @@ class LineParser implements LineByLineProcessorCallback {
 							}							
 							break;
 						case CompilerUtils.CLASSTYPE_BOOLEAN :
-							if (CharUtils.compare(data,start,TRUE)) {
+							if (UnsafedCharUtils.uncheckedCompare(data,start,TRUE,0,TRUE.length)) {
 								valueId = cc.getConstantPool().asIntegerDescription(1); 
 							}
-							else if (CharUtils.compare(data,start,FALSE)) {
+							else if (UnsafedCharUtils.uncheckedCompare(data,start,FALSE,0,FALSE.length)) {
 								valueId = cc.getConstantPool().asIntegerDescription(0); 
 							}
 							else {
@@ -1265,10 +1265,10 @@ class LineParser implements LineByLineProcessorCallback {
 							}							
 							break;
 						case CompilerUtils.CLASSTYPE_BOOLEAN :
-							if (CharUtils.compare(data,start,TRUE)) {
+							if (UnsafedCharUtils.uncheckedCompare(data,start,TRUE,0,TRUE.length)) {
 								valueId = cc.getConstantPool().asIntegerDescription(1); 
 							}
-							else if (CharUtils.compare(data,start,FALSE)) {
+							else if (UnsafedCharUtils.uncheckedCompare(data,start,FALSE,0,FALSE.length)) {
 								valueId = cc.getConstantPool().asIntegerDescription(0); 
 							}
 							else {
@@ -1460,7 +1460,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 		try{final int	possibleProtected = InternalUtils.skipBlank(data,endName);
 			
-			if (CharUtils.compare(data,possibleProtected,PROTECTED_KEYWORD)) {
+			if (UnsafedCharUtils.uncheckedCompare(data,possibleProtected,PROTECTED_KEYWORD,0,PROTECTED_KEYWORD.length)) {
 				cdr.addDescription(loader != null ? Class.forName(className,true,loader) : Class.forName(className),true);
 				start = possibleProtected + PROTECTED_KEYWORD.length;
 			}
@@ -1514,10 +1514,10 @@ class LineParser implements LineByLineProcessorCallback {
 		int		parm[] = new int[1], from = start, major = 0, minor = 0;
 		
 		if (start < end && data[start] >= '0' && data[start] <= '9') {
-			start = CharUtils.parseInt(data,from,parm,true);
+			start = UnsafedCharUtils.uncheckedParseInt(data,from,parm,true);
 			major = parm[0];
 			if (data[start] == '.') {
-				CharUtils.parseInt(data,from = start + 1,parm,true);
+				UnsafedCharUtils.uncheckedParseInt(data,from = start + 1,parm,true);
 				minor = parm[0];
 			}
 			if (major == 1 && minor == 7) {
@@ -1539,7 +1539,7 @@ class LineParser implements LineByLineProcessorCallback {
 		int		parm[] = new int[1], from = start;
 		
 		if (start < end && data[start] >= '0' && data[start] <= '9') {
-			CharUtils.parseInt(data,start,parm,true);
+			UnsafedCharUtils.uncheckedParseInt(data,start,parm,true);
 			if (addLines2ClassManually) {
 				if (state == ParserState.insideClassBody || state == ParserState.insideBegin) {
 					methodDescriptor.addLineNoRecord(parm[0]);
@@ -1902,7 +1902,7 @@ class LineParser implements LineByLineProcessorCallback {
 				case 'U' : case 'V' : case 'W' : case 'X' : case 'Y' : case 'Z' :
 					final int	startName = start, endName = start = skipQualifiedName(data,startName);
 					
-					if (CharUtils.compare(data, endName-CLASS_SUFFIX.length, CLASS_SUFFIX)) {
+					if (UnsafedCharUtils.uncheckedCompare(data,endName-CLASS_SUFFIX.length,CLASS_SUFFIX,0,CLASS_SUFFIX.length)) {
 						for (int index = startName; index <= endName; index++) {
 							if (data[index] == '.') {
 								data[index] = '/';

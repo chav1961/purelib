@@ -6,6 +6,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.Asm;
 
 abstract class Command {
@@ -309,7 +310,7 @@ class ForCommand extends LoopCommand {
 					parameters[1] = parameters[0];
 					
 					from = InternalUtils.skipBlank(data,from);
-					if (!CharUtils.compare(data,from,TO)) {
+					if (!UnsafedCharUtils.uncheckedCompare(data,from,TO,0,TO.length)) {
 						throw new SyntaxException(lineNo,from-begin,"Missing 'to'!");  
 					}
 					else {
@@ -323,7 +324,7 @@ class ForCommand extends LoopCommand {
 					parameters[2] = parameters[0];
 	
 					from = InternalUtils.skipBlank(data,from);
-					if (CharUtils.compare(data,from,STEP)) {
+					if (UnsafedCharUtils.uncheckedCompare(data,from,STEP,0,STEP.length)) {
 						from += STEP.length - 1;
 						
 						from = InternalUtils.parseExpression(InternalUtils.ORDER_ADD,lineNo,data,begin,InternalUtils.skipBlank(data,from),macro,parameters);
@@ -389,7 +390,7 @@ class ForEachCommand extends LoopCommand {
 			}
 			else {
 				from = InternalUtils.skipBlank(data,from);
-				if (!CharUtils.compare(data,from,IN)) {
+				if (!UnsafedCharUtils.uncheckedCompare(data,from,IN,0,IN.length)) {
 					throw new SyntaxException(lineNo,from-begin,"Missing 'in'!");  
 				}
 				else {
@@ -403,14 +404,14 @@ class ForEachCommand extends LoopCommand {
 				parameters[1] = parameters[0];
 
 				from = InternalUtils.skipBlank(data,from);
-				if (!CharUtils.compare(data,from,SPLITTED)) {
+				if (!UnsafedCharUtils.uncheckedCompare(data,from,SPLITTED,0,SPLITTED.length)) {
 					throw new SyntaxException(lineNo,from-begin,"Missing 'splitted'!");  
 				}
 				else {
 					from += SPLITTED.length - 1;
 				}
 				from = InternalUtils.skipBlank(data,from);
-				if (!CharUtils.compare(data,from,BY)) {
+				if (!UnsafedCharUtils.uncheckedCompare(data,from,BY,0,BY.length)) {
 					throw new SyntaxException(lineNo,from-begin,"Missing 'by'!");  
 				}
 				else {

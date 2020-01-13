@@ -73,6 +73,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -881,7 +882,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		final ClassDescriptor	desc;
 		final int				prefixLen;
 
-		if (!disableLoopback && CharUtils.compare(charPath,0,LOOPBACK_TEXT)) {
+		if (!disableLoopback && UnsafedCharUtils.uncheckedCompare(charPath,0,LOOPBACK_TEXT,0,LOOPBACK_TEXT.length)) {
 			return "/loopback";
 		}
 		else {
@@ -908,7 +909,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		final ClassDescriptor	desc;
 		final int				prefixLen;
 
-		if (!disableLoopback && CharUtils.compare(charPath,0,LOOPBACK_TEXT)) {
+		if (!disableLoopback && UnsafedCharUtils.uncheckedCompare(charPath,0,LOOPBACK_TEXT,0,LOOPBACK_TEXT.length)) {
 			return new Loopback(call);
 		}
 		else {
@@ -2259,7 +2260,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			int index = 0, maxIndex = pathComponents.length, from = fromPath, maxFrom = path.length; 
 			
 loop:		for (; index < maxIndex && from < maxFrom; index++) {
-				if (CharUtils.compare(path,from,pathComponents[index])) {
+				if (UnsafedCharUtils.uncheckedCompare(path,from,pathComponents[index],0,pathComponents[index].length)) {
 					from += pathComponents[index].length + 1;
 				}
 				else if (pathComponents[index][0] == '{') {

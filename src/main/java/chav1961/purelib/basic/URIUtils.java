@@ -10,13 +10,9 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Hashtable;
-
-import chav1961.purelib.fsys.FileSystemURLStreamHandler;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class URIUtils {
 	/**

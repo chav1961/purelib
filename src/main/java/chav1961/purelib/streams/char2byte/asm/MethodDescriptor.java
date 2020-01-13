@@ -10,6 +10,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
 
 class MethodDescriptor implements Closeable {
@@ -276,7 +277,7 @@ class MethodDescriptor implements Closeable {
 			tree.getName(signatureId,forLongName,classLen+1+methodLen);
 			tree.placeOrChangeName(forLongName,0,forLongName.length,new NameDescriptor());
 
-			final boolean	wasConstructor = CharUtils.compare(forShortName,0,INIT) || CharUtils.compare(forShortName,0,CLASS_INIT);
+			final boolean	wasConstructor = UnsafedCharUtils.uncheckedCompare(forShortName,0,INIT,0,INIT.length) || UnsafedCharUtils.uncheckedCompare(forShortName,0,CLASS_INIT,0,CLASS_INIT.length);
 			
 			if (wasConstructor) {	// Special behavior for constructors
 				String	className = tree.getName(classId);

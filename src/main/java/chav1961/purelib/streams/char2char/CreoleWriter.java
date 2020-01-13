@@ -12,6 +12,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.char2char.ListManipulationStack.ListType;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
@@ -446,7 +447,7 @@ loop:		for (;from < to; from++) {
 						if (from < to - 1 && data[from + 1] == '/') {
 							int		hrefEnd;
 							
-							if (from > 3 && CharUtils.compare(data,from-4,FTP)) {
+							if (from > 3 && UnsafedCharUtils.uncheckedCompare(data,from-4,FTP,0,FTP.length)) {
 								if (!escape) {
 									internalWrite(displacement,lineNo,from-begin,data,start,from-4,false);
 									hrefEnd = parseHref(data,from-4,to);
@@ -457,7 +458,7 @@ loop:		for (;from < to; from++) {
 									escape = false;
 								}
 							}
-							else if (from > 4 && (CharUtils.compare(data,from-5,HTTP) || CharUtils.compare(data,from-5,FTPS))) {
+							else if (from > 4 && (UnsafedCharUtils.uncheckedCompare(data,from-5,HTTP,0,HTTP.length) || UnsafedCharUtils.uncheckedCompare(data,from-5,FTPS,0,FTPS.length))) {
 								if (!escape) {
 									internalWrite(displacement,lineNo,from-begin,data,start,from-5,false);
 									hrefEnd = parseHref(data,from-5,to);
@@ -468,7 +469,7 @@ loop:		for (;from < to; from++) {
 									escape = false;
 								}
 							}
-							else if (from > 5 && CharUtils.compare(data,from-6,HTTPS)) {
+							else if (from > 5 && UnsafedCharUtils.uncheckedCompare(data,from-6,HTTPS,0,HTTPS.length)) {
 								if (!escape) {
 									internalWrite(displacement,lineNo,from-begin,data,start,from-6,false);
 									hrefEnd = parseHref(data,from-6,to);

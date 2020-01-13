@@ -3,6 +3,7 @@ package chav1961.purelib.basic;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedUtils;
 
 /**
  * <p>This class is a sort of fast prefix tree. It class implements {@link SyntaxTreeInterface} interface by the And/Or tree algorithm. And/Or tree is a specific implementation of the well-known 

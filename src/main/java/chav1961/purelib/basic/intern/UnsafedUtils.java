@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.intern;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -6,9 +6,10 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Field;
 import java.util.logging.Level;
 
+import chav1961.purelib.basic.PureLibSettings;
 import sun.misc.Unsafe;
 
-class UnsafedUtils {
+public class UnsafedUtils {
 	private static sun.misc.Unsafe		unsafe;
 	private static final MethodHandle	ACCESS_STRING_CONTENT;
 	private static final long			STRING_VALUE_DISPL;

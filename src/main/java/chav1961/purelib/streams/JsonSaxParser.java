@@ -10,6 +10,7 @@ import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 
 
@@ -427,7 +428,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	}
 	
 	protected int nullValue(final char[] data, final int from, final int length) throws ContentException {
-		if (CharUtils.compare(data,from,CONST_NULL)) {
+		if (UnsafedCharUtils.uncheckedCompare(data,from,CONST_NULL,0,CONST_NULL.length)) {
 			handler.value();
 			return from + CONST_NULL.length;
 		}
@@ -437,11 +438,11 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	}
 
 	protected int booleanValue(final int lineNo, final int startLine, final char[] data, final int from, final int length) throws IOException, ContentException {
-		if (CharUtils.compare(data,from,CONST_TRUE)) {
+		if (UnsafedCharUtils.uncheckedCompare(data,from,CONST_TRUE,0,CONST_TRUE.length)) {
 			handler.value(true);
 			return from + CONST_TRUE.length;
 		}
-		else if (CharUtils.compare(data,from,CONST_FALSE)) {
+		else if (UnsafedCharUtils.uncheckedCompare(data,from,CONST_FALSE,0,CONST_FALSE.length)) {
 			handler.value(false);
 			return from + CONST_FALSE.length;
 		}
