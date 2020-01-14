@@ -169,13 +169,13 @@ public class SubstitutableProperties extends Properties {
 
 	/**
 	 * <p>Convert value content to type awaited</p> 
+	 * @param <T> converted instance type
 	 * @param key key associated with the given value
 	 * @param value value to convert
 	 * @param awaited awaited class for value converted
 	 * @return value converted
 	 * @since 0.0.3
-	 */
-	
+	 */	
 	@SuppressWarnings("unchecked")
 	public static <T> T convert(final String key, final String value, final Class<T> awaited) {
 		if (awaited == null) {

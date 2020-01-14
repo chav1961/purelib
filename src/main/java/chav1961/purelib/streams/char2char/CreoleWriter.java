@@ -27,7 +27,7 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
  * <li>HTML content</li>
  * <li>XML PDF content (according to Apache FOP, see https://xmlgraphics.apache.org/fop/ )</li>
  * </ul>
- * <p>Content of the output XML is described by XSD schema creoleXML.xsd (see {@linkplain Utils#getPurelibXSD(chav1961.purelib.enumerations.XSDCollection)}). You can use
+ * <p>Content of the output XML is described by XSD schema creoleXML.xsd (see {@linkplain chav1961.purelib.basic.XMLUtils#getPurelibXSD(chav1961.purelib.enumerations.XSDCollection)}). You can use
  * this description to validate XML output</p>
  * <p>The class is not thread-safe.</p>
  * 

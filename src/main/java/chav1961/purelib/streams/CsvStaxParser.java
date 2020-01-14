@@ -291,7 +291,7 @@ loop:			for (;;) {
 			throw new IllegalStateException("Attempt to read integer value from illegal lexema ["+current()+"]");
 		}
 		else {
-			try{CharUtils.parseSignedLong(value,valueFrom,parsedLong,true);
+			try{UnsafedCharUtils.uncheckedParseSignedLong(value,valueFrom,parsedLong,true);
 				return parsedLong[0];
 			} catch (IllegalArgumentException exc) {
 				throw new SyntaxException(row(),col(),"Invalid integer in the input stream");
@@ -305,7 +305,7 @@ loop:			for (;;) {
 			throw new IllegalStateException("Attempt to read real value from illegal lexema ["+current()+"]");
 		}
 		else {
-			try{CharUtils.parseSignedDouble(value,valueFrom,parsedDouble,true);
+			try{UnsafedCharUtils.uncheckedParseSignedDouble(value,valueFrom,parsedDouble,true);
 				return parsedDouble[0];
 			} catch (IllegalArgumentException exc) {
 				throw new SyntaxException(row(),col(),"Invalid real in the input stream");

@@ -136,7 +136,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		
 		/**
 		 * <p>Get filter name. String will be used 'as-is', you should make yourself any localization you need</p> 
-		 * @return
+		 * @return filter name. Can't be null
 		 */
 		String getFilterName();
 		
@@ -144,7 +144,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		 * <p>Accept file system interface item with the given filter.</p>
 		 * @param item file system item to test
 		 * @return true if the item must be include into the list, false otherwise
-		 * @throws IOException
+		 * @throws IOException when I/O errors during processing
 		 */
 		boolean accept(final FileSystemInterface item) throws IOException;
 	}

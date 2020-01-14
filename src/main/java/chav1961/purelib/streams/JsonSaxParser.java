@@ -416,9 +416,9 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	protected int stringName(final char[] data, final int from, final int length) throws ContentException {
 		int		temp;
 		
-		if ((temp = CharUtils.parseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
+		if ((temp = UnsafedCharUtils.uncheckedParseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
 			sb.setLength(0);
-			temp = CharUtils.parseString(data,from+1,'\"',sb);
+			temp = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',sb);
 			handler.startName(sb.toString().toCharArray(),0,sb.length());
 		}
 		else {
@@ -461,7 +461,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 			multiplier = 1;
 		}
 		
-		final int		result = CharUtils.parseNumber(data,from,numbers,CharUtils.PREF_ANY,true);
+		final int		result = UnsafedCharUtils.uncheckedParseNumber(data,from,numbers,CharUtils.PREF_ANY,true);
 		
 		switch ((int)numbers[1]) {
 			case CharUtils.PREF_INT 	:
@@ -484,9 +484,9 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 	protected int stringValue(final int lineNo, final int start,final char[] data, final int from, final int length) throws IOException, ContentException {
 		int		temp;
 		
-		try{if ((temp = CharUtils.parseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
+		try{if ((temp = UnsafedCharUtils.uncheckedParseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
 				sb.setLength(0);
-				temp = CharUtils.parseString(data,from+1,'\"',sb);
+				temp = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',sb);
 				handler.value(sb.toString().toCharArray(),0,sb.length());
 			}
 			else {

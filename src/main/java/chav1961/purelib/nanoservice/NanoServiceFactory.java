@@ -116,7 +116,7 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
  * (see {@linkplain AsmWriter}) and doesn't use reflections on service calls in many cases</p> 
  * <p>This class is not thread-safe.</p>
  * @see com.sun.net.httpserver.HttpServer
- * @see http://www.wikicreole.org
+ * @see <a href="http://www.wikicreole.org">WikiCreole</a>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */

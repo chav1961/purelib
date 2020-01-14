@@ -10,6 +10,7 @@ import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.interfaces.CsvSaxHandler;
 
 public class CsvSaxParser {
@@ -124,12 +125,12 @@ public class CsvSaxParser {
 		handler.startCaption();
 loop:	do {boolean	hasData = false;
 
-			start = CharUtils.skipBlank(data,start+1,true);
+			start = UnsafedCharUtils.uncheckedSkipBlank(data,start+1,true);
 			switch (data[start]) {
 				case '\r' : case '\n' :
 					break loop;
 				case '\"' :
-					final int	end = CharUtils.parseUnescapedString(data,start+1,'\"',true, location);
+					final int	end = UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true, location);
 					
 					if (end < 0) {
 						throw new SyntaxException(1,start-from,"Name contains escaping or newline inside");
@@ -170,7 +171,7 @@ loop:	do {boolean	hasData = false;
 						throw new SyntaxException(1,start-from,"Name is missing or contains invalid chars");
 					}
 			}
-			start = CharUtils.skipBlank(data,start,true);
+			start = UnsafedCharUtils.uncheckedSkipBlank(data,start,true);
 			if (!hasData) {
 				throw new SyntaxException(1,start-from,"Name is missing");
 			}
@@ -312,7 +313,7 @@ loop:	do {boolean	hasData = false;
 	}
 	
 	private int testNumber(final char[] data, final int from, final int to) {
-		int	start = CharUtils.skipBlank(data,from,true);
+		int	start = UnsafedCharUtils.uncheckedSkipBlank(data,from,true);
 		
 		if (data[start] == '+' || data[start] == '-') {
 			start++;
@@ -337,7 +338,7 @@ loop:	do {boolean	hasData = false;
 						start++;
 					}
 				}
-				if (CharUtils.skipBlank(data,start,true) == to) {
+				if (UnsafedCharUtils.uncheckedSkipBlank(data,start,true) == to) {
 					return CharUtils.PREF_DOUBLE;
 				}
 				else {
@@ -345,7 +346,7 @@ loop:	do {boolean	hasData = false;
 				}
 			}
 			else {
-				if (CharUtils.skipBlank(data,start,true) == to) {
+				if (UnsafedCharUtils.uncheckedSkipBlank(data,start,true) == to) {
 					return CharUtils.PREF_LONG;
 				}
 				else {
@@ -368,12 +369,12 @@ loop:	do {boolean	hasData = false;
 	}
 
 	private void processLongValue(final int fieldNo, final char[] data, final int from, final int to) throws ContentException {
-		CharUtils.parseSignedLong(data,CharUtils.skipBlank(data,from,true),valueAndType,true);
+		UnsafedCharUtils.uncheckedParseSignedLong(data,UnsafedCharUtils.uncheckedSkipBlank(data,from,true),valueAndType,true);
 		handler.value(fieldNo,valueAndType[0]);
 	}
 
 	private void processDoubleValue(final int fieldNo, final char[] data, final int from, final int to) throws ContentException {
-		CharUtils.parseSignedDouble(data,CharUtils.skipBlank(data,from,true),value,true);
+		UnsafedCharUtils.uncheckedParseSignedDouble(data,UnsafedCharUtils.uncheckedSkipBlank(data,from,true),value,true);
 		handler.value(fieldNo,value[0]);
 	}
 }

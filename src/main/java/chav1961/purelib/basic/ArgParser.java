@@ -33,7 +33,7 @@ import chav1961.purelib.sql.SQLUtils;
  * . . .<br>
  * int value = currentList.getValue("intName",int.class);<br>
  * . . .<br>
- * }</br>
+ * }<br>
  * </code>
  * <p>This class can be used in multithreaded environment</p>
  * 

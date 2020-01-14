@@ -711,7 +711,7 @@ sw:				for(;;) {
 	/**
 	 * <p>Enumerate all locales supported</p>
 	 * @param iterator iterator to process all locale supported
-	 * @throws NullPointerException
+	 * @throws NullPointerException when iterator is null 
 	 * @since 0.0.3
 	 */
 	public static void enumerateLocales(final SupportedLocalesIterator iterator) throws NullPointerException {

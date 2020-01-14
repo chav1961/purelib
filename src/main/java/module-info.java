@@ -1,5 +1,5 @@
 module chav1961.purelib {
-	requires java.desktop;
+	requires transitive java.desktop;
 	requires java.scripting;
 	requires java.xml;
 	requires java.logging;

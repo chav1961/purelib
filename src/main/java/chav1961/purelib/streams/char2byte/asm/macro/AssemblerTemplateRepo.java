@@ -54,7 +54,7 @@ class AssemblerTemplateRepo {
 														final int	start = from, to = from + length;
 														
 														if (data[from] == '{') {
-															from = CharUtils.parseName(data,from+1,ranges);
+															from = UnsafedCharUtils.uncheckedParseName(data,from+1,ranges);
 															if (from < to && data[from] == '}') {
 																if (name != null) {
 																	parts.put(name,content.extract());

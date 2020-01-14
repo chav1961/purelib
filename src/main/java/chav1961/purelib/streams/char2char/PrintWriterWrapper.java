@@ -7,6 +7,7 @@ import java.util.Arrays;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 public class PrintWriterWrapper implements CharStreamPrinter<PrintWriterWrapper> {
 	static final char[]			CRNL = System.getProperty("line.separator").toCharArray();
@@ -90,7 +91,7 @@ public class PrintWriterWrapper implements CharStreamPrinter<PrintWriterWrapper>
 
 	@Override
 	public PrintWriterWrapper print(long data) throws PrintingException {
-		final int	len = CharUtils.printLong(buffer, 0, data, true);
+		final int	len = UnsafedCharUtils.uncheckedPrintLong(buffer, 0, data, true);
 		
 		if (len < 0) {
 			buffer = Arrays.copyOf(buffer,2*buffer.length);
@@ -119,7 +120,7 @@ public class PrintWriterWrapper implements CharStreamPrinter<PrintWriterWrapper>
 
 	@Override
 	public PrintWriterWrapper print(double data) throws PrintingException {
-		final int	len = CharUtils.printDouble(buffer, 0, data, true);
+		final int	len = UnsafedCharUtils.uncheckedPrintDouble(buffer, 0, data, true);
 		
 		if (len < 0) {
 			buffer = Arrays.copyOf(buffer,2*buffer.length);

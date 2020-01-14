@@ -99,7 +99,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	/**
 	 * <p>Create ordinal state string with no history and no logging</p>
 	 * @param localizer localizer to use in messages and progress indicators
-	 * @throws NullPointerException
+	 * @throws NullPointerException when localizer is null
 	 */
 	public JStateString(final Localizer localizer) throws NullPointerException {
 		if (localizer == null) {
@@ -119,8 +119,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	 * <p>Create state string with history of the given depth and no logging</p>
 	 * @param localizer localizer to use in messages and progress indicators
 	 * @param historyDepth depth of the history. Must be positive
-	 * @throws NullPointerException
-	 * @throws IllegalArgumentException
+	 * @throws NullPointerException when localizer is null
+	 * @throws IllegalArgumentException when history depth is less than zero
 	 */
 	public JStateString(final Localizer localizer, final int historyDepth) throws NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
@@ -143,8 +143,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	 * <p>Create state string with no history and logging</p>
 	 * @param localizer localizer to use in messages and progress indicators
 	 * @param dumpedTo logger to dump all messages were typed in the state string
-	 * @throws NullPointerException
-	 * @throws IllegalArgumentException
+	 * @throws NullPointerException when localizer of  logger facade is null
 	 */
 	public JStateString(final Localizer localizer, final LoggerFacade dumpedTo) throws NullPointerException {
 		if (localizer == null) {
@@ -165,10 +164,11 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 
 	/**
 	 * <p>Create state string with history of the given depth and logging</p>
+	 * @param localizer localizer for the given state string
 	 * @param dumpedTo logger to dump all messages were typed in the state string
 	 * @param historyDepth depth of the history. Must be positive
-	 * @throws NullPointerException
-	 * @throws IllegalArgumentException
+	 * @throws NullPointerException when localizer of  logger facade is null
+	 * @throws IllegalArgumentException when history depth is less than zero
 	 */
 	public JStateString(final Localizer localizer, final LoggerFacade dumpedTo, final int historyDepth) throws NullPointerException, IllegalArgumentException {
 		if (localizer == null) {

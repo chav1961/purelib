@@ -22,6 +22,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.ui.interfaces.Constraint;
@@ -256,7 +257,7 @@ public class ConstraintCheckerFactory {
 				if (Character.isDigit(expr[pos])) {
 					final long[]	values = new long[2];
 					
-					pos = CharUtils.parseNumber(expr,pos,values,CharUtils.PREF_ANY,true);
+					pos = UnsafedCharUtils.uncheckedParseNumber(expr,pos,values,CharUtils.PREF_ANY,true);
 					switch ((int)values[1]) {
 						case CharUtils.PREF_INT : case CharUtils.PREF_LONG :
 							result[0] = new SyntaxNode(0,pos,ExprType.Const,0,Long.valueOf(values[0]));
@@ -272,7 +273,7 @@ public class ConstraintCheckerFactory {
 				else if (Character.isJavaIdentifierStart(expr[pos])) {
 					final int[]		ranges = new int[2];
 					
-					pos = CharUtils.parseName(expr,pos,ranges);
+					pos = UnsafedCharUtils.uncheckedParseName(expr,pos,ranges);
 					final String	name = new String(expr,ranges[0],ranges[1]-ranges[0]+1);
 					
 					if ("true".equals(name)) {
@@ -293,7 +294,7 @@ public class ConstraintCheckerFactory {
 				else if (expr[pos] == '\"') {
 					final int[]	ranges = new int[2];
 					
-					pos = CharUtils.parseUnescapedString(expr,pos+1,'\"',true,ranges);
+					pos = UnsafedCharUtils.uncheckedParseUnescapedString(expr,pos+1,'\"',true,ranges);
 					result[0] = new SyntaxNode(0,pos,ExprType.Const,0,new String(expr,ranges[0],ranges[1]-ranges[0]+1));
 				}
 				else if (expr[pos] == '(') {

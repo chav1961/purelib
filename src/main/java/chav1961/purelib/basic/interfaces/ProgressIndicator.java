@@ -8,7 +8,7 @@ package chav1961.purelib.basic.interfaces;
  * <li>calling {@linkplain #processed(long)} method repeatedly.</li>
  * <li>calling {@linkplain #end()} method.</li>
  * </ul>
- * MultiState life cycle for the interface is:</p>
+ * <p>MultiState life cycle for the interface is:</p>
  * <ul>
  * <li>calling {@linkplain #start(String)} method</li>
  * <li>calling {@linkplain #stage(String,int,int)} or {@linkplain #stage(String,int,int,long)} method</li>

@@ -31,7 +31,6 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
  * <li>{@link FileSystemOnRMI} - file system as a client for remote server (location URI schema='rmi')</li>
  * <li>{@link FileSystemOnXMLReadOnly} - file system based on an XML file content (location URI schema='xmlReadOnly')</li>
  * <li>{@link FileSystemOnFileSystem} - file system based on standard file system mechanism in the Java 1.7 and later (location URI schema='fsys')</li>
- * <li>{@link FileSystemOnCsvDb} - file system provided access to database content in the CSV format via JDBC protocol (location URI schema='csvdb')</li>
  * </ul>
  * <p>Any vendor can add it's own file system implementation to the library. To make this, simply use SPI protocol. The reference to vendor file system
  * need be described in the <b>META-INF/services/chav1961.purelib.fsys.interfaces.FileSystemInterface</b> file</p>

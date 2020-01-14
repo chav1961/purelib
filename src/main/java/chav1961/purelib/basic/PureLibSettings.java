@@ -204,6 +204,7 @@ public class PureLibSettings {
 		
 		/**
 		 * <p>Create service instance by it's URI</p>
+		 * @param <T> service instance to create
 		 * @param description uri to pass to service factory
 		 * @return instance created.
 		 * @throws EnvironmentException on creation errors

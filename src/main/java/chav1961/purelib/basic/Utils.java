@@ -139,6 +139,7 @@ public class Utils {
 	 * <p>Copy one character stream to another</p>
 	 * @param is input stream to copy from
 	 * @param os output stream to copy to
+	 * @param progress progress bar to indicate progress
 	 * @return length transferred (in chars). If copying was interrupted, returns negative value of partially transferred data
 	 * @throws IOException if any I/O exception was thrown
 	 * @throws NullPointerException when any problems with parameters

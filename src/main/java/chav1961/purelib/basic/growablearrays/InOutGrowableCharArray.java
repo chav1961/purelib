@@ -6,6 +6,7 @@ import java.util.Arrays;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
  * <p>This class implements {@linkplain CharStreamPrinter} interface for {@linkplain GrowableCharArray} class. It allow the class 
@@ -94,7 +95,7 @@ public class InOutGrowableCharArray extends GrowableCharArray implements CharStr
 
 	@Override
 	public InOutGrowableCharArray print(final long data) throws PrintingException {
-		final int	len = CharUtils.printLong(buffer, 0, data, true);
+		final int	len = UnsafedCharUtils.uncheckedPrintLong(buffer, 0, data, true);
 		
 		if (len < 0) {
 			buffer = Arrays.copyOf(buffer,2*buffer.length);
@@ -124,7 +125,7 @@ public class InOutGrowableCharArray extends GrowableCharArray implements CharStr
 
 	@Override
 	public InOutGrowableCharArray print(final double data) throws PrintingException {
-		final int	len = CharUtils.printDouble(buffer, 0, data, true);
+		final int	len = UnsafedCharUtils.uncheckedPrintDouble(buffer, 0, data, true);
 		
 		if (len < 0) {
 			buffer = Arrays.copyOf(buffer,2*buffer.length);

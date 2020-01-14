@@ -86,7 +86,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.3
+	 * @lastUpdate 0.0.4
 	 */
 	public static int parseSignedInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -101,18 +101,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
-			if (source[from] == '-') {
-				final int	returned = UnsafedCharUtils.uncheckedParseInt(source, from+1, result, checkOverflow);
-				
-				result[0] = -result[0];
-				return returned;
-			}
-			else if (source[from] == '+') {
-				return UnsafedCharUtils.uncheckedParseInt(source, from+1, result, checkOverflow);
-			}
-			else {
-				return UnsafedCharUtils.uncheckedParseInt(source, from, result, checkOverflow);
-			}
+			return UnsafedCharUtils.uncheckedParseSignedInt(source, from, result, checkOverflow);
 		}
 	}
 	
@@ -182,7 +171,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.3
+	 * @lastUpdate 0.0.4
 	 */
 	public static int parseSignedLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -197,18 +186,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
-			if (source[from] == '-') {
-				final int	returned = UnsafedCharUtils.uncheckedParseLong(source, from+1, result, checkOverflow);
-				
-				result[0] = -result[0];
-				return returned;
-			}
-			else if (source[from] == '+') {
-				return UnsafedCharUtils.uncheckedParseLong(source, from+1, result, checkOverflow);
-			}
-			else {
-				return UnsafedCharUtils.uncheckedParseLong(source, from, result, checkOverflow);
-			}
+			return UnsafedCharUtils.uncheckedParseSignedLong(source, from, result, checkOverflow);
 		}
 	}
 	
@@ -278,7 +256,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.3
+	 * @lastUpdate 0.0.4
 	 */
 	public static int parseSignedFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -293,18 +271,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain exactly one element"); 
 		}
 		else {
-			if (source[from] == '-') {
-				final int	returned = UnsafedCharUtils.uncheckedParseFloat(source, from+1, result, checkOverflow);
-				
-				result[0] = -result[0];
-				return returned;
-			}
-			else if (source[from] == '+') {
-				return UnsafedCharUtils.uncheckedParseFloat(source, from+1, result, checkOverflow);
-			}
-			else {
-				return UnsafedCharUtils.uncheckedParseFloat(source, from, result, checkOverflow);
-			}
+			return UnsafedCharUtils.uncheckedParseSignedFloat(source, from, result, checkOverflow);
 		}
 	}
 	
@@ -346,7 +313,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.3
+	 * @lastUpdate 0.0.4
 	 */
 	public static int parseSignedDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -361,18 +328,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
-			if (source[from] == '-') {
-				final int	returned = UnsafedCharUtils.uncheckedParseDouble(source, from+1, result, checkOverflow);
-				
-				result[0] = -result[0];
-				return returned;
-			}
-			else if (source[from] == '+') {
-				return UnsafedCharUtils.uncheckedParseDouble(source, from+1, result, checkOverflow);
-			}
-			else {
-				return UnsafedCharUtils.uncheckedParseDouble(source, from, result, checkOverflow);
-			}
+			return UnsafedCharUtils.uncheckedParseSignedDouble(source, from, result, checkOverflow);
 		}
 	}
 	
@@ -468,6 +424,7 @@ public class CharUtils {
 	 * @param result array (new char[1]) to store parsed char
 	 * @return position of the first char in the source after successful parsing of the current char.
 	 * @since 0.0.2 
+	 * @lastUpdate 0.0.4 
 	 */
 	public static int parseEscapedChar(final char[] source, int from, final char[] result) {
 		final int 	len;
@@ -481,75 +438,8 @@ public class CharUtils {
 		else if (result == null || result.length == 0) {
 			throw new IllegalArgumentException("Result array can't be null or empty array"); 
 		}
-		else if (source[from] == '\\') {
-			if (from < len - 1) {
-				switch (source[from+1]) {
-					case '\"' 	: result[0] = '\"'; from += 2; break;
-					case '\'' 	: result[0] = '\''; from += 2; break;
-					case '\\' 	: result[0] = '\\'; from += 2; break;
-					case 'b' 	: result[0] = '\b'; from += 2; break;
-					case 'f' 	: result[0] = '\f'; from += 2; break;
-					case 'n' 	: result[0] = '\n'; from += 2; break;
-					case 'r' 	: result[0] = '\r'; from += 2; break;
-					case 't' 	: result[0] = '\t'; from += 2; break;
-					case '0' 	:
-						if (from + 1 > len - OCT_ESCAPE_SIZE) {
-							throw new IllegalArgumentException("Escape \\0nn sequence at the "+from+"-th char is too short");
-						}
-						else {
-							int		octVal = 0;
-							char	symbol;
-							
-							for (int chars = from + 1; chars < from + 1 + OCT_ESCAPE_SIZE; chars++) {
-								if ((symbol = source[chars]) >= '0' && symbol <= '7') {
-									octVal = (octVal << 3) + symbol - '0';
-								}
-								else {
-									throw new IllegalArgumentException("Escape \\0nn sequence at the "+from+"-th char has illegal octal value ("+source[chars]+")");
-								}
-							}
-							result[0] = (char) octVal;
-							from += OCT_ESCAPE_SIZE+1;
-						}
-						break;
-					case 'u' 	:
-						if (from + 2 > len - U_ESCAPE_SIZE) {
-							throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+from+"-th char is too short");
-						}
-						else {
-							int		hexVal = 0;
-							char	symbol;
-							
-							for (int chars = from + 2; chars < from + 2 + U_ESCAPE_SIZE; chars++) {
-								if ((symbol = source[chars]) >= '0' && symbol <= '9') {
-									hexVal = (hexVal << 4) + symbol - '0';
-								}
-								else if (symbol >= 'a' && symbol <= 'f') {
-									hexVal = (hexVal << 4) + symbol - 'a' + 10;
-								}
-								else if (symbol >= 'A' && symbol <= 'F') {
-									hexVal = (hexVal << 4) + symbol - 'A' + 10;
-								}
-								else {
-									throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+from+"-th char has illegal hex value ("+source[chars]+")");
-								}
-							}
-							result[0] = (char) hexVal;
-							from += U_ESCAPE_SIZE+2;
-						}
-						break;
-					default : throw new IllegalArgumentException("Illegal escape sequence at the "+from+"-th char of the string ("+source[from]+")");
-				}				
-				return from;
-			}
-			else {
-				throw new IllegalArgumentException("Truncated char escape sequence"); 
-			}
-		}
 		else {
-			result[0] = source[from];
-			
-			return from + 1;
+			return UnsafedCharUtils.uncheckedParseEscapedChar(source, from, result);
 		}
 	}
 	
@@ -564,7 +454,8 @@ public class CharUtils {
 	 * @param result array (new int[2]) to store start and end position of the detected string
 	 * @return position of the first char in the source after successful parsing of the current string. Will be negative if checkEscaping=true and any escape sequence 
 	 * in the string will be detected. It can be used for optimization purposes to avoid rare escaping processing  
-	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @throws IllegalArgumentException if any parsing errors ware detected
+	 * @lastUpdate 0.0.4 
 	 */
 	public static int parseUnescapedString(final char[] source, final int from, final char terminal, final boolean checkEscaping, final int[] result) {
 		int		len;
@@ -579,21 +470,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Result array can't be null and needs contain exactly two elements"); 
 		}
 		else {
-			int		index;
-			
-			for (index = from; index < len; index++) {
-				if (source[index] == terminal) {
-					result[0] = from;
-					result[1] = index - 1;
-					return index + 1;
-				}
-				else if ((source[index] == '\\' || source[index] == '\n')&& checkEscaping) {
-					result[0] = from;
-					result[1] = index - 1;
-					return -index;
-				}
-			}
-			throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
+			return UnsafedCharUtils.uncheckedParseUnescapedString(source,from,terminal,checkEscaping,result);
 		}
 	}
 
@@ -606,6 +483,7 @@ public class CharUtils {
 	 * @param result string builder to store parsed string
 	 * @return position of the first char in the source after successful parsing of the current string 
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @lastUpdate 0.0.4
 	 */
 	public static int parseString(final char[] source, final int from, final char terminal, final StringBuilder result) {
 		int		len;
@@ -620,72 +498,7 @@ public class CharUtils {
 			throw new NullPointerException("Result builder can't be null"); 
 		}
 		else {
-			int		index;
-			
-			for (index = from; index < len; index++) {
-				if (source[index] == terminal) {
-					result.append(source,from,index-from);
-					return index + 1;
-				}
-				else if (source[index] == '\\') {
-					result.append(source,from,index-from);
-					break;
-				}
-			}
-			for (; index < len; index++) {
-				if (source[index] == terminal) {
-					return index + 1;
-				}
-				else if (source[index] == '\\') {
-					if (index >= len) {
-						throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
-					}
-					else {
-						switch (source[index+1]) {
-							case '\"' 	: result.append("\""); break;
-							case '\\' 	: result.append("\\"); break;
-							case '/' 	: result.append("/"); break;
-							case 'b' 	: result.append("\b"); break;
-							case 'f' 	: result.append("\f"); break;
-							case 'n' 	: result.append("\n"); break;
-							case 'r' 	: result.append("\r"); break;
-							case 't' 	: result.append("\t"); break;
-							case 'u' 	:
-								if (index + 2 >= len - U_ESCAPE_SIZE) {
-									throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char is too short");
-								}
-								else {
-									int		hexVal = 0;
-									char	symbol;
-									
-									for (int chars = index + 2; chars < index + 2 + U_ESCAPE_SIZE; chars++) {
-										if ((symbol = source[chars]) >= '0' && symbol <= '9') {
-											hexVal = (hexVal << 4) + symbol - '0';
-										}
-										else if (symbol >= 'a' && symbol <= 'f') {
-											hexVal = (hexVal << 4) + symbol - 'a' + 10;
-										}
-										else if (symbol >= 'A' && symbol <= 'F') {
-											hexVal = (hexVal << 4) + symbol - 'A' + 10;
-										}
-										else {
-											throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char has illegal hex value ("+source[index]+")");
-										}
-									}
-									result.append((char)hexVal);
-									index += U_ESCAPE_SIZE;
-								}
-								break;
-							default : throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string ("+source[index]+")");
-						}
-						index++;
-					}
-				}
-				else {
-					result.append(source[index]);
-				}
-			}
-			throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
+			return UnsafedCharUtils.uncheckedParseString(source, from, terminal, result);
 		}
 	}
 
@@ -697,6 +510,7 @@ public class CharUtils {
 	 * @param result string builder to store parsed string
 	 * @return position of the first char in the source after successful parsing of the current string 
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @lastUpdate 0.0.4
 	 */
 	public static int parseStringExtended(final char[] source, final int from, final char terminal, final StringBuilder result) {
 		int		len;
@@ -711,117 +525,7 @@ public class CharUtils {
 			throw new NullPointerException("Result builder can't be null"); 
 		}
 		else {
-			int		index;
-			
-			for (index = from; index < len; index++) {
-				if (source[index] == terminal) {
-					result.append(source,from,index-from);
-					return index + 1;
-				}
-				else if (source[index] == '\\') {
-					result.append(source,from,index-from);
-					break;
-				}
-			}
-			for (; index < len; index++) {
-				if (source[index] == terminal) {
-					return index + 1;
-				}
-				else if (source[index] == '\\') {
-					if (index >= len) {
-						throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
-					}
-					else {
-						switch (source[index+1]) {
-							case '\"' 	: result.append("\""); break;
-							case '\'' 	: result.append("\'"); break;
-							case '\\' 	: result.append("\\"); break;
-							case '/' 	: result.append("/"); break;
-							case 'b' 	: result.append("\b"); break;
-							case 'f' 	: result.append("\f"); break;
-							case 'n' 	: result.append("\n"); break;
-							case 'r' 	: result.append("\r"); break;
-							case 't' 	: result.append("\t"); break;
-							case 'u' 	:
-								if (index + 2 >= len - U_ESCAPE_SIZE) {
-									throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char is too short");
-								}
-								else {
-									int		hexVal = 0;
-									char	symbol;
-									
-									for (int chars = index + 2; chars < index + 2 + U_ESCAPE_SIZE; chars++) {
-										if ((symbol = source[chars]) >= '0' && symbol <= '9') {
-											hexVal = (hexVal << 4) + symbol - '0';
-										}
-										else if (symbol >= 'a' && symbol <= 'f') {
-											hexVal = (hexVal << 4) + symbol - 'a' + 10;
-										}
-										else if (symbol >= 'A' && symbol <= 'F') {
-											hexVal = (hexVal << 4) + symbol - 'A' + 10;
-										}
-										else {
-											throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char has illegal hex value ("+source[index]+")");
-										}
-									}
-									result.append((char)hexVal);
-									index += U_ESCAPE_SIZE;
-								}
-								break;
-							case '0' 	:
-								if (index >= len - 2) {
-									throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
-								}
-								else if (source[index+2] == 'x' || source[index+2] == 'X') {
-									if (index >= len - 3) {
-										throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
-									}
-									else {
-										int		hexVal = 0;
-										char	symbol = source[index+=3];
-										
-										while (index < len && "0123456789abcdefABCDEF".indexOf(symbol) >= 0) {
-											if (symbol >= '0' && symbol <= '9') {
-												hexVal = (hexVal << 4) + symbol - '0';
-											}
-											else if (symbol >= 'a' && symbol <= 'f') {
-												hexVal = (hexVal << 4) + symbol - 'a' + 10;
-											}
-											else {
-												hexVal = (hexVal << 4) + symbol - 'A' + 10;
-											}
-											symbol = source[++index];
-										}
-										result.append((char)hexVal);
-										if (index < len) {
-											index -= 2;
-										}
-									}
-								}
-								else {
-									int		octVal = 0;
-									char	symbol = source[index+=2];
-									
-									while (index < len && symbol >= '0' && symbol <= '7') {
-										octVal = (octVal << 3) + symbol - '0';
-										symbol = source[++index];
-									}
-									result.append((char)octVal);
-									if (index < len) {
-										index -= 2;
-									}
-								}
-								break;
-							default : throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
-						}
-						index++;
-					}
-				}
-				else {
-					result.append(source[index]);
-				}
-			}
-			throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
+			return 	UnsafedCharUtils.uncheckedParseStringExtended(source, from, terminal, result);
 		}
 	}
 
@@ -882,6 +586,7 @@ public class CharUtils {
 	 * @param result array (new int[2]) to store start and end position of the name detected
 	 * @return position of the first char in the source after successful parsing of the name 
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
+	 * @lastUpdate 0.0.4
 	 */
 	public static int parseName(final char[] source, final int from, final int[] result) {
 		int		len;
@@ -1016,13 +721,32 @@ public class CharUtils {
 		}
 	}
 
+	/**
+	 * <p>This enumeration is used to describe template for extracting content from character array with lexemas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	public enum ArgumentType {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat,
 		name, hyphenedName, simpleTerminatedString, specialTerminatedString
 	}
 
-	
-	public static int tryExtract(final char[] source, final int from, Object... lexemas) throws SyntaxException {
+	/**
+	 * <p>Try to extract content from input character array with lexemas. Returns non-negative number if extraction was successful. Lexemas can be:</p>
+	 * <ul>
+	 * <li>single character - marks character 'as-is' in the input array</li>
+	 * <li>string - marks sequence of characters in the input array</li>
+	 * <li>{@linkplain ArgumentType} - marks kind of predefined lexema in the input array</li>
+	 * </ul>
+	 * @param source source array to try extraction from
+	 * @param from start position to extract content from
+	 * @param lexemas lexemas list to try extract
+	 * @return non-negative first position after parsed piece of characters in the input array or (negative position-1) in the input array where parsing failed 
+	 * @throws IllegalArgumentException on any invalid parameters
+	 * @throws SyntaxException on any syntax error in the content
+	 * @since 0.0.3
+	 */
+	public static int tryExtract(final char[] source, final int from, Object... lexemas) throws IllegalArgumentException, SyntaxException {
 		int	len, start = from;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -1102,7 +826,18 @@ public class CharUtils {
 		}
 		return start;
 	}
-	
+
+	/**
+	 * <p>Extract content from input character array according to lexemas list. Failed extraction produces {@linkplain SyntaxException}.</p> 
+	 * @param source source array to extraction from
+	 * @param from start position to extract content from
+	 * @param result array to store extracted content to. It's capacity must be enough to receive all the content extracted
+	 * @param lexemas lexemas list to extract. See {@linkplain #tryExtract(char[], int, Object...)} for details
+	 * @return first position after parsed piece of characters in the input array 
+	 * @throws IllegalArgumentException on any invalid parameters
+	 * @throws SyntaxException on any syntax error in the content
+	 * @since 0.0.3
+	 */
 	public static int extract(final char[] source, final int from, final Object[] result, Object... lexemas) throws SyntaxException {
 		int	len, start = from;
 		
@@ -1186,10 +921,10 @@ public class CharUtils {
 								break;
 							case simpleTerminatedString	:
 								if (source[start] == '\"') {
-									start = CharUtils.parseUnescapedString(source,start+1,'\"',false,intResult);
+									start = UnsafedCharUtils.uncheckedParseUnescapedString(source,start+1,'\"',false,intResult);
 								}
 								else if (source[start] == '\'') {
-									start = CharUtils.parseUnescapedString(source,start+1,'\'',false,intResult);
+									start = UnsafedCharUtils.uncheckedParseUnescapedString(source,start+1,'\'',false,intResult);
 								}
 								else {
 									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
@@ -1218,7 +953,6 @@ public class CharUtils {
 		return start;
 	}
 	
-	
 	/**
 	 * <p>Performs 'like' operation in char arrays (see SQL language syntax)</p>
 	 * @param source source array to test
@@ -1246,8 +980,8 @@ public class CharUtils {
 	 * @param from start testing like in the source
 	 * @param to end testing like in the source
 	 * @return length 'liked' if resolved, or any negative value if doesn't like
-	 * @throws NullPointerException
-	 * @throws IllegalArgumentException
+	 * @throws NullPointerException when any char array references are null
+	 * @throws IllegalArgumentException when any errors in the arguments
 	 * @since 0.0.3
 	 */
 	public static int like(final char[] source, final char[] template, final int from, final int to) throws NullPointerException, IllegalArgumentException {
@@ -1360,7 +1094,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("From position ["+from+"] can't be negative"); 
 		}
 		else {
-			return UnsafedCharUtils.unckeckedPrintDouble(content,from,value,reallyFill);
+			return UnsafedCharUtils.uncheckedPrintDouble(content,from,value,reallyFill);
 		}
 	}
 
@@ -1383,7 +1117,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length-1)); 
 		}
 		else {
-			return UnsafedCharUtils.printUncheckedEscapedChar(content,from,value,reallyFill,strongEscaping);
+			return UnsafedCharUtils.uncheckedPrintEscapedChar(content,from,value,reallyFill,strongEscaping);
 		}
 	}
 
@@ -1448,6 +1182,7 @@ public class CharUtils {
 	 * @return new from position to continue filling content. Negative value marks that content is too short to keep value.
 	 * @throws IllegalArgumentException on any argument errors
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.4
 	 */
 	public static int printEscapedCharArray(final char[] content, int from, final char[] value, final int charFrom, final int charTo, boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
 		if (content == null || content.length == 0) {
@@ -1466,21 +1201,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("CharTo position ["+charTo+"] out of range 0.."+(value.length-1)); 
 		}
 		else {
-			final int	to = content.length;
-			
-			for (int index = charFrom; index < charTo; index++) {
-				if (from < to) {
-					if ((from = UnsafedCharUtils.printUncheckedEscapedChar(content,from,value[index],reallyFill,strongEscaping)) < 0) {
-						from = -from;
-						reallyFill = false;
-					}
-				}
-				else {
-					reallyFill = false;
-				}
-			}
-
-			return from;
+			return UnsafedCharUtils.uncheckedPrintEscapedCharArray(content, from, value, charFrom, charTo, reallyFill, strongEscaping);
 		}
 	}
 	
@@ -1535,7 +1256,7 @@ public class CharUtils {
 			throw new NullPointerException("Substitution source can't be null"); 
 		}
 		else {
-			return new String(substitute(key,value.toCharArray(),0,value.length(),new CharSubstitutionSourceWrapper(source),0));
+			return new String(UnsafedCharUtils.uncheckedSubstitute(key,value.toCharArray(),0,value.length(),new CharSubstitutionSourceWrapper(source),0));
 		}
 	}
 
@@ -1566,88 +1287,7 @@ public class CharUtils {
 			throw new NullPointerException("Substitution source can't be null"); 
 		}
 		else {
-			return substitute(key,value,from,length,source,0);
-		}
-	}
-	
-	private static char[] substitute(final String key, final char[] value, int from, final int length, final CharSubstitutionSource source, final int substDepth) throws NullPointerException, IllegalArgumentException {
-		if (substDepth >= MAX_SUBST_DEPTH) {
-			throw new IllegalArgumentException("Too deep substitution was detected (more than "+MAX_SUBST_DEPTH+") for key ["+key+"]=["+new String(value,from,length-from)+"]. Possibly you have a resursion in the substitution way!"); 
-		}
-		else {
-			final int	to = from + length;
-			
-			for (int index = from; index < to; index++) {
-				if (value[index] == '$') {
-					final GrowableCharArray	gca = new GrowableCharArray(false);
-					int						dollarPos = index, bracketCount = 0, startName = 0, endName = 0;
-					boolean					wasDollar = false;
-
-nextName:			while (dollarPos >= 0) {
-						gca.append(value,from,dollarPos);
-						
-						if (dollarPos >= to || value[dollarPos + 1] == '{') {
-end:						for (int scan = dollarPos + 1; scan < to; scan++) {
-								switch (value[scan]) {
-									case '{' 	:
-										if (bracketCount++ == 0) {
-											startName = scan + 1;
-										};
-										break;
-									case '}' 	:
-										if (--bracketCount == 0) {
-											endName = scan;
-											break end;
-										}
-										break;
-									case '$'	:
-										wasDollar = true;
-										break;
-								}
-							}
-							if (bracketCount != 0) {
-								throw new IllegalArgumentException("Unpaired {} in the key ["+key+"]=["+new String(value,from,length-from)+"]");
-							}
-							else if (startName >= endName) {
-								throw new IllegalArgumentException("Empty ${} in the key ["+key+"]=["+new String(value,from,length-from)+"]");
-							}
-							else {
-								final char[]	result = source.getValue(value,startName,endName);
-								
-								if (result != null) {
-									if (wasDollar) {
-										final char[]	subst = source.getValue(result,0,result.length); 
-												
-										gca.append(subst != null ? substitute(key,subst,0,subst.length,source,substDepth+1) : result);
-									}
-									else {
-										gca.append(substitute(key,result,0,result.length,source,substDepth+1));
-									}
-								}
-								else {
-									gca.append(value,startName-2,endName+1);
-								}
-								from = endName + 1;
-							}
-						}
-						else {
-							gca.append('$');
-							from = dollarPos + 1;
-						}
-						for (dollarPos = from; dollarPos < to; dollarPos++) {
-							if (value[dollarPos] == '$') {
-								continue nextName;
-							}
-						}
-						if (from < to) {
-							gca.append(value,from,dollarPos);
-						}
-						dollarPos = -1;
-					}
-					return gca.extract();
-				}
-			}
-			return Arrays.copyOfRange(value,from,to);
+			return UnsafedCharUtils.uncheckedSubstitute(key,value,from,length,source,0);
 		}
 	}
 	

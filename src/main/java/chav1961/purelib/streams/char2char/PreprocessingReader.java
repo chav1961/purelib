@@ -15,6 +15,7 @@ import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
  * <p>This class implements preprocessing for the reader nested. It supports a set of preprocessor operators:</p>
@@ -760,7 +761,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 						
 							switch (data[current[0]]) {
 								case '\"' :
-									try{current[0] = CharUtils.parseUnescapedString(data,current[0]+1,'\"',false,location);
+									try{current[0] = UnsafedCharUtils.uncheckedParseUnescapedString(data,current[0]+1,'\"',false,location);
 										result = compare(left,oper,data,location[0],location[1]+1);
 									} catch (IllegalArgumentException exc) {
 										throw new SyntaxException(lineNo,current[0],"Unpaired quotas in the string constant");
@@ -837,7 +838,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 	private char[] extractValue(final int lineNo, final char[] data, final int[] current, final int to) throws SyntaxException {
 		final int[]		location = new int[2];
 		
-		current[0] = CharUtils.parseName(data,current[0],location);
+		current[0] = UnsafedCharUtils.uncheckedParseName(data,current[0],location);
 		
 		if (location[0] == location[1]) {
 			throw new SyntaxException(lineNo,0,"Name is missing in the expression");
@@ -861,7 +862,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		if (current[0] < to) {
 			final long		tail = extractTail(data,current[0],to);
 			
-			if (data[(int) (tail >> 32)] > ' ' && !(inlineComment.length > 0 && CharUtils.compare(data,(int) (tail >> 32),inlineComment))) {
+			if (data[(int) (tail >> 32)] > ' ' && !(inlineComment.length > 0 && UnsafedCharUtils.uncheckedCompare(data,(int) (tail >> 32),inlineComment,0,inlineComment.length))) {
 				throw new SyntaxException(lineNo,0,"garbage in the tail of expression"); 
 			}
 		}
@@ -871,7 +872,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 	private void processDefine(final int lineNo, final char[] data, int from, final int to) throws SyntaxException {
 		int		location[] = new int[2];
 
-		from = CharUtils.parseName(data,from,location);
+		from = UnsafedCharUtils.uncheckedParseName(data,from,location);
 		from = skipBlank(data,from,to);
 		
 		final long		valueLocation = extractTail(data,from,to), id = definitions.seekName(data,location[0],location[1]+1);
@@ -890,7 +891,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 	private void processUndef(final int lineNo, final char[] data, int from, final int to) throws SyntaxException {
 		int		location[] = new int[2];
 
-		CharUtils.parseName(data,from,location);
+		UnsafedCharUtils.uncheckedParseName(data,from,location);
 		final long	id = definitions.seekName(data,location[0],location[1]+1);
 		
 		if (id >= 0) {
@@ -916,10 +917,10 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		final int		location[] = new int[2];
 		
 		if (data[from] == '\"') {
-			CharUtils.parseUnescapedString(data,from+1,'\"',false,location);
+			UnsafedCharUtils.uncheckedParseUnescapedString(data,from+1,'\"',false,location);
 		}
 		else if (data[from] == '<') {
-			CharUtils.parseUnescapedString(data,from+1,'>',false,location);
+			UnsafedCharUtils.uncheckedParseUnescapedString(data,from+1,'>',false,location);
 		}
 		else {
 			final long		valueLocation = extractTail(data,from,to);

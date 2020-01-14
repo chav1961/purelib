@@ -19,13 +19,13 @@ import chav1961.purelib.ui.swing.useful.JFileSystemChanger;
 public interface FileSystemInterfaceDescriptor {
 	/**
 	 * <p>Get class name of the file system driver. Good idea is to use driver.getClass().getSimpleName() as a result</p>
-	 * @return file system driver class name
+	 * @return file system driver class name. Can't be null
 	 */
 	String getClassName();
 	
 	/**
-	 * <p>Return</p>
-	 * @return
+	 * <p>Return driver version</p>
+	 * @return driver version. Can't be null
 	 */
 	String getVersion();
 	URI getLocalizerAssociated();

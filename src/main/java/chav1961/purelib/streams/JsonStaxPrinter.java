@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
  * <p>This class implements a StAX-styled JSON printer to use in the in-stream JSON uploading application.</p>
@@ -193,11 +194,11 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 			throw new IOException("Output structure failure: value is not awaiting here");
 		}
 		else {
-			final int	newLen = CharUtils.printLong(buffer,bufferFill,value,true);
+			final int	newLen = UnsafedCharUtils.uncheckedPrintLong(buffer,bufferFill,value,true);
 			
 			if (newLen < 0) {
 				flushBuffer();
-				CharUtils.printLong(buffer,bufferFill,value,true);
+				UnsafedCharUtils.uncheckedPrintLong(buffer,bufferFill,value,true);
 			}
 			else {
 				bufferFill = newLen;
@@ -221,11 +222,11 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 			throw new IOException("Output structure failure: value is not awaiting here");
 		}
 		else {
-			final int	newLen = CharUtils.printDouble(buffer,bufferFill,value,true);
+			final int	newLen = UnsafedCharUtils.uncheckedPrintDouble(buffer,bufferFill,value,true);
 			
 			if (newLen < 0) {
 				flushBuffer();
-				CharUtils.printDouble(buffer,bufferFill,value,true);
+				UnsafedCharUtils.uncheckedPrintDouble(buffer,bufferFill,value,true);
 			}
 			else {
 				bufferFill = newLen;
@@ -867,7 +868,7 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 			if (bufferFill + len >= bufferSize) {
 				flushBuffer();
 			}
-			final int	newLen = CharUtils.printEscapedCharArray(buffer,bufferFill,content,from,to,true,true);
+			final int	newLen = UnsafedCharUtils.uncheckedPrintEscapedCharArray(buffer,bufferFill,content,from,to,true,true);
 			
 			if (newLen < 0) {
 				final int	middle = (from + to) >>> 1;

@@ -11,6 +11,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.ui.ColorPair;
 
 public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
@@ -120,7 +121,7 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	
 	@Override
 	public Term print(final long data) {
-		final int	len = CharUtils.printLong(buffer, 0, data, true);
+		final int	len = UnsafedCharUtils.uncheckedPrintLong(buffer, 0, data, true);
 		
 		if (len < 0) {
 			buffer = Arrays.copyOf(buffer,2*buffer.length);
@@ -148,7 +149,7 @@ public class Term extends PseudoConsole implements CharStreamPrinter<Term> {
 	
 	@Override
 	public Term print(final double data) {
-		final int	len = CharUtils.printDouble(buffer, 0, data, true);
+		final int	len = UnsafedCharUtils.uncheckedPrintDouble(buffer, 0, data, true);
 		
 		if (len < 0) {
 			buffer = Arrays.copyOf(buffer,2*buffer.length);

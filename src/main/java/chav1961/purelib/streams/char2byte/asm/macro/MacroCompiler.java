@@ -11,6 +11,7 @@ import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface;
@@ -231,7 +232,7 @@ public class MacroCompiler {
 						JumpStack	js = jumpStack;
 						
 						while (js != null) {
-							if (CharUtils.compare(((BreakCommand)command).getLabel(),0,js.label)) {
+							if (UnsafedCharUtils.uncheckedCompare(((BreakCommand)command).getLabel(),0,js.label,0,js.label.length)) {
 								repo.append(writer," goto label"+jumpStack.breakLabel+"\n");
 								break;
 							}
@@ -252,7 +253,7 @@ public class MacroCompiler {
 						JumpStack	js = jumpStack;
 						
 						while (js != null) {
-							if (CharUtils.compare(((ContinueCommand)command).getLabel(),0,js.label)) {
+							if (UnsafedCharUtils.uncheckedCompare(((ContinueCommand)command).getLabel(),0,js.label,0,js.label.length)) {
 								repo.append(writer," goto label"+jumpStack.continueLabel+"\n");
 								break;
 							}

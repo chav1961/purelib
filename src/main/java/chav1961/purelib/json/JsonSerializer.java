@@ -598,7 +598,7 @@ public abstract class JsonSerializer<T> {
 				}
 				final int[]		parsed = intArrayMemory.allocate();
 				
-				try{from = CharUtils.parseSignedInt(content,from,parsed,true);
+				try{from = UnsafedCharUtils.uncheckedParseSignedInt(content,from,parsed,true);
 				
 					result[0] = Byte.valueOf((byte)parsed[0]);
 					return from;
@@ -660,7 +660,7 @@ public abstract class JsonSerializer<T> {
 				int				from;
 				
 				try{content[0] = STRING_TERMINATOR;
-					from = CharUtils.printEscapedChar(content,1,symbol,true,true);
+					from = UnsafedCharUtils.uncheckedPrintEscapedChar(content,1,symbol,true,true);
 					content[from++] = STRING_TERMINATOR;
 					writer.put(content,0,from);
 				} finally {
@@ -694,7 +694,7 @@ public abstract class JsonSerializer<T> {
 					reallyFilled = false;
 				}
 				from++;
-				if ((from = CharUtils.printEscapedChar(content,from,instance.charValue(),reallyFilled,false)) < 0) {
+				if ((from = UnsafedCharUtils.uncheckedPrintEscapedChar(content,from,instance.charValue(),reallyFilled,false)) < 0) {
 					reallyFilled = false;
 				}
 				if (from < to) {
@@ -774,7 +774,7 @@ public abstract class JsonSerializer<T> {
 							throw new SyntaxException(reader.atRow(),reader.atColumn(),"Char value unclosed");
 						}
 						else {
-							CharUtils.parseEscapedChar(content,0,content);
+							UnsafedCharUtils.uncheckedParseEscapedChar(content,0,content);
 							return Character.valueOf(content[0]);
 						}
 					} finally {
@@ -809,7 +809,7 @@ public abstract class JsonSerializer<T> {
 				}
 				final char[]	buffer = charArrayMemory.allocate();
 				
-				try{from = CharUtils.parseEscapedChar(content,from,buffer);
+				try{from = UnsafedCharUtils.uncheckedParseEscapedChar(content,from,buffer);
 				
 					if (from < to && content[from] == STRING_TERMINATOR) { 
 						from++;
@@ -894,7 +894,7 @@ public abstract class JsonSerializer<T> {
 				return printCharArray(content,from,FOR_NULL,reallyFilled);
 			}
 			else {
-				return CharUtils.printDouble(content,from,instance.doubleValue(),reallyFilled);
+				return UnsafedCharUtils.uncheckedPrintDouble(content,from,instance.doubleValue(),reallyFilled);
 			}
 		}
 
@@ -961,7 +961,7 @@ public abstract class JsonSerializer<T> {
 					}
 					reader.back();
 					
-					CharUtils.parseDouble(content,0,result,true);
+					UnsafedCharUtils.uncheckedParseDouble(content,0,result,true);
 					return Double.valueOf(result[0]*multiplier);
 				} finally {
 					if (result != null) {
@@ -1010,7 +1010,7 @@ public abstract class JsonSerializer<T> {
 				
 				final double[]	parsed = doubleArrayMemory.allocate();
 				
-				try{from = CharUtils.parseDouble(content,from,parsed,true);
+				try{from = UnsafedCharUtils.uncheckedParseDouble(content,from,parsed,true);
 				
 					result[0] = Double.valueOf(parsed[0]*multiplier);
 					return from;
@@ -1161,7 +1161,7 @@ public abstract class JsonSerializer<T> {
 					}
 					reader.back();
 					
-					CharUtils.parseDouble(content,0,result,true);
+					UnsafedCharUtils.uncheckedParseDouble(content,0,result,true);
 					return Float.valueOf((float)result[0]*multiplier);
 				} finally {
 					if (result != null) {
@@ -1210,7 +1210,7 @@ public abstract class JsonSerializer<T> {
 				
 				final double[]	parsed = doubleArrayMemory.allocate();
 				
-				try{from = CharUtils.parseDouble(content,from,parsed,true);
+				try{from = UnsafedCharUtils.uncheckedParseDouble(content,from,parsed,true);
 				
 					result[0] = Float.valueOf((float)parsed[0]*multiplier);
 					return from;
@@ -1395,7 +1395,7 @@ public abstract class JsonSerializer<T> {
 				}
 				final int[]		parsed = intArrayMemory.allocate();
 				
-				try{from = CharUtils.parseSignedInt(content,from,parsed,true);
+				try{from = UnsafedCharUtils.uncheckedParseSignedInt(content,from,parsed,true);
 				
 					result[0] = Integer.valueOf(parsed[0]);
 					return from;
@@ -1538,7 +1538,7 @@ public abstract class JsonSerializer<T> {
 					}
 					reader.back();
 					
-					CharUtils.parseLong(content,0,result,true);
+					UnsafedCharUtils.uncheckedParseLong(content,0,result,true);
 					
 					return Long.valueOf(result[0]*multiplier);
 				} finally {
@@ -1571,7 +1571,7 @@ public abstract class JsonSerializer<T> {
 				}
 				final long[]		parsed = intArrayMemory.allocate();
 				
-				try{from = CharUtils.parseSignedLong(content,from,parsed,true);
+				try{from = UnsafedCharUtils.uncheckedParseSignedLong(content,from,parsed,true);
 				
 					result[0] = Long.valueOf(parsed[0]);
 					return from;
@@ -1747,7 +1747,7 @@ public abstract class JsonSerializer<T> {
 				}
 				final int[]		parsed = intArrayMemory.allocate();
 				
-				try{from = CharUtils.parseSignedInt(content,from,parsed,true);
+				try{from = UnsafedCharUtils.uncheckedParseSignedInt(content,from,parsed,true);
 				
 					result[0] = Short.valueOf((short)parsed[0]);
 					return from;
@@ -1807,7 +1807,7 @@ public abstract class JsonSerializer<T> {
 				
 				try{writer.put(STRING_TERMINATOR);
 					for (int index = 0, maxIndex = instance.length(); index < maxIndex; index++) {	// Accumulate up to 100 chars before printing
-						if ((newLen = CharUtils.printEscapedChar(buffer,len,instance.charAt(index),true,false)) < 0) {
+						if ((newLen = UnsafedCharUtils.uncheckedPrintEscapedChar(buffer,len,instance.charAt(index),true,false)) < 0) {
 							writer.put(buffer,0,len);
 							index--;
 							len = 0;
@@ -1849,7 +1849,9 @@ public abstract class JsonSerializer<T> {
 					}
 					from++;
 				}
-				if ((from = CharUtils.printEscapedCharArray(content,from,instance.toCharArray(),reallyFilled,false)) < 0) {
+				final char[] instanceArray = instance.toCharArray();
+				
+				if ((from = UnsafedCharUtils.uncheckedPrintEscapedCharArray(content,from,instanceArray,0,instanceArray.length,reallyFilled,false)) < 0) {
 					from = -from;
 					reallyFilled = false;
 				}
@@ -1963,14 +1965,14 @@ public abstract class JsonSerializer<T> {
 				}
 				final int[]	bounds = intArrayMemory.allocate();
 				
-				try{if ((newFrom = CharUtils.parseUnescapedString(content,from+1,STRING_TERMINATOR,true,bounds)) >= 0) {
+				try{if ((newFrom = UnsafedCharUtils.uncheckedParseUnescapedString(content,from+1,STRING_TERMINATOR,true,bounds)) >= 0) {
 						result[0] = new String(content,bounds[0],bounds[1]-bounds[0]+1);
 						from = newFrom;
 					}
 					else {
 						final StringBuilder	sb = stringBuilderMemory.allocate();
 						
-						try{from = CharUtils.parseString(content,from+1,STRING_TERMINATOR,sb);
+						try{from = UnsafedCharUtils.uncheckedParseString(content,from+1,STRING_TERMINATOR,sb);
 							result[0] = sb.toString();
 						} finally {
 							stringBuilderMemory.free(sb);
@@ -2177,7 +2179,7 @@ public abstract class JsonSerializer<T> {
 				}
 				final int[]	bounds = intArrayMemory.allocate();
 				
-				try{newFrom = CharUtils.parseUnescapedString(content,newFrom+1,STRING_TERMINATOR,true,bounds);
+				try{newFrom = UnsafedCharUtils.uncheckedParseUnescapedString(content,newFrom+1,STRING_TERMINATOR,true,bounds);
 					result[0] = (T) toEnum.invoke(new String(content,bounds[0],bounds[1]));
 					return newFrom;
 				} catch (Throwable e) {
@@ -2735,7 +2737,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							break;
 						}
 						
-						newFrom = CharUtils.parseSignedInt(content,newFrom,value,true);
+						newFrom = UnsafedCharUtils.uncheckedParseSignedInt(content,newFrom,value,true);
 						temp.append((byte)value[0]);
 						while (newFrom < to && content[newFrom] <= ' ') {
 							newFrom++;
@@ -2819,7 +2821,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 				try{char	symbol = ARRAY_STARTER;
 					
 					for (char item : instance) {
-						final int 	len = CharUtils.printEscapedChar(buffer,0,item,true,true);
+						final int 	len = UnsafedCharUtils.uncheckedPrintEscapedChar(buffer,0,item,true,true);
 						
 						writer.put(symbol).put(STRING_TERMINATOR).put(buffer,0,len).put(STRING_TERMINATOR);
 						symbol = LIST_SPLITTER;
@@ -2869,7 +2871,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						}
 						newFrom++;
 						
-						if ((newFrom = CharUtils.printEscapedChar(content,newFrom,item, reallyFilled,true)) < 0) {
+						if ((newFrom = UnsafedCharUtils.uncheckedPrintEscapedChar(content,newFrom,item, reallyFilled,true)) < 0) {
 							newFrom = -newFrom;
 							reallyFilled = false;
 						}
@@ -2987,7 +2989,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 								throw new SyntaxException(reader.atRow(),reader.atColumn(),"Char value unclosed");
 							}
 							else {
-								CharUtils.parseEscapedChar(buffer,0,buffer);
+								UnsafedCharUtils.uncheckedParseEscapedChar(buffer,0,buffer);
 								content.append(buffer[0]);
 							}
 							
@@ -3058,7 +3060,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						}
 						
 						if (newFrom < to && content[newFrom] == STRING_TERMINATOR) {
-							newFrom = CharUtils.parseEscapedChar(content,newFrom+1,value);
+							newFrom = UnsafedCharUtils.uncheckedParseEscapedChar(content,newFrom+1,value);
 							temp.append(value[0]);
 						}
 						else {
@@ -3299,7 +3301,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							
 							buffer[location] = ' ';
 							
-							CharUtils.parseDouble(buffer,0,value,true);
+							UnsafedCharUtils.uncheckedParseDouble(buffer,0,value,true);
 							content.append(value[0]*multiplier);
 							
 							while ((symbol = reader.next()) <= ' ') {
@@ -3379,7 +3381,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						else {
 							multiplier = 1;
 						}
-						newFrom = CharUtils.parseDouble(content,newFrom,value,true);
+						newFrom = UnsafedCharUtils.uncheckedParseDouble(content,newFrom,value,true);
 						temp.append(value[0]*multiplier);
 						while (newFrom < to && content[newFrom] <= ' ') {
 							newFrom++;
@@ -3606,7 +3608,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							reader.back();
 							
 							buffer[location] = ' ';
-							CharUtils.parseDouble(buffer,0,value,true);
+							UnsafedCharUtils.uncheckedParseDouble(buffer,0,value,true);
 							content.append((float) (value[0]*multiplier));
 							
 							while ((symbol = reader.next()) <= ' ') {
@@ -3686,7 +3688,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						else {
 							multiplier = 1;
 						}
-						newFrom = CharUtils.parseDouble(content,newFrom,value,true);
+						newFrom = UnsafedCharUtils.uncheckedParseDouble(content,newFrom,value,true);
 						temp.append((float) (value[0]*multiplier));
 						while (from < to && content[newFrom] <= ' ') {
 							newFrom++;
@@ -3981,7 +3983,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						if (newFrom < to && content[newFrom] == ARRAY_TERMINATOR) {
 							break;
 						}
-						newFrom = CharUtils.parseSignedInt(content,newFrom,value,true);
+						newFrom = UnsafedCharUtils.uncheckedParseSignedInt(content,newFrom,value,true);
 						temp.append(value[0]);
 						while (from < to && content[newFrom] <= ' ') {
 							newFrom++;
@@ -4179,7 +4181,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							reader.back();
 							
 							buffer[location] = ' ';
-							CharUtils.parseLong(buffer,0,value,true);
+							UnsafedCharUtils.uncheckedParseLong(buffer,0,value,true);
 							content.append(value[0]*multiplier);
 							
 							while ((symbol = reader.next()) <= ' ') {
@@ -4247,7 +4249,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						if (newFrom < to && content[newFrom] == ARRAY_TERMINATOR) {
 							break;
 						}
-						newFrom = CharUtils.parseSignedLong(content,newFrom,value,true);
+						newFrom = UnsafedCharUtils.uncheckedParseSignedLong(content,newFrom,value,true);
 						temp.append(value[0]);
 						while (newFrom < to && content[newFrom] <= ' ') {
 							newFrom++;
@@ -4564,7 +4566,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						if (newFrom < to && content[newFrom] == ARRAY_TERMINATOR) {
 							break;
 						}
-						newFrom = CharUtils.parseSignedInt(content,newFrom,value,true);
+						newFrom = UnsafedCharUtils.uncheckedParseSignedInt(content,newFrom,value,true);
 						temp.append((short)value[0]);
 						while (from < to && content[newFrom] <= ' ') {
 							newFrom++;
@@ -5205,7 +5207,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						else if (newFrom < to && content[newFrom] == '\"') {
 							final int[]	temp = new int[2];
 							
-							newFrom = CharUtils.parseUnescapedString(content,newFrom+1,'\"',true,temp);
+							newFrom = UnsafedCharUtils.uncheckedParseUnescapedString(content,newFrom+1,'\"',true,temp);
 							
 							while (newFrom < to && content[newFrom] != NAME_SPLITTER) {
 								newFrom++;
@@ -5360,7 +5362,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 			public boolean process(final char[] name, final int len, final long id, final GetterAndSetter cargo) {
 				try{printChar(symbol);
 					printChar(STRING_TERMINATOR);
-					if ((newFrom = CharUtils.printEscapedCharArray(content,newFrom,name,0,len,needFill,false)) < 0) {
+					if ((newFrom = UnsafedCharUtils.uncheckedPrintEscapedCharArray(content,newFrom,name,0,len,needFill,false)) < 0) {
 						newFrom = -newFrom;
 						needFill = false;
 					}
@@ -5422,13 +5424,13 @@ loop:						for (JsonStaxParserLexType item : reader) {
 	}
 
 	private static void printLong(final long value, final char[] temporaryContent, final CharacterTarget target) throws PrintingException {
-		final int 	len = CharUtils.printLong(temporaryContent,0, value,true);
+		final int 	len = UnsafedCharUtils.uncheckedPrintLong(temporaryContent,0, value,true);
 		
 		target.put(temporaryContent,0,len);
 	}
 	
 	private static int printLong(final long value, final char[] content, final int from, final boolean reallyFilled) {
-		return CharUtils.printLong(content,from, value,true);
+		return UnsafedCharUtils.uncheckedPrintLong(content,from, value,true);
 	}
 
 	private static void printLong(final long value, final JsonStaxPrinter printer) throws PrintingException, IOException {
@@ -5436,13 +5438,13 @@ loop:						for (JsonStaxParserLexType item : reader) {
 	}
 
 	private static void printDouble(final double value, final char[] temporaryContent, final CharacterTarget target) throws PrintingException {
-		final int 	len = CharUtils.printDouble(temporaryContent,0, value,true);
+		final int 	len = UnsafedCharUtils.uncheckedPrintDouble(temporaryContent,0, value,true);
 		
 		target.put(temporaryContent,0,len);
 	}
 	
 	private static int printDouble(final double value, final char[] content, final int from, final boolean reallyFilled) {
-		return CharUtils.printDouble(content,from, value,true);
+		return UnsafedCharUtils.uncheckedPrintDouble(content,from, value,true);
 	}
 
 	private static void printDouble(final double value, final JsonStaxPrinter printer) throws PrintingException, IOException {

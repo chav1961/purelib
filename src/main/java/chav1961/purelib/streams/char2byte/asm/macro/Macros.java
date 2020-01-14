@@ -12,6 +12,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
 
 // 			Syntax of the macros:
@@ -142,7 +143,7 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 		if (data[from] > ' ') {	// Process name (the same first column is non-blank)
 			final int[]	bounds = new int[2];
 			
-			try{from = CharUtils.parseName(data,from,bounds);
+			try{from = UnsafedCharUtils.uncheckedParseName(data,from,bounds);
 				from = InternalUtils.skipBlank(data,from);
 				hasName = true;
 				if (data[from] == ':') {
@@ -206,7 +207,7 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 							else {
 								final int	bounds[] = new int[2];
 								
-								from = InternalUtils.skipBlank(data,CharUtils.parseName(data,InternalUtils.skipBlank(data,from),bounds));
+								from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from),bounds));
 								if (data[from] == '=') {
 									final ExpressionNode[]			value = new ExpressionNode[1];
 									final AssignableExpressionNode	var = new LocalVariable(name,InternalUtils.defineType(data,bounds));
@@ -785,7 +786,9 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 	private boolean seekLabel(final char[] label) {
 		for (int index = stackTop; index > 0; index--) {
 			if (stack[index] instanceof LoopCommand) {
-				if (CharUtils.compare(label,0,((LoopCommand)stack[index]).getLabel())) {
+				final char[] templ = ((LoopCommand)stack[index]).getLabel();
+				
+				if (UnsafedCharUtils.uncheckedCompare(label,0,templ,0,templ.length)) {
 					return true;
 				}
 			}

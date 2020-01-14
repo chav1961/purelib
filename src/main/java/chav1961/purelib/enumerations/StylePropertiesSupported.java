@@ -10,6 +10,7 @@ import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 public enum StylePropertiesSupported {
 		background("background",true,ContentType.compoundChoise,1,Integer.MAX_VALUE,new ValueListDescriptor(ContentType.subStyle,1,1,"background-attachment","background-color","background-image","background-position","background-repeat")),
@@ -439,13 +440,13 @@ public enum StylePropertiesSupported {
 								return isKeywordValid(id,this);
 							}
 						case integer	:
-							return CharUtils.validateNumber(value,from,CharUtils.PREF_INT|CharUtils.PREF_LONG,true) >= 0;
+							return UnsafedCharUtils.uncheckedValidateNumber(value,from,CharUtils.PREF_INT|CharUtils.PREF_LONG,true) >= 0;
 						case numberOrKeyword	:
 							if (id >= 0) {
 								return isKeywordValid(id,this);
 							}
 						case number	:
-							return CharUtils.validateNumber(value,from,CharUtils.PREF_ANY,true) >= 0;
+							return UnsafedCharUtils.uncheckedValidateNumber(value,from,CharUtils.PREF_ANY,true) >= 0;
 						case stringOrKeyword	:
 							if (id >= 0) {
 								return isKeywordValid(id,this);
@@ -559,7 +560,7 @@ public enum StylePropertiesSupported {
 						case integer	:
 							final long[]	result = new long[2];
 									
-							CharUtils.parseNumber(value,from,result,CharUtils.PREF_INT|CharUtils.PREF_LONG,true);
+							UnsafedCharUtils.uncheckedParseNumber(value,from,result,CharUtils.PREF_INT|CharUtils.PREF_LONG,true);
 							if (result[1] == CharUtils.PREF_INT || result[1] == CharUtils.PREF_LONG) {
 								return (T) Long.valueOf(result[0]);
 							}
@@ -573,7 +574,7 @@ public enum StylePropertiesSupported {
 						case number	:
 							final long[]	numResult = new long[2];
 							
-							CharUtils.parseNumber(value,from,numResult,CharUtils.PREF_ANY,true);
+							UnsafedCharUtils.uncheckedParseNumber(value,from,numResult,CharUtils.PREF_ANY,true);
 							if (numResult[1] == CharUtils.PREF_INT || numResult[1] == CharUtils.PREF_LONG) {
 								return (T) Double.valueOf(numResult[0]);
 							}

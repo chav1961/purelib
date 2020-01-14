@@ -576,7 +576,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	public interface ExitMethodCallback {
 		/**
 		 * <p>Process exit from main frame</p>
-		 * @throws Exception
+		 * @throws Exception on any errors on the exit
 		 */
 		void processExit() throws Exception;
 	}
@@ -623,7 +623,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	public interface FailedActionListenerCallback {
 		/**
 		 * <p>Process unknown action command</p>
-		 * @param actionCommand
+		 * @param actionCommand command to process
 		 */
 		void processUnknown(final String actionCommand);
 	}

@@ -336,7 +336,7 @@ public class InternalUtils {
 		else {
 			final double[]	result = new double[2];
 			
-			CharUtils.parseSignedDouble(source,0,result,false);
+			UnsafedCharUtils.uncheckedParseSignedDouble(source,0,result,false);
 			return result[0];
 		}
 	}
@@ -374,7 +374,7 @@ public class InternalUtils {
 			final int[]		fill = new int[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseSignedInt(source,start,fill,false);
+				start = UnsafedCharUtils.uncheckedParseSignedInt(source,start,fill,false);
 				result[index] = (byte) fill[0];
 			}
 			return result;
@@ -390,7 +390,7 @@ public class InternalUtils {
 			final int[]		fill = new int[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseSignedInt(source,start,fill,false);
+				start = UnsafedCharUtils.uncheckedParseSignedInt(source,start,fill,false);
 				result[index] = (short) fill[0];
 			}
 			return result;
@@ -406,7 +406,7 @@ public class InternalUtils {
 			final int[]		fill = new int[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseSignedInt(source,start,fill,false);
+				start = UnsafedCharUtils.uncheckedParseSignedInt(source,start,fill,false);
 				result[index] = fill[0];
 			}
 			return result;
@@ -422,7 +422,7 @@ public class InternalUtils {
 			final long[]	fill = new long[2];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseSignedLong(source,start,fill,false);
+				start = UnsafedCharUtils.uncheckedParseSignedLong(source,start,fill,false);
 				result[index] = fill[0];
 			}
 			return result;
@@ -454,7 +454,7 @@ public class InternalUtils {
 			final double[]	fill = new double[1];
 			
 			for (int index = 0, start =  skipBlank(source,0); index < result.length; index++, start =  skipBlank(source,start)) {
-				start = CharUtils.parseSignedDouble(source,start,fill,false);
+				start = UnsafedCharUtils.uncheckedParseSignedDouble(source,start,fill,false);
 				result[index] = fill[0];
 			}
 			return result;

@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
@@ -378,19 +379,19 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 						else {
 							if (currentLex == JsonStaxParserLexType.INTEGER_VALUE) {
 								if (from < cursor) {
-									cursor = CharUtils.parseLong(buffer,from,forParsedLong,true);
+									cursor = UnsafedCharUtils.uncheckedParseLong(buffer,from,forParsedLong,true);
 								}
 								else {
-									CharUtils.parseLong(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedLong,true);
+									UnsafedCharUtils.uncheckedParseLong(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedLong,true);
 								}							
 								forParsedLong[0] *= multiplier;
 							}
 							else {
 								if (from < cursor) {
-									cursor = CharUtils.parseDouble(buffer,from,forParsedDouble,true);
+									cursor = UnsafedCharUtils.uncheckedParseDouble(buffer,from,forParsedDouble,true);
 								}
 								else {
-									CharUtils.parseDouble(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedDouble,true);
+									UnsafedCharUtils.uncheckedParseDouble(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedDouble,true);
 								}
 								forParsedDouble[0] *= multiplier;
 							}
@@ -430,20 +431,20 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 							if (moreThanBlock) {
 								if (escaped) {
 									sbResult.setLength(0);
-									cursor = CharUtils.parseString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString,'\"',sbResult);
+									cursor = UnsafedCharUtils.uncheckedParseString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString,'\"',sbResult);
 								}
 								else {
-									cursor = CharUtils.parseUnescapedString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString, '\"',true,bounds);
+									cursor = UnsafedCharUtils.uncheckedParseUnescapedString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString, '\"',true,bounds);
 								}
 								shortString = false;
 							}
 							else {
 								if (escaped) {
 									sbResult.setLength(0);
-									cursor = CharUtils.parseStringExtended(buffer,fromString,'\"',sbResult);
+									cursor = UnsafedCharUtils.uncheckedParseStringExtended(buffer,fromString,'\"',sbResult);
 								}
 								else {
-									cursor = CharUtils.parseUnescapedString(buffer,fromString,'\"',true,bounds);
+									cursor = UnsafedCharUtils.uncheckedParseUnescapedString(buffer,fromString,'\"',true,bounds);
 								}
 								shortString = true;
 							}

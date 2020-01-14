@@ -385,7 +385,7 @@ public class GettersAndSettersFactory {
 	 * @throws NullPointerException awaited class is null
 	 * @since 0.0.3
 	 */
-	public static <T> GetterAndSetter buildGetterAndSetter(final URI applicationPath) throws ContentException, IllegalArgumentException, NullPointerException {
+	public static GetterAndSetter buildGetterAndSetter(final URI applicationPath) throws ContentException, IllegalArgumentException, NullPointerException {
 		return buildGetterAndSetter(applicationPath,Thread.currentThread().getContextClassLoader());
 	}
 
@@ -399,7 +399,7 @@ public class GettersAndSettersFactory {
 	 * @throws NullPointerException awaited class is null
 	 * @since 0.0.3
 	 */
-	public static <T> GetterAndSetter buildGetterAndSetter(final URI applicationPath, final ClassLoader loader) throws ContentException, IllegalArgumentException, NullPointerException {
+	public static GetterAndSetter buildGetterAndSetter(final URI applicationPath, final ClassLoader loader) throws ContentException, IllegalArgumentException, NullPointerException {
 		if (applicationPath == null) {
 			throw new NullPointerException("Application path URI can't be null");
 		}
@@ -570,6 +570,7 @@ public class GettersAndSettersFactory {
 
 	/**
 	 * <p>Build instantiator of the class.</p>
+	 * @param <T> class to instantiate
 	 * @param clazz managed class to build instantiator to
 	 * @return instantiator for managed class
 	 * @throws ContentException on any building errors

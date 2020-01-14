@@ -1156,10 +1156,10 @@ class LineParser implements LineByLineProcessorCallback {
 							else {
 								final int[]		places = new int[2];
 								
-								if ((CharUtils.parseUnescapedString(data,start+1,'\"',true,places)) < 0) {
+								if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
 									final StringBuilder	sb = new StringBuilder();
 									
-									CharUtils.parseStringExtended(data,start+1,'\"',sb);
+									UnsafedCharUtils.uncheckedParseStringExtended(data,start+1,'\"',sb);
 									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb.toString(),new NameDescriptor()));
 								}
 								else {
@@ -1181,7 +1181,7 @@ class LineParser implements LineByLineProcessorCallback {
 						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
 							final int[]		intValues = new int[1];
 							
-							CharUtils.parseSignedInt(data,start,intValues,true);
+							UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
 							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
 							break;
 						case CompilerUtils.CLASSTYPE_FLOAT	:
@@ -1193,13 +1193,13 @@ class LineParser implements LineByLineProcessorCallback {
 						case CompilerUtils.CLASSTYPE_LONG	:
 							final long[]		longValues = new long[1];
 							
-							CharUtils.parseSignedLong(data,start,longValues,true);
+							UnsafedCharUtils.uncheckedParseSignedLong(data,start,longValues,true);
 							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
 							break;
 						case CompilerUtils.CLASSTYPE_DOUBLE	:
 							final double[]		doubleValues = new double[1];
 							
-							CharUtils.parseSignedDouble(data,start,doubleValues,true);
+							UnsafedCharUtils.uncheckedParseSignedDouble(data,start,doubleValues,true);
 							valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
 							break;
 						default :
@@ -1253,10 +1253,10 @@ class LineParser implements LineByLineProcessorCallback {
 							else {
 								final int[]		places = new int[2];
 								
-								if ((CharUtils.parseUnescapedString(data,start+1,'\"',true,places)) < 0) {
+								if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
 									final StringBuilder	sb = new StringBuilder();
 									
-									CharUtils.parseStringExtended(data,start+1,'\"',sb);
+									UnsafedCharUtils.uncheckedParseStringExtended(data,start+1,'\"',sb);
 									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb.toString(),new NameDescriptor()));
 								}
 								else {
@@ -1278,7 +1278,7 @@ class LineParser implements LineByLineProcessorCallback {
 						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
 							final int[]		intValues = new int[1];
 							
-							CharUtils.parseSignedInt(data,start,intValues,true);
+							UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
 							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
 							break;
 						case CompilerUtils.CLASSTYPE_FLOAT	:
@@ -1290,13 +1290,13 @@ class LineParser implements LineByLineProcessorCallback {
 						case CompilerUtils.CLASSTYPE_LONG	:
 							final long[]		longValues = new long[1];
 							
-							CharUtils.parseSignedLong(data,start,longValues,true);
+							UnsafedCharUtils.uncheckedParseSignedLong(data,start,longValues,true);
 							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
 							break;
 						case CompilerUtils.CLASSTYPE_DOUBLE	:
 							final double[]		doubleValues = new double[1];
 							
-							CharUtils.parseSignedDouble(data,start,doubleValues,true);
+							UnsafedCharUtils.uncheckedParseSignedDouble(data,start,doubleValues,true);
 							valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
 							break;
 						default :
@@ -1427,7 +1427,7 @@ class LineParser implements LineByLineProcessorCallback {
 			default :
 				final long[]	size = new long[]{0,0};
 				
-				try{start = CharUtils.parseNumber(data,startName,size,CharUtils.PREF_INT,true);
+				try{start = UnsafedCharUtils.uncheckedParseNumber(data,startName,size,CharUtils.PREF_INT,true);
 					if (size[1] == CharUtils.PREF_INT) {
 						methodDescriptor.setStackSize((short) size[0]);
 					}
@@ -1850,7 +1850,7 @@ class LineParser implements LineByLineProcessorCallback {
 						sign = -1;
 						start++;
 					}
-					start = CharUtils.parseNumber(data,start,forResult,CharUtils.PREF_INT|CharUtils.PREF_FLOAT,true);
+					start = UnsafedCharUtils.uncheckedParseNumber(data,start,forResult,CharUtils.PREF_INT|CharUtils.PREF_FLOAT,true);
 					
 					if (forResult[1] == CharUtils.PREF_FLOAT) {
 						displ = cc.getConstantPool().asFloatDescription(sign*Float.intBitsToFloat((int) forResult[0]));
@@ -1933,7 +1933,7 @@ class LineParser implements LineByLineProcessorCallback {
 				sign = -1;
 				start++;
 			}
-			start = CharUtils.parseNumber(data, start, forResult, CharUtils.PREF_LONG|CharUtils.PREF_DOUBLE,true);
+			start = UnsafedCharUtils.uncheckedParseNumber(data, start, forResult, CharUtils.PREF_LONG|CharUtils.PREF_DOUBLE,true);
 			if (forResult[1] == CharUtils.PREF_DOUBLE) {
 				displ = cc.getConstantPool().asDoubleDescription(sign*Double.longBitsToDouble(forResult[0]));
 			}
@@ -2197,7 +2197,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private int calculateLocalAddress(final char[] data, int start, final long[] result) throws ContentException {
 		if (data[start] >= '0' && data[start] <= '9') {
-			return CharUtils.parseNumber(data,start,result,CharUtils.PREF_INT,true);
+			return UnsafedCharUtils.uncheckedParseNumber(data,start,result,CharUtils.PREF_INT,true);
 		}
 		else {
 			final int	startName = start, endName;
@@ -2310,9 +2310,9 @@ class LineParser implements LineByLineProcessorCallback {
 			case term				:
 				switch (data[start]) {
 					case '0' : 
-						return CharUtils.parseLongExtended(data,start,result,true);
+						return UnsafedCharUtils.uncheckedParseLongExtended(data,start,result,true);
 					case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-						return CharUtils.parseLong(data,start,result,true);
+						return UnsafedCharUtils.uncheckedParseLong(data,start,result,true);
 					case '(' :
 						if (data[start = InternalUtils.skipBlank(data,calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.additional,result))]==')') {
 							return InternalUtils.skipBlank(data,start+1);

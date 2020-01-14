@@ -308,13 +308,22 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * <p>Open file from the LRU list</p>
 	 * @param file file to open
 	 * @return true of file was successfully opened
-	 * @throws IOException
+	 * @throws IOException on any errors during open
 	 * @throws IllegalArgumentException when file name os null or empty
 	 */
 	public boolean openFile(final String file) throws IOException, IllegalArgumentException {
 		return openFile(file,DUMMY);
 	}
-	
+
+	/**
+	 * <p>Open file from the LRU list</p>
+	 * @param file file to open
+	 * @param progress progress indicator to indicate loading
+	 * @return true of file was successfully opened
+	 * @throws IOException on any errors during open
+	 * @throws NullPointerException when progress indicator is null
+	 * @throws IllegalArgumentException when file name os null or empty
+	 */
 	public boolean openFile(final String file, final ProgressIndicator progress) throws IOException, NullPointerException, IllegalArgumentException {
 		if (file == null || file.isEmpty()) {
 			throw new IllegalArgumentException("File name can't be null or empty"); 

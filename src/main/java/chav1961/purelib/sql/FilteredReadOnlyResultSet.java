@@ -14,6 +14,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 	private static final int		LEVEL_TERM = 0;
@@ -564,14 +565,14 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 					final StringBuilder	sb = new StringBuilder();
 					final int 			startPos = pos;
 					
-					try{pos = CharUtils.parseStringExtended(content,pos+1,'\'',sb);
+					try{pos = UnsafedCharUtils.uncheckedParseStringExtended(content,pos+1,'\'',sb);
 						stringValue = sb.toString();
 						return lexType = LEX_CHAR_CONST;
 					} catch (IllegalArgumentException exc) {
 						throw new SyntaxException(0,startPos,exc.getLocalizedMessage());
 					}
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-					pos = CharUtils.parseNumber(content,pos,numbers,CharUtils.PREF_ANY,true);
+					pos = UnsafedCharUtils.uncheckedParseNumber(content,pos,numbers,CharUtils.PREF_ANY,true);
 					switch ((int)numbers[1]) {
 						case CharUtils.PREF_INT : case CharUtils.PREF_LONG :
 							longValue = numbers[0];
@@ -586,7 +587,7 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 					return 0;
 				default :
 					if (Character.isJavaIdentifierStart(content[pos])) {
-						pos = CharUtils.parseName(content,pos,location);
+						pos = UnsafedCharUtils.uncheckedParseName(content,pos,location);
 						
 						final String name = new String(content,location[0],location[1]-location[0]+1).toUpperCase();
 						final long	id = PREDEFINED.seekName(name);

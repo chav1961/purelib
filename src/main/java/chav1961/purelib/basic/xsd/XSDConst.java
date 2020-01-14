@@ -1,6 +1,6 @@
 package chav1961.purelib.basic.xsd;
 
-import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.XMLUtils;
 
 /**
  * <p>This class can be used as an anchor to get access to the XSD schemes inside the package. Example of usage is:</p>
@@ -8,11 +8,11 @@ import chav1961.purelib.basic.Utils;
  * . . .<br>
  * }<br>
  * </code>
- * <p>Alternative way to get requested XSD scheme is using {@linkplain Utils#getPurelibXSD(chav1961.purelib.enumerations.XSDCollection)} method</p> 
+ * <p>Alternative way to get requested XSD scheme is using {@linkplain chav1961.purelib.basic.XMLUtils#getPurelibXSD(chav1961.purelib.enumerations.XSDCollection)} method</p> 
  * 
- * @see chav1961.purelib.basic.Utils#getPurelibXSD(chav1961.purelib.enumerations.XSDCollection)
- * @see chav1961.purelib.basic.Utils#validateXMLByXSD(java.io.InputStream, java.io.InputStream)
- * @see chav1961.purelib.basic.Utils#validateXMLByXSD(java.io.InputStream, java.io.InputStream, chav1961.purelib.basic.interfaces.LoggerFacade)
+ * @see chav1961.purelib.basic.XMLUtils#getPurelibXSD(chav1961.purelib.enumerations.XSDCollection)
+ * @see chav1961.purelib.basic.XMLUtils#validateXMLByXSD(java.io.InputStream, java.io.InputStream)
+ * @see chav1961.purelib.basic.XMLUtils#validateXMLByXSD(java.io.InputStream, java.io.InputStream, chav1961.purelib.basic.interfaces.LoggerFacade)
  * @see chav1961.purelib.enumerations.XSDCollection
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2

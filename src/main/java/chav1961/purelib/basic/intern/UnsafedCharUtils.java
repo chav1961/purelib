@@ -1,7 +1,11 @@
 package chav1961.purelib.basic.intern;
 
+import java.util.Arrays;
+
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 
 public class UnsafedCharUtils {
 	private static final int		INTMAX_2 = Integer.MAX_VALUE / 2;
@@ -28,6 +32,14 @@ public class UnsafedCharUtils {
 	private static final char[]		DOUBLE_NEGATIVE_INFINITY = "-Infinity".toCharArray();
 	private static final char[]		DOUBLE_POSITIVE_INFINITY = "Infinity".toCharArray();
 	private static final char[]		HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+
+	private static final int		OCT_ESCAPE_SIZE = 3;
+	private static final int		U_ESCAPE_SIZE = 4;
+	private static final char[]		HYPHEN_NAME = "-".toCharArray();
+	private static final char		WILDCARD_ANY_SEQ = '*';
+	private static final char		WILDCARD_ANY_CHAR = '?';
+	
+	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	
 	static {
 		DOUBLE_EXPS = new double[EXP_BOUND * 2 + 1];
@@ -166,6 +178,21 @@ public class UnsafedCharUtils {
 		}
 	}	
 	
+	public static int uncheckedParseSignedInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
+		if (source[from] == '-') {
+			final int	returned = UnsafedCharUtils.uncheckedParseInt(source, from+1, result, checkOverflow);
+			
+			result[0] = -result[0];
+			return returned;
+		}
+		else if (source[from] == '+') {
+			return uncheckedParseInt(source, from+1, result, checkOverflow);
+		}
+		else {
+			return uncheckedParseInt(source, from, result, checkOverflow);
+		}
+	}
+	
 	public static int uncheckedParseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
@@ -299,6 +326,21 @@ public class UnsafedCharUtils {
 		}
 	}
 
+	public static int uncheckedParseSignedLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
+		if (source[from] == '-') {
+			final int	returned = UnsafedCharUtils.uncheckedParseLong(source, from+1, result, checkOverflow);
+			
+			result[0] = -result[0];
+			return returned;
+		}
+		else if (source[from] == '+') {
+			return uncheckedParseLong(source, from+1, result, checkOverflow);
+		}
+		else {
+			return uncheckedParseLong(source, from, result, checkOverflow);
+		}
+	}
+	
 	public static int uncheckedParseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		final int	len = source.length;
 		long		temp = 0;
@@ -382,6 +424,21 @@ public class UnsafedCharUtils {
 			result[0] = temp;
 		}
 		return index;
+	}
+	
+	public static int uncheckedParseSignedFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
+		if (source[from] == '-') {
+			final int	returned = UnsafedCharUtils.uncheckedParseFloat(source, from+1, result, checkOverflow);
+			
+			result[0] = -result[0];
+			return returned;
+		}
+		else if (source[from] == '+') {
+			return uncheckedParseFloat(source, from+1, result, checkOverflow);
+		}
+		else {
+			return uncheckedParseFloat(source, from, result, checkOverflow);
+		}
 	}
 
 	public static int uncheckedParseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
@@ -468,6 +525,21 @@ public class UnsafedCharUtils {
 		return index;
 	}
 
+	public static int uncheckedParseSignedDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
+		if (source[from] == '-') {
+			final int	returned = UnsafedCharUtils.uncheckedParseDouble(source, from+1, result, checkOverflow);
+			
+			result[0] = -result[0];
+			return returned;
+		}
+		else if (source[from] == '+') {
+			return UnsafedCharUtils.uncheckedParseDouble(source, from+1, result, checkOverflow);
+		}
+		else {
+			return UnsafedCharUtils.uncheckedParseDouble(source, from, result, checkOverflow);
+		}
+	}
+	
 	public static int uncheckedParseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) throws SyntaxException {
 		long	temp = 0;
 		int		index = from, len = source.length;
@@ -719,6 +791,287 @@ public class UnsafedCharUtils {
 		return index; 
 	}
 	
+	public static int uncheckedParseEscapedChar(final char[] source, int from, final char[] result) {
+		final int 	len = source.length;
+		
+		if (source[from] == '\\') {
+			if (from < len - 1) {
+				switch (source[from+1]) {
+					case '\"' 	: result[0] = '\"'; from += 2; break;
+					case '\'' 	: result[0] = '\''; from += 2; break;
+					case '\\' 	: result[0] = '\\'; from += 2; break;
+					case 'b' 	: result[0] = '\b'; from += 2; break;
+					case 'f' 	: result[0] = '\f'; from += 2; break;
+					case 'n' 	: result[0] = '\n'; from += 2; break;
+					case 'r' 	: result[0] = '\r'; from += 2; break;
+					case 't' 	: result[0] = '\t'; from += 2; break;
+					case '0' 	:
+						if (from + 1 > len - OCT_ESCAPE_SIZE) {
+							throw new IllegalArgumentException("Escape \\0nn sequence at the "+from+"-th char is too short");
+						}
+						else {
+							int		octVal = 0;
+							char	symbol;
+							
+							for (int chars = from + 1; chars < from + 1 + OCT_ESCAPE_SIZE; chars++) {
+								if ((symbol = source[chars]) >= '0' && symbol <= '7') {
+									octVal = (octVal << 3) + symbol - '0';
+								}
+								else {
+									throw new IllegalArgumentException("Escape \\0nn sequence at the "+from+"-th char has illegal octal value ("+source[chars]+")");
+								}
+							}
+							result[0] = (char) octVal;
+							from += OCT_ESCAPE_SIZE+1;
+						}
+						break;
+					case 'u' 	:
+						if (from + 2 > len - U_ESCAPE_SIZE) {
+							throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+from+"-th char is too short");
+						}
+						else {
+							int		hexVal = 0;
+							char	symbol;
+							
+							for (int chars = from + 2; chars < from + 2 + U_ESCAPE_SIZE; chars++) {
+								if ((symbol = source[chars]) >= '0' && symbol <= '9') {
+									hexVal = (hexVal << 4) + symbol - '0';
+								}
+								else if (symbol >= 'a' && symbol <= 'f') {
+									hexVal = (hexVal << 4) + symbol - 'a' + 10;
+								}
+								else if (symbol >= 'A' && symbol <= 'F') {
+									hexVal = (hexVal << 4) + symbol - 'A' + 10;
+								}
+								else {
+									throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+from+"-th char has illegal hex value ("+source[chars]+")");
+								}
+							}
+							result[0] = (char) hexVal;
+							from += U_ESCAPE_SIZE+2;
+						}
+						break;
+					default : throw new IllegalArgumentException("Illegal escape sequence at the "+from+"-th char of the string ("+source[from]+")");
+				}				
+				return from;
+			}
+			else {
+				throw new IllegalArgumentException("Truncated char escape sequence"); 
+			}
+		}
+		else {
+			result[0] = source[from];
+			
+			return from + 1;
+		}
+	}
+	
+	public static int uncheckedParseUnescapedString(final char[] source, final int from, final char terminal, final boolean checkEscaping, final int[] result) {
+		final int		len = source.length;
+		
+		int		index;
+		
+		for (index = from; index < len; index++) {
+			if (source[index] == terminal) {
+				result[0] = from;
+				result[1] = index - 1;
+				return index + 1;
+			}
+			else if ((source[index] == '\\' || source[index] == '\n')&& checkEscaping) {
+				result[0] = from;
+				result[1] = index - 1;
+				return -index;
+			}
+		}
+		throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
+	}
+	
+	public static int uncheckedParseString(final char[] source, final int from, final char terminal, final StringBuilder result) {
+		final int		len = source.length;
+		
+		int		index;
+		
+		for (index = from; index < len; index++) {
+			if (source[index] == terminal) {
+				result.append(source,from,index-from);
+				return index + 1;
+			}
+			else if (source[index] == '\\') {
+				result.append(source,from,index-from);
+				break;
+			}
+		}
+		for (; index < len; index++) {
+			if (source[index] == terminal) {
+				return index + 1;
+			}
+			else if (source[index] == '\\') {
+				if (index >= len) {
+					throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
+				}
+				else {
+					switch (source[index+1]) {
+						case '\"' 	: result.append("\""); break;
+						case '\\' 	: result.append("\\"); break;
+						case '/' 	: result.append("/"); break;
+						case 'b' 	: result.append("\b"); break;
+						case 'f' 	: result.append("\f"); break;
+						case 'n' 	: result.append("\n"); break;
+						case 'r' 	: result.append("\r"); break;
+						case 't' 	: result.append("\t"); break;
+						case 'u' 	:
+							if (index + 2 >= len - U_ESCAPE_SIZE) {
+								throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char is too short");
+							}
+							else {
+								int		hexVal = 0;
+								char	symbol;
+								
+								for (int chars = index + 2; chars < index + 2 + U_ESCAPE_SIZE; chars++) {
+									if ((symbol = source[chars]) >= '0' && symbol <= '9') {
+										hexVal = (hexVal << 4) + symbol - '0';
+									}
+									else if (symbol >= 'a' && symbol <= 'f') {
+										hexVal = (hexVal << 4) + symbol - 'a' + 10;
+									}
+									else if (symbol >= 'A' && symbol <= 'F') {
+										hexVal = (hexVal << 4) + symbol - 'A' + 10;
+									}
+									else {
+										throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char has illegal hex value ("+source[index]+")");
+									}
+								}
+								result.append((char)hexVal);
+								index += U_ESCAPE_SIZE;
+							}
+							break;
+						default : throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string ("+source[index]+")");
+					}
+					index++;
+				}
+			}
+			else {
+				result.append(source[index]);
+			}
+		}
+		throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
+	}
+	
+	public static int uncheckedParseStringExtended(final char[] source, final int from, final char terminal, final StringBuilder result) {
+		final int		len = source.length;
+		int		index;
+		
+		for (index = from; index < len; index++) {
+			if (source[index] == terminal) {
+				result.append(source,from,index-from);
+				return index + 1;
+			}
+			else if (source[index] == '\\') {
+				result.append(source,from,index-from);
+				break;
+			}
+		}
+		for (; index < len; index++) {
+			if (source[index] == terminal) {
+				return index + 1;
+			}
+			else if (source[index] == '\\') {
+				if (index >= len) {
+					throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
+				}
+				else {
+					switch (source[index+1]) {
+						case '\"' 	: result.append("\""); break;
+						case '\'' 	: result.append("\'"); break;
+						case '\\' 	: result.append("\\"); break;
+						case '/' 	: result.append("/"); break;
+						case 'b' 	: result.append("\b"); break;
+						case 'f' 	: result.append("\f"); break;
+						case 'n' 	: result.append("\n"); break;
+						case 'r' 	: result.append("\r"); break;
+						case 't' 	: result.append("\t"); break;
+						case 'u' 	:
+							if (index + 2 >= len - U_ESCAPE_SIZE) {
+								throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char is too short");
+							}
+							else {
+								int		hexVal = 0;
+								char	symbol;
+								
+								for (int chars = index + 2; chars < index + 2 + U_ESCAPE_SIZE; chars++) {
+									if ((symbol = source[chars]) >= '0' && symbol <= '9') {
+										hexVal = (hexVal << 4) + symbol - '0';
+									}
+									else if (symbol >= 'a' && symbol <= 'f') {
+										hexVal = (hexVal << 4) + symbol - 'a' + 10;
+									}
+									else if (symbol >= 'A' && symbol <= 'F') {
+										hexVal = (hexVal << 4) + symbol - 'A' + 10;
+									}
+									else {
+										throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char has illegal hex value ("+source[index]+")");
+									}
+								}
+								result.append((char)hexVal);
+								index += U_ESCAPE_SIZE;
+							}
+							break;
+						case '0' 	:
+							if (index >= len - 2) {
+								throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
+							}
+							else if (source[index+2] == 'x' || source[index+2] == 'X') {
+								if (index >= len - 3) {
+									throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
+								}
+								else {
+									int		hexVal = 0;
+									char	symbol = source[index+=3];
+									
+									while (index < len && "0123456789abcdefABCDEF".indexOf(symbol) >= 0) {
+										if (symbol >= '0' && symbol <= '9') {
+											hexVal = (hexVal << 4) + symbol - '0';
+										}
+										else if (symbol >= 'a' && symbol <= 'f') {
+											hexVal = (hexVal << 4) + symbol - 'a' + 10;
+										}
+										else {
+											hexVal = (hexVal << 4) + symbol - 'A' + 10;
+										}
+										symbol = source[++index];
+									}
+									result.append((char)hexVal);
+									if (index < len) {
+										index -= 2;
+									}
+								}
+							}
+							else {
+								int		octVal = 0;
+								char	symbol = source[index+=2];
+								
+								while (index < len && symbol >= '0' && symbol <= '7') {
+									octVal = (octVal << 3) + symbol - '0';
+									symbol = source[++index];
+								}
+								result.append((char)octVal);
+								if (index < len) {
+									index -= 2;
+								}
+							}
+							break;
+						default : throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string");
+					}
+					index++;
+				}
+			}
+			else {
+				result.append(source[index]);
+			}
+		}
+		throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
+	}
+	
 	public static int uncheckedParseName(final char[] source, final int from, final int[] result) {
 		if (!Character.isJavaIdentifierStart(source[from])) {
 			throw new IllegalArgumentException("No valid beginning of the name"); 
@@ -876,7 +1229,7 @@ loop:			for (index = from; index < len; index++) {
 		return reallyFill ? newFrom : -newFrom;
 	}
 
-	public static int unckeckedPrintDouble(final char[] content, final int from, double value, boolean reallyFill) throws IllegalArgumentException {
+	public static int uncheckedPrintDouble(final char[] content, final int from, double value, boolean reallyFill) throws IllegalArgumentException {
 		final int	to = content.length;
 		int			newFrom = from;
 		
@@ -997,7 +1350,7 @@ loop:			for (index = from; index < len; index++) {
 		return reallyFill ? newFrom : -newFrom;
 	}
 
-	public static int printUncheckedEscapedChar(final char[] content, final int from, final char value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
+	public static int uncheckedPrintEscapedChar(final char[] content, final int from, final char value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
 		final int	to = content.length;
 		int			newFrom = from;
 
@@ -1101,6 +1454,24 @@ loop:			for (index = from; index < len; index++) {
 		return newFrom;
 	}
 	
+	public static int uncheckedPrintEscapedCharArray(final char[] content, int from, final char[] value, final int charFrom, final int charTo, boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
+		final int	to = content.length;
+		
+		for (int index = charFrom; index < charTo; index++) {
+			if (from < to) {
+				if ((from = UnsafedCharUtils.uncheckedPrintEscapedChar(content,from,value[index],reallyFill,strongEscaping)) < 0) {
+					from = -from;
+					reallyFill = false;
+				}
+			}
+			else {
+				reallyFill = false;
+			}
+		}
+
+		return from;
+	}
+	
 	public static boolean uncheckedCompare(final char[] source, final int from, final char[] template, final int templateFrom, final int templateLen) {
 		if (source.length - from < templateLen) {
 			return false;
@@ -1114,4 +1485,87 @@ loop:			for (index = from; index < len; index++) {
 			return true;
 		}
 	}
+
+	public static char[] uncheckedSubstitute(final String key, final char[] value, int from, final int length, final CharSubstitutionSource source, final int substDepth) throws NullPointerException, IllegalArgumentException {
+		if (substDepth >= CharUtils.MAX_SUBST_DEPTH) {
+			throw new IllegalArgumentException("Too deep substitution was detected (more than "+CharUtils.MAX_SUBST_DEPTH+") for key ["+key+"]=["+new String(value,from,length-from)+"]. Possibly you have a resursion in the substitution way!"); 
+		}
+		else {
+			final int	to = from + length;
+			
+			for (int index = from; index < to; index++) {
+				if (value[index] == '$') {
+					final GrowableCharArray	gca = new GrowableCharArray(false);
+					int						dollarPos = index, bracketCount = 0, startName = 0, endName = 0;
+					boolean					wasDollar = false;
+
+nextName:			while (dollarPos >= 0) {
+						gca.append(value,from,dollarPos);
+						
+						if (dollarPos >= to || value[dollarPos + 1] == '{') {
+end:						for (int scan = dollarPos + 1; scan < to; scan++) {
+								switch (value[scan]) {
+									case '{' 	:
+										if (bracketCount++ == 0) {
+											startName = scan + 1;
+										};
+										break;
+									case '}' 	:
+										if (--bracketCount == 0) {
+											endName = scan;
+											break end;
+										}
+										break;
+									case '$'	:
+										wasDollar = true;
+										break;
+								}
+							}
+							if (bracketCount != 0) {
+								throw new IllegalArgumentException("Unpaired {} in the key ["+key+"]=["+new String(value,from,length-from)+"]");
+							}
+							else if (startName >= endName) {
+								throw new IllegalArgumentException("Empty ${} in the key ["+key+"]=["+new String(value,from,length-from)+"]");
+							}
+							else {
+								final char[]	result = source.getValue(value,startName,endName);
+								
+								if (result != null) {
+									if (wasDollar) {
+										final char[]	subst = source.getValue(result,0,result.length); 
+												
+										gca.append(subst != null ? uncheckedSubstitute(key,subst,0,subst.length,source,substDepth+1) : result);
+									}
+									else {
+										gca.append(uncheckedSubstitute(key,result,0,result.length,source,substDepth+1));
+									}
+								}
+								else {
+									gca.append(value,startName-2,endName+1);
+								}
+								from = endName + 1;
+							}
+						}
+						else {
+							gca.append('$');
+							from = dollarPos + 1;
+						}
+						for (dollarPos = from; dollarPos < to; dollarPos++) {
+							if (value[dollarPos] == '$') {
+								continue nextName;
+							}
+						}
+						if (from < to) {
+							gca.append(value,from,dollarPos);
+						}
+						dollarPos = -1;
+					}
+					return gca.extract();
+				}
+			}
+			return Arrays.copyOfRange(value,from,to);
+		}
+	}
+	
+
 }

@@ -13,6 +13,7 @@ public interface InputStreamGetter {
 	/**
 	 * <p>Get entity content to save</p>
 	 * @return content stream. Can't be null
+	 * @throws IOException on any I/O errors
 	 */
 	InputStream getContent() throws IOException;
 }

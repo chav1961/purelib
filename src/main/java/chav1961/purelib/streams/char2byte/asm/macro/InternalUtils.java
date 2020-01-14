@@ -11,6 +11,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNodeOperator;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCommand;
@@ -237,7 +238,7 @@ class InternalUtils {
 			case '\"' :
 				final StringBuilder	sb = new StringBuilder();
 				
-				from = CharUtils.parseString(data,from+1,'\"',sb);
+				from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',sb);
 				result[0] = new ConstantNode(sb.toString().toCharArray());
 				return from;
 			case '-' :
@@ -259,7 +260,7 @@ class InternalUtils {
 			case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 				final long[]	numbers = new long[2];
 				
-				from = CharUtils.parseNumber(data,from,numbers,CharUtils.PREF_ANY, true);
+				from = UnsafedCharUtils.uncheckedParseNumber(data,from,numbers,CharUtils.PREF_ANY, true);
 				switch ((int)numbers[1]) {
 					case CharUtils.PREF_INT		: result[0] = new ConstantNode(numbers[0]); break;
 					case CharUtils.PREF_LONG	: result[0] = new ConstantNode(numbers[0]); break;
@@ -269,11 +270,11 @@ class InternalUtils {
 				}
 				return from;
 			case 't' : case 'f' :
-				if (CharUtils.compare(data,from,FALSE)) {
+				if (UnsafedCharUtils.uncheckedCompare(data,from,FALSE,0,FALSE.length)) {
 					result[0] = new ConstantNode(false);
 					return from + FALSE.length - 1;
 				}
-				else if (CharUtils.compare(data,from,TRUE)) {
+				else if (UnsafedCharUtils.uncheckedCompare(data,from,TRUE,0,TRUE.length)) {
 					result[0] = new ConstantNode(true);
 					return from + TRUE.length - 1;
 				}
@@ -314,16 +315,16 @@ class InternalUtils {
 	}
 
 	static ExpressionNodeValue defineType(final char[] data, final int[] bounds) {
-		if (CharUtils.compare(data,bounds[0],InternalUtils.TYPE_INT)) {
+		if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_INT,0,InternalUtils.TYPE_INT.length)) {
 			return ExpressionNodeValue.INTEGER;
 		}
-		else if (CharUtils.compare(data,bounds[0],InternalUtils.TYPE_REAL)) {
+		else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_REAL,0,InternalUtils.TYPE_REAL.length)) {
 			return ExpressionNodeValue.REAL;
 		}
-		else if (CharUtils.compare(data,bounds[0],InternalUtils.TYPE_STRING)) {
+		else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_STRING,0,InternalUtils.TYPE_STRING.length)) {
 			return ExpressionNodeValue.STRING;
 		}
-		else if (CharUtils.compare(data,bounds[0],InternalUtils.TYPE_BOOLEAN)) {
+		else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_BOOLEAN,0,InternalUtils.TYPE_BOOLEAN.length)) {
 			return ExpressionNodeValue.BOOLEAN;
 		}
 		else {
@@ -607,12 +608,12 @@ class InternalUtils {
 				switch (data[from[0]]) {
 					case '\"' 	:
 						final StringBuilder	sb = new StringBuilder();
-						from[0] = CharUtils.parseString(data,from[0]+1,'\"',sb);
+						from[0] = UnsafedCharUtils.uncheckedParseString(data,from[0]+1,'\"',sb);
 						return new ConstantNode(sb.toString().toCharArray());
 					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 						final long[]	numbers = new long[2];
 						
-						from[0] = CharUtils.parseNumber(data,from[0],numbers,CharUtils.PREF_ANY, true);
+						from[0] = UnsafedCharUtils.uncheckedParseNumber(data,from[0],numbers,CharUtils.PREF_ANY, true);
 						switch ((int)numbers[1]) {
 							case CharUtils.PREF_INT		: return new ConstantNode(numbers[0]);
 							case CharUtils.PREF_LONG	: return new ConstantNode(numbers[0]);
@@ -635,7 +636,7 @@ class InternalUtils {
 						if (Character.isJavaIdentifierStart(data[from[0]])) {
 							final int[]	bounds = new int[2];
 							
-							from[0] = CharUtils.parseName(data,from[0],bounds);
+							from[0] = UnsafedCharUtils.uncheckedParseName(data,from[0],bounds);
 							from[0] = skipBlank(data,from[0]);
 							
 							if (data[from[0]] == '(') {
@@ -649,15 +650,17 @@ class InternalUtils {
 								}
 							}
 							else {
-								if (CharUtils.compare(data,bounds[0],FALSE)) {
+								if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],FALSE,0,FALSE.length)) {
 									return new ConstantNode(false);
 								}
-								else if (CharUtils.compare(data,bounds[0],TRUE)) {
+								else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],TRUE,0,TRUE.length)) {
 									return new ConstantNode(true);
 								}
 								else {
 									for (AssignableExpressionNode item : macro.getDeclarations()) {
-										if (CharUtils.compare(data,bounds[0],item.getName())) {
+										final char[] name = item.getName();
+										
+										if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],name,0,name.length)) {
 											return item;
 										}
 									}
@@ -775,7 +778,7 @@ class InternalUtils {
 		
 		while (from < end && data[from] != '\r' && data[from] != '\n') {
 			if (data[from] == '\"') {
-				bounds[1] = from = CharUtils.parseString(data,from+1,'\"',new StringBuilder());
+				bounds[1] = from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',new StringBuilder());
 			}
 			else if (data[from] == ',' || data[from] == '=') {
 				bounds[1] = from - 1;

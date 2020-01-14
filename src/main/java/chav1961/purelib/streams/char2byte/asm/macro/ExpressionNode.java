@@ -7,6 +7,7 @@ import java.util.List;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
@@ -1137,7 +1138,7 @@ class FuncToIntNode extends FuncNode {
 														case REAL		: return (long)list[0].getDouble(); 
 														case STRING		: 
 															try {
-																CharUtils.parseLong(list[0].getString(),0,temp,true);
+																UnsafedCharUtils.uncheckedParseLong(list[0].getString(),0,temp,true);
 																return temp[0];
 															} catch (SyntaxException e) {
 																throw new CalculationException("Error converting string to long: "+e.getLocalizedMessage());
@@ -1164,7 +1165,7 @@ class FuncToRealNode extends FuncNode {
 														case REAL		: return list[0].getDouble(); 
 														case STRING		: 
 															try{
-																CharUtils.parseDouble(list[0].getString(),0,temp,true);
+																UnsafedCharUtils.uncheckedParseDouble(list[0].getString(),0,temp,true);
 																return temp[0];
 															} catch (SyntaxException e) {
 																throw new CalculationException("Error converting string to double: "+e.getLocalizedMessage());
@@ -1211,10 +1212,10 @@ class FuncToBooleanNode extends FuncNode {
 															case INTEGER	: throw new CalculationException("Integer value can't be converted to boolean!");
 															case REAL		: throw new CalculationException("Real value can't be converted to boolean!");
 															case STRING		: 
-																if (CharUtils.compare(list[0].getString(),0,PURE_TRUE)) {
+																if (UnsafedCharUtils.uncheckedCompare(list[0].getString(),0,PURE_TRUE,0,PURE_TRUE.length)) {
 																	return true;
 																}
-																else if (CharUtils.compare(list[0].getString(),0,PURE_FALSE)) {
+																else if (UnsafedCharUtils.uncheckedCompare(list[0].getString(),0,PURE_FALSE,0,PURE_FALSE.length)) {
 																	return false;
 																}
 																else {

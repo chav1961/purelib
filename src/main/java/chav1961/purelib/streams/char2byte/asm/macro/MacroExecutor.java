@@ -5,6 +5,7 @@ import java.util.Arrays;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 
 public abstract class MacroExecutor implements MacroExecutorInterface {
@@ -68,7 +69,7 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 			throw new CalculationException("Attempt to convert null string to boolean");
 		}
 		else {
-			return CharUtils.compare(content,0,TRUE_CONTENT);
+			return UnsafedCharUtils.uncheckedCompare(content,0,TRUE_CONTENT,0,TRUE_CONTENT.length);
 		}
 	}
 	
@@ -84,7 +85,7 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 			int			counter = 1;
 			
 			for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
-				if (source[index] == symbol && CharUtils.compare(source,index,splitter)) {
+				if (source[index] == symbol && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
 					counter++;
 					index += splitter.length;
 				}
@@ -95,7 +96,7 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 			
 			counter = 0;
 			for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
-				if (source[index] == symbol && CharUtils.compare(source,index,splitter)) {
+				if (source[index] == symbol && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
 					result[counter++] = Arrays.copyOfRange(source,start,index);
 					start = index += splitter.length;
 				}

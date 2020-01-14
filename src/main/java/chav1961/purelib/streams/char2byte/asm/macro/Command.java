@@ -57,11 +57,11 @@ class MacroCommand extends Command implements Cloneable {
 		try{from = InternalUtils.skipBlank(data,from);
 			if (Character.isJavaIdentifierStart(data[from])) {	// Parameters are presented!
 				from--;
-				do {from = InternalUtils.skipBlank(data,CharUtils.parseName(data,InternalUtils.skipBlank(data,from+1),bounds));
+				do {from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from+1),bounds));
 					if (data[from] == ':') {
 						final char[]	name = Arrays.copyOfRange(data,bounds[0],bounds[1]+1);
 						
-						from = InternalUtils.skipBlank(data,CharUtils.parseName(data,InternalUtils.skipBlank(data,from+1),bounds));
+						from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from+1),bounds));
 						if (data[from] == '=') {
 							keyParameters = true;
 							from = InternalUtils.skipBlank(data,from+1);
@@ -102,7 +102,9 @@ class MacroCommand extends Command implements Cloneable {
 		}
 		else {
 			for (int index = 0; index <= current; index++) {
-				if (CharUtils.compare(item.getName(),0,memory[index].getName())) {
+				final char[] name = memory[index].getName();
+				
+				if (UnsafedCharUtils.uncheckedCompare(item.getName(),0,name,0,name.length)) {
 					throw new SyntaxException(0,0,"Duplicate parameter or local variable name ["+new String(item.getName())+"]"); 
 				}
 			}
@@ -116,7 +118,9 @@ class MacroCommand extends Command implements Cloneable {
 	
 	AssignableExpressionNode seekDeclaration(final char[] data) {
 		for (int index = 0; index <= current; index++) {
-			if (CharUtils.compare(data,0,memory[index].getName())) {
+			final char[] name = memory[index].getName();
+			
+			if (UnsafedCharUtils.uncheckedCompare(data,0,name,0,name.length)) {
 				 return memory[index];
 			}
 		}
@@ -288,7 +292,7 @@ class ForCommand extends LoopCommand {
 	ForCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		final int[]		bounds = new int[2];
 
-		try{from = CharUtils.parseName(data,InternalUtils.skipBlank(data,from),bounds);
+		try{from = UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from),bounds);
 		
 			final char[]				varName = Arrays.copyOfRange(data,bounds[0],bounds[1]+1);
 			AssignableExpressionNode	var;
@@ -380,7 +384,7 @@ class ForEachCommand extends LoopCommand {
 	ForEachCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		final int[]		bounds = new int[2];
 
-		try{from = CharUtils.parseName(data,InternalUtils.skipBlank(data,from),bounds);
+		try{from = UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from),bounds);
 		
 			final char[]				varName = Arrays.copyOfRange(data,bounds[0],bounds[1]+1);
 			AssignableExpressionNode	var;
@@ -600,7 +604,7 @@ class SubstitutionCommand extends Command {
 					subst[0].addOperand(new ConstantNode(Arrays.copyOfRange(data,startText,from)));
 					wereAnyAdditions = true;
 				}
-				from = CharUtils.parseName(data,from+1,bounds);
+				from = UnsafedCharUtils.uncheckedParseName(data,from+1,bounds);
 				if (data[from] == '.') {
 					from++;
 				}

@@ -44,7 +44,7 @@ import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
  * pre-compiled languages, so it has a set of specific protected methods for it:</p>
  * <ul>
  * <li>{@linkplain #beforeCompile(Reader, OutputStream)} method for preparing compilation process and/or pre-processing input content</li>
- * <li>{@linkplain #processLineInternal(int, char[], int, int)} abstract method for line-by-line compilation input content</li>
+ * <li>{@linkplain #processLineInternal(long, int, char[], int, int)} abstract method for line-by-line compilation input content</li>
  * <li>{@linkplain #afterCompile(Reader, OutputStream)} abstract method for creation compiled output and terminating compilation</li>
  * </ul>
  * <p>This class also contains implementation of {@linkplain BasicScriptEngineController} interface, oriented to use with the standard jars content.
