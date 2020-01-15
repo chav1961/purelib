@@ -129,7 +129,7 @@ class ClassContainer implements Closeable {
 	void addMethodBody(final MethodBody body) {
 		methodBodyAwait = false;
 	}
-	
+
 	void dump(final OutputStream os) throws IOException, ContentException {
 		if (methodBodyAwait) {
 			throw new IllegalStateException("Last call to addMethodDescription(...) not commited with addMethodBody(...)!");

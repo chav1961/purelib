@@ -1,3 +1,9 @@
+/**
+ * <p>This module contains Pure Library project content.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see <a href="http://github.com/chav1961/purelib">Pure Library</a> project
+ * @since 0.0.4
+ */
 module chav1961.purelib {
 	requires transitive java.desktop;
 	requires java.scripting;

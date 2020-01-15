@@ -86,7 +86,7 @@ public class InternalUtilsTest {
 		
 		Assert.assertFalse(InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT}, new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT}));
 		Assert.assertTrue(InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT}, new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_CREOLE_TEXT}));
-		Assert.assertTrue(InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT}, new MimeType[]{new MimeType("*","*")}));
+		Assert.assertTrue(InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT}, new MimeType[]{new MimeType("text","*")}));
 		
 		try{InternalUtils.mimesIntersect(null,new MimeType[0]);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

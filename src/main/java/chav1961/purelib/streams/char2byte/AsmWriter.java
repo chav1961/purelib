@@ -77,7 +77,7 @@ import chav1961.purelib.streams.char2byte.asm.Asm;
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public class AsmWriter extends Writer {
@@ -105,7 +105,6 @@ public class AsmWriter extends Writer {
 		else {
 			this.os = os;
 			this.asm = new Asm(os);
-//			this.diagnostics = null;
 			this.cloned = false;
 		}
 	}
@@ -162,15 +161,25 @@ public class AsmWriter extends Writer {
 
 	@Override
 	public void write(final char[] cbuf, final int off, final int len) throws IOException {
-		try{lblp.write(cbuf,off,len);
-		} catch (SyntaxException e) {
-			throw new IOException(e);
+		if (cbuf == null) {
+			throw new NullPointerException("Array to write can't be null"); 
+		}
+		else if (cbuf.length > 0) {
+			try{lblp.write(cbuf,off,len);
+			} catch (SyntaxException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
 	@Override
-	public void write(String str, int off, int len) throws IOException {
-		write(str.toCharArray(),off,len);
+	public void write(final String str, final int off, final int len) throws IOException {
+		if (str == null) {
+			throw new NullPointerException("String to write can't be null"); 
+		}
+		else if (!str.isEmpty()) {
+			write(str.toCharArray(),off,len);
+		}
 	}	
 	
 	@Override
@@ -199,7 +208,7 @@ public class AsmWriter extends Writer {
 	
 	/**
 	 * <p>Add class to imported classes in the assembly compiler</p>
-	 * @param clazz clazz to add
+	 * @param clazz class to add
 	 * @throws ContentException on duplicated class
 	 * @throws NullPointerException when class to add is null
 	 */

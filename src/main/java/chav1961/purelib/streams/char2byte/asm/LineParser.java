@@ -133,6 +133,63 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final SyntaxTreeInterface<DirectiveDescriptor>	staticDirectiveTree = new AndOrTree<>(2,16);
 	private static final SyntaxTreeInterface<CommandDescriptor>		staticCommandTree = new AndOrTree<>(3,16);
 
+	private enum StackChanges {
+		pop2AndPushReference,
+		pushNull,
+		pushReference,
+		popAndPushReference,
+		clear,
+		pop,
+		pop2AndPushInt,
+		pop3,
+		changeRefType,
+		changeDouble2Float,
+		changeDouble2Int,
+		changeDouble2Long,
+		pop4AndPushDouble,
+		pop2AndPushDouble,
+		pop4,
+		pop4AndPushInt,
+		pushDouble,
+		pop2,
+		dup,
+		dup_x1,
+		dup_x2,
+		dup2,
+		dup2_x1,
+		dup2_x2,
+		changeFloat2Double,
+		changeFloat2Int,
+		changeFloat2Long,
+		pop2AndPushFloat,
+		pushFloat,
+		popAndPushFloat,
+		popAndPushField,
+		pushField,
+		pushStatic,
+		none,
+		changeInt2Double,
+		changeInt2Float,
+		changeInt2Long,
+		pushInt,
+		popAndPushInt,
+		callAndPush,
+		call,
+		changeLong2Double,
+		changeLong2Float,
+		changeLong2Int,
+		pop4AndPushLong,
+		pop2AndPushLong,
+		pushLong,
+		pushConst,
+		pushBigConst,
+		multiarrayAndPushReference,
+		pushUnprepared,
+		popField,
+		popStatic,
+		swap	
+	}
+	
 	private enum EvalState {
 		term, unary, multiplicational, additional 
 	}
@@ -2606,6 +2663,9 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
+	private static void placeStaticCommand(final int operation, final StackChanges stackDelta, final String mnemonics, final CommandFormat format) {
+	}	
+	
 	private static CommandDescriptor extractStaticCommand(final String mnemonics) {
 		return staticCommandTree.getCargo(staticCommandTree.seekName(mnemonics));
 	}

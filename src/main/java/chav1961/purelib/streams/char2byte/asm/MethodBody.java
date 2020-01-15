@@ -93,7 +93,7 @@ class MethodBody extends AbstractMethodBody {
 	@Override
 	void putLabel(final long id) {
 		labels.add(new ItemDescriptor(id,getPC()));
-		System.err.println("Label++: "+id+": <"+tree.getName(id)+">");
+//		System.err.println("Label++: "+id+": <"+tree.getName(id)+">");
 	}
 
 	@Override
@@ -104,7 +104,7 @@ class MethodBody extends AbstractMethodBody {
 	@Override
 	void registerBrunch(final int address, final int placement, final long labelId, final boolean shortBranch) {
 		brunches.add(new ItemDescriptor(labelId,address,placement,shortBranch));
-		System.err.println("Brunch++: "+labelId+": <"+tree.getName(labelId)+">");
+//		System.err.println("Brunch++: "+labelId+": <"+tree.getName(labelId)+">");
 	}
 
 	@Override

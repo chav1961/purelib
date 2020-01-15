@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 import java.util.Map.Entry;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,6 +29,13 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.XSDCollection;
 
+/**
+ * <p>This class contains implementation of the useful actions with the XML content.</p> 
+ * 
+ * @see chav1961.purelib.basic JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class XMLUtils {
 	private static final String 	W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
 	
@@ -148,16 +156,45 @@ public class XMLUtils {
 		}
 	}
 	
+	/**
+	 * <p>This interface describes callback for walking by DOM XML tree</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface XMLWalkerCallback {
+		/**
+		 * <p>Process current DOM XML node</p> 
+		 * @param mode enter mode for the given call
+		 * @param node node to prcoess for the given call
+		 * @return continuation (see {@linkplain ContinueMode} for details). Can't be null
+		 * @throws ContentException on any processing exceptions
+		 */
 		ContinueMode process(NodeEnterMode mode, Element node) throws ContentException;
 	}
 	
-	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws ContentException {
+	/**
+	 * <p>Walk down by DOM XML tree</p>
+	 * @param root DOM XML tree root
+	 * @param callback callback to process on every DOM XML node
+	 * @return Continue mode after last node exited. Can't be null
+	 * @throws ContentException on any processing exceptions
+	 * @throws NullPointerException if any parameter is null
+	 */
+	public static ContinueMode walkDownXML(final Element root, final XMLWalkerCallback callback) throws ContentException, NullPointerException {
 		return walkDownXML(root,-1L,callback);
 	}
 
-	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws ContentException {
+	/**
+	 * <p>Walk down by DOM XML tree</p>
+	 * @param root DOM XML tree root
+	 * @param nodeTypes filter for node types (see {@linkplain XMLConstants}) for details
+	 * @param callback callback to process on every DOM XML node
+	 * @return Continue mode after last node exited. Can't be null
+	 * @throws ContentException on any processing exceptions
+	 * @throws NullPointerException if any parameter is null
+	 */
+	public static ContinueMode walkDownXML(final Element root, final long nodeTypes, final XMLWalkerCallback callback) throws ContentException, NullPointerException {
 		if (root == null) {
 			throw new NullPointerException("Root element can't be null"); 
 		}
@@ -169,10 +206,31 @@ public class XMLUtils {
 		}
 	}
 
-	public static <T> T getAttribute(final Element node, final String attribute, final Class<T> awaited) {
+	/**
+	 * <p>Extract attribute value from current node and convert it to the given type</p>
+	 * @param <T> attribute type
+	 * @param node node to extract attribute from
+	 * @param attribute attribute name
+	 * @param awaited attribute type awaited
+	 * @return attribute extracted or null if missing 
+	 * @throws NullPointerException if any parameter is null
+	 * @throws IllegalArgumentException if conversion failed for the given attribute
+	 */
+	public static <T> T getAttribute(final Element node, final String attribute, final Class<T> awaited) throws NullPointerException, IllegalArgumentException {
 		return getAttribute(node,attribute,awaited,null);
 	}
-	
+
+	/**
+	 * <p>Extract attribute value from current node and convert it to the given type</p>
+	 * @param <T> attribute type
+	 * @param node node to extract attribute from
+	 * @param attribute attribute name
+	 * @param awaited attribute type awaited
+	 * @param defaultValue default value when attribute is missing
+	 * @return attribute extracted or null if missing 
+	 * @throws NullPointerException if any parameter is null
+	 * @throws IllegalArgumentException if conversion failed for the given attribute
+	 */
 	public static <T> T getAttribute(final Element node, final String attribute, final Class<T> awaited, final T defaultValue) throws NullPointerException, IllegalArgumentException {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null");
@@ -187,8 +245,14 @@ public class XMLUtils {
 			return SubstitutableProperties.convert(attribute,node.getAttribute(attribute),awaited);
 		}
 	}
-	
-	public static Properties getAttributes(final Element node) {
+
+	/**
+	 * <p>Get attributer from current node</p>
+	 * @param node node to extract attributes from
+	 * @return attributes extracted. Can't be null
+	 * @throws NullPointerException if node is null
+	 */
+	public static Properties getAttributes(final Element node) throws NullPointerException {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null");
 		}
@@ -202,7 +266,16 @@ public class XMLUtils {
 			return result;
 		}
 	}
-	
+
+	/**
+	 * <p>Join a set of attributes with existent attributes of the given node, and optionally replace the given node with attributes joined</p> 
+	 * @param node note to join attributer for
+	 * @param toJoin set of attributes to join
+	 * @param retainExistent true - prevent existent attribute from overwrite
+	 * @param assignJoined true - really replace attributes for the given node, false - join attributes, but not replace then in the node
+	 * @return a set of joined attributes. Can't be null
+	 * @throws NullPointerException if any parameter is null
+	 */
 	public static Properties joinAttributes(final Element node, final Properties toJoin, final boolean retainExistent, final boolean assignJoined) throws NullPointerException {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null");
@@ -260,6 +333,5 @@ public class XMLUtils {
 		else {
 			return ContinueMode.CONTINUE;
 		}
-	}
-	
+	}	
 }

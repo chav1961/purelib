@@ -14,6 +14,13 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Hashtable;
 
+/**
+ * <p>This class contains implementation of the useful actions with the URIs.</p> 
+ * 
+ * @see chav1961.purelib.basic JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class URIUtils {
 	/**
 	 * <p>Does the resource URI can be served by the given URI resource template</p> 
@@ -403,6 +410,7 @@ public class URIUtils {
 	 * @param content content to build 'self' URI for
 	 * @return 'self' URI built
 	 * @throws NullPointerException when content is null
+	 * @see chav1961.purelib.new.self.Handler
 	 * @since 0.0.3
 	 */
 	public static URI convert2selfURI(final byte[] content) throws NullPointerException {
@@ -421,6 +429,7 @@ public class URIUtils {
 	 * @return 'self' URI built with '?encoding=ZZZ' query string
 	 * @throws NullPointerException when content is null
 	 * @throws IllegalArgumentException when encoding is null, empty or unknown
+	 * @see chav1961.purelib.new.self.Handler
 	 * @since 0.0.3
 	 */
 	public static URI convert2selfURI(final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {
