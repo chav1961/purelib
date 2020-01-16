@@ -131,7 +131,100 @@ public class InternalUtils {
 			return sb.append(')').append(fieldSignature(tree.getName(retType))).toString();
 		}
 	}
+
+	static int methodSignature2Stack(final String methodSignature, int[] result) {
+		int		toStore = 0, currentType;
+		
+		for (int index = 1, maxIndex = methodSignature.length(); index < maxIndex; index++) {
+			char	currentChar = methodSignature.charAt(index);
+			
+			if (currentChar == ')') {
+				break;
+			}
+			else {
+				currentType = signatureByLetter(currentChar);
+				while (currentChar == '[') {
+					currentChar = methodSignature.charAt(++index);
+				}
+				if (currentChar == 'L') {
+					while (currentChar != ';') {
+						currentChar = methodSignature.charAt(++index);
+					}
+				}
+				if (currentType == CompilerUtils.CLASSTYPE_DOUBLE || currentType == CompilerUtils.CLASSTYPE_LONG) {
+					if (toStore < result.length) {
+						result[toStore] = currentType;
+					}
+					toStore++;
+				}
+				if (toStore < result.length) {
+					result[toStore] = currentType;
+				}
+				toStore++;
+			}
+		}
+		return toStore >= result.length ? -toStore : toStore;
+	}
 	
+	static int methodSignature2Type(final String methodSignature) {
+		int from = 0;
+		
+		while (methodSignature.charAt(from) != ')') {
+			from++;
+		}
+		return signatureByLetter(methodSignature.charAt(from+1));
+	}
+	
+	static int fieldSignature2Type(final String fieldSignature) {
+		return signatureByLetter(fieldSignature.charAt(0));
+	}	
+
+	static int methodSignature2Stack(final Method method, int[] result) {
+		return methodSignature2Stack(buildSignature(method),result);
+	}
+
+	static int constructorSignature2Stack(final Constructor<?> constructor, int[] result) {
+		return methodSignature2Stack(buildSignature(constructor),result);
+	}
+	
+	static int methodSignature2Type(final Method method) {
+		return methodSignature2Type(buildSignature(method));
+	}
+	
+	static int constructorSignature2Type(final Constructor<?> constructor) {
+		return methodSignature2Type(buildSignature(constructor));
+	}
+	
+	static int fieldSignature2Type(final Field field) {
+		return fieldSignature2Type(buildSignature(field));
+	}	
+	
+	private static int signatureByLetter(final char letter) {
+		switch(letter) {
+			case '[' : case 'L' :
+				return CompilerUtils.CLASSTYPE_REFERENCE;
+			case 'B' :
+				return CompilerUtils.CLASSTYPE_BYTE;
+			case 'C' :
+				return CompilerUtils.CLASSTYPE_CHAR;
+			case 'D' :
+				return CompilerUtils.CLASSTYPE_DOUBLE;
+			case 'F' :
+				return CompilerUtils.CLASSTYPE_FLOAT;
+			case 'I' :
+				return CompilerUtils.CLASSTYPE_INT;
+			case 'J' :
+				return CompilerUtils.CLASSTYPE_LONG;
+			case 'S' :
+				return CompilerUtils.CLASSTYPE_SHORT;
+			case 'V' :
+				return CompilerUtils.CLASSTYPE_VOID;
+			case 'Z' :
+				return CompilerUtils.CLASSTYPE_BOOLEAN;
+			default : 
+				throw new UnsupportedOperationException(); 
+		}
+	}
 	
 	private static String buildSignature(final Class<?> item) {
 		if (item.isArray()) {
