@@ -38,11 +38,18 @@ import chav1961.purelib.streams.char2byte.asm.macro.MacroCompiler;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 
 class LineParser implements LineByLineProcessorCallback {
+	static final char[]								TRUE = "true".toCharArray();
+	static final char[]								FALSE = "false".toCharArray();
+	static final char[]								VOID = "void".toCharArray();
+	static final char[]								LONG = "long".toCharArray();
+	static final char[]								DOUBLE = "double".toCharArray();
+	static final char[]								THIS = "this".toCharArray();
+	static final char[]								CONSTRUCTOR = "<init>".toCharArray();
+	static final char[]								CLASS_CONSTRUCTOR = "<clinit>".toCharArray();
+	
 	private static final int						EXPONENT_BASE = 305;
 	private static final double[]					EXPONENTS;
 
-	private static final char[]						TRUE = "true".toCharArray();
-	private static final char[]						FALSE = "false".toCharArray();
 	
 	private static final long						DEFAULT_MARK = Integer.MAX_VALUE+1L;
 	private static final Comparator<Entry<Long,Long>>	SORT_COMPARATOR = new Comparator<Entry<Long,Long>>(){
@@ -72,6 +79,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final int						DIR_VERSION = 18;
 	private static final int						DIR_SOURCE = 19;
 	private static final int						DIR_LINE = 20;
+	private static final int						DIR_VARTABLE = 21;
 	
 	private static final int						OPTION_PUBLIC = 101;
 	private static final int						OPTION_FINAL = 102;
@@ -174,24 +182,25 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticDirective(DIR_VERSION,m,".version");
 		placeStaticDirective(DIR_SOURCE,m,".source");
 		placeStaticDirective(DIR_LINE,m,".line");
+		placeStaticDirective(DIR_VARTABLE,m,".vartable");
 		
-		placeStaticDirective(OPTION_PUBLIC,new DirectiveOption(Constants.ACC_PUBLIC),"public");
-		placeStaticDirective(OPTION_FINAL,new DirectiveOption(Constants.ACC_FINAL),"final");
-		placeStaticDirective(OPTION_ABSTRACT,new DirectiveOption(Constants.ACC_ABSTRACT),"abstract");
-		placeStaticDirective(OPTION_SYNTHETIC,new DirectiveOption(Constants.ACC_SYNTHETIC),"synthetic");
-		placeStaticDirective(OPTION_ENUM,new DirectiveOption(Constants.ACC_ENUM),"enum");
+		placeStaticDirective(OPTION_PUBLIC,new DirectiveOption(Constants.ACC_PUBLIC),Constants.ACC_PUBLIC_NAME);
+		placeStaticDirective(OPTION_FINAL,new DirectiveOption(Constants.ACC_FINAL),Constants.ACC_FINAL_NAME);
+		placeStaticDirective(OPTION_ABSTRACT,new DirectiveOption(Constants.ACC_ABSTRACT),Constants.ACC_ABSTRACT_NAME);
+		placeStaticDirective(OPTION_SYNTHETIC,new DirectiveOption(Constants.ACC_SYNTHETIC),Constants.ACC_SYNTHETIC_NAME);
+		placeStaticDirective(OPTION_ENUM,new DirectiveOption(Constants.ACC_ENUM),Constants.ACC_ENUM_NAME);
 		placeStaticDirective(OPTION_EXTENDS,new DirectiveClassOption(),"extends");
 		placeStaticDirective(OPTION_IMPLEMENTS,new DirectiveInterfacesOption(),"implements");
-		placeStaticDirective(OPTION_PRIVATE,new DirectiveOption(Constants.ACC_PRIVATE),"private");
-		placeStaticDirective(OPTION_PROTECTED,new DirectiveOption(Constants.ACC_PROTECTED),"protected");
-		placeStaticDirective(OPTION_STATIC,new DirectiveOption(Constants.ACC_STATIC),"static");
-		placeStaticDirective(OPTION_VOLATILE,new DirectiveOption(Constants.ACC_VOLATILE),"volatile");
-		placeStaticDirective(OPTION_TRANSIENT,new DirectiveOption(Constants.ACC_TRANSIENT),"transient");
-		placeStaticDirective(OPTION_SYNCHRONIZED,new DirectiveOption(Constants.ACC_SYNCHRONIZED),"synchronized");
-		placeStaticDirective(OPTION_BRIDGE,new DirectiveOption(Constants.ACC_BRIDGE),"bridge");
-		placeStaticDirective(OPTION_VARARGS,new DirectiveOption(Constants.ACC_VARARGS),"varargs");
-		placeStaticDirective(OPTION_NATIVE,new DirectiveOption(Constants.ACC_NATIVE),"native");
-		placeStaticDirective(OPTION_STRICT,new DirectiveOption(Constants.ACC_STRICT),"strictfp");
+		placeStaticDirective(OPTION_PRIVATE,new DirectiveOption(Constants.ACC_PRIVATE),Constants.ACC_PRIVATE_NAME);
+		placeStaticDirective(OPTION_PROTECTED,new DirectiveOption(Constants.ACC_PROTECTED),Constants.ACC_PROTECTED_NAME);
+		placeStaticDirective(OPTION_STATIC,new DirectiveOption(Constants.ACC_STATIC),Constants.ACC_STATIC_NAME);
+		placeStaticDirective(OPTION_VOLATILE,new DirectiveOption(Constants.ACC_VOLATILE),Constants.ACC_VOLATILE_NAME);
+		placeStaticDirective(OPTION_TRANSIENT,new DirectiveOption(Constants.ACC_TRANSIENT),Constants.ACC_TRANSIENT_NAME);
+		placeStaticDirective(OPTION_SYNCHRONIZED,new DirectiveOption(Constants.ACC_SYNCHRONIZED),Constants.ACC_SYNCHRONIZED_NAME);
+		placeStaticDirective(OPTION_BRIDGE,new DirectiveOption(Constants.ACC_BRIDGE),Constants.ACC_BRIDGE_NAME);
+		placeStaticDirective(OPTION_VARARGS,new DirectiveOption(Constants.ACC_VARARGS),Constants.ACC_VARARGS_NAME);
+		placeStaticDirective(OPTION_NATIVE,new DirectiveOption(Constants.ACC_NATIVE),Constants.ACC_NATIVE_NAME);
+		placeStaticDirective(OPTION_STRICT,new DirectiveOption(Constants.ACC_STRICT),Constants.ACC_STRICT_NAME);
 		placeStaticDirective(OPTION_THROWS,new DirectiveExceptionsOption(),"throws");
 
 		placeStaticDirective(T_BOOLEAN,m,"boolean");
@@ -426,9 +435,13 @@ class LineParser implements LineByLineProcessorCallback {
 	private final Class<?>[]							forClass = new Class<?>[1];
 	private final EntityDescriptor						forEntity = new EntityDescriptor();
 	private final Writer								diagnostics;
+	private final long									constructorId, classConstructorId, voidId, doubleId, longId, thisId;
+	private final long									longArray[] = new long[2];	// Temporary arrays to use in different calls
+	private final int									intArray[] = new int[2];
+	private final short									shortArray[] = new short[2];
 
 	private ParserState									state = ParserState.beforePackage;
-	private long										packageId = -1, constructorId, classConstructorId, voidId;
+	private long										packageId = -1;
 	private long										classNameId, joinedClassNameId;
 	private long										methodNameId;
 	private MethodDescriptor							methodDescriptor;
@@ -442,6 +455,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private Macros										currentMacros = null;
 	private boolean										addLines2Class = true;
 	private boolean										addLines2ClassManually = false;
+	private boolean										addVarTable = false, addVarTableInMethod = false;
 	
 	LineParser(final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
 		this.cc = cc;
@@ -450,9 +464,12 @@ class LineParser implements LineByLineProcessorCallback {
 		this.loader = loader;
 		this.tree = cc.getNameTree();
 		this.diagnostics = null;
-		constructorId = tree.placeOrChangeName("<init>",new NameDescriptor());
-		classConstructorId = tree.placeOrChangeName("<clinit>",new NameDescriptor());
-		voidId = tree.placeOrChangeName("void",new NameDescriptor());
+		this.constructorId = tree.placeOrChangeName(CONSTRUCTOR,0,CONSTRUCTOR.length,new NameDescriptor());
+		this.classConstructorId = tree.placeOrChangeName(CLASS_CONSTRUCTOR,0,CLASS_CONSTRUCTOR.length,new NameDescriptor());
+		this.voidId = tree.placeOrChangeName(VOID,0,VOID.length,new NameDescriptor());
+		this.doubleId = tree.placeOrChangeName(DOUBLE,0,DOUBLE.length,new NameDescriptor());
+		this.longId = tree.placeOrChangeName(LONG,0,LONG.length,new NameDescriptor());
+		this.thisId = tree.placeOrChangeName(THIS,0,THIS.length,new NameDescriptor());
 	}
 
 	LineParser(final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader, final Writer diagnostics) throws IOException, ContentException {
@@ -462,9 +479,12 @@ class LineParser implements LineByLineProcessorCallback {
 		this.loader = loader;
 		this.tree = cc.getNameTree();				
 		this.diagnostics = diagnostics;
-		constructorId = tree.placeOrChangeName("<init>",new NameDescriptor());
-		classConstructorId = tree.placeOrChangeName("<clinit>",new NameDescriptor());
-		voidId = tree.placeOrChangeName("void",new NameDescriptor());
+		this.constructorId = tree.placeOrChangeName(CONSTRUCTOR,0,CONSTRUCTOR.length,new NameDescriptor());
+		this.classConstructorId = tree.placeOrChangeName(CLASS_CONSTRUCTOR,0,CLASS_CONSTRUCTOR.length,new NameDescriptor());
+		this.voidId = tree.placeOrChangeName(VOID,0,VOID.length,new NameDescriptor());
+		this.doubleId = tree.placeOrChangeName(DOUBLE,0,DOUBLE.length,new NameDescriptor());
+		this.longId = tree.placeOrChangeName(LONG,0,LONG.length,new NameDescriptor());
+		this.thisId = tree.placeOrChangeName(THIS,0,THIS.length,new NameDescriptor());
 	}
 	
 	@Override
@@ -509,8 +529,7 @@ class LineParser implements LineByLineProcessorCallback {
 				}
 				
 				startName = start;
-				start = skipSimpleName(data,start);
-				endName = start;
+				endName = start = skipSimpleName(data,start);
 				if (endName == startName) {
 					throw new IOException(new SyntaxException(lineNo,0,"Illegal label/entity name"));
 				}
@@ -662,6 +681,7 @@ class LineParser implements LineByLineProcessorCallback {
 									}
 									else {
 										methodDescriptor.complete();
+										addVarTableInMethod = false;
 										state = ParserState.insideClass;
 									}
 									break;
@@ -677,6 +697,7 @@ class LineParser implements LineByLineProcessorCallback {
 									}
 									else {
 										methodDescriptor.complete();
+										addVarTableInMethod = false;
 										state = ParserState.insideClass;
 									}
 									break;
@@ -687,6 +708,7 @@ class LineParser implements LineByLineProcessorCallback {
 									}
 									else {
 										methodDescriptor.complete();
+										addVarTableInMethod = false;
 										state = ParserState.insideInterface;
 									}
 									break;
@@ -703,6 +725,7 @@ class LineParser implements LineByLineProcessorCallback {
 										}
 										else {
 											methodDescriptor.complete();
+											addVarTableInMethod = false;
 											state = ParserState.insideClass;
 										}
 									}
@@ -820,6 +843,10 @@ class LineParser implements LineByLineProcessorCallback {
 						case DIR_LINE	:
 							checkLabel(id,false);
 							processLineDir(lineNo,data,InternalUtils.skipBlank(data,start),end);
+							break;
+						case DIR_VARTABLE	:
+							checkLabel(id,false);
+							processVarTableDir(lineNo,data,InternalUtils.skipBlank(data,start),end);
 							break;
 						case DIR_SOURCE	:
 							checkLabel(id,false);
@@ -951,10 +978,10 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 			}
 		} catch (SyntaxException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			throw new IOException(exc.getLocalizedMessage(),exc);
 		} catch (ContentException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo,start-from,new String(data,from,len)+exc.getMessage(),exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
 		}
@@ -1008,10 +1035,10 @@ class LineParser implements LineByLineProcessorCallback {
 		while (data[start] != '\n') {
 			endOption = start = skipSimpleName(data,start);
 			switch ((int)staticDirectiveTree.seekName(data,startOption,endOption)) {
-				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_PUBLIC,"public","class"); break;
-				case OPTION_FINAL		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_FINAL,"final","class"); break;
-				case OPTION_ABSTRACT	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_ABSTRACT,"abstract","class"); break;
-				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"synthetic","class"); break;
+				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_PUBLIC,"class"); break;
+				case OPTION_FINAL		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_FINAL,"class"); break;
+				case OPTION_ABSTRACT	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_ABSTRACT,"class"); break;
+				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"class"); break;
 				case OPTION_EXTENDS		:
 					if (extendsId != -1) {
 						throw new ContentException("Duplicate option 'extends' in the 'class' directive!");
@@ -1021,8 +1048,8 @@ class LineParser implements LineByLineProcessorCallback {
 						
 						final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
 
-						if ((parent.getModifiers() & Constants.ACC_FINAL) != 0) {
-							throw new ContentException("Attempt to extends final class ["+new String(data,startName,endName-startName)+"]!"); 
+						if ((parent.getModifiers() & Constants.ACC_FINAL) != 0 || (parent.getModifiers() & Constants.ACC_PRIVATE) != 0) {
+							throw new ContentException("Attempt to extends final or  private class ["+new String(data,startName,endName-startName)+"]!"); 
 						}
 						else {
 							extendsId = tree.placeOrChangeName(parent.getName(),new NameDescriptor());
@@ -1085,8 +1112,8 @@ class LineParser implements LineByLineProcessorCallback {
 		while (data[start] != '\n') {
 			endOption = start = skipSimpleName(data,start);
 			switch ((int)staticDirectiveTree.seekName(data,startOption,endOption)) {
-				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_PUBLIC,"public","class"); break;
-				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"synthetic","class"); break;
+				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_PUBLIC,"class"); break;
+				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"class"); break;
 				case OPTION_EXTENDS	:
 					if (implementsNames != null) {
 						throw new ContentException("Duplicate option 'implements' in the 'class' directive!");
@@ -1142,7 +1169,7 @@ class LineParser implements LineByLineProcessorCallback {
 					throw new ContentException("Initial values can be typed for static fields only!"); 
 				}
 				else if (!type.isPrimitive() && type != String.class) {
-					throw new ContentException("Initial values can be typed for primitive types and string only!"); 
+					throw new ContentException("Initial values can be typed for primitive types or strings only!"); 
 				}
 				else {
 					final short		valueId;
@@ -1154,7 +1181,7 @@ class LineParser implements LineByLineProcessorCallback {
 								throw new ContentException("Illegal initial value for String!"); 
 							}
 							else {
-								final int[]		places = new int[2];
+								final int[]		places = intArray;
 								
 								if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
 									final StringBuilder	sb = new StringBuilder();
@@ -1179,7 +1206,7 @@ class LineParser implements LineByLineProcessorCallback {
 							}
 							break;
 						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
-							final int[]		intValues = new int[1];
+							final int[]		intValues = intArray;
 							
 							UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
 							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
@@ -1191,7 +1218,7 @@ class LineParser implements LineByLineProcessorCallback {
 							valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
 							break;
 						case CompilerUtils.CLASSTYPE_LONG	:
-							final long[]		longValues = new long[1];
+							final long[]		longValues = longArray;
 							
 							UnsafedCharUtils.uncheckedParseSignedLong(data,start,longValues,true);
 							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
@@ -1205,7 +1232,7 @@ class LineParser implements LineByLineProcessorCallback {
 						default :
 							throw new UnsupportedOperationException();
 					}
-					cc.addFieldDescription(forEntity.options,id,typeId,(short)0);
+					cc.addFieldDescription(forEntity.options,id,typeId,valueId);
 				}
 			}
 			else {
@@ -1251,7 +1278,7 @@ class LineParser implements LineByLineProcessorCallback {
 								throw new ContentException("Illegal initial value for String!"); 
 							}
 							else {
-								final int[]		places = new int[2];
+								final int[]		places = intArray;
 								
 								if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
 									final StringBuilder	sb = new StringBuilder();
@@ -1276,7 +1303,7 @@ class LineParser implements LineByLineProcessorCallback {
 							}
 							break;
 						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
-							final int[]		intValues = new int[1];
+							final int[]		intValues = intArray;
 							
 							UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
 							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
@@ -1419,17 +1446,17 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		switch ((int)staticDirectiveTree.seekName(data,startName,endName)) {
 			case STACK_OPTIMISTIC :
-				methodDescriptor.setStackSize(MethodBody.STACK_CALCULATION_OPTIMISTIC);
+				methodDescriptor.setStackSize(MethodBody.STACK_CALCULATION_OPTIMISTIC,addVarTable || addVarTableInMethod);
 				break;
 			case STACK_PESSIMISTIC :
-				methodDescriptor.setStackSize(MethodBody.STACK_CALCULATION_PESSIMISTIC);
+				methodDescriptor.setStackSize(MethodBody.STACK_CALCULATION_PESSIMISTIC,addVarTable || addVarTableInMethod);
 				break;
 			default :
 				final long[]	size = new long[]{0,0};
 				
 				try{start = UnsafedCharUtils.uncheckedParseNumber(data,startName,size,CharUtils.PREF_INT,true);
 					if (size[1] == CharUtils.PREF_INT) {
-						methodDescriptor.setStackSize((short) size[0]);
+						methodDescriptor.setStackSize((short) size[0],addVarTable || addVarTableInMethod);
 					}
 					else {
 						throw new ContentException("Stack size is neither integer constant nor 'optimistic'/'pessimistic' (possibly it's size is long, float or double)");
@@ -1511,7 +1538,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processVersionDir(final char[] data, int start, final int end) throws ContentException {
-		int		parm[] = new int[1], from = start, major = 0, minor = 0;
+		int		parm[] = intArray, from = start, major = 0, minor = 0;
 		
 		if (start < end && data[start] >= '0' && data[start] <= '9') {
 			start = UnsafedCharUtils.uncheckedParseInt(data,from,parm,true);
@@ -1527,7 +1554,7 @@ class LineParser implements LineByLineProcessorCallback {
 				cc.changeClassFormatVersion(Constants.MAJOR_1_8,Constants.MINOR_1_8);
 			}
 			else {
-				throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available!");
+				throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available now!");
 			}
 		}
 		else {
@@ -1536,7 +1563,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private void processLineDir(final int lineNo, final char[] data, int start, final int end) throws ContentException, IOException {
-		int		parm[] = new int[1], from = start;
+		int		parm[] = intArray, from = start;
 		
 		if (start < end && data[start] >= '0' && data[start] <= '9') {
 			UnsafedCharUtils.uncheckedParseInt(data,start,parm,true);
@@ -1577,6 +1604,15 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
+	private void processVarTableDir(final int lineNo, final char[] data, int start, final int end) throws ContentException, IOException {
+		if (state == ParserState.insideClassBody || state == ParserState.insideBegin) {			
+			addVarTableInMethod = true;
+		}
+		else {
+			addVarTable = true;
+		}
+	}
+	
 	private void processSourceDir(final char[] data, int start, final int end) throws ContentException {
 		int		from = start;
 		
@@ -1659,7 +1695,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processByteIndexCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException, ContentException {
-		final long	forResult[] = new long[2];
+		final long	forResult[] = longArray;
 		
 		start = calculateLocalAddress(data,start,forResult);
 		if (forResult[0] < 0 || forResult[0] > methodDescriptor.getLocalFrameSize()) {
@@ -1697,7 +1733,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processByteValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandValue) throws IOException, ContentException {
-		final long	forResult[] = new long[2];
+		final long	forResult[] = longArray;
 		
 		start = calculateValue(data,start,EvalState.additional,forResult);
 		if (forResult[0] < Byte.MIN_VALUE || forResult[0] >= 256) {
@@ -1720,7 +1756,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processByteIndexAndByteValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException, ContentException {
-		final long[]	forIndex= new long[2], forValue = new long[2];
+		final long[]	forIndex = longArray, forValue = new long[2];
 		boolean			needExpand = false;
 		
 		start = InternalUtils.skipBlank(data, calculateLocalAddress(data,start,forIndex));
@@ -1811,7 +1847,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processValueByteIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
-		short		displ[] = new short[1];
+		short		displ[] = shortArray;
 		
 		start = processValueShortIndexCommand(data,start,displ);
 
@@ -1825,7 +1861,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private void processValueShortIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
-		short		displ[] = new short[1];
+		short		displ[] = shortArray;
 		
 		start = processValueShortIndexCommand(data,start,displ);
 
@@ -1956,7 +1992,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private void processShortValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandValue) throws IOException, ContentException {
-		final long	forResult[] = new long[1];
+		final long	forResult[] = longArray;
 		
 		start = calculateValue(data,start,EvalState.additional,forResult);
 		if (forResult[0] < Short.MIN_VALUE || forResult[0] >= 65536) {
@@ -1983,7 +2019,7 @@ class LineParser implements LineByLineProcessorCallback {
 		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 		final long		typeId = tree.placeOrChangeName(type.getName().replace('.','/'),new NameDescriptor());
 		final short		typeDispl = cc.getConstantPool().asClassDescription(typeId);
-		final long[]	forValue = new long[1];
+		final long[]	forValue = longArray;
 		
 		start = InternalUtils.skipBlank(data,endName);
 		if (data[start] == ',') {
@@ -2002,7 +2038,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processShortGlobalIndexCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
-		final int	forResult[] = new int[1]; 
+		final int	forResult[] = intArray; 
 		
 		start = calculateFieldAddress(data,start,end,forResult);
 		if (forResult[0] <= 0 || forResult[0] > Short.MAX_VALUE) {
@@ -2015,7 +2051,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processShortBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
-		final long	forResult[] = new long[1];
+		final long	forResult[] = longArray;
 		
 		start = calculateBranchAddress(data,start,forResult);
 		registerBranch(forResult[0],true);
@@ -2024,7 +2060,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processLongBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
-		final long	forResult[] = new long[2];
+		final long	forResult[] = longArray;
 		
 		start = calculateBranchAddress(data,start,forResult);
 		registerBranch(forResult[0],false);
@@ -2033,7 +2069,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private int processCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
-		final int	forResult[] = new int[1], forArgs[] = new int[1];
+		final int	forResult[] = intArray, forArgs[] = new int[1];
 		
 		start = calculateMethodAddress(data,start,end,forResult,forArgs);
 		if (forResult[0] <= 0 || forResult[0] > 2*Short.MAX_VALUE) {
@@ -2056,7 +2092,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processJumps(final char[] data, int start, final int end, final boolean explicitValue) throws ContentException {
-		final long[]	forLabel = new long[1];
+		final long[]	forLabel = longArray;
 		final long[]	forValue = new long[1];
 		
 		if (explicitValue) {
@@ -2303,7 +2339,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private int calculateValue(final char[] data, int start, final EvalState state, final long[] result) throws ContentException {
-		long		value[] = new long[]{0,0};
+		long		value[] = null;
 		char		symbol;
 		
 		switch (state) {
@@ -2338,6 +2374,9 @@ class LineParser implements LineByLineProcessorCallback {
 			case multiplicational	:
 				start = InternalUtils.skipBlank(data,calculateValue(data,start,EvalState.unary,result));
 				while ((symbol = data[start]) == '*' || symbol == '/' || symbol == '%') {
+					if (value == null) {
+						value = new long[] {0,0};
+					}
 					start = InternalUtils.skipBlank(data,calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.unary,value));
 					switch (symbol) {
 						case '*' : result[0] *= value[0]; break;
@@ -2349,6 +2388,9 @@ class LineParser implements LineByLineProcessorCallback {
 			case additional			:
 				start = InternalUtils.skipBlank(data,calculateValue(data,start,EvalState.multiplicational,result));
 				while ((symbol = data[start]) == '+' || symbol == '-') {
+					if (value == null) {
+						value = new long[] {0,0};
+					}
 					start = InternalUtils.skipBlank(data,calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.multiplicational,value));
 					switch (symbol) {
 						case '+' : result[0] += value[0]; break;
@@ -2370,9 +2412,9 @@ class LineParser implements LineByLineProcessorCallback {
 	/*
 	 * Utility methods
 	 */
-	private static short addAndCheckDuplicates(final short source, final short added, final String parameter, final String directive) throws ContentException {
+	private static short addAndCheckDuplicates(final short source, final short added, final String directive) throws ContentException {
 		if ((source & added) != 0) {
-			throw new ContentException("Duplicate option ["+parameter+"] in the ["+directive+"] directive");
+			throw new ContentException("Duplicate option ["+Constants.getAccNameByOption(added)+"] in the ["+directive+"] directive");
 		}
 		else {
 			return (short) (source | added);
@@ -2412,9 +2454,9 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private static int processOptions(final char[] data, int start, final EntityDescriptor desc, final String location, final ClassDescriptionRepo cdr, final boolean treatExtendsAsImplements, final int... availableOptions) throws ContentException {
-		final boolean[]		parsed = new boolean[availableOptions.length]; 
-		int					startOption, endOption, optionCode;
-		boolean				validOption;
+		long		parsed = 0; 	// Mark parsed options with its sequential numbers in the parameter's list
+		int			startOption, endOption, optionCode;
+		boolean		validOption;
 		
 		desc.clear();
 		while (data[start] != '\n') {
@@ -2425,11 +2467,11 @@ class LineParser implements LineByLineProcessorCallback {
 				validOption = false;
 				for (int index = 0, maxIndex = availableOptions.length; index < maxIndex; index++) {
 					if (availableOptions[index] == optionCode) {
-						if (parsed[index]) {
+						if ((parsed & (1L << index)) != 0) {
 							throw new ContentException("Duplicate option ["+new String(data,startOption,endOption-startOption)+"] for  ["+location+"] descriptor");
 						}
 						else {
-							parsed[index] = true;
+							parsed |= (1L << index);
 							validOption = true;
 							break;
 						}
@@ -2522,7 +2564,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private int skipSignature(final char[] data, int from) throws ContentException {
+	private static int skipSignature(final char[] data, int from) throws ContentException {
 		while (data[from] <= ' ' && data[from] != '\n') {
 			from++;
 		}
@@ -2606,7 +2648,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private static void placeStaticCommand(final int operation, final StackRepo.StackChanges stackDelta, final String mnemonics, final CommandFormat format) {
+	private static void placeStaticCommand(final int operation, final StackAndVarRepo.StackChanges stackDelta, final String mnemonics, final CommandFormat format) {
 	}	
 	
 	private static CommandDescriptor extractStaticCommand(final String mnemonics) {

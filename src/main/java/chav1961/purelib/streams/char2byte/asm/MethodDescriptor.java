@@ -14,11 +14,8 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
 
 class MethodDescriptor implements Closeable {
-	private static final char[]					THIS = "this".toCharArray(); 
 	private static final String					INIT_STRING = "<init>"; 
-	private static final String					CLASS_INIT_STRING = "<init>"; 
-	private static final char[]					INIT = INIT_STRING.toCharArray(); 
-	private static final char[]					CLASS_INIT = CLASS_INIT_STRING.toCharArray(); 
+	private static final String					CLASS_INIT_STRING = "<clinit>"; 
 
 	final short									accessFlags;
 	
@@ -30,19 +27,19 @@ class MethodDescriptor implements Closeable {
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
 	private final long							classId, methodId, returnedTypeId;
-	private final long							longId, doubleId;
+	private final long							longId, doubleId, thisId;
 	private final short							methodDispl;
 	private final long[]						throwsList;
 	private final short[]						throwsDispl;
-	private final short							exceptionsWord, codeWord, localVariableTableWord, lineNumberTableWord;
+	private final short							exceptionsWord, codeWord, localVariableTableWord, lineNumberTableWord, stackMapTableWord;
 	private final boolean						methodBodyAwait;
 	
 	private MethodBody							body = null;
 	private short								varDispl = 0, maxVarDispl = 0;
 	private short								signatureDispl;
-	private boolean								parametersEnded = false;
+	private boolean								parametersEnded = false, needVarsTable = false, needStackMapTable = false;
 	
-	MethodDescriptor(final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
+	MethodDescriptor(final short majorVersion, final short minorVersion, final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
 		final int	tLen = throwsList.length;
 		
 		this.tree = tree;						
@@ -54,8 +51,9 @@ class MethodDescriptor implements Closeable {
 		this.throwsList = throwsList;
 		this.methodDispl = ccr.asUTF(methodId);	
 
-		this.longId = tree.seekName("long");
-		this.doubleId = tree.seekName("double");
+		this.longId = tree.seekName(LineParser.LONG,0,LineParser.LONG.length);
+		this.doubleId = tree.seekName(LineParser.DOUBLE,0,LineParser.DOUBLE.length);
+		this.thisId = tree.seekName(LineParser.THIS,0,LineParser.THIS.length);
 		
 		this.throwsDispl = new short[tLen];
 		for (int index = 0; index < tLen; index++) {
@@ -65,13 +63,16 @@ class MethodDescriptor implements Closeable {
 		this.codeWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_Code,0,Constants.ATTRIBUTE_Code.length,new NameDescriptor()));
 		this.localVariableTableWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LocalVariableTable,0,Constants.ATTRIBUTE_LocalVariableTable.length,new NameDescriptor()));
 		this.lineNumberTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LineNumberTable,0,Constants.ATTRIBUTE_LineNumberTable.length,new NameDescriptor()));
+		this.stackMapTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_StackMapTable,0,Constants.ATTRIBUTE_StackMapTable.length,new NameDescriptor()));
 		
 		this.methodBodyAwait = (accessFlags & (Constants.ACC_NATIVE | Constants.ACC_ABSTRACT)) == 0;
 		pushStack.add(0,new StackLevel(varDispl,(short)0));
 		if ((accessFlags & Constants.ACC_STATIC) == 0) {
-			addParameterDeclaration((short)0,tree.placeOrChangeName(THIS,0,THIS.length,new NameDescriptor()),classId);
+			addParameterDeclaration((short)0,thisId,classId);
 		}
+		this.needStackMapTable = needStackMapTable(majorVersion,minorVersion);  
 	}
+
 
 	@Override
 	public void close() throws IOException {
@@ -79,7 +80,7 @@ class MethodDescriptor implements Closeable {
 		pushStack.clear();
 		tryTable.clear();	
 		varTable.clear();	
-		lineTable.clear();	
+		lineTable.clear();
 	}
 	
 	boolean isAbstract() {
@@ -90,8 +91,8 @@ class MethodDescriptor implements Closeable {
 		return tree;
 	}
 	
-	void setStackSize(final short stackSize) {
-		body = new MethodBody(classId, methodId, getNameTree(),stackSize);
+	void setStackSize(final short stackSize, final boolean needVarTable) {
+		body = new MethodBody(classId, methodId, getNameTree(),this.needVarsTable = needVarTable,stackSize);
 	}
 	
 	void addParameterDeclaration(final short accessFlags, final long parameterId, final long typeId) throws ContentException {
@@ -156,7 +157,7 @@ class MethodDescriptor implements Closeable {
 		}
 		else {
 			markEndOfParameters();
-			return body == null ? body = new MethodBody(classId, methodId, getNameTree()) : body;
+			return body == null ? body = new MethodBody(classId, methodId, getNameTree(), false) : body;
 		}
 	}
 	
@@ -177,6 +178,7 @@ class MethodDescriptor implements Closeable {
 	}
 	
 	void dump(final InOutGrowableByteArray os) throws IOException, ContentException {
+		
 		pop();
 		os.writeShort(accessFlags);			// Access flags
 		os.writeShort(methodDispl);			// Method name
@@ -190,45 +192,70 @@ class MethodDescriptor implements Closeable {
 				os.writeShort(item);				// Exceptions list
 			}
 		}
-		if (methodBodyAwait) {					// Method body present
+		if (methodBodyAwait) {						// Method body present
+			int		totalAttrubuteSize = 12 + getBody().getCodeSize() + + (8 * tryTable.size());	// Mandatory attributes
+			boolean	needPrintVarsTable = false, needPrintLineTable = false, needPrintStackMapTable = false;
+			short	totalAttrCount = 0;
+
+			if (needVarsTable) {
+				totalAttrubuteSize += (2 + 4 + 2 + 10 * varTable.size());
+				needPrintVarsTable = true;
+				totalAttrCount++;
+			}
+			if (!lineTable.isEmpty()) {
+				totalAttrubuteSize += (2 + 4 + 2 + 4 * lineTable.size()); 
+				needPrintLineTable = true;
+				totalAttrCount++;
+			}
+			if (needStackMapTable) {
+				totalAttrubuteSize += (2 + 4 + 2); 
+				needPrintStackMapTable = true;
+				totalAttrCount++;
+			}
+			
 			os.writeShort(codeWord);					// Code attribute
-			os.writeInt(12 + getBody().getCodeSize()	// Attribute size 
-					+ (8 * tryTable.size()) 
-					+ (6 + 2 + 10 * varTable.size())
-					+ (6 + 2 + 4 * lineTable.size())
-					);
+			os.writeInt(totalAttrubuteSize);			// Total attribute size
 			os.writeShort(getBody().getStackSize());	// Stack size
 			os.writeShort(maxVarDispl+1);				// Local variables size
 			os.writeInt(getBody().getCodeSize());		// body size
 			getBody().dump(os);							// Body content
 			
-			os.writeShort(tryTable.size());			// Exception table
+			os.writeShort(tryTable.size());				// Exception table
 			for (short[] item : tryTable) {
 				for (short element : item) {
 					os.writeShort(element);
 				}
 			}
 			
-			os.writeShort(2);							// Attributes kind count
+			os.writeShort(totalAttrCount);				// Attributes kind count
 			
-			os.writeShort(localVariableTableWord);		// Local variables:
-			os.writeInt(2+10*varTable.size());			// Struct size
-			os.writeShort(varTable.size());			// Amount of variables
-			for (short[] item : varTable) {
-				for (short element : item) {
-					os.writeShort(element);
+			if (needPrintVarsTable) {
+				os.writeShort(localVariableTableWord);	// Local variables:
+				os.writeInt(2+10*varTable.size());		// Struct size
+				os.writeShort(varTable.size());			// Amount of variables
+				for (short[] item : varTable) {
+					for (short element : item) {
+						os.writeShort(element);
+					}
 				}
 			}
 			
-			os.writeShort(lineNumberTableWord);		// Line nubers:
-			os.writeInt(2+4*lineTable.size());			// Struct size
-			os.writeShort(lineTable.size());			// Amount of code lines
-			for (short[] item : lineTable) {
-				for (short element : item) {
-					os.writeShort(element);
+			if (needPrintLineTable) {
+				os.writeShort(lineNumberTableWord);		// Line numbers:
+				os.writeInt(2+4*lineTable.size());		// Struct size
+				os.writeShort(lineTable.size());		// Amount of code lines
+				for (short[] item : lineTable) {
+					for (short element : item) {
+						os.writeShort(element);
+					}
 				}
 			}
 
+			if (needPrintStackMapTable) {
+				os.writeShort(stackMapTableWord);		// Stack map:
+				os.writeInt(2+0);						// Struct size
+				os.writeShort(0);						// Amount of stack map entries
+			}
 		}
 	}
 	
@@ -277,7 +304,8 @@ class MethodDescriptor implements Closeable {
 			tree.getName(signatureId,forLongName,classLen+1+methodLen);
 			tree.placeOrChangeName(forLongName,0,forLongName.length,new NameDescriptor());
 
-			final boolean	wasConstructor = UnsafedCharUtils.uncheckedCompare(forShortName,0,INIT,0,INIT.length) || UnsafedCharUtils.uncheckedCompare(forShortName,0,CLASS_INIT,0,CLASS_INIT.length);
+			final boolean	wasConstructor = UnsafedCharUtils.uncheckedCompare(forShortName,0,LineParser.CONSTRUCTOR,0,LineParser.CONSTRUCTOR.length) 
+											|| UnsafedCharUtils.uncheckedCompare(forShortName,0,LineParser.CLASS_CONSTRUCTOR,0,LineParser.CLASS_CONSTRUCTOR.length);
 			
 			if (wasConstructor) {	// Special behavior for constructors
 				String	className = tree.getName(classId);
@@ -298,6 +326,10 @@ class MethodDescriptor implements Closeable {
 			parametersEnded = true;
 		}
 	}
+
+	private boolean needStackMapTable(final short majorVersion, final short minorVersion) {
+		return majorVersion == Constants.MAJOR_1_8 && minorVersion == Constants.MINOR_1_8;
+	}
 	
 	private static class StackLevel {
 		short				varDispl, pc;
@@ -308,7 +340,7 @@ class MethodDescriptor implements Closeable {
 		}
 	}
 	
-	private static class VarDesc {
+	static class VarDesc {
 		short nameRef;
 		short typeRef;
 		

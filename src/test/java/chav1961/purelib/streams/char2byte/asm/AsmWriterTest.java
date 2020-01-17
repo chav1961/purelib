@@ -22,6 +22,7 @@ public class AsmWriterTest {
 			
 			wr.write("			.package chav1961.purelib.streams.char2byte.asm\n");
 			wr.write("Test		.class public\n");
+			wr.write("			.vartable\n");
 			wr.write("call		.method void public static\n");
 			wr.write("			.stack 5\n");
 			wr.write("			return\n");
@@ -54,6 +55,7 @@ public class AsmWriterTest {
 			wr.write("			.package chav1961.purelib.streams.char2byte.asm\n");
 			wr.write("TestWr	.class public\n");
 			wr.write("call		.method void public static\n");
+			wr.write("			.vartable\n");
 			wr.write("			.stack 5\n");
 			wr.write("			return\n");
 			wr.write("call		.end\n");

@@ -1,13 +1,13 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 
-class StackRepo {
+class StackAndVarRepo {
+	static final int			SPECIAL_TYPE_TOP = -1;
+	static final int			SPECIAL_TYPE_UNPREPARED = -2;
+	
 	private static final int	INITIAL_STACK_SIZE = 16;
 	
 	enum StackChanges {
@@ -68,15 +68,54 @@ class StackRepo {
 
 	@FunctionalInterface
 	interface StackChangesCallback {
-		void processChanges(final int[] stackContent, final int deletedFrom, final int insertedFrom);
+		void processChanges(final int[] stackContent, final int deletedFrom, final int insertedFrom, final int changedFrom);
+	}
+
+	@FunctionalInterface
+	interface VarChangesCallback {
+		void processChanges(final short[][] varContent, final boolean[] changes);
 	}
 	
-	private final StackChangesCallback	callback;
+	private final StackChangesCallback	stackCallback;
+	private final VarChangesCallback	varCallback;
+	private final short[][]				varsContent = new short[Short.MAX_VALUE][];
+	private final boolean[]				varsChanges = new boolean[Short.MAX_VALUE];
 	private int[]						stackContent = new int[INITIAL_STACK_SIZE], stackShadow = new int[INITIAL_STACK_SIZE];
-	private int							currentStackTop = 0, maxStackDepth = 0, shadowStackTop; 
+	private int							currentStackTop = 0, maxStackDepth = 0, shadowStackTop;
+	private boolean						varChangesDetected = false;
 	
-	StackRepo(final StackChangesCallback callback) {
-		this.callback = callback;
+	StackAndVarRepo(final StackChangesCallback stackCallback, final VarChangesCallback varCallback) {
+		this.stackCallback = stackCallback;
+		this.varCallback = varCallback;
+	}
+	
+	void addVar(final short methodPC, final short varDispl, final int varType) {
+		varsContent[methodPC] = new short[] {varDispl, (short)varType};
+		varsChanges[methodPC] = true;
+		varChangesDetected = true;
+	}
+	
+	void changeVar(final short methodPC, final short varDispl, final int newVarType) throws ContentException {
+		if (varsContent[methodPC][1] == CompilerUtils.CLASSTYPE_LONG || varsContent[methodPC][1] == CompilerUtils.CLASSTYPE_DOUBLE) {
+			if (newVarType != CompilerUtils.CLASSTYPE_LONG  && newVarType != CompilerUtils.CLASSTYPE_DOUBLE) {
+				throw new ContentException("Attempt to store non-long or non-double content to long/double var"); 
+			}
+			else {
+				varsContent[methodPC][1] = (short)newVarType;
+				varsChanges[methodPC] = true;
+				varChangesDetected = true;
+			}
+		}
+		else {
+			if (newVarType == CompilerUtils.CLASSTYPE_LONG  && newVarType == CompilerUtils.CLASSTYPE_DOUBLE) {
+				varsContent[methodPC][1] = (short)newVarType;
+				varsChanges[methodPC] = true;
+				varChangesDetected = true;
+			}
+			else {
+				throw new ContentException("Attempt to store long or double content to non-long/non-double var"); 
+			}
+		}
 	}
 	
 	void begin() {
@@ -106,7 +145,7 @@ class StackRepo {
 	void pushLong() {
 		ensureCapacity(2);
 		stackContent[currentStackTop++] = CompilerUtils.CLASSTYPE_LONG;
-		stackContent[currentStackTop++] = CompilerUtils.CLASSTYPE_LONG;
+		stackContent[currentStackTop++] = SPECIAL_TYPE_TOP;
 	}
 	
 	void pushFloat() {
@@ -117,7 +156,7 @@ class StackRepo {
 	void pushDouble() {
 		ensureCapacity(2);
 		stackContent[currentStackTop++] = CompilerUtils.CLASSTYPE_DOUBLE;
-		stackContent[currentStackTop++] = CompilerUtils.CLASSTYPE_DOUBLE;
+		stackContent[currentStackTop++] = SPECIAL_TYPE_TOP;
 	}
 	
 	void pushReference() {
@@ -127,7 +166,7 @@ class StackRepo {
 	
 	void pushUnprepared() {
 		ensureCapacity(1);
-		stackContent[currentStackTop++] = CompilerUtils.CLASSTYPE_VOID;
+		stackContent[currentStackTop++] = SPECIAL_TYPE_UNPREPARED;
 	}
 	
 	void pop(final int size) throws ContentException {
@@ -147,6 +186,7 @@ class StackRepo {
 			case CompilerUtils.CLASSTYPE_BOOLEAN	: pushInt();		break;
 			case CompilerUtils.CLASSTYPE_LONG 		: pushLong();		break;
 			case CompilerUtils.CLASSTYPE_DOUBLE		: pushDouble();		break;
+			case SPECIAL_TYPE_UNPREPARED			: pushUnprepared();	break;
 			default :
 				throw new UnsupportedOperationException(); 
 		}
@@ -162,6 +202,30 @@ class StackRepo {
 	}
 	
 	void commit() {
+		final int	maxIndex = Math.max(currentStackTop,shadowStackTop);
+		int			index;
+		
+		for (index = 0; index < maxIndex; index++) {
+			if (!typesAreCompatible(stackContent[index],stackShadow[index])) {
+				break;
+			}
+		}
+		int insertedFrom = -1, deletedFrom = -1, changedFrom = -1;
+		
+		if (index < maxIndex) {
+			changedFrom = index;
+		}
+		if (currentStackTop > shadowStackTop) {
+			insertedFrom = maxIndex;
+		}
+		else if (currentStackTop < shadowStackTop) {
+			deletedFrom = maxIndex;
+		}
+		stackCallback.processChanges(stackContent,deletedFrom,insertedFrom,changedFrom);
+		if (varChangesDetected) {
+			varCallback.processChanges(varsContent,varsChanges);
+		}
+		varChangesDetected = false;
 	}
 
 	void processChanges(final StackChanges changes) throws ContentException {
@@ -284,51 +348,83 @@ class StackRepo {
 				clear();
 				break;
 			case dup:
-				push(select(0));
+				final int	dup = select(0);
+				
+				if (dup != SPECIAL_TYPE_TOP) {
+					push(dup);
+				}
+				else {
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+				}
 				break;
 			case dup2:
 				final int	dup2V1 = select(0), dup2V2 = select(-1);
 				
-				push(dup2V2);
-				push(dup2V1);
+				if (dup2V1 != SPECIAL_TYPE_TOP) {
+					push(dup2V2);
+					push(dup2V1);
+				}
+				else {
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+				}
 				break;
 			case dup2_x1:
 				final int	dup2X1V1 = select(0), dup2X1V2 = select(-1), dup2X1V3 = select(-2);
 				
 				pop(3);
-				push(dup2X1V2);
-				push(dup2X1V1);
-				push(dup2X1V3);
-				push(dup2X1V2);
-				push(dup2X1V1);
+				if (dup2X1V3 != SPECIAL_TYPE_TOP) {
+					push(dup2X1V2);
+					push(dup2X1V1);
+					push(dup2X1V3);
+					push(dup2X1V2);
+					push(dup2X1V1);
+				}
+				else {
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+				}
 				break;
 			case dup2_x2:
 				final int	dup2X2V1 = select(0), dup2X2V2 = select(-1), dup2X2V3 = select(-2), dup2X2V4 = select(-3);
 				
 				pop(4);
-				push(dup2X2V2);
-				push(dup2X2V1);
-				push(dup2X2V4);
-				push(dup2X2V3);
-				push(dup2X2V2);
-				push(dup2X2V1);
+				if (dup2X2V4 != SPECIAL_TYPE_TOP) {
+					push(dup2X2V2);
+					push(dup2X2V1);
+					push(dup2X2V4);
+					push(dup2X2V3);
+					push(dup2X2V2);
+					push(dup2X2V1);
+				}
+				else {
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+				}
 				break;
 			case dup_x1	:
 				final int	dupX1V1 = select(0), dupX1V2 = select(-1);
 				
 				pop(2);
-				push(dupX1V1);
-				push(dupX1V2);
-				push(dupX1V1);
+				if (dupX1V1 != SPECIAL_TYPE_TOP && dupX1V2 != SPECIAL_TYPE_TOP) {
+					push(dupX1V1);
+					push(dupX1V2);
+					push(dupX1V1);
+				}
+				else {
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+				}
 				break;
 			case dup_x2	:
 				final int	dupX2V1 = select(0), dupX2V2 = select(-1), dupX2V3 = select(-2);
 				
 				pop(3);
-				push(dupX2V1);
-				push(dupX2V3);
-				push(dupX2V2);
-				push(dupX2V1);
+				if (dupX2V3 != SPECIAL_TYPE_TOP && dupX2V1 != SPECIAL_TYPE_TOP) {
+					push(dupX2V1);
+					push(dupX2V3);
+					push(dupX2V2);
+					push(dupX2V1);
+				}
+				else {
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+				}
 				break;
 			case none:
 				break;

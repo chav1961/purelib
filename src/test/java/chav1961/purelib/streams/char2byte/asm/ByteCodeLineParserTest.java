@@ -655,6 +655,7 @@ public class ByteCodeLineParserTest {
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
+							+"		.version 1.8\n"
 							+"Test 	.class public\n"
 							+"val	.method int public static\n"
 							+"p1	.parameter int\n"
@@ -677,8 +678,7 @@ public class ByteCodeLineParserTest {
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).getReturnType(),int.class);
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).invoke(null,2,3),Integer.valueOf(1));
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).invoke(null,3,2),Integer.valueOf(-1));
-		}
-		
+		}		
 	}
 
 	@Test

@@ -88,7 +88,7 @@ class ClassContainer implements Closeable {
 		fieldsGba.writeShort(modifiers);
 		fieldsGba.writeShort(getConstantPool().asUTF(fieldId));
 		fieldsGba.writeShort(getConstantPool().asUTF(typeId));
-		fieldsGba.writeShort(0);
+		fieldsGba.writeShort(0);		// Field has no attributes
 		fieldCount++;
 	}
 
@@ -96,10 +96,10 @@ class ClassContainer implements Closeable {
 		fieldsGba.writeShort(modifiers);
 		fieldsGba.writeShort(getConstantPool().asUTF(fieldId));
 		fieldsGba.writeShort(getConstantPool().asUTF(typeId));
-		fieldsGba.writeShort(1);
+		fieldsGba.writeShort(1);		// Field has one attribute
 		fieldsGba.writeShort(getConstantPool().asUTF(constantValueId));
-		fieldsGba.writeInt(2);
-		fieldsGba.writeShort(valueId);
+		fieldsGba.writeInt(2);		
+		fieldsGba.writeShort(valueId);	// Reference to initial value in the constant pool
 		fieldCount++;
 	}
 	
@@ -118,7 +118,7 @@ class ClassContainer implements Closeable {
 			throw new IllegalStateException("Attempt to add abstract method to non-abstract class!");
 		}
 		else {
-			final MethodDescriptor	md = new MethodDescriptor(getNameTree(),getConstantPool(),modifiers,joinedClassName,methodId,typeId,throwsId);
+			final MethodDescriptor	md = new MethodDescriptor(currentMajor,currentMinor,getNameTree(),getConstantPool(),modifiers,joinedClassName,methodId,typeId,throwsId);
 
 			joinClassName(joinedClassName,methodId);
 			methods.add(md);

@@ -27,6 +27,7 @@ class MethodBody extends AbstractMethodBody {
 
     private final SyntaxTreeInterface<?>		tree;
     private final long				className, methodName;
+    private final boolean			needVarTable;
 	private final int				stackCalculationStrategy;
 	private List<ItemDescriptor>	labels = new ArrayList<>();
 	private List<ItemDescriptor>	brunches = new ArrayList<>(); 
@@ -34,14 +35,15 @@ class MethodBody extends AbstractMethodBody {
 	private short					pc = 0, stack, maxStack;
 	private long					uniqueLabel = 2;
 	
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree){
-		this(className,methodName,tree,STACK_CALCULATION_PESSIMISTIC);
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable){
+		this(className,methodName,tree,needVarTable,STACK_CALCULATION_PESSIMISTIC);
 	}
 
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final short stackCalculationStrategy){
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final short stackCalculationStrategy){
 		this.className = className;
 		this.methodName = methodName;
 		this.tree = tree;
+		this.needVarTable = needVarTable;
 		this.stackCalculationStrategy = stackCalculationStrategy;
 		if (stackCalculationStrategy >= 0) {
 			stack = maxStack = stackCalculationStrategy; 
