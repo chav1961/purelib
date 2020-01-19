@@ -1,16 +1,18 @@
 package chav1961.purelib.basic.growablearrays;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
  * <p>This class implements {@linkplain CharStreamPrinter} interface for {@linkplain GrowableCharArray} class. It allow the class 
- * use print and println methods to put data into</p> 
+ * use print and println methods to put data into. It implements {@linkplain CharStreamPrinter} interface, not extends {@linkplain PrintStream}
+ * or {@linkplain PrintWriter} classes, because these classes suppress all {@linkplain IOException} during call and there is no guarantee for successful
+ * completion of it's methods</p> 
  * <p>This class is not thread-safe.</p>
  * 
  * @see chav1961.purelib.basic.growablearrays JUnit tests

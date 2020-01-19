@@ -6,7 +6,8 @@ import java.io.Reader;
 import java.util.Arrays;
 
 /**
- * <p>This class implements functionality for the growable character arrays.</p>
+ * <p>This class implements functionality for the growable character arrays. It also inplements {@linkplain CharSequence} interface and can be 
+ * used everywhere this interface required</p>
  * <p>This class is not thread-safe.</p>
  * 
  * @see chav1961.purelib.basic.growablearrays JUnit tests

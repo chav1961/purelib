@@ -1,0 +1,26 @@
+Release 0.0.4 notes
+
+General notes
+
+The most important difference for the release 0.0.4 is a migration to Java 9 functionality. All the Pure Library project was incapsulated into Java 9 module (named chav1961.purelib).
+
+I. New features
+
+II. Refactoring
+
+1. All special URLs implementation in the Pure library were successfully migrated to Java 9 SPI support  
+
+2. Class basic.ClassLoaderWrapper has been removed from the project because it's functionality can't be implemented in Java 9 correctly.
+
+3. Byte code assembler supports a set of new directives now:
+	- .line - insert LineNumberTable into generating Java class
+	- .version - support versions of the Java class file format (1.7 and 1.8 are available now)
+	- .varTable - insert LocalVarTable attribute into generating Java class
+	- .source - insert source attribute into generating Java class
+
+4. Byte code assembler got extended syntax check on stack manipulation commands
+
+5. Performance of the byte code assembler and macro assembler were increased
+
+III. Bug fix
+

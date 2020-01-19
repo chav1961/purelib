@@ -10,9 +10,9 @@ import chav1961.purelib.basic.exceptions.ContentException;
  */
 public interface ConvertorInterface {
 	/**
-	 * <p>Convert content to instance of awaited class.
-	 * @param <T> instance to convert data to
-	 * @param awaited awaited class
+	 * <p>Convert content to instance of awaited class.</p>
+	 * @param <T> instance type to convert data to
+	 * @param awaited awaited instance class
 	 * @param source instance to convert (can be null)
 	 * @return instance converted (can be null if source was null)
 	 * @throws NullPointerException when awaited class is null

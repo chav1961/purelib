@@ -57,7 +57,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
 
 public class PureLibSettings {
 	/**
-	 * <p>This logger is used to print put any internal problems in the Pure Library</p>
+	 * <p>This logger is used to print any internal problems in the Pure Library</p>
 	 */
 	public static final Logger		logger = Logger.getLogger("chav1961.purelib");
 	
@@ -82,57 +82,65 @@ public class PureLibSettings {
 	public static final String		SETTINGS_KEY = "purelib.settings.source";
 
 	/**
-	 * <p>Allow Unsafe functionality in the Pure Library</p>
+	 * <p>This is a key to "Allow Unsafe" functionality in the Pure Library. Set this Pure Library property to <b>true</b> supports usage of the {@linkplain sun.misc.Unsafe} class inside Pure library. Default for the given property is <b>false</b>
+	 * and it strongly recommends not to use <b>true</b> for this property </p>
 	 */
 	public static final String		ALLOW_UNSAFE = "purelib.settings.allow.unsafe";
 	
 	/**
-	 * <p>Print expanded macros of the AsmWriter for debugging purposes</p>
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
 	 */
 	public static final String		PRINT_EXPANDED_MACROS = "purelib.settings.macros.printExpanded";
 	
 	/**
-	 * <p>MIME for plain text</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for plain text</p>
 	 */
 	public static final MimeType	MIME_PLAIN_TEXT = buildMime("text","plain");
 
 	/**
-	 * <p>MIME for CREOLE text</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for CREOLE text</p>
 	 */
 	public static final MimeType	MIME_CREOLE_TEXT = buildMime("text","x-wiki.creole");
 
 	/**
-	 * <p>MIME for HTML text</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for HTML text</p>
 	 */
 	public static final MimeType	MIME_HTML_TEXT = buildMime("text","html");
 
 	/**
-	 * <p>MIME for XML text</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for XML text</p>
 	 */
 	public static final MimeType	MIME_XML_TEXT = buildMime("text","xml");
 
 	/**
-	 * <p>MIME for JSON</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for JSON</p>
 	 */
 	public static final MimeType	MIME_JSON_TEXT = buildMime("application","json");
 
 	/**
-	 * <p>MIME for CSS</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for CSS</p>
 	 */
 	public static final MimeType	MIME_CSS_TEXT = buildMime("text","css");
 
 	/**
-	 * <p>MIME for CSS</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for favicon content</p>
 	 */
 	public static final MimeType	MIME_FAVICON = buildMime("image","webp");
 	
 	/**
-	 * <p>MIME for octet stream</p>
+	 * <p>Predefined MIMEs in the Pure Library: MIME for octet stream</p>
 	 */
 	public static final MimeType	MIME_OCTET_STREAM = buildMime("application","octet-stream");
 
-	
+	/**
+	 * <p>Predefined Data Flavor name for Pure Library models to use them in the Swing applications</p>
+	 * @see chav1961.purelibrary.model
+	 */	
 	public static final String		MODEL_DATA_FLAVOR_NAME = "chav1961.purelib.model.node";
+
+	/**
+	 * <p>Predefined Data Flavor name for Pure Library models to use them in the Swing applications</p>
+	 */	
 	public static final DataFlavor	MODEL_DATA_FLAVOR = new DataFlavor(ContentNodeMetadata.class, MODEL_DATA_FLAVOR_NAME);	
 	
 	/**
@@ -146,14 +154,16 @@ public class PureLibSettings {
 	public static final LoggerFacade		SYSTEM_ERR_LOGGER = new SystemErrLoggerFacade();
 
 	/**
-	 * <p>Current logger to put purelib debug trace to</p>
+	 * <p>Current logger facade to put purelib debug trace to. When <b>-Dpurelib.debug</b>=true, appropriates to {@linkplain PureLibSettings#SYSTEM_ERR_LOGGER}, otherwise appropriates to {@linkplain PureLibSettings#NULL_LOGGER}</p>
 	 * @since 0.0.3
 	 */
 	public static final LoggerFacade		CURRENT_LOGGER = "true".equalsIgnoreCase(System.getProperty("purelib.debug","true")) ? SYSTEM_ERR_LOGGER : NULL_LOGGER;
 	
 	/**
-	 * <p>Common-accessible localizer for the Pure Library. This description must be after loggers descriptor because it uses them inside the PureLibLocalizer</p> 
+	 * <p>Common-accessible localizer for the Pure Library. All localizable content of the Pure library is accessible by the localizer.</p>
+	 * @see Localizer 
 	 */
+	// This description must be after loggers descriptor because it uses them inside the PureLibLocalizer
 	public static final Localizer			PURELIB_LOCALIZER = createPureLibLocalizer();
 	
 	/**
@@ -162,51 +172,53 @@ public class PureLibSettings {
 	public static final Timer				COMMON_MAINTENANCE_TIMER = new Timer("PureLibMaintenanceTimer",true);
 
 	/**
-	 * <p>HTTP port for built-in help</p>
+	 * <p>Key to access HTTP port number for built-in help server in the Pure Library</p>
 	 */
 	public static final String				BUILTIN_HELP_PORT = "purelib.settings.help.port";
 
 	/**
-	 * <p>Monitoring manager for MBean services</p>
+	 * <p>Monitoring manager for MBean services.</p>
+	 * @see chav1961.purelib.monitoring
 	 * @since 0.0.4
 	 */
 	public static final MonitoringManager	MONITORING_MANAGER = new MonitoringManager();
 	
 	/**
-	 * <p>This interface describes well-known factories in the Pure Library</p>
+	 * <p>This interface describes well-known factories in the Pure Library. All the factories are accessible via standard Java SPI service</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
+	 * @see <a href="https://docs.oracle.com/javase/9/docs/api/java/util/ServiceLoader.html">SPI Service</a> loader
 	 */
 	public interface WellKnownSchema {
 		/**
-		 * <p>Get schema name</p>
+		 * <p>Get schema name, that is supported with the given service</p>
 		 * @return schema name. Can't be null or empty
 		 */
 		String getSchemaName();
 		
 		/**
-		 * <p>Get schema description</p>
+		 * <p>Get schema description for the given SPI service</p>
 		 * @return schema description. Can be null or empty
 		 */
 		String getDescription();
 		
 		/**
-		 * <p>Get factory class for the given schema</p>
+		 * <p>Get factory class for the given SPI service</p>
 		 * @return factory class for schema. Can't be null
 		 */
 		Class<?> getFactoryClass();
 		
 		/**
 		 * <p>Does the class supports {@linkplain SpiService} interface</p> 
-		 * @return true of does
+		 * @return true if yes
 		 */
 		boolean supportsSpiService();
 		
 		/**
-		 * <p>Create service instance by it's URI</p>
+		 * <p>Create service instance by it's URI.</p>
 		 * @param <T> service instance to create
 		 * @param description uri to pass to service factory
-		 * @return instance created.
+		 * @return instance created
 		 * @throws EnvironmentException on creation errors
 		 */
 		<T> T newInstance(URI description) throws EnvironmentException;
@@ -283,7 +295,7 @@ public class PureLibSettings {
 	private PureLibSettings(){}
 	
 	/**
-	 * <p>Static singleton instance to get access to the purelib settings. Instance is a {@linkplain SubstitutableProperties} object and supports all it's functionality</p>   
+	 * <p>Static singleton instance to get access to the Pure Library settings. Instance is a {@linkplain SubstitutableProperties} object and supports all it's functionality</p>   
 	 * @return singleton instance of the Pure Library settings
 	 */
 	public static SubstitutableProperties instance() {
@@ -478,9 +490,6 @@ public class PureLibSettings {
 
 	private static long getCurrentPID() {
 		return ProcessHandle.current().pid();
-//		final String	name = ManagementFactory.getRuntimeMXBean().getName(); 
-//		
-//		return Long.valueOf(name.substring(0,name.indexOf('@')));
 	}
 
 	private static void stopPureLib() {

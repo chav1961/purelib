@@ -11,7 +11,6 @@ package chav1961.purelib.enumerations;
  * </ul> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- *
  */
 public enum MarkupOutputFormat {
 	/**

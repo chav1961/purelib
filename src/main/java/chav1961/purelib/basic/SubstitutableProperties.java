@@ -20,7 +20,7 @@ import java.util.Properties;
  * property, whose key is 'name'. You can also used one-level depth template <b>${${nameLocation}}</b> whose 'nameLocation' means 'get 
  * key name to substitute from the nameLocation key'. All substitutions are recursive. A source of properties to substitute are own 
  * properties, but one-level depth template can be referenced to {@link System#getProperties()} key set. Maximum substitution depth level
- * is restricted by 16</p>
+ * is restricted by {@value CharUtils#MAX_SUBST_DEPTH}</p>
  * <p>You can get property content not only as string, but a lot of other classes:</p>
  * <ul>
  * <li>any appropriative {@link Enum} class constant</li>
@@ -30,11 +30,11 @@ import java.util.Properties;
  * <li>a {@link URL} or {@link URI} instance, if the property value contains valid URL or URI</li>
  * </ul>
  * <p>To use it, simply type:</p>
- * <code>
- * if (subst.getProperty("canUseSomething",boolean.class)) {<br>
- * 		int amount = subst.getProperty("amountOfSomething",int.class);<br>
- * }<br>
- * </code>
+ * {@code 
+ * 		if (subst.getProperty("canUseSomething",boolean.class)) {
+ * 			final int amount = subst.getProperty("amountOfSomething",int.class);
+ * 		}
+ * }
  * 
  * <p>This class is thread-safe.</p>
  *
@@ -80,6 +80,7 @@ public class SubstitutableProperties extends Properties {
 	/**
 	 * <p>Constructor of the class. Gets another property class and fill own content with it's content</p> 
 	 * @param defaults another properties class to fill own content
+	 * @throws NullPointerException when parameter is null
 	 */
 	public SubstitutableProperties(final Properties defaults) throws NullPointerException {
 		if (defaults == null) {
@@ -110,8 +111,9 @@ public class SubstitutableProperties extends Properties {
 	 * @param key key to get property value for
 	 * @param awaited awaited class to convert value to
 	 * @return value converted
+	 * @throws IllegalArgumentException if requested conversion failed or not supported
 	 */
-	public <T> T getProperty(final String key, final Class<T> awaited) {
+	public <T> T getProperty(final String key, final Class<T> awaited) throws IllegalArgumentException {
 		final String	value = getProperty(key);
 		
 		return value != null ? convert(key,value,awaited) : null;
@@ -124,8 +126,9 @@ public class SubstitutableProperties extends Properties {
 	 * @param awaited awaited class to convert value to
 	 * @param defaultValue defaultValue to convert when property is missing
 	 * @return value converted
+	 * @throws IllegalArgumentException if requested conversion failed or not supported
 	 */
-	public <T> T getProperty(final String key, final Class<T> awaited, final String defaultValue) {
+	public <T> T getProperty(final String key, final Class<T> awaited, final String defaultValue) throws IllegalArgumentException {
 		final String	value = getProperty(key,defaultValue);
 		
 		return value != null ? convert(key,value,awaited) : null;
@@ -170,14 +173,16 @@ public class SubstitutableProperties extends Properties {
 	/**
 	 * <p>Convert value content to type awaited</p> 
 	 * @param <T> converted instance type
-	 * @param key key associated with the given value
+	 * @param key key associated with the given value. Uses in diagnostic purposes only. Can be null
 	 * @param value value to convert
 	 * @param awaited awaited class for value converted
-	 * @return value converted
+	 * @return value converted or null
+	 * @throws NullPointerException if awaited class is null
+	 * @throws IllegalArgumentException if requested conversion failed or not supported
 	 * @since 0.0.3
 	 */	
 	@SuppressWarnings("unchecked")
-	public static <T> T convert(final String key, final String value, final Class<T> awaited) {
+	public static <T> T convert(final String key, final String value, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");
 		}
@@ -236,7 +241,6 @@ public class SubstitutableProperties extends Properties {
 			throw new UnsupportedOperationException("Unsupported class ["+awaited+"] to convert");
 		}
 	}
-	
 	
 	protected String extendedGetProperty(final String key) {
 		if (containsKey(key)) {

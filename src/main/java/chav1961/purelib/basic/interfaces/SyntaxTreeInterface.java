@@ -1,6 +1,9 @@
 package chav1961.purelib.basic.interfaces;
 
+import java.util.Comparator;
+
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.OrdinalSyntaxTree;
 
 /**
  * <p>This interface describes a quick syntax tree to store strings and associate any data to them for use in the parsers.</p> 
@@ -12,6 +15,7 @@ import chav1961.purelib.basic.AndOrTree;
  * <p>The main usages of this interface are a wide range of syntax trees.</p> 
  * 
  * @see AndOrTree
+ * @see OrdinalSyntaxTree
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
@@ -189,7 +193,7 @@ public interface SyntaxTreeInterface<T> {
 	 * <p>Compare two <i>names</i> represented by it's <i>identifiers</i></p>
 	 * @param first id of the first name
 	 * @param second id of the second name
-	 * @return code is the same as for Comparable interface. If one or both of ids are missing in the tree, comparison result is unpredictable
+	 * @return code is the same as for {@linkplain Comparator} interface. If one or both of ids are missing in the tree, comparison result is unpredictable
 	 */
 	int compareNames(long first, long second);
 

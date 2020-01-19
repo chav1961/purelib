@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.exceptions;
+package chav1961.purelib.basic.exceptions.intern;
 
 public class ReducedExceptionWrapper extends Throwable {
 	private static final long serialVersionUID = 3973043354968237478L;

@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import chav1961.purelib.basic.exceptions.ReducedExceptionWrapper;
+import chav1961.purelib.basic.exceptions.intern.ReducedExceptionWrapper;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**

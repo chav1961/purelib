@@ -1,7 +1,8 @@
 package chav1961.purelib.enumerations;
 
 /**
- * <p>This enumeration describes continue mode for any walkers (firstly tree walker). </p> 
+ * <p>This enumeration describes continue mode for any walkers (firstly tree walker). This enumeration is used usually as return code of the walking methods.</p>
+ * In conjunction with {@linkplain NodeEnterMode} it supports walking on the linked structures for different walking methods</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  */

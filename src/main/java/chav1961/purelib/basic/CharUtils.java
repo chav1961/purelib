@@ -23,6 +23,8 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * free starting position to fill result, and returns the new free position in the array. Negative returned value means that the target array
  * is too short to keep result. It <i>absolute</i> value exactly reflect new free position in the target array and can be used to expand target
  * array to required size</p>
+ *
+ * <p>This class contains also a lot of methods to simplify parsing of the char arrays and strings</p>
  * 
  * <p>All the methods in the class are thread-safe</p>
  *  
@@ -40,8 +42,6 @@ public class CharUtils {
 	public static final int			PREF_ANY = PREF_INT | PREF_LONG | PREF_FLOAT | PREF_DOUBLE;
 	public static final int			MAX_SUBST_DEPTH = 16;
 
-	private static final int		OCT_ESCAPE_SIZE = 3;
-	private static final int		U_ESCAPE_SIZE = 4;
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
@@ -1206,7 +1206,8 @@ public class CharUtils {
 	}
 	
 	/**
-	 * <p>This interface describes lambda-styled callback for {@linkplain CharUtils#substitute(String, String, SubstitutionSource)} call</p> 
+	 * <p>This interface describes lambda-styled callback for {@linkplain CharUtils#substitute(String, String, SubstitutionSource)} call. 
+	 * The only functionality it must support is get appropriative string value for string key requested.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
 	 */
@@ -1221,7 +1222,8 @@ public class CharUtils {
 	}
 	
 	/**
-	 * <p>This interface describes lambda-styled callback for {@linkplain CharUtils#substitute(String, String, SubstitutionSource)} call</p> 
+	 * <p>This interface describes lambda-styled callback for {@linkplain CharUtils#substitute(String, String, SubstitutionSource)} call
+	 * The only functionality it must support is get appropriative char array value for char array key requested.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
 	 */
