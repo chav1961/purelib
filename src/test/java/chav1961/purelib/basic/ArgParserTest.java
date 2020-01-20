@@ -30,6 +30,23 @@ public class ArgParserTest {
 		} catch (IllegalArgumentException exc) {
 		}
 
+		try{new ArgParser(new ArgParser.BooleanArg(null,false,"help",false)) {};
+			Assert.fail("Mandatory exception was not detected (null name of argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{new ArgParser(new ArgParser.BooleanArg("",false,"help",false)) {};
+			Assert.fail("Mandatory exception was not detected (null name of argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{new ArgParser(new ArgParser.BooleanArg("key",false,null,false)) {};
+			Assert.fail("Mandatory exception was not detected (null help string of argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{new ArgParser(new ArgParser.BooleanArg("key",false,"",false)) {};
+			Assert.fail("Mandatory exception was not detected (empty help string of argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
 		try{new ArgParser(new ArgParser.BooleanArg("key",false,"help",false),new ArgParser.BooleanArg("key",false,"help",false)) {};
 			Assert.fail("Mandatory exception was not detected (duplicate names inside argument list)");
 		} catch (IllegalArgumentException exc) {
@@ -128,6 +145,7 @@ public class ArgParserTest {
 	public void booleanArgTest() throws ConsoleCommandException, ContentException {
 		final ArgParser.BooleanArg	arg = new ArgParser.BooleanArg("key",false,"help",false);
 
+		Assert.assertNotNull(arg.toString());
 		arg.validate("true");
 		arg.validate("false");
 		try{arg.validate(null);
@@ -178,6 +196,7 @@ public class ArgParserTest {
 	public void intArgTest() throws ConsoleCommandException, ContentException {
 		final ArgParser.IntegerArg	arg = new ArgParser.IntegerArg("key",false,"help",100,new long[][]{{-100,100},{1000,1000}});
 		
+		Assert.assertNotNull(arg.toString());
 		arg.validate("-100");
 		try{arg.validate(null);
 			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
@@ -230,7 +249,8 @@ public class ArgParserTest {
 	@Test
 	public void realArgTest() throws ConsoleCommandException, ContentException {
 		final ArgParser.RealArg	arg = new ArgParser.RealArg("key",false,"help",100);
-		
+
+		Assert.assertNotNull(arg.toString());
 		arg.validate("-100");
 		try{arg.validate(null);
 			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
@@ -280,6 +300,7 @@ public class ArgParserTest {
 	public void stringArgTest() throws ConsoleCommandException, ContentException {
 		final ArgParser.StringArg	arg = new ArgParser.StringArg("key",false,"help","100");
 
+		Assert.assertNotNull(arg.toString());
 		arg.validate("test");
 		try{arg.validate(null);
 			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
@@ -317,6 +338,7 @@ public class ArgParserTest {
 	public void URIArgTest() throws ConsoleCommandException, ContentException {
 		final ArgParser.URIArg	arg = new ArgParser.URIArg("key",false,"help","100");
 
+		Assert.assertNotNull(arg.toString());
 		arg.validate("file://localhost/c:");
 		try{arg.validate(null);
 			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
@@ -362,7 +384,8 @@ public class ArgParserTest {
 	@Test
 	public void enumArgTest() throws ConsoleCommandException, ContentException {
 		final ArgParser.EnumArg<NodeEnterMode>	arg = new ArgParser.EnumArg<NodeEnterMode>("key",NodeEnterMode.class,false,"help",NodeEnterMode.ENTER);
-		
+
+		Assert.assertNotNull(arg.toString());
 		arg.validate("ENTER");
 		try{arg.validate(null);
 			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
@@ -410,8 +433,10 @@ public class ArgParserTest {
 	
 	@Test
 	public void stringListArgTest() throws ConsoleCommandException, ContentException {
-		ArgParser	parser = new ArgParser(new ArgParser.StringListArg("key",false,"help","100"));
+		final ArgParser.StringListArg	arg = new ArgParser.StringListArg("key",false,"help","100"); 
+		ArgParser						parser = new ArgParser(arg);
 		
+		Assert.assertNotNull(arg.toString());
 		Assert.assertArrayEquals(new String[]{"200","400"},parser.parse("-key","200","400").getValue("key",String[].class));
 		Assert.assertArrayEquals(new String[]{"100"},parser.parse().getValue("key",String[].class));
 		

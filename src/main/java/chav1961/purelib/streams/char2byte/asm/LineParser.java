@@ -503,7 +503,7 @@ class LineParser implements LineByLineProcessorCallback {
 					final String	macroName = new String(currentMacros.getName());
 					
 					if (macros.seekName(macroName) >= 0) {
-						throw new IOException("Duplicate macros ["+macroName+"] in the input stream");
+						throw new ContentException("Duplicate macros ["+macroName+"] in the input stream");
 					}
 					else {
 						final GrowableCharArray	writer = new GrowableCharArray(true), stringRepo = new GrowableCharArray(false);
@@ -513,8 +513,7 @@ class LineParser implements LineByLineProcessorCallback {
 							currentMacros.compile(loader.createClass(className,writer).getConstructor(char[].class).newInstance(stringRepo.extract()));
 							macros.placeOrChangeName(macroName,currentMacros);
 						} catch (CalculationException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-							e.printStackTrace();
-							throw new IOException(e.getLocalizedMessage(),e); 
+							throw new ContentException(e.getLocalizedMessage(),e); 
 						}
 						state = ParserState.beforePackage;
 						currentMacros = null;
@@ -531,7 +530,7 @@ class LineParser implements LineByLineProcessorCallback {
 				startName = start;
 				endName = start = skipSimpleName(data,start);
 				if (endName == startName) {
-					throw new IOException(new SyntaxException(lineNo,0,"Illegal label/entity name"));
+					throw new SyntaxException(lineNo,0,"Illegal label/entity name");
 				}
 				
 				id = tree.placeOrChangeName(data,startName,endName,new NameDescriptor());

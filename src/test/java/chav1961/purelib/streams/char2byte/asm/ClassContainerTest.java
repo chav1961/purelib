@@ -117,6 +117,9 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final ClassContainer		cc = new ClassContainer()) {
 
+			cc.getNameTree().placeName("double",new NameDescriptor());
+			cc.getNameTree().placeName("long",new NameDescriptor());
+			cc.getNameTree().placeName("this",new NameDescriptor());
 			cc.setClassName((short) 0x0401,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
 			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethod",new NameDescriptor()),cc.getNameTree().placeName("void",new NameDescriptor())).complete();
 			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethodWithThrows",new NameDescriptor()),cc.getNameTree().placeName("void",new NameDescriptor()),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor())).complete();

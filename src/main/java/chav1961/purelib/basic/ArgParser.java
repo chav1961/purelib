@@ -340,7 +340,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		private final boolean	isPositional;
 
 		public AbstractArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
-			if (name == null || name.isEmpty()) {
+			if (name == null || name.isBlank()) {
 				throw new IllegalArgumentException("Argument name can't be null or empty");
 			}
 			else if (helpDescriptor == null || helpDescriptor.isEmpty()) {
@@ -752,10 +752,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			if (enumType.isAssignableFrom(awaited)) {
-				try{return (T)Enum.valueOf((Class<Type>)awaited,value);
-				} catch (IllegalArgumentException e) {
-					throw new CommandLineParametersException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
-				}
+				return (T)Enum.valueOf((Class<Type>)awaited,value);
 			}
 			else {
 				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to enumeration ["+enumType.getSimpleName()+"] only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
@@ -780,7 +777,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 			else {
 				try{Enum.valueOf(enumType,value);
 				} catch (IllegalArgumentException e) {
-					throw new CommandLineParametersException("Value ["+value+"] is missing in ["+enumType.getCanonicalName()+"] enumeration"); 
+					throw new CommandLineParametersException("Value ["+value+"] is invalid or missing in ["+enumType.getCanonicalName()+"] enumeration"); 
 				}
 			}
 		}
