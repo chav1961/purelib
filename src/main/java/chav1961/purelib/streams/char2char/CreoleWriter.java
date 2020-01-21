@@ -14,7 +14,14 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
-import chav1961.purelib.streams.char2char.ListManipulationStack.ListType;
+import chav1961.purelib.streams.char2char.intern.CreoleFOPOutputWriter;
+import chav1961.purelib.streams.char2char.intern.CreoleHTMLOutputWriter;
+import chav1961.purelib.streams.char2char.intern.CreoleOutputWriter;
+import chav1961.purelib.streams.char2char.intern.CreoleTerminals;
+import chav1961.purelib.streams.char2char.intern.CreoleTextOutputWriter;
+import chav1961.purelib.streams.char2char.intern.CreoleXMLOutputWriter;
+import chav1961.purelib.streams.char2char.intern.ListManipulationStack;
+import chav1961.purelib.streams.char2char.intern.ListManipulationStack.ListType;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 
 /**
@@ -39,30 +46,6 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
  */
 
 public class CreoleWriter extends Writer {
-	enum CreoleTerminals {
-		TERM_CONTENT,
-		TERM_SOD,
-		TERM_EOD,
-		TERM_SOL,
-		TERM_EOL,
-		TERM_P_START,
-		TERM_P_END,
-		TERM_UL_START,
-		TERM_UL_END,
-		TERM_OL_START,
-		TERM_OL_END,
-		TERM_LI,
-		TERM_H_START,
-		TERM_H_END,
-		TERM_HL,
-		TERM_BOLD,
-		TERM_ITALIC,
-		TERM_TH,
-		TERM_TD,
-		TERM_TABLE_END,
-		TERM_BR
-	}
-	
 	public enum CreoleLexema {
 		Plain, Bold, Italic, BoldItalic,
 		Paragraph, Header1, Header2, Header3, Header4, Header5, Header6,

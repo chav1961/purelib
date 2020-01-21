@@ -10,6 +10,13 @@ import java.sql.Types;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableCharArray;
 
+/**
+ * <p>This class converts content of JDBC {@linkplain ResultSet} to JSON character stream. Output JSON format is compatible with RFC 7159 requirements and 
+ * represents array of records, appropriative to result set records. Every record in the input stream terminates with '\n' character</p>   
+ * @see <a href="https://tools.ietf.org/html/rfc7159">RFC 7159</a>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class Jdbc2JsonReader extends Reader {
 	private final ResultSet			rs;
 	private final ResultSetMetaData	rsmd;
@@ -17,8 +24,14 @@ public class Jdbc2JsonReader extends Reader {
 	private final ReadingFormat[]	formats; 
 	private boolean					theSameFirst = true, theSameLast = false;
 	private int						cursor = Integer.MAX_VALUE; 
-	
-	public Jdbc2JsonReader(final ResultSet rs) throws IOException {
+
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param rs result set to extract content from
+	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException when result set reference is null
+	 */
+	public Jdbc2JsonReader(final ResultSet rs) throws IOException, NullPointerException {
 		if (rs == null) {
 			throw new NullPointerException("Result set can't be null");
 		}

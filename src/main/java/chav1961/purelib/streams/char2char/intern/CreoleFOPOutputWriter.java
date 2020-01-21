@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.char2char;
+package chav1961.purelib.streams.char2char.intern;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -16,10 +16,9 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 
-class CreoleFOPOutputWriter extends CreoleOutputWriter {
+public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	private static final String		NAMESPACE = "http://www.w3.org/1999/XSL/Format";
 	private static final String		PREFIX = "fo";
 	private static final char[]		EMPTY_LIST = " ".toCharArray();
@@ -92,7 +91,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	
 	private int						listDepth = 0;
 	
-	CreoleFOPOutputWriter(final Writer nested, final PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> prologue, final PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> epilogue) throws IOException {
+	public CreoleFOPOutputWriter(final Writer nested, final PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> prologue, final PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> epilogue) throws IOException {
 		this.nested = nested;
 		this.epilogue = epilogue;
 		try{this.writer = XMLOutputFactory.newInstance().createXMLEventWriter(nested);
@@ -113,7 +112,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		try{String	value = new String(content,from,to-from);
 			
 			if (!keepNewLines && value.endsWith("\r\n")) {
@@ -131,7 +130,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+	public void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
 		boolean	has2escape = false;
 		
 		for (int index = from; index < to; index++) {
@@ -165,14 +164,14 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 	
 	@Override
-	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		writeStartTag(TAG_IMG);
 		writeAttr(ATTR_SRC,new String(data,startLink,endLink-startLink));
 		writeEndTag(TAG_IMG);
 	}
 
 	@Override
-	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	public void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (localRef) {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
@@ -204,7 +203,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	protected void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
+	public void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
 		try{for (SectionActions item : action) {
 				switch (item) {
 					case DIV_OPEN		: 
@@ -263,7 +262,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	protected void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
+	public void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
 		try{for (FontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN		: writeStartTag(TAG_BOLD); break;
@@ -362,7 +361,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 		return VALUE_PROLOGUE_MASTER_NAME;
 	}
 	
-	static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getPrologue() {
+	public static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getPrologue() {
 		return new PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>(){
 			@Override
 			public boolean writeContent(XMLEventWriter writer, CreoleFOPOutputWriter instance) throws IOException {
@@ -385,7 +384,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 		};
 	}
 
-	static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getEpilogue() {
+	public static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getEpilogue() {
 		return new PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>(){
 			@Override
 			public boolean writeContent(XMLEventWriter writer, CreoleFOPOutputWriter instance) throws IOException {
@@ -397,7 +396,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 		};
 	}
 	
-	static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
+	public static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source URI can't be null"); 
 		}
@@ -431,7 +430,7 @@ class CreoleFOPOutputWriter extends CreoleOutputWriter {
 		}
 	}
 
-	static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
+	public static PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source URI can't be null"); 
 		}

@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.char2char;
+package chav1961.purelib.streams.char2char.intern;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -10,10 +10,9 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 
-class CreoleHTMLOutputWriter extends CreoleOutputWriter {
+public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	
 	private static final char[]		DIV_OPEN = "<div class=\"cwr\">".toCharArray();
 	private static final char[]		DIV_CLOSE = "</div>".toCharArray();
@@ -63,7 +62,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	private final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>	epilogue;
 	private boolean					storeAnchor = false;
 	
-	CreoleHTMLOutputWriter(final Writer nested, final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> prologue, final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> epilogue) throws IOException {
+	public CreoleHTMLOutputWriter(final Writer nested, final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> prologue, final PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> epilogue) throws IOException {
 		this.nested = nested;
 		this.epilogue = epilogue;
 		prologue.writeContent(nested,this);
@@ -76,7 +75,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		nested.write(content,from,to-from);
 		if (storeAnchor) {
 			internalAnchor.append(content,from,to-from);
@@ -84,7 +83,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+	public void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
 		boolean	has2escape = false;
 		
 		for (int index = from; index < to; index++) {
@@ -118,7 +117,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 	
 	@Override
-	protected void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Long> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Long parameter) throws FlowException {
+	public void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Long> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Long parameter) throws FlowException {
 		try{for (SectionActions item : action) {
 				switch (item) {
 					case DIV_OPEN		: internalWrite(currentDispl, DIV_OPEN); break;
@@ -163,7 +162,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 	
 	@Override
-	protected void processFont(final FSM<CreoleTerminals,FontState,FontActions,Long> fsm,final CreoleTerminals terminal,final FontState fromState,final FontState toState,final FontActions[] action,final Long parameter) throws FlowException {
+	public void processFont(final FSM<CreoleTerminals,FontState,FontActions,Long> fsm,final CreoleTerminals terminal,final FontState fromState,final FontState toState,final FontActions[] action,final Long parameter) throws FlowException {
 		try{for (FontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN		: internalWrite(currentDispl, BOLD_OPEN); break;
@@ -180,7 +179,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		internalWrite(displacement,IMG_START);
 		internalWrite(displacement,data,startLink,endLink,false);
 		internalWrite(displacement,IMG_END);
@@ -189,7 +188,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
+	public void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (localRef) {
 			final String	link;
 			int				found = -1;
@@ -240,7 +239,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 		}
 	}
 	
-	static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getPrologue() {
+	public static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getPrologue() {
 		return new PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>(){
 			@Override
 			public boolean writeContent(Writer writer, CreoleHTMLOutputWriter instance) throws IOException {
@@ -250,7 +249,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 		};
 	}
 
-	static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getEpilogue() {
+	public static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getEpilogue() {
 		return new PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>(){
 			@Override
 			public boolean writeContent(Writer writer, CreoleHTMLOutputWriter instance) throws IOException {
@@ -260,7 +259,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 		};
 	}
 
-	static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
+	public static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getPrologue(final URI source) throws NullPointerException, ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source URI can't be null"); 
 		}
@@ -280,7 +279,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 		}
 	}
 
-	static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
+	public static PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter> getEpilogue(final URI source) throws NullPointerException, ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source URI can't be null"); 
 		}

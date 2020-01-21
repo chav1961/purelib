@@ -1,9 +1,11 @@
-package chav1961.purelib.streams.char2char;
+package chav1961.purelib.streams.char2char.intern;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class LisManipulationStackTest {
+import chav1961.purelib.streams.char2char.intern.ListManipulationStack;
+
+public class ListManipulationStackTest {
 	@Test
 	public void lifeCycleTest() {
 		final ListManipulationStack	lms = new ListManipulationStack();

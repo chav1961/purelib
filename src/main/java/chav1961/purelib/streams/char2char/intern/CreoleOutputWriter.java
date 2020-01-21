@@ -1,4 +1,5 @@
-package chav1961.purelib.streams.char2char;
+package chav1961.purelib.streams.char2char.intern;
+
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -6,9 +7,8 @@ import java.io.IOException;
 import chav1961.purelib.basic.FSM;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2char.CreoleWriter.CreoleTerminals;
 
-abstract class CreoleOutputWriter implements Closeable {
+public abstract class CreoleOutputWriter implements Closeable {
 	protected enum SectionState {
 		INITIAL, ORDINAL, TERMINAL, PRINT_CAPTION, PRINT_PARAGRAPH, PRINT_LIST, PRINT_LIST_ITEM, PRINT_TABLE_HEADER, PRINT_TABLE_DATA, PRINT_TABLE_DATA_END
 	}
@@ -141,14 +141,14 @@ abstract class CreoleOutputWriter implements Closeable {
 	protected CreoleOutputWriter() {
 	}
 	
-	abstract void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException;
-	abstract void internalWriteEscaped(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException;
-	abstract void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException;
-	abstract void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException;
-	protected abstract void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Long> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Long parameter) throws FlowException;
-	protected abstract void processFont(final FSM<CreoleTerminals,FontState,FontActions,Long> fsm,final CreoleTerminals terminal,final FontState fromState,final FontState toState,final FontActions[] action,final Long parameter) throws FlowException;
+	public abstract void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException;
+	public abstract void internalWriteEscaped(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException;
+	public abstract void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException;
+	public abstract void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException;
+	public abstract void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Long> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Long parameter) throws FlowException;
+	public abstract void processFont(final FSM<CreoleTerminals,FontState,FontActions,Long> fsm,final CreoleTerminals terminal,final FontState fromState,final FontState toState,final FontActions[] action,final Long parameter) throws FlowException;
 	
-	void automat(final long displacement, final int lineNo, final int colNo, final CreoleTerminals terminal, final long parameter) throws IOException, SyntaxException {
+	public void automat(final long displacement, final int lineNo, final int colNo, final CreoleTerminals terminal, final long parameter) throws IOException, SyntaxException {
 		currentDispl = displacement + colNo;
 		try{fontFsm.processTerminal(terminal, parameter);
 			sectionFsm.processTerminal(terminal, parameter);
@@ -157,15 +157,15 @@ abstract class CreoleOutputWriter implements Closeable {
 		}
 	}
 
-	void internalWrite(final long displacement, final char[] content) throws IOException, SyntaxException {
+	protected void internalWrite(final long displacement, final char[] content) throws IOException, SyntaxException {
 		internalWrite(displacement, content,false);
 	}		
 	
-	void internalWrite(final long displacement, final char[] content, final boolean keepNewLines) throws IOException, SyntaxException {
+	protected void internalWrite(final long displacement, final char[] content, final boolean keepNewLines) throws IOException, SyntaxException {
 		internalWrite(displacement,content,0,content.length,keepNewLines);
 	}
 
-	void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
+	public void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
 		internalWrite(displacement,content,0,content.length,keepNewLines);
 	}		
 }

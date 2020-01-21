@@ -59,7 +59,6 @@ class StackAndVarRepo {
 		pop4AndPushLong,
 		
 		pushField,
-		popAndPushField,
 		pushStatic,
 		popField,
 		popStatic,
@@ -536,7 +535,7 @@ class StackAndVarRepo {
 			case swap :
 				final	int val1 = select(0), val2 = select(-1);
 				
-				if (val1 == CompilerUtils.CLASSTYPE_DOUBLE || val1 == CompilerUtils.CLASSTYPE_LONG) {
+				if (val2 == CompilerUtils.CLASSTYPE_DOUBLE || val2 == CompilerUtils.CLASSTYPE_LONG) {
 					throw new ContentException("Illegal command usage: double/long value at the top of stack");
 				}
 				else {
@@ -560,7 +559,7 @@ class StackAndVarRepo {
 						throw new ContentException("Illegal command usage: multianewarray command contains non-integer dimensions on stack at position ["+(index-signature)+"]");
 					}
 				}
-				if (select(-signature) != CompilerUtils.CLASSTYPE_INT) {
+				if (select(-signature) != CompilerUtils.CLASSTYPE_REFERENCE) {
 					throw new ContentException("Illegal command usage: multianewarray command doesn't contain reference type on stack at position [-"+signature+"]");
 				}
 				pop(signature+1);
@@ -568,24 +567,48 @@ class StackAndVarRepo {
 				break;
 			case popField	:
 				if (signature == CompilerUtils.CLASSTYPE_DOUBLE || signature == CompilerUtils.CLASSTYPE_LONG) {
-					pop(3);
+					if (select(0) == SPECIAL_TYPE_TOP && select(-1) == signature && select(-2) == CompilerUtils.CLASSTYPE_REFERENCE) {
+						pop(3);
+					}
+					else {
+						throw new ContentException("Illegal command usage: illegal stack content (double/long and reference awaited)");
+					}
 				}
 				else {
-					pop(2);
-					pop();
+					if (select(0) == signature && select(-1) == CompilerUtils.CLASSTYPE_REFERENCE) {
+						pop(2);
+					}
+					else {
+						throw new ContentException("Illegal command usage: illegal stack content (non-double/-nonlong and reference awaited)");
+					}
 				}
 				break;
 			case popStatic	:
 				if (signature == CompilerUtils.CLASSTYPE_DOUBLE || signature == CompilerUtils.CLASSTYPE_LONG) {
-					pop(2);
+					if (select(0) == SPECIAL_TYPE_TOP && select(-1) == signature) {
+						pop(2);
+					}
+					else {
+						throw new ContentException("Illegal command usage: attempt to save long/double from non-long/non-doube stack");
+					}
 				}
 				else {
-					pop();
+					if (select(0) == signature) {
+						pop();
+					}
+					else {
+						throw new ContentException("Illegal command usage: incompatible types on static fields and stack top");
+					}
 				}
 				break;
 			case pushField	:
-				pop();
-				push(signature);
+				if (select(0) != CompilerUtils.CLASSTYPE_REFERENCE) {
+					throw new ContentException("Illegal command usage: any reference on the top of stack is missing");
+				}
+				else {
+					pop();
+					push(signature);
+				}
 				break;
 			case pushStatic	:
 				push(signature);
@@ -634,7 +657,7 @@ class StackAndVarRepo {
 	
 	private void compareStack(final int[] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
-			if (!typesAreCompatible(select(index-signatureSize+1),callSignature[signatureSize-index])) {
+			if (!typesAreCompatible(select(index-signatureSize+1),callSignature[index])) {
 				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]");
 			}
 		}

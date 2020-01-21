@@ -10,18 +10,41 @@ import java.sql.Types;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableCharArray;
 
+/**
+ * <p>This class converts content of JDBC {@linkplain ResultSet} to CSV character stream. Output CSV format is compatible with RFC 4180 requirements.</p>   
+ * @see <a href="https://tools.ietf.org/html/rfc4180">RFC 4180</a>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class Jdbc2CsvReader extends Reader {
+	private static final char[]		NEWLINE = "\r\n".toCharArray();
+	
 	private final ResultSet			rs;
 	private final char				splitter;
 	private final InOutGrowableCharArray	gca = new InOutGrowableCharArray(false);
 	private final ReadingFormat[]	formats; 
 	private int						cursor;
 	
-	public Jdbc2CsvReader(final ResultSet rs, final char splitter) throws IOException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param rs result set to select content from
+	 * @param splitter splitter for the CSV fields
+	 * @throws NullPointerException if result set reference is null 
+	 * @throws IOException on any I/O errors
+	 */
+	public Jdbc2CsvReader(final ResultSet rs, final char splitter) throws IOException, NullPointerException {
 		this(rs,splitter,true);
 	}
-	
-	public Jdbc2CsvReader(final ResultSet rs, final char splitter, final boolean firstLineIsNames) throws IOException {
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param rs result set to select content from
+	 * @param splitter splitter for the CSV fields
+	 * @param firstLineIsNames insert field names into CSV stream at the same first line of the stream
+	 * @throws NullPointerException if result set reference is null 
+	 * @throws IOException on any I/O errors
+	 */
+	public Jdbc2CsvReader(final ResultSet rs, final char splitter, final boolean firstLineIsNames) throws IOException, NullPointerException {
 		if (rs == null) {
 			throw new NullPointerException("Result set can't be null");
 		}
@@ -67,7 +90,7 @@ public class Jdbc2CsvReader extends Reader {
 							this.formats[index-1] = ReadingFormat.AsDate;
 							break;
 						default :
-							throw new IOException("Column ["+rsmd.getColumnName(index)+"] has unsuported format ["+rsmd.getColumnTypeName(index)+"]");
+							throw new IOException("Column ["+rsmd.getColumnName(index)+"] has unsupported format ["+rsmd.getColumnTypeName(index)+"]");
 					}
 					if (firstLineIsNames) {
 						if (index != 1) {
@@ -77,7 +100,7 @@ public class Jdbc2CsvReader extends Reader {
 					}
 				}
 				if (firstLineIsNames) {
-					gca.append('\n');
+					gca.append(NEWLINE);
 					cursor = 0;
 				}
 				else {
@@ -131,7 +154,7 @@ public class Jdbc2CsvReader extends Reader {
 									throw new UnsupportedOperationException("Unsupported column format ["+formats[index-1]+"]");					
 							}
 						}
-						gca.println();
+						gca.append(NEWLINE);
 					}
 					cursor = 0;
 				} catch (SQLException | PrintingException e) {

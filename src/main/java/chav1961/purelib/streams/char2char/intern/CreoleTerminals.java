@@ -1,0 +1,25 @@
+package chav1961.purelib.streams.char2char.intern;
+
+public enum CreoleTerminals {
+	TERM_CONTENT,
+	TERM_SOD,
+	TERM_EOD,
+	TERM_SOL,
+	TERM_EOL,
+	TERM_P_START,
+	TERM_P_END,
+	TERM_UL_START,
+	TERM_UL_END,
+	TERM_OL_START,
+	TERM_OL_END,
+	TERM_LI,
+	TERM_H_START,
+	TERM_H_END,
+	TERM_HL,
+	TERM_BOLD,
+	TERM_ITALIC,
+	TERM_TH,
+	TERM_TD,
+	TERM_TABLE_END,
+	TERM_BR
+}

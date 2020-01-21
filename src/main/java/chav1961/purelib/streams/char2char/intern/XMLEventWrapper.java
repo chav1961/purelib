@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.char2char;
+package chav1961.purelib.streams.char2char.intern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-class XMLEventWrapper implements XMLEventWriter {
+public class XMLEventWrapper implements XMLEventWriter {
 	private final List<String>		stack = new ArrayList<>();
 	private final XMLEventWriter 	nested;
 	

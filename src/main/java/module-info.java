@@ -11,7 +11,7 @@ module chav1961.purelib {
 	requires java.logging;
 	requires jdk.jdi;
 	requires jdk.unsupported;
-	requires java.sql;
+	requires transitive java.sql;
 	requires java.rmi;
 	requires java.management;
 	requires jdk.httpserver;

@@ -82,7 +82,7 @@
 Пакет streams.byte2byte
 1. Починить ZLib-потоки
 Пакет streams.byte2char
-1. Дописать javadoc 
+*1. Дописать javadoc 
 Пакет streams.char2char
 1. Дописать javadoc 
 Пакет streams.char2byte.asm

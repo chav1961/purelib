@@ -1,14 +1,20 @@
 package chav1961.purelib.streams.char2char;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.util.Arrays;
 
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.interfaces.CharStreamPrinter;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
+/**
+ * <p>This class is a wrapper to {@linkplain PrintStream} class. It is used to prevent suppression of all I/O exception by source {@linkplain PrintStream} class,
+ * because it blinks I/O errors during execution and can be caused to unpredictable behavior.</p>    
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class PrintWriterWrapper implements CharStreamPrinter<PrintWriterWrapper> {
 	static final char[]			CRNL = System.getProperty("line.separator").toCharArray();
 	static final char[]			NULL = "null".toCharArray();
@@ -19,6 +25,11 @@ public class PrintWriterWrapper implements CharStreamPrinter<PrintWriterWrapper>
 	private final Writer	delegate;
 	private char[]			buffer = new char[INITIAL_BUFFER_SIZE];
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param writer nested writer to print content to
+	 * @throws NullPointerException when nested writer is null
+	 */
 	public PrintWriterWrapper(final Writer writer) throws NullPointerException {
 		if (writer == null) {
 			throw new NullPointerException("Nested writer can't be null");

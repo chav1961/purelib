@@ -18,9 +18,10 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.4
  */
 public class InOutGrowableCharArray extends GrowableCharArray implements CharStreamPrinter<InOutGrowableCharArray> {
-	static final char[]			CRNL = System.getProperty("line.separator").toCharArray();
+	static final char[]			CRNL = System.lineSeparator().toCharArray();
 	static final char[]			NULL = "null".toCharArray();
 	static final char[]			TRUE = "true".toCharArray();
 	static final char[]			FALSE = "false".toCharArray();
