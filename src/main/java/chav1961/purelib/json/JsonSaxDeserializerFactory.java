@@ -33,7 +33,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.json.interfaces.CreateAndSet;
 import chav1961.purelib.streams.JsonSaxParser;
 import chav1961.purelib.streams.char2byte.AsmWriter;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.interfaces.JsonSaxDeserializer;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 

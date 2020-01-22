@@ -11,6 +11,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
 
 class MethodDescriptor implements Closeable {
@@ -57,13 +58,13 @@ class MethodDescriptor implements Closeable {
 		
 		this.throwsDispl = new short[tLen];
 		for (int index = 0; index < tLen; index++) {
-			this.throwsDispl[index] = ccr.asClassDescription(tree.placeOrChangeName(tree.getName(throwsList[index]).replace('.','/'),new NameDescriptor()));
+			this.throwsDispl[index] = ccr.asClassDescription(tree.placeOrChangeName(tree.getName(throwsList[index]).replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 		}
-		this.exceptionsWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_Exceptions,0,Constants.ATTRIBUTE_Exceptions.length,new NameDescriptor()));
-		this.codeWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_Code,0,Constants.ATTRIBUTE_Code.length,new NameDescriptor()));
-		this.localVariableTableWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LocalVariableTable,0,Constants.ATTRIBUTE_LocalVariableTable.length,new NameDescriptor()));
-		this.lineNumberTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LineNumberTable,0,Constants.ATTRIBUTE_LineNumberTable.length,new NameDescriptor()));
-		this.stackMapTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_StackMapTable,0,Constants.ATTRIBUTE_StackMapTable.length,new NameDescriptor()));
+		this.exceptionsWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_Exceptions,0,Constants.ATTRIBUTE_Exceptions.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.codeWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_Code,0,Constants.ATTRIBUTE_Code.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.localVariableTableWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LocalVariableTable,0,Constants.ATTRIBUTE_LocalVariableTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.lineNumberTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LineNumberTable,0,Constants.ATTRIBUTE_LineNumberTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.stackMapTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_StackMapTable,0,Constants.ATTRIBUTE_StackMapTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 		
 		this.methodBodyAwait = (accessFlags & (Constants.ACC_NATIVE | Constants.ACC_ABSTRACT)) == 0;
 		pushStack.add(0,new StackLevel(varDispl,(short)0));
@@ -265,7 +266,7 @@ class MethodDescriptor implements Closeable {
 		}
 		else {
 			final String	signature = InternalUtils.buildFieldSignature(tree,typeId);
-			final long		signatureId = tree.placeOrChangeName(signature,new NameDescriptor());
+			final long		signatureId = tree.placeOrChangeName(signature,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 			
 			pushStack.get(0).vars.addRef((short)(varDispl+1),varId);
 			if (typeId == longId || typeId == doubleId) {	// these types occupy 2 cells in the local var table
@@ -287,22 +288,22 @@ class MethodDescriptor implements Closeable {
 			final long[]	parm = new long[parametersList.size()];
 			
 			for (int index = 0, maxIndex = parm.length; index < maxIndex; index++) {
-				parm[index] = tree.placeOrChangeName(tree.getName(parametersList.get(index)).replace('.','/'),new NameDescriptor());
+				parm[index] = tree.placeOrChangeName(tree.getName(parametersList.get(index)).replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 			}
-			final long		signatureId = tree.placeOrChangeName(InternalUtils.buildMethodSignature(tree,(accessFlags & Constants.ACC_STATIC) != 0,returnedTypeId,parm),new NameDescriptor()); 
+			final long		signatureId = tree.placeOrChangeName(InternalUtils.buildMethodSignature(tree,(accessFlags & Constants.ACC_STATIC) != 0,returnedTypeId,parm),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)); 
 			final int		classLen = tree.getNameLength(classId), methodLen = tree.getNameLength(methodId), signatureLen = getNameTree().getNameLength(signatureId); 
 			final char[]	forShortName = new char[methodLen+signatureLen], forLongName = new char[classLen+1+methodLen+signatureLen];
 
 			tree.getName(methodId,forShortName,0);	// Create and place method with signature in the name tree (short)
 			tree.getName(signatureId,forShortName,methodLen);
-			tree.placeOrChangeName(forShortName,0,forShortName.length,new NameDescriptor());
+			tree.placeOrChangeName(forShortName,0,forShortName.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 
 			
 			tree.getName(classId,forLongName,0);	// Create and place method with signature in the name tree (long)
 			forLongName[classLen] = '.';
 			tree.getName(methodId,forLongName,classLen+1);
 			tree.getName(signatureId,forLongName,classLen+1+methodLen);
-			tree.placeOrChangeName(forLongName,0,forLongName.length,new NameDescriptor());
+			tree.placeOrChangeName(forLongName,0,forLongName.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 
 			final boolean	wasConstructor = UnsafedCharUtils.uncheckedCompare(forShortName,0,LineParser.CONSTRUCTOR,0,LineParser.CONSTRUCTOR.length) 
 											|| UnsafedCharUtils.uncheckedCompare(forShortName,0,LineParser.CLASS_CONSTRUCTOR,0,LineParser.CLASS_CONSTRUCTOR.length);
@@ -313,12 +314,12 @@ class MethodDescriptor implements Closeable {
 					className = className.substring(className.lastIndexOf('.')+1);
 				}
 				if ((accessFlags & Constants.ACC_STATIC) != 0) {
-					tree.placeOrChangeName(new String(forShortName).replace(CLASS_INIT_STRING,className),new NameDescriptor());
-					tree.placeOrChangeName(new String(forLongName).replace(CLASS_INIT_STRING,className),new NameDescriptor());
+					tree.placeOrChangeName(new String(forShortName).replace(CLASS_INIT_STRING,className),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+					tree.placeOrChangeName(new String(forLongName).replace(CLASS_INIT_STRING,className),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 				}
 				else {
-					tree.placeOrChangeName(new String(forShortName).replace(INIT_STRING,className),new NameDescriptor());
-					tree.placeOrChangeName(new String(forLongName).replace(INIT_STRING,className),new NameDescriptor());
+					tree.placeOrChangeName(new String(forShortName).replace(INIT_STRING,className),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+					tree.placeOrChangeName(new String(forLongName).replace(INIT_STRING,className),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 				}
 			}
 			

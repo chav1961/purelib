@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 
 
@@ -23,7 +24,7 @@ public class ClassContainerTest {
 				Assert.fail("Mandatory exception was not detected (call getClassName() before setClassName())");
 			} catch (IllegalStateException exc) {
 			}
-			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			cc.dump(baos);
 			
 			final Class<?>	loaded = loadClass(cc.getClassName(),baos);
@@ -52,8 +53,8 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final ClassContainer		cc = new ClassContainer()) {
 
-			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
-			cc.setExtendsClassName(cc.getNameTree().placeName(this.getClass().getName(),new NameDescriptor()));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.setExtendsClassName(cc.getNameTree().placeName(this.getClass().getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			cc.dump(baos);
 			
 			final Class<?>	loaded = loadClass(cc.getClassName(),baos);
@@ -66,9 +67,9 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final ClassContainer		cc = new ClassContainer()) {
 
-			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
-			cc.addInterfaceName(cc.getNameTree().placeName(Serializable.class.getName(),new NameDescriptor()));
-			cc.addInterfaceName(cc.getNameTree().placeName(AutoCloseable.class.getName(),new NameDescriptor()));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addInterfaceName(cc.getNameTree().placeName(Serializable.class.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addInterfaceName(cc.getNameTree().placeName(AutoCloseable.class.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			cc.dump(baos);
 			
 			final Class<?>	loaded = loadClass(cc.getClassName(),baos);
@@ -88,18 +89,18 @@ public class ClassContainerTest {
 			final ClassContainer		cc = new ClassContainer()) {
 
 			cc.setClassName((short) 0x0001,-1,cc.getNameTree().placeName("Test",null));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("byteField",null),cc.getNameTree().placeName("byte",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("charField",null),cc.getNameTree().placeName("char",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("doubleField",null),cc.getNameTree().placeName("double",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("floatField",null),cc.getNameTree().placeName("float",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("intField",null),cc.getNameTree().placeName("int",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("longField",null),cc.getNameTree().placeName("long",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("stringField",null),cc.getNameTree().placeName("java.lang.String",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("stringField2",null),cc.getNameTree().placeName("java.lang.String",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("shortField",null),cc.getNameTree().placeName("short",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("booleanField",null),cc.getNameTree().placeName("boolean",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("intArrayField",null),cc.getNameTree().placeName("int[]",new NameDescriptor()));
-			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("stringArrayField",null),cc.getNameTree().placeName("java.lang.String[]",new NameDescriptor()));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("byteField",null),cc.getNameTree().placeName("byte",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("charField",null),cc.getNameTree().placeName("char",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("doubleField",null),cc.getNameTree().placeName("double",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("floatField",null),cc.getNameTree().placeName("float",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("intField",null),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("longField",null),cc.getNameTree().placeName("long",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("stringField",null),cc.getNameTree().placeName("java.lang.String",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("stringField2",null),cc.getNameTree().placeName("java.lang.String",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("shortField",null),cc.getNameTree().placeName("short",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("booleanField",null),cc.getNameTree().placeName("boolean",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("intArrayField",null),cc.getNameTree().placeName("int[]",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addFieldDescription((short) 0x0001,cc.getNameTree().placeName("stringArrayField",null),cc.getNameTree().placeName("java.lang.String[]",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			cc.dump(baos);
 			
 			final Class<?>	loaded = loadClass(cc.getClassName(),baos);
@@ -117,15 +118,15 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final ClassContainer		cc = new ClassContainer()) {
 
-			cc.getNameTree().placeName("double",new NameDescriptor());
-			cc.getNameTree().placeName("long",new NameDescriptor());
-			cc.getNameTree().placeName("this",new NameDescriptor());
-			cc.setClassName((short) 0x0401,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
-			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethod",new NameDescriptor()),cc.getNameTree().placeName("void",new NameDescriptor())).complete();
-			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethodWithThrows",new NameDescriptor()),cc.getNameTree().placeName("void",new NameDescriptor()),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor())).complete();
+			cc.getNameTree().placeName("double",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+			cc.getNameTree().placeName("long",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+			cc.getNameTree().placeName("this",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+			cc.setClassName((short) 0x0401,0,cc.getNameTree().placeName("Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethod",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID))).complete();
+			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethodWithThrows",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID))).complete();
 			
 			long	id;
-			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,id = cc.getNameTree().placeName("voidMethodWithThrows",new NameDescriptor()),cc.getNameTree().placeName("void",new NameDescriptor()),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor()));
+			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,id = cc.getNameTree().placeName("voidMethodWithThrows",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			
 			System.err.println(cc.getNameTree().getName(id));
 			desc.getBody().putCommand(0,(byte)0xB1);	// Void method with return command only
@@ -146,11 +147,11 @@ public class ClassContainerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			final ClassContainer		cc = new ClassContainer()) {
 
-			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor()));
+			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			
-			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,cc.getNameTree().placeName("add",new NameDescriptor()),cc.getNameTree().placeName("int",new NameDescriptor()));
-			desc.addParameterDeclaration((short)0x0000,cc.getNameTree().placeName("x",new NameDescriptor()),cc.getNameTree().placeName("int",new NameDescriptor()));
-			desc.addParameterDeclaration((short)0x0000,cc.getNameTree().placeName("y",new NameDescriptor()),cc.getNameTree().placeName("int",new NameDescriptor()));
+			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,cc.getNameTree().placeName("add",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			desc.addParameterDeclaration((short)0x0000,cc.getNameTree().placeName("x",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			desc.addParameterDeclaration((short)0x0000,cc.getNameTree().placeName("y",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			
 			desc.getBody().putCommand(1,(byte)0x1A);	// load x into stack
 			desc.getBody().putCommand(1,(byte)0x1b);	// load y into stack

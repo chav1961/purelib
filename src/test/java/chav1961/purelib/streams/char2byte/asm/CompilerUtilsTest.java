@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 public class CompilerUtilsTest {
 	@Test

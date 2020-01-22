@@ -10,8 +10,13 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
-public class CreoleTextOutputWriter extends CreoleOutputWriter {
+class CreoleTextOutputWriter extends CreoleOutputWriter {
 	private static final char[][]	UL = {"*".toCharArray(),"**".toCharArray(),"***".toCharArray(),"****".toCharArray(),"*****".toCharArray()};
 	private static final char[][]	OL = {"#".toCharArray(),"##".toCharArray(),"##".toCharArray(),"##".toCharArray(),"##".toCharArray()};
 	private static final char[][]	H = {"=".toCharArray(),"==".toCharArray(),"===".toCharArray(),"====".toCharArray(),"=====".toCharArray(),"======".toCharArray()};
@@ -44,27 +49,27 @@ public class CreoleTextOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	public void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		nested.write(content,from,to-from);
 	}
 
 	@Override
-	public void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
-		internalWrite(displacement,content,from,to,keepNewLines);
+	public void writeEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+		write(displacement,content,from,to,keepNewLines);
 	}	
 
 	@Override
 	public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (startCaption < endCaption) {
 			internalWrite(displacement,IMAGE_START);
-			internalWrite(displacement,data,startLink,endLink,false);
+			write(displacement,data,startLink,endLink,false);
 			internalWrite(displacement,IMAGE_PART);
-			internalWrite(displacement,data,startCaption,endCaption,false);
+			write(displacement,data,startCaption,endCaption,false);
 			internalWrite(displacement,IMAGE_END);
 		}
 		else {
 			internalWrite(displacement,IMAGE_START);
-			internalWrite(displacement,data,startLink,endLink,false);
+			write(displacement,data,startLink,endLink,false);
 			internalWrite(displacement,IMAGE_END);
 		}
 	}
@@ -73,21 +78,21 @@ public class CreoleTextOutputWriter extends CreoleOutputWriter {
 	public void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		if (startCaption < endCaption) {
 			internalWrite(displacement,LINK_START);
-			internalWrite(displacement,data,startLink,endLink,false);
+			write(displacement,data,startLink,endLink,false);
 			internalWrite(displacement,LINK_PART);
-			internalWrite(displacement,data,startCaption,endCaption,false);
+			write(displacement,data,startCaption,endCaption,false);
 			internalWrite(displacement,LINK_END);
 		}
 		else {
 			internalWrite(displacement,LINK_START);
-			internalWrite(displacement,data,startLink,endLink,false);
+			write(displacement,data,startLink,endLink,false);
 			internalWrite(displacement,LINK_END);
 		}
 	}
 
 	@Override
-	public void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
-		try{for (SectionActions item : action) {
+	public void processSection(final FSM<CreoleTerminals, CreoleSectionState, CreoleSectionActions, Long> fsm, final CreoleTerminals terminal, final CreoleSectionState fromState, final CreoleSectionState toState, final CreoleSectionActions[] action, final Long parameter) throws FlowException {
+		try{for (CreoleSectionActions item : action) {
 				switch (item) {
 					case H_OPEN	: case H_CLOSE		: 
 						internalWrite(currentDispl,H[parameter.intValue()]); 
@@ -116,8 +121,8 @@ public class CreoleTextOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
-		try{for (FontActions item : action) {
+	public void processFont(final FSM<CreoleTerminals, CreoleFontState, CreoleFontActions, Long> fsm, final CreoleTerminals terminal, final CreoleFontState fromState, final CreoleFontState toState, final CreoleFontActions[] action, final Long parameter) throws FlowException {
+		try{for (CreoleFontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN : case BOLD_CLOSE : 
 						internalWrite(currentDispl,B); 

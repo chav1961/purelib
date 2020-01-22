@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 
 class ClassContainer implements Closeable {
@@ -135,7 +137,7 @@ class ClassContainer implements Closeable {
 			throw new IllegalStateException("Last call to addMethodDescription(...) not commited with addMethodBody(...)!");
 		}
 		if (superId == 0) {						// Defaults for java.lang.Object extension
-			superId = getConstantPool().asClassDescription(tree.placeOrChangeName(Constants.OBJECT_NAME,0,Constants.OBJECT_NAME.length,new NameDescriptor()));
+			superId = getConstantPool().asClassDescription(tree.placeOrChangeName(Constants.OBJECT_NAME,0,Constants.OBJECT_NAME.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
 		}
 		
 		short	attr_sourcefile = 0, attr_sourcefile_text = 0; 
@@ -202,7 +204,7 @@ class ClassContainer implements Closeable {
 			forName[curs] = '.';	
 			getNameTree().getName(classId,forName,curs+1);
 			decode(forName,'.','/');
-			return getNameTree().placeOrChangeName(forName,0,forName.length,new NameDescriptor());
+			return getNameTree().placeOrChangeName(forName,0,forName.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 		}
 		else {
 			return classId;
@@ -214,7 +216,7 @@ class ClassContainer implements Closeable {
 		
 		getNameTree().getName(typeId,result,0);
 		if (decode(result,'.','/')) {
-			return getNameTree().placeOrChangeName(result,0,result.length,new NameDescriptor());
+			return getNameTree().placeOrChangeName(result,0,result.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 		}
 		else {
 			return typeId;

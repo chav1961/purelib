@@ -10,6 +10,7 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 
 public class MethodBodyTest {
 	private byte[]	result;
@@ -38,22 +39,23 @@ public class MethodBodyTest {
 	public void basicTest() throws IOException, ContentException {
 		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
 		final MethodBody	mb = new MethodBody(0,0,aot,false);
+		final StackSnapshot	ss = mb.getStackAndVarRepo().makeSnapshot();
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1, null);
 		aot.placeName("label2".toCharArray(), 0, 6, 2, null);
 
-		mb.putLabel(1);
+		mb.putLabel(1,ss);
 		for (int index = 0; index < 16; index++){
-			mb.registerBrunch(1,false);
+			mb.registerBrunch(1,false,ss);
 			mb.putCommand((byte)0,(byte)0,(byte)0,(byte)0);
 		}
-		mb.putLabel(2);
+		mb.putLabel(2,ss);
 		for (int index = 0; index < 16; index++){
-			mb.registerBrunch(2,false);
+			mb.registerBrunch(2,false,ss);
 			mb.putCommand((byte)0,(byte)0,(byte)0,(byte)0);
 		}
 		for (int index = 0; index < 16; index++){
-			mb.registerBrunch(2,true);
+			mb.registerBrunch(2,true,ss);
 			mb.putCommand((byte)0,(byte)0);
 		}
 		
@@ -64,9 +66,10 @@ public class MethodBodyTest {
 	}
 
 	@Test
-	public void unresolvedLabelsTest() throws IOException {
+	public void unresolvedLabelsTest() throws IOException, ContentException {
 		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
 		final MethodBody	mb = new MethodBody(3,4,aot,false);
+		final StackSnapshot	ss = mb.getStackAndVarRepo().makeSnapshot();
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1,null);
 		aot.placeName("label2".toCharArray(), 0, 6, 2,null);
@@ -74,16 +77,16 @@ public class MethodBodyTest {
 		aot.placeName("method".toCharArray(), 0, 6, 4,null);
 
 		for (int index = 0; index < 16; index++){
-			mb.registerBrunch(1,false);
+			mb.registerBrunch(1,false,ss);
 			mb.putCommand((byte)0,(byte)0,(byte)0,(byte)0);
 		}
-		mb.putLabel(2);
+		mb.putLabel(2,ss);
 		for (int index = 0; index < 16; index++){
-			mb.registerBrunch(2,false);
+			mb.registerBrunch(2,false,ss);
 			mb.putCommand((byte)0,(byte)0,(byte)0,(byte)0);
 		}
 		for (int index = 0; index < 16; index++){
-			mb.registerBrunch(2,true);
+			mb.registerBrunch(2,true,ss);
 			mb.putCommand((byte)0,(byte)0);
 		}
 

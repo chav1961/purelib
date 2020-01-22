@@ -12,7 +12,7 @@ import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNodeOperator;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCommand;
 

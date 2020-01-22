@@ -13,7 +13,7 @@ import javax.swing.text.MaskFormatter;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 public class FieldFormat {
 	public enum ContentType {

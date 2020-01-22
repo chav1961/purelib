@@ -26,7 +26,11 @@ import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.char2char.intern.CreoleOutputWriter;
-import chav1961.purelib.streams.char2char.intern.CreoleTerminals;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
 public class CreoleWriterTest {
 	@Test
@@ -62,12 +66,12 @@ public class CreoleWriterTest {
 					}
 
 					@Override
-					public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+					public void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 						System.err.print(new String(content,from,to-from));
 					}
 
 					@Override
-					public void internalWriteEscaped(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+					public void writeEscaped(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 						System.err.print(new String(content,from,to-from));
 					}
 					
@@ -82,12 +86,12 @@ public class CreoleWriterTest {
 					}
 
 					@Override
-					public void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
+					public void processSection(final FSM<CreoleTerminals, CreoleSectionState, CreoleSectionActions, Long> fsm, final CreoleTerminals terminal, final CreoleSectionState fromState, final CreoleSectionState toState, final CreoleSectionActions[] action, final Long parameter) throws FlowException {
 						System.err.print("<Section: "+fromState+"->"+toState+">");
 					}
 
 					@Override
-					public void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
+					public void processFont(final FSM<CreoleTerminals, CreoleFontState, CreoleFontActions, Long> fsm, final CreoleTerminals terminal, final CreoleFontState fromState, final CreoleFontState toState, final CreoleFontActions[] action, final Long parameter) throws FlowException {
 						System.err.print("<Font: "+fromState+"->"+toState+">");
 					}
 				}; 

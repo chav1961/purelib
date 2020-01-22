@@ -40,7 +40,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;

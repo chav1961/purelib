@@ -3,6 +3,7 @@ package chav1961.purelib.streams.char2byte.asm;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 class StackAndVarRepo {
 	static final int			SPECIAL_TYPE_TOP = -1;
@@ -63,7 +64,6 @@ class StackAndVarRepo {
 		popField,
 		popStatic,
 		
-		call,
 		callAndPush,
 		multiarrayAndPushReference,
 	}
@@ -559,10 +559,7 @@ class StackAndVarRepo {
 						throw new ContentException("Illegal command usage: multianewarray command contains non-integer dimensions on stack at position ["+(index-signature)+"]");
 					}
 				}
-				if (select(-signature) != CompilerUtils.CLASSTYPE_REFERENCE) {
-					throw new ContentException("Illegal command usage: multianewarray command doesn't contain reference type on stack at position [-"+signature+"]");
-				}
-				pop(signature+1);
+				pop(signature);
 				pushReference();
 				break;
 			case popField	:
@@ -622,18 +619,10 @@ class StackAndVarRepo {
 	void processChanges(final StackChanges changes, final int[] callSignature, final int signatureSize, final int retSignature) throws ContentException {
 		begin();
 		switch (changes) {
-			case call			:
-				if (retSignature != CompilerUtils.CLASSTYPE_VOID) {
-					throw new ContentException("Illegal command usage: method call returns non-void");
-				}
-				else {
-					compareStack(callSignature,signatureSize);
-					pop(signatureSize);
-				}
-				break;
 			case callAndPush	:
 				if (retSignature == CompilerUtils.CLASSTYPE_VOID) {
-					throw new ContentException("Illegal command usage: method call returns void");
+					compareStack(callSignature,signatureSize);
+					pop(signatureSize);
 				}
 				else {
 					compareStack(callSignature,signatureSize);
@@ -654,6 +643,24 @@ class StackAndVarRepo {
 	int getMaxStackDepth() {
 		return maxStackDepth;
 	}
+
+	StackSnapshot makeSnapshot() {
+		return new StackSnapshot(stackContent,currentStackTop); 
+	}
+
+	void loadSnapshot(final StackSnapshot snapshot) {
+		
+	}
+	
+	boolean compareStack(final int[] content) throws ContentException {
+		for (int index = 0, signatureSize = content.length; index < signatureSize; index++) {
+			if (!typesAreCompatible(select(index-signatureSize+1),content[index])) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	
 	private void compareStack(final int[] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
@@ -678,5 +685,61 @@ class StackAndVarRepo {
 			stackShadow = Arrays.copyOf(stackShadow,2*stackShadow.length);
 		}
 		maxStackDepth = Math.max(maxStackDepth,currentStackTop + delta);
-	}	
+	}
+	
+	static class StackSnapshot {
+		private final int[]	content;
+		
+		StackSnapshot(final int[] stackContent, final int stackSize) {
+			this.content = Arrays.copyOf(stackContent,stackSize+1);
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + Arrays.hashCode(content);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			StackSnapshot other = (StackSnapshot) obj;
+			if (!Arrays.equals(content, other.content)) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder	sb = new StringBuilder();
+			char				prefix= '=';
+			
+			sb.append("StackSnapshot [content");
+			
+			for (int val : content) {
+				sb.append(prefix);
+				switch (val) {
+					case CompilerUtils.CLASSTYPE_REFERENCE	: sb.append("ref"); break;
+					case CompilerUtils.CLASSTYPE_BYTE		: sb.append("byte"); break;
+					case CompilerUtils.CLASSTYPE_SHORT		: sb.append("short"); break;
+					case CompilerUtils.CLASSTYPE_CHAR		: sb.append("char"); break;	
+					case CompilerUtils.CLASSTYPE_INT		: sb.append("int"); break;	
+					case CompilerUtils.CLASSTYPE_LONG		: sb.append("long"); break;
+					case CompilerUtils.CLASSTYPE_FLOAT		: sb.append("float"); break;
+					case CompilerUtils.CLASSTYPE_DOUBLE		: sb.append("double"); break;
+					case CompilerUtils.CLASSTYPE_BOOLEAN	: sb.append("boolean"); break;
+					case CompilerUtils.CLASSTYPE_VOID		: sb.append("void"); break;
+					case SPECIAL_TYPE_TOP 					: sb.append("top"); break;
+					case SPECIAL_TYPE_UNPREPARED			: sb.append("unprepared"); break;
+					default 								: sb.append(val); break;
+				}
+				prefix = ',';
+			}
+			
+			return  sb.append("]").toString();
+		}
+	}
 }

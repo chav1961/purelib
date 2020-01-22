@@ -71,6 +71,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface.EventType;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface.Location;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.cdb.interfaces.ArrayWrapper;
 import chav1961.purelib.cdb.interfaces.ClassWrapper;
 import chav1961.purelib.cdb.interfaces.FieldWrapper;
@@ -79,7 +80,6 @@ import chav1961.purelib.cdb.interfaces.ObjectWrapper;
 import chav1961.purelib.cdb.interfaces.StackWrapper;
 import chav1961.purelib.cdb.interfaces.ThreadWrapper;
 import chav1961.purelib.cdb.interfaces.VariableWrapper;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
 
 public class DbgClient {
 	private static final Map<Integer,String>	STATES = new HashMap<>();

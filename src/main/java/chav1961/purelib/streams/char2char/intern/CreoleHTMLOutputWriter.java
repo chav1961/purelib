@@ -11,8 +11,13 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
-public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
+class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	
 	private static final char[]		DIV_OPEN = "<div class=\"cwr\">".toCharArray();
 	private static final char[]		DIV_CLOSE = "</div>".toCharArray();
@@ -75,7 +80,7 @@ public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	public void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		nested.write(content,from,to-from);
 		if (storeAnchor) {
 			internalAnchor.append(content,from,to-from);
@@ -83,7 +88,7 @@ public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+	public void writeEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
 		boolean	has2escape = false;
 		
 		for (int index = from; index < to; index++) {
@@ -97,7 +102,7 @@ public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 			
 			for (int index = from; index <= to; index++) {
 				if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
-					internalWrite(displacement+start-from,content,start,index,keepNewLines);
+					write(displacement+start-from,content,start,index,keepNewLines);
 					switch (content[index]) {
 						case '<'	: internalWrite(displacement+start-from,ESC_LT); break;
 						case '>'	: internalWrite(displacement+start-from,ESC_GT); break;
@@ -108,17 +113,17 @@ public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 				}
 			}
 			if (start < to) {
-				internalWrite(displacement+start-from,content,start,to,keepNewLines);
+				write(displacement+start-from,content,start,to,keepNewLines);
 			}
 		}
 		else {
-			internalWrite(displacement,content,from,to,keepNewLines);
+			write(displacement,content,from,to,keepNewLines);
 		}
 	}
 	
 	@Override
-	public void processSection(final FSM<CreoleTerminals,SectionState,SectionActions,Long> fsm,final CreoleTerminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Long parameter) throws FlowException {
-		try{for (SectionActions item : action) {
+	public void processSection(final FSM<CreoleTerminals,CreoleSectionState,CreoleSectionActions,Long> fsm,final CreoleTerminals terminal,final CreoleSectionState fromState,final CreoleSectionState toState,final CreoleSectionActions[] action,final Long parameter) throws FlowException {
+		try{for (CreoleSectionActions item : action) {
 				switch (item) {
 					case DIV_OPEN		: internalWrite(currentDispl, DIV_OPEN); break;
 					case DIV_CLOSE		: internalWrite(currentDispl, DIV_CLOSE); break;
@@ -162,8 +167,8 @@ public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 	
 	@Override
-	public void processFont(final FSM<CreoleTerminals,FontState,FontActions,Long> fsm,final CreoleTerminals terminal,final FontState fromState,final FontState toState,final FontActions[] action,final Long parameter) throws FlowException {
-		try{for (FontActions item : action) {
+	public void processFont(final FSM<CreoleTerminals,CreoleFontState,CreoleFontActions,Long> fsm,final CreoleTerminals terminal,final CreoleFontState fromState,final CreoleFontState toState,final CreoleFontActions[] action,final Long parameter) throws FlowException {
+		try{for (CreoleFontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN		: internalWrite(currentDispl, BOLD_OPEN); break;
 					case BOLD_CLOSE		: internalWrite(currentDispl, BOLD_CLOSE); break;
@@ -181,9 +186,9 @@ public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	@Override
 	public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		internalWrite(displacement,IMG_START);
-		internalWrite(displacement,data,startLink,endLink,false);
+		write(displacement,data,startLink,endLink,false);
 		internalWrite(displacement,IMG_END);
-		internalWrite(displacement,data,startCaption,endCaption,false);
+		write(displacement,data,startCaption,endCaption,false);
 		internalWrite(displacement,IMG_CLOSE);
 	}
 
@@ -208,32 +213,32 @@ public class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 			
 			if (startCaption == endCaption) {
 				internalWrite(displacement,A_START_LOCAL);
-				internalWrite(displacement,link.toCharArray(),0,link.length(),false);
+				write(displacement,link.toCharArray(),0,link.length(),false);
 				internalWrite(displacement,A_END);
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				internalWrite(displacement,A_CLOSE);
 			}
 			else {
 				internalWrite(displacement,A_START_LOCAL);
-				internalWrite(displacement,link.toCharArray(),0,link.length(),false);
+				write(displacement,link.toCharArray(),0,link.length(),false);
 				internalWrite(displacement,A_END);
-				internalWrite(displacement,data,startCaption,endCaption,false);
+				write(displacement,data,startCaption,endCaption,false);
 				internalWrite(displacement,A_CLOSE);
 			}
 		}
 		else {
 			if (startCaption == endCaption) {
 				internalWrite(displacement,A_START);
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				internalWrite(displacement,A_END);
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				internalWrite(displacement,A_CLOSE);
 			}
 			else {
 				internalWrite(displacement,A_START);
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				internalWrite(displacement,A_END);
-				internalWrite(displacement,data,startCaption,endCaption,false);
+				write(displacement,data,startCaption,endCaption,false);
 				internalWrite(displacement,A_CLOSE);
 			}
 		}

@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 
 
 public class TryManagerRecordTest {
@@ -55,10 +56,12 @@ class PseudoMethodBody4TryManager extends AbstractMethodBody {
 	@Override short getPC() {return pc;}
 	@Override void putCommand(int stackDelta, byte... data) {bytesCount += data.length; pc += data.length;}
 	@Override void alignPC() {}
-	@Override void putLabel(long labelId) {label = labelId;}
-	@Override void registerBrunch(long labelId, boolean shortBranch) {}
-	@Override void registerBrunch(int address, int placement, long labelId, boolean shortBranch) {}
+	@Override void putLabel(long labelId,final StackSnapshot snapshot) {label = labelId;}
+	@Override void registerBrunch(long labelId, boolean shortBranch,final StackSnapshot snapshot) {}
+	@Override void registerBrunch(int address, int placement, long labelId, boolean shortBranch,final StackSnapshot snapshot) {}
 	@Override short getStackSize() {return 0;}
 	@Override int getCodeSize() {return 0;}
 	@Override int dump(InOutGrowableByteArray os) throws IOException {return 0;}
+	@Override void markLabelRequired() {}
+	@Override StackAndVarRepo getStackAndVarRepo() {return new StackAndVarRepo((a,b,c,d)->{},(a,b)->{});}
 }

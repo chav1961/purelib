@@ -10,14 +10,13 @@ import java.util.List;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 
 class MethodBody extends AbstractMethodBody {
 	public static final short	STACK_CALCULATION_OPTIMISTIC = -1;
 	public static final short	STACK_CALCULATION_PESSIMISTIC = -2;
 	
-//	private static final int	INITIAL_REFS = 32;
 	private static final int	INITIAL_BODY = 512;
-//	private static final ItemDescriptor	EMPTY_DESCRIPTOR = new ItemDescriptor(0,0);
 	private static final Comparator<ItemDescriptor>	COMPARATOR = new Comparator<ItemDescriptor>(){
 													@Override
 													public int compare(final ItemDescriptor first, final ItemDescriptor second) {
@@ -26,14 +25,17 @@ class MethodBody extends AbstractMethodBody {
 										}; 
 
     private final SyntaxTreeInterface<?>		tree;
+    private final StackAndVarRepo	stackAndVar = new StackAndVarRepo((a,b,c,d)->{},(a,b)->{});
     private final long				className, methodName;
     private final boolean			needVarTable;
 	private final int				stackCalculationStrategy;
 	private List<ItemDescriptor>	labels = new ArrayList<>();
 	private List<ItemDescriptor>	brunches = new ArrayList<>(); 
+	private List<StackDescriptor>	stacks = new ArrayList<>();
 	private byte[]					body = new byte[0];
 	private short					pc = 0, stack, maxStack;
 	private long					uniqueLabel = 2;
+	private boolean					labelRequired = false;
 	
 	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable){
 		this(className,methodName,tree,needVarTable,STACK_CALCULATION_PESSIMISTIC);
@@ -59,59 +61,106 @@ class MethodBody extends AbstractMethodBody {
 	short getPC() {return pc;}
 	
 	@Override
-	void putCommand(final int stackDelta, final byte... data) {
-		final int	len = data.length;
-		
-		if (data.length == 0) {
-			throw new IllegalArgumentException("Attempt to add empty command (data.length == 0)!");
+	void putCommand(final int stackDelta, final byte... data) throws ContentException {
+		if (labelRequired) {
+			throw new ContentException("Dead code: previous command was jump/return/switch command, but current command has no label!");
 		}
 		else {
-			while (pc + len >= body.length) {
-				body = Arrays.copyOf(body,body.length+INITIAL_BODY);
-			}
-			System.arraycopy(data,0,body,pc,len);
+			final int	len = data.length;
 			
-			switch (stackCalculationStrategy) {
-				case STACK_CALCULATION_OPTIMISTIC	: 
-					maxStack = (short) Math.max(maxStack,stack += stackDelta);
-					break;
-				case STACK_CALCULATION_PESSIMISTIC	:
-					if (stackDelta > 0) {
-						maxStack = (short) Math.max(maxStack,stack += stackDelta);
-					}
-					break;
+			if (data.length == 0) {
+				throw new IllegalArgumentException("Attempt to add empty command (data.length == 0)!");
 			}
-			pc += len;
+			else {
+				while (pc + len >= body.length) {
+					body = Arrays.copyOf(body,body.length+INITIAL_BODY);
+				}
+				System.arraycopy(data,0,body,pc,len);
+				
+				switch (stackCalculationStrategy) {
+					case STACK_CALCULATION_OPTIMISTIC	: 
+						maxStack = (short) Math.max(maxStack,stack += stackDelta);
+						break;
+					case STACK_CALCULATION_PESSIMISTIC	:
+						if (stackDelta > 0) {
+							maxStack = (short) Math.max(maxStack,stack += stackDelta);
+						}
+						break;
+				}
+				pc += len;
+			}
 		}
 	}
 
 	@Override
-	void alignPC() {
+	void alignPC() throws ContentException {
 		while ((getPC() & 0x03) != 0) {
 			putCommand(0,(byte)0);
 		}
 	}
 
 	@Override
-	void putLabel(final long id) {
-		labels.add(new ItemDescriptor(id,getPC()));
-//		System.err.println("Label++: "+id+": <"+tree.getName(id)+">");
-	}
-
-	@Override
-	void registerBrunch(final long labelId, final boolean shortBranch) {
-		registerBrunch(getPC(),getPC()+1,labelId,shortBranch);			
+	void markLabelRequired() {
+		labelRequired = true;
 	}
 	
 	@Override
-	void registerBrunch(final int address, final int placement, final long labelId, final boolean shortBranch) {
+	void putLabel(final long id, final StackSnapshot snapshot) throws ContentException {
+		final StackDescriptor		stack = findStack(id);
+		StackSnapshot 				currentSnapshot = snapshot;
+		
+		if (labelRequired) {	// Current stack state is invalid, need use saved state
+			if (stack == null) {
+				throw new ContentException("Unpredictable program stack state: no forward brunches to the given mandatory label were registered earlier");
+			}
+			else {
+				currentSnapshot = stack.snapshot;
+			}
+		}
+		if (stack != null) {
+			if (!stack.snapshot.equals(currentSnapshot)) {
+				throw new ContentException("Illegal forward brunch: current program stack content at the label differ with awaited program stack content at brunch point. "+prepareStackMismatchMessage(stack.snapshot,currentSnapshot)
+										+" Forward branch is located at "+stack.brunchId+" displacement of your method code");
+			}
+		}
+		else {
+			System.err.println("Add by label: "+id+", "+currentSnapshot);
+			stacks.add(new StackDescriptor(id,-1,currentSnapshot));
+		}
+		labelRequired = false;
+		labels.add(new ItemDescriptor(id,getPC()));
+	}
+
+	@Override
+	void registerBrunch(final long labelId, final boolean shortBranch, final StackSnapshot snapshot) throws ContentException {
+		registerBrunch(getPC(),getPC()+1,labelId,shortBranch,snapshot);			
+	}
+	
+	@Override
+	void registerBrunch(final int address, final int placement, final long labelId, final boolean shortBranch, final StackSnapshot snapshot) throws ContentException {
+		final ItemDescriptor	label = findLabel(labelId); 
+		final StackDescriptor	stack = findStack(labelId); 
+				
+		if (label == null) {	// Forward brunch
+			System.err.println("Add by brunch: "+labelId+", "+snapshot);
+			stacks.add(new StackDescriptor(labelId,address,snapshot));
+		}
+		else {					// Backward brunch
+			if (stack == null || !stack.snapshot.equals(snapshot)) {
+				throw new ContentException("Illegal backward brunch: program stack content at the label differ with program stack content at brunch point. "+prepareStackMismatchMessage(snapshot,stack.snapshot));
+			}
+		}
 		brunches.add(new ItemDescriptor(labelId,address,placement,shortBranch));
-//		System.err.println("Brunch++: "+labelId+": <"+tree.getName(labelId)+">");
 	}
 
 	@Override
 	short getStackSize() {
 		return stack;
+	}
+	
+	@Override
+	StackAndVarRepo getStackAndVarRepo() {
+		return stackAndVar;
 	}
 	
 	@Override
@@ -129,6 +178,29 @@ class MethodBody extends AbstractMethodBody {
 		}
 		return pc;
 	}
+
+	private ItemDescriptor findLabel(final long labelId) {
+		for (ItemDescriptor item : labels) {
+			if (item.id == labelId) {
+				return item;
+			}
+		}
+		return null;
+	}
+
+	private StackDescriptor findStack(final long labelId) {
+		for (StackDescriptor item : stacks) {
+			if (item.id == labelId) {
+				return item;
+			}
+		}
+		return null;
+	}
+
+	private String prepareStackMismatchMessage(final StackSnapshot current, final StackSnapshot awaited) {
+		return "Current stack state is: "+current.toString()+", awaited stack state is: "+awaited.toString();
+	}
+
 	
 	private void resolveBrunches(final SyntaxTreeInterface<?> tree) throws ContentException {
 		final ItemDescriptor[]	labelsArray = labels.toArray(new ItemDescriptor[labels.size()]);
@@ -202,18 +274,37 @@ loop:	for (ItemDescriptor item : brunches) {
 		int		placement;
 		boolean	shortBrunch;
 
-		public ItemDescriptor(long id, int displ) {
+		ItemDescriptor(long id, int displ) {
 			this(id,displ,displ+1,false);
 			
 		}		
-		public ItemDescriptor(long id, int displ, int placement, boolean shortBrunch) {
+		
+		ItemDescriptor(long id, int displ, int placement, boolean shortBrunch) {
 			this.id = id;	this.displ = displ;
 			this.placement = placement;
 			this.shortBrunch = shortBrunch;
 		}
+		
 		@Override
 		public String toString() {
 			return "ItemDescriptor [id=" + id + ", displ=" + displ + ", placement=" + placement + ", shortBrunch=" + shortBrunch + "]";
+		}
+	}
+
+	private static class StackDescriptor {
+		long			id;
+		long			brunchId;
+		StackSnapshot	snapshot;
+
+		StackDescriptor(long id, long brunchId, StackSnapshot snapshot) {
+			this.id = id;
+			this.brunchId = brunchId;
+			this.snapshot = snapshot;
+		}
+
+		@Override
+		public String toString() {
+			return "StackDescriptor [id=" + id + ", snapshot=" + snapshot + "]";
 		}
 	}
 }

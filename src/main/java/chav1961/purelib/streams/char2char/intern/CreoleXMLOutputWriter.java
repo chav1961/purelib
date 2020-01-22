@@ -16,8 +16,13 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
-public class CreoleXMLOutputWriter extends CreoleOutputWriter {
+class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	
 	private static final String		NAMESPACE = "http://www.wikicreole.org/";
 	private static final String		PREFIX = "cre";
@@ -81,7 +86,7 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	public void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		try{writer.add(eventFactory.createCharacters(new String(content,from,to-from)));
 		} catch (XMLStreamException e) {
 			throw new IOException("I/O error writing content: "+e.getLocalizedMessage());
@@ -89,7 +94,7 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+	public void writeEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
 		boolean	has2escape = false;
 		
 		for (int index = from; index < to; index++) {
@@ -103,7 +108,7 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 			
 			for (int index = from; index <= to; index++) {
 				if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
-					internalWrite(displacement+start-from,content,start,index,keepNewLines);
+					write(displacement+start-from,content,start,index,keepNewLines);
 					switch (content[index]) {
 						case '<'	: internalWrite(displacement+start-from,ESC_LT); break;
 						case '>'	: internalWrite(displacement+start-from,ESC_GT); break;
@@ -114,17 +119,17 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 				}
 			}
 			if (start < to) {
-				internalWrite(displacement+start-from,content,start,to,keepNewLines);
+				write(displacement+start-from,content,start,to,keepNewLines);
 			}
 		}
 		else {
-			internalWrite(displacement,content,from,to,keepNewLines);
+			write(displacement,content,from,to,keepNewLines);
 		}
 	}
 
 	@Override
-	public void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
-		try{for (SectionActions item : action) {
+	public void processSection(final FSM<CreoleTerminals, CreoleSectionState, CreoleSectionActions, Long> fsm, final CreoleTerminals terminal, final CreoleSectionState fromState, final CreoleSectionState toState, final CreoleSectionActions[] action, final Long parameter) throws FlowException {
+		try{for (CreoleSectionActions item : action) {
 				switch (item) {
 					case DIV_OPEN		: writeStartTag(TAG_DIV); break;
 					case DIV_CLOSE		: writeEndTag(TAG_DIV); break;
@@ -165,8 +170,8 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException { 
-		try{for (FontActions item : action) {
+	public void processFont(final FSM<CreoleTerminals, CreoleFontState, CreoleFontActions, Long> fsm, final CreoleTerminals terminal, final CreoleFontState fromState, final CreoleFontState toState, final CreoleFontActions[] action, final Long parameter) throws FlowException { 
+		try{for (CreoleFontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN		: writeStartTag(TAG_BOLD); break;
 					case BOLD_CLOSE		: writeEndTag(TAG_BOLD); break;
@@ -186,7 +191,7 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 	public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		writeStartTag(TAG_IMG);
 		writeAttr(ATTR_SRC,new String(data,startLink,endLink-startLink));
-		internalWrite(displacement,data,startCaption,endCaption,false);
+		write(displacement,data,startCaption,endCaption,false);
 		writeEndTag(TAG_IMG);
 	}
 
@@ -196,13 +201,13 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startCaption,endCaption,false);
+				write(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}
@@ -210,13 +215,13 @@ public class CreoleXMLOutputWriter extends CreoleOutputWriter {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startCaption,endCaption,false);
+				write(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}

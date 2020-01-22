@@ -22,7 +22,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import sun.misc.Unsafe;
 
 /**

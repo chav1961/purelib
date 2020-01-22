@@ -49,7 +49,7 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
 

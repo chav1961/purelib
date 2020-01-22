@@ -4,25 +4,18 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
 
-import javax.xml.stream.XMLEventWriter;
-
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
-import chav1961.purelib.streams.char2char.intern.CreoleFOPOutputWriter;
-import chav1961.purelib.streams.char2char.intern.CreoleHTMLOutputWriter;
 import chav1961.purelib.streams.char2char.intern.CreoleOutputWriter;
-import chav1961.purelib.streams.char2char.intern.CreoleTerminals;
-import chav1961.purelib.streams.char2char.intern.CreoleTextOutputWriter;
-import chav1961.purelib.streams.char2char.intern.CreoleXMLOutputWriter;
+import chav1961.purelib.streams.char2char.intern.CreoleOutputWriterFactory;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack.ListType;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
 /**
  * <p>This class converts CREOLE 1.0 content to the predefined content (see {@linkplain MarkupOutputFormat} description). 
@@ -103,14 +96,15 @@ public class CreoleWriter extends Writer {
 		}
 		else {
 			this.nested = nested;
-			switch (format) {
-				case XML 		: writer = new CreoleXMLOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)epilogue); break;
-				case XML2TEXT	: writer = new CreoleTextOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)epilogue); break;
-				case XML2HTML	: writer = new CreoleHTMLOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)epilogue); break;
-				case XML2PDF	: writer = new CreoleFOPOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)epilogue); break;
-				case PARSEDCSV	: writer = new CreoleHighlighterWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)epilogue); break;
-				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
-			}
+			this.writer = (CreoleOutputWriter) CreoleOutputWriterFactory.getInstance(format, nested);
+//			switch (format) {
+//				case XML 		: writer = new CreoleXMLOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)epilogue); break;
+//				case XML2TEXT	: writer = new CreoleTextOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)epilogue); break;
+//				case XML2HTML	: writer = new CreoleHTMLOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)epilogue); break;
+//				case XML2PDF	: writer = new CreoleFOPOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)epilogue); break;
+//				case PARSEDCSV	: writer = new CreoleHighlighterWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)epilogue); break;
+//				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
+//			}
 			try{automat(0,0,0,CreoleTerminals.TERM_SOD,0);
 			} catch (SyntaxException exc) {
 				throw new IOException(exc.getLocalizedMessage(),exc); 
@@ -675,7 +669,7 @@ loop:		for (;from < to; from++) {
 		if (to - from > 0 && !(to - from == 1 && content[from] == '\n' || to - from == 2 && content[from] == '\r' && content[from+1] == '\n')) {
 			automat(displacement,lineNo,colNo,CreoleTerminals.TERM_CONTENT,0);
 		}
-		writer.internalWriteEscaped(displacement,content,from,to,keepNewLines);
+		writer.writeEscaped(displacement,content,from,to,keepNewLines);
 	}
 	
 	protected void automat(final long displacement, final int lineNo, final int colNo, final CreoleTerminals terminal, final long parameter) throws IOException, SyntaxException {
@@ -709,14 +703,7 @@ loop:		for (;from < to; from++) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
 		else {
-			switch (format) {
-				case XML 		: return (PrologueEpilogueMaster<Wr, T>) CreoleXMLOutputWriter.getPrologue();  
-				case XML2TEXT	: return (PrologueEpilogueMaster<Wr, T>) CreoleTextOutputWriter.getPrologue();
-				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getPrologue();
-				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getPrologue();
-				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getPrologue();
-				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
-			}
+			return CreoleOutputWriterFactory.getPrologue(format);
 		}
 	}
 
@@ -726,14 +713,7 @@ loop:		for (;from < to; from++) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
 		else {
-			switch (format) {
-				case XML 		: return (PrologueEpilogueMaster<Wr, T>) CreoleXMLOutputWriter.getPrologue(source);  
-				case XML2TEXT	: return (PrologueEpilogueMaster<Wr, T>) CreoleTextOutputWriter.getPrologue(source);
-				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getPrologue(source);
-				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getPrologue(source);
-				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getPrologue(source);
-				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
-			}
+			return CreoleOutputWriterFactory.getPrologue(format,source);
 		}
 	}
 	
@@ -743,14 +723,7 @@ loop:		for (;from < to; from++) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
 		else {
-			switch (format) {
-				case XML 		: return (PrologueEpilogueMaster<Wr, T>) CreoleXMLOutputWriter.getEpilogue();  
-				case XML2TEXT	: return (PrologueEpilogueMaster<Wr, T>) CreoleTextOutputWriter.getEpilogue();
-				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getEpilogue();
-				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getEpilogue();
-				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getEpilogue();
-				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
-			}
+			return CreoleOutputWriterFactory.getEpilogue(format);
 		}
 	}
 
@@ -760,14 +733,7 @@ loop:		for (;from < to; from++) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
 		else {
-			switch (format) {
-				case XML 		: return (PrologueEpilogueMaster<Wr, T>) CreoleXMLOutputWriter.getEpilogue(source);  
-				case XML2TEXT	: return (PrologueEpilogueMaster<Wr, T>) CreoleTextOutputWriter.getEpilogue(source);
-				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getEpilogue(source);
-				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getEpilogue(source);
-				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getEpilogue(source);
-				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
-			}
+			return CreoleOutputWriterFactory.getEpilogue(format,source);
 		}
 	}
 }

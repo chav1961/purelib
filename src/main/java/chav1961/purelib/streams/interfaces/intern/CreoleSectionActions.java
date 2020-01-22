@@ -1,0 +1,18 @@
+package chav1961.purelib.streams.interfaces.intern;
+
+public enum CreoleSectionActions {
+	DIV_OPEN, DIV_CLOSE,
+	P_OPEN, P_CLOSE,
+	H_OPEN, H_CLOSE,
+	HR,
+	UL_OPEN, UL_CLOSE,
+	OL_OPEN, OL_CLOSE,
+	LI_OPEN, LI_CLOSE,
+	TABLE_OPEN, TABLE_CLOSE,
+	THEAD_OPEN, THEAD_CLOSE,
+	TBODY_OPEN, TBODY_CLOSE,
+	TR_OPEN, TR_CLOSE,
+	TH_OPEN, TH_CLOSE,
+	TD_OPEN, TD_CLOSE,
+	BR,
+}

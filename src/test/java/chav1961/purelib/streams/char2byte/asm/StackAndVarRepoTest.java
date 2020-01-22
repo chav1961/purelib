@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChanges;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChangesCallback;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.VarChangesCallback;
@@ -822,7 +823,6 @@ public class StackAndVarRepoTest {
 
 		repo.processChanges(StackChanges.clear);
 		
-		repo.processChanges(StackChanges.pushReference);
 		repo.processChanges(StackChanges.pushInt);
 		repo.processChanges(StackChanges.multiarrayAndPushReference,1);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
@@ -839,8 +839,6 @@ public class StackAndVarRepoTest {
 
 		repo.processChanges(StackChanges.clear);
 		
-		repo.processChanges(StackChanges.pushInt);
-		repo.processChanges(StackChanges.pushInt);
 		try {repo.processChanges(StackChanges.multiarrayAndPushReference,1);
 			Assert.fail("Mandatory exception was not detected (reference is missing)");
 		} catch (ContentException exc) {
@@ -868,31 +866,9 @@ public class StackAndVarRepoTest {
 									};
 		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
 
-		repo.processChanges(StackChanges.pushInt);
-		repo.processChanges(StackChanges.pushLong);
-		repo.processChanges(StackChanges.pushDouble);
-		repo.processChanges(StackChanges.call,new int[] {CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP},5,CompilerUtils.CLASSTYPE_VOID);
-		Assert.assertEquals(0,repo.getCurrentStackDepth());
-
-		repo.processChanges(StackChanges.clear);
-		
-		repo.processChanges(StackChanges.pushInt);
-		repo.processChanges(StackChanges.pushLong);
-		repo.processChanges(StackChanges.pushDouble);
-		try {repo.processChanges(StackChanges.call,new int[] {CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP},3,CompilerUtils.CLASSTYPE_INT);
-			Assert.fail("Mandatory exception was not detected (stack mismatch)");
-		} catch (ContentException exc) {
-		}
-		try {repo.processChanges(StackChanges.call,new int[] {CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP},5,CompilerUtils.CLASSTYPE_INT);
-			Assert.fail("Mandatory exception was not detected (non-void method uses call)");
-		} catch (ContentException exc) {
-		}
-		
-		try {repo.processChanges(StackChanges.callAndPush,new int[] {CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP},5,CompilerUtils.CLASSTYPE_VOID);
-			Assert.fail("Mandatory exception was not detected (non-void method uses call)");
-		} catch (ContentException exc) {
-		}
-		
+		repo.pushInt();
+		repo.pushLong();
+		repo.pushDouble();
 		repo.processChanges(StackChanges.callAndPush,new int[] {CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP},5,CompilerUtils.CLASSTYPE_LONG);
 		Assert.assertEquals(2,repo.getCurrentStackDepth());
 		Assert.assertEquals(StackAndVarRepo.SPECIAL_TYPE_TOP,repo.select(0));

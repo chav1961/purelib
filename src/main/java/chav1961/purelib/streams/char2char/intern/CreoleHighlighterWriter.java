@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.char2char;
+package chav1961.purelib.streams.char2char.intern;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -11,10 +11,14 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
-import chav1961.purelib.streams.char2char.intern.CreoleOutputWriter;
-import chav1961.purelib.streams.char2char.intern.CreoleTerminals;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
 public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	private static final char[][]	UL = {"*".toCharArray(),"**".toCharArray(),"***".toCharArray(),"****".toCharArray(),"*****".toCharArray()};
@@ -58,17 +62,17 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	public void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		totalLen = (int)currentDispl;
 	}
 	
 	@Override
-	public void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
-		internalWrite(displacement,content,from,to,keepNewLines);
+	public void writeEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+		write(displacement,content,from,to,keepNewLines);
 	}	
 
 	public void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
-		internalWrite(displacement, content, from, to, keepNewLines);
+		write(displacement, content, from, to, keepNewLines);
 		putLexema(CreoleLexema.NonCreoleContent, (int)displacement, to-from);
 	}
 	
@@ -104,10 +108,10 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
+	public void processSection(final FSM<CreoleTerminals, CreoleSectionState, CreoleSectionActions, Long> fsm, final CreoleTerminals terminal, final CreoleSectionState fromState, final CreoleSectionState toState, final CreoleSectionActions[] action, final Long parameter) throws FlowException {
 		int[]		forItem;
 		
-		try{for (SectionActions item : action) {
+		try{for (CreoleSectionActions item : action) {
 				switch (item) {
 					case P_OPEN		:
 						sectionStack.add(0,new int[] {currentRow,currentCol,totalLen});
@@ -186,10 +190,10 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
+	public void processFont(final FSM<CreoleTerminals, CreoleFontState, CreoleFontActions, Long> fsm, final CreoleTerminals terminal, final CreoleFontState fromState, final CreoleFontState toState, final CreoleFontActions[] action, final Long parameter) throws FlowException {
 		int[]		forItem;
 		
-		try{for (FontActions item : action) {
+		try{for (CreoleFontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN :
 						fontStack.add(0,new int[] {currentRow,currentCol,totalLen});

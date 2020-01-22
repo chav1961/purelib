@@ -8,7 +8,7 @@ import java.util.Map;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2byte.asm.CompilerUtils;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 public class InMemoryLitteArray implements Array {
 	private final int		contentType;

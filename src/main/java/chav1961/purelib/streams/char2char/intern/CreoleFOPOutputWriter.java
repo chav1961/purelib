@@ -17,8 +17,13 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
-public class CreoleFOPOutputWriter extends CreoleOutputWriter {
+class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	private static final String		NAMESPACE = "http://www.w3.org/1999/XSL/Format";
 	private static final String		PREFIX = "fo";
 	private static final char[]		EMPTY_LIST = " ".toCharArray();
@@ -112,7 +117,7 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWrite(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
+	public void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
 		try{String	value = new String(content,from,to-from);
 			
 			if (!keepNewLines && value.endsWith("\r\n")) {
@@ -130,7 +135,7 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void internalWriteEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
+	public void writeEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
 		boolean	has2escape = false;
 		
 		for (int index = from; index < to; index++) {
@@ -144,7 +149,7 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 			
 			for (int index = from; index <= to; index++) {
 				if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
-					internalWrite(displacement+start-from,content,start,index,keepNewLines);
+					write(displacement+start-from,content,start,index,keepNewLines);
 					switch (content[index]) {
 						case '<'	: internalWrite(displacement+start-from,ESC_LT); break;
 						case '>'	: internalWrite(displacement+start-from,ESC_GT); break;
@@ -155,11 +160,11 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 				}
 			}
 			if (start < to) {
-				internalWrite(displacement+start-from,content,start,to,keepNewLines);
+				write(displacement+start-from,content,start,to,keepNewLines);
 			}
 		}
 		else {
-			internalWrite(displacement,content,from,to,keepNewLines);
+			write(displacement,content,from,to,keepNewLines);
 		}
 	}
 	
@@ -176,13 +181,13 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_LOCAL,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_LOCAL,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startCaption,endCaption,false);
+				write(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}
@@ -190,21 +195,21 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 			if (startCaption == endCaption) {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_EXTERNAL,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startLink,endLink,false);
+				write(displacement,data,startLink,endLink,false);
 				writeEndTag(TAG_LINK);
 			}
 			else {
 				writeStartTag(TAG_LINK);
 				writeAttr(ATTR_HREF_EXTERNAL,new String(data,startLink,endLink-startLink));
-				internalWrite(displacement,data,startCaption,endCaption,false);
+				write(displacement,data,startCaption,endCaption,false);
 				writeEndTag(TAG_LINK);
 			}
 		}
 	}
 
 	@Override
-	public void processSection(final FSM<CreoleTerminals, SectionState, SectionActions, Long> fsm, final CreoleTerminals terminal, final SectionState fromState, final SectionState toState, final SectionActions[] action, final Long parameter) throws FlowException {
-		try{for (SectionActions item : action) {
+	public void processSection(final FSM<CreoleTerminals, CreoleSectionState, CreoleSectionActions, Long> fsm, final CreoleTerminals terminal, final CreoleSectionState fromState, final CreoleSectionState toState, final CreoleSectionActions[] action, final Long parameter) throws FlowException {
+		try{for (CreoleSectionActions item : action) {
 				switch (item) {
 					case DIV_OPEN		: 
 						writeStartTag(TAG_DIV); 
@@ -262,8 +267,8 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 	}
 
 	@Override
-	public void processFont(final FSM<CreoleTerminals, FontState, FontActions, Long> fsm, final CreoleTerminals terminal, final FontState fromState, final FontState toState, final FontActions[] action, final Long parameter) throws FlowException {
-		try{for (FontActions item : action) {
+	public void processFont(final FSM<CreoleTerminals, CreoleFontState, CreoleFontActions, Long> fsm, final CreoleTerminals terminal, final CreoleFontState fromState, final CreoleFontState toState, final CreoleFontActions[] action, final Long parameter) throws FlowException {
+		try{for (CreoleFontActions item : action) {
 				switch (item) {
 					case BOLD_OPEN		: writeStartTag(TAG_BOLD); break;
 					case BOLD_CLOSE		: writeEndTag(TAG_BOLD); break;
@@ -323,7 +328,7 @@ public class CreoleFOPOutputWriter extends CreoleOutputWriter {
 		writeStartTag(TAG_LI_ITEM);
 		writeStartTag(TAG_LI_ITEM_LABEL);
 		writeStartTag(TAG_DIV);
-		internalWrite(currentDispl,mark,0,mark.length,false);
+		write(currentDispl,mark,0,mark.length,false);
 		writeEndTag(TAG_DIV);
 		writeEndTag(TAG_LI_ITEM_LABEL);
 		writeStartTag(TAG_LI_ITEM_BODY);
