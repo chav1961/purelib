@@ -114,6 +114,28 @@ public class CompilerUtils {
 			return CLASSTYPE_VOID;
 		}
 	}
+
+	/**
+	 * <p>Convert class type returned by {@linkplain #defineClassType(Class) method to it's string representation</p>
+	 * @param classType class type to convert
+	 * @return string converted or null if the class type is unknown
+	 * @since 0.0.4
+	 */
+	public static String getClassTypeRepresentation(final int classType) {
+		switch (classType) {
+			case CompilerUtils.CLASSTYPE_REFERENCE	: return "ref";
+			case CompilerUtils.CLASSTYPE_BYTE		: return "byte";
+			case CompilerUtils.CLASSTYPE_SHORT		: return "short";
+			case CompilerUtils.CLASSTYPE_CHAR		: return "char";	
+			case CompilerUtils.CLASSTYPE_INT		: return "int";	
+			case CompilerUtils.CLASSTYPE_LONG		: return "long";
+			case CompilerUtils.CLASSTYPE_FLOAT		: return "float";
+			case CompilerUtils.CLASSTYPE_DOUBLE		: return "double";
+			case CompilerUtils.CLASSTYPE_BOOLEAN	: return "boolean";
+			case CompilerUtils.CLASSTYPE_VOID		: return "void";
+			default 								: return null;
+		}
+	}	
 	
 	/**
 	 * <p>Find field description in the given class</p>

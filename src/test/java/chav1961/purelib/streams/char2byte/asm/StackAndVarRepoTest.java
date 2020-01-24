@@ -7,6 +7,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChanges;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChangesCallback;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.VarChangesCallback;
 
 public class StackAndVarRepoTest {
@@ -104,6 +105,11 @@ public class StackAndVarRepoTest {
 		
 		repo.processChanges(StackChanges.swap);
 		Assert.assertArrayEquals(new int[] {-1,-1,0},changes);
+		Assert.assertEquals(2,repo.getCurrentStackDepth());
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.select(0));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT,repo.select(-1));
+		
+		repo.loadSnapshot(repo.makeSnapshot());		// Test snapshot manipulations
 		Assert.assertEquals(2,repo.getCurrentStackDepth());
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.select(0));
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT,repo.select(-1));
@@ -866,6 +872,7 @@ public class StackAndVarRepoTest {
 									};
 		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
 
+		repo.pushReference();
 		repo.pushInt();
 		repo.pushLong();
 		repo.pushDouble();

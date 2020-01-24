@@ -62,6 +62,7 @@ class PseudoMethodBody4TryManager extends AbstractMethodBody {
 	@Override short getStackSize() {return 0;}
 	@Override int getCodeSize() {return 0;}
 	@Override int dump(InOutGrowableByteArray os) throws IOException {return 0;}
-	@Override void markLabelRequired() {}
+	@Override void markLabelRequired(boolean required) {}
 	@Override StackAndVarRepo getStackAndVarRepo() {return new StackAndVarRepo((a,b,c,d)->{},(a,b)->{});}
+	@Override boolean isLabelExists(long labelId) {return false;}
 }

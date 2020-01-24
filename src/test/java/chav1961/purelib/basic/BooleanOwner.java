@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.gettersandsetters;
+package chav1961.purelib.basic;
 
 public class BooleanOwner {
 	public boolean value = false;

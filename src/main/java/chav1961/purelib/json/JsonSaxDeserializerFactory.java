@@ -8,6 +8,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -241,7 +242,7 @@ public class JsonSaxDeserializerFactory {
 					wr.flush();
 					return new JsonSaxDeserializerImpl<T>(tree,desc,treeDepth,lastTreeId,pseudoClassName,baos.toByteArray());
 				} catch (IOException e) {
-//					e.printStackTrace();
+					e.printStackTrace();
 					throw new ContentException(e.getMessage());
 				}
 			}
@@ -261,42 +262,46 @@ public class JsonSaxDeserializerFactory {
 			else if (publicOnly) {
 				for (Field item : clazz.getFields()) {
 					if (!Modifier.isStatic(item.getModifiers()) && !Modifier.isTransient(item.getModifiers())) {
-						item.setAccessible(true);						
-						final MethodHandle 	setter = lookup.unreflectSetter(item);
-						
-						if (tree.seekName(item.getName()) >= 0) {
-							tree.getCargo(tree.seekName(item.getName())).access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-							tree.getCargo(tree.seekName(item.getName())).type.put(tree.placeName(clazz.getCanonicalName(),null),item);
-						}
-						else {
-							final FieldDesc	desc = new FieldDesc();
+						try{item.setAccessible(true);						
+							final MethodHandle 	setter = lookup.unreflectSetter(item);
 							
-							desc.access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-							desc.type.put(tree.placeName(clazz.getCanonicalName(),null),item);
-							tree.placeName(item.getName(),desc);
+							if (tree.seekName(item.getName()) >= 0) {
+								tree.getCargo(tree.seekName(item.getName())).access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
+								tree.getCargo(tree.seekName(item.getName())).type.put(tree.placeName(clazz.getCanonicalName(),null),item);
+							}
+							else {
+								final FieldDesc	desc = new FieldDesc();
+								
+								desc.access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
+								desc.type.put(tree.placeName(clazz.getCanonicalName(),null),item);
+								tree.placeName(item.getName(),desc);
+							}
+							collectFieldNames(item.getType(),tree,publicOnly);
+						} catch (InaccessibleObjectException exc) {
 						}
-						collectFieldNames(item.getType(),tree,publicOnly);
 					}
 				}
 			}
 			else {
 				for (Field item : clazz.getDeclaredFields()) {
 					if (!Modifier.isStatic(item.getModifiers()) && !Modifier.isTransient(item.getModifiers()) && !Modifier.isFinal(item.getModifiers())) {
-						item.setAccessible(true);
-						final MethodHandle 	setter = lookup.unreflectSetter(item);
-						
-						if (tree.seekName(item.getName()) >= 0) {
-							tree.getCargo(tree.seekName(item.getName())).access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-							tree.getCargo(tree.seekName(item.getName())).type.put(tree.placeName(clazz.getCanonicalName(),null),item);
-						}
-						else {
-							final FieldDesc	desc = new FieldDesc();
+						try{item.setAccessible(true);
+							final MethodHandle 	setter = lookup.unreflectSetter(item);
 							
-							desc.access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-							desc.type.put(tree.placeName(clazz.getCanonicalName(),null),item);
-							tree.placeName(item.getName(),desc);
+							if (tree.seekName(item.getName()) >= 0) {
+								tree.getCargo(tree.seekName(item.getName())).access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
+								tree.getCargo(tree.seekName(item.getName())).type.put(tree.placeName(clazz.getCanonicalName(),null),item);
+							}
+							else {
+								final FieldDesc	desc = new FieldDesc();
+								
+								desc.access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
+								desc.type.put(tree.placeName(clazz.getCanonicalName(),null),item);
+								tree.placeName(item.getName(),desc);
+							}
+							collectFieldNames(item.getType(),tree,publicOnly);
+						} catch (InaccessibleObjectException exc) {
 						}
-						collectFieldNames(item.getType(),tree,publicOnly);
 					}
 				}
 				collectFieldNames(clazz.getSuperclass(),tree,publicOnly);

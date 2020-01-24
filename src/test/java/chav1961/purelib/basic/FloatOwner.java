@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.gettersandsetters;
+package chav1961.purelib.basic;
 
 public class FloatOwner {
 	public float value = Float.MIN_VALUE;

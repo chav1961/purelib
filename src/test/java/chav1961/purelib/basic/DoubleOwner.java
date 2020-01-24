@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.gettersandsetters;
+package chav1961.purelib.basic;
 
 public class DoubleOwner {
 	public double value = Double.MIN_VALUE;

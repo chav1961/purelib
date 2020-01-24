@@ -226,208 +226,207 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticDirective(LINE_AUTO,m,"auto");	
 		placeStaticDirective(LINE_MANUAL,m,"manual");	
 		
-		placeStaticCommand(0x32,1,"aaload",StackChanges.pop2AndPushReference,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x53,-1,"aastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x01,1,"aconst_null",StackChanges.pushReference);
-		placeStaticCommand(0x19,1,"aload",CommandFormat.extendableByteIndex,StackChanges.pushReference);
-		placeStaticCommand(0x2a,1,"aload_0",StackChanges.pushReference);
-		placeStaticCommand(0x2b,1,"aload_1",StackChanges.pushReference);
-		placeStaticCommand(0x2c,1,"aload_2",StackChanges.pushReference);
-		placeStaticCommand(0x2d,1,"aload_3",StackChanges.pushReference);
-		placeStaticCommand(0xbd,1,"anewarray",CommandFormat.classShortIndex,StackChanges.popAndPushReference,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xb0,1,"areturn",StackChanges.clear,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xbe,1,"arraylength",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x3a,1,"astore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4b,1,"astore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4c,1,"astore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4d,1,"astore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4e,1,"astore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xbf,1,"athrow",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x33,1,"baload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x54,1,"bastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x10,1,"bipush",CommandFormat.byteValue,StackChanges.pushInt);
-		placeStaticCommand(0x34,1,"caload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x55,1,"castore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xc0,1,"checkcast",CommandFormat.classShortIndex,StackChanges.none,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x90,1,"d2f",StackChanges.changeDouble2Float,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x8e,1,"d2i",StackChanges.changeDouble2Int,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x8f,1,"d2l",StackChanges.changeDouble2Long,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x63,1,"dadd",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x31,1,"daload",StackChanges.pop2AndPushDouble,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x52,1,"dastore",StackChanges.pop4,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x98,1,"dcmpg",StackChanges.pop4AndPushInt,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x97,1,"dcmpl",StackChanges.pop4AndPushInt,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x0e,1,"dconst_0",StackChanges.pushDouble);
-		placeStaticCommand(0x0f,1,"dconst_1",StackChanges.pushDouble);
-		placeStaticCommand(0x6f,1,"ddiv",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x18,1,"dload",CommandFormat.extendableByteIndex,StackChanges.pushDouble);
-		placeStaticCommand(0x26,1,"dload_0",StackChanges.pushDouble);
-		placeStaticCommand(0x27,1,"dload_1",StackChanges.pushDouble);
-		placeStaticCommand(0x28,1,"dload_2",StackChanges.pushDouble);
-		placeStaticCommand(0x29,1,"dload_3",StackChanges.pushDouble);
-		placeStaticCommand(0x6b,1,"dmul",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x77,1,"dneg",StackChanges.pop2AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x73,1,"drem",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0xaf,1,"dreturn",StackChanges.clear,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x39,1,"dstore",CommandFormat.extendableByteIndex,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x47,1,"dstore_0",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x48,1,"dstore_1",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x49,1,"dstore_2",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x4a,1,"dstore_3",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x67,1,"dsub",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x59,1,"dup",StackChanges.dup);
-		placeStaticCommand(0x5a,1,"dup_x1",StackChanges.dup_x1);
-		placeStaticCommand(0x5b,1,"dup_x2",StackChanges.dup_x2);
-		placeStaticCommand(0x5c,1,"dup2",StackChanges.dup2);
-		placeStaticCommand(0x5d,1,"dup2_x1",StackChanges.dup2_x1);
-		placeStaticCommand(0x5e,1,"dup2_x2",StackChanges.dup2_x2);
-		placeStaticCommand(0x8d,1,"f2d",StackChanges.changeFloat2Double,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x8b,1,"f2i",StackChanges.changeFloat2Int,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x8c,1,"f2l",StackChanges.changeFloat2Long,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x62,1,"fadd",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x30,1,"faload",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x51,1,"fastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x96,1,"fcmpg",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x95,1,"fcmpl",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x0b,1,"fconst_0",StackChanges.pushFloat);
-		placeStaticCommand(0x0c,1,"fconst_1",StackChanges.pushFloat);
-		placeStaticCommand(0x0d,1,"fconst_2",StackChanges.pushFloat);
-		placeStaticCommand(0x6e,1,"fdiv",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x17,1,"fload",CommandFormat.extendableByteIndex,StackChanges.pushFloat);
-		placeStaticCommand(0x22,1,"fload_0",StackChanges.pushFloat);
-		placeStaticCommand(0x23,1,"fload_1",StackChanges.pushFloat);
-		placeStaticCommand(0x24,1,"fload_2",StackChanges.pushFloat);
-		placeStaticCommand(0x25,1,"fload_3",StackChanges.pushFloat);
-		placeStaticCommand(0x6a,1,"fmul",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x76,1,"fneg",StackChanges.popAndPushFloat,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x72,1,"frem",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0xae,1,"freturn",StackChanges.clear,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x38,1,"fstore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x43,1,"fstore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x44,1,"fstore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x45,1,"fstore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x46,1,"fstore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x66,1,"fsub",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0xb4,1,"getfield",CommandFormat.shortGlobalIndex,StackChanges.pushField);
-		placeStaticCommand(0xb2,1,"getstatic",CommandFormat.shortGlobalIndex,StackChanges.pushStatic);
-		placeStaticCommand(0xa7,1,"goto",CommandFormat.shortBrunch,StackChanges.none);
-		placeStaticCommand(0xc8,1,"goto_w",CommandFormat.longBrunch,StackChanges.none);
-		placeStaticCommand(0x91,1,"i2b",StackChanges.none,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x92,1,"i2c",StackChanges.none,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x87,1,"i2d",StackChanges.changeInt2Double,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x86,1,"i2f",StackChanges.changeInt2Float,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x85,1,"i2l",StackChanges.changeInt2Long,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x93,1,"i2s",StackChanges.none,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x60,1,"iadd",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x2e,1,"iaload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x7e,1,"iand",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x4f,1,"iastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x02,1,"iconst_m1",StackChanges.pushInt);
-		placeStaticCommand(0x03,1,"iconst_0",StackChanges.pushInt);
-		placeStaticCommand(0x04,1,"iconst_1",StackChanges.pushInt);
-		placeStaticCommand(0x05,1,"iconst_2",StackChanges.pushInt);
-		placeStaticCommand(0x06,1,"iconst_3",StackChanges.pushInt);
-		placeStaticCommand(0x07,1,"iconst_4",StackChanges.pushInt);
-		placeStaticCommand(0x08,1,"iconst_5",StackChanges.pushInt);
-		placeStaticCommand(0x6c,1,"idiv",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x9f,1,"if_icmpeq",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xa0,1,"if_icmpne",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xa1,1,"if_icmplt",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xa2,1,"if_icmpge",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xa3,1,"if_icmpgt",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xa4,1,"if_icmple",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x99,1,"ifeq",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x9a,1,"ifne",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x9b,1,"iflt",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x9c,1,"ifge",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x9d,1,"ifgt",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x9e,1,"ifle",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xc7,1,"ifnonnull",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xc6,1,"ifnull",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x84,1,"iinc",CommandFormat.byteIndexAndByteValue,StackChanges.none);
-		placeStaticCommand(0x15,1,"iload",CommandFormat.extendableByteIndex,StackChanges.pushInt);
-		placeStaticCommand(0x1a,1,"iload_0",StackChanges.pushInt);
-		placeStaticCommand(0x1b,1,"iload_1",StackChanges.pushInt);
-		placeStaticCommand(0x1c,1,"iload_2",StackChanges.pushInt);
-		placeStaticCommand(0x1d,1,"iload_3",StackChanges.pushInt);
-		placeStaticCommand(0x68,1,"imul",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x74,1,"ineg",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xc1,1,"instanceof",CommandFormat.classShortIndex,StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xba,1,"invokedynamic",CommandFormat.restricted,StackChanges.none);
-		placeStaticCommand(0xb9,1,"invokeinterface",CommandFormat.callInterface,StackChanges.callAndPush);
-		placeStaticCommand(0xb7,1,"invokespecial",CommandFormat.call,StackChanges.callAndPush);
-		placeStaticCommand(0xb8,1,"invokestatic",CommandFormat.call,StackChanges.callAndPush);
-		placeStaticCommand(0xb6,1,"invokevirtual",CommandFormat.call,StackChanges.callAndPush);
-		placeStaticCommand(0x80,1,"ior",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x70,1,"irem",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xac,1,"ireturn",StackChanges.clear,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x78,1,"ishl",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x7a,1,"ishr",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x36,1,"istore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3b,1,"istore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3c,1,"istore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3d,1,"istore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3e,1,"istore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x64,1,"isub",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x7c,1,"iushr",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x82,1,"ixor",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xa8,1,"jsr",CommandFormat.restricted,StackChanges.none);
-		placeStaticCommand(0xc9,1,"jsr_w",CommandFormat.restricted,StackChanges.none);
-		placeStaticCommand(0x8a,1,"l2d",StackChanges.changeLong2Double,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x89,1,"l2f",StackChanges.changeLong2Float,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x88,1,"l2i",StackChanges.changeLong2Int,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x61,1,"ladd",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x2f,1,"laload",StackChanges.pop2AndPushLong,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x7f,1,"land",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x50,1,"lastore",StackChanges.pop2,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x94,1,"lcmp",StackChanges.pop4AndPushInt,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x09,1,"lconst_0",StackChanges.pushLong);
-		placeStaticCommand(0x0a,1,"lconst_1",StackChanges.pushLong);
-		placeStaticCommand(0x12,1,"ldc",CommandFormat.valueByteIndex,StackChanges.pushInt);
-		placeStaticCommand(0x13,1,"ldc_w",CommandFormat.valueShortIndex,StackChanges.pushLong);
-		placeStaticCommand(0x14,1,"ldc2_w",CommandFormat.valueShortIndex2,StackChanges.pushLong);
-		placeStaticCommand(0x6d,1,"ldiv",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x16,1,"lload",CommandFormat.extendableByteIndex,StackChanges.pushLong);
-		placeStaticCommand(0x1e,1,"lload_0",StackChanges.pushLong);
-		placeStaticCommand(0x1f,1,"lload_1",StackChanges.pushLong);
-		placeStaticCommand(0x20,1,"lload_2",StackChanges.pushLong);
-		placeStaticCommand(0x21,1,"lload_3",StackChanges.pushLong);
-		placeStaticCommand(0x69,1,"lmul",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x75,1,"lneg",StackChanges.pop2AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0xab,1,"lookupswitch",CommandFormat.lookupSwitch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x81,1,"lor",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x71,1,"lrem",StackChanges.pop2AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0xad,1,"lreturn",StackChanges.clear,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x79,1,"lshl",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x7b,1,"lshr",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x37,1,"lstore",CommandFormat.extendableByteIndex,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x3f,1,"lstore_0",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x40,1,"lstore_1",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x41,1,"lstore_2",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x42,1,"lstore_3",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x65,1,"lsub",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x7d,1,"lushr",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x83,1,"lxor",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0xc2,1,"monitorenter",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xc3,1,"monitorexit",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xc5,1,"multianewarray",CommandFormat.shortIndexAndByteValue,StackChanges.multiarrayAndPushReference);
-		placeStaticCommand(0xbb,1,"new",CommandFormat.classShortIndex,StackChanges.pushUnprepared,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xbc,1,"newarray",CommandFormat.byteType,StackChanges.pushReference);
-		placeStaticCommand(0x00,1,"nop",StackChanges.none);
-		placeStaticCommand(0x57,1,"pop",StackChanges.pop);
-		placeStaticCommand(0x58,1,"pop2",StackChanges.pop2);
-		placeStaticCommand(0xb5,1,"putfield",CommandFormat.shortGlobalIndex,StackChanges.popField);
-		placeStaticCommand(0xb3,1,"putstatic",CommandFormat.shortGlobalIndex,StackChanges.popStatic);
-		placeStaticCommand(0xa9,1,"ret",CommandFormat.restricted,StackChanges.none);
-		placeStaticCommand(0xb1,1,"return",StackChanges.clear);
-		placeStaticCommand(0x35,1,"saload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x56,1,"sastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x11,1,"sipush",CommandFormat.shortValue,StackChanges.pushInt);
-		placeStaticCommand(0x5f,1,"swap",StackChanges.swap);
-		placeStaticCommand(0xaa,1,"tableswitch",CommandFormat.tableSwitch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xc4,1,"wide",CommandFormat.restricted,StackChanges.none);
+		placeStaticCommand(0x32,false,"aaload",StackChanges.pop2AndPushReference,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x53,false,"aastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x01,false,"aconst_null",StackChanges.pushReference);
+		placeStaticCommand(0x19,false,"aload",CommandFormat.extendableByteIndex,StackChanges.pushReference);
+		placeStaticCommand(0x2a,false,"aload_0",StackChanges.pushReference);
+		placeStaticCommand(0x2b,false,"aload_1",StackChanges.pushReference);
+		placeStaticCommand(0x2c,false,"aload_2",StackChanges.pushReference);
+		placeStaticCommand(0x2d,false,"aload_3",StackChanges.pushReference);
+		placeStaticCommand(0xbd,false,"anewarray",CommandFormat.classShortIndex,StackChanges.popAndPushReference,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xb0,true,"areturn",StackChanges.clear,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xbe,false,"arraylength",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x3a,false,"astore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4b,false,"astore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4c,false,"astore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4d,false,"astore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4e,false,"astore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xbf,true,"athrow",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x33,false,"baload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x54,false,"bastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x10,false,"bipush",CommandFormat.byteValue,StackChanges.pushInt);
+		placeStaticCommand(0x34,false,"caload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x55,false,"castore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xc0,false,"checkcast",CommandFormat.classShortIndex,StackChanges.none,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x90,false,"d2f",StackChanges.changeDouble2Float,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x8e,false,"d2i",StackChanges.changeDouble2Int,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x8f,false,"d2l",StackChanges.changeDouble2Long,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x63,false,"dadd",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x31,false,"daload",StackChanges.pop2AndPushDouble,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x52,false,"dastore",StackChanges.pop4,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x98,false,"dcmpg",StackChanges.pop4AndPushInt,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x97,false,"dcmpl",StackChanges.pop4AndPushInt,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x0e,false,"dconst_0",StackChanges.pushDouble);
+		placeStaticCommand(0x0f,false,"dconst_1",StackChanges.pushDouble);
+		placeStaticCommand(0x6f,false,"ddiv",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x18,false,"dload",CommandFormat.extendableByteIndex,StackChanges.pushDouble);
+		placeStaticCommand(0x26,false,"dload_0",StackChanges.pushDouble);
+		placeStaticCommand(0x27,false,"dload_1",StackChanges.pushDouble);
+		placeStaticCommand(0x28,false,"dload_2",StackChanges.pushDouble);
+		placeStaticCommand(0x29,false,"dload_3",StackChanges.pushDouble);
+		placeStaticCommand(0x6b,false,"dmul",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x77,false,"dneg",StackChanges.pop2AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x73,false,"drem",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0xaf,true,"dreturn",StackChanges.clear,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x39,false,"dstore",CommandFormat.extendableByteIndex,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x47,false,"dstore_0",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x48,false,"dstore_1",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x49,false,"dstore_2",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x4a,false,"dstore_3",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x67,false,"dsub",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x59,false,"dup",StackChanges.dup);
+		placeStaticCommand(0x5a,false,"dup_x1",StackChanges.dup_x1);
+		placeStaticCommand(0x5b,false,"dup_x2",StackChanges.dup_x2);
+		placeStaticCommand(0x5c,false,"dup2",StackChanges.dup2);
+		placeStaticCommand(0x5d,false,"dup2_x1",StackChanges.dup2_x1);
+		placeStaticCommand(0x5e,false,"dup2_x2",StackChanges.dup2_x2);
+		placeStaticCommand(0x8d,false,"f2d",StackChanges.changeFloat2Double,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x8b,false,"f2i",StackChanges.changeFloat2Int,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x8c,false,"f2l",StackChanges.changeFloat2Long,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x62,false,"fadd",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x30,false,"faload",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x51,false,"fastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x96,false,"fcmpg",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x95,false,"fcmpl",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x0b,false,"fconst_0",StackChanges.pushFloat);
+		placeStaticCommand(0x0c,false,"fconst_1",StackChanges.pushFloat);
+		placeStaticCommand(0x0d,false,"fconst_2",StackChanges.pushFloat);
+		placeStaticCommand(0x6e,false,"fdiv",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x17,false,"fload",CommandFormat.extendableByteIndex,StackChanges.pushFloat);
+		placeStaticCommand(0x22,false,"fload_0",StackChanges.pushFloat);
+		placeStaticCommand(0x23,false,"fload_1",StackChanges.pushFloat);
+		placeStaticCommand(0x24,false,"fload_2",StackChanges.pushFloat);
+		placeStaticCommand(0x25,false,"fload_3",StackChanges.pushFloat);
+		placeStaticCommand(0x6a,false,"fmul",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x76,false,"fneg",StackChanges.popAndPushFloat,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x72,false,"frem",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0xae,true,"freturn",StackChanges.clear,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x38,false,"fstore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x43,false,"fstore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x44,false,"fstore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x45,false,"fstore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x46,false,"fstore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x66,false,"fsub",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0xb4,false,"getfield",CommandFormat.shortGlobalIndex,StackChanges.pushField);
+		placeStaticCommand(0xb2,false,"getstatic",CommandFormat.shortGlobalIndex,StackChanges.pushStatic);
+		placeStaticCommand(0xa7,true,"goto",CommandFormat.shortBrunch,StackChanges.none);
+		placeStaticCommand(0xc8,true,"goto_w",CommandFormat.longBrunch,StackChanges.none);
+		placeStaticCommand(0x91,false,"i2b",StackChanges.none,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x92,false,"i2c",StackChanges.none,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x87,false,"i2d",StackChanges.changeInt2Double,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x86,false,"i2f",StackChanges.changeInt2Float,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x85,false,"i2l",StackChanges.changeInt2Long,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x93,false,"i2s",StackChanges.none,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x60,false,"iadd",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x2e,false,"iaload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x7e,false,"iand",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x4f,false,"iastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x02,false,"iconst_m1",StackChanges.pushInt);
+		placeStaticCommand(0x03,false,"iconst_0",StackChanges.pushInt);
+		placeStaticCommand(0x04,false,"iconst_1",StackChanges.pushInt);
+		placeStaticCommand(0x05,false,"iconst_2",StackChanges.pushInt);
+		placeStaticCommand(0x06,false,"iconst_3",StackChanges.pushInt);
+		placeStaticCommand(0x07,false,"iconst_4",StackChanges.pushInt);
+		placeStaticCommand(0x08,false,"iconst_5",StackChanges.pushInt);
+		placeStaticCommand(0x6c,false,"idiv",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x9f,false,"if_icmpeq",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xa0,false,"if_icmpne",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xa1,false,"if_icmplt",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xa2,false,"if_icmpge",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xa3,false,"if_icmpgt",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xa4,false,"if_icmple",CommandFormat.shortBrunch,StackChanges.pop2,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x99,false,"ifeq",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x9a,false,"ifne",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x9b,false,"iflt",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x9c,false,"ifge",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x9d,false,"ifgt",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x9e,false,"ifle",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xc7,false,"ifnonnull",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xc6,false,"ifnull",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x84,false,"iinc",CommandFormat.byteIndexAndByteValue,StackChanges.none);
+		placeStaticCommand(0x15,false,"iload",CommandFormat.extendableByteIndex,StackChanges.pushInt);
+		placeStaticCommand(0x1a,false,"iload_0",StackChanges.pushInt);
+		placeStaticCommand(0x1b,false,"iload_1",StackChanges.pushInt);
+		placeStaticCommand(0x1c,false,"iload_2",StackChanges.pushInt);
+		placeStaticCommand(0x1d,false,"iload_3",StackChanges.pushInt);
+		placeStaticCommand(0x68,false,"imul",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x74,false,"ineg",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xc1,false,"instanceof",CommandFormat.classShortIndex,StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xba,false,"invokedynamic",CommandFormat.restricted,StackChanges.none);
+		placeStaticCommand(0xb9,false,"invokeinterface",CommandFormat.callInterface,StackChanges.callAndPush);
+		placeStaticCommand(0xb7,false,"invokespecial",CommandFormat.call,StackChanges.callAndPush);
+		placeStaticCommand(0xb8,false,"invokestatic",CommandFormat.call,StackChanges.callStaticAndPush);
+		placeStaticCommand(0xb6,false,"invokevirtual",CommandFormat.call,StackChanges.callAndPush);
+		placeStaticCommand(0x80,false,"ior",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x70,false,"irem",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xac,true,"ireturn",StackChanges.clear,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x78,false,"ishl",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x7a,false,"ishr",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x36,false,"istore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3b,false,"istore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3c,false,"istore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3d,false,"istore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3e,false,"istore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x64,false,"isub",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x7c,false,"iushr",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x82,false,"ixor",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xa8,false,"jsr",CommandFormat.restricted,StackChanges.none);
+		placeStaticCommand(0xc9,false,"jsr_w",CommandFormat.restricted,StackChanges.none);
+		placeStaticCommand(0x8a,false,"l2d",StackChanges.changeLong2Double,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x89,false,"l2f",StackChanges.changeLong2Float,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x88,false,"l2i",StackChanges.changeLong2Int,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x61,false,"ladd",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x2f,false,"laload",StackChanges.pop2AndPushLong,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x7f,false,"land",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x50,false,"lastore",StackChanges.pop2,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x94,false,"lcmp",StackChanges.pop4AndPushInt,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x09,false,"lconst_0",StackChanges.pushLong);
+		placeStaticCommand(0x0a,false,"lconst_1",StackChanges.pushLong);
+		placeStaticCommand(0x12,false,"ldc",CommandFormat.valueByteIndex,StackChanges.none);
+		placeStaticCommand(0x13,false,"ldc_w",CommandFormat.valueShortIndex,StackChanges.none);
+		placeStaticCommand(0x14,false,"ldc2_w",CommandFormat.valueShortIndex2,StackChanges.none);
+		placeStaticCommand(0x6d,false,"ldiv",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x16,false,"lload",CommandFormat.extendableByteIndex,StackChanges.pushLong);
+		placeStaticCommand(0x1e,false,"lload_0",StackChanges.pushLong);
+		placeStaticCommand(0x1f,false,"lload_1",StackChanges.pushLong);
+		placeStaticCommand(0x20,false,"lload_2",StackChanges.pushLong);
+		placeStaticCommand(0x21,false,"lload_3",StackChanges.pushLong);
+		placeStaticCommand(0x69,false,"lmul",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x75,false,"lneg",StackChanges.pop2AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0xab,true,"lookupswitch",CommandFormat.lookupSwitch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x81,false,"lor",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x71,false,"lrem",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0xad,true,"lreturn",StackChanges.clear,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x79,false,"lshl",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x7b,false,"lshr",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x37,false,"lstore",CommandFormat.extendableByteIndex,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x3f,false,"lstore_0",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x40,false,"lstore_1",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x41,false,"lstore_2",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x42,false,"lstore_3",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x65,false,"lsub",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x7d,false,"lushr",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x83,false,"lxor",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0xc2,false,"monitorenter",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xc3,false,"monitorexit",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xc5,false,"multianewarray",CommandFormat.shortIndexAndByteValue,StackChanges.multiarrayAndPushReference);
+		placeStaticCommand(0xbb,false,"new",CommandFormat.classShortIndex,StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xbc,false,"newarray",CommandFormat.byteType,StackChanges.popAndPushReference);
+		placeStaticCommand(0x00,false,"nop",StackChanges.none);
+		placeStaticCommand(0x57,false,"pop",StackChanges.pop);
+		placeStaticCommand(0x58,false,"pop2",StackChanges.pop2);
+		placeStaticCommand(0xb5,false,"putfield",CommandFormat.shortGlobalIndex,StackChanges.popField);
+		placeStaticCommand(0xb3,false,"putstatic",CommandFormat.shortGlobalIndex,StackChanges.popStatic);
+		placeStaticCommand(0xa9,true,"ret",CommandFormat.restricted,StackChanges.none);
+		placeStaticCommand(0xb1,true,"return",StackChanges.clear);
+		placeStaticCommand(0x35,false,"saload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x56,false,"sastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x11,false,"sipush",CommandFormat.shortValue,StackChanges.pushInt);
+		placeStaticCommand(0x5f,false,"swap",StackChanges.swap);
+		placeStaticCommand(0xaa,true,"tableswitch",CommandFormat.tableSwitch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0xc4,false,"wide",CommandFormat.restricted,StackChanges.none);
 	}
-	
 	
 	private final ClassDescriptionRepo					cdr;
 	private final SyntaxTreeInterface<Macros>			macros;
@@ -459,6 +458,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private boolean										addLines2ClassManually = false;
 	private boolean										addVarTable = false, addVarTableInMethod = false;
 	private int[]										forMethodTypes = new int[16];
+	private boolean 									needStackMapRecord = false;
 	
 	LineParser(final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
 		this.cc = cc;
@@ -735,12 +735,12 @@ class LineParser implements LineByLineProcessorCallback {
 								case insideMethodLookup :
 									fillLookup();	jumps.clear();
 									state = ParserState.insideBegin;
-									markLabelRequired();
+									markLabelRequired(true);
 									break;
 								case insideMethodTable :
 									fillTable();	jumps.clear();
 									state = ParserState.insideBegin; 
-									markLabelRequired();
+									markLabelRequired(true);
 									break;
 								default :
 									throw new ContentException("End directive out of context!");
@@ -934,11 +934,11 @@ class LineParser implements LineByLineProcessorCallback {
 								System.err.println("Stack: "+methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot()+", line="+new String(data,from,len));
 								
 								
-//								if (desc.checkedTypes != null && desc.checkedTypes.length > 0) {
-//									if (!methodDescriptor.getBody().getStackAndVarRepo().compareStack(desc.checkedTypes)) {
-//										throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command with!"); 
-//									}
-//								}								
+								if (desc.checkedTypes != null && desc.checkedTypes.length > 0) {
+									if (!methodDescriptor.getBody().getStackAndVarRepo().compareStack(desc.checkedTypes)) {
+										throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command!"); 
+									}
+								}								
 								
 								switch (desc.commandFormat) {
 									case single					: processSingleCommand(desc,data,start); break; 
@@ -959,8 +959,14 @@ class LineParser implements LineByLineProcessorCallback {
 									case call					: processCallCommand(desc,data,start,end); break;
 									case callDynamic			: processDynamicCallCommand(desc,data,start,end); break;
 									case callInterface			: processInterfaceCallCommand(desc,data,start,end); break;
-									case lookupSwitch			: switchAddress = getPC(); putCommand((byte)opCode); alignPC(); jumps.clear(); state = ParserState.insideMethodLookup; break;
-									case tableSwitch			: switchAddress = getPC(); putCommand((byte)opCode); alignPC(); jumps.clear(); state = ParserState.insideMethodTable; break;
+									case lookupSwitch			:
+										prepareSwitchCommand((byte)opCode,desc.stackChanges);
+										state = ParserState.insideMethodLookup; 
+										break;
+									case tableSwitch			: 
+										prepareSwitchCommand((byte)opCode,desc.stackChanges);
+										state = ParserState.insideMethodTable; 
+										break;
 									case restricted				: throw new ContentException("Restricted command in the input stream!");
 									default : throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
 								}
@@ -1015,13 +1021,26 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
+	private boolean isLabelExists(final long labelId) throws ContentException, IOException {
+		return methodDescriptor.getBody().isLabelExists(labelId);
+	}
 	
-	private void markLabelRequired() throws ContentException, IOException {
-		methodDescriptor.getBody().markLabelRequired();
+	private void markLabelRequired(final boolean required) throws ContentException, IOException {
+		methodDescriptor.getBody().markLabelRequired(required);
+		needStackMapRecord = required;
 	}
 	
 	private void putLabel(final long labelId) throws ContentException, IOException {
-		methodDescriptor.getBody().putLabel(labelId,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+		if (!isLabelExists(labelId)) {
+			methodDescriptor.getBody().putLabel(labelId,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+			if (needStackMapRecord) {
+				prepareStackMapRecord();
+				needStackMapRecord = false;
+			}
+		}
+		else {
+			throw new ContentException("Duplicate label in the method body!");
+		}
 	}
 
 	private int getPC() throws ContentException, IOException {
@@ -1036,12 +1055,12 @@ class LineParser implements LineByLineProcessorCallback {
 		methodDescriptor.getBody().alignPC();
 	}
 
-	private void registerBranch(final long forResult, final boolean shortBrunch) throws ContentException, IOException {
-		methodDescriptor.getBody().registerBrunch(forResult,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+	private void registerBranch(final long labelId, final boolean shortBrunch) throws ContentException, IOException {
+		methodDescriptor.getBody().registerBrunch(labelId,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
 	}
 
-	private void registerBranch(final int address, final int placement, final long forResult, final boolean shortBrunch) throws ContentException, IOException {
-		methodDescriptor.getBody().registerBrunch(address,placement,forResult,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+	private void registerBranch(final int address, final int placement, final long labelId, final boolean shortBrunch) throws ContentException, IOException {
+		methodDescriptor.getBody().registerBrunch(address,placement,labelId,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
 	}
 	
 	private void changeStack(final StackChanges change) throws ContentException, IOException {
@@ -1054,6 +1073,10 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private void changeStack(final StackChanges change, final int[] signature, final int signatureSize, final int retSignature) throws ContentException, IOException {
 		methodDescriptor.getBody().getStackAndVarRepo().processChanges(change,signature,signatureSize,retSignature);
+	}
+	
+	private void prepareStackMapRecord() {
+		
 	}
 	
 	/*
@@ -1709,6 +1732,9 @@ class LineParser implements LineByLineProcessorCallback {
 			else {
 				methodDescriptor.addExceptionRecord((short)tryList.get(0)[0],(short)tryList.get(0)[1],(short)0,(short)getPC());
 			}
+			markLabelRequired(false);
+			methodDescriptor.getBody().getStackAndVarRepo().loadSnapshot(StackAndVarRepo.CATCH_SNAPSHOT);
+			prepareStackMapRecord();
 			skip2line(data, from);
 		}
 	}
@@ -1731,13 +1757,8 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		putCommand(op);
 		changeStack(desc.stackChanges);
-		if (op == 0xb0	|| // areturn
-			op == 0xaf	|| // dreturn
-			op == 0xae	|| // freturn
-			op == 0xad	|| // lreturn
-			op == 0xac	|| // ireturn
-			op == 0xb1	) {// return
-			markLabelRequired();
+		if (desc.uncondBrunch) {
+			markLabelRequired(true);
 		}
 		skip2line(data,start);
 	}
@@ -1910,7 +1931,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		else {
 			putCommand((byte)desc.operation,(byte)(displ[0] & 0xFF));
-			changeStack(desc.stackChanges);
+			changeStack(dataTypeToStackChange(displ[1]));
 			skip2line(data,start);
 		}
 	}
@@ -1925,8 +1946,23 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		else {
 			putCommand((byte)desc.operation,(byte)((displ[0] >> 8) & 0xFF),(byte)(displ[0] & 0xFF));
-			changeStack(desc.stackChanges);
+			changeStack(dataTypeToStackChange(displ[1]));
 			skip2line(data,start);
+		}
+	}
+
+	private static StackChanges dataTypeToStackChange(final short dataType) {
+		switch (dataType) {
+			case CompilerUtils.CLASSTYPE_REFERENCE	: return StackChanges.pushReference;
+			case CompilerUtils.CLASSTYPE_BYTE		: return StackChanges.pushInt;
+			case CompilerUtils.CLASSTYPE_SHORT		: return StackChanges.pushInt;
+			case CompilerUtils.CLASSTYPE_CHAR		: return StackChanges.pushInt;
+			case CompilerUtils.CLASSTYPE_INT		: return StackChanges.pushInt;
+			case CompilerUtils.CLASSTYPE_LONG		: return StackChanges.pushLong;
+			case CompilerUtils.CLASSTYPE_FLOAT		: return StackChanges.pushFloat;
+			case CompilerUtils.CLASSTYPE_DOUBLE		: return StackChanges.pushDouble;
+			case CompilerUtils.CLASSTYPE_BOOLEAN	: return StackChanges.pushInt;
+			default : throw new IllegalArgumentException(); 
 		}
 	}
 
@@ -1946,9 +1982,11 @@ class LineParser implements LineByLineProcessorCallback {
 					
 					if (forResult[1] == CharUtils.PREF_FLOAT) {
 						displ = cc.getConstantPool().asFloatDescription(sign*Float.intBitsToFloat((int) forResult[0]));
+						result[1] = CompilerUtils.CLASSTYPE_FLOAT;
 					}
 					else if (forResult[1] == CharUtils.PREF_INT) {
 						displ = cc.getConstantPool().asIntegerDescription((int)(sign*forResult[0]));
+						result[1] = CompilerUtils.CLASSTYPE_INT;
 					}
 					else {
 						throw new ContentException("Illegal numeric constant size (only int and float are available here)");
@@ -1970,6 +2008,7 @@ class LineParser implements LineByLineProcessorCallback {
 								}
 							}
 							displ = cc.getConstantPool().asIntegerDescription(value);
+							result[1] = CompilerUtils.CLASSTYPE_INT;
 						}
 						else {
 							throw new ContentException("Illegal char constant length. Need be exactly one char inside char constant");
@@ -1977,6 +2016,7 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 					else {
 						displ = cc.getConstantPool().asIntegerDescription(data[startChar]);
+						result[1] = CompilerUtils.CLASSTYPE_INT;
 					}
 					start++;
 					break;
@@ -1985,6 +2025,7 @@ class LineParser implements LineByLineProcessorCallback {
 					
 					start++;
 					displ = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,startString,endString,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+					result[1] = CompilerUtils.CLASSTYPE_REFERENCE;
 					break;
 				case 'a' : case 'b' : case 'c' : case 'd' : case 'e' : case 'f' : case 'g' : case 'h' :  case 'i' : case 'j' :
 				case 'k' : case 'l' : case 'm' : case 'n' : case 'o' : case 'p' : case 'q' : case 'r' :  case 's' : case 't' :
@@ -2001,6 +2042,7 @@ class LineParser implements LineByLineProcessorCallback {
 							}
 						}
 						displ = cc.getConstantPool().asClassDescription(cc.getNameTree().placeOrChangeName(data,startName,endName-CLASS_SUFFIX.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+						result[1] = CompilerUtils.CLASSTYPE_REFERENCE;
 					}
 					else {
 						throw new ContentException("Illegal name. Only zzz.class is available here");
@@ -2017,9 +2059,10 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private void processValueShortIndex2Command(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
-		final long	forResult[] = new long[]{0,0};
-		int			sign = 1;
-		short		displ;
+		final long		forResult[] = longArray;
+		StackChanges	changes = null;
+		int				sign = 1;
+		short			displ;
 
 		try{if (data[start] == '-') {
 				sign = -1;
@@ -2028,9 +2071,11 @@ class LineParser implements LineByLineProcessorCallback {
 			start = UnsafedCharUtils.uncheckedParseNumber(data, start, forResult, CharUtils.PREF_LONG|CharUtils.PREF_DOUBLE,true);
 			if (forResult[1] == CharUtils.PREF_DOUBLE) {
 				displ = cc.getConstantPool().asDoubleDescription(sign*Double.longBitsToDouble(forResult[0]));
+				changes = StackChanges.pushDouble;
 			}
 			else if (forResult[1] == CharUtils.PREF_LONG) {
 				displ = cc.getConstantPool().asLongDescription(sign*forResult[0]);
+				changes = StackChanges.pushLong;
 			}
 			else {
 				throw new ContentException("Illegal numeric constant size (only long and double are available here)");
@@ -2040,7 +2085,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 			else {
 				putCommand((byte)desc.operation,(byte)((displ >> 8) & 0xFF),(byte)(displ & 0xFF));
-				changeStack(desc.stackChanges);
+				changeStack(changes);
 				skip2line(data,start);
 			}
 		} catch (NumberFormatException exc) {
@@ -2120,11 +2165,18 @@ class LineParser implements LineByLineProcessorCallback {
 		final long	forResult[] = longArray;
 		
 		start = calculateBranchAddress(data,start,forResult);
-		changeStack(desc.stackChanges);
-		registerBranch(forResult[0],true);
+		
+		if (!isLabelExists(forResult[0])) {
+			changeStack(desc.stackChanges);
+			registerBranch(forResult[0],true);
+		}
+		else {
+			changeStack(desc.stackChanges);
+			registerBranch(forResult[0],true);
+		}
 		putCommand((byte)desc.operation,(byte)0,(byte)0);
-		if (desc.operation == 0xa7) {	// goto
-			markLabelRequired();
+		if (desc.uncondBrunch) {
+			markLabelRequired(true);
 		}
 		skip2line(data,start);
 	}
@@ -2133,11 +2185,17 @@ class LineParser implements LineByLineProcessorCallback {
 		final long	forResult[] = longArray;
 		
 		start = calculateBranchAddress(data,start,forResult);
-		changeStack(desc.stackChanges);
-		registerBranch(forResult[0],false);
+		if (!isLabelExists(forResult[0])) {
+			changeStack(desc.stackChanges);
+			registerBranch(forResult[0],true);
+		}
+		else {
+			changeStack(desc.stackChanges);
+			registerBranch(forResult[0],true);
+		}
 		putCommand((byte)desc.operation,(byte)0,(byte)0,(byte)0,(byte)0);
-		if (desc.operation == 0xc8) {	// goto_w
-			markLabelRequired();
+		if (desc.uncondBrunch) {
+			markLabelRequired(true);
 		}
 		skip2line(data,start);
 	}
@@ -2166,6 +2224,14 @@ class LineParser implements LineByLineProcessorCallback {
 		putCommand((byte)(argsSize & 0xFF),(byte)((argsSize >> 8)& 0xFF));
 	}
 
+	private void prepareSwitchCommand(final byte opCode, final StackChanges stackChanges) throws ContentException, IOException {
+		switchAddress = getPC(); 
+		putCommand((byte)opCode);
+		changeStack(stackChanges);
+		alignPC(); 
+		jumps.clear(); 
+	}	
+	
 	private void processJumps(final char[] data, int start, final int end, final boolean explicitValue) throws ContentException {
 		final long[]	forLabel = longArray;
 		final long[]	forValue = new long[1];
@@ -2343,7 +2409,7 @@ class LineParser implements LineByLineProcessorCallback {
 							tree.placeOrChangeName(f.getName(),new NameDescriptor(checkType)),
 							tree.placeOrChangeName(InternalUtils.buildFieldSignature(tree,type),new NameDescriptor(checkType))
 					);
-		result[1] = CompilerUtils.defineClassType(f.getDeclaringClass());
+		result[1] = CompilerUtils.defineClassType(f.getType());
 		return start;
 	}
 
@@ -2740,16 +2806,16 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private static void placeStaticCommand(final int operation, final int stackDelta, final String mnemonics, final StackChanges stackChanges, final int... awaitedTypes) {
-		placeStaticCommand(operation, stackDelta, mnemonics, CommandFormat.single, stackChanges, new int[0]);
+	private static void placeStaticCommand(final int operation, final boolean uncondBrunch, final String mnemonics, final StackChanges stackChanges, final int... awaitedTypes) {
+		placeStaticCommand(operation, uncondBrunch, mnemonics, CommandFormat.single, stackChanges, new int[0]);
 	}
 	
-	private static void placeStaticCommand(final int operation, final int stackDelta, final String mnemonics, final CommandFormat format, final StackChanges stackChanges, final int... awaitedTypes) {
+	private static void placeStaticCommand(final int operation, final boolean uncondBrunch, final String mnemonics, final CommandFormat format, final StackChanges stackChanges, final int... awaitedTypes) {
 		if (staticCommandTree.contains(operation)) {
 			throw new IllegalArgumentException("Duplicate opcode ["+operation+"]: "+mnemonics+", already exists "+staticCommandTree.getName(operation));
 		}
 		else {
-			staticCommandTree.placeOrChangeName(mnemonics,operation,new CommandDescriptor(operation,stackDelta,format,stackChanges,awaitedTypes));
+			staticCommandTree.placeOrChangeName(mnemonics,operation,new CommandDescriptor(operation,uncondBrunch,format,stackChanges,awaitedTypes));
 		}
 	}	
 	
@@ -2901,14 +2967,14 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private static class CommandDescriptor {
 		public final int			operation;
-		public final int			stackDelta;
+		public final boolean		uncondBrunch;
 		public final CommandFormat	commandFormat;
 		public final StackChanges	stackChanges;
 		public final int[]			checkedTypes;
 		
-		public CommandDescriptor(final int operation, final int stackDelta, final CommandFormat commandFormat, final StackChanges stackChanges, final int[] checkedTypes) {
+		public CommandDescriptor(final int operation, final boolean uncondBrunch, final CommandFormat commandFormat, final StackChanges stackChanges, final int[] checkedTypes) {
 			this.operation = operation;
-			this.stackDelta = stackDelta;
+			this.uncondBrunch = uncondBrunch;
 			this.commandFormat = commandFormat;
 			this.stackChanges = stackChanges;
 			this.checkedTypes = checkedTypes;
@@ -2916,7 +2982,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 		@Override
 		public String toString() {
-			return "CommandDescriptor [operation=" + operation + ", stackDelta=" + stackDelta + ", commandFormat="
+			return "CommandDescriptor [operation=" + operation + ", uncondBrunch=" + uncondBrunch + ", commandFormat="
 					+ commandFormat + ", stackChanges=" + stackChanges + ", checkedTypes="
 					+ Arrays.toString(checkedTypes) + "]";
 		}

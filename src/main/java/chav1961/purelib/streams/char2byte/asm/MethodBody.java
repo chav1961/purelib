@@ -100,8 +100,18 @@ class MethodBody extends AbstractMethodBody {
 	}
 
 	@Override
-	void markLabelRequired() {
-		labelRequired = true;
+	void markLabelRequired(final boolean required) {
+		labelRequired = required;
+	}
+	
+	@Override
+	boolean isLabelExists(final long labelId) {
+		for (ItemDescriptor item : labels) {
+			if (item.id == labelId) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	@Override
@@ -114,7 +124,7 @@ class MethodBody extends AbstractMethodBody {
 				throw new ContentException("Unpredictable program stack state: no forward brunches to the given mandatory label were registered earlier");
 			}
 			else {
-				currentSnapshot = stack.snapshot;
+				getStackAndVarRepo().loadSnapshot(currentSnapshot = stack.snapshot);
 			}
 		}
 		if (stack != null) {

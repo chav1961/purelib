@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.gettersandsetters;
+package chav1961.purelib.basic;
 
 public class StaticIntOwner {
 	public static int value = Integer.MIN_VALUE;

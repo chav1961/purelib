@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.gettersandsetters;
+package chav1961.purelib.basic;
 
 public class ShortOwner {
 	public short value = Short.MIN_VALUE;

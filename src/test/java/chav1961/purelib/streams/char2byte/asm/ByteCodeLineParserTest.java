@@ -13,9 +13,22 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 
+interface ByteCodeTestInterface {
+	void callInterfaceVoid(long parameter);
+	int callInterfaceInt(long parameter);
+}
 
-public class ByteCodeLineParserTest {
+public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 	public static int callTest() {return 666;}	// Do not remove - need for test purposes! 
+
+	public static void callStaticVoid(final long parameter) {}
+	public static int callStaticInt(final long parameter) {return (int)parameter;}
+
+	public void callVirtualVoid(final long parameter) {}
+	public int callVirtualInt(final long parameter) {return (int)parameter;}
+
+	@Override public void callInterfaceVoid(final long parameter) {}
+	@Override public int callInterfaceInt(final long parameter) {return (int)parameter;}
 	
 	@Test
 	public void localAddressTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
@@ -649,7 +662,13 @@ public class ByteCodeLineParserTest {
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).invoke(null,2,3),Integer.valueOf(1));
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).invoke(null,3,2),Integer.valueOf(-1));
 		}
+	}
 
+	@Test
+	public void java_1_8_Test() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
+		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
+		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
+		
 		try(final ClassContainer	cc = new ClassContainer();) {
 			final LineParser		lp = new LineParser(cc,cdr,macros,null);
 
@@ -679,8 +698,8 @@ public class ByteCodeLineParserTest {
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).invoke(null,2,3),Integer.valueOf(1));
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).invoke(null,3,2),Integer.valueOf(-1));
 		}		
-	}
-
+	}	
+	
 	@Test
 	public void constructorTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException, ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
@@ -1022,6 +1041,122 @@ public class ByteCodeLineParserTest {
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
 			Assert.assertEquals(clazz.getMethod("call",Throwable.class).getReturnType(),int.class);
+		}
+	}
+
+	@Test
+	public void invokeTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException, InstantiationException, ContentException {
+		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
+		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
+		
+		try(final ClassContainer	cc = new ClassContainer();) {
+			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+
+			ClassLineParserTest.processString(lp,
+							" 			.package "+this.getClass().getPackage().getName()+"\n"
+						    +" 			.import "+this.getClass().getName()+"\n"
+						    +" 			.import "+Exception.class.getName()+"\n"
+							+"Test 		.class public\n"
+							+"callVoid	.method void static public\n"
+							+"p1		.parameter java.lang.Throwable\n"
+							+"			.stack 5\n"
+							+"			.begin\n"
+							+"			lconst_1\n"
+							+"			invokestatic "+this.getClass().getName()+".callStaticVoid(J)V\n"
+							+"			return\n"
+							+"			.end\n"
+							+"callVoid	.end\n"
+							+"callInt	.method int static public\n"
+							+"p1		.parameter java.lang.Throwable\n"
+							+"			.stack 5\n"
+							+"			.begin\n"
+							+"			lconst_1\n"
+							+"			invokestatic "+this.getClass().getName()+".callStaticInt(J)I\n"
+							+"			ireturn\n"
+							+"			.end\n"
+							+"callInt	.end\n"
+							+"Test		.end\n"
+							);
+			final Class<?>	clazz = ClassLineParserTest.checkClass(cc,this.getClass().getPackage().getName()+".Test");
+			
+			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
+			Assert.assertEquals(clazz.getMethod("callVoid",Throwable.class).getReturnType(),void.class);
+			Assert.assertEquals(clazz.getMethod("callInt",Throwable.class).getReturnType(),int.class);
+		}
+
+		try(final ClassContainer	cc = new ClassContainer();) {
+			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+
+			ClassLineParserTest.processString(lp,
+							" 			.package "+this.getClass().getPackage().getName()+"\n"
+						    +" 			.import "+this.getClass().getName()+"\n"
+						    +" 			.import "+Exception.class.getName()+"\n"
+							+"Test 		.class public\n"
+							+"callVoid	.method void static public\n"
+							+"p1		.parameter "+this.getClass().getName()+"\n"
+							+"			.stack 5\n"
+							+"			.begin\n"
+							+"			aload p1\n"
+							+"			lconst_1\n"
+							+"			invokevirtual "+this.getClass().getName()+".callVirtualVoid(J)V\n"
+							+"			return\n"
+							+"			.end\n"
+							+"callVoid	.end\n"
+							+"callInt	.method int static public\n"
+							+"p1		.parameter "+this.getClass().getName()+"\n"
+							+"			.stack 5\n"
+							+"			.begin\n"
+							+"			aload p1\n"
+							+"			lconst_1\n"
+							+"			invokevirtual "+this.getClass().getName()+".callVirtualInt(J)I\n"
+							+"			ireturn\n"
+							+"			.end\n"
+							+"callInt	.end\n"
+							+"Test		.end\n"
+							);
+			final Class<?>	clazz = ClassLineParserTest.checkClass(cc,this.getClass().getPackage().getName()+".Test");
+			
+			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
+			Assert.assertEquals(clazz.getMethod("callVoid",this.getClass()).getReturnType(),void.class);
+			Assert.assertEquals(clazz.getMethod("callInt",this.getClass()).getReturnType(),int.class);
+		}
+
+		try(final ClassContainer	cc = new ClassContainer();) {
+			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+
+			ClassLineParserTest.processString(lp,
+							" 			.package "+this.getClass().getPackage().getName()+"\n"
+						    +" 			.import "+this.getClass().getName()+"\n"
+						    +" 			.import "+ByteCodeTestInterface.class.getName()+"\n"
+						    +" 			.import "+Exception.class.getName()+"\n"
+							+"Test 		.class public\n"
+							+"callVoid	.method void static public\n"
+							+"p1		.parameter "+this.getClass().getName()+"\n"
+							+"			.stack 5\n"
+							+"			.begin\n"
+							+"			aload p1\n"
+							+"			lconst_1\n"
+							+"			invokeinterface "+ByteCodeTestInterface.class.getName()+".callInterfaceVoid(J)V\n"
+							+"			return\n"
+							+"			.end\n"
+							+"callVoid	.end\n"
+							+"callInt	.method int static public\n"
+							+"p1		.parameter "+this.getClass().getName()+"\n"
+							+"			.stack 5\n"
+							+"			.begin\n"
+							+"			aload p1\n"
+							+"			lconst_1\n"
+							+"			invokeinterface "+ByteCodeTestInterface.class.getName()+".callInterfaceInt(J)I\n"
+							+"			ireturn\n"
+							+"			.end\n"
+							+"callInt	.end\n"
+							+"Test		.end\n"
+							);
+			final Class<?>	clazz = ClassLineParserTest.checkClass(cc,this.getClass().getPackage().getName()+".Test");
+			
+			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
+			Assert.assertEquals(clazz.getMethod("callVoid",this.getClass()).getReturnType(),void.class);
+			Assert.assertEquals(clazz.getMethod("callInt",this.getClass()).getReturnType(),int.class);
 		}
 	}
 }

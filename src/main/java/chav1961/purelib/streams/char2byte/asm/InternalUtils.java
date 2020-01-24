@@ -157,11 +157,17 @@ public class InternalUtils {
 						result[toStore] = currentType;
 					}
 					toStore++;
+					if (toStore < result.length) {
+						result[toStore] = StackAndVarRepo.SPECIAL_TYPE_TOP;
+					}
+					toStore++;
 				}
-				if (toStore < result.length) {
-					result[toStore] = currentType;
+				else {
+					if (toStore < result.length) {
+						result[toStore] = currentType;
+					}
+					toStore++;
 				}
-				toStore++;
 			}
 		}
 		return toStore >= result.length ? -toStore : toStore;

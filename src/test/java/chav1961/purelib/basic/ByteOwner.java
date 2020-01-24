@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.gettersandsetters;
+package chav1961.purelib.basic;
 
 public class ByteOwner {
 	public byte value = Byte.MIN_VALUE;

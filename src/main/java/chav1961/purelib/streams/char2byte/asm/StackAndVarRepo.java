@@ -4,10 +4,12 @@ import java.util.Arrays;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 
 class StackAndVarRepo {
 	static final int			SPECIAL_TYPE_TOP = -1;
 	static final int			SPECIAL_TYPE_UNPREPARED = -2;
+	static StackSnapshot		CATCH_SNAPSHOT = new StackSnapshot(new int[]{CompilerUtils.CLASSTYPE_REFERENCE},1);  
 	
 	private static final int	INITIAL_STACK_SIZE = 16;
 	
@@ -64,6 +66,7 @@ class StackAndVarRepo {
 		popField,
 		popStatic,
 		
+		callStaticAndPush,
 		callAndPush,
 		multiarrayAndPushReference,
 	}
@@ -107,7 +110,7 @@ class StackAndVarRepo {
 				varsChanges[methodPC] = true;
 				varChangesDetected = true;
 			}
-		}
+		} 
 		else {
 			if (newVarType == CompilerUtils.CLASSTYPE_LONG  && newVarType == CompilerUtils.CLASSTYPE_DOUBLE) {
 				varsContent[methodPC][1] = (short)newVarType;
@@ -115,7 +118,7 @@ class StackAndVarRepo {
 				varChangesDetected = true;
 			}
 			else {
-				throw new ContentException("Attempt to store long or double content to non-long/non-double var"); 
+				throw new ContentException("Attempt to store long or double content to non-long/non-double var. Stack content is "+prepareStackContent()); 
 			}
 		}
 	}
@@ -142,11 +145,6 @@ class StackAndVarRepo {
 		}
 	}
 
-	private void pushAny(final int type) {
-		ensureCapacity(1);
-		stackContent[++currentStackTop] = type;
-	}
-	
 	void pushInt() {
 		ensureCapacity(1);
 		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_INT;
@@ -204,7 +202,7 @@ class StackAndVarRepo {
 	
 	int select(final int fromTop) throws ContentException {
 		if (currentStackTop + fromTop > currentStackTop || currentStackTop + fromTop < 0) {
-			throw new ContentException("Illegal command usage: not enought stack content");
+			throw new ContentException("Illegal command usage: not enought stack content. Stack content is "+prepareStackContent());
 		}
 		else {
 			return stackContent[currentStackTop + fromTop];
@@ -247,7 +245,7 @@ class StackAndVarRepo {
 					pushFloat();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain double value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeDouble2Int:
@@ -256,7 +254,7 @@ class StackAndVarRepo {
 					pushInt();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain double value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeDouble2Long:
@@ -265,7 +263,7 @@ class StackAndVarRepo {
 					pushLong();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain double value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeFloat2Double:
@@ -274,7 +272,7 @@ class StackAndVarRepo {
 					pushDouble();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain float value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeFloat2Int:
@@ -283,7 +281,7 @@ class StackAndVarRepo {
 					pushInt();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain float value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeFloat2Long:
@@ -292,7 +290,7 @@ class StackAndVarRepo {
 					pushLong();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain float value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeInt2Double:
@@ -301,7 +299,7 @@ class StackAndVarRepo {
 					pushDouble();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain float value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeInt2Float:
@@ -310,7 +308,7 @@ class StackAndVarRepo {
 					pushFloat();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain float value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeInt2Long:
@@ -319,7 +317,7 @@ class StackAndVarRepo {
 					pushLong();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain float value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeLong2Double:
@@ -328,7 +326,7 @@ class StackAndVarRepo {
 					pushDouble();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain long value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain long value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeLong2Float:
@@ -337,7 +335,7 @@ class StackAndVarRepo {
 					pushFloat();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain long value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain long value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case changeLong2Int:
@@ -346,7 +344,7 @@ class StackAndVarRepo {
 					pushInt();
 				}
 				else {
-					throw new ContentException("Illegal command usage: top of stack doesn't contain long value");
+					throw new ContentException("Illegal command usage: top of stack doesn't contain long value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case clear:
@@ -359,7 +357,7 @@ class StackAndVarRepo {
 					push(dup);
 				}
 				else {
-					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case dup2:
@@ -375,7 +373,7 @@ class StackAndVarRepo {
 					}
 				}
 				else {
-					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case dup2_x1:
@@ -400,7 +398,7 @@ class StackAndVarRepo {
 					}
 				}
 				else {
-					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case dup2_x2:
@@ -426,7 +424,7 @@ class StackAndVarRepo {
 					}
 				}
 				else {
-					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case dup_x1	:
@@ -439,7 +437,7 @@ class StackAndVarRepo {
 					push(dupX1V1);
 				}
 				else {
-					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case dup_x2	:
@@ -453,7 +451,7 @@ class StackAndVarRepo {
 					push(dupX2V1);
 				}
 				else {
-					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value");
+					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case none:
@@ -536,7 +534,7 @@ class StackAndVarRepo {
 				final	int val1 = select(0), val2 = select(-1);
 				
 				if (val2 == CompilerUtils.CLASSTYPE_DOUBLE || val2 == CompilerUtils.CLASSTYPE_LONG) {
-					throw new ContentException("Illegal command usage: double/long value at the top of stack");
+					throw new ContentException("Illegal command usage: double/long value at the top of stack. Stack content is "+prepareStackContent());
 				}
 				else {
 					pop(2);
@@ -556,7 +554,7 @@ class StackAndVarRepo {
 			case multiarrayAndPushReference	:
 				for (int index = 0; index < signature; index++) {
 					if (select(-index) != CompilerUtils.CLASSTYPE_INT) {
-						throw new ContentException("Illegal command usage: multianewarray command contains non-integer dimensions on stack at position ["+(index-signature)+"]");
+						throw new ContentException("Illegal command usage: multianewarray command contains non-integer dimensions on stack at position ["+(index-signature)+"]. Stack content is "+prepareStackContent());
 					}
 				}
 				pop(signature);
@@ -564,43 +562,43 @@ class StackAndVarRepo {
 				break;
 			case popField	:
 				if (signature == CompilerUtils.CLASSTYPE_DOUBLE || signature == CompilerUtils.CLASSTYPE_LONG) {
-					if (select(0) == SPECIAL_TYPE_TOP && select(-1) == signature && select(-2) == CompilerUtils.CLASSTYPE_REFERENCE) {
+					if (select(0) == SPECIAL_TYPE_TOP && typesAreCompatible(select(-1),signature) && select(-2) == CompilerUtils.CLASSTYPE_REFERENCE) {
 						pop(3);
 					}
 					else {
-						throw new ContentException("Illegal command usage: illegal stack content (double/long and reference awaited)");
+						throw new ContentException("Illegal command usage: illegal stack content (double/long and reference awaited). Stack content is "+prepareStackContent());
 					}
 				}
 				else {
-					if (select(0) == signature && select(-1) == CompilerUtils.CLASSTYPE_REFERENCE) {
+					if (typesAreCompatible(select(0),signature) && select(-1) == CompilerUtils.CLASSTYPE_REFERENCE) {
 						pop(2);
 					}
 					else {
-						throw new ContentException("Illegal command usage: illegal stack content (non-double/-nonlong and reference awaited)");
+						throw new ContentException("Illegal command usage: illegal stack content (non-double/-nonlong and reference awaited). Stack content is "+prepareStackContent());
 					}
 				}
 				break;
 			case popStatic	:
 				if (signature == CompilerUtils.CLASSTYPE_DOUBLE || signature == CompilerUtils.CLASSTYPE_LONG) {
-					if (select(0) == SPECIAL_TYPE_TOP && select(-1) == signature) {
+					if (select(0) == SPECIAL_TYPE_TOP && typesAreCompatible(select(-1),signature)) {
 						pop(2);
 					}
 					else {
-						throw new ContentException("Illegal command usage: attempt to save long/double from non-long/non-doube stack");
+						throw new ContentException("Illegal command usage: attempt to save long/double from non-long/non-doube stack. Stack content is "+prepareStackContent());
 					}
 				}
 				else {
-					if (select(0) == signature) {
+					if (typesAreCompatible(select(0),signature)) {
 						pop();
 					}
 					else {
-						throw new ContentException("Illegal command usage: incompatible types on static fields and stack top");
+						throw new ContentException("Illegal command usage: incompatible types on static fields and stack top. Stack content is "+prepareStackContent());
 					}
 				}
 				break;
 			case pushField	:
 				if (select(0) != CompilerUtils.CLASSTYPE_REFERENCE) {
-					throw new ContentException("Illegal command usage: any reference on the top of stack is missing");
+					throw new ContentException("Illegal command usage: any reference on the top of stack is missing. Stack content is "+prepareStackContent());
 				}
 				else {
 					pop();
@@ -619,7 +617,7 @@ class StackAndVarRepo {
 	void processChanges(final StackChanges changes, final int[] callSignature, final int signatureSize, final int retSignature) throws ContentException {
 		begin();
 		switch (changes) {
-			case callAndPush	:
+			case callStaticAndPush	:
 				if (retSignature == CompilerUtils.CLASSTYPE_VOID) {
 					compareStack(callSignature,signatureSize);
 					pop(signatureSize);
@@ -627,6 +625,27 @@ class StackAndVarRepo {
 				else {
 					compareStack(callSignature,signatureSize);
 					pop(signatureSize);
+					push(retSignature);
+				}
+				break;
+			case callAndPush	:
+				if (retSignature == CompilerUtils.CLASSTYPE_VOID) {
+					compareStack(callSignature,signatureSize);
+					if (select(-signatureSize) != CompilerUtils.CLASSTYPE_REFERENCE) {
+						throw new ContentException("Illegal command usage: non-static invocation requires instance refrerence on the stack. Stack content is "+prepareStackContent());
+					}
+					else {
+						pop(signatureSize+1);
+					}
+				}
+				else {
+					compareStack(callSignature,signatureSize);
+					if (select(-signatureSize) != CompilerUtils.CLASSTYPE_REFERENCE) {
+						throw new ContentException("Illegal command usage: non-static invocation requires instance refrerence on the stack. Stack content is "+prepareStackContent());
+					}
+					else {
+						pop(signatureSize+1);
+					}
 					push(retSignature);
 				}
 				break;
@@ -648,8 +667,15 @@ class StackAndVarRepo {
 		return new StackSnapshot(stackContent,currentStackTop); 
 	}
 
+	StackMapRecord createStackMapRecord(final short displ) {
+		return new StackMapRecord(displ,makeSnapshot(),null);
+	}
+	
 	void loadSnapshot(final StackSnapshot snapshot) {
-		
+		ensureCapacity(Math.max(0,snapshot.content.length-currentStackTop));
+		System.arraycopy(snapshot.content,0,stackContent,0,snapshot.content.length);
+		currentStackTop = snapshot.content.length - 1;
+		begin();
 	}
 	
 	boolean compareStack(final int[] content) throws ContentException {
@@ -661,11 +687,10 @@ class StackAndVarRepo {
 		return true;
 	}
 	
-	
 	private void compareStack(final int[] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
 			if (!typesAreCompatible(select(index-signatureSize+1),callSignature[index])) {
-				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]");
+				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]. "+prepareStackMismatchMessage(stackContent,getCurrentStackDepth(),callSignature,signatureSize));
 			}
 		}
 	}
@@ -679,6 +704,16 @@ class StackAndVarRepo {
 		}
 	}
 
+	private String prepareStackContent() {
+		return new StackSnapshot(stackContent,getCurrentStackDepth()).toString();
+	}
+	
+	private String prepareStackMismatchMessage(final int[] stackContent, final int stackSize, final int[] awaitedContent, final int awaitedContentSize) {
+		final StackSnapshot	stack = new StackSnapshot(stackContent,stackSize), awaited = new StackSnapshot(awaitedContent,awaitedContentSize); 
+		
+		return "Current stack state is: "+stack.toString()+", awaited top of stace is: "+awaited.toString();
+	}
+
 	private void ensureCapacity(final int delta) {
 		if (currentStackTop + delta >= stackContent.length) {
 			stackContent = Arrays.copyOf(stackContent,2*stackContent.length);
@@ -686,7 +721,7 @@ class StackAndVarRepo {
 		}
 		maxStackDepth = Math.max(maxStackDepth,currentStackTop + delta);
 	}
-	
+
 	static class StackSnapshot {
 		private final int[]	content;
 		
@@ -740,6 +775,38 @@ class StackAndVarRepo {
 			}
 			
 			return  sb.append("]").toString();
+		}
+	}
+	
+	static class VarSnapshot {
+		
+	}
+	
+	static class StackMapRecord {
+		private final short			displ;
+		private final StackSnapshot	stack;
+		private final VarSnapshot	vars;
+		
+		public StackMapRecord(final short displ, final StackSnapshot stack, final VarSnapshot vars) {
+			super();
+			this.displ = displ;
+			this.stack = stack;
+			this.vars = vars;
+		}
+		
+		public int getRecordSize() {
+			return  1 	// 0xFF byte size 
+					+ 2 // displ size
+					+ 2 // stack content length size
+					+ stack.content.length // stack content
+					+ 0	// var frame content length size
+					+ 0 // var frame content
+					;
+		}
+		
+		@Override
+		public String toString() {
+			return "StackMapRecord [displ=" + displ + ", stack=" + stack + ", vars=" + vars + "]";
 		}
 	}
 }

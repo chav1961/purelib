@@ -11,8 +11,9 @@ abstract class AbstractMethodBody {
 	abstract short getPC();
 	abstract void putCommand(int stackDelta, byte... data) throws ContentException;
 	abstract void alignPC() throws ContentException;
+	abstract boolean isLabelExists(long labelId);
 	abstract void putLabel(long labelId, StackSnapshot snapshot) throws ContentException;
-	abstract void markLabelRequired();
+	abstract void markLabelRequired(boolean required);
 	abstract void registerBrunch(long labelId, boolean shortBranch, StackSnapshot snapshot) throws ContentException;
 	abstract void registerBrunch(int address, int placement, long labelId, boolean shortBranch, StackSnapshot snapshot) throws ContentException;
 	abstract short getStackSize();
