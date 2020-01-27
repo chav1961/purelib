@@ -42,7 +42,7 @@ uniqueL			.var			int
 {merrorAfter} ---------------
 				invokespecial 	java.lang.String.String([C)V
 				invokespecial 	chav1961.purelib.basic.exceptions.CalculationException.CalculationException(Ljava/lang/String;)V
-				athrow
+				invokestatic 	chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.throwException(Ljava/lang/Throwable;)V
 {prepareWrapper} ---------------
 				aload_1
 				ldc				${varIndex}
@@ -131,6 +131,11 @@ label${labelTrue}:	nop
 				invokestatic	java.lang.System.arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 {finish} ---------------
 				return
+				.end
+exec			.end				
+${shortClassName}	.end
+{markedFinish} ---------------
+gotoMacroExit:	return
 				.end
 exec			.end				
 ${shortClassName}	.end

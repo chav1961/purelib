@@ -8,7 +8,6 @@ import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChanges;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChangesCallback;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
-import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.VarChangesCallback;
 
 public class StackAndVarRepoTest {
 	@Test
@@ -22,13 +21,7 @@ public class StackAndVarRepoTest {
 											changes[2] = changedFrom; 
 										}
 									};
-		final VarChangesCallback	varCallback = new VarChangesCallback() {
-										@Override
-										public void processChanges(short[][] varContent, boolean[] changes) {
-											// TODO Auto-generated method stub
-										}
-									};
-		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
 		
 		repo.processChanges(StackChanges.none);
 		Assert.assertArrayEquals(new int[] {-1,-1,-1},changes);
@@ -109,7 +102,7 @@ public class StackAndVarRepoTest {
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.select(0));
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT,repo.select(-1));
 		
-		repo.loadSnapshot(repo.makeSnapshot());		// Test snapshot manipulations
+		repo.loadStackSnapshot(repo.makeStackSnapshot());		// Test snapshot manipulations
 		Assert.assertEquals(2,repo.getCurrentStackDepth());
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.select(0));
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT,repo.select(-1));
@@ -129,13 +122,7 @@ public class StackAndVarRepoTest {
 											changes[2] = changedFrom; 
 										}
 									};
-		final VarChangesCallback	varCallback = new VarChangesCallback() {
-										@Override
-										public void processChanges(short[][] varContent, boolean[] changes) {
-											// TODO Auto-generated method stub
-										}
-									};
-		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
 
 		repo.processChanges(StackChanges.pushInt);
 		repo.processChanges(StackChanges.dup);
@@ -435,13 +422,7 @@ public class StackAndVarRepoTest {
 											changes[2] = changedFrom; 
 										}
 									};
-		final VarChangesCallback	varCallback = new VarChangesCallback() {
-										@Override
-										public void processChanges(short[][] varContent, boolean[] changes) {
-											// TODO Auto-generated method stub
-										}
-									};
-		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
 		
 		repo.processChanges(StackChanges.pushInt);
 		
@@ -556,13 +537,7 @@ public class StackAndVarRepoTest {
 											changes[2] = changedFrom; 
 										}
 									};
-		final VarChangesCallback	varCallback = new VarChangesCallback() {
-										@Override
-										public void processChanges(short[][] varContent, boolean[] changes) {
-											// TODO Auto-generated method stub
-										}
-									};
-		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
 
 		repo.processChanges(StackChanges.pushInt);
 		repo.processChanges(StackChanges.popAndPushInt);
@@ -660,13 +635,7 @@ public class StackAndVarRepoTest {
 											changes[2] = changedFrom; 
 										}
 									};
-		final VarChangesCallback	varCallback = new VarChangesCallback() {
-										@Override
-										public void processChanges(short[][] varContent, boolean[] changes) {
-											// TODO Auto-generated method stub
-										}
-									};
-		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
 
 		repo.processChanges(StackChanges.pushStatic,CompilerUtils.CLASSTYPE_INT);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
@@ -864,13 +833,7 @@ public class StackAndVarRepoTest {
 											changes[2] = changedFrom; 
 										}
 									};
-		final VarChangesCallback	varCallback = new VarChangesCallback() {
-										@Override
-										public void processChanges(short[][] varContent, boolean[] changes) {
-											// TODO Auto-generated method stub
-										}
-									};
-		final StackAndVarRepo		repo = new StackAndVarRepo(callback,varCallback);
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
 
 		repo.pushReference();
 		repo.pushInt();
@@ -882,5 +845,97 @@ public class StackAndVarRepoTest {
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_LONG,repo.select(-1));
 		
 		repo.processChanges(StackChanges.clear);
+	}
+
+	@Test
+	public void varFrameTest() throws ContentException {
+		final int[]					changes = new int[3];		
+		final StackChangesCallback	callback = new StackChangesCallback() {
+										@Override
+										public void processChanges(final int[] stackContent, final int deletedFrom, final int insertedFrom, final int changedFrom) {
+											changes[0] = deletedFrom;
+											changes[1] = insertedFrom;
+											changes[2] = changedFrom; 
+										}
+									};
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
+
+		repo.startVarFrame();
+		repo.addVar(0,CompilerUtils.CLASSTYPE_INT);
+		repo.addVar(1,CompilerUtils.CLASSTYPE_LONG);
+		
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.getVarType(0));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_LONG,repo.getVarType(1));
+		Assert.assertEquals(3,repo.makeVarSnapshot().getLength());
+		
+		try{repo.addVar(0,CompilerUtils.CLASSTYPE_INT);
+			Assert.fail("Mandatory exception was not detected (redefinition overlay)");
+		} catch (ContentException exc) {
+		}
+		try{repo.addVar(2,CompilerUtils.CLASSTYPE_DOUBLE);
+			Assert.fail("Mandatory exception was not detected (redefinition overlay)");
+		} catch (ContentException exc) {
+		}
+		
+		try{repo.getVarType(2);
+			Assert.fail("Mandatory exception was not detected (access to half long/double)");
+		} catch (ContentException exc) {
+		}
+		
+		try{repo.getVarType(3);
+			Assert.fail("Mandatory exception was not detected (access outside the frame)");
+		} catch (ContentException exc) {
+		}
+		 
+		repo.stopVarFrame();
+
+		Assert.assertEquals(0,repo.makeVarSnapshot().getLength());
+
+		try{repo.stopVarFrame();
+			Assert.fail("Mandatory exception was not detected (stack exhausted)");
+		} catch (IllegalStateException exc) {
+		}
+	}
+
+	@Test
+	public void ensuresTest() throws ContentException {
+		final int[]					changes = new int[3];		
+		final StackChangesCallback	callback = new StackChangesCallback() {
+										@Override
+										public void processChanges(final int[] stackContent, final int deletedFrom, final int insertedFrom, final int changedFrom) {
+											changes[0] = deletedFrom;
+											changes[1] = insertedFrom;
+											changes[2] = changedFrom; 
+										}
+									};
+		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
+		
+		for (int index = 0; index <= 20; index++) {	// see private fields of StackVarRepo!
+			repo.processChanges(StackChanges.pushInt);
+		}
+		for (int index = 0; index <= 20; index++) {
+			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.select(0));
+			repo.processChanges(StackChanges.pop);
+		}
+		
+		repo.startVarFrame();
+		for (int index = 0; index <= 20; index++) {
+			repo.addVar(index,CompilerUtils.CLASSTYPE_INT);
+		}
+		for (int index = 0; index <= 20; index++) {
+			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.getVarType(index));
+		}
+		repo.stopVarFrame();
+
+		for (int index = 0; index <= 5; index++) {
+			repo.startVarFrame();
+			repo.addVar(index,CompilerUtils.CLASSTYPE_INT);
+		}
+
+		for (int index = 5; index >= 0; index--) {
+			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.getVarType(index));
+			Assert.assertEquals(index+1,repo.makeVarSnapshot().getLength());
+			repo.stopVarFrame();
+		}
 	}
 }

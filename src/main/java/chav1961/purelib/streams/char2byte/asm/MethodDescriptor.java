@@ -13,6 +13,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackMapRecord;
 
 class MethodDescriptor implements Closeable {
 	private static final String					INIT_STRING = "<init>"; 
@@ -25,8 +26,10 @@ class MethodDescriptor implements Closeable {
 	private final List<short[]>					tryTable = new ArrayList<>();	
 	private final List<short[]>					varTable = new ArrayList<>();	
 	private final List<short[]>					lineTable = new ArrayList<>();	
+	private final List<StackMapRecord>			stackMaps = new ArrayList<>();
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
+	private final StackAndVarRepo				stackAndVar = new StackAndVarRepo((a,b,c,d)->{});
 	private final long							classId, methodId, returnedTypeId;
 	private final long							longId, doubleId, thisId;
 	private final short							methodDispl;
@@ -52,6 +55,7 @@ class MethodDescriptor implements Closeable {
 		this.throwsList = throwsList;
 		this.methodDispl = ccr.asUTF(methodId);	
 
+		
 		this.longId = tree.seekName(LineParser.LONG,0,LineParser.LONG.length);
 		this.doubleId = tree.seekName(LineParser.DOUBLE,0,LineParser.DOUBLE.length);
 		this.thisId = tree.seekName(LineParser.THIS,0,LineParser.THIS.length);
@@ -93,7 +97,7 @@ class MethodDescriptor implements Closeable {
 	}
 	
 	void setStackSize(final short stackSize, final boolean needVarTable) {
-		body = new MethodBody(classId, methodId, getNameTree(),this.needVarsTable = needVarTable,stackSize);
+		body = new MethodBody(classId, methodId, getNameTree(),this.needVarsTable = needVarTable,stackSize,stackAndVar);
 	}
 	
 	void addParameterDeclaration(final short accessFlags, final long parameterId, final long typeId) throws ContentException {
@@ -121,7 +125,7 @@ class MethodDescriptor implements Closeable {
 		
 		for (int index = 0, maxIndex = pushStack.size(); index < maxIndex; index++) {
 			if ((result = pushStack.get(index).vars.getRef(varId)) != 0) {
-				return (short) (result-1);
+				return (short)(result-1/* -1 - problem with LongIdMap */);
 			}
 		}
 		throw new ContentException("Variable ["+tree.getName(varId)+"] is not declared anywhere in this method");
@@ -152,13 +156,13 @@ class MethodDescriptor implements Closeable {
 		}
 	}
 	
-	AbstractMethodBody getBody() throws IOException, ContentException {
+	AbstractMethodBody getBody() throws ContentException {
 		if (!methodBodyAwait) {
 			throw new ContentException("Attempt to define method body for abstract or native method");
 		}
 		else {
 			markEndOfParameters();
-			return body == null ? body = new MethodBody(classId, methodId, getNameTree(), false) : body;
+			return body == null ? body = new MethodBody(classId, methodId, getNameTree(), false, stackAndVar) : body;
 		}
 	}
 	
@@ -173,10 +177,15 @@ class MethodDescriptor implements Closeable {
 	void addLineNoRecord(final int lineNo) throws IOException, ContentException {
 		lineTable.add(new short[]{getBody().getPC(),(short)lineNo});
 	}
+
+	void addStackMapRecord() throws ContentException {
+		stackMaps.add(this.getBody().getStackAndVarRepo().createStackMapRecord(this.getBody().getPC()));
+	}
 	
 	void complete() throws IOException, ContentException {
 		markEndOfParameters();
 	}
+	
 	
 	void dump(final InOutGrowableByteArray os) throws IOException, ContentException {
 		
@@ -195,6 +204,7 @@ class MethodDescriptor implements Closeable {
 		}
 		if (methodBodyAwait) {						// Method body present
 			int		totalAttrubuteSize = 12 + getBody().getCodeSize() + + (8 * tryTable.size());	// Mandatory attributes
+			int		stackMapSize = 0;
 			boolean	needPrintVarsTable = false, needPrintLineTable = false, needPrintStackMapTable = false;
 			short	totalAttrCount = 0;
 
@@ -209,7 +219,13 @@ class MethodDescriptor implements Closeable {
 				totalAttrCount++;
 			}
 			if (needStackMapTable) {
-				totalAttrubuteSize += (2 + 4 + 2); 
+				totalAttrubuteSize += (2 + 4 + 2);
+				for (StackMapRecord item : stackMaps) {
+					final int	size = item.getRecordSize();
+					
+					totalAttrubuteSize += size;
+					stackMapSize += size;
+				}
 				needPrintStackMapTable = true;
 				totalAttrCount++;
 			}
@@ -254,8 +270,11 @@ class MethodDescriptor implements Closeable {
 
 			if (needPrintStackMapTable) {
 				os.writeShort(stackMapTableWord);		// Stack map:
-				os.writeInt(2+0);						// Struct size
-				os.writeShort(0);						// Amount of stack map entries
+				os.writeInt(2+stackMapSize);			// Struct size
+				os.writeShort(stackMaps.size());		// Amount of stack map entries
+				for (StackMapRecord item : stackMaps) {	// Stack map entries
+					item.write(os);
+				}
 			}
 		}
 	}
@@ -267,8 +286,9 @@ class MethodDescriptor implements Closeable {
 		else {
 			final String	signature = InternalUtils.buildFieldSignature(tree,typeId);
 			final long		signatureId = tree.placeOrChangeName(signature,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+			final int		currentVarDispl = varDispl, currentVarType = InternalUtils.fieldSignature2Type(signature);
 			
-			pushStack.get(0).vars.addRef((short)(varDispl+1),varId);
+			pushStack.get(0).vars.addRef((short)(currentVarDispl+1/* +1 - problem with LongIdMap!*/),varId);
 			if (typeId == longId || typeId == doubleId) {	// these types occupy 2 cells in the local var table
 				varDispl++;
 			}
@@ -280,10 +300,11 @@ class MethodDescriptor implements Closeable {
 			} catch (IOException e) {
 				throw new ContentException(e);
 			}
+			stackAndVar.addVar(currentVarDispl,currentVarType);
 		}
 	}
 
-	private void markEndOfParameters() throws IOException, ContentException {
+	private void markEndOfParameters() throws ContentException {
 		if (!parametersEnded) {
 			final long[]	parm = new long[parametersList.size()];
 			
@@ -323,8 +344,13 @@ class MethodDescriptor implements Closeable {
 				}
 			}
 			
-			signatureDispl = ccr.asUTF(signatureId);
+			try{signatureDispl = ccr.asUTF(signatureId);
+			} catch (IOException e) {
+				throw new ContentException(e.getMessage(),e);
+			}
 			parametersEnded = true;
+			
+			//
 		}
 	}
 

@@ -23,6 +23,7 @@ public class MacroCompiler {
 	
 	private static final char[]		PART_START = "start".toCharArray();
 	private static final char[]		PART_FINISH = "finish".toCharArray();
+	private static final char[]		PART_FINISH_MARKED = "markedFinish".toCharArray();
 	private static final char[]		PART_SUBSTITUTION_CONST = "substitutionConst".toCharArray();
 	private static final char[]		PART_EXTRACT_CHAR_CONST = "extractCharConst".toCharArray();
 	private static final char[]		PART_VALIDATE_VAR_VALUE = "validateVarValue".toCharArray();
@@ -126,7 +127,7 @@ public class MacroCompiler {
 					
 					repo.append(writer,PART_START,callback);
 					compileSequence(command.container,writer,storage,repo,callback,new JumpStack(mEnd,0,0,command.getType()));
-					repo.append(writer,PART_FINISH,callback);
+					repo.append(writer,storage.needMarkExit ? PART_FINISH_MARKED : PART_FINISH,callback);
 					break;
 				case SET			:
 					repo.append(writer,PART_PREPARE_WRAPPER,current.put(VAR_INDEX,((SetCommand)command).leftPart.getSequentialNumber()));
@@ -152,6 +153,7 @@ public class MacroCompiler {
 							compileExpression(((IfConditionCommand)item).cond[0],storage,repo,current,writer,0,labelNext);
 							compileSequence(((IfConditionCommand)item).container,writer,storage,repo,current,jumpStack);
 							repo.append(writer," goto	label"+labelBreakIf+"\nlabel"+labelNext+":\n");
+							storage.unconditionalBrunchWasDetected = false;
 						}
 						else {
 							compileSequence(((ElseCommand)item).container,writer,storage,repo,current,jumpStack);
@@ -159,6 +161,7 @@ public class MacroCompiler {
 						labelNext = storage.uniqueLabel++;
 					}
 					repo.append(writer,"label"+labelBreakIf+":\n");
+					storage.unconditionalBrunchWasDetected = false;
 					break;
 				case WHILE			:
 					final int	labelWhileAgain = storage.uniqueLabel++, labelWhileBreak = storage.uniqueLabel++;
@@ -244,6 +247,7 @@ public class MacroCompiler {
 							throw new CalculationException("Break label ["+new String(((BreakCommand)command).getLabel())+"] not found anywhere");
 						}
 					}
+					storage.unconditionalBrunchWasDetected = true;
 					break;
 				case CONTINUE		:
 					if (((ContinueCommand)command).getLabel() == null) {
@@ -265,6 +269,7 @@ public class MacroCompiler {
 							throw new CalculationException("Continue label ["+new String(((ContinueCommand)command).getLabel())+"] not found anywhere");
 						}
 					}
+					storage.unconditionalBrunchWasDetected = true;
 					break;
 				case CHOISE			:
 					final int	labelBreakChoise = storage.uniqueLabel++;
@@ -295,7 +300,9 @@ public class MacroCompiler {
 					}
 					break;
 				case EXIT			:
-					repo.append(writer," return\n");
+					storage.needMarkExit = true;
+					storage.unconditionalBrunchWasDetected = true;
+					repo.append(writer," goto gotoMacroExit\n");
 					break;
 				case MERROR			:
 					repo.append(writer,PART_MERROR_BEFORE,current);
@@ -324,8 +331,16 @@ public class MacroCompiler {
 	}
 	
 	static void compileSequence(final List<Command> list, final GrowableCharArray writer, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final JumpStack jumpStack) throws CalculationException {
+		boolean brunchOut = false;
+		
 		for (Command item : list) {
+			if (brunchOut) {
+				throw new CalculationException("Dead code! Previous operator was .break/.continue/.exit");
+			}
 			compile(item,writer,storage,repo,callback,jumpStack);
+			if (item.getType() == CommandType.BREAK || item.getType() == CommandType.CONTINUE || item.getType() == CommandType.EXIT) {
+				brunchOut = true;
+			}
 		}
 	}
 
@@ -793,6 +808,8 @@ public class MacroCompiler {
 	static class Storage {
 		final GrowableCharArray		stringRepo;
 		int							uniqueLabel = 1;
+		boolean						needMarkExit = false;
+		boolean						unconditionalBrunchWasDetected = false;
 		
 		Storage(final GrowableCharArray stringRepo) {
 			this.stringRepo = stringRepo;

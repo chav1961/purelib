@@ -46,7 +46,7 @@ class TryManagerRecord extends NestedEntity {
 			
 			System.arraycopy(classes,0,catchList,1,classes.length);
 			amb.putCommand(0,(byte)0xC7,(byte)0,(byte)0);
-			amb.registerBrunch(labelId,true,amb.getStackAndVarRepo().makeSnapshot());
+			amb.registerBrunch(labelId,true,amb.getStackAndVarRepo().makeStackSnapshot());
 			catchList[0] = amb.getPC();
 			catches.add(catchList);
 			if (codeEnd == 0) {
@@ -60,10 +60,10 @@ class TryManagerRecord extends NestedEntity {
 			throw new ContentException("Duplicate '.finally' for this try block was detected");
 		}
 		else {
-			amb.putLabel(labelId,amb.getStackAndVarRepo().makeSnapshot());
+			amb.putLabel(labelId,amb.getStackAndVarRepo().makeStackSnapshot());
 			labelWasPut = true;
 			amb.putCommand(0,(byte)0xC7,(byte)0,(byte)0);
-			amb.registerBrunch(labelId,true,amb.getStackAndVarRepo().makeSnapshot());
+			amb.registerBrunch(labelId,true,amb.getStackAndVarRepo().makeStackSnapshot());
 			catches.add(new short[]{amb.getPC(),0});
 			if (codeEnd == 0) {
 				codeEnd = amb.getPC(); 

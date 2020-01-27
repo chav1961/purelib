@@ -1,8 +1,12 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 
@@ -12,6 +16,8 @@ class StackAndVarRepo {
 	static StackSnapshot		CATCH_SNAPSHOT = new StackSnapshot(new int[]{CompilerUtils.CLASSTYPE_REFERENCE},1);  
 	
 	private static final int	INITIAL_STACK_SIZE = 16;
+	private static final int	INITIAL_VARFRAME_SIZE = 16;
+	private static final int	INITIAL_VARFRAME_STACK_SIZE = 4;
 	
 	enum StackChanges {
 		none,
@@ -76,50 +82,67 @@ class StackAndVarRepo {
 		void processChanges(final int[] stackContent, final int deletedFrom, final int insertedFrom, final int changedFrom);
 	}
 
-	@FunctionalInterface
-	interface VarChangesCallback {
-		void processChanges(final short[][] varContent, final boolean[] changes);
-	}
-	
 	private final StackChangesCallback	stackCallback;
-	private final VarChangesCallback	varCallback;
-	private final short[][]				varsContent = new short[Short.MAX_VALUE][];
-	private final boolean[]				varsChanges = new boolean[Short.MAX_VALUE];
 	private int[]						stackContent = new int[INITIAL_STACK_SIZE], stackShadow = new int[INITIAL_STACK_SIZE];
 	private int							currentStackTop = -1, maxStackDepth = 0, shadowStackTop;
-	private boolean						varChangesDetected = false;
+	private int[]						varFrames = new int[INITIAL_VARFRAME_STACK_SIZE];
+	private int[]						varContent = new int[INITIAL_VARFRAME_SIZE];
+	private int							lastVarFrameDispl = -1, lastVarFrameStackDispl = -1;
+	private short						previousStackMapDispl = 0;
 	
-	StackAndVarRepo(final StackChangesCallback stackCallback, final VarChangesCallback varCallback) {
+	StackAndVarRepo(final StackChangesCallback stackCallback) {
 		this.stackCallback = stackCallback;
-		this.varCallback = varCallback;
+		Arrays.fill(varContent,SPECIAL_TYPE_UNPREPARED);
 	}
 	
-	void addVar(final short methodPC, final short varDispl, final int varType) {
-		varsContent[methodPC] = new short[] {varDispl, (short)varType};
-		varsChanges[methodPC] = true;
-		varChangesDetected = true;
+	void startVarFrame() {
+		ensureVarFrameStackCapacity();
+		varFrames[++lastVarFrameStackDispl] = lastVarFrameDispl;
 	}
 	
-	void changeVar(final short methodPC, final short varDispl, final int newVarType) throws ContentException {
-		if (varsContent[methodPC][1] == CompilerUtils.CLASSTYPE_LONG || varsContent[methodPC][1] == CompilerUtils.CLASSTYPE_DOUBLE) {
-			if (newVarType != CompilerUtils.CLASSTYPE_LONG  && newVarType != CompilerUtils.CLASSTYPE_DOUBLE) {
-				throw new ContentException("Attempt to store non-long or non-double content to long/double var"); 
-			}
-			else {
-				varsContent[methodPC][1] = (short)newVarType;
-				varsChanges[methodPC] = true;
-				varChangesDetected = true;
-			}
-		} 
+	void stopVarFrame() {
+		if (lastVarFrameStackDispl < 0) {
+			throw new IllegalStateException("Var frame stack exhausted");
+		}
 		else {
-			if (newVarType == CompilerUtils.CLASSTYPE_LONG  && newVarType == CompilerUtils.CLASSTYPE_DOUBLE) {
-				varsContent[methodPC][1] = (short)newVarType;
-				varsChanges[methodPC] = true;
-				varChangesDetected = true;
+			lastVarFrameDispl = varFrames[lastVarFrameStackDispl--];
+			Arrays.fill(varContent,Math.max(lastVarFrameDispl+1,0),varContent.length,SPECIAL_TYPE_UNPREPARED);
+		}
+	}
+	
+	void addVar(final int varDispl, final int varType) throws ContentException {
+		if (varType == CompilerUtils.CLASSTYPE_DOUBLE || varType == CompilerUtils.CLASSTYPE_LONG) {
+			ensureVarFrameCapacity(varDispl+1);
+			if (varContent[varDispl] == SPECIAL_TYPE_UNPREPARED && varContent[varDispl+1] == SPECIAL_TYPE_UNPREPARED) {
+				varContent[varDispl] = varType;
+				varContent[varDispl+1] = SPECIAL_TYPE_TOP;
 			}
 			else {
-				throw new ContentException("Attempt to store long or double content to non-long/non-double var. Stack content is "+prepareStackContent()); 
+				throw new ContentException("variable overlay redefinition were detected at frame location ["+varDispl+"]");
 			}
+		}
+		else {
+			ensureVarFrameCapacity(varDispl);
+			if (varContent[varDispl] == SPECIAL_TYPE_UNPREPARED) {
+				varContent[varDispl] = varType;
+			}
+			else {
+				throw new ContentException("variable overlay redefinition were detected at frame location ["+varDispl+"]");
+			}
+		}
+	}
+
+	int getVarType(final int varDispl) throws ContentException {
+		final int	result = varContent[varDispl];
+		
+		if (result == SPECIAL_TYPE_TOP) {
+			throw new ContentException("Attempt to access half double/long of local variable at frame location ["+varDispl+"]");
+		}
+		else if (result == SPECIAL_TYPE_UNPREPARED) {
+			throw new ContentException("Attempt to access local variable outside the frame: ["+varDispl+"]");
+		}
+		else {
+			return result;
 		}
 	}
 	
@@ -146,34 +169,34 @@ class StackAndVarRepo {
 	}
 
 	void pushInt() {
-		ensureCapacity(1);
+		ensureStackCapacity(1);
 		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_INT;
 	}
 	
 	void pushLong() {
-		ensureCapacity(2);
+		ensureStackCapacity(2);
 		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_LONG;
 		stackContent[++currentStackTop] = SPECIAL_TYPE_TOP;
 	}
 	
 	void pushFloat() {
-		ensureCapacity(1);
+		ensureStackCapacity(1);
 		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_FLOAT;
 	}
 	
 	void pushDouble() {
-		ensureCapacity(2);
+		ensureStackCapacity(2);
 		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_DOUBLE;
 		stackContent[++currentStackTop] = SPECIAL_TYPE_TOP;
 	}
 	
 	void pushReference() {
-		ensureCapacity(1);
+		ensureStackCapacity(1);
 		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_REFERENCE;
 	}
 	
 	void pushUnprepared() {
-		ensureCapacity(1);
+		ensureStackCapacity(1);
 		stackContent[++currentStackTop] = SPECIAL_TYPE_UNPREPARED;
 	}
 	
@@ -230,10 +253,6 @@ class StackAndVarRepo {
 			deletedFrom = shadowStackTop - currentStackTop;
 		}
 		stackCallback.processChanges(stackContent,deletedFrom,insertedFrom,changedFrom);
-		if (varChangesDetected) {
-			varCallback.processChanges(varsContent,varsChanges);
-		}
-		varChangesDetected = false;
 	}
 
 	void processChanges(final StackChanges changes) throws ContentException {
@@ -663,16 +682,23 @@ class StackAndVarRepo {
 		return maxStackDepth;
 	}
 
-	StackSnapshot makeSnapshot() {
+	StackSnapshot makeStackSnapshot() {
 		return new StackSnapshot(stackContent,currentStackTop); 
 	}
 
-	StackMapRecord createStackMapRecord(final short displ) {
-		return new StackMapRecord(displ,makeSnapshot(),null);
+	VarSnapshot makeVarSnapshot() {
+		return new VarSnapshot(varContent,lastVarFrameDispl); 
 	}
 	
-	void loadSnapshot(final StackSnapshot snapshot) {
-		ensureCapacity(Math.max(0,snapshot.content.length-currentStackTop));
+	StackMapRecord createStackMapRecord(final short displ) {
+		final StackMapRecord	result = new StackMapRecord((short)(displ-previousStackMapDispl),makeStackSnapshot(),makeVarSnapshot());
+		
+		previousStackMapDispl = (short)(displ+1);
+		return result;
+	}
+	
+	void loadStackSnapshot(final StackSnapshot snapshot) {
+		ensureStackCapacity(Math.max(0,snapshot.content.length-currentStackTop));
 		System.arraycopy(snapshot.content,0,stackContent,0,snapshot.content.length);
 		currentStackTop = snapshot.content.length - 1;
 		begin();
@@ -714,7 +740,7 @@ class StackAndVarRepo {
 		return "Current stack state is: "+stack.toString()+", awaited top of stace is: "+awaited.toString();
 	}
 
-	private void ensureCapacity(final int delta) {
+	private void ensureStackCapacity(final int delta) {
 		if (currentStackTop + delta >= stackContent.length) {
 			stackContent = Arrays.copyOf(stackContent,2*stackContent.length);
 			stackShadow = Arrays.copyOf(stackShadow,2*stackShadow.length);
@@ -722,6 +748,20 @@ class StackAndVarRepo {
 		maxStackDepth = Math.max(maxStackDepth,currentStackTop + delta);
 	}
 
+	private void ensureVarFrameStackCapacity() {
+		if (lastVarFrameStackDispl >= varFrames.length-1) {
+			varFrames = Arrays.copyOf(varFrames,2*varFrames.length);
+		}
+	}
+
+	private void ensureVarFrameCapacity(final int varLocation) {
+		lastVarFrameDispl = Math.max(lastVarFrameDispl,varLocation);
+		if (lastVarFrameDispl >= varContent.length-1) {
+			varContent = Arrays.copyOf(varContent,2*varContent.length);
+			Arrays.fill(varContent,lastVarFrameDispl,varContent.length,SPECIAL_TYPE_UNPREPARED);
+		}
+	}
+	
 	static class StackSnapshot {
 		private final int[]	content;
 		
@@ -729,6 +769,10 @@ class StackAndVarRepo {
 			this.content = Arrays.copyOf(stackContent,stackSize+1);
 		}
 
+		int getLength() {
+			return content.length;
+		}
+		
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -750,9 +794,9 @@ class StackAndVarRepo {
 		@Override
 		public String toString() {
 			final StringBuilder	sb = new StringBuilder();
-			char				prefix= '=';
+			String				prefix= "";
 			
-			sb.append("StackSnapshot [content");
+			sb.append("StackSnapshot [");
 			
 			for (int val : content) {
 				sb.append(prefix);
@@ -771,7 +815,7 @@ class StackAndVarRepo {
 					case SPECIAL_TYPE_UNPREPARED			: sb.append("unprepared"); break;
 					default 								: sb.append(val); break;
 				}
-				prefix = ',';
+				prefix = ",";
 			}
 			
 			return  sb.append("]").toString();
@@ -779,7 +823,63 @@ class StackAndVarRepo {
 	}
 	
 	static class VarSnapshot {
+		private final int[]	content;
 		
+		VarSnapshot(final int[] varContent, final int stackSize) {
+			this.content = Arrays.copyOf(varContent,stackSize+1);
+		}
+
+		int getLength() {
+			return content.length;
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + Arrays.hashCode(content);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			StackSnapshot other = (StackSnapshot) obj;
+			if (!Arrays.equals(content, other.content)) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder	sb = new StringBuilder();
+			String				prefix= "";
+			
+			sb.append("VarSnapshot [");
+			
+			for (int val : content) {
+				sb.append(prefix);
+				switch (val) {
+					case CompilerUtils.CLASSTYPE_REFERENCE	: sb.append("ref"); break;
+					case CompilerUtils.CLASSTYPE_BYTE		: sb.append("byte"); break;
+					case CompilerUtils.CLASSTYPE_SHORT		: sb.append("short"); break;
+					case CompilerUtils.CLASSTYPE_CHAR		: sb.append("char"); break;	
+					case CompilerUtils.CLASSTYPE_INT		: sb.append("int"); break;	
+					case CompilerUtils.CLASSTYPE_LONG		: sb.append("long"); break;
+					case CompilerUtils.CLASSTYPE_FLOAT		: sb.append("float"); break;
+					case CompilerUtils.CLASSTYPE_DOUBLE		: sb.append("double"); break;
+					case CompilerUtils.CLASSTYPE_BOOLEAN	: sb.append("boolean"); break;
+					case CompilerUtils.CLASSTYPE_VOID		: sb.append("void"); break;
+					case SPECIAL_TYPE_TOP 					: sb.append("top"); break;
+					case SPECIAL_TYPE_UNPREPARED			: sb.append("unprepared"); break;
+					default 								: sb.append(val); break;
+				}
+				prefix = ",";
+			}
+			
+			return  sb.append("]").toString();
+		}
 	}
 	
 	static class StackMapRecord {
@@ -795,18 +895,67 @@ class StackAndVarRepo {
 		}
 		
 		public int getRecordSize() {
-			return  1 	// 0xFF byte size 
+			return    1	// 0xFF byte size 
 					+ 2 // displ size
 					+ 2 // stack content length size
-					+ stack.content.length // stack content
-					+ 0	// var frame content length size
-					+ 0 // var frame content
+					+ calculateTypeArraySize(stack.content)	// stack content
+					+ 2	// var frame content length size
+					+ calculateTypeArraySize(vars.content)	// var frame content
 					;
+		}
+		
+		public void write(final InOutGrowableByteArray os) throws IOException {
+			os.writeByte(0xFF);
+			os.writeShort(displ);
+			os.writeShort(calculateTypeArraySize(vars.content));
+			for (int item : vars.content) {
+				os.writeByte(toStackFrameTypes(item));
+				if (item == CompilerUtils.CLASSTYPE_REFERENCE) {
+					os.writeShort(0);
+				}
+			}
+			os.writeShort(calculateTypeArraySize(stack.content));
+			for (int item : stack.content) {
+				os.writeByte(toStackFrameTypes(item));	
+				if (item == CompilerUtils.CLASSTYPE_REFERENCE) {
+					os.writeShort(0);
+				}
+			}
 		}
 		
 		@Override
 		public String toString() {
 			return "StackMapRecord [displ=" + displ + ", stack=" + stack + ", vars=" + vars + "]";
+		}
+		
+		private static int toStackFrameTypes(final int type) {
+			switch (type) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	: 
+					return 7;
+				case CompilerUtils.CLASSTYPE_BOOLEAN : case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT :
+				case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
+					return 1;	
+				case CompilerUtils.CLASSTYPE_LONG		: 
+					return 4;	
+				case CompilerUtils.CLASSTYPE_FLOAT		: 
+					return 2;	
+				case CompilerUtils.CLASSTYPE_DOUBLE		: 
+					return 3;	
+				case SPECIAL_TYPE_TOP					: 
+					return 0;
+				default : throw new UnsupportedOperationException();
+			}
+		}
+		
+		private static int calculateTypeArraySize(final int[] array) {
+			int	result = array.length;
+			
+			for (int item : array) {
+				if (item == CompilerUtils.CLASSTYPE_REFERENCE) {
+					result += 2;
+				}
+			}
+			return result;
 		}
 	}
 }

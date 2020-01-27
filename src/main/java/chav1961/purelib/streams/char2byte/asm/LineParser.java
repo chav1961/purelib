@@ -51,6 +51,7 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private static final int						EXPONENT_BASE = 305;
 	private static final double[]					EXPONENTS;
+	private static final int						DONT_CHECK_LOCAL_TYPES = -1;
 
 	
 	private static final long						DEFAULT_MARK = Integer.MAX_VALUE+1L;
@@ -229,19 +230,19 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x32,false,"aaload",StackChanges.pop2AndPushReference,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x53,false,"aastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0x01,false,"aconst_null",StackChanges.pushReference);
-		placeStaticCommand(0x19,false,"aload",CommandFormat.extendableByteIndex,StackChanges.pushReference);
-		placeStaticCommand(0x2a,false,"aload_0",StackChanges.pushReference);
-		placeStaticCommand(0x2b,false,"aload_1",StackChanges.pushReference);
-		placeStaticCommand(0x2c,false,"aload_2",StackChanges.pushReference);
-		placeStaticCommand(0x2d,false,"aload_3",StackChanges.pushReference);
+		placeStaticCommand(0x19,false,"aload",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
+		placeStaticCommand(0x2a,false,"aload_0",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
+		placeStaticCommand(0x2b,false,"aload_1",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
+		placeStaticCommand(0x2c,false,"aload_2",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
+		placeStaticCommand(0x2d,false,"aload_3",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
 		placeStaticCommand(0xbd,false,"anewarray",CommandFormat.classShortIndex,StackChanges.popAndPushReference,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0xb0,true,"areturn",StackChanges.clear,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0xbe,false,"arraylength",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x3a,false,"astore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4b,false,"astore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4c,false,"astore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4d,false,"astore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x4e,false,"astore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x3a,false,"astore",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4b,false,"astore_0",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4c,false,"astore_1",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4d,false,"astore_2",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0x4e,false,"astore_3",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0xbf,true,"athrow",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0x33,false,"baload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x54,false,"bastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
@@ -260,20 +261,20 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x0e,false,"dconst_0",StackChanges.pushDouble);
 		placeStaticCommand(0x0f,false,"dconst_1",StackChanges.pushDouble);
 		placeStaticCommand(0x6f,false,"ddiv",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x18,false,"dload",CommandFormat.extendableByteIndex,StackChanges.pushDouble);
-		placeStaticCommand(0x26,false,"dload_0",StackChanges.pushDouble);
-		placeStaticCommand(0x27,false,"dload_1",StackChanges.pushDouble);
-		placeStaticCommand(0x28,false,"dload_2",StackChanges.pushDouble);
-		placeStaticCommand(0x29,false,"dload_3",StackChanges.pushDouble);
+		placeStaticCommand(0x18,false,"dload",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pushDouble);
+		placeStaticCommand(0x26,false,"dload_0",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pushDouble);
+		placeStaticCommand(0x27,false,"dload_1",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pushDouble);
+		placeStaticCommand(0x28,false,"dload_2",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pushDouble);
+		placeStaticCommand(0x29,false,"dload_3",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pushDouble);
 		placeStaticCommand(0x6b,false,"dmul",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x77,false,"dneg",StackChanges.pop2AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x73,false,"drem",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0xaf,true,"dreturn",StackChanges.clear,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x39,false,"dstore",CommandFormat.extendableByteIndex,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x47,false,"dstore_0",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x48,false,"dstore_1",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x49,false,"dstore_2",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x4a,false,"dstore_3",StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x39,false,"dstore",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x47,false,"dstore_0",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x48,false,"dstore_1",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x49,false,"dstore_2",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x4a,false,"dstore_3",CompilerUtils.CLASSTYPE_DOUBLE,StackChanges.pop2,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x67,false,"dsub",StackChanges.pop4AndPushDouble,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x59,false,"dup",StackChanges.dup);
 		placeStaticCommand(0x5a,false,"dup_x1",StackChanges.dup_x1);
@@ -293,20 +294,20 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x0c,false,"fconst_1",StackChanges.pushFloat);
 		placeStaticCommand(0x0d,false,"fconst_2",StackChanges.pushFloat);
 		placeStaticCommand(0x6e,false,"fdiv",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x17,false,"fload",CommandFormat.extendableByteIndex,StackChanges.pushFloat);
-		placeStaticCommand(0x22,false,"fload_0",StackChanges.pushFloat);
-		placeStaticCommand(0x23,false,"fload_1",StackChanges.pushFloat);
-		placeStaticCommand(0x24,false,"fload_2",StackChanges.pushFloat);
-		placeStaticCommand(0x25,false,"fload_3",StackChanges.pushFloat);
+		placeStaticCommand(0x17,false,"fload",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pushFloat);
+		placeStaticCommand(0x22,false,"fload_0",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pushFloat);
+		placeStaticCommand(0x23,false,"fload_1",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pushFloat);
+		placeStaticCommand(0x24,false,"fload_2",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pushFloat);
+		placeStaticCommand(0x25,false,"fload_3",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pushFloat);
 		placeStaticCommand(0x6a,false,"fmul",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
 		placeStaticCommand(0x76,false,"fneg",StackChanges.popAndPushFloat,CompilerUtils.CLASSTYPE_FLOAT);
 		placeStaticCommand(0x72,false,"frem",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
 		placeStaticCommand(0xae,true,"freturn",StackChanges.clear,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x38,false,"fstore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x43,false,"fstore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x44,false,"fstore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x45,false,"fstore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
-		placeStaticCommand(0x46,false,"fstore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x38,false,"fstore",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x43,false,"fstore_0",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x44,false,"fstore_1",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x45,false,"fstore_2",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
+		placeStaticCommand(0x46,false,"fstore_3",CompilerUtils.CLASSTYPE_FLOAT,StackChanges.pop,CompilerUtils.CLASSTYPE_FLOAT);
 		placeStaticCommand(0x66,false,"fsub",StackChanges.pop2AndPushFloat,CompilerUtils.CLASSTYPE_FLOAT,CompilerUtils.CLASSTYPE_FLOAT);
 		placeStaticCommand(0xb4,false,"getfield",CommandFormat.shortGlobalIndex,StackChanges.pushField);
 		placeStaticCommand(0xb2,false,"getstatic",CommandFormat.shortGlobalIndex,StackChanges.pushStatic);
@@ -345,11 +346,11 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0xc7,false,"ifnonnull",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0xc6,false,"ifnull",CommandFormat.shortBrunch,StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0x84,false,"iinc",CommandFormat.byteIndexAndByteValue,StackChanges.none);
-		placeStaticCommand(0x15,false,"iload",CommandFormat.extendableByteIndex,StackChanges.pushInt);
-		placeStaticCommand(0x1a,false,"iload_0",StackChanges.pushInt);
-		placeStaticCommand(0x1b,false,"iload_1",StackChanges.pushInt);
-		placeStaticCommand(0x1c,false,"iload_2",StackChanges.pushInt);
-		placeStaticCommand(0x1d,false,"iload_3",StackChanges.pushInt);
+		placeStaticCommand(0x15,false,"iload",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_INT,StackChanges.pushInt);
+		placeStaticCommand(0x1a,false,"iload_0",CompilerUtils.CLASSTYPE_INT,StackChanges.pushInt);
+		placeStaticCommand(0x1b,false,"iload_1",CompilerUtils.CLASSTYPE_INT,StackChanges.pushInt);
+		placeStaticCommand(0x1c,false,"iload_2",CompilerUtils.CLASSTYPE_INT,StackChanges.pushInt);
+		placeStaticCommand(0x1d,false,"iload_3",CompilerUtils.CLASSTYPE_INT,StackChanges.pushInt);
 		placeStaticCommand(0x68,false,"imul",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x74,false,"ineg",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0xc1,false,"instanceof",CommandFormat.classShortIndex,StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_REFERENCE);
@@ -363,11 +364,11 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0xac,true,"ireturn",StackChanges.clear,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x78,false,"ishl",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x7a,false,"ishr",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x36,false,"istore",CommandFormat.extendableByteIndex,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3b,false,"istore_0",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3c,false,"istore_1",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3d,false,"istore_2",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x3e,false,"istore_3",StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x36,false,"istore",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_INT,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3b,false,"istore_0",CompilerUtils.CLASSTYPE_INT,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3c,false,"istore_1",CompilerUtils.CLASSTYPE_INT,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3d,false,"istore_2",CompilerUtils.CLASSTYPE_INT,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
+		placeStaticCommand(0x3e,false,"istore_3",CompilerUtils.CLASSTYPE_INT,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x64,false,"isub",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x7c,false,"iushr",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x82,false,"ixor",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
@@ -387,11 +388,11 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x13,false,"ldc_w",CommandFormat.valueShortIndex,StackChanges.none);
 		placeStaticCommand(0x14,false,"ldc2_w",CommandFormat.valueShortIndex2,StackChanges.none);
 		placeStaticCommand(0x6d,false,"ldiv",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x16,false,"lload",CommandFormat.extendableByteIndex,StackChanges.pushLong);
-		placeStaticCommand(0x1e,false,"lload_0",StackChanges.pushLong);
-		placeStaticCommand(0x1f,false,"lload_1",StackChanges.pushLong);
-		placeStaticCommand(0x20,false,"lload_2",StackChanges.pushLong);
-		placeStaticCommand(0x21,false,"lload_3",StackChanges.pushLong);
+		placeStaticCommand(0x16,false,"lload",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_LONG,StackChanges.pushLong);
+		placeStaticCommand(0x1e,false,"lload_0",CompilerUtils.CLASSTYPE_LONG,StackChanges.pushLong);
+		placeStaticCommand(0x1f,false,"lload_1",CompilerUtils.CLASSTYPE_LONG,StackChanges.pushLong);
+		placeStaticCommand(0x20,false,"lload_2",CompilerUtils.CLASSTYPE_LONG,StackChanges.pushLong);
+		placeStaticCommand(0x21,false,"lload_3",CompilerUtils.CLASSTYPE_LONG,StackChanges.pushLong);
 		placeStaticCommand(0x69,false,"lmul",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x75,false,"lneg",StackChanges.pop2AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0xab,true,"lookupswitch",CommandFormat.lookupSwitch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
@@ -400,18 +401,18 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0xad,true,"lreturn",StackChanges.clear,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x79,false,"lshl",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x7b,false,"lshr",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0x37,false,"lstore",CommandFormat.extendableByteIndex,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x3f,false,"lstore_0",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x40,false,"lstore_1",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x41,false,"lstore_2",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
-		placeStaticCommand(0x42,false,"lstore_3",StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x37,false,"lstore",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_LONG,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x3f,false,"lstore_0",CompilerUtils.CLASSTYPE_LONG,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x40,false,"lstore_1",CompilerUtils.CLASSTYPE_LONG,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x41,false,"lstore_2",CompilerUtils.CLASSTYPE_LONG,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
+		placeStaticCommand(0x42,false,"lstore_3",CompilerUtils.CLASSTYPE_LONG,StackChanges.pop2,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x65,false,"lsub",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x7d,false,"lushr",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x83,false,"lxor",StackChanges.pop4AndPushLong,CompilerUtils.CLASSTYPE_LONG,StackAndVarRepo.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0xc2,false,"monitorenter",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0xc3,false,"monitorexit",StackChanges.pop,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0xc5,false,"multianewarray",CommandFormat.shortIndexAndByteValue,StackChanges.multiarrayAndPushReference);
-		placeStaticCommand(0xbb,false,"new",CommandFormat.classShortIndex,StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xbb,false,"new",CommandFormat.classShortIndex,StackChanges.pushReference);
 		placeStaticCommand(0xbc,false,"newarray",CommandFormat.byteType,StackChanges.popAndPushReference);
 		placeStaticCommand(0x00,false,"nop",StackChanges.none);
 		placeStaticCommand(0x57,false,"pop",StackChanges.pop);
@@ -459,6 +460,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private boolean										addVarTable = false, addVarTableInMethod = false;
 	private int[]										forMethodTypes = new int[16];
 	private boolean 									needStackMapRecord = false;
+	private short										stackSize4CurrentMethod = 0;
 	
 	LineParser(final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
 		this.cc = cc;
@@ -652,6 +654,7 @@ class LineParser implements LineByLineProcessorCallback {
 								case insideBegin :
 									beginLevel++;
 									methodDescriptor.push();
+									methodDescriptor.getBody().getStackAndVarRepo().startVarFrame();
 									break;
 								case insideClassMethod :
 								case insideClassBody :
@@ -659,6 +662,7 @@ class LineParser implements LineByLineProcessorCallback {
 									state = ParserState.insideBegin;
 									beginLevel++;
 									methodDescriptor.push();
+									methodDescriptor.getBody().getStackAndVarRepo().startVarFrame();
 									break;
 								default :
 									throw new ContentException("Begin directive is valid in the method body only!");
@@ -718,6 +722,9 @@ class LineParser implements LineByLineProcessorCallback {
 									if (beginLevel > 0) {
 										methodDescriptor.pop();
 										beginLevel--;
+										if (stackSize4CurrentMethod == STACK_OPTIMISTIC) {
+											methodDescriptor.getBody().getStackAndVarRepo().stopVarFrame();
+										}
 									}
 									else {
 										state = beforeBegin;
@@ -931,7 +938,7 @@ class LineParser implements LineByLineProcessorCallback {
 								}
 								start = InternalUtils.skipBlank(data,start);
 
-								System.err.println("Stack: "+methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot()+", line="+new String(data,from,len));
+								System.err.println("Stack: "+methodDescriptor.getBody().getStackAndVarRepo().makeStackSnapshot()+", line="+new String(data,from,len));
 								
 								
 								if (desc.checkedTypes != null && desc.checkedTypes.length > 0) {
@@ -970,7 +977,7 @@ class LineParser implements LineByLineProcessorCallback {
 									case restricted				: throw new ContentException("Restricted command in the input stream!");
 									default : throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
 								}
-								System.err.println("Stack after: "+methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+								System.err.println("Stack after: "+methodDescriptor.getBody().getStackAndVarRepo().makeStackSnapshot());
 							}
 							else {
 								throw new ContentException("Unknown command : "+new String(data,startDir,endDir-startDir));
@@ -1032,9 +1039,9 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private void putLabel(final long labelId) throws ContentException, IOException {
 		if (!isLabelExists(labelId)) {
-			methodDescriptor.getBody().putLabel(labelId,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+			methodDescriptor.getBody().putLabel(labelId,methodDescriptor.getBody().getStackAndVarRepo().makeStackSnapshot());
+			prepareStackMapRecord();
 			if (needStackMapRecord) {
-				prepareStackMapRecord();
 				needStackMapRecord = false;
 			}
 		}
@@ -1056,11 +1063,11 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void registerBranch(final long labelId, final boolean shortBrunch) throws ContentException, IOException {
-		methodDescriptor.getBody().registerBrunch(labelId,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+		methodDescriptor.getBody().registerBrunch(labelId,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeStackSnapshot());
 	}
 
 	private void registerBranch(final int address, final int placement, final long labelId, final boolean shortBrunch) throws ContentException, IOException {
-		methodDescriptor.getBody().registerBrunch(address,placement,labelId,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeSnapshot());
+		methodDescriptor.getBody().registerBrunch(address,placement,labelId,shortBrunch,methodDescriptor.getBody().getStackAndVarRepo().makeStackSnapshot());
 	}
 	
 	private void changeStack(final StackChanges change) throws ContentException, IOException {
@@ -1074,9 +1081,13 @@ class LineParser implements LineByLineProcessorCallback {
 	private void changeStack(final StackChanges change, final int[] signature, final int signatureSize, final int retSignature) throws ContentException, IOException {
 		methodDescriptor.getBody().getStackAndVarRepo().processChanges(change,signature,signatureSize,retSignature);
 	}
+
+	private int getVarType(final int varDispl) throws ContentException, IOException {
+		return methodDescriptor.getBody().getStackAndVarRepo().getVarType(varDispl);
+	}
 	
-	private void prepareStackMapRecord() {
-		
+	private void prepareStackMapRecord() throws ContentException {
+		methodDescriptor.addStackMapRecord();
 	}
 	
 	/*
@@ -1506,17 +1517,17 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		switch ((int)staticDirectiveTree.seekName(data,startName,endName)) {
 			case STACK_OPTIMISTIC :
-				methodDescriptor.setStackSize(MethodBody.STACK_CALCULATION_OPTIMISTIC,addVarTable || addVarTableInMethod);
+				methodDescriptor.setStackSize(stackSize4CurrentMethod = MethodBody.STACK_CALCULATION_OPTIMISTIC,addVarTable || addVarTableInMethod);
 				break;
 			case STACK_PESSIMISTIC :
-				methodDescriptor.setStackSize(MethodBody.STACK_CALCULATION_PESSIMISTIC,addVarTable || addVarTableInMethod);
+				methodDescriptor.setStackSize(stackSize4CurrentMethod = MethodBody.STACK_CALCULATION_PESSIMISTIC,addVarTable || addVarTableInMethod);
 				break;
 			default :
-				final long[]	size = new long[]{0,0};
+				final long[]	size = longArray;
 				
 				try{start = UnsafedCharUtils.uncheckedParseNumber(data,startName,size,CharUtils.PREF_INT,true);
 					if (size[1] == CharUtils.PREF_INT) {
-						methodDescriptor.setStackSize((short) size[0],addVarTable || addVarTableInMethod);
+						methodDescriptor.setStackSize(stackSize4CurrentMethod = (short)size[0],addVarTable || addVarTableInMethod);
 					}
 					else {
 						throw new ContentException("Stack size is neither integer constant nor 'optimistic'/'pessimistic' (possibly it's size is long, float or double)");
@@ -1733,7 +1744,7 @@ class LineParser implements LineByLineProcessorCallback {
 				methodDescriptor.addExceptionRecord((short)tryList.get(0)[0],(short)tryList.get(0)[1],(short)0,(short)getPC());
 			}
 			markLabelRequired(false);
-			methodDescriptor.getBody().getStackAndVarRepo().loadSnapshot(StackAndVarRepo.CATCH_SNAPSHOT);
+			methodDescriptor.getBody().getStackAndVarRepo().loadStackSnapshot(StackAndVarRepo.CATCH_SNAPSHOT);
 			prepareStackMapRecord();
 			skip2line(data, from);
 		}
@@ -1796,6 +1807,9 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 			else {
 				putCommand((byte)desc.operation,(byte)forResult[0]);
+			}
+			if (desc.argumentType != DONT_CHECK_LOCAL_TYPES && getVarType((int)forResult[0]) != desc.argumentType) { 
+				throw new ContentException("Incompatible data types for given command and local variable referenced. Var displ is ["+forResult[0]+"]");
 			}
 		}
 		changeStack(desc.stackChanges);
@@ -2187,11 +2201,11 @@ class LineParser implements LineByLineProcessorCallback {
 		start = calculateBranchAddress(data,start,forResult);
 		if (!isLabelExists(forResult[0])) {
 			changeStack(desc.stackChanges);
-			registerBranch(forResult[0],true);
+			registerBranch(forResult[0],false);
 		}
 		else {
 			changeStack(desc.stackChanges);
-			registerBranch(forResult[0],true);
+			registerBranch(forResult[0],false);
 		}
 		putCommand((byte)desc.operation,(byte)0,(byte)0,(byte)0,(byte)0);
 		if (desc.uncondBrunch) {
@@ -2809,13 +2823,26 @@ class LineParser implements LineByLineProcessorCallback {
 	private static void placeStaticCommand(final int operation, final boolean uncondBrunch, final String mnemonics, final StackChanges stackChanges, final int... awaitedTypes) {
 		placeStaticCommand(operation, uncondBrunch, mnemonics, CommandFormat.single, stackChanges, new int[0]);
 	}
+
+	private static void placeStaticCommand(final int operation, final boolean uncondBrunch, final String mnemonics, final int argumentType, final StackChanges stackChanges, final int... awaitedTypes) {
+		placeStaticCommand(operation, uncondBrunch, mnemonics, CommandFormat.single, argumentType, stackChanges, new int[0]);
+	}
 	
 	private static void placeStaticCommand(final int operation, final boolean uncondBrunch, final String mnemonics, final CommandFormat format, final StackChanges stackChanges, final int... awaitedTypes) {
 		if (staticCommandTree.contains(operation)) {
 			throw new IllegalArgumentException("Duplicate opcode ["+operation+"]: "+mnemonics+", already exists "+staticCommandTree.getName(operation));
 		}
 		else {
-			staticCommandTree.placeOrChangeName(mnemonics,operation,new CommandDescriptor(operation,uncondBrunch,format,stackChanges,awaitedTypes));
+			staticCommandTree.placeOrChangeName(mnemonics,operation,new CommandDescriptor(operation,uncondBrunch,format,DONT_CHECK_LOCAL_TYPES,stackChanges,awaitedTypes));
+		}
+	}	
+
+	private static void placeStaticCommand(final int operation, final boolean uncondBrunch, final String mnemonics, final CommandFormat format, final int argumentType, final StackChanges stackChanges, final int... awaitedTypes) {
+		if (staticCommandTree.contains(operation)) {
+			throw new IllegalArgumentException("Duplicate opcode ["+operation+"]: "+mnemonics+", already exists "+staticCommandTree.getName(operation));
+		}
+		else {
+			staticCommandTree.placeOrChangeName(mnemonics,operation,new CommandDescriptor(operation,uncondBrunch,format,argumentType,stackChanges,awaitedTypes));
 		}
 	}	
 	
@@ -2969,13 +2996,15 @@ class LineParser implements LineByLineProcessorCallback {
 		public final int			operation;
 		public final boolean		uncondBrunch;
 		public final CommandFormat	commandFormat;
+		public final int			argumentType;
 		public final StackChanges	stackChanges;
 		public final int[]			checkedTypes;
 		
-		public CommandDescriptor(final int operation, final boolean uncondBrunch, final CommandFormat commandFormat, final StackChanges stackChanges, final int[] checkedTypes) {
+		public CommandDescriptor(final int operation, final boolean uncondBrunch, final CommandFormat commandFormat, final int argumentType, final StackChanges stackChanges, final int[] checkedTypes) {
 			this.operation = operation;
 			this.uncondBrunch = uncondBrunch;
 			this.commandFormat = commandFormat;
+			this.argumentType = argumentType;
 			this.stackChanges = stackChanges;
 			this.checkedTypes = checkedTypes;
 		}
@@ -2983,8 +3012,8 @@ class LineParser implements LineByLineProcessorCallback {
 		@Override
 		public String toString() {
 			return "CommandDescriptor [operation=" + operation + ", uncondBrunch=" + uncondBrunch + ", commandFormat="
-					+ commandFormat + ", stackChanges=" + stackChanges + ", checkedTypes="
-					+ Arrays.toString(checkedTypes) + "]";
+					+ commandFormat + ", argumentType=" + argumentType + ", stackChanges=" + stackChanges
+					+ ", checkedTypes=" + Arrays.toString(checkedTypes) + "]";
 		}
 	}
 }

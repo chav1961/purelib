@@ -25,7 +25,7 @@ class MethodBody extends AbstractMethodBody {
 										}; 
 
     private final SyntaxTreeInterface<?>		tree;
-    private final StackAndVarRepo	stackAndVar = new StackAndVarRepo((a,b,c,d)->{},(a,b)->{});
+    private final StackAndVarRepo	stackAndVar;
     private final long				className, methodName;
     private final boolean			needVarTable;
 	private final int				stackCalculationStrategy;
@@ -37,16 +37,17 @@ class MethodBody extends AbstractMethodBody {
 	private long					uniqueLabel = 2;
 	private boolean					labelRequired = false;
 	
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable){
-		this(className,methodName,tree,needVarTable,STACK_CALCULATION_PESSIMISTIC);
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final StackAndVarRepo stackAndVar){
+		this(className,methodName,tree,needVarTable,STACK_CALCULATION_PESSIMISTIC,stackAndVar);
 	}
 
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final short stackCalculationStrategy){
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final short stackCalculationStrategy, final StackAndVarRepo stackAndVar){
 		this.className = className;
 		this.methodName = methodName;
 		this.tree = tree;
 		this.needVarTable = needVarTable;
 		this.stackCalculationStrategy = stackCalculationStrategy;
+		this.stackAndVar = stackAndVar;
 		if (stackCalculationStrategy >= 0) {
 			stack = maxStack = stackCalculationStrategy; 
 		}
@@ -124,7 +125,7 @@ class MethodBody extends AbstractMethodBody {
 				throw new ContentException("Unpredictable program stack state: no forward brunches to the given mandatory label were registered earlier");
 			}
 			else {
-				getStackAndVarRepo().loadSnapshot(currentSnapshot = stack.snapshot);
+				getStackAndVarRepo().loadStackSnapshot(currentSnapshot = stack.snapshot);
 			}
 		}
 		if (stack != null) {
@@ -268,16 +269,6 @@ loop:	for (ItemDescriptor item : brunches) {
 		}
 	}
 	
-//	private ItemDescriptor[] expandItems(final ItemDescriptor[] source) {
-//		final int				len = source.length, maxLen = len + INITIAL_REFS;
-//		final ItemDescriptor[]	result = Arrays.copyOf(source,maxLen);
-//		
-//		for (int index = len; index < maxLen; index++) {
-//			result[index] = EMPTY_DESCRIPTOR; 
-//		}
-//		return result;
-//	}
-
 	private static class ItemDescriptor {
 		long	id;
 		int		displ;

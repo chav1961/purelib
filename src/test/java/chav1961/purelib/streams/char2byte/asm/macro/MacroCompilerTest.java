@@ -469,7 +469,8 @@ public class MacroCompilerTest {
 			final GrowableCharArray	gca = new GrowableCharArray(true), target = new GrowableCharArray(true), stringRepo = new GrowableCharArray(false);;
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
-				MacroCompiler.compile("MacroTestClass16",pm.test("MacroTestClass16 .macro parm:int\nvar .local int=10\n"
+				MacroCompiler.compile("MacroTestClass16",pm.test("MacroTestClass16 .macro parm:int\n"
+						+"var 	.local int=10\n"
 						+ "x:	.while var > 0\n"
 						+ "var		.set var-1\n"
 						+ "			.if var%2 == 0\n"

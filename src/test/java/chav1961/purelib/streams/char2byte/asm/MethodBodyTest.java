@@ -38,8 +38,8 @@ public class MethodBodyTest {
 //	@Test
 	public void basicTest() throws IOException, ContentException {
 		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
-		final MethodBody	mb = new MethodBody(0,0,aot,false);
-		final StackSnapshot	ss = mb.getStackAndVarRepo().makeSnapshot();
+		final MethodBody	mb = new MethodBody(0,0,aot,false,new StackAndVarRepo((a,b,c,d)->{}));
+		final StackSnapshot	ss = mb.getStackAndVarRepo().makeStackSnapshot();
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1, null);
 		aot.placeName("label2".toCharArray(), 0, 6, 2, null);
@@ -68,8 +68,8 @@ public class MethodBodyTest {
 	@Test
 	public void unresolvedLabelsTest() throws IOException, ContentException {
 		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
-		final MethodBody	mb = new MethodBody(3,4,aot,false);
-		final StackSnapshot	ss = mb.getStackAndVarRepo().makeSnapshot();
+		final MethodBody	mb = new MethodBody(3,4,aot,false,new StackAndVarRepo((a,b,c,d)->{}));
+		final StackSnapshot	ss = mb.getStackAndVarRepo().makeStackSnapshot();
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1,null);
 		aot.placeName("label2".toCharArray(), 0, 6, 2,null);

@@ -105,4 +105,8 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 			return result;
 		}
 	}
+	
+	public static void throwException(final Throwable exc) throws Throwable {
+		throw exc;
+	}
 }
