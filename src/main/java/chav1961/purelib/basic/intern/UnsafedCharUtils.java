@@ -35,11 +35,11 @@ public class UnsafedCharUtils {
 
 	private static final int		OCT_ESCAPE_SIZE = 3;
 	private static final int		U_ESCAPE_SIZE = 4;
-	private static final char[]		HYPHEN_NAME = "-".toCharArray();
-	private static final char		WILDCARD_ANY_SEQ = '*';
-	private static final char		WILDCARD_ANY_CHAR = '?';
-	
-	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
+//	private static final char[]		HYPHEN_NAME = "-".toCharArray();
+//	private static final char		WILDCARD_ANY_SEQ = '*';
+//	private static final char		WILDCARD_ANY_CHAR = '?';
+//	
+//	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	
 	static {
 		DOUBLE_EXPS = new double[EXP_BOUND * 2 + 1];

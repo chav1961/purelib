@@ -9,6 +9,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -5077,7 +5078,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 			else {
 				final char[]	forName = forNames.allocate();
 				
-				try{final T		instance = (T) contentType.newInstance();
+				try{final T		instance = (T) contentType.getConstructor().newInstance();
 					char		symbol;
 					
 					while ((symbol = reader.next()) <= ' ') {
@@ -5153,7 +5154,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					else {
 						return instance;
 					}
-				} catch (InstantiationException | IllegalAccessException e) {
+				} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 					throw new SyntaxException(reader.atRow(),reader.atColumn(),"Ref obj unknown field name");
 				} finally {
 					forNames.free(forName);
@@ -5194,7 +5195,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 				}
 				
 				try{@SuppressWarnings("unchecked")
-				final T		instance = (T) result.getClass().getComponentType().newInstance();
+				final T		instance = (T) result.getClass().getComponentType().getConstructor().newInstance();
 					
 					do{	newFrom++;		// The same first loop skips '}', all next - ','
 						
@@ -5245,7 +5246,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 						
 						return newFrom+1;
 					}
-				} catch (ContentException | InstantiationException | IllegalAccessException e) {
+				} catch (ContentException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 					throw new SyntaxException(0,newFrom,"Ref obj unknown field name");
 				} finally {
 				}
@@ -5262,7 +5263,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					case START_OBJECT	:
 						final char[]		buffer = forNames.allocate();
 						
-						try{final T			instance = (T) contentType.newInstance();
+						try{final T			instance = (T) contentType.getConstructor().newInstance();
 							
 							do{	if (reader.hasNext()) {
 									reader.next();
@@ -5299,7 +5300,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 							} while (reader.current() == JsonStaxParserLexType.LIST_SPLITTER);
 						
 							return instance;
-						} catch (IOException | InstantiationException | IllegalAccessException e) {
+						} catch (IOException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 							throw new SyntaxException(reader.row(),reader.col(),"Ref obj unknown field name",e);
 						} finally {
 							forNames.free(buffer);

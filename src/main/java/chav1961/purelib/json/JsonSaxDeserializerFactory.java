@@ -2,7 +2,6 @@ package chav1961.purelib.json;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -10,6 +9,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -561,8 +561,8 @@ public class JsonSaxDeserializerFactory {
 			this.objectStack = new Object[stackDepth];
 			this.objectIds = new long[stackDepth];
 			try{final Class<CreateAndSet>	clazz = (Class<CreateAndSet>)cl.define(serviceClass,serviceClassBody,0,serviceClassBody.length); 
-				this.cs = clazz.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
+				this.cs = clazz.getConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				throw new ContentException(e.getMessage());
 			}
 		}
@@ -603,14 +603,14 @@ public class JsonSaxDeserializerFactory {
 							objectStack[++stackLevel] = result; 
 						}
 						else {
-							objectStack[++stackLevel] = cs != null ? cs.newInstance((int)actualDesc.clazzId) : actualDesc.clazz.newInstance(); 
+							objectStack[++stackLevel] = cs != null ? cs.newInstance((int)actualDesc.clazzId) : actualDesc.clazz.getConstructor().newInstance(); 
 						}
 					}
 					else {
-						objectStack[++stackLevel] = cs != null ? cs.newInstance((int)actualDesc.clazzId) : actualDesc.clazz.newInstance();
+						objectStack[++stackLevel] = cs != null ? cs.newInstance((int)actualDesc.clazzId) : actualDesc.clazz.getConstructor().newInstance();
 					}
 				}
-			} catch (InstantiationException | IllegalAccessException exc) {
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException exc) {
 				stackLevel = -1;
 				throw new ContentException(exc.getMessage());
 			}

@@ -1,7 +1,5 @@
 package chav1961.purelib.basic.xsd;
 
-import chav1961.purelib.basic.XMLUtils;
-
 /**
  * <p>This class can be used as an anchor to get access to the XSD schemes inside the package. Example of usage is:</p>
  * <code><b>try</b>(<b>final</b> InputStream xsdStream = XSDConst.<b>class</b>.getResource("CreoleXML.xsd")) {<br>

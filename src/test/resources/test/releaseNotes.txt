@@ -28,3 +28,4 @@ III. Incompatibilities
 
 IV. Bug fix
 
+1. Macro assembler .choise with booleans fixed

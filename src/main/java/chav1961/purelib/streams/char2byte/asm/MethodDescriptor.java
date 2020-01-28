@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;

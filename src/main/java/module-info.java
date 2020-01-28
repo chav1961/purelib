@@ -6,7 +6,7 @@
  */
 module chav1961.purelib {
 	requires transitive java.desktop;
-	requires java.scripting;
+	requires transitive java.scripting;
 	requires java.xml;
 	requires java.logging;
 	requires jdk.jdi;
@@ -14,7 +14,7 @@ module chav1961.purelib {
 	requires transitive java.sql;
 	requires java.rmi;
 	requires java.management;
-	requires jdk.httpserver;
+	requires transitive jdk.httpserver;
 
 	exports chav1961.purelib.basic; 
 	exports chav1961.purelib.basic.annotations; 

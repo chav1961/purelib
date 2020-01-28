@@ -10,6 +10,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URL;
@@ -66,7 +67,6 @@ import sun.misc.Unsafe;
  * @lastUpdate 0.0.3
  */
 
-@SuppressWarnings("restriction")
 public class GettersAndSettersFactory {
 	private static sun.misc.Unsafe		unsafe;
 	private static AsmWriter			writer;
@@ -1227,8 +1227,8 @@ public class GettersAndSettersFactory {
 			} catch (Exception exc) {
 				gas = (Class<GetterAndSetter>) internalLoader.loadClass(className);
 			}
-			return gas.newInstance();
-		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			return gas.getConstructor().newInstance();
+		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			throw new IllegalArgumentException("Can't build code for access to fields in class ["+className+"] : "+e.getLocalizedMessage(),e);
 		}
 	}
@@ -1252,8 +1252,8 @@ public class GettersAndSettersFactory {
 			} catch (Exception exc) {
 				inst = (Class<Instantiator<T>>) internalLoader.loadClass(className);
 			}
-			return inst.newInstance();
-		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+			return inst.getConstructor().newInstance();
+		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | SecurityException | InvocationTargetException | NoSuchMethodException e) {
 			e.printStackTrace();
 			throw new IllegalArgumentException("Can't build code for create instantiator of class ["+className+"] : "+e.getLocalizedMessage(),e);
 		}

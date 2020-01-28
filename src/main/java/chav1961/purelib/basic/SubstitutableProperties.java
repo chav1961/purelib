@@ -181,7 +181,7 @@ public class SubstitutableProperties extends Properties {
 	 * @throws IllegalArgumentException if requested conversion failed or not supported
 	 * @since 0.0.3
 	 */	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T convert(final String key, final String value, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");

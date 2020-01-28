@@ -31,7 +31,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -280,6 +279,7 @@ public class ModelUtils {
 	 * @throws IllegalArgumentException if value to store is incompatible with target setter 
 	 * @throws ContentException on any errors while setting value
 	 */
+	
 	public static void setValueBySetter(final Object instance, final Object value, final GetterAndSetter gas, final ContentNodeMetadata metadata) throws ContentException, NullPointerException, IllegalArgumentException {
 		if (instance == null) {
 			throw new NullPointerException("Object to get value from can't be null");

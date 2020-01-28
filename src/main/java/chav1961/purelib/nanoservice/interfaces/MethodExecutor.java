@@ -11,6 +11,5 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 
 public interface MethodExecutor {
-	@SuppressWarnings("restriction")
 	int execute(QueryType type, char[] path, char[] query, Headers requestHeaders, Headers responseHeaders, InputStream is, OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException;
 }

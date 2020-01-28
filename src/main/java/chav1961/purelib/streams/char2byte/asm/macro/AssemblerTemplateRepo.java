@@ -146,9 +146,14 @@ class AssemblerTemplateRepo {
 		else {
 			for (int index = 0, maxIndex = partNames.length; index < maxIndex; index++) {
 				if (UnsafedCharUtils.uncheckedCompare(partName,0,partNames[index].name,0,partNames[index].name.length)) {
-					final char[]	subst = CharUtils.substitute("",partNames[index].content,0,partNames[index].content.length,callback); 
-					
-					arr.append(subst);
+					if (partNames[index].hasSubstitutions) {
+						final char[]	subst = CharUtils.substitute("",partNames[index].content,0,partNames[index].content.length,callback); 
+						
+						arr.append(subst);
+					}
+					else {
+						arr.append(partNames[index].content);
+					}
 //					System.err.println(new String(subst));
 					return this;
 				}
@@ -463,15 +468,25 @@ class AssemblerTemplateRepo {
 	private static class PartRecord implements Comparable<AssemblerTemplateRepo.PartRecord>{
 		final char[]	name;
 		final char[]	content;
+		final boolean	hasSubstitutions; 
 		
-		public PartRecord(char[] name, char[] content) {
+		public PartRecord(final char[] name, final char[] content) {
+			boolean		wasSubst = false;
+			
 			this.name = name;
 			this.content = content;
+			for (int index = 0, maxIndex = content.length-2; index < maxIndex; index++) {
+				if (content[index] == '$' && content[index+1] == '{') {
+					wasSubst = true;
+					break;
+				}
+			}
+			this.hasSubstitutions = wasSubst;
 		}
 
 		@Override
 		public String toString() {
-			return "PartRecord [name=" + Arrays.toString(name) + ", content=" + Arrays.toString(content) + "]";
+			return "PartRecord [name=" + Arrays.toString(name) + ", content=" + Arrays.toString(content) + ", hasSubstitutions=" + hasSubstitutions + "]";
 		}
 
 		@Override

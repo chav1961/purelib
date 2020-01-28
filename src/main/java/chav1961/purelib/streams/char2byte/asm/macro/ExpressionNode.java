@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;

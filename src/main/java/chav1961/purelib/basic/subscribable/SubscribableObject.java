@@ -6,6 +6,7 @@ package chav1961.purelib.basic.subscribable;
  * @since 0.0.3
  * @param <T> any referenced type to keep in the container
  */
+@SuppressWarnings("rawtypes")
 public class SubscribableObject<T> extends Subscribable<SubscribableObjectListener>{
 	private final boolean	multithread;
 	private volatile T		value = null;
@@ -54,6 +55,7 @@ public class SubscribableObject<T> extends Subscribable<SubscribableObjectListen
 		innerSet(value);
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void innerSet(final T newValue) {
 		final T 	oldValue = value;
 		
@@ -74,7 +76,7 @@ public class SubscribableObject<T> extends Subscribable<SubscribableObjectListen
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
-		SubscribableObject other = (SubscribableObject) obj;
+		SubscribableObject<?> other = (SubscribableObject<?>) obj;
 		if (value == null) {
 			if (other.value != null) return false;
 		} else if (!value.equals(other.value)) return false;

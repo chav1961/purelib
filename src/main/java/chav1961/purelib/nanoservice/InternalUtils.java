@@ -4,7 +4,6 @@ package chav1961.purelib.nanoservice;
 import java.awt.datatransfer.MimeTypeParseException;
 import java.io.BufferedReader;
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -87,7 +86,6 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @since 0.0.2
  * @lastUpdate 0.0.3
  */
-@SuppressWarnings("restriction")  
 public class InternalUtils {
 	private static final MimetypesFileTypeMap	typeMap = new MimetypesFileTypeMap();
 	private static final char[]					TRUE = "true".toCharArray();

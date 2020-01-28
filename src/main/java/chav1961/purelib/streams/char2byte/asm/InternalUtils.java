@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 

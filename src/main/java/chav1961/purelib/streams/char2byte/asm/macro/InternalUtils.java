@@ -7,14 +7,11 @@ import java.util.Arrays;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
-import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNodeOperator;
-import chav1961.purelib.streams.char2byte.asm.macro.MacroCommand;
 
 class InternalUtils {
 	private static final SyntaxTreeInterface<FuncDecription>	FUNCTIONS = new AndOrTree<>();

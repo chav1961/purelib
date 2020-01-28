@@ -13,18 +13,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 
-import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.CharUtils.SubstitutionSource;
 import chav1961.purelib.basic.Utils;
-import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.interfaces.ConvertorInterface;
-import chav1961.purelib.basic.interfaces.OnlineBooleanGetter;
-import chav1961.purelib.basic.interfaces.OnlineCharGetter;
-import chav1961.purelib.basic.interfaces.OnlineDoubleGetter;
 import chav1961.purelib.basic.interfaces.OnlineFloatGetter;
-import chav1961.purelib.basic.interfaces.OnlineGetter;
-import chav1961.purelib.basic.interfaces.OnlineIntGetter;
-import chav1961.purelib.basic.interfaces.OnlineLongGetter;
 import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
 import chav1961.purelib.basic.interfaces.OnlineStringGetter;
 
@@ -1054,16 +1044,16 @@ public class SVGPainter {
 			
 			if (fillColor != null) {
 				g2d.setColor(fillColor);
-				g2d.fill(path);
+				g2d.fill(path2Draw);
 			}
 			else if (fillColorGetter != null) {
 				g2d.setColor(fillColorGetter.get());
-				g2d.fill(path);
+				g2d.fill(path2Draw);
 			}
 			
 			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
 			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
-			g2d.draw(path);
+			g2d.draw(path2Draw);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
 		}

@@ -2,7 +2,6 @@ package chav1961.purelib.basic;
 
 import java.awt.datatransfer.MimeTypeParseException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 

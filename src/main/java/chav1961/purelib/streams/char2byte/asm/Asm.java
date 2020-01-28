@@ -5,9 +5,6 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.lang.module.Configuration;
-import java.lang.module.ModuleFinder;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.AndOrTree;

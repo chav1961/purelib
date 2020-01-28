@@ -1,7 +1,5 @@
 package chav1961.purelib.basic;
 
-import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -9,46 +7,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import chav1961.purelib.basic.Utils.EverywhereWalkerCollector.ReferenceType;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
-import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
-import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.enumerations.XSDCollection;
-import chav1961.purelib.fsys.FileSystemURLStreamHandler;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;

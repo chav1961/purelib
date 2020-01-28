@@ -1,14 +1,11 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
-import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 
 class StackAndVarRepo {
 	static final int			SPECIAL_TYPE_TOP = -1;

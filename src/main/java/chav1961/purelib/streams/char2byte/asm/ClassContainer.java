@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
@@ -24,7 +23,6 @@ class ClassContainer implements Closeable {
 	private final InOutGrowableByteArray		interfGba = new InOutGrowableByteArray(false); 
 	private final InOutGrowableByteArray		fieldsGba = new InOutGrowableByteArray(false); 
 	private final List<MethodDescriptor>		methods = new ArrayList<>();
-	private final List<short[]>					initials = new ArrayList<>();
 	
 	private short	classModifiers = 0, thisId = 0, superId = 0, interfCount = 0, fieldCount = 0;
 	private short	currentMajor = Constants.MAJOR_1_7, currentMinor = Constants.MINOR_1_7;

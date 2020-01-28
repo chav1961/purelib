@@ -31,11 +31,11 @@ public class Handler extends URLStreamHandler {
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
 		return new SelfStreamHandler(){
-			private URLConnection	conn;
-			boolean					wasConnected = false;
+//			private URLConnection	conn;
+//			boolean					wasConnected = false;
 			
 			public URLConnection openConnection(final URL url) throws IOException {
-				return conn = super.openConnection(url);
+				return /*conn =*/ super.openConnection(url);
 			};
 		}.openConnection(url);
 	}
@@ -79,14 +79,14 @@ public class Handler extends URLStreamHandler {
 		}
 	
 		private static class SelfURLConnection extends URLConnection {
-			private final ClassLoader	loader;
+//			private final ClassLoader	loader;
 			private final String		content;
-			private FileSystemInterface	fsi = null;
+//			private FileSystemInterface	fsi = null;
 			private boolean				closed = false;
 			
 			protected SelfURLConnection(final URL url, final ClassLoader loader, final String content) throws IOException {
 				super(url);
-				this.loader = loader;
+//				this.loader = loader;
 				this.content = content;
 			}
 	

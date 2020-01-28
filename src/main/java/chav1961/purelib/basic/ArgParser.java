@@ -411,7 +411,6 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{String.valueOf(defaultValue)};
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
@@ -496,7 +495,6 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.ranges = availableRanges; 
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
@@ -579,7 +577,6 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{String.valueOf(defaultValue)};
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
@@ -689,7 +686,6 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.defaults = new String[]{defaultValue};
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
@@ -732,7 +728,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 	
-	protected static class EnumArg<Type extends Enum> extends AbstractArg {
+	protected static class EnumArg<Type extends Enum<Type>> extends AbstractArg {
 		private final String[]		defaults;
 		private final Class<Type>	enumType;
 

@@ -1,7 +1,6 @@
 package chav1961.purelib.basic;
 
 import java.io.PrintStream;
-import java.util.HashSet;
 import java.util.Set;
 
 import chav1961.purelib.basic.interfaces.LoggerFacade;
