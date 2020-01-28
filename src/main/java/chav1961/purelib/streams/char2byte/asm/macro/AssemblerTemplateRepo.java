@@ -146,7 +146,10 @@ class AssemblerTemplateRepo {
 		else {
 			for (int index = 0, maxIndex = partNames.length; index < maxIndex; index++) {
 				if (UnsafedCharUtils.uncheckedCompare(partName,0,partNames[index].name,0,partNames[index].name.length)) {
-					arr.append(CharUtils.substitute("",partNames[index].content,0,partNames[index].content.length,callback));
+					final char[]	subst = CharUtils.substitute("",partNames[index].content,0,partNames[index].content.length,callback); 
+					
+					arr.append(subst);
+//					System.err.println(new String(subst));
 					return this;
 				}
 			}
@@ -175,9 +178,11 @@ class AssemblerTemplateRepo {
 		}
 		else if (parameters.length == 0) {
 			arr.append(format);
+//			System.err.println(format);
 		}
 		else {
 			arr.append(String.format(format,parameters));
+//			System.err.println(String.format(format,parameters));
 		}
 		return this;
 	}

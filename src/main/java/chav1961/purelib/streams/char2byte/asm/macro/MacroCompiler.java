@@ -121,6 +121,8 @@ public class MacroCompiler {
 	
 	private static void compile(final Command command, final GrowableCharArray writer, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final JumpStack jumpStack) throws CalculationException {
 		try(final NameKeeper	current = callback.push()) {
+			
+			storage.unconditionalBrunchWasDetected = false;
 			switch (command.getType()) {
 				case MACRO			:
 					int		mEnd	= storage.uniqueLabel++;
@@ -131,37 +133,50 @@ public class MacroCompiler {
 					break;
 				case SET			:
 					repo.append(writer,PART_PREPARE_WRAPPER,current.put(VAR_INDEX,((SetCommand)command).leftPart.getSequentialNumber()));
-					if (((SetCommand)command).leftPart.getValueType() != ExpressionNodeValue.BOOLEAN) {
-						compileExpression(((SetCommand)command).rightPart[0],storage,repo,current,writer,0,0);
-						storeValue(((SetCommand)command).leftPart,storage,repo,current,writer);
-					}
-					else {
-						final int	trueLabel = storage.uniqueLabel++;
-						
-						repo.append(writer," iconst_1\n");
-						compileExpression(((SetCommand)command).rightPart[0],storage,repo,current,writer,trueLabel,0);
-						repo.append(writer," iconst_1\n isub\nlabel"+trueLabel+":\n");
-						storeValue(((SetCommand)command).leftPart,storage,repo,current,writer);
-					}
+					compileExpression(((SetCommand)command).rightPart[0],storage,repo,current,writer,0,0);
+					storeValue(((SetCommand)command).leftPart,storage,repo,current,writer);
 					break;
 				case IF				:
 					final int	labelBreakIf = storage.uniqueLabel++;
-					int			labelNext = storage.uniqueLabel++;;
-					
-					for (Command item : command.container) {
-						if (item instanceof IfConditionCommand) {
+					int			labelNext = storage.uniqueLabel++;
+					boolean		elsePresent = command.container.get(command.container.size()-1).getType() == CommandType.ELSE;
+					boolean		onlyOneIf = elsePresent && command.container.size() == 2 || !elsePresent && command.container.size() == 1;  
+
+					if (onlyOneIf) {
+						final Command	item = command.container.get(0); 
+
+						if (elsePresent) {
 							compileExpression(((IfConditionCommand)item).cond[0],storage,repo,current,writer,0,labelNext);
 							compileSequence(((IfConditionCommand)item).container,writer,storage,repo,current,jumpStack);
-							repo.append(writer," goto	label"+labelBreakIf+"\nlabel"+labelNext+":\n");
-							storage.unconditionalBrunchWasDetected = false;
+							if (!storage.unconditionalBrunchWasDetected) {
+								repo.append(writer," goto	label"+labelBreakIf+"\n");
+							}
+							repo.append(writer,"label"+labelNext+":\n");
+							compileSequence(((ElseCommand)command.container.get(1)).container,writer,storage,repo,current,jumpStack);
 						}
 						else {
-							compileSequence(((ElseCommand)item).container,writer,storage,repo,current,jumpStack);
+							compileExpression(((IfConditionCommand)item).cond[0],storage,repo,current,writer,0,labelBreakIf);
+							compileSequence(((IfConditionCommand)item).container,writer,storage,repo,current,jumpStack);
 						}
-						labelNext = storage.uniqueLabel++;
+					}
+					else {
+						for (Command item : command.container) {
+							if (item.getType() == CommandType.IF_CONDITION) {
+								compileExpression(((IfConditionCommand)item).cond[0],storage,repo,current,writer,0,labelNext);
+								compileSequence(((IfConditionCommand)item).container,writer,storage,repo,current,jumpStack);
+								if (!storage.unconditionalBrunchWasDetected) {
+									repo.append(writer," goto	label"+labelBreakIf+"\n");
+								}
+								repo.append(writer,"label"+labelNext+":\n");
+								storage.unconditionalBrunchWasDetected = false;
+							}
+							else {
+								compileSequence(((ElseCommand)item).container,writer,storage,repo,current,jumpStack);
+							}
+							labelNext = storage.uniqueLabel++;
+						}
 					}
 					repo.append(writer,"label"+labelBreakIf+":\n");
-					storage.unconditionalBrunchWasDetected = false;
 					break;
 				case WHILE			:
 					final int	labelWhileAgain = storage.uniqueLabel++, labelWhileBreak = storage.uniqueLabel++;
@@ -226,6 +241,7 @@ public class MacroCompiler {
 					
 					repo.append(writer," iinc eachArrayIndex"+uniqueSuffix+",1\n aload eachArray"+uniqueSuffix+"\n arraylength\n iload eachArrayIndex"+uniqueSuffix+"\n if_icmpgt label"+labelForeachAgain+"\n");
 					repo.append(writer,"label"+labelForeachBreak+":\n .end\n");
+					storage.unconditionalBrunchWasDetected = true;
 					break;
 				case BREAK			:
 					if (((BreakCommand)command).getLabel() == null) {
@@ -274,24 +290,56 @@ public class MacroCompiler {
 				case CHOISE			:
 					final int	labelBreakChoise = storage.uniqueLabel++;
 					int			labelNextChoise = storage.uniqueLabel++;
+					boolean		otherwisePresent = command.container.get(command.container.size()-1).getType() == CommandType.OTHERWISE;
+					boolean		onlyOneChoise = otherwisePresent && command.container.size() == 2 || !otherwisePresent && command.container.size() == 1;  
 					
 					compileExpression(((ChoiseContainer)command).expr[0],storage,repo,current,writer,0,0);
-					for (Command item : command.container) {
-						if (item instanceof ChoiseConditionCommand) {
-							switch (((ChoiseContainer)command).expr[0].getValueType()) {
-								case INTEGER : case REAL : 	 repo.append(writer," dup2\n"); break;
-								case STRING : case BOOLEAN : repo.append(writer," dup\n"); break;
-								default : throw new UnsupportedOperationException("Data type ["+((ChoiseContainer)command).expr[0].getValueType()+"] is not supported yet");
-							}
+					
+					if (onlyOneChoise) {
+						final Command	item = command.container.get(0);
+						
+						switch (((ChoiseContainer)command).expr[0].getValueType()) {
+							case INTEGER : case REAL : 	 repo.append(writer," dup2\n"); break;
+							case STRING : case BOOLEAN : repo.append(writer," dup\n"); break;
+							default : throw new UnsupportedOperationException("Data type ["+((ChoiseContainer)command).expr[0].getValueType()+"] is not supported yet");
+						}
+						if (otherwisePresent) {
 							compileExpression(((ChoiseConditionCommand)item).value[0],storage,repo,current,writer,0,0);
 							buldComparison(((ChoiseContainer)command).expr[0].getValueType(),ExpressionNodeOperator.EQ,storage,repo,callback,writer,0,labelNextChoise);
 							compileSequence(((ChoiseConditionCommand)item).container,writer,storage,repo,current,jumpStack);
-							repo.append(writer," goto	label"+labelBreakChoise+"\nlabel"+labelNextChoise+":\n");
+							if (!storage.unconditionalBrunchWasDetected) {
+								repo.append(writer," goto	label"+labelBreakChoise+"\n");
+							}
+							repo.append(writer,"label"+labelNextChoise+":\n");
+							compileSequence((command.container.get(1)).container,writer,storage,repo,current,jumpStack);
 						}
 						else {
+							compileExpression(((ChoiseConditionCommand)item).value[0],storage,repo,current,writer,0,0);
+							buldComparison(((ChoiseContainer)command).expr[0].getValueType(),ExpressionNodeOperator.EQ,storage,repo,callback,writer,0,labelBreakChoise);
 							compileSequence(((OtherwiseCommand)item).container,writer,storage,repo,current,jumpStack);
 						}
-						labelNextChoise = storage.uniqueLabel++;
+					}
+					else {
+						for (Command item : command.container) {
+							if (item.getType() == CommandType.CHOISE_CONDITION) {
+								switch (((ChoiseContainer)command).expr[0].getValueType()) {
+									case INTEGER : case REAL : 	 repo.append(writer," dup2\n"); break;
+									case STRING : case BOOLEAN : repo.append(writer," dup\n"); break;
+									default : throw new UnsupportedOperationException("Data type ["+((ChoiseContainer)command).expr[0].getValueType()+"] is not supported yet");
+								}
+								compileExpression(((ChoiseConditionCommand)item).value[0],storage,repo,current,writer,0,0);
+								buldComparison(((ChoiseContainer)command).expr[0].getValueType(),ExpressionNodeOperator.EQ,storage,repo,callback,writer,0,labelNextChoise);
+								compileSequence(((ChoiseConditionCommand)item).container,writer,storage,repo,current,jumpStack);
+								if (!storage.unconditionalBrunchWasDetected) {
+									repo.append(writer," goto	label"+labelBreakChoise+"\n");
+								}
+								repo.append(writer,"label"+labelNextChoise+":\n");
+							}
+							else {
+								compileSequence(((OtherwiseCommand)item).container,writer,storage,repo,current,jumpStack);
+							}
+							labelNextChoise = storage.uniqueLabel++;
+						}
 					}
 					switch (((ChoiseContainer)command).expr[0].getValueType()) {
 						case INTEGER : case REAL : 	 repo.append(writer,"label"+labelBreakChoise+": pop2\n"); break;
@@ -301,8 +349,8 @@ public class MacroCompiler {
 					break;
 				case EXIT			:
 					storage.needMarkExit = true;
-					storage.unconditionalBrunchWasDetected = true;
 					repo.append(writer," goto gotoMacroExit\n");
+					storage.unconditionalBrunchWasDetected = true;
 					break;
 				case MERROR			:
 					repo.append(writer,PART_MERROR_BEFORE,current);
@@ -324,7 +372,8 @@ public class MacroCompiler {
 						}
 					}
 					break;
-				case IF_CONDITION : case ELSE : case CHOISE_CONDITION :case OTHERWISE : throw new IllegalStateException("Internal error");
+				case IF_CONDITION : case ELSE : case CHOISE_CONDITION : case OTHERWISE : 
+					throw new IllegalStateException("Internal error");
 				default : throw new UnsupportedOperationException("Internal error");
 			}
 		}
@@ -451,7 +500,7 @@ public class MacroCompiler {
 							case NOT		:
 								if (trueLabel == 0 && falseLabel == 0) {
 									compileExpression(((OperatorNode)node).getOperands()[0],storage,repo,current,writer,trueLabel,falseLabel);
-									writer.append("	iconst_1\n isub\n");
+									repo.append(writer,"	iconst_1\n isub\n");
 								}
 								else {
 									compileExpression(((OperatorNode)node).getOperands()[0],storage,repo,current,writer,falseLabel,trueLabel);
@@ -484,17 +533,17 @@ public class MacroCompiler {
 								for (int index = 0; index < catList.length; index++) {
 									repo.append(writer,PART_CONCAT_APPEND,current);									
 								}
-								writer.append("	aload result\n");
+								repo.append(writer,"	aload result\n");
 								break;
 							case ADD		:
 								compileExpression(((OperatorNode)node).getOperands()[0],storage,repo,callback,writer,trueLabel,falseLabel);
 								compileExpression(((OperatorNode)node).getOperands()[1],storage,repo,callback,writer,trueLabel,falseLabel);
 								switch (node.getValueType()) {
 									case INTEGER	:
-										writer.append("	ladd\n");
+										repo.append(writer,"	ladd\n");
 										break;
 									case REAL		:
-										writer.append("	dadd\n");
+										repo.append(writer,"	dadd\n");
 										break;
 									case STRING	: case BOOLEAN :
 										throw new CalculationException("Addition is not applicable for data type ["+node.getValueType()+"]");
@@ -506,10 +555,10 @@ public class MacroCompiler {
 								compileExpression(((OperatorNode)node).getOperands()[1],storage,repo,callback,writer,trueLabel,falseLabel);
 								switch (node.getValueType()) {
 									case INTEGER	:
-										writer.append("	lsub\n");
+										repo.append(writer,"	lsub\n");
 										break;
 									case REAL		:
-										writer.append("	dsub\n");
+										repo.append(writer,"	dsub\n");
 										break;
 									case STRING	: case BOOLEAN :
 										throw new CalculationException("Substitution is not applicable for data type ["+node.getValueType()+"]");
@@ -521,10 +570,10 @@ public class MacroCompiler {
 								compileExpression(((OperatorNode)node).getOperands()[1],storage,repo,callback,writer,trueLabel,falseLabel);
 								switch (node.getValueType()) {
 									case INTEGER	:
-										writer.append("	lmul\n");
+										repo.append(writer,"	lmul\n");
 										break;
 									case REAL		:
-										writer.append("	dmul\n");
+										repo.append(writer,"	dmul\n");
 										break;
 									case STRING	: case BOOLEAN :
 										throw new CalculationException("Multiplication is not applicable for data type ["+node.getValueType()+"]");
@@ -536,10 +585,10 @@ public class MacroCompiler {
 								compileExpression(((OperatorNode)node).getOperands()[1],storage,repo,callback,writer,trueLabel,falseLabel);
 								switch (node.getValueType()) {
 									case INTEGER	:
-										writer.append("	ldiv\n");
+										repo.append(writer,"	ldiv\n");
 										break;
 									case REAL		:
-										writer.append("	ddiv\n");
+										repo.append(writer,"	ddiv\n");
 										break;
 									case STRING	: case BOOLEAN :
 										throw new CalculationException("Division is not applicable for data type ["+node.getValueType()+"]");
@@ -551,10 +600,10 @@ public class MacroCompiler {
 								compileExpression(((OperatorNode)node).getOperands()[1],storage,repo,callback,writer,trueLabel,falseLabel);
 								switch (node.getValueType()) {
 									case INTEGER	:
-										writer.append("	lrem\n");
+										repo.append(writer,"	lrem\n");
 										break;
 									case REAL		:
-										writer.append("	drem\n");
+										repo.append(writer,"	drem\n");
 										break;
 									case STRING	: case BOOLEAN :
 										throw new CalculationException("Remainder is not applicable for data type ["+node.getValueType()+"]");
@@ -565,10 +614,10 @@ public class MacroCompiler {
 								compileExpression(((NegNode)node).getOperands()[0],storage,repo,callback,writer,trueLabel,falseLabel);
 								switch (node.getValueType()) {
 									case INTEGER	:
-										writer.append("	lneg\n");
+										repo.append(writer,"	lneg\n");
 										break;
 									case REAL		:
-										writer.append("	dneg\n");
+										repo.append(writer,"	dneg\n");
 										break;
 									case STRING	: case BOOLEAN :
 										throw new CalculationException("Negation is not applicable for data type ["+node.getValueType()+"]");
@@ -576,27 +625,27 @@ public class MacroCompiler {
 								}
 								break;
 							case F_UG		:
-								writer.append("	iload	uniqueG\n i2l\n");
+								repo.append(writer,"	iload	uniqueG\n i2l\n");
 								break;
 							case F_UL		:
-								writer.append("	iinc	uniqueL,1\n	iload	uniqueL\n i2l\n");
+								repo.append(writer,"	iinc	uniqueL,1\n	iload	uniqueL\n i2l\n");
 								break;
 							case F_EXISTS	:
 								if (((FuncExistsNode)node).operands.get(0) instanceof AssignableExpressionNode) {
-									writer.append("	aload_1\n");
-									writer.append((" ldc "+((AssignableExpressionNode)((FuncExistsNode)node).operands.get(0)).getSequentialNumber()+"\n"));
-									writer.append("	aaload\n");
-									writer.append("	"+CompilerUtils.buildMethodCall(ME_VALUE_EXISTS)+"\n");
+									repo.append(writer,"	aload_1\n");
+									repo.append(writer,(" ldc "+((AssignableExpressionNode)((FuncExistsNode)node).operands.get(0)).getSequentialNumber()+"\n"));
+									repo.append(writer,"	aaload\n");
+									repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_VALUE_EXISTS)+"\n");
 
 									if (trueLabel != 0 || falseLabel != 0) {
 										if (trueLabel != 0) {
-											writer.append((" ifne label"+trueLabel+"\n"));
+											repo.append(writer,(" ifne label"+trueLabel+"\n"));
 											if (falseLabel != 0) {
-												writer.append((" goto label"+falseLabel+"\n"));
+												repo.append(writer,(" goto label"+falseLabel+"\n"));
 											}
 										}
 										else if (falseLabel != 0) {
-											writer.append((" ifeq label"+falseLabel+"\n"));
+											repo.append(writer,(" ifeq label"+falseLabel+"\n"));
 										}
 									}
 								}
@@ -610,17 +659,17 @@ public class MacroCompiler {
 									case INTEGER	:
 										break;
 									case REAL		:
-										writer.append("	dtol\n");
+										repo.append(writer,"	dtol\n");
 										break;
 									case STRING		:
-										writer.append("	ldc	0\n");
-										writer.append("	getfield longResult\n");
-										writer.append("	ldc	0\n");
-										writer.append("	"+CompilerUtils.buildMethodCall(CU_PARSE_SIGNED_LONG)+"\n");
-										writer.append("	pop\n");
-										writer.append("	getfield longResult\n");
-										writer.append("	ldc	0\n");
-										writer.append("	lload\n");
+										repo.append(writer,"	ldc	0\n");
+										repo.append(writer,"	getfield longResult\n");
+										repo.append(writer,"	ldc	0\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(CU_PARSE_SIGNED_LONG)+"\n");
+										repo.append(writer,"	pop\n");
+										repo.append(writer,"	getfield longResult\n");
+										repo.append(writer,"	ldc	0\n");
+										repo.append(writer,"	lload\n");
 										break;
 									case BOOLEAN	:
 										throw new CalculationException("Conversion to int is not applicable for data type ["+node.getValueType()+"]");
@@ -631,19 +680,19 @@ public class MacroCompiler {
 								compileExpression(((FuncToStringNode)node).operands.get(0),storage,repo,current,writer,trueLabel,falseLabel);
 								switch (((FuncToStringNode)node).operands.get(0).getValueType()) {
 									case INTEGER	:
-										writer.append("	ltod\n");
+										repo.append(writer,"	ltod\n");
 										break;
 									case REAL		:
 										break;
 									case STRING		:
-										writer.append("	ldc	0\n");
-										writer.append("	getfield doubleResult\n");
-										writer.append("	ldc	0\n");
-										writer.append("	"+CompilerUtils.buildMethodCall(CU_PARSE_SIGNED_DOUBLE)+"\n");
-										writer.append("	pop\n");
-										writer.append("	getfield doubleResult\n");
-										writer.append("	ldc	0\n");
-										writer.append("	dload\n");
+										repo.append(writer,"	ldc	0\n");
+										repo.append(writer,"	getfield doubleResult\n");
+										repo.append(writer,"	ldc	0\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(CU_PARSE_SIGNED_DOUBLE)+"\n");
+										repo.append(writer,"	pop\n");
+										repo.append(writer,"	getfield doubleResult\n");
+										repo.append(writer,"	ldc	0\n");
+										repo.append(writer,"	dload\n");
 										break;
 									case BOOLEAN	:
 										throw new CalculationException("Conversion to double is not applicable for data type ["+node.getValueType()+"]");
@@ -654,15 +703,15 @@ public class MacroCompiler {
 								compileExpression(((FuncToStringNode)node).operands.get(0),storage,repo,current,writer,trueLabel,falseLabel);
 								switch (((FuncToStringNode)node).operands.get(0).getValueType()) {
 									case INTEGER	:
-										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_STRING_L)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_STRING_L)+"\n");
 										break;
 									case REAL		:
-										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_STRING_D)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_STRING_D)+"\n");
 										break;
 									case STRING		:
 										break;
 									case BOOLEAN	:
-										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_STRING_Z)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_STRING_Z)+"\n");
 										break;
 									default : throw new UnsupportedOperationException("Data type ["+((FuncToStringNode)node).operands.get(0).getValueType()+"] is not supported yet");
 								}
@@ -673,7 +722,7 @@ public class MacroCompiler {
 									case INTEGER : case REAL :
 										throw new CalculationException("Conversion to boolean is not applicable for data type ["+node.getValueType()+"]");
 									case STRING		:
-										writer.append("	"+CompilerUtils.buildMethodCall(ME_TO_BOOLEAN)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_BOOLEAN)+"\n");
 										break;
 									case BOOLEAN	:
 										break;
@@ -717,10 +766,10 @@ public class MacroCompiler {
 	private static void buildConstant(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray writer, final int trueLabel, final int falseLabel) throws NullPointerException, CalculationException {
 		switch (node.getValueType()) {
 			case INTEGER	:
-				writer.append(("	ldc2_w "+node.getLong()+"L\n"));
+				repo.append(writer,("	ldc2_w "+node.getLong()+"L\n"));
 				break;
 			case REAL		:
-				writer.append(("	ldc2_w "+node.getDouble()+"\n"));
+				repo.append(writer,("	ldc2_w "+node.getDouble()+"\n"));
 				break;
 			case STRING		:
 				final long	location = storage.allocateCharArray(node.getString());
@@ -730,16 +779,16 @@ public class MacroCompiler {
 				break;
 			case BOOLEAN	:
 				if (trueLabel == 0 && falseLabel == 0) {
-					writer.append((node.getBoolean() ? " iconst_1\n" : " iconst_0\n"));
+					repo.append(writer,(node.getBoolean() ? " iconst_1\n" : " iconst_0\n"));
 				}
 				else if (node.getBoolean()) {
 					if (trueLabel != 0) {
-						writer.append((" goto label"+trueLabel+"\n"));
+						repo.append(writer,(" goto label"+trueLabel+"\n"));
 					}
 				}
 				else {
 					if (falseLabel != 0) {
-						writer.append((" goto label"+trueLabel+"\n"));
+						repo.append(writer,(" goto label"+trueLabel+"\n"));
 					}
 				}
 				break;
@@ -752,16 +801,16 @@ public class MacroCompiler {
 		
 		switch (value) {
 			case INTEGER	:
-				writer.append(" lcmp\n");
+				repo.append(writer," lcmp\n");
 				break;
 			case REAL		:
-				writer.append(" dcmpg\n");
+				repo.append(writer," dcmpg\n");
 				break;
 			case STRING		:
-				writer.append("	"+CompilerUtils.buildMethodCall(ME_COMPARE_STRINGS)+"\n");
+				repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_COMPARE_STRINGS)+"\n");
 				break;
 			case BOOLEAN	:
-				writer.append(" isub\n");
+				repo.append(writer," isub\n");
 				break;
 			default : throw new UnsupportedOperationException("Data type ["+value+"] is not supported yet");
 		}
@@ -779,26 +828,26 @@ public class MacroCompiler {
 		else {
 			if (trueLabel != 0) {
 				switch (operator) {
-					case EQ : writer.append(("	ifeq label"+trueLabel+"\n")); break;									
-					case NE : writer.append(("	ifne label"+trueLabel+"\n")); break;
-					case GE : writer.append(("	ifge label"+trueLabel+"\n")); break;
-					case GT : writer.append(("	ifgt label"+trueLabel+"\n")); break;
-					case LE : writer.append(("	ifle label"+trueLabel+"\n")); break;
-					case LT : writer.append(("	iflt label"+trueLabel+"\n")); break;
+					case EQ : repo.append(writer,("	ifeq label"+trueLabel+"\n")); break;									
+					case NE : repo.append(writer,("	ifne label"+trueLabel+"\n")); break;
+					case GE : repo.append(writer,("	ifge label"+trueLabel+"\n")); break;
+					case GT : repo.append(writer,("	ifgt label"+trueLabel+"\n")); break;
+					case LE : repo.append(writer,("	ifle label"+trueLabel+"\n")); break;
+					case LT : repo.append(writer,("	iflt label"+trueLabel+"\n")); break;
 					default : throw new UnsupportedOperationException("Operator type ["+operator+"] is not supported yet");
 				}
 				if (falseLabel != 0) {
-					writer.append(("	goto label"+falseLabel+"\n"));
+					repo.append(writer,("	goto label"+falseLabel+"\n"));
 				}
 			}
 			else {
 				switch (operator) {
-					case EQ : writer.append(("	ifne label"+falseLabel+"\n")); break;
-					case NE : writer.append(("	ifeq label"+falseLabel+"\n")); break;
-					case GE : writer.append(("	iflt label"+falseLabel+"\n")); break;
-					case GT : writer.append(("	ifle label"+falseLabel+"\n")); break;
-					case LE : writer.append(("	ifgt label"+falseLabel+"\n")); break;
-					case LT : writer.append(("	ifge label"+falseLabel+"\n")); break;
+					case EQ : repo.append(writer,("	ifne label"+falseLabel+"\n")); break;
+					case NE : repo.append(writer,("	ifeq label"+falseLabel+"\n")); break;
+					case GE : repo.append(writer,("	iflt label"+falseLabel+"\n")); break;
+					case GT : repo.append(writer,("	ifle label"+falseLabel+"\n")); break;
+					case LE : repo.append(writer,("	ifgt label"+falseLabel+"\n")); break;
+					case LT : repo.append(writer,("	ifge label"+falseLabel+"\n")); break;
 					default : throw new UnsupportedOperationException("Operator type ["+operator+"] is not supported yet");
 				}
 			}

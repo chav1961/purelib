@@ -2,6 +2,7 @@ package chav1961.purelib.json;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -9,6 +10,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +21,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.growablearrays.GrowableBooleanArray;
@@ -32,6 +33,7 @@ import chav1961.purelib.basic.growablearrays.GrowableLongArray;
 import chav1961.purelib.basic.growablearrays.GrowableShortArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.json.interfaces.CreateAndSet;
+import chav1961.purelib.json.intern.BasicDeserializer;
 import chav1961.purelib.streams.JsonSaxParser;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
@@ -89,33 +91,37 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  */
 
 public class JsonSaxDeserializerFactory {
-	private static final Class<?>		CL_ILLEGALARGUMENTEXCAPTION = IllegalArgumentException.class;
+	private static final Class<?>		CL_ILLEGALARGUMENTEXCEPTION = IllegalArgumentException.class;
 	private static final Class<?>		CL_PRIMITIVECOLLECTION = PrimitiveCollection.class;
+	private static final Class<?>		CL_BASIC_DESERIALIZER = BasicDeserializer.class;
 	private static final Class<?>		CL_CREATEANDSET = CreateAndSet.class;
 
-	private static final Constructor<?>	CON_OBJECT;
-	private static final Constructor<?>	CON_ILLEGALARGUMENTEXCEPTION;
+	private static final Constructor<?>	CON_BASIC_DESERIALIZER;
 
 	private static final Field			F_PC_CONTENT_TYPE;
 	private static final Field			F_PC_CONTENT_LONGVALUE;
 	private static final Field			F_PC_CONTENT_DOUBLEVALUE;
 	private static final Field			F_PC_CONTENT_BOOLEANVALUE;
+
+	private static final Method			M_THROW_UNKNOWN_EXCEPTRION;
+	private static final Method			M_THROW_CAST_EXCEPTRION;
+	private static final Method			M_THROW_CREATE_EXCEPTRION;
 	
 	static {
-		try{final Class<Object>						objClass = Object.class;
+		try{final Class<BasicDeserializer>			basicClass = BasicDeserializer.class;
 			
-			CON_OBJECT = objClass.getConstructor();
+			CON_BASIC_DESERIALIZER = basicClass.getDeclaredConstructor();
+			M_THROW_UNKNOWN_EXCEPTRION = basicClass.getDeclaredMethod("throwUnknownException");
+			M_THROW_CAST_EXCEPTRION = basicClass.getDeclaredMethod("throwCastException");
+			M_THROW_CREATE_EXCEPTRION = basicClass.getDeclaredMethod("throwCreateException");
 			
-			final Class<IllegalArgumentException>	iaeClass = IllegalArgumentException.class;
-			
-			CON_ILLEGALARGUMENTEXCEPTION = iaeClass.getConstructor(String.class);
-
 			final Class<PrimitiveCollection>		pcClass = PrimitiveCollection.class;
 			
 			F_PC_CONTENT_TYPE = pcClass.getField("contentType");
 			F_PC_CONTENT_LONGVALUE = pcClass.getField("longValue");
 			F_PC_CONTENT_DOUBLEVALUE = pcClass.getField("doubleValue");
 			F_PC_CONTENT_BOOLEANVALUE = pcClass.getField("booleanValue");
+
 		} catch (NoSuchMethodException | SecurityException | NoSuchFieldException e) {
 			throw new PreparationException("Class JsonSaxDeserializerFactory initialization failed: "+e.getLocalizedMessage(),e);
 		}
@@ -159,24 +165,25 @@ public class JsonSaxDeserializerFactory {
 			if (publicOnly && !extra.isPrimitive()) {		// Build class for direct access instead of reflections...
 				try(final ByteArrayOutputStream		baos = new ByteArrayOutputStream();
 					final Writer					wr = new AsmWriter(baos);) {
-					final String					pseudoClassName = JsonSaxDeserializerFactory.class.getPackage().getName()+'.'+extra.getSimpleName()+"_serv"; 
+					final String					pseudoClassName = BasicDeserializer.class.getPackage().getName()+'.'+extra.getSimpleName()+"_serv"; 
 					final List<SettingPairs>		settingPairs = new ArrayList<>();				
 					
-					wr.write(" 				.package "+JsonSaxDeserializerFactory.class.getPackage().getName()+'\n');
+					wr.write(" 				.package "+BasicDeserializer.class.getPackage().getName()+'\n');
 					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
 					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
-					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
+					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_BASIC_DESERIALIZER)+" protected\n");
+					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCEPTION)+"\n");
 					
 					preventDuplicates.clear();
 					preventDuplicates.add(String.class);			
 					printClassCreationImport(wr,desc,preventDuplicates);
 					
-					wr.write(extra.getSimpleName()+"_serv 	.class public implements "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
+					wr.write(extra.getSimpleName()+"_serv 	.class public extends "+CompilerUtils.buildClassPath(CL_BASIC_DESERIALIZER)+" implements "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
 					
 					wr.write(extra.getSimpleName()+"_serv	.method void public\n");
 					wr.write("				.stack 2\n");
 					wr.write("				aload_0\n");
-					wr.write(" "+CompilerUtils.buildConstructorCall(CON_OBJECT)+"\n");
+					wr.write(" "+CompilerUtils.buildConstructorCall(CON_BASIC_DESERIALIZER)+"\n");
 					wr.write("				return\n");
 					wr.write(extra.getSimpleName()+"_serv	.end\n");
 					wr.write("newInstance 	.method java.lang.Object public\n");
@@ -191,11 +198,7 @@ public class JsonSaxDeserializerFactory {
 					
 					wr.write("				.default Throw\n");
 					wr.write("				.end\n");
-					wr.write("Throw:		new 	"+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
-					wr.write("				dup\n");
-					wr.write("				ldc_w 	\"Unknown classId value to create instance\"\n");
-					wr.write("				"+CompilerUtils.buildConstructorCall(CON_ILLEGALARGUMENTEXCEPTION)+"\n");
-					wr.write("				athrow\n");
+					wr.write("Throw:		"+CompilerUtils.buildMethodCall(M_THROW_CREATE_EXCEPTRION)+"\n");
 					
 					preventDuplicates.clear();
 					preventDuplicates.add(String.class);
@@ -221,21 +224,12 @@ public class JsonSaxDeserializerFactory {
 						
 						wr.write("				.default Unknown\n");
 						wr.write("				.end\n");
-						wr.write("Unknown:		new 	"+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
-						wr.write("				dup\n");
-						wr.write("				ldc_w 	\"Unknown classId/fieldId combination to set value\"\n");
-						wr.write("				"+CompilerUtils.buildConstructorCall(CON_ILLEGALARGUMENTEXCEPTION)+"\n");
-						wr.write("				athrow\n");
-						wr.write("Cast:			new 	"+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCAPTION)+"\n");
-						wr.write("				dup\n");
-						wr.write("				ldc_w 	\"Source primitive type can't be cast to target field type\"\n");
-						wr.write("				"+CompilerUtils.buildConstructorCall(CON_ILLEGALARGUMENTEXCEPTION)+"\n");
-						wr.write("				athrow\n");
+						wr.write("Unknown:		"+CompilerUtils.buildMethodCall(M_THROW_UNKNOWN_EXCEPTRION)+"\n");
+						wr.write("Cast:			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
 						
 						printClassSettingsCode(wr,settingPairs,tree);
 					}
 					
-					wr.write("				return\n");
 					wr.write("setValue 		.end\n");
 					
 					wr.write(extra.getSimpleName()+"_serv	.end\n");
@@ -251,7 +245,7 @@ public class JsonSaxDeserializerFactory {
 			}
 		}
 	}
-	
+
 	private static void collectFieldNames(final Class<?> clazz,final SyntaxTreeInterface<FieldDesc> tree, final boolean publicOnly) throws NoSuchFieldException, IllegalAccessException {
 		if (clazz != null) {
 			final MethodHandles.Lookup	lookup = MethodHandles.lookup();
@@ -431,7 +425,6 @@ public class JsonSaxDeserializerFactory {
 			wr.write("		"+item.labelId+",L"+item.labelId+'\n');
 		}
 	}
-	
 
 	private static void printClassSettingsCode(final Writer wr, final List<SettingPairs> settingPairs, final SyntaxTreeInterface<FieldDesc> tree) throws IOException {
 		for (SettingPairs item : settingPairs) {
@@ -450,8 +443,9 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc_w "+PrimitiveCollection.CONTENT_LONG+"\n");
-					wr.write("			if_icmpne Cast\n");
-					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_LONGVALUE)+"\n");
+					wr.write("			if_icmpeq Cast_"+item.labelId+"\n");
+					wr.write("			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
+					wr.write("Cast_"+item.labelId+":	"+CompilerUtils.buildGetter(F_PC_CONTENT_LONGVALUE)+"\n");
 					wr.write("			l2i\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
@@ -460,8 +454,9 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_LONG+"\n");
-					wr.write("			if_icmpne Cast\n");
-					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_LONGVALUE)+"\n");
+					wr.write("			if_icmpeq Cast_"+item.labelId+"\n");
+					wr.write("			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
+					wr.write("Cast_"+item.labelId+":	"+CompilerUtils.buildGetter(F_PC_CONTENT_LONGVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				case CompilerUtils.CLASSTYPE_FLOAT		:
@@ -469,8 +464,9 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_DOUBLE+"\n");
-					wr.write("			if_icmpne Cast\n");
-					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_DOUBLEVALUE)+"\n");
+					wr.write("			if_icmpeq Cast_"+item.labelId+"\n");
+					wr.write("			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
+					wr.write("Cast_"+item.labelId+":	"+CompilerUtils.buildGetter(F_PC_CONTENT_DOUBLEVALUE)+"\n");
 					wr.write("			d2f\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
@@ -479,8 +475,9 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_DOUBLE+"\n");
-					wr.write("			if_icmpne Cast\n");
-					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_DOUBLEVALUE)+"\n");
+					wr.write("			if_icmpeq Cast_"+item.labelId+"\n");
+					wr.write("			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
+					wr.write("Cast_"+item.labelId+":	"+CompilerUtils.buildGetter(F_PC_CONTENT_DOUBLEVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				case CompilerUtils.CLASSTYPE_BOOLEAN	:
@@ -488,8 +485,9 @@ public class JsonSaxDeserializerFactory {
 					wr.write("			dup\n");
 					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_TYPE)+"\n");
 					wr.write("			ldc "+PrimitiveCollection.CONTENT_BOOLEAN+"\n");
-					wr.write("			if_icmpne Cast\n");
-					wr.write("			"+CompilerUtils.buildGetter(F_PC_CONTENT_BOOLEANVALUE)+"\n");
+					wr.write("			if_icmpeq Cast_"+item.labelId+"\n");
+					wr.write("			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
+					wr.write("Cast_"+item.labelId+":	"+CompilerUtils.buildGetter(F_PC_CONTENT_BOOLEANVALUE)+"\n");
 					wr.write("			putfield "+tree.getName(item.classId)+"."+tree.getName(item.fieldId)+"\n");
 					break;
 				default :  throw new UnsupportedOperationException();
@@ -540,7 +538,7 @@ public class JsonSaxDeserializerFactory {
 		private final PrimitiveCollection				forPrimitives = new PrimitiveCollection();
 		private final long								lastTreeId;
 		
-		private InternalClassLoader	cl = new InternalClassLoader(JsonSaxDeserializerFactory.class.getClassLoader());
+		private InternalClassLoader	cl = new InternalClassLoader(JsonSaxDeserializerFactory.class.getClassLoader(),JsonSaxDeserializerFactory.class.getModule());
 		private CreateAndSet		cs;
 		private T					result = null;
 		private ClassDesc			actualDesc;
@@ -1073,14 +1071,15 @@ public class JsonSaxDeserializerFactory {
 		public double	doubleValue;
 		public boolean	booleanValue;
 	}
-	
+
 	private static class InternalClassLoader extends ClassLoader {
-		InternalClassLoader(final ClassLoader parent) {
+		InternalClassLoader(final ClassLoader parent, final Module module) {
 			super(parent);
+			module.addExports(BasicDeserializer.class.getPackageName(),getUnnamedModule());
 		}
 		
 		public Class<?> define(final String className, final byte[] content, final int from, final int len) {
-			return super.defineClass(className,content,from,len);
+			return defineClass(className,content,from,len);
 		}
 	}
 	

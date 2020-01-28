@@ -938,9 +938,6 @@ class LineParser implements LineByLineProcessorCallback {
 								}
 								start = InternalUtils.skipBlank(data,start);
 
-								System.err.println("Stack: "+methodDescriptor.getBody().getStackAndVarRepo().makeStackSnapshot()+", line="+new String(data,from,len));
-								
-								
 								if (desc.checkedTypes != null && desc.checkedTypes.length > 0) {
 									if (!methodDescriptor.getBody().getStackAndVarRepo().compareStack(desc.checkedTypes)) {
 										throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command!"); 
@@ -977,7 +974,6 @@ class LineParser implements LineByLineProcessorCallback {
 									case restricted				: throw new ContentException("Restricted command in the input stream!");
 									default : throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
 								}
-								System.err.println("Stack after: "+methodDescriptor.getBody().getStackAndVarRepo().makeStackSnapshot());
 							}
 							else {
 								throw new ContentException("Unknown command : "+new String(data,startDir,endDir-startDir));
@@ -2318,7 +2314,6 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 					putCommand((byte)0,(byte)0,(byte)0,(byte)0);
 				}
-//				changeStack(desc.stackChanges);
 			}
 		}
 	}

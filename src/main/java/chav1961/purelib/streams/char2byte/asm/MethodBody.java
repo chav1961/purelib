@@ -135,7 +135,6 @@ class MethodBody extends AbstractMethodBody {
 			}
 		}
 		else {
-			System.err.println("Add by label: "+id+", "+currentSnapshot);
 			stacks.add(new StackDescriptor(id,-1,currentSnapshot));
 		}
 		labelRequired = false;
@@ -153,7 +152,6 @@ class MethodBody extends AbstractMethodBody {
 		final StackDescriptor	stack = findStack(labelId); 
 				
 		if (label == null) {	// Forward brunch
-			System.err.println("Add by brunch: "+labelId+", "+snapshot);
 			stacks.add(new StackDescriptor(labelId,address,snapshot));
 		}
 		else {					// Backward brunch
@@ -163,7 +161,7 @@ class MethodBody extends AbstractMethodBody {
 		}
 		brunches.add(new ItemDescriptor(labelId,address,placement,shortBranch));
 	}
-
+	
 	@Override
 	short getStackSize() {
 		return stack;
