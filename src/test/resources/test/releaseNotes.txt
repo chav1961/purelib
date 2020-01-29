@@ -13,7 +13,6 @@ I. New features
 	- .varTable - insert LocalVarTable attribute into generating Java class
 	- .source - insert source attribute into generating Java class
 
-
 II. Refactoring
 
 1. All special URLs implementation in the Pure library were successfully migrated to Java 9 SPI support  

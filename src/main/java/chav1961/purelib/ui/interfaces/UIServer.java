@@ -35,7 +35,7 @@ public interface UIServer extends Closeable {
 	
 	void setNavigator(ContentModel model, NavigatorStyle style, NavigationCallback callback) throws ContentException, IOException;
 	<T> void ask(Localizer localizer, ContentModel model, T instance, FormManager<Object,T> formMgr, Completed<T> completed) throws ContentException, IOException;
-	<T,E extends Enum<?>> void wizard(Localizer localizer, ContentModel model, T instance, FormManager<Object,T> formMgr, Completed<T> completed, WizardStep<T,E,Object>... steps) throws ContentException, FlowException, IOException;
+	<T,E extends Enum<?>> void wizard(Localizer localizer, ContentModel model, T instance, FormManager<Object,T> formMgr, Completed<T> completed, @SuppressWarnings("unchecked") WizardStep<T,E,Object>... steps) throws ContentException, FlowException, IOException;
 	void browse(InputStreamGetter content, MimeType contentType, Completed<?> completed) throws ContentException, IOException;
 	void edit(InputStreamGetter source, OutputStreamGetter target, MimeType contentType, Completed<?> completed) throws ContentException, IOException;
 	<K,T> void showAndEdit(Localizer localizer, ContentModel model, T instance, FormManager<K,T> formMgr, ShowStyle style, Completed<T> completed) throws ContentException, IOException;
