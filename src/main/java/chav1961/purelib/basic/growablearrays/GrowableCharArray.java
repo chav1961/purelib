@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+
 /**
  * <p>This class implements functionality for the growable character arrays. It also inplements {@linkplain CharSequence} interface and can be 
  * used everywhere this interface required</p>
@@ -16,7 +18,7 @@ import java.util.Arrays;
  * @lastUpdate 0.0.2
  */
 
-public class GrowableCharArray implements CharSequence {
+public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence {
 	private static final char[]	NULL_CHAR = new char[0];
 	
 	private final boolean		usePlain;
@@ -59,7 +61,7 @@ public class GrowableCharArray implements CharSequence {
 	 * @param data data to append
 	 * @return self
 	 */
-	public GrowableCharArray append(final char data) {
+	public T append(final char data) {
 		aacm.checkSize(filled+1);
 		
 		if (usePlain) {
@@ -69,7 +71,7 @@ public class GrowableCharArray implements CharSequence {
 			sliced[aacm.toSliceIndex(filled)][aacm.toRelativeOffset(filled)] = data;
 		}
 		filled++;
-		return this;
+		return (T) this;
 	}
 
 	/**
@@ -78,12 +80,12 @@ public class GrowableCharArray implements CharSequence {
 	 * @return self
 	 * @throws NullPointerException when data reference is null
 	 */
-	public GrowableCharArray append(final char[] data) throws NullPointerException {
+	public T append(final char[] data) throws NullPointerException {
 		if (data == null) {
 			throw new NullPointerException("Data array can't be null");
 		}
 		else {
-			return append(data,0,data.length);
+			return (T) append(data,0,data.length);
 		}
 	}
 
@@ -96,14 +98,14 @@ public class GrowableCharArray implements CharSequence {
 	 * @throws NullPointerException when data reference is null
 	 * @throws ArrayIndexOutOfBoundsException when from and to indices out of data
 	 */
-	public GrowableCharArray append(final char[] data, int from, final int to) throws NullPointerException, ArrayIndexOutOfBoundsException {
+	public T append(final char[] data, int from, final int to) throws NullPointerException, ArrayIndexOutOfBoundsException {
 		final int	len = to - from;
 		
 		if (data == null) {
 			throw new NullPointerException("Target data array can't be null");
 		}
 		else if (data.length == 0) {
-			return this;
+			return (T) this;
 		}
 		else if (from < 0 || from >= data.length) {
 			throw new ArrayIndexOutOfBoundsException("From location ["+from+"] out of bounds. Valid range is 0.."+(data.length-1));
@@ -131,7 +133,7 @@ public class GrowableCharArray implements CharSequence {
 				} while(rest > 0);
 			}
 		}
-		return this;
+		return (T) this;
 	}
 
 	/**
@@ -142,12 +144,12 @@ public class GrowableCharArray implements CharSequence {
 	 * @throws ArrayIndexOutOfBoundsException from or from + to value out of available range
 	 * @since 0.0.2 
 	 */
-	public GrowableCharArray append(final String data) throws NullPointerException, ArrayIndexOutOfBoundsException {
+	public T append(final String data) throws NullPointerException, ArrayIndexOutOfBoundsException {
 		if (data == null) {
 			throw new NullPointerException("Target data array can't be null");
 		}
 		else {
-			return append(data,0,data.length());
+			return (T) append(data,0,data.length());
 		}
 	}
 	
@@ -161,14 +163,14 @@ public class GrowableCharArray implements CharSequence {
 	 * @throws ArrayIndexOutOfBoundsException from or from + to value out of available range
 	 * @since 0.0.2 
 	 */
-	public GrowableCharArray append(final String data, int from, final int to) throws NullPointerException, ArrayIndexOutOfBoundsException {
+	public T append(final String data, int from, final int to) throws NullPointerException, ArrayIndexOutOfBoundsException {
 		final int	len = to - from, stringLen;
 		
 		if (data == null) {
 			throw new NullPointerException("Target data array can't be null");
 		}
 		else if ((stringLen = data.length()) == 0) {
-			return this;
+			return (T) this;
 		}
 		else if (from < 0 || from >= stringLen) {
 			throw new ArrayIndexOutOfBoundsException("From location ["+from+"] out of bounds. Valid range is 0.."+(stringLen-1));
@@ -196,8 +198,42 @@ public class GrowableCharArray implements CharSequence {
 				} while(rest > 0);
 			}
 		}
-		return this;
+		return (T) this;
 	}
+	
+	/**
+	 * <p>Append name from syntax tree to the end of array</p>
+	 * @param tree tree to add name from
+	 * @param id name id in the tree
+	 * @return self
+	 * @throws NullPointerException when tree is null
+	 * @throws IllegalArgumentException when tree doesn't contain name with the given id
+	 * @since 0.0.4 
+	 */
+	public T append(final SyntaxTreeInterface<?> tree, final long id) throws NullPointerException, IllegalArgumentException {
+		if (tree == null) {
+			throw new NullPointerException("Tree to add name from can't be null");
+		}
+		else {
+			final int	len = tree.getNameLength(id);
+			
+			if (len < 0) {
+				throw new IllegalArgumentException("Tree to add name from doesn't have name with id ["+id+"]");
+			}
+			else {
+				aacm.checkSize(filled+len);
+				
+				if (usePlain) {
+					tree.getName(id,plain,filled);
+					filled += len;
+				}
+				else {
+					append(tree.getName(id));
+				}
+				return (T) this;
+			}
+		}
+	}	
 	
 	/**
 	 * <p>Append array content from the Reader</p>

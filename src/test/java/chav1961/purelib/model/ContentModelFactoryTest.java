@@ -13,7 +13,6 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -83,7 +82,7 @@ public class ContentModelFactoryTest {
 			}
 			 
 			int	count = 0; 
-			for (ContentNodeMetadata found : cmi.byApplicationPath(URI.create("app:action:/menuItem1Action"))) {
+			for (@SuppressWarnings("unused") ContentNodeMetadata found : cmi.byApplicationPath(URI.create("app:action:/menuItem1Action"))) {
 				count++;
 			}
 			Assert.assertEquals(2,count); 

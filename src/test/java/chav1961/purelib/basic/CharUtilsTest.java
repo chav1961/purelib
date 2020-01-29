@@ -1098,6 +1098,17 @@ public class CharUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}
+
+	@Test
+	public void terminateAndConvertTest() {
+		Assert.assertArrayEquals("test\n".toCharArray(),CharUtils.terminateAndConvert("test",'\n'));
+		Assert.assertArrayEquals("\n".toCharArray(),CharUtils.terminateAndConvert("",'\n'));
+		
+		try{CharUtils.terminateAndConvert(null,'\n');
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
 }
 
 enum PseudoConversionEnum {
