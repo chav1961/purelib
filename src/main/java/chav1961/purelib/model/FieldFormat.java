@@ -69,7 +69,7 @@ public class FieldFormat {
 			throw new NullPointerException("Format string can't be null");
 		}
 		else {
-			final char[]	data = CharUtils.terminateAndConvert(format.trim(),'\n');
+			final char[]	data = CharUtils.terminateAndConvert2CharArray(format.trim(),'\n');
 			boolean			isMandatory = false, isReadOnly = false, isReadOnlyOnExistent = false, isOutput = false;
 			boolean			negativeHighlight = false, zeroHighlight = false, positiveHighlight = false;
 			boolean			useInList = false, useInListAnchored = false, needSelect = false;

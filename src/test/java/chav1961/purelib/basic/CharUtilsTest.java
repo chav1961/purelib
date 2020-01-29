@@ -1101,10 +1101,10 @@ public class CharUtilsTest {
 
 	@Test
 	public void terminateAndConvertTest() {
-		Assert.assertArrayEquals("test\n".toCharArray(),CharUtils.terminateAndConvert("test",'\n'));
-		Assert.assertArrayEquals("\n".toCharArray(),CharUtils.terminateAndConvert("",'\n'));
+		Assert.assertArrayEquals("test\n".toCharArray(),CharUtils.terminateAndConvert2CharArray("test",'\n'));
+		Assert.assertArrayEquals("\n".toCharArray(),CharUtils.terminateAndConvert2CharArray("",'\n'));
 		
-		try{CharUtils.terminateAndConvert(null,'\n');
+		try{CharUtils.terminateAndConvert2CharArray(null,'\n');
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}

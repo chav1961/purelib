@@ -1,13 +1,37 @@
 package chav1961.purelib.basic;
 
+import java.util.Properties;
+
+import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
- * <p>This class contains implementation of the most-commonly-used char data parsing/printing functions in the system.</p> 
+ * <p>This class contains implementation of the most-commonly-used char data parsing/printing functions in the system. It can be used to parse character 
+ * representation of various content, convert the content to it's native form and make reversal converting to it's character representation. 
+ * All the parsing methods in the class are oriented to direct parsing of the char arrays, not strings. It allow to avoid non-productive conversions from 
+ * char array to {@linkplain String} instance and revert string content to it's character array representation. This ability increases performance of character
+ * data processing, especially for Java 9 and newer. All methods in the class are thread-safe.</p>
+ * <p>The class supports:</p>
+ * <ul>
+ * <li>parsing of <a href="#numerical">numerical data</a> (integer, long, float, double) to convert it to their native representation and reversal converting to character arrays</li>
+ * <li><a href="#numerical">escaping and un-escaping</a> character array and string content (frequently used on XML, JSON, CSV format processing)</li>
+ * <li>support <a href="#enums">Java enum and field</a> representation parsing</li>
+ * <li>support <a href="#substitutions">substitutions</a> in the character and string content</li>
+ * <li>a set of <a href="#useful">useful</a> methods for the char content processing</li>
+ * </ul> 
  * 
- * <p>All the parsing methods in the class are oriented to direct parsing of the char arrays. Every method accepts source data array
- * and starting position from it to parse, and returns the position in the source array after parsing. This returned value can then be used
+ * <h2><a name="numerical">Parsing and printing numerical content</a></h2>
+ * 
+ * <p>Methods for parsing numerical content are:</p>
+ * <ul>
+ * <li>{@linkplain #parseInt(char[], int, int[], boolean)}, {@linkplain #parseSignedInt(char[], int, int[], boolean)}, {@linkplain #parseIntExtended(char[], int, int[], boolean)} - parse character representation of integers and convert it to native integers</li>
+ * <li>{@linkplain #parseLong(char[], int, long[], boolean)}, {@linkplain #parseSignedLong(char[], int, long[], boolean)}, {@linkplain #parseLongExtended(char[], int, long[], boolean)} - parse character representation of longs and convert it to native longs</li>
+ * <li>{@linkplain #parseFloat(char[], int, float[], boolean)}, {@linkplain #parseSignedFloat(char[], int, float[], boolean)} - parse character representation of floats and convert it to native floats</li>
+ * <li>{@linkplain #parseDouble(char[], int, double[], boolean)}, {@linkplain #parseSignedDouble(char[], int, double[], boolean)} - parse character representation of doubles and convert it to native doubles</li>
+ * <li>{@linkplain #parseNumber(char[], int, long[], int, boolean)} - parse character representation of numbers, auto-detected minimal type to store parsed value, and convert parsed value to the type detected</li>
+ * </ul> 
+ * <p>All these methods accept source data array and starting position from it to parse, and returns the position in the source array after parsing. This returned value can then be used
  * in the subsequent calls as starting position. Any parsed object are returned from the methods thru the arrays of appropriative data. This 
  * technique emulates call-by-reference mode for the method parameters, for example:</p>
  * <code>
@@ -15,15 +39,73 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * 		final int[]	value1 = new int[1], value2 = new int[1]; <br>
  *  	final int	endPos1 = CharsUtil.parseInt(source,0,value1,false);				// endPos1 = 4, value1[0] = 1234 <br>
  *  	final int	endPos2 = CharsUtil.parseInt(source,endPos1+1,value2,false);		// endPos2 = 9, value2[0] = 5678 <br>
- * </code> 
+ * </code>
+ * <p>Class {@linkplain CharUtils} also contains method {@linkplain #validateNumber(char[], int, int, boolean)} to check character content is a valid number representation.</p>
+ * <p>Methods for printing numerical content are:</p>
+ * <ul>
+ * <li>{@linkplain #printLong(char[], int, long, boolean)} - convert native long to it's character representation</li>
+ * <li>{@linkplain #printDouble(char[], int, double, boolean)} - convert native double to it's character representation</li>
+ * </ul> 
  * <p>All the printing methods in the class are oriented to direct filling of the char arrays. Every method accepts target data array and the 
  * free starting position to fill result, and returns the new free position in the array. Negative returned value means that the target array
- * is too short to keep result. It <i>absolute</i> value exactly reflect new free position in the target array and can be used to expand target
+ * is too small to keep result. It <i>absolute</i> value exactly reflect new free position in the target array and can be used to expand target
  * array to required size</p>
+ * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors, and {@linkplain PrintingException} on printing.</p>
  *
- * <p>This class contains also a lot of methods to simplify parsing of the char arrays and strings</p>
+ * <h2><a name="escaping">Escaping and un-escaping content</a></h2>
  * 
- * <p>All the methods in the class are thread-safe</p>
+ * <p>Methods to escaping and un-escaping are used to convert internal representation of chars, char arrays and strings to it's external representation form
+ * (for example, to use inside JSON double-quoted values). Methods to escape are:</p>
+ * <ul>
+ * <li>{@linkplain CharUtils#symbolNeedsEscaping(char, boolean)}, {@linkplain #isSymbolPrintable(char)} and {@linkplain #howManyEscapedCharsOccupies(char)} - methods to check weather symbol
+ * requires escaping for external representation and how many chars it's external representation occupies</li>
+ * <li>{@linkplain #parseEscapedChar(char[], int, char[])}, {@linkplain #parseString(char[], int, char, StringBuilder)} and {@linkplain #parseStringExtended(char[], int, char, StringBuilder)} - 
+ * methods to parse escaped representation of the char content to it's native form</li>
+ * <li>{@linkplain #printEscapedChar(char[], int, char, boolean, boolean)}, {@linkplain #printEscapedCharArray(char[], int, char[], boolean, boolean)}, {@linkplain #printEscapedCharArray(char[], int, char[], int, int, boolean, boolean)} 
+ * and {@linkplain #printEscapedString(char[], int, String, boolean, boolean)} - methods to convert internal representation of character or string content to it's external escaped form</li>
+ * <li>{@linkplain #escapeStringContent(String)} and {@linkplain #unescapeStringContent(String)} - methods to convert string content to and from it's internal representation to escaped external one</li>
+ * </ul>
+ * <p>The class {@linkplain CharUtils} also contains {@linkplain #parseUnescapedString(char[], int, char, boolean, int[])} method to parse ordinal string content.</p>
+ * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors, and {@linkplain PrintingException} on printing.</p>
+ *  
+ * <h2><a name="escaping">Java enum and fields processing</a></h2>
+ * 
+ * <p>Enum and fields processing can be used to parse and print enumeration values and field names in the char content. Methods to parse and print enumerations and fields are:</p>
+ * <ul>
+ * <li>{@linkplain #parseEnum(char[], int, Class, Enum[])} - method to parse enumeration constants</li>
+ * <li>{@linkplain #parseName(char[], int, int[])} and {@linkplain #parseNameExtended(char[], int, int[], char...)}- method to parse field names</li>
+ * </ul>
+ * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors.</p>
+ *  
+ * <h2><a name="substitutions">Substitutions support</a></h2>
+ * 
+ * <p>Substitutions is a well-known mechanism for automatic replacement of <b>keys</b> in the character/string content with their current <b>values</b>. Keys in the {@linkplain CharUtils} class are any 
+ * sequences in the string content similar "...${key}...". To make substitution for it, one of the substitution interfaces can be used. The complete list of substitution interfaces in the class is:</p>
+ * 
+ * <ul>
+ * <li>{@linkplain SubstitutionSource} - interface to support String-&gt;String replacement</li>
+ * <li>{@linkplain CharSubstitutionSource} -  - interface to support char[]-&gt;char[] replacement</li>
+ * </ul>
+ * 
+ * <p>Methods to make substitutions are:</p>
+ * <ul>
+ * <li>{@linkplain #substitute(String, String, SubstitutionSource)} - method to process string substitutions</li>
+ * <li>{@linkplain #substitute(String, char[], int, int, CharSubstitutionSource)} - method to process char array substitutions</li>
+ * </ul>
+ * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors.</p>
+ *  
+ * <h2><a name="useful">Useful methods</a></h2>
+ * 
+ * <p>Useful methods are:</p>
+ * <ul>
+ * <li> a set of {@linkplain #split(String, char)} methods to split char/string content by divizors. Differ to {@linkplain String#split(String)} method, they don't use regular expressions</li>  
+ * <li> a set of {@linkplain #join(char[], char[]...)} methods to join char/string content by divizors. Differ to {@linkplain String#join(CharSequence, CharSequence...)} method, they use more effective implementation</li>  
+ * <li> a set of {@linkplain #like(char[], char[], int)} methods to implement SQL LIKE clause functionality. They don't use regular expressions</li>  
+ * <li> a set of {@linkplain #compare(char[], int, char[], int, int)} methods for character array comparison</li>  
+ * <li> {@linkplain #extract(char[], int, Object[], Object...)} and {@linkplain #tryExtract(char[], int, Object...)} methods for simplest parsers. They don't use regular expressions</li>  
+ * <li> {@linkplain #terminateAndConvert2CharArray(String, char)} method for a special functionality - terminate string representation with the given char and convert result to char array (frequently uses in parsers)</li>  
+ * </ul>
+ * <p>Many of the methods can throw {@linkplain SyntaxException} on parsing errors.</p>
  *  
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
@@ -1547,7 +1629,7 @@ public class CharUtils {
 	 * @throws NullPointerException when content string is null
 	 * @since 0.0.4
 	 */
-	public static char[] terminateAndConvert(final String content, final char terminal) throws NullPointerException {
+	public static char[] terminateAndConvert2CharArray(final String content, final char terminal) throws NullPointerException {
 		if (content == null) {
 			throw new NullPointerException("COntent string can't be null");
 		}
@@ -1616,9 +1698,10 @@ public class CharUtils {
 		}
 		else {
 			final char[]	temp = new char[content.length()];
+			int				start = 0;
 			char			currentChar;
 			
-			for (int index = 0, start = 0, maxIndex = temp.length; index < maxIndex; index++) {
+			for (int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
 				currentChar = content.charAt(index);
 				
 				if (currentChar != '\\') {
@@ -1661,6 +1744,22 @@ public class CharUtils {
 							temp[start++] = (char)octal;
 							break;
 						case 'u' 	:
+							int	hex = 0;
+							
+							index++;
+							while (index < maxIndex && ((currentChar = content.charAt(index)) >= '0' && currentChar <= '9' || currentChar >= 'a' && currentChar <= 'f' || currentChar >= 'A' && currentChar <= 'F') ) {
+								if (currentChar >= '0' && currentChar <= '9') {
+									hex = 16 * hex + currentChar - '0';
+								}
+								else if (currentChar >= 'a' && currentChar <= 'f') {
+									hex = 16 * hex + currentChar - 'a' + 10;
+								}
+								else {
+									hex = 16 * hex + currentChar - 'A' + 10;
+								}
+								index++;
+							}
+							temp[start++] = (char)hex;
 							break;
 						default :
 							throw new IllegalArgumentException("Wrong escape sequence at position ["+index+"]");
@@ -1670,6 +1769,7 @@ public class CharUtils {
 					throw new IllegalArgumentException("Wrong escape sequence at the end of sting");
 				}
 			}
+			return new String(temp,0,start);
 		}
 	}
 	
