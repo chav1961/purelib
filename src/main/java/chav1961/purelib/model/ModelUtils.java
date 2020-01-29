@@ -292,7 +292,10 @@ public class ModelUtils {
 		}
 		else {
 			if (gas instanceof ObjectGetterAndSetter) {
-				((ObjectGetterAndSetter<Object>)gas).set(instance,value);
+				@SuppressWarnings("unchecked")
+				final ObjectGetterAndSetter<Object>	setter = (ObjectGetterAndSetter<Object>)gas;
+				
+				setter.set(instance,value);
 			}
 			else if (gas instanceof BooleanGetterAndSetter) {
 				if (value == null) {

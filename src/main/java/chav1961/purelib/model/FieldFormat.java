@@ -11,6 +11,7 @@ import java.util.Date;
 
 import javax.swing.text.MaskFormatter;
 
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 
@@ -68,7 +69,7 @@ public class FieldFormat {
 			throw new NullPointerException("Format string can't be null");
 		}
 		else {
-			final char[]	data = (format.trim()+'\n').toCharArray();
+			final char[]	data = CharUtils.terminateAndConvert(format.trim(),'\n');
 			boolean			isMandatory = false, isReadOnly = false, isReadOnlyOnExistent = false, isOutput = false;
 			boolean			negativeHighlight = false, zeroHighlight = false, positiveHighlight = false;
 			boolean			useInList = false, useInListAnchored = false, needSelect = false;
@@ -166,24 +167,23 @@ public class FieldFormat {
 						}
 						else {
 							value = 0;
-							while (Character.isDigit(data[pos])) {
+							while (data[pos] >= '0' && data[pos] <= '9') {
 								value = 10 * value + data[pos++] - '0';
 							}
 							len = value;
 							if (data[pos] == '.') {
 								value = 0;
 								pos++;
-								while (Character.isDigit(data[pos])) {
+								while (data[pos] >= '0' && data[pos] <= '9') {
 									value = 10 * value + data[pos++] - '0';
 								}
 								frac = value;
 							}
-							pos--;
 							if (frac > 0 && frac >= len - 1) {
 								throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: frac part is too long");
 							}
 						}
-						break;
+						continue;	// need skip pos++ after switch!
 					default :
 						throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: illegal char");
 				}

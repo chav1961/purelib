@@ -8,7 +8,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
-import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 
 public class ContentMetadataFilterTest {

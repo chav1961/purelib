@@ -28,7 +28,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public class CharUtils {
@@ -394,7 +394,7 @@ public class CharUtils {
 	
 	
 	/**
-	 * <p>Test weather the given char need escaping in the external representation</p>
+	 * <p>Test weather the given char needs escaping in the external representation</p>
 	 * @param symbol symbol to test
 	 * @param strongEscaping true means mandatory escaping for all chars greater than 0xFF. False requires more smart analysis. 
 	 * @return true if the char need escaping
@@ -411,6 +411,40 @@ public class CharUtils {
 		}
 		else {
 			return false;
+		}
+	}
+	
+	/**
+	 * <p>Test weather the given char definitely needs escaping in the external representation</p>
+	 * @param symbol symbol to test
+	 * @return true if the char need escaping
+	 * @since 0.0.4
+	 */
+	public static boolean isSymbolPrintable(final char symbol) {
+		if (symbol == 0xFFFF || Character.isISOControl(symbol)) {
+			return false;
+		}
+		else {
+		    final Character.UnicodeBlock 	block = Character.UnicodeBlock.of(symbol);
+			
+		    return block != null && block != Character.UnicodeBlock.SPECIALS;
+		}
+	}
+	
+	public static int howManyEscapedCharsOccupies(final char symbol) {
+		if (isSymbolPrintable(symbol)) {
+			return 1;
+		}
+		else if (symbol < ' ') {
+			switch (symbol) {
+				case '\b' : case '\f' : case '\n' : case '\r' : case '\t' : case '\'' : case '\"' : case '\\' :
+					return 2;
+				default : 
+					return 4;
+			}
+		}
+		else {
+			return 6;
 		}
 	}
 	
@@ -1502,6 +1536,140 @@ public class CharUtils {
 			}
 			content[content.length - 1].getChars(0,content[content.length - 1].length(),result,displ);
 			return new String(result);
+		}
+	}
+
+	/**
+	 * <p>Terminate string content with the givem terminal and convert result to char array</p>
+	 * @param content content to terminate and convert
+	 * @param terminal terminal to terminate content
+	 * @return content converted
+	 * @throws NullPointerException when content string is null
+	 * @since 0.0.4
+	 */
+	public static char[] terminateAndConvert(final String content, final char terminal) throws NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("COntent string can't be null");
+		}
+		else {
+			final char[]	result = new char[content.length()+1];
+			
+			content.getChars(0,result.length-1,result,0);
+			result[result.length-1] = terminal;
+			return result;
+		}
+	}
+
+	/**
+	 * <p>Prepare string with non-printable chars inside to escaped form (for example '\n'-&gt;'\\n')</p>
+	 * @param content content to prepare
+	 * @return prepared string. Can't be null
+	 * @throws NullPointerException string to prepare is null
+	 * @since 0.0.4
+	 */
+	public static String escapeStringContent(final String content) throws NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("Content to escape can't be null");
+		}
+		else {
+			int		length = content.length(), additionalLength = 0;
+			
+			for (int index = 0; index < length; index++) {
+				additionalLength += howManyEscapedCharsOccupies(content.charAt(index))-1;
+			}
+			if (additionalLength > 0) {
+				final char[]	temp = new char[length+additionalLength];
+				char			currentChar;
+				
+				for (int index = 0, where = 0; index < length; index++) {
+					currentChar = content.charAt(index);
+					
+					if (isSymbolPrintable(currentChar)) {
+						temp[where++] = currentChar;
+					}
+					else {
+						where = printEscapedChar(temp,where,currentChar,true,false);
+					}
+				}
+				return new String(temp);
+			}
+			else {
+				return content;
+			}
+		}
+	}
+
+	/**
+	 * <p>Prepare string with escape sequences inside to it's internal representation (for example '\\n'-&gt;'\n')</p> 
+	 * @param content content to prepare
+	 * @return prepared string. Can't be null
+	 * @throws NullPointerException string to prepare is null
+	 * @throws IllegalArgumentException wrong escape sequences inside
+	 * @since 0.0.4
+	 */
+	public static String unescapeStringContent(final String content) throws NullPointerException, IllegalArgumentException {
+		if (content == null) {
+			throw new NullPointerException("Content to escape can't be null");
+		}
+		else if (content.indexOf('\\') < 0) {
+			return content;
+		}
+		else {
+			final char[]	temp = new char[content.length()];
+			char			currentChar;
+			
+			for (int index = 0, start = 0, maxIndex = temp.length; index < maxIndex; index++) {
+				currentChar = content.charAt(index);
+				
+				if (currentChar != '\\') {
+					temp[start++] = currentChar;
+				}
+				else if (index < maxIndex - 1) {
+					switch (content.charAt(index+1)) {
+						case 'b' 	:
+							temp[start++] = '\b';
+							break;
+						case 'f' 	:
+							temp[start++] = '\f';
+							break;
+						case 'n' 	:
+							temp[start++] = '\n';
+							break;
+						case 'r' 	:
+							temp[start++] = '\r';
+							break;
+						case 't' 	:
+							temp[start++] = '\t';
+							break;
+						case '\'' 	:
+							temp[start++] = '\'';
+							break;
+						case '\"' 	:
+							temp[start++] = '\"';
+							break;
+						case '\\' 	:
+							temp[start++] = '\\';
+							break;
+						case '0' 	:
+							int	octal = 0;
+							
+							index++;
+							while (index < maxIndex && (currentChar = content.charAt(index)) >= '0' && currentChar <= '7') {
+								octal = 8 * octal + currentChar - '0';
+								index++;
+							}
+							temp[start++] = (char)octal;
+							break;
+						case 'u' 	:
+							break;
+						default :
+							throw new IllegalArgumentException("Wrong escape sequence at position ["+index+"]");
+ 					}
+				}
+				else {
+					throw new IllegalArgumentException("Wrong escape sequence at the end of sting");
+				}
+			}
 		}
 	}
 	

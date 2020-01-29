@@ -331,7 +331,10 @@ public class ContentModelFactory {
 				throw new IllegalArgumentException("Class and table has no any intersections by it's fields. At least one field name must be common for them");
 			}
 			else {
-				return new SimpleProvider<Record,Record>(table, clazz, (Class<Record>)clazz.getType(), classFields.toArray(new String[classFields.size()]), pkFields.toArray(new String[pkFields.size()]));
+				@SuppressWarnings("unchecked")
+				final Class<Record>	cl = (Class<Record>)clazz.getType();
+				
+				return new SimpleProvider<Record,Record>(table, clazz, cl, classFields.toArray(new String[classFields.size()]), pkFields.toArray(new String[pkFields.size()]));
 			}
 		}
 	}
