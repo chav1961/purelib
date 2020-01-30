@@ -8,15 +8,15 @@ public class Constants {
 	public static final int		ERR_INVALID_PARAMETERS = -32602;
 	public static final int		ERR_INTERNAL_ERROR = -32603;
 
-	public static final long	KW_JSONRPC = 1;
-	public static final long	KW_METHOD = 2;
-	public static final long	KW_PARAMS = 3;
-	public static final long	KW_ID = 4;
-	public static final long	KW_RESULT = 5;
-	public static final long	KW_ERROR = 6;
-	public static final long	KW_CODE = 7;
-	public static final long	KW_MESSAGE = 8;
-	public static final long	KW_DATA = 9;
+	public static final int		KW_JSONRPC = 1;
+	public static final int		KW_METHOD = 2;
+	public static final int		KW_PARAMS = 3;
+	public static final int		KW_ID = 4;
+	public static final int		KW_RESULT = 5;
+	public static final int		KW_ERROR = 6;
+	public static final int		KW_CODE = 7;
+	public static final int		KW_MESSAGE = 8;
+	public static final int		KW_DATA = 9;
 
 	public static final String	VERSION = "2.0"; 
 	

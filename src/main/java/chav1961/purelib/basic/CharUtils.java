@@ -768,6 +768,42 @@ public class CharUtils {
 		}
 	}	
 
+	public static final int skipNested(final char[] source, final int from, final char quotas, final char[][] pairs, final boolean stopOnEOL) {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null");
+		}
+		else if (from < 0 || from >= source.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(source.length-1));
+		}
+		else {
+			int index = from;
+			
+			for (int maxIndex = source.length, depth = 0; index < maxIndex && depth >= 0; index++) {
+				char	symbol = source[index];
+				
+				if (stopOnEOL && symbol == '\n') {
+					break;
+				}
+				else if (symbol == quotas) {
+					index = CharUtils.parseString(source,index+1,quotas,new StringBuilder());
+				}
+				else {
+					for (char[] pair : pairs) {
+						if (symbol == pair[0]) {
+							depth++;
+							break;
+						}
+						else if (symbol == pair[1]) {
+							depth--;
+							break;
+						}
+					}
+				}
+			}
+			return index;
+		}
+	}	
+	
 	
 	/**
 	 * <p>Compare char array slice with the given template</p>
