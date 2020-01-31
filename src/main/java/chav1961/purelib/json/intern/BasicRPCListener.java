@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.ArgumentType;
+import chav1961.purelib.basic.ReusableInstances;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -287,12 +288,14 @@ public class BasicRPCListener<T> implements Transport {
 		}
 	}
 
-	public static class MethodCallWrapper {
+	public static class MethodCallWrapper<T> {
+		private final ReusableInstances<MethodCaller<T>>	inst = new ReusableInstances<>(()->{return null;});
+		
 		public boolean hasParameters() {
 			return false;
 		}
 
-		public <T> MethodCaller<T> getMethodCaller() {
+		public MethodCaller<T> getMethodCaller() {
 			return null;
 		}
 	}

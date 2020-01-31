@@ -1,0 +1,223 @@
+// ----------------------------------------
+startClass	.macro	className:str=,interfaceName:str=
+	.if !defined(className)
+		.error "Mandatory class name is missing"
+	.else
+&className	.class	public implements &interfaceName		
+	endif
+	.mend
+
+// ----------------------------------------
+defineFieldBoolean	.macro fieldName:str=,serializerClass:str=
+	.if !defined(fieldName)
+		.error "Mandatory field name is missing"
+	.elseif !defined(serializerClass)
+		.error "Serializer class name is missing"
+	.else
+&fieldName._deserializer	.field	static private final
+&fieldName					.field	boolean private
+	endif
+	.mend
+	
+// ----------------------------------------
+defineFieldShort	.macro fieldName:str=,serializerClass:str=
+	.if !defined(fieldName)
+		.error "Mandatory field name is missing"
+	.elseif !defined(serializerClass)
+		.error "Serializer class name is missing"
+	.else
+&fieldName._deserializer	.field	&serializerClass static private final
+&fieldName					.field	short private
+	endif
+	.mend
+		
+// ----------------------------------------
+defineRetSerialzer	.macro methodName:str=,serializerClass:str=
+	.if !defined(fieldName)
+		.error "Mandatory field name is missing"
+	.elseif !defined(serializerClass)
+		.error "Serializer class name is missing"
+	.else
+&methodName._serializer	.field	&serializerClass static private final
+	endif
+	.mend
+		
+// ----------------------------------------
+defineCallInstance	.macro methodName:str=,methodOwnerClass:str=
+	.if !defined(fieldName)
+		.error "Mandatory field name is missing"
+	.elseif !defined(methodOwnerClass)
+		.error "Serializer class name is missing"
+	.else
+&methodName	.field	&methodOwnerClass private final
+	endif
+	.mend
+		
+// ----------------------------------------
+startClassConst	.macro	className:str=
+	.if !defined(className)
+		.error "Mandatory class name is missing"
+	.else
+&className	.method void static
+	endif
+	.mend
+		
+// ----------------------------------------
+prepareFieldDeserializer	.macro fieldName:str=,serializerClass:str=
+	.if !defined(fieldName)
+		.error "Mandatory field name is missing"
+	.elseif !defined(serializerClass)
+		.error "Serializer class name is missing"
+	.else
+		ldc	&serializerClass..class
+		invokestatic JsonSerializer.buildDeserializer(Ljava/lang/Class;)Ljava.lang.Object;
+		checkcast &serializerClass..class
+		putstatic &fieldName._deserializer
+	endif
+	.mend
+
+// ----------------------------------------
+prepareRetSerializer	.macro methodName:str=,serializerClass:str=
+	.if !defined(methodName)
+		.error "Mandatory field name is missing"
+	.elseif !defined(serializerClass)
+		.error "Serializer class name is missing"
+	.else
+		ldc	&serializerClass..class
+		invokestatic JsonSerializer.buildDeserializer(Ljava/lang/Class;)Ljava.lang.Object;
+		checkcast &serializerClass..class
+		putstatic &methodName._serializer
+	endif
+	.mend
+	
+// ----------------------------------------
+endClassConst	.macro	className:str=
+	.if !defined(className)
+		.error "Mandatory class name is missing"
+	.else
+&className	.end
+	endif
+	.mend
+		
+// ----------------------------------------
+startConst	.macro	className:str=,methodOwnerClass:str=
+	.if !defined(className)
+		.error "Mandatory class name is missing"
+	.elseif !defined(methodOwnerClass)
+		.error "Mandatory class name is missing"
+	.else
+&className		.method 	public void
+callInstance	.parameter	&methodOwnerClass final
+		.stack 	optimistic
+		aload	this
+		invokespecial	java.lang.Object()V
+	.endif
+	.mend
+
+// ----------------------------------------
+storeCallInstance	.macro methodName:str=
+	.if !defined(className)
+		.error "Mandatory class name is missing"
+	.else
+		aload		this
+		aload		callInstance
+		putfield	&methodName
+	.endif
+	.mend
+	
+// ----------------------------------------
+endConst	.macro	className:str=
+	.if !defined(className)
+		.error "Mandatory class name is missing"
+	.else
+		return
+&className	.end
+	.endif
+	.mend
+	
+	
+// ----------------------------------------
+startFillZero	.macro	className:str=
+fillFieldZero	.method void private
+				.stack optimistic
+	.mend
+	
+// ----------------------------------------
+fillFieldZero	.macro	fiedlName:str=,classType:str=
+	.if !defined(className)
+		.error "Mandatory class name is missing"
+	.else
+		aload	this
+		.choise classType
+			.of "boolean"
+				iconst_0
+			.otherwise
+				aconst_null
+		.endchoise
+		putfield	&fieldName
+	.endif
+	.end
+
+// ----------------------------------------
+endFillZero		.macro	className:str=
+				return
+fillFieldZero	.end
+	.mend
+	
+		
+// ----------------------------------------
+startParsePositional .macro
+parsePositional	.method	void public
+rdr				.parameters	JsonSerializer final
+				.stack optimistic
+				aload	this
+				invokespecial	fillFieldZero()V
+	.mend
+		
+		
+// ----------------------------------------
+endParsePositional .macro
+parsePositional	.end
+	.mend
+		
+		
+startClass(name,implementation)
+for (p : parameters) {
+	defineField(p.name,p.type);
+}
+defineRetSerializerField(ret.type);
+defineCallInstance(ret.type);
+startClassConst()
+	for (p : parameters) {
+		prepareFieldDeserializer(p.name,p.type);
+	}
+	prepareRetSerializer(ret.type);
+endClassConst()
+startConst()
+	storeCallInstance()
+endConst()
+startFillZero()
+	for (p : parameters) {
+		fillFieldZero(p.name,p.type);
+	}
+endFillZero()
+startParsePositional()
+	callFillZero()
+	testLex('[')
+	for (p : parameters) {
+		deserializeField(p.name,p.type);
+		if (notLast) {
+			lex = ','
+		}
+	}
+	testLex('[')
+endParsePositional()
+startCallMethod()
+	loadRetSerializer()
+	for (p : parameters) {
+		loadField(p.name,p.type);
+	}
+	callMethod()
+	callRetSerializer()
+endCallMethod()
+endClass(name)		
