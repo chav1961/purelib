@@ -27,14 +27,68 @@ import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
 
-
 /**
- * <p>This class contains implementation of the useful actions in the system</p> 
- * 
+ * <p>This class contains implementation of the useful actions in the system. All methods in the class are static and contain:</p>
+ * <ul>
+ * <li>group of <a href="#copyStream">copy stream</a> methods to move I/O content</li> 
+ * <li>group of <a href="#makeCollection">making collections</a> methods to simplify creation of some kinds of collections</li> 
+ * <li>group of <a href="#loadResource">resource loading</a> methods to simplify loading any resources into application</li> 
+ * <li>group of <a href="#wrapping">wrapping and unwrapping</a> arrays of primitive types</li> 
+ * <li>group of <a href="#walking">walking</a> methods to unify walking algorithms in applications</li> 
+ * <li>group of <a href="#files">file and directory manipulation</a> methods</li> 
+ * <li>group of <a href="#useful">useful</a> methods for checking purposes</li> 
+ * </ul> 
+ * <p>All the methods in the class are thread-safe</>
+ * <h2><a name="copyStream">Copying streams</a></h2>
+ * <p>Copying streams methods allow to automate popular process of moving content from input streams to output streams. This group of 
+ * methods consists of:</p>
+ * <ul>
+ * <li>{@linkplain #copyStream(InputStream, OutputStream)} and  {@linkplain #copyStream(InputStream, OutputStream, ProgressIndicator)} methods 
+ * to copy byte content</li>  
+ * <li>{@linkplain #copyStream(Reader, Writer)} and  {@linkplain #copyStream(Reader, Writer, ProgressIndicator)} methods 
+ * to copy character content</li>  
+ * <li>{@linkplain #copyStream(CharacterSource, CharacterTarget)} method to copy Pure Library specific character sources</li>  
+ * </ul> 
+ * <p>Methods to copy can contain a {@linkplain ProgressIndicator} for visualization purposes.</p>
+ * <h2><a name="makeCOllection">Making collection</a> methods</h2>
+ * <p>These methods are used to simplify making collections. These methods were appeared because of historical reasons. The latest JRE versions
+ * contains come intersected methods now, and we strongly recommend to use them instead of appropriative deprecated methods. This group of 
+ * methods contains:</p>
+ * <ul>
+ * <li>{@linkplain #mkSet(Class, Object...)} method to create set of content</li>
+ * <li>{@linkplain #mkMap(Object...)} method to create map of content</li>
+ * <li>{@linkplain #mkProps(String...)} method to create props of content</li>
+ * </ul>
+ * <h2><a name="loadResource">Loading resources</a> into application</h2>
+ * <p>Standard methods to load resources into application are {@linkplain Class#getResource(String)} and {@linkplain Class#getResourceAsStream(String)},
+ * but they load only byte-oriented content. To simplify loading for other resource types, group of loading resource methods can be used. This group contains
+ * {@linkplain #fromResource(Reader)}, {@linkplain #fromResource(URL)} and {@linkplain #fromResource(URL, String)} methods to load char-oriented content into
+ * application</p>
+ * <h2><a name="wrapping">Wrapping and unwrapping</a> primitive arrays</h2>
+ * <p>Sometimes you need to upload primitive arrays content to arrays of appropriative wrapped types (for example, byte-&gt;lava.lang.Byte}. Group of methods allow
+ * you to make both wrapping and unwrapping for there arrays. It contains:</p>
+ * <ul>
+ * <li>{@linkplain #wrapArray(boolean[])} methods to upload primitive arrays to appropriative wrapped arrays.</li> 
+ * <li>{@linkplain #unwrapArray(Boolean[])} methods to upload arrays of wrapped values to appropriative primitive arrays.</li> 
+ * </ul>
+ * <p>This group contains methods for all the primitive types</p>
+ * <h2><a name="walking">Walking</a> on linked structures</h2>
+ * <p>Walking on linked structures is a popular functionality. Group of the methods contains:</p>
+ * <ul>
+ * <li>{@linkplain #walkDownEverywhere(Object, EverywhereWalkerCollector, EverywhereWalkerCallback)} method to walk from node into depth</li>
+ * <li>{@linkplain #walkUpEverywhere(Object, EverywhereWalkerCollector, EverywhereWalkerCallback)} method to walk from node to root</li>
+ * </ul>
+ * <p>All the walking methods are controlled by {@linkplain EverywhereWalkerCallback} interface. Every node in the walking trace processed twice:</p>
+ * <ul>
+ * <li>when entered into given node ({@linkplain NodeEnterMode} value = {@value NodeEnterMode#ENTER}</li> 
+ * <li>when exited from given node ({@linkplain NodeEnterMode} value = {@value NodeEnterMode#EXIT}</li> 
+ * <ul> 
+ * <p>It's guaranteed, that <b>every</b> node entered will be called as node exited. Code returned (it's type is {@linkplain ContinueMode}) notifies walker for 
+ * controlling of walking process. Usual value is {@value ContinueMode#CONTINUE}, but you can truncate some walking subgraphs by it.</p>  
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public class Utils {
@@ -180,7 +234,7 @@ public class Utils {
 	 * <p>Build the Map&lt;String,Object&gt; map from the variable arguments list. Argument list need be a set of key/value pairs. Type of the 'key'
 	 * parameter is always {@link java.lang.String String}, type of the 'value' parameter can be any (including null as value)</p>
 	 * @param parameters key/value pairs to parse.
-	 * @return map built. Can be empty but not null. 
+	 * @return map built. Can be empty but not null.
 	 */
 	public static Map<String,Object> mkMap(final Object... parameters) {
 		if (parameters == null) {
@@ -205,13 +259,15 @@ public class Utils {
 	}
 	
 	/**
-	 * <p>Build a set of the given type from the parameter's list</p>
+	 * <p>Build a set of the given type from the parameter's list.</p>
 	 * @param <T> any class to make set instances from
 	 * @param content class of the set content
 	 * @param parameters parameters to add to set
 	 * @return set created with the given parameters
+	 * @deprecated It's strongly recommended to use {@linkplain Set#of()} method instead
 	 */
 	@SafeVarargs
+	@Deprecated(since="0.0.4")
 	public static <T> Set<T> mkSet(final Class<T> content, final T... parameters) {
 		if (content == null) {
 			throw new NullPointerException("Content class cant' be null");
@@ -272,7 +328,7 @@ public class Utils {
 			throw new NullPointerException("Reader can't be null");
 		}
 		else {
-			final GrowableCharArray	gca = new GrowableCharArray(false);
+			final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
 			
 			try{gca.append(reader);
 				return new String(gca.extract());
@@ -1067,5 +1123,15 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			}
 			return false;
 		}
+	}
+	
+	/**
+	 * <p>Throw exception (used in asm code to avoid stack manipulations for athrow)</p>
+	 * @param t throwable to throw
+	 * @throws Throwable throwable passed
+	 * @since 0.0.4
+	 */
+	public static void throwException(final Throwable t) throws Throwable {
+		throw t;
 	}
 }

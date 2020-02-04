@@ -220,6 +220,27 @@ public class AsmWriter extends Writer {
 			asm.importClass(clazz);
 		}
 	}
+
+	/**
+	 * <p>Add class to imported classes in the assembly compiler</p>
+	 * @param clazz class to add
+	 * @param refName reference name to use in '@<class>' clause 
+	 * @throws ContentException on duplicated class or reference name
+	 * @throws NullPointerException when class to add is null
+	 * @throws IllegalArgumentException when reference name is null or empty
+	 * @since 0.0.4
+	 */
+	public void importClass(final Class<?> clazz, final String refName) throws ContentException, NullPointerException, IllegalArgumentException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to import can't be null");
+		}
+		else if (refName == null || refName.isBlank()) {
+			throw new IllegalArgumentException("Reference name for class can't be null");
+		}
+		else {
+			asm.importClass(clazz,refName);
+		}
+	}
 	
 	private void process(final long displacement, final int lineNo, final char[] data, final int from, final int length) throws IOException {
 		try{asm.processLine(displacement, lineNo, data, from, length);

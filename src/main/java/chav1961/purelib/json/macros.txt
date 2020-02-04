@@ -4,33 +4,51 @@ startClass	.macro	className:str=,interfaceName:str=
 		.error "Mandatory class name is missing"
 	.else
 &className	.class	public implements &interfaceName		
+instance	.field	java.lang.Object private
 	endif
 	.mend
 
 // ----------------------------------------
-defineFieldBoolean	.macro fieldName:str=,serializerClass:str=
+defineField	.macro fieldName:str=,serializerClass:str=
 	.if !defined(fieldName)
 		.error "Mandatory field name is missing"
 	.elseif !defined(serializerClass)
 		.error "Serializer class name is missing"
 	.else
-&fieldName._deserializer	.field	static private final
+		.choise serializerClass
+			.of	"boolean"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
 &fieldName					.field	boolean private
-	endif
-	.mend
-	
-// ----------------------------------------
-defineFieldShort	.macro fieldName:str=,serializerClass:str=
-	.if !defined(fieldName)
-		.error "Mandatory field name is missing"
-	.elseif !defined(serializerClass)
-		.error "Serializer class name is missing"
-	.else
-&fieldName._deserializer	.field	&serializerClass static private final
+			.of	"byte"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
+&fieldName					.field	byte private
+			.of	"short"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
 &fieldName					.field	short private
+			.of	"int"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
+&fieldName					.field	int private
+			.of	"long"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
+&fieldName					.field	long private
+			.of	"float"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
+&fieldName					.field	float private
+			.of	"double"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
+&fieldName					.field	double private
+			.of	"char"
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
+&fieldName					.field	char private
+			.of	"void"
+				.error "Void field can't be declared!"
+			.otherwise
+&fieldName._deserializer	.field	chav1961.purelib.json.JsonSerializer static private final
+&fieldName					.field	&serializerClass private
+		.endchoise
 	endif
 	.mend
-		
+
 // ----------------------------------------
 defineRetSerialzer	.macro methodName:str=,serializerClass:str=
 	.if !defined(fieldName)
@@ -38,7 +56,27 @@ defineRetSerialzer	.macro methodName:str=,serializerClass:str=
 	.elseif !defined(serializerClass)
 		.error "Serializer class name is missing"
 	.else
-&methodName._serializer	.field	&serializerClass static private final
+		.choise serializerClass
+			.of	"boolean"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"byte"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"short"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"int"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"long"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"float"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"double"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"char"
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+			.of	"void"
+			.otherwise
+&methodName._serializer	.field	chav1961.purelib.json.JsonSerializer static private final
+		.endchoise
 	endif
 	.mend
 		
@@ -59,6 +97,7 @@ startClassConst	.macro	className:str=
 		.error "Mandatory class name is missing"
 	.else
 &className	.method void static
+			.stack optimistic
 	endif
 	.mend
 		
@@ -70,8 +109,7 @@ prepareFieldDeserializer	.macro fieldName:str=,serializerClass:str=
 		.error "Serializer class name is missing"
 	.else
 		ldc	&serializerClass..class
-		invokestatic JsonSerializer.buildDeserializer(Ljava/lang/Class;)Ljava.lang.Object;
-		checkcast &serializerClass..class
+		invokestatic JsonSerializer.buildDeserializer(Ljava/lang/Class;)Lchav1961/purelib/json/JsonSerializer;
 		putstatic &fieldName._deserializer
 	endif
 	.mend
@@ -84,8 +122,7 @@ prepareRetSerializer	.macro methodName:str=,serializerClass:str=
 		.error "Serializer class name is missing"
 	.else
 		ldc	&serializerClass..class
-		invokestatic JsonSerializer.buildDeserializer(Ljava/lang/Class;)Ljava.lang.Object;
-		checkcast &serializerClass..class
+		invokestatic JsonSerializer.buildDeserializer(Ljava/lang/Class;)Lchav1961/purelib/json/JsonSerializer;
 		putstatic &methodName._serializer
 	endif
 	.mend
@@ -95,6 +132,7 @@ endClassConst	.macro	className:str=
 	.if !defined(className)
 		.error "Mandatory class name is missing"
 	.else
+		return
 &className	.end
 	endif
 	.mend
@@ -121,7 +159,7 @@ storeCallInstance	.macro methodName:str=
 	.else
 		aload		this
 		aload		callInstance
-		putfield	&methodName
+		putfield	instance
 	.endif
 	.mend
 	
@@ -151,6 +189,22 @@ fillFieldZero	.macro	fiedlName:str=,classType:str=
 		.choise classType
 			.of "boolean"
 				iconst_0
+			.of "byte"
+				iconst_0
+			.of "short"
+				iconst_0
+			.of "int"
+				iconst_0
+			.of "long"
+				lconst_0
+			.of "float"
+				fconst_0
+			.of "double"
+				dconst_0
+			.of "char"
+				iconst_0
+			.of "void"
+				.error "void field can't be filled"
 			.otherwise
 				aconst_null
 		.endchoise
@@ -164,7 +218,6 @@ endFillZero		.macro	className:str=
 fillFieldZero	.end
 	.mend
 	
-		
 // ----------------------------------------
 startParsePositional .macro
 parsePositional	.method	void public
@@ -174,12 +227,153 @@ rdr				.parameters	JsonSerializer final
 				invokespecial	fillFieldZero()V
 	.mend
 		
-		
+
+// ----------------------------------------
+testLex		.macro lexType:str=,lexValue:str=
+ref			.var	int=ul()
+	.if !defined(lexType)
+		.error "Mandatory lex type is missing"
+	.else
+		aload	rdr
+		invokevirtual	JsonStaxParser.hasNext()Z
+		if_ne	skip&var
+		new				java.lang.Throwable
+		dup
+		ldc				"EOF before data"
+		invokespecial	java.lang.Throwable(Ljava/lang/String;)V
+		invokestatic	chav1961.purelib.basic.Utils.throwException(Ljava/lang/Throwable;)V
+skip&var: 
+		aload			rdr
+		invokevirtual	JsonStaxParser.next()L&lexType;
+		getfield		&lextype..&lexValue
+		acmpeq			next&var
+		ldc				"EOF before data"
+		invokespecial	java.lang.Throwable(Ljava/lang/String;)V
+		invokestatic	chav1961.purelib.basic.Utils.throwException(Ljava/lang/Throwable;)V
+next&var:		
+	.endif
+	.mend
+
+// ----------------------------------------
+deserializeField .macro fieldName:str=,fieldClass:str=
+	.if !defined(fieldName)
+		.error "Mandatory field name is missing"
+	.elseif !defined(fieldClass)
+		.error "Mandatory field class is missing"
+	.else
+		aload			this
+		getstatic		&fieldName._deserializer		
+		aload			rdr
+		.choise fieldClass
+			.of "boolean"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Boolean
+				invokevirtual	java.lang.Boolean.booleanValue()Z
+			.of "byte"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Byte
+				invokevirtual	java.lang.Byte.byteValue()B
+			.of "short"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Short
+				invokevirtual	java.lang.Short.shortValue()S
+			.of "int"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Integer
+				invokevirtual	java.lang.Integer.intValue()I
+			.of "long"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Long
+				invokevirtual	java.lang.Long.longValue()J
+			.of "float"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Float
+				invokevirtual	java.lang.Float.floatValue()F
+			.of "double"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Double
+				invokevirtual	java.lang.Double.doubleValue()D
+			.of "char"
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		java.lang.Character
+				invokevirtual	java.lang.Character.charValue()C
+			.of "void"
+				.error "Void field can't be processed"
+			.otherwise
+				invokevirtual	chav1961.purelib.json.JsonSerializer.deserialize(Lchav1961/purelib/streams/JsonStaxReader;)Ljava/lang/Object;
+				checkcast		&fieldClass
+		.endchoise
+		putfield		&fieldName
+	.endif
+	.mend
+	
 // ----------------------------------------
 endParsePositional .macro
 parsePositional	.end
 	.mend
-		
+
+// ----------------------------------------
+callMethod 	.macro	fields:str=,methodSignature:str=,returnedClass:str=,returned:bool=true
+f			.var	str
+	.if !defined(className)
+		.error "Mandatory field is missing"
+	.elseif !defined(className)
+		.error "Mandatory method signature is missing"
+	.else
+callMethod	.method void public
+wr		.parameter	JsonStaxPrinter final
+		.stack optimistic
+		.if returned
+			aload		this
+			aload		&methodName._serializer
+		.endif
+		aload		this
+		getfield	instance
+		.for f in fields
+			aload		this
+			getfield	&f
+		.endfor
+		invokevirtual	&methodSignature
+		.if returned
+			.choise returnedClass
+				.of "boolean"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "byte"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "short"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "int"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "long"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "float"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "double"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "char"
+					aload		wr
+					invokevirtual	BooleanSe()
+				.of "void"
+					.error "void ret doesn't need serialization"
+				.otherwise
+					checkcast	&returnedClass
+					aload		wr
+					invokevirtual	BooleanSe()
+			.endchoise
+		.endif
+			return
+callMethod	.end		
+	.endif
+	.mend
+
+	
 		
 startClass(name,implementation)
 for (p : parameters) {

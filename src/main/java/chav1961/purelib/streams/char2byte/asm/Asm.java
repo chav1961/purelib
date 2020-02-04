@@ -111,8 +111,14 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	public void importClass(final Class<?> clazz) throws ContentException {
 		cdr.addDescription(clazz,false);
 	}
+
+	public void importClass(final Class<?> clazz, final String refName) throws ContentException {
+		importClass(clazz);
+		cdr.addClassReference(refName,clazz.getCanonicalName());
+	}
 	
 	private static MacroClassLoader createLoader() {
 		return new MacroClassLoader(Thread.currentThread().getContextClassLoader()); 
 	}
+
 }
