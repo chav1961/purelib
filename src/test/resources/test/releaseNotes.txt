@@ -12,6 +12,8 @@ I. New features
 	- .version - support versions of the Java class file format (1.7 and 1.8 are available now)
 	- .varTable - insert LocalVarTable attribute into generating Java class
 	- .source - insert source attribute into generating Java class
+	
+2. Byte code assembler supports generation of <clinit> method and ConstValue attributes for static final fields now.	
 
 II. Refactoring
 
