@@ -99,7 +99,7 @@ public class ContentModelFactoryTest {
 	}
 
 	@Test
-	public void anootatedClassDescriptionTest() throws IOException,PreparationException, SyntaxException, LocalizationException, ContentException {
+	public void annotatedClassDescriptionTest() throws IOException,PreparationException, SyntaxException, LocalizationException, ContentException {
 		final ContentMetadataInterface 	cmi = ContentModelFactory.forAnnotatedClass(AnnotatedForTest.class);
 
 		Assert.assertEquals(AnnotatedForTest.class.getSimpleName(),cmi.getRoot().getName());

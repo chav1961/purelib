@@ -4,10 +4,12 @@ package chav1961.purelib.basic.exceptions;
  * <p>This exception describes any problems on syntax during parsing any kind of data. It's a special form of exception, that
  * contains explicit row and column numbers for better problem localization. It always uses in the case, when we need localize 
  * syntax problems in some entity</p>
+ * <p>To support some specific behavior on syntax error firing, this class contains a set of static methods to simplify creation of
+ * {@linkplain SyntaxException} instances. You can use it to build error message description for you instance</p>  
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 public class SyntaxException extends ContentException {
 	private static final long serialVersionUID = 8141880743233589596L;
@@ -84,7 +86,7 @@ public class SyntaxException extends ContentException {
 			else {
 				final int	from = Math.max(location-fragmentSize,0), to = Math.min(location+fragmentSize,source.length());
 				
-				return source.substring(from,to-from);
+				return source.substring(from,to);
 			}
 		}
 	}
@@ -137,6 +139,124 @@ public class SyntaxException extends ContentException {
 				
 				return new String(source,from,to-from);
 			}
+		}
+	}
+
+	/**
+	 * <p>Decode relative position inside string to row number of line where this position located</p>
+	 * @param source source string to decode location for
+	 * @param pos location inside source string
+	 * @return zero-based row number detected
+	 * @throws NullPointerException when string to detect is null
+	 * @throws IllegalArgumentException when position is outside the string bounds
+	 * @since 0.0.4
+	 */
+	public static int toRow(final String source, final int pos) throws IllegalArgumentException, NullPointerException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (pos < 0 || pos >= source.length()) {
+			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length()-1)); 
+		}
+		else {
+			int	rowCount = 0;
+			
+			for (int index = 0; index < pos; index++) {
+				if (source.charAt(index) == '\n') {
+					rowCount++;
+				}
+			}
+			return rowCount;
+		}
+	}
+
+	/**
+	 * <p>Decode relative position inside string to row number of line where this position located</p>
+	 * @param source source string to decode location for
+	 * @param pos location inside source string
+	 * @return zero-based row number detected
+	 * @throws NullPointerException when string to detect is null
+	 * @throws IllegalArgumentException when position is outside the string bounds
+	 * @since 0.0.4
+	 */
+	public static int toRow(final char[] source, final int pos) throws IllegalArgumentException, NullPointerException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (pos < 0 || pos >= source.length) {
+			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length-1)); 
+		}
+		else {
+			int	rowCount = 0;
+			
+			for (int index = 0; index < pos; index++) {
+				if (source[index] == '\n') {
+					rowCount++;
+				}
+			}
+			return rowCount;
+		}
+	}
+
+	/**
+	 * <p>Decode relative position inside string to column number of line where this position located</p>
+	 * @param source source string to decode location for
+	 * @param pos location inside source string
+	 * @return zero-based column number detected
+	 * @throws NullPointerException when string to detect is null
+	 * @throws IllegalArgumentException when position is outside the string bounds
+	 * @since 0.0.4
+	 */
+	public static int toCol(final String source, final int pos) throws IllegalArgumentException, NullPointerException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (pos < 0 || pos >= source.length()) {
+			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length()-1)); 
+		}
+		else {
+			int	colCount = 0;
+			
+			for (int index = 0; index < pos; index++) {
+				if (source.charAt(index) == '\n') {
+					colCount = 0;
+				}
+				else {
+					colCount++;
+				}
+			}
+			return colCount;
+		}
+	}
+
+	/**
+	 * <p>Decode relative position inside string to column number of line where this position located</p>
+	 * @param source source string to decode location for
+	 * @param pos location inside source string
+	 * @return zero-based column number detected
+	 * @throws NullPointerException when string to detect is null
+	 * @throws IllegalArgumentException when position is outside the string bounds
+	 * @since 0.0.4
+	 */
+	public static int toCol(final char[] source, final int pos) throws IllegalArgumentException, NullPointerException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (pos < 0 || pos >= source.length) {
+			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length-1)); 
+		}
+		else {
+			int	colCount = 0;
+			
+			for (int index = 0; index < pos; index++) {
+				if (source[index] == '\n') {
+					colCount = 0;
+				}
+				else {
+					colCount++;
+				}
+			}
+			return colCount;
 		}
 	}
 }

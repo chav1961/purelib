@@ -340,6 +340,50 @@ public class URIUtils {
 	}
 
 	/**
+	 * <p>Extract sub-scheme content from URI. For example:</p>
+	 * <code>
+	 * URI uri = URI.create("scheme1:scheme2:scheme3://path");</br>
+	 * extractSubURI(uri,"scheme1","scheme2") returns URI.create("scheme3://path")</br> 
+	 * </code> 
+	 * @param uri uri to extract sub-scheme from
+	 * @param schemas sequence of schemas to extract content from
+	 * @return URI extracted
+	 * @throws NullPointerException if any parameters are null
+	 * @throws IllegalArgumentException if schemas list is empty or contains nulls, or sequence of sub-schemas is missing in the uri
+	 * @since 0.0.4
+	 */
+	public static URI extractSubURI(final URI uri, final String... schemas) throws IllegalArgumentException, NullPointerException {
+		int		nullPos;
+		
+		if (uri == null) {
+			throw new NullPointerException("URI to extract from can't be null");
+		}
+		else if (!uri.isAbsolute()) {
+			throw new IllegalArgumentException("URI is not absolute to extract sub URI from");
+		}
+		else if (schemas == null || schemas.length == 0) {
+			throw new IllegalArgumentException("Schemas sequence can't be null or empty");
+		}
+		else if ((nullPos = Utils.checkArrayContent4Nulls(schemas)) != -1) {
+			throw new IllegalArgumentException("NUll agrument inside schemas sequence at index ["+nullPos+"]");
+		}
+		else {
+			URI	current = uri;
+			
+			for (String scheme : schemas) {
+				if (scheme.equals(current.getScheme())) {
+					current = URI.create(current.getSchemeSpecificPart());
+				}
+				else {
+					throw new IllegalArgumentException("Error extracting subScheme ["+scheme+"] from URI : URI ["+uri+"] doesn't contain it at requested position ("+Arrays.toString(schemas)+" awaited)");
+				}
+			}
+			return current;
+		}
+	}
+	
+	
+	/**
 	 * <p>Parse query string from uri</p>
 	 * @param uri uri to parse query string
 	 * @return key/value pair from parsed query. Can be empty but not null

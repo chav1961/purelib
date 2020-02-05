@@ -30,3 +30,4 @@ III. Incompatibilities
 IV. Bug fix
 
 1. Macro assembler .choise with booleans fixed
+2. AndOrTree last character in node name had been lost on walking fixed. 

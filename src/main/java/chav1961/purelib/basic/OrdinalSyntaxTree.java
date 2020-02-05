@@ -312,7 +312,7 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 			for (Entry<String, Node<Cargo>> item : map.entrySet()) {
 				final int	nameLen = item.getKey().length();
 				
-				item.getKey().getChars(0,nameLen-1,buffer,0);
+				item.getKey().getChars(0,nameLen,buffer,0);
 				if (!walker.process(buffer,nameLen,item.getValue().id,item.getValue().cargo)) {
 					break;
 				}
