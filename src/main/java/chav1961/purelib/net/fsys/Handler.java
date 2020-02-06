@@ -10,8 +10,9 @@ import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
- * <p>This class is handler to support "fsys" protocol URL. Format of URL see {@linkplain FileSystemFactory} class description</p>
+ * <p>This class is handler to support "fsys" schema URL. Format of URL see {@linkplain FileSystemFactory} class description</p>
  * @see URLStreamHandler   
+ * @see FSysHandlerProvider   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  * @lastUpdate 0.0.4

@@ -1,7 +1,7 @@
 package chav1961.purelib.basic.exceptions;
 
 /**
- * <p>This exception describes any problems on flow processing. Don't use this exception by another way</p>
+ * <p>This exception describes any problems on any flow processing. Don't use this exception by another way</p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2

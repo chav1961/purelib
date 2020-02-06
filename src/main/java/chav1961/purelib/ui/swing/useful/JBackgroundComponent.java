@@ -35,7 +35,7 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 	}
 
 	@Override
-	public void localeChanged(Locale oldLocale, Locale newLocale) throws LocalizationException {
+	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		// TODO Auto-generated method stub
 	}
 

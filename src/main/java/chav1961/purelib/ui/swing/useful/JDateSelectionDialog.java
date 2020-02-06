@@ -5,7 +5,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
@@ -14,12 +13,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -34,6 +31,12 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.swing.SwingUtils;
 
+/**
+ * <p>This class is a simple Date selection dialog. It supports localization for all inner controls</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ */
+
 public class JDateSelectionDialog extends JPanel implements LocaleChangeListener {
 	private static final long 			serialVersionUID = -7942828154790537910L;
     private static final int 			DIALOG_WIDTH = 220;
@@ -45,12 +48,10 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 	private static final String			MONTH_TOOLTIP = "JDateSelectionDialog.month.tooltip";
 	private static final String			DAY_NAMES = "JDateSelectionDialog.day.names";
 
-//	private static final String			ESCAPE_ACTION = "commitAndEscape";
-	
 	private static final DateRefresher	NULL_REFRESHER = new DateRefresher() {
 											@Override
 											public void refresh(Date newDate, boolean exitNow) {
-												System.err.println("Date="+newDate+", exit="+exitNow);
+//												System.err.println("Date="+newDate+", exit="+exitNow);
 											}
 										};	
     

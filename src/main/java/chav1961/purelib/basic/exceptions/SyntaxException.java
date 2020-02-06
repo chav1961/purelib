@@ -4,7 +4,7 @@ package chav1961.purelib.basic.exceptions;
  * <p>This exception describes any problems on syntax during parsing any kind of data. It's a special form of exception, that
  * contains explicit row and column numbers for better problem localization. It always uses in the case, when we need localize 
  * syntax problems in some entity</p>
- * <p>To support some specific behavior on syntax error firing, this class contains a set of static methods to simplify creation of
+ * <p>To support some specific behavior on syntax error throwing, this class contains a set of static methods to simplify creation of
  * {@linkplain SyntaxException} instances. You can use it to build error message description for you instance</p>  
  *  
  * @author Alexander Chernomyrdin aka chav1961
@@ -37,7 +37,7 @@ public class SyntaxException extends ContentException {
 	}
 	
 	/**
-	 * <p>Extract string fragment to show in error description (location-fragmentSize..location+fragmentSize will be extracted).</p>
+	 * <p>Extract string fragment to show in error description as tooltip (location-fragmentSize..location+fragmentSize will be extracted).</p>
 	 * @param source string to extract fragment from
 	 * @param row row of the fragment
 	 * @param col column of the fragment
@@ -92,7 +92,7 @@ public class SyntaxException extends ContentException {
 	}
 
 	/**
-	 * <p>Extract char array fragment to show in error description (location-fragmentSize..location+fragmentSize will be extracted).</p>
+	 * <p>Extract char array fragment to show in error description as tooltip (location-fragmentSize..location+fragmentSize will be extracted).</p>
 	 * @param source char array to extract fragment from
 	 * @param row row of the fragment
 	 * @param col column of the fragment
@@ -143,7 +143,7 @@ public class SyntaxException extends ContentException {
 	}
 
 	/**
-	 * <p>Decode relative position inside string to row number of line where this position located</p>
+	 * <p>Decode relative position inside string to row number of line where this position is located</p>
 	 * @param source source string to decode location for
 	 * @param pos location inside source string
 	 * @return zero-based row number detected
@@ -171,7 +171,7 @@ public class SyntaxException extends ContentException {
 	}
 
 	/**
-	 * <p>Decode relative position inside string to row number of line where this position located</p>
+	 * <p>Decode relative position inside string to row number of line where this position is located</p>
 	 * @param source source string to decode location for
 	 * @param pos location inside source string
 	 * @return zero-based row number detected
@@ -199,7 +199,7 @@ public class SyntaxException extends ContentException {
 	}
 
 	/**
-	 * <p>Decode relative position inside string to column number of line where this position located</p>
+	 * <p>Decode relative position inside string to column number of line where this position is located</p>
 	 * @param source source string to decode location for
 	 * @param pos location inside source string
 	 * @return zero-based column number detected
@@ -230,7 +230,7 @@ public class SyntaxException extends ContentException {
 	}
 
 	/**
-	 * <p>Decode relative position inside string to column number of line where this position located</p>
+	 * <p>Decode relative position inside string to column number of line where this position is located</p>
 	 * @param source source string to decode location for
 	 * @param pos location inside source string
 	 * @return zero-based column number detected

@@ -11,16 +11,20 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.util.Base64;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
- * <p>This class is  handler to support "self" protocol URL. Format of self URL is:</p>
+ * <p>This class is  handler to support "self" schema URL. Format of self URL is:</p>
  * <code><b>self:/#</b>&lt;base64Content&gt;</code>
  * <ul>
  * <li>base64Content - content that will be returned as byte stream on {@linkplain URL#openStream()} operation</li>
  * </ul>
  * @see URLStreamHandler   
+ * @see SelfHandlerProvider   
+ * @see URIUtils#convert2selfURI(byte[])
+ * @see URIUtils#convert2selfURI(char[], String)
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  * @lastUpdate 0.0.4

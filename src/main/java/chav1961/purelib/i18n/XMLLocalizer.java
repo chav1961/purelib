@@ -107,7 +107,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 
 	@Override
 	public Localizer newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
-		return new XMLLocalizer(URI.create(URI.create(resource.getRawSchemeSpecificPart()).getRawSchemeSpecificPart()));
+		return new XMLLocalizer(URIUtils.extractSubURI(resource,Localizer.LOCALIZER_SCHEME,SUBSCHEME));
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}
 		else {
-			try{return new String(URIUtils.loadCharsFromURI(URI.create("file:"+helpId),encoding));
+			try{return new String(URIUtils.loadCharsFromURI(URIUtils.appendRelativePath2URI(resourceAddress,"../help/"+currentLocale().getLanguage()+"/"+helpId),encoding));
 			} catch (IOException e) {
 				throw new LocalizationException(e.getLocalizedMessage(),e);
 			}

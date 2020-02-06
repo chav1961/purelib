@@ -1,7 +1,7 @@
 package chav1961.purelib.basic.interfaces;
 
 /**
- * <p>This interface contains a set of keys used for color schemas in the pure library.</p>
+ * <p>This interface contains a set of keys used for color schemas in the Pure Library.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
