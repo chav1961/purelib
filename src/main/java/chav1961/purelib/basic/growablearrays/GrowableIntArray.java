@@ -11,7 +11,7 @@ import java.util.Arrays;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate at 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public class GrowableIntArray {
@@ -343,10 +343,10 @@ public class GrowableIntArray {
 			return newSize;
 		}
 
-		@Override
-		void walk(Walker<int[]> walker) {
-			walker.process(plain,0,currentSize);
-		}
+//		@Override
+//		void walk(Walker<int[]> walker) {
+//			walker.process(plain,0,currentSize);
+//		}
 	}
 
 	private class SlicedManager extends AbstractSlicedContentManager<int[]> {
@@ -373,20 +373,20 @@ public class GrowableIntArray {
 			return newSize;
 		}
 
-		@Override
-		void walk(chav1961.purelib.basic.growablearrays.AbstractArrayContentManager.Walker<int[]> walker) {
-			int	size = currentSize;
-			
-			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
-				if (sliced[index] != null) {
-					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
-						return;
-					}
-					else {
-						size -= sliced[index].length; 
-					}
-				}
-			}
-		}
+//		@Override
+//		void walk(chav1961.purelib.basic.growablearrays.AbstractArrayContentManager.Walker<int[]> walker) {
+//			int	size = currentSize;
+//			
+//			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
+//				if (sliced[index] != null) {
+//					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
+//						return;
+//					}
+//					else {
+//						size -= sliced[index].length; 
+//					}
+//				}
+//			}
+//		}
 	}
 }

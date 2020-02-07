@@ -14,7 +14,9 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 public class GrowableArraysTest {
 	private static final byte[]		BYTE_31 = new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
@@ -36,8 +38,8 @@ public class GrowableArraysTest {
 	
 	private static final int[]		LENGTHS = {66, 100, 200, 400, 800, 1600, 3200, 6400, 12800};
 
-	@Test
-	public void byteArrayTest() {
+	@Test 
+	public void byteArrayTest() throws IOException {
 		GrowableByteArray	array;
 		
 		byteArrayTest(array = new GrowableByteArray(true,5)); 		
@@ -48,6 +50,29 @@ public class GrowableArraysTest {
 		Assert.assertFalse(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 
+		array = new GrowableByteArray(false,4);
+		
+		byte[]	content = new byte[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract());
+		Assert.assertArrayEquals(content,array.toPlain().extract());
+		
+		try(final InputStream	is = array.getInputStream()) {
+			for (int index = 0; index < array.length(); index++) {
+				Assert.assertEquals(index,is.read());
+			}
+			Assert.assertEquals(-1,is.read());
+		}
+
+		try(final InputStream	is = array.getInputStream()) {
+			byte[]	readed = new byte[content.length]; 
+
+			Assert.assertEquals(readed.length,is.read(readed));
+			Assert.assertArrayEquals(content,readed);
+			Assert.assertEquals(-1,is.read(readed));
+		}
+		
 		try{new GrowableByteArray(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
@@ -70,6 +95,14 @@ public class GrowableArraysTest {
 		Assert.assertFalse(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 
+		array = new GrowableShortArray(false,4);
+		
+		short[]	content = new short[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract());
+		Assert.assertArrayEquals(content,array.toPlain().extract());
+		
 		try{new GrowableShortArray(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
@@ -92,6 +125,14 @@ public class GrowableArraysTest {
 		Assert.assertFalse(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 
+		array = new GrowableIntArray(false,4);
+		
+		int[]	content = new int[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract());
+		Assert.assertArrayEquals(content,array.toPlain().extract());
+		
 		try{new GrowableIntArray(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
@@ -114,6 +155,14 @@ public class GrowableArraysTest {
 		Assert.assertFalse(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 
+		array = new GrowableLongArray(false,4);
+		
+		long[]	content = new long[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract());
+		Assert.assertArrayEquals(content,array.toPlain().extract());
+		
 		try{new GrowableLongArray(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
@@ -136,6 +185,14 @@ public class GrowableArraysTest {
 		Assert.assertFalse(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray(),0.0001f);
 
+		array = new GrowableFloatArray(false,4);
+		
+		float[]	content = new float[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract(),0.001f);
+		Assert.assertArrayEquals(content,array.toPlain().extract(),0.001f);
+		
 		try{new GrowableFloatArray(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
@@ -158,6 +215,14 @@ public class GrowableArraysTest {
 		Assert.assertFalse(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray(),0.0001);
 
+		array = new GrowableDoubleArray(false,4);
+		
+		double[]	content = new double[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract(),0.001f);
+		Assert.assertArrayEquals(content,array.toPlain().extract(),0.001f);
+		
 		try{new GrowableDoubleArray(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
@@ -169,22 +234,45 @@ public class GrowableArraysTest {
 	}
 	
 	@Test
-	public void charArrayTest() {
-		GrowableCharArray	array;
+	public void charArrayTest() throws IOException {
+		GrowableCharArray<?>	array;
 		
-		charArrayTest(array = new GrowableCharArray(true,5)); 		
+		charArrayTest(array = new GrowableCharArray<>(true,5)); 		
 		Assert.assertTrue(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 		
-		charArrayTest(array = new GrowableCharArray(false,5));
+		charArrayTest(array = new GrowableCharArray<>(false,5));
 		Assert.assertFalse(array.toPlain() == array);
 		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 
-		try{new GrowableCharArray(false,0);
+		array = new GrowableCharArray<>(false,4);
+		
+		char[]	content = new char[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract());
+		Assert.assertArrayEquals(content,array.toPlain().extract());
+		
+		try(final Reader	rdr = array.getReader()) {
+			for (int index = 0; index < array.length(); index++) {
+				Assert.assertEquals(index,rdr.read());
+			}
+			Assert.assertEquals(-1,rdr.read());
+		}
+
+		try(final Reader	rdr = array.getReader()) {
+			char[]	readed = new char[content.length]; 
+
+			Assert.assertEquals(readed.length,rdr.read(readed));
+			Assert.assertArrayEquals(content,readed);
+			Assert.assertEquals(-1,rdr.read(readed));
+		}
+		
+		try{new GrowableCharArray<>(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new GrowableCharArray(false,100);
+		try{new GrowableCharArray<>(false,100);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -196,12 +284,20 @@ public class GrowableArraysTest {
 		
 		booleanArrayTest(array = new GrowableBooleanArray(true,5)); 		
 		Assert.assertTrue(array.toPlain() == array);
-//		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
+		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 		
 		booleanArrayTest(array = new GrowableBooleanArray(false,5));
 		Assert.assertFalse(array.toPlain() == array);
-//		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
+		Assert.assertArrayEquals(array.toArray(),array.toPlain().toArray());
 
+		array = new GrowableBooleanArray(false,4);
+		
+		boolean[]	content = new boolean[] {true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false}; 
+		array.append(content);
+		Assert.assertEquals(content.length,array.length());
+		Assert.assertArrayEquals(content,array.extract());
+		Assert.assertArrayEquals(content,array.toPlain().extract());
+				
 		try{new GrowableBooleanArray(false,0);
 			Assert.fail("Mandatory exception was not detected (array size out of bounds)");
 		} catch (IllegalArgumentException exc) {
@@ -246,7 +342,7 @@ public class GrowableArraysTest {
 
 	@Test
 	public void charIOTest() throws IOException {
-		final GrowableCharArray	gca1 = new GrowableCharArray(true);
+		final GrowableCharArray<?>	gca1 = new GrowableCharArray<>(true);
 		
 		gca1.append(new StringReader("test string"));
 		
@@ -263,36 +359,93 @@ public class GrowableArraysTest {
 		} catch (NullPointerException exc) {
 		}
 		
-		final GrowableCharArray	gca2 = new GrowableCharArray(true);
+		final GrowableCharArray<?>	gca2 = new GrowableCharArray<>(true);
 		
 		gca2.append(new StringReader("test string"));
 		
 		try(final Reader	is = gca2.getReader();
-			final Writer	os = new StringWriter()) {
+			final Writer	os = new StringWriter()) { 
 			
 			Utils.copyStream(is,os);
 			os.flush();
 			Assert.assertEquals(os.toString(),"test string");
 		}
 	}
+
+	@Test
+	public void charSequenceTest() { 
+		final GrowableCharArray<?>	seq = new GrowableCharArray<>(false);
+		
+		Assert.assertEquals(0,seq.length());
+		try{seq.charAt(1);
+			Assert.fail("Mandatory exception was not detected (index outside the range)");
+		} catch (IndexOutOfBoundsException exc) {
+		}
+		try{seq.subSequence(0,0);
+			Assert.fail("Mandatory exception was not detected (start index outside the range)");
+		} catch (IndexOutOfBoundsException exc) {
+		}
+		try{seq.subSequence(-1,0);
+			Assert.fail("Mandatory exception was not detected (start index outside the range)");
+		} catch (IndexOutOfBoundsException exc) {
+		}
+		try{seq.subSequence(100,0);
+			Assert.fail("Mandatory exception was not detected (start index outside the range)");
+		} catch (IndexOutOfBoundsException exc) {
+		}
+		
+		seq.append("test string".toCharArray());
+		Assert.assertEquals(seq.length(),11);
+		Assert.assertEquals(seq.charAt(0),'t'); 
+		Assert.assertEquals(seq.charAt(10),'g');
+
+		try{seq.subSequence(0,-1);
+			Assert.fail("Mandatory exception was not detected (end index outside the range)");
+		} catch (IndexOutOfBoundsException exc) {
+		}
+		try{seq.subSequence(0,100);
+			Assert.fail("Mandatory exception was not detected (end index outside the range)");
+		} catch (IndexOutOfBoundsException exc) {
+		}		
+		try{seq.subSequence(10,5);
+			Assert.fail("Mandatory exception was not detected (end index outside the range)");
+		} catch (IllegalArgumentException exc) {
+		}		
+		
+		
+		final CharSequence		newSeq = seq.subSequence(3,6);
+		
+		Assert.assertEquals(newSeq.length(),3);
+		Assert.assertEquals(newSeq.charAt(0),'t');
+		Assert.assertEquals(newSeq.charAt(2),'s');
+
+		final CharSequence		newSeq2 = newSeq.subSequence(1,2);
+
+		Assert.assertEquals(newSeq2.length(),1);
+		Assert.assertEquals(newSeq2.charAt(0),' ');
+
+		final CharSequence		newSeq3 = newSeq.subSequence(1,1);
+
+		Assert.assertEquals(newSeq3.length(),0);
+	}
 	
-	private void byteArrayTest(final GrowableByteArray	gba) {
-		Assert.assertEquals(gba.length(),0);
+	private void byteArrayTest(final GrowableByteArray	gba) throws IOException {
+		Assert.assertEquals(0,gba.length());
 		gba.append((byte)1);
 		gba.append(BYTE_31);
 		gba.append(BYTE_33);
-		Assert.assertEquals(gba.length(),65);
+		Assert.assertEquals(65,gba.length());
 
 		for (int size : LENGTHS) {
-			Assert.assertEquals(gba.length(size).length(),size);
-			Assert.assertEquals(gba.length(65).length(),65);
+			Assert.assertEquals(size,gba.length(size).length());
+			Assert.assertEquals(65,gba.length(65).length());
 		}
 		
-		Assert.assertEquals(gba.read(0),(byte)1);
-		Assert.assertEquals(gba.read(1),(byte)1);
-		Assert.assertEquals(gba.read(31),(byte)31);
-		Assert.assertEquals(gba.read(32),(byte)1);
-		Assert.assertEquals(gba.read(64),(byte)33);
+		Assert.assertEquals(1,gba.read(0));
+		Assert.assertEquals(1,gba.read(1));
+		Assert.assertEquals(31,gba.read(31));
+		Assert.assertEquals(1,gba.read(32));
+		Assert.assertEquals(33,gba.read(64));
 		try{gba.read(-1);
 			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
@@ -304,13 +457,13 @@ public class GrowableArraysTest {
 		
 		final byte[]	result10 = new byte[10], etalon10_1 = new byte[]{1,1,2,3,4,5,6,7,8,9}, etalon10_2 = new byte[]{30,31,1,2,3,4,5,6,7,8}, etalon10_3 = new byte[]{29,30,31,32,33,0,0,0,0,0};
 		
-		Assert.assertEquals(gba.read(0,result10),10);
-		Assert.assertArrayEquals(result10,etalon10_1);
-		Assert.assertEquals(gba.read(30,result10),10);
-		Assert.assertArrayEquals(result10,etalon10_2);
+		Assert.assertEquals(10,gba.read(0,result10));
+		Assert.assertArrayEquals(etalon10_1,result10);
+		Assert.assertEquals(10,gba.read(30,result10));
+		Assert.assertArrayEquals(etalon10_2,result10);
 		Arrays.fill(result10,(byte)0);
-		Assert.assertEquals(gba.read(60,result10),5);
-		Assert.assertArrayEquals(result10,etalon10_3);
+		Assert.assertEquals(5,gba.read(60,result10));
+		Assert.assertArrayEquals(etalon10_3,result10);
 		
 		try{gba.read(-1,result10);
 			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
@@ -347,6 +500,70 @@ public class GrowableArraysTest {
 		
 		gba.clear();
 		Assert.assertEquals(gba.length(),0);
+		
+		try{gba.append((byte[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gba.append((InputStream)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{gba.append((byte[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gba.append(new byte[] {1},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.append(new byte[] {1},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.append(new byte[] {1},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.append(new byte[] {1},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+
+		gba.append(new byte[] {1,2,3});
+		try{gba.read(-1,new byte[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(100,new byte[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gba.read(0,new byte[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,new byte[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,new byte[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		} 
+		try{gba.read(0,new byte[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,new byte[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 
 	private void shortArrayTest(final GrowableShortArray	gsa) {
@@ -420,6 +637,66 @@ public class GrowableArraysTest {
 		
 		gsa.clear();
 		Assert.assertEquals(gsa.length(),0);
+
+		try{gsa.append((short[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{gsa.append((short[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gsa.append(new short[] {1},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.append(new short[] {1},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.append(new short[] {1},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.append(new short[] {1},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+	
+		gsa.append(new short[] {1,2,3});
+		try{gsa.read(-1,new short[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.read(100,new short[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gsa.read(0,new short[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.read(0,new short[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.read(0,new short[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		} 
+		try{gsa.read(0,new short[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gsa.read(0,new short[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 	
 	private void intArrayTest(final GrowableIntArray	gia) {
@@ -493,6 +770,66 @@ public class GrowableArraysTest {
 
 		gia.clear();
 		Assert.assertEquals(gia.length(),0);
+
+		try{gia.append((int[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{gia.append((int[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gia.append(new int[] {1},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.append(new int[] {1},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.append(new int[] {1},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.append(new int[] {1},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+	
+		gia.append(new int[] {1,2,3});
+		try{gia.read(-1,new int[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.read(100,new int[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gia.read(0,new int[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.read(0,new int[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.read(0,new int[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		} 
+		try{gia.read(0,new int[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gia.read(0,new int[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 
 	private void longArrayTest(final GrowableLongArray	gla) {
@@ -566,6 +903,66 @@ public class GrowableArraysTest {
 		
 		gla.clear();
 		Assert.assertEquals(gla.length(),0);
+
+		try{gla.append((long[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{gla.append((long[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gla.append(new long[] {1},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.append(new long[] {1},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.append(new long[] {1},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.append(new long[] {1},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+	
+		gla.append(new long[] {1,2,3});
+		try{gla.read(-1,new long[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.read(100,new long[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gla.read(0,new long[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.read(0,new long[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.read(0,new long[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		} 
+		try{gla.read(0,new long[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gla.read(0,new long[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 
 	private void floatArrayTest(final GrowableFloatArray	gfa) {
@@ -639,6 +1036,66 @@ public class GrowableArraysTest {
 		
 		gfa.clear();
 		Assert.assertEquals(gfa.length(),0);
+
+		try{gfa.append((float[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{gfa.append((float[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gfa.append(new float[] {1},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.append(new float[] {1},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.append(new float[] {1},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.append(new float[] {1},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+	
+		gfa.append(new float[] {1,2,3});
+		try{gfa.read(-1,new float[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.read(100,new float[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gfa.read(0,new float[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.read(0,new float[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.read(0,new float[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		} 
+		try{gfa.read(0,new float[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gfa.read(0,new float[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 	
 	private void doubleArrayTest(final GrowableDoubleArray	gda) {
@@ -712,9 +1169,69 @@ public class GrowableArraysTest {
 		
 		gda.clear();
 		Assert.assertEquals(gda.length(),0);
+
+		try{gda.append((double[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{gda.append((double[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gda.append(new double[] {1},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.append(new double[] {1},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.append(new double[] {1},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.append(new double[] {1},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+	
+		gda.append(new double[] {1,2,3});
+		try{gda.read(-1,new double[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.read(100,new double[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gda.read(0,new double[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.read(0,new double[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.read(0,new double[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		} 
+		try{gda.read(0,new double[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gda.read(0,new double[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 
-	private void charArrayTest(final GrowableCharArray	gca) {
+	private void charArrayTest(final GrowableCharArray<?>	gca) throws IOException {
 		Assert.assertEquals(gca.length(),0);
 		gca.append((char)1);
 		gca.append(CHAR_31);
@@ -754,7 +1271,7 @@ public class GrowableArraysTest {
 			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}
-		try{gca.read(65,result10);
+		try{gca.read(66,result10);
 			Assert.fail("Mandatory exception was not detected (array index out of bounds)");
 		} catch (ArrayIndexOutOfBoundsException exc) {
 		}
@@ -785,6 +1302,130 @@ public class GrowableArraysTest {
 		
 		gca.clear();
 		Assert.assertEquals(gca.length(),0);
+		
+		gca.append("1234567890123456789012345678901234567890123456789012345678901234567890");
+		Assert.assertEquals(70,gca.length());
+		
+		gca.clear();
+		gca.append("1234567890123456789012345678901234567890123456789012345678901234567890",15,30);
+		Assert.assertEquals(15,gca.length());
+		Assert.assertArrayEquals("678901234567890".toCharArray(),gca.extract());
+		
+		gca.clear();
+		final SyntaxTreeInterface<Object>	sti = new OrdinalSyntaxTree<>();
+		
+		sti.placeName("test",1,null);
+		gca.append(sti,1);
+		Assert.assertEquals(4,gca.length());
+		Assert.assertArrayEquals("test".toCharArray(),gca.extract());
+
+		try{gca.append((SyntaxTreeInterface<?>)null,0);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gca.append(sti,666);
+			Assert.fail("Mandatory exception was not detected (2-nd argument is missing in the tree)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
+		gca.clear();
+		try{gca.append((char[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gca.append((Reader)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) { 
+		}
+		try{gca.append((String)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		
+		try{gca.append((char[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gca.append(new char[] {1},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append(new char[] {1},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append(new char[] {1},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append(new char[] {1},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append(new char[] {1,2,3},1,0);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+
+		try{gca.append((String)null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gca.append("a",-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append("a",1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append("a",0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append("a",0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.append("abc",2,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		
+		gca.append(new char[] {1,2,3});
+		try{gca.read(-1,new char[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.read(100,new char[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gca.read(0,new char[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.read(0,new char[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.read(0,new char[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		} 
+		try{gca.read(0,new char[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gca.read(0,new char[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 
 	private void booleanArrayTest(final GrowableBooleanArray	gba) {
@@ -861,5 +1502,65 @@ public class GrowableArraysTest {
 		
 		gba.clear();
 		Assert.assertEquals(gba.length(),0);
+
+		try{gba.append((boolean[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{gba.append((boolean[])null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gba.append(new boolean[] {true},-1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.append(new boolean[] {true},1,1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.append(new boolean[] {true},0,2);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.append(new boolean[] {true},0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+	
+		gba.append(new boolean[] {true,false,true});
+		try{gba.read(-1,new boolean[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(100,new boolean[100],1,1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,null,1,1);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{gba.read(0,new boolean[10],-1,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,new boolean[10],100,1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,new boolean[10],1,-1);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}  
+		try{gba.read(0,new boolean[10],1,0);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
+		try{gba.read(0,new boolean[10],1,100);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (ArrayIndexOutOfBoundsException exc) {
+		}
 	}
 }

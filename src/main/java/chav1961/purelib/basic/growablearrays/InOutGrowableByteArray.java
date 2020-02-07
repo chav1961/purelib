@@ -35,7 +35,7 @@ import java.io.UTFDataFormatException;
  * <p>This class is not thread-safe.</p>
  * 
  * @see chav1961.purelib.basic.growablearrays JUnit tests
- * @author Alexander Chernomyrdin aka chav1961
+ * @author Alexander Chernomyrdin aka chav1961 
  * @since 0.0.2
  */
 
@@ -207,7 +207,7 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasInput = true;
-			return (uncheckedRead(displ++) << 8) | (uncheckedRead(displ++) << 0) & 0xFF; 
+			return ((uncheckedRead(displ++) << 8) | (uncheckedRead(displ++) << 0) & 0xFF) & 0xFFFF; 
 		}
 	}
 

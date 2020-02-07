@@ -11,7 +11,7 @@ public class ManagersTest {
 		final AbstractArrayContentManager<Object>	aacm = new AbstractPlainContentManager<Object>(AbstractArrayContentManager.MINIMAL_ARRAY_SIZE) {
 												@Override int truncateArray(int newSize) {call--; return newSize;}
 												@Override int expandArray(int newSize) {call++; return newSize;}
-												@Override void walk(Walker<Object> walker) {}
+//												@Override void walk(Walker<Object> walker) {}
 											};
 		
 		call = 0;
@@ -40,7 +40,7 @@ public class ManagersTest {
 		final AbstractArrayContentManager<Object>	aacm = new AbstractSlicedContentManager<Object>(AbstractArrayContentManager.MINIMAL_ARRAY_SIZE) {
 												@Override int truncateArray(int newSize) {call--; return newSize;}
 												@Override int expandArray(int newSize) {call++; return newSize;}
-												@Override void walk(Walker<Object> walker) {}
+//												@Override void walk(Walker<Object> walker) {}
 											};
 		
 		call = 0;

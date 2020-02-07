@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.CharStreamPrinter;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.streams.char2byte.asm.Asm;
 
@@ -80,7 +83,12 @@ import chav1961.purelib.streams.char2byte.asm.Asm;
  * @lastUpdate 0.0.4
  */
 
-public class AsmWriter extends Writer {
+public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
+	private static final char[]			LINE_SEPARATOR = System.lineSeparator().toCharArray();
+	private static final char[]			TRUE = "true".toCharArray();
+	private static final char[]			FALSE = "false".toCharArray();
+	private static final char[]			NULL = "null".toCharArray();
+	
 	private final OutputStream			os;
 	private final LineByLineProcessor	lblp = new LineByLineProcessor(new LineByLineProcessorCallback() {
 													@Override
@@ -91,7 +99,9 @@ public class AsmWriter extends Writer {
 										);
 	private final Asm					asm;
 	private final boolean				cloned;
+	private boolean						built = false;
 
+	
 	/**
 	 * <p>Create assembly writer instance</p>
 	 * @param os output stream to write content to
@@ -167,7 +177,7 @@ public class AsmWriter extends Writer {
 		else if (cbuf.length > 0) {
 			try{lblp.write(cbuf,off,len);
 			} catch (SyntaxException e) {
-				throw new IOException(e);
+				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
 	}
@@ -189,12 +199,19 @@ public class AsmWriter extends Writer {
 
 	@Override
 	public void flush() throws IOException {
-		asm.flush();
-		os.flush();
 	}
 
+	public void build() throws IOException {
+		if (!built) {
+			asm.flush();
+			os.flush();
+			built = true;
+		}
+	}
+	
 	@Override
 	public void close() throws IOException {
+		build();
 		asm.close();
 	}
 	
@@ -247,5 +264,189 @@ public class AsmWriter extends Writer {
 		} catch (SyntaxException e) {
 			throw new IOException(e.getMessage(),e);
 		}
+	}
+
+	@Override
+	public AsmWriter println() throws PrintingException {
+		try{lblp.write(LINE_SEPARATOR,0,LINE_SEPARATOR.length);
+			return this;
+		} catch (SyntaxException | IOException e) {
+			throw new PrintingException(e.getLocalizedMessage());
+		}
+	}
+
+	@Override
+	public AsmWriter print(final char data) throws PrintingException {
+		try{lblp.write(new char[] {data},0,1);
+			return this;
+		} catch (SyntaxException | IOException e) {
+			throw new PrintingException(e.getLocalizedMessage());
+		}
+	}
+
+	@Override
+	public AsmWriter println(final char data) throws PrintingException {
+		print(data);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final byte data) throws PrintingException {
+		return print((long)data);
+	}
+
+	@Override
+	public AsmWriter println(final byte data) throws PrintingException {
+		return println((long)data);
+	}
+
+	@Override
+	public AsmWriter print(final short data) throws PrintingException {
+		return print((long)data);
+	}
+
+	@Override
+	public AsmWriter println(final short data) throws PrintingException {
+		return println((long)data);
+	}
+
+	@Override
+	public AsmWriter print(final int data) throws PrintingException {
+		return print((long)data);
+	}
+
+	@Override
+	public AsmWriter println(final int data) throws PrintingException {
+		return println((long)data);
+	}
+
+	@Override
+	public AsmWriter print(final long data) throws PrintingException {
+		final char[]	content = new char[20];
+		int				len = CharUtils.printLong(content,0,data,true);
+		
+		try{lblp.write(content,0,len);
+			return this;
+		} catch (SyntaxException | IOException e) {
+			throw new PrintingException(e.getLocalizedMessage());
+		}
+	}
+
+	@Override
+	public AsmWriter println(final long data) throws PrintingException {
+		print(data);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final float data) throws PrintingException {
+		return print((double)data);
+	}
+
+	@Override
+	public AsmWriter println(final float data) throws PrintingException {
+		return println((double)data);
+	}
+
+	@Override
+	public AsmWriter print(final double data) throws PrintingException {
+		char[]	content = new char[20];
+		int		len = CharUtils.printDouble(content,0,data,true);
+		
+		if (len < 0) {
+			content = new char[2 - len];
+			len = CharUtils.printDouble(content,0,data,true);
+		}
+		try{lblp.write(content,0,len);
+			return this;
+		} catch (SyntaxException | IOException e) {
+			throw new PrintingException(e.getLocalizedMessage());
+		}
+	}
+
+	@Override
+	public AsmWriter println(final double data) throws PrintingException {
+		print(data);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final boolean data) throws PrintingException {
+		return data ? print(TRUE,0,TRUE.length) : print(FALSE,0,FALSE.length);  
+	}
+
+	@Override
+	public AsmWriter println(final boolean data) throws PrintingException {
+		print(data);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final String data) throws PrintingException {
+		return data == null ? print(NULL,0,NULL.length) : print(data,0,data.length()) ;
+	}
+
+	@Override
+	public AsmWriter println(final String data) throws PrintingException {
+		print(data);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final String data, final int from, final int len) throws PrintingException, StringIndexOutOfBoundsException {
+		if (data == null) {
+			return print(NULL,0,NULL.length);
+		}
+		else {
+			return print(data.toCharArray(),from,len);
+		}
+	}
+
+	@Override
+	public AsmWriter println(final String data, final int from, final int len) throws PrintingException, StringIndexOutOfBoundsException {
+		print(data,from,len);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final char[] data) throws PrintingException {
+		return data == null ? print(NULL,0,NULL.length) : print(data,0,data.length) ;
+	}
+
+	@Override
+	public AsmWriter println(final char[] data) throws PrintingException {
+		print(data);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final char[] data, final int from, final int len) throws PrintingException, ArrayIndexOutOfBoundsException {
+		if (data == null) {
+			return print(NULL,0,NULL.length);
+		}
+		else {
+			try{lblp.write(data,from,len);
+				return this;
+			} catch (SyntaxException | IOException e) {
+				throw new PrintingException(e.getLocalizedMessage());
+			}
+		}
+	}
+
+	@Override
+	public AsmWriter println(final char[] data, final int from, final int len) throws PrintingException, ArrayIndexOutOfBoundsException {
+		print(data,from,len);
+		return println();
+	}
+
+	@Override
+	public AsmWriter print(final Object data) throws PrintingException {
+		return data == null ? print(NULL,0,NULL.length) : print(data.toString());
+	}
+
+	@Override
+	public AsmWriter println(final Object data) throws PrintingException {
+		print(data);
+		return println();
 	}
 }

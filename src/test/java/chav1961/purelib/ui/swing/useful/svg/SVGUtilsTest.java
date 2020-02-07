@@ -290,7 +290,7 @@ public class SVGUtilsTest {
 		currentValue[0] = "";
 		Assert.assertFalse(ocg.isImmutable());
 		Assert.assertEquals(' ',ocg.get());
-
+ 
 		Assert.assertTrue(SVGUtils.buildOnlineGetter(OnlineCharGetter.class,"C",(ss)->currentValue[0]).isImmutable());
 		
 		// Double getter

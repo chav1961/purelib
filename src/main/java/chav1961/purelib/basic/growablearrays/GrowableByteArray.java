@@ -12,7 +12,7 @@ import java.util.Arrays;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public class GrowableByteArray {
@@ -203,9 +203,6 @@ public class GrowableByteArray {
 		if (target == null) {
 			throw new NullPointerException("Target data array can't be null");
 		}
-		else if (filled == 0) {
-			return 0;
-		}
 		else if (index < 0 || index >= filled) {
 			throw new ArrayIndexOutOfBoundsException("Index ["+index+"] out of bounds. Valid range is 0.."+(filled-1));
 		}
@@ -217,6 +214,9 @@ public class GrowableByteArray {
 		}
 		else if (to < from) {
 			throw new ArrayIndexOutOfBoundsException("To location ["+to+"] less than from location["+from+"]");
+		}
+		else if (filled == 0) {
+			return 0;
 		}
 		else {
 			return uncheckedRead(index,target,from,to);
@@ -473,10 +473,10 @@ public class GrowableByteArray {
 			return newSize;
 		}
 
-		@Override
-		void walk(Walker<byte[]> walker) {
-			walker.process(plain,0,currentSize);
-		}
+//		@Override
+//		void walk(Walker<byte[]> walker) {
+//			walker.process(plain,0,currentSize);
+//		}
 	}
 
 	private class SlicedManager extends AbstractSlicedContentManager<byte[]> {
@@ -503,20 +503,20 @@ public class GrowableByteArray {
 			return newSize;
 		}
 
-		@Override
-		void walk(Walker<byte[]> walker) {
-			int	size = currentSize;
-			
-			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
-				if (sliced[index] != null) {
-					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
-						return;
-					}
-					else {
-						size -= sliced[index].length; 
-					}
-				}
-			}
-		}
+//		@Override
+//		void walk(Walker<byte[]> walker) {
+//			int	size = currentSize;
+//			
+//			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
+//				if (sliced[index] != null) {
+//					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
+//						return;
+//					}
+//					else {
+//						size -= sliced[index].length; 
+//					}
+//				}
+//			}
+//		}
 	}
 }

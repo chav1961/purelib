@@ -17,7 +17,7 @@ abstract class AbstractPlainContentManager<T> extends AbstractArrayContentManage
 
 	@Override abstract int expandArray(final int newSize);	
 	@Override abstract int truncateArray(final int newSize);
-	@Override abstract void walk(Walker<T> walker);
+//	@Override abstract void walk(Walker<T> walker);
 	
 	@Override
 	boolean checkSize(final int newSize) {

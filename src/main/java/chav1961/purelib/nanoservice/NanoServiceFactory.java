@@ -1423,11 +1423,11 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	 */
 
 	static Class<?> buildInstance(final AsmWriter writer, final String className, final String content, final SimpleURLClassLoader wrapper) throws SyntaxException {
-		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final Writer				wr = writer.clone(baos)) {
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final Writer			wr = writer.clone(baos)) {
 			
-			wr.write(content);
-			wr.flush();
+				wr.write(content);
+			}
 			return wrapper.createClass(NanoServiceFactory.class.getPackage().getName()+'.'+className,baos.toByteArray());
 		} catch (IOException exc) {
 			exc.printStackTrace(); 

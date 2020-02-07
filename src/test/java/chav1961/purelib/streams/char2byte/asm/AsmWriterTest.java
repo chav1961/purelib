@@ -28,7 +28,7 @@ public class AsmWriterTest {
 			wr.write("			return\n");
 			wr.write("call		.end\n");
 			wr.write("Test		.end\n");
-			wr.flush();
+			wr.build();
 			
 			final Class<?>		clazz = ClassContainerTest.loadClass(wr.getClassName(),baos);
 			clazz.getMethod("call").invoke(null);
@@ -60,7 +60,7 @@ public class AsmWriterTest {
 			wr.write("			return\n");
 			wr.write("call		.end\n");
 			wr.write("TestWr	.end\n");
-			wr.flush();
+			wr.build();
 			
 			final Class<?>		clazz = ClassContainerTest.loadClass(wr.getClassName(),baos);
 			clazz.getMethod("call").invoke(null);
