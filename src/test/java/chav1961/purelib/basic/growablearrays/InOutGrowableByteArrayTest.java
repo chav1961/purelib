@@ -27,6 +27,7 @@ public class InOutGrowableByteArrayTest {
 			final DataOutputStream		dos = new DataOutputStream(baos)) {
 
 			dos.writeByte(123);
+			dos.writeBoolean(true);
 			dos.writeChars("1");
 			dos.writeBytes("23456789\r\n");
 			dos.writeDouble(-345.6);
@@ -34,13 +35,16 @@ public class InOutGrowableByteArrayTest {
 			dos.writeInt(789);
 			dos.writeLong(1234);
 			dos.writeShort(567);
+			dos.writeShort(-1);
 			dos.writeUTF("test \u1200 string");
 			dos.writeByte(123);
+			dos.writeByte(-1);
 			dos.flush();
 			
 			gba.append(baos.toByteArray());
 			
 			Assert.assertEquals(gba.readByte(),123);
+			Assert.assertTrue(gba.readBoolean());
 			Assert.assertEquals(gba.readChar(),'1');
 			Assert.assertEquals(gba.readLine(),"23456789");
 			Assert.assertEquals(gba.readDouble(),-345.6,0.0001);
@@ -48,8 +52,10 @@ public class InOutGrowableByteArrayTest {
 			Assert.assertEquals(gba.readInt(),789);
 			Assert.assertEquals(gba.readLong(),1234);
 			Assert.assertEquals(gba.readShort(),567);
+			Assert.assertEquals(65535,gba.readUnsignedShort());
 			Assert.assertEquals(gba.readUTF(),"test \u1200 string");
 			Assert.assertEquals(gba.readByte(),123);
+			Assert.assertEquals(255,gba.readUnsignedByte());
 		}
 		
 		gba.reset();

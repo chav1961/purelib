@@ -15,7 +15,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence {
@@ -61,6 +61,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @param data data to append
 	 * @return self
 	 */
+	@SuppressWarnings("unchecked")
 	public T append(final char data) {
 		aacm.checkSize(filled+1);
 		
@@ -80,12 +81,16 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @return self
 	 * @throws NullPointerException when data reference is null
 	 */
+	@SuppressWarnings("unchecked")
 	public T append(final char[] data) throws NullPointerException {
 		if (data == null) {
 			throw new NullPointerException("Data array can't be null");
 		}
-		else {
+		else if (data.length > 0) {
 			return (T) append(data,0,data.length);
+		}
+		else {
+			return (T)this;
 		}
 	}
 
@@ -98,6 +103,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @throws NullPointerException when data reference is null
 	 * @throws ArrayIndexOutOfBoundsException when from and to indices out of data
 	 */
+	@SuppressWarnings("unchecked")
 	public T append(final char[] data, int from, final int to) throws NullPointerException, ArrayIndexOutOfBoundsException {
 		final int	len = to - from;
 		
@@ -163,6 +169,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @throws ArrayIndexOutOfBoundsException from or from + to value out of available range
 	 * @since 0.0.2 
 	 */
+	@SuppressWarnings("unchecked")
 	public T append(final String data, int from, final int to) throws NullPointerException, ArrayIndexOutOfBoundsException {
 		final int	len = to - from, stringLen;
 		
@@ -210,6 +217,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @throws IllegalArgumentException when tree doesn't contain name with the given id
 	 * @since 0.0.4 
 	 */
+	@SuppressWarnings("unchecked")
 	public T append(final SyntaxTreeInterface<?> tree, final long id) throws NullPointerException, IllegalArgumentException {
 		if (tree == null) {
 			throw new NullPointerException("Tree to add name from can't be null");
@@ -224,7 +232,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 				aacm.checkSize(filled+len);
 				
 				if (usePlain) {
-					tree.getName(id,plain,filled);
+					tree.getName(id,plain,filled); 
 					filled += len;
 				}
 				else {
@@ -279,7 +287,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * <p>Read a piece of data from the given index</p>
 	 * @param index array index to get data from
 	 * @param target place to store data to
-	 * @return real data size gotten
+	 * @return real data size got
 	 * @throws NullPointerException when target reference is null
 	 * @throws ArrayIndexOutOfBoundsException when index outside the data
 	 */
@@ -306,13 +314,10 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 		if (target == null) {
 			throw new NullPointerException("Target data array can't be null");
 		}
-		else if (filled == 0) {
-			return 0;
-		}
-		else if (index < 0 || index >= filled) {
+		else if (index < 0 || index > filled) {
 			throw new ArrayIndexOutOfBoundsException("Index ["+index+"] out of bounds. Valid range is 0.."+(filled-1));
 		}
-		else if (from < 0 || from >= target.length) {
+		else if (from < 0 || from > target.length) {
 			throw new ArrayIndexOutOfBoundsException("From location ["+from+"] out of bounds. Valid range is 0.."+(target.length-1));
 		}
 		else if (to < 0 || to > target.length) {
@@ -320,6 +325,9 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 		}
 		else if (to < from) {
 			throw new ArrayIndexOutOfBoundsException("To location ["+to+"] less than from location["+from+"]");
+		}
+		else if (filled == 0) {
+			return 0;
 		}
 		else {
 			int	len = Math.min(to-from,filled-index), actualLen = len;
@@ -358,16 +366,21 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 
 	@Override
 	public char charAt(final int index) {
-		return read(index);
+		if (index < 0 || index >= filled) {
+			throw new IndexOutOfBoundsException("Character index ["+index+"] outside the range 0.."+(filled-1));
+		}
+		else {
+			return read(index);
+		}
 	}
 
 	@Override
-	public CharSequence subSequence(final int start, final int end) {
-		if (start < 0 || start >= length()) {
-			throw new ArrayIndexOutOfBoundsException("Start position ["+start+"] outside the range 0.."+length());
+	public CharSequence subSequence(final int start, final int end) throws IndexOutOfBoundsException {
+		if (start < 0 || start >= filled) {
+			throw new IndexOutOfBoundsException("Start position ["+start+"] outside the range 0.."+(filled-1));
 		}
-		else if (end < 0 || end >= length()) {
-			throw new ArrayIndexOutOfBoundsException("End position ["+end+"] outside the range 0.."+length());
+		else if (end < 0 || end >= filled) {
+			throw new IndexOutOfBoundsException("End position ["+end+"] outside the range 0.."+(filled-1));
 		}
 		else if (end < start) {
 			throw new IllegalArgumentException("End position ["+end+"] less than start position ["+start+"]");
@@ -399,24 +412,26 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @return self
 	 * @since 0.0.2
 	 */
-	public GrowableCharArray length(final int newLength) {
+	@SuppressWarnings("unchecked")
+	public T length(final int newLength) {
 		if (newLength != filled) {
 			aacm.checkSize(newLength);
 			filled = newLength;
 		}
-		return this;
+		return (T)this;
 	}
 	
 	/**
 	 * <p>Convert internal array from sliced to plain form. Speeds up performance, but increase memory to store data</p> 
 	 * @return self if the array was still plain, otherwise new cloned instance with the plain data array
 	 */
-	public GrowableCharArray toPlain() {
+	@SuppressWarnings("unchecked")
+	public T toPlain() {
 		if (usePlain) {
-			return this;
+			return (T)this;
 		}
 		else {
-			final GrowableCharArray	result = new GrowableCharArray(initialPow,0);
+			final GrowableCharArray<T>	result = new GrowableCharArray<>(initialPow,0);
 	
 			if (filled > 0) {
 				for (int index = 0; index < sliced.length - 1; index++) {
@@ -424,7 +439,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 				}
 				result.append(sliced[sliced.length - 1],0,aacm.toRelativeOffset(filled));
 			}
-			return result;
+			return (T)result;
 		}
 	}
 	
@@ -515,7 +530,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
-		GrowableCharArray other = (GrowableCharArray) obj;
+		GrowableCharArray<?> other = (GrowableCharArray<?>) obj;
 		if (filled != other.filled) return false;
 		if (!Arrays.equals(plain, other.plain)) return false;
 		if (!Arrays.deepEquals(sliced, other.sliced)) return false;
@@ -542,10 +557,10 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 			return newSize;
 		}
 
-		@Override
-		void walk(Walker<char[]> walker) {
-			walker.process(plain,0,currentSize);
-		}
+//		@Override
+//		void walk(Walker<char[]> walker) {
+//			walker.process(plain,0,currentSize);
+//		}
 	}
 
 	private class SlicedManager extends AbstractSlicedContentManager<char[]> {
@@ -572,21 +587,20 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 			return newSize;
 		}
 
-		@Override
-		void walk(Walker<char[]> walker) {
-			int	size = currentSize;
-			
-			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
-				if (sliced[index] != null) {
-					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
-						return;
-					}
-					else {
-						size -= sliced[index].length; 
-					}
-				}
-			}
-		}
+//		@Override
+//		void walk(Walker<char[]> walker) {
+//			int	size = currentSize;
+//			
+//			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
+//				if (sliced[index] != null) {
+//					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
+//						return;
+//					}
+//					else {
+//						size -= sliced[index].length; 
+//					}
+//				}
+//			}
+//		}
 	}
-
 }

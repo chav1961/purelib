@@ -163,77 +163,79 @@ public class JsonSaxDeserializerFactory {
 			}
 			
 			if (publicOnly && !extra.isPrimitive()) {		// Build class for direct access instead of reflections...
-				try(final ByteArrayOutputStream		baos = new ByteArrayOutputStream();
-					final Writer					wr = new AsmWriter(baos);) {
-					final String					pseudoClassName = BasicDeserializer.class.getPackage().getName()+'.'+extra.getSimpleName()+"_serv"; 
-					final List<SettingPairs>		settingPairs = new ArrayList<>();				
-					
-					wr.write(" 				.package "+BasicDeserializer.class.getPackage().getName()+'\n');
-					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
-					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
-					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_BASIC_DESERIALIZER)+" protected\n");
-					wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCEPTION)+"\n");
-					
-					preventDuplicates.clear();
-					preventDuplicates.add(String.class);			
-					printClassCreationImport(wr,desc,preventDuplicates);
-					
-					wr.write(extra.getSimpleName()+"_serv 	.class public extends "+CompilerUtils.buildClassPath(CL_BASIC_DESERIALIZER)+" implements "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
-					
-					wr.write(extra.getSimpleName()+"_serv	.method void public\n");
-					wr.write("				.stack 2\n");
-					wr.write("				aload_0\n");
-					wr.write(" "+CompilerUtils.buildConstructorCall(CON_BASIC_DESERIALIZER)+"\n");
-					wr.write("				return\n");
-					wr.write(extra.getSimpleName()+"_serv	.end\n");
-					wr.write("newInstance 	.method java.lang.Object public\n");
-					wr.write("classId		.parameter int\n");
-					wr.write("				.stack 10\n");
-					wr.write("				iload_1\n");
-					wr.write("				tableswitch\n");
-					
-					preventDuplicates.clear();
-					preventDuplicates.add(String.class);
-					printClassCreationLabels(wr,desc,preventDuplicates);
-					
-					wr.write("				.default Throw\n");
-					wr.write("				.end\n");
-					wr.write("Throw:		"+CompilerUtils.buildMethodCall(M_THROW_CREATE_EXCEPTRION)+"\n");
-					
-					preventDuplicates.clear();
-					preventDuplicates.add(String.class);
-					printClassCreationCode(wr,desc,preventDuplicates);
-					
-					wr.write("newInstance 	.end\n");			
-	
-					preventDuplicates.clear();
-					preventDuplicates.add(String.class);
-					collectSettingPairs(desc,preventDuplicates,settingPairs,lastTreeId = tree.placeName(" ",null));
-					
-					wr.write("setValue 			.method void public\n");
-					wr.write("instance			.parameter java.lang.Object final\n");
-					wr.write("classAndFieldId	.parameter int final\n");
-					wr.write("value				.parameter java.lang.Object final\n");
-					wr.write("					.stack 5\n");
-					
-					if (settingPairs.size() > 0) {		// Class contains public fields
-						wr.write("				iload_2\n");
+				final String						pseudoClassName;
+				
+				try(final ByteArrayOutputStream		baos = new ByteArrayOutputStream()) {
+					try(final Writer				wr = new AsmWriter(baos);) {
+						final List<SettingPairs>	settingPairs = new ArrayList<>();				
+						
+						pseudoClassName = BasicDeserializer.class.getPackage().getName()+'.'+extra.getSimpleName()+"_serv"; 
+						wr.write(" 				.package "+BasicDeserializer.class.getPackage().getName()+'\n');
+						wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
+						wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_PRIMITIVECOLLECTION)+"\n");
+						wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_BASIC_DESERIALIZER)+" protected\n");
+						wr.write(" 				.import "+CompilerUtils.buildClassPath(CL_ILLEGALARGUMENTEXCEPTION)+"\n");
+						
+						preventDuplicates.clear();
+						preventDuplicates.add(String.class);			
+						printClassCreationImport(wr,desc,preventDuplicates);
+						
+						wr.write(extra.getSimpleName()+"_serv 	.class public extends "+CompilerUtils.buildClassPath(CL_BASIC_DESERIALIZER)+" implements "+CompilerUtils.buildClassPath(CL_CREATEANDSET)+"\n");
+						
+						wr.write(extra.getSimpleName()+"_serv	.method void public\n");
+						wr.write("				.stack 2\n");
+						wr.write("				aload_0\n");
+						wr.write(" "+CompilerUtils.buildConstructorCall(CON_BASIC_DESERIALIZER)+"\n");
+						wr.write("				return\n");
+						wr.write(extra.getSimpleName()+"_serv	.end\n");
+						wr.write("newInstance 	.method java.lang.Object public\n");
+						wr.write("classId		.parameter int\n");
+						wr.write("				.stack 10\n");
+						wr.write("				iload_1\n");
 						wr.write("				tableswitch\n");
 						
-						printClassSettingsLabels(wr,settingPairs);
+						preventDuplicates.clear();
+						preventDuplicates.add(String.class);
+						printClassCreationLabels(wr,desc,preventDuplicates);
 						
-						wr.write("				.default Unknown\n");
+						wr.write("				.default Throw\n");
 						wr.write("				.end\n");
-						wr.write("Unknown:		"+CompilerUtils.buildMethodCall(M_THROW_UNKNOWN_EXCEPTRION)+"\n");
-						wr.write("Cast:			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
+						wr.write("Throw:		"+CompilerUtils.buildMethodCall(M_THROW_CREATE_EXCEPTRION)+"\n");
 						
-						printClassSettingsCode(wr,settingPairs,tree);
+						preventDuplicates.clear();
+						preventDuplicates.add(String.class);
+						printClassCreationCode(wr,desc,preventDuplicates);
+						
+						wr.write("newInstance 	.end\n");			
+		
+						preventDuplicates.clear();
+						preventDuplicates.add(String.class);
+						collectSettingPairs(desc,preventDuplicates,settingPairs,lastTreeId = tree.placeName(" ",null));
+						
+						wr.write("setValue 			.method void public\n");
+						wr.write("instance			.parameter java.lang.Object final\n");
+						wr.write("classAndFieldId	.parameter int final\n");
+						wr.write("value				.parameter java.lang.Object final\n");
+						wr.write("					.stack 5\n");
+						
+						if (settingPairs.size() > 0) {		// Class contains public fields
+							wr.write("				iload_2\n");
+							wr.write("				tableswitch\n");
+							
+							printClassSettingsLabels(wr,settingPairs);
+							
+							wr.write("				.default Unknown\n");
+							wr.write("				.end\n");
+							wr.write("Unknown:		"+CompilerUtils.buildMethodCall(M_THROW_UNKNOWN_EXCEPTRION)+"\n");
+							wr.write("Cast:			"+CompilerUtils.buildMethodCall(M_THROW_CAST_EXCEPTRION)+"\n");
+							
+							printClassSettingsCode(wr,settingPairs,tree);
+						}
+						
+						wr.write("setValue 		.end\n");
+						
+						wr.write(extra.getSimpleName()+"_serv	.end\n");
 					}
-					
-					wr.write("setValue 		.end\n");
-					
-					wr.write(extra.getSimpleName()+"_serv	.end\n");
-					wr.flush();
 					return new JsonSaxDeserializerImpl<T>(tree,desc,treeDepth,lastTreeId,pseudoClassName,baos.toByteArray());
 				} catch (IOException e) {
 					e.printStackTrace();
