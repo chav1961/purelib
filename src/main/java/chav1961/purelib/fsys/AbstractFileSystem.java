@@ -10,6 +10,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -727,7 +728,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			walk((AbstractFileSystem)fsi,path,to,path.length,collection);
 		}
 		else if (to == path.length) {
-			collection.add(afs.createDataWrapper(URI.create(new String(path,from,to-from))));
+			collection.add(afs.createDataWrapper(URI.create(URLEncoder.encode(new String(path,from,to-from), "UTF-8"))));
 		}
 		else {
 			int		slash = -1;

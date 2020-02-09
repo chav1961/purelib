@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -233,6 +234,7 @@ public class SwingModelUtils {
 			for (ContentNodeMetadata child : node) {
 				toMenuEntity(child,menu);
 			}
+			buildRadioButtonGroups(menu);
 			bar.add(menu);
 		} 
 		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
@@ -246,7 +248,6 @@ public class SwingModelUtils {
 		}
 	}
 	
-	
 	private static void toMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	menu = new JMenuWithMeta(node);
@@ -254,6 +255,7 @@ public class SwingModelUtils {
 			for (ContentNodeMetadata child : node) {
 				toMenuEntity(child,menu);
 			}
+			buildRadioButtonGroups(menu);
 			popup.add(menu);
 		} 
 		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
@@ -262,6 +264,36 @@ public class SwingModelUtils {
 		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
 			popup.add(new JSeparator());
 		}
+	}
+
+	private static void buildRadioButtonGroups(final JMenu menu) {
+		final Set<String>	availableGroups = new HashSet<>(); 
+		
+		for (int index = 0, maxIndex = menu.getMenuComponentCount(); index < maxIndex; index++) {
+			if (menu.getMenuComponent(index) instanceof JRadioMenuItemWithMeta) {
+				availableGroups.add(((JRadioMenuItemWithMeta)menu.getMenuComponent(index)).getRadioGroup());
+			}
+		}
+		if (availableGroups.size() > 0) {
+			for (String group : availableGroups) {
+				final ButtonGroup 	buttonGroup = new ButtonGroup();
+				ButtonModel			buttonModel = null;
+
+				for (int index = 0, maxIndex = menu.getMenuComponentCount(); index < maxIndex; index++) {
+					Component	c = menu.getMenuComponent(index); 
+					
+					if ((c instanceof JRadioMenuItemWithMeta) && group.equals(((JRadioMenuItemWithMeta)c).getRadioGroup())) {
+						buttonGroup.add((JRadioMenuItemWithMeta)c);
+						if (buttonModel == null) {
+							buttonModel = ((JRadioMenuItemWithMeta)c).getModel();
+						}
+					}
+				}
+				if (buttonModel != null) {
+					buttonGroup.setSelected(buttonModel,true);
+				}
+			}
+		}				
 	}
 
 	private static void actionToMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) {
@@ -303,30 +335,7 @@ public class SwingModelUtils {
 				for (ContentNodeMetadata child : node) {
 					toMenuEntity(child,submenu);
 				}
-				final Set<String>	availableGroups = new HashSet<>(); 
-						
-				for (int index = 0, maxIndex = submenu.getMenuComponentCount(); index < maxIndex; index++) {
-					if (submenu.getMenuComponent(index) instanceof JRadioMenuItemWithMeta) {
-						availableGroups.add(((JRadioMenuItemWithMeta)submenu.getMenuComponent(index)).getRadioGroup());
-					}
-				}
-				if (availableGroups.size() > 0) {
-					for (String group : availableGroups) {
-						final ButtonGroup 	buttonGroup = new ButtonGroup();
-						boolean				selected = false;
-
-						for (int index = 0, maxIndex = submenu.getMenuComponentCount(); index < maxIndex; index++) {
-							Component	c = submenu.getMenuComponent(index); 
-							
-							if ((c instanceof JRadioMenuItemWithMeta) && group.equals(((JRadioMenuItemWithMeta)c).getRadioGroup())) {
-								buttonGroup.add((JRadioMenuItemWithMeta)c);
-								if (!selected) {
-									((JRadioMenuItemWithMeta)c).setSelected(selected = true);
-								}
-							}
-						}
-					}
-				}				
+				buildRadioButtonGroups(submenu);
 				menu.add(submenu);
 			}
 		} 
@@ -341,7 +350,6 @@ public class SwingModelUtils {
 				
 				menu.add(item);
 			}
-			
 		}
 		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
 			menu.add(new JSeparator());
