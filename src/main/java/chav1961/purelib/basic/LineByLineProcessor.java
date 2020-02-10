@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 
 /**
@@ -28,12 +29,12 @@ import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public class LineByLineProcessor implements Closeable {
 	private final List<DataStack>				pushes = new ArrayList<>();
-	private final StringBuilder					sb = new StringBuilder();
+	private final GrowableCharArray<?>			gca = new GrowableCharArray<>(true);
 	private final LineByLineProcessorCallback	callback;
 	private boolean								interruptProcessing = false, insideReaderProcessing = false;
 	private int									lineNo = 1;
@@ -83,10 +84,10 @@ public class LineByLineProcessor implements Closeable {
 	}
 
 	protected void uncheckedWrite(final char[] cbuf, final int off, final int len) throws IOException, SyntaxException {
-		if (sb.length() > 0) {
+		if (gca.length() > 0) {
 			for (int index = off, maxIndex = Math.min(cbuf.length,off+len); index < maxIndex; index++) {
 				if (cbuf[index] == '\n') {
-					sb.append(cbuf,off,index-off+1);
+					gca.append(cbuf,off,index-off+1);
 					processFromBuilder();
 					if (interruptProcessing) {
 						interruptProcessing = false;
@@ -100,7 +101,7 @@ public class LineByLineProcessor implements Closeable {
 					return;
 				}
 			}
-			sb.append(cbuf,off,len);
+			gca.append(cbuf,off,len);
 		}
 		else {
 			int	start = off;
@@ -119,7 +120,7 @@ public class LineByLineProcessor implements Closeable {
 				}
 			}
 			if (start < off+len) {
-				sb.append(cbuf,start,off+len-start);
+				gca.append(cbuf,start,off+len-start);
 			}
 		}
 	}
@@ -182,9 +183,9 @@ public class LineByLineProcessor implements Closeable {
 	}
 
 	private void closeWriting() throws IOException {
-		if (sb.length() > 0) {
-			if (sb.charAt(sb.length()-1) != '\n') {
-				sb.append('\n');
+		if (gca.length() > 0) {
+			if (gca.charAt(gca.length()-1) != '\n') {
+				gca.append('\n');
 			}
 			try{processFromBuilder();
 			} catch (SyntaxException e) {
@@ -194,12 +195,11 @@ public class LineByLineProcessor implements Closeable {
 	}
 	
 	private void processFromBuilder() throws IOException, SyntaxException {
-		final char[]	data = new char[sb.length()];
+		final char[]	data = gca.extract();
 		
-		sb.getChars(0,data.length,data,0);
 		callback.processLine(displacement,lineNo++,data,0,data.length);
 		displacement += data.length;
-		sb.setLength(0);
+		gca.length(0);
 	}
 	
 	private static class DataStack {

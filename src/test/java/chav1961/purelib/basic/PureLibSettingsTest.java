@@ -2,21 +2,12 @@ package chav1961.purelib.basic;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URL;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.fsys.FileSystemFactory;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class PureLibSettingsTest {
 

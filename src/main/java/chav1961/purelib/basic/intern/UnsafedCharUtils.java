@@ -3,6 +3,7 @@ package chav1961.purelib.basic.intern;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -39,7 +40,8 @@ public class UnsafedCharUtils {
 //	private static final char		WILDCARD_ANY_SEQ = '*';
 //	private static final char		WILDCARD_ANY_CHAR = '?';
 //	
-//	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
+
+	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	
 	static {
 		DOUBLE_EXPS = new double[EXP_BOUND * 2 + 1];
@@ -1405,8 +1407,8 @@ loop:			for (index = from; index < len; index++) {
 					if (newFrom < to - 4) {
 						content[newFrom++] = '\\';
 						content[newFrom++] = '0';
-						content[newFrom++] = '0';
-						content[newFrom++] = '0';
+						content[newFrom++] = (char)('0' + value / 8);
+						content[newFrom++] = (char)('0' + value % 8);
 					}
 					else {
 						return -(newFrom + 4);
@@ -1415,11 +1417,24 @@ loop:			for (index = from; index < len; index++) {
 			}
 		}
 		else if (value <= 0xFF) {
-			if (newFrom < to) {
-				content[newFrom++] = value;
-			}
-			else {
-				return -(newFrom + 1);
+			switch (value) {
+				case '\\' : case '\"' : case '\'' :
+					if (newFrom < to-1) {
+						content[newFrom++] = '\\';
+						content[newFrom++] = value;
+					}
+					else {
+						return -(newFrom + 2);
+					}
+					break;
+				default :
+					if (newFrom < to) {
+						content[newFrom++] = value;
+					}
+					else {
+						return -(newFrom + 1);
+					}
+					break;
 			}
 		}
 		else {
@@ -1568,4 +1583,150 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 	}
 	
 
+	public static String[] split(final String source, final char splitter) throws NullPointerException {
+		final char[]	content = source.toCharArray();
+		final int		amount = calculateSplitters(content,splitter);
+		final String[]	result = new String[amount + 1];
+		
+		split(content,splitter,result);
+		return result;
+	}
+
+	public static int split(final String source, final char splitter, final String[] target) throws NullPointerException {
+		final char[]	content = source.toCharArray();
+		final int		amount = calculateSplitters(content,splitter);
+
+		if (amount + 1 > target.length) {
+			return -(amount + 1);
+		}
+		else {
+			split(content,splitter,target);
+			return amount + 1;
+		}
+	}
+
+	public static String[] split(final String source, final String splitter) throws NullPointerException, IllegalArgumentException {
+		final char[]	content = source.toCharArray();
+		final char[]	toSplit = splitter.toCharArray();
+		final int		amount = calculateSplitters(content,toSplit);
+		final String[]	result = new String[amount + 1];
+		
+		split(content,toSplit,result);
+		return result;
+	}
+
+	public static int split(final String source, final String splitter, final String[] target) throws NullPointerException, IllegalArgumentException {
+		final char[]	content = source.toCharArray();
+		final char[]	toSplit = splitter.toCharArray();
+		final int		amount = calculateSplitters(content,toSplit);
+
+		if (amount + 1 > target.length) {
+			return -(amount + 1);
+		}
+		else {
+			split(content,toSplit,target);
+			return amount + 1;
+		}
+	}
+
+	public static char[] join(final char[] delimiter, final char[]... content) throws IllegalArgumentException, NullPointerException {
+		if (content.length == 0) {
+			return EMPTY_CHAR_ARRAY;
+		}
+		else {
+			int		dlen = delimiter.length, clen = content.length - 1, counter = dlen * clen;
+			
+			for (char[] item : content) {
+				counter += item.length;
+			}
+			
+			final char[]	result = new char[counter];
+			int				to = 0, len;
+			
+			for (int index = 0; index < clen; index++) {
+				System.arraycopy(content[index],0,result,to,len = content[index].length);
+				to += len;
+				System.arraycopy(delimiter,0,result,to,dlen);
+				to += dlen;
+			}
+			System.arraycopy(content[clen],0,result,to,len = content[clen].length);
+			
+			return result;
+		}
+	}
+	
+	public static String join(final String delimiter, final String... content) throws IllegalArgumentException, NullPointerException {
+		int	total = 0, count = 0;
+		
+		for (String item : content) {
+			total += item.length();
+			count++;
+		}
+
+		final char[]	result = new char[total + (count-1) * delimiter.length()], delim = delimiter.toCharArray();
+		int				displ = 0, delimLength = delim.length;
+
+		for (int index = 0, maxIndex = content.length - 1; index < maxIndex; index++) {
+			final int	len = content[index].length();
+			
+			content[index].getChars(0,len,result,displ);
+			displ += len;
+			System.arraycopy(delim,0,result,displ,delimLength);
+			displ += delimLength;
+		}
+		content[content.length - 1].getChars(0,content[content.length - 1].length(),result,displ);
+		return new String(result);
+	}
+
+	private static int calculateSplitters(final char[] source, final char splitter) {
+		int	amount = 0;
+		
+		for (char item : source) {
+			if (item == splitter) {
+				amount++;
+			}
+		}
+		return amount;
+	}
+
+	private static int calculateSplitters(final char[] source, final char[] splitter) {
+		final char	first = splitter[0];
+		final int	splitterLen = splitter.length;
+		int	amount = 0;
+		
+		for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
+			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
+				index += splitterLen - 1;
+				amount++;
+			}
+		}
+		return amount;
+	}
+	
+	private static void split(final char[] source, final char splitter, final String[] target) {
+		int	start = 0, maxIndex = source.length, targetIndex = 0;
+		
+		for (int index = 0; index < maxIndex; index++) {
+			if (source[index] == splitter) {
+				target[targetIndex++] = new String(source,start,index-start);
+				start = index + 1;
+			}
+		}
+		target[targetIndex++] = new String(source,start,maxIndex-start);
+	}
+
+	private static void split(final char[] source, final char[] splitter, final String[] target) {
+		final char	first = splitter[0];
+		int	start = 0, splitterLen = splitter.length, maxIndex = source.length, targetIndex = 0;
+		
+		for (int index = 0; index < maxIndex; index++) {
+			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
+				target[targetIndex++] = new String(source,start,index-start);
+				index += splitterLen - 1;
+				start = index + 1;
+			}
+		}
+		target[targetIndex++] = new String(source,start,maxIndex-start);
+	}
+	
 }

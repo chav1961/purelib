@@ -158,16 +158,18 @@ public class URIUtilsTest {
 			
 			Assert.assertEquals("test",new String(baos.toByteArray()));
 		}
+		Assert.assertNull(self.toURL().openConnection().getContentEncoding());
 
 		final URI	self2 = URIUtils.convert2selfURI("test".toCharArray(),"cp1251");
 		
-		try(final InputStream			is = self.toURL().openStream();
+		try(final InputStream			is = self2.toURL().openStream();
 			final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			
 			Utils.copyStream(is, baos);
 			
 			Assert.assertEquals("test",new String(baos.toByteArray()));
 		}
+		Assert.assertEquals("cp1251",self2.toURL().openConnection().getContentEncoding());
 		
 		try{URIUtils.convert2selfURI(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

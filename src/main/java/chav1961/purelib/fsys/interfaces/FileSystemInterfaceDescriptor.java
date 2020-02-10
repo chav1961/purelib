@@ -28,14 +28,32 @@ public interface FileSystemInterfaceDescriptor {
 	 * @return driver version. Can't be null
 	 */
 	String getVersion();
+	
+	/**
+	 * <p>Get localizer associated with the given driver. It can be used to localize all string returns for this interface methods</p>
+	 * @return localizer associated. Can be null
+	 */
 	URI getLocalizerAssociated();
+	
+	/**
+	 * <p>Get description of the file system. Value returned can be used as key for localizer associated</p> 
+	 * @return Description string. Can be null
+	 */
 	String getDescriptionId();
+	
+	/**
+	 * <p>Get vendor ID for the file system. Value returned can be used as key for localizer associated</p>
+	 * @return Vendor id string. Can be null
+	 */
 	String getVendorId();
 	Icon getIcon();
 	String getLicenseId();
 	String getLicenseContentId();
 	String getHelpId();
 	URI getUriTemplate();
+	default boolean isReadOnly() {
+		return false;
+	}
 	FileSystemInterface getInstance() throws EnvironmentException;
 	boolean testConnection(final URI connection, final LoggerFacade logger) throws IOException;
 }

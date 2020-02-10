@@ -358,8 +358,6 @@ public class CharUtilsTest {
 
 	@Test
 	public void numberValidationTest() throws SyntaxException {
-		final long[]		value = new long[2];
-
 		Assert.assertEquals(8,CharUtils.validateNumber("1.2E-300".toCharArray(),0,CharUtils.PREF_DOUBLE,false));
 		Assert.assertEquals(8,CharUtils.validateNumber("1.2E-30F".toCharArray(),0,CharUtils.PREF_FLOAT,false));
 		Assert.assertEquals(19,CharUtils.validateNumber("1234567890123456789".toCharArray(),0,CharUtils.PREF_LONG,false));
@@ -641,7 +639,7 @@ public class CharUtilsTest {
 		Assert.assertArrayEquals("\\n        ".toCharArray(),target);
 
 		Arrays.fill(target,' ');
-		Assert.assertEquals(6,CharUtils.printEscapedString(target,0,"\\u2020",true,true));
+		Assert.assertEquals(6,CharUtils.printEscapedString(target,0,"\u2020",true,true));
 		Assert.assertArrayEquals("\\u2020    ".toCharArray(),target);
 
 		try{CharUtils.printEscapedString(null,0," ",true,true);
@@ -1105,6 +1103,21 @@ public class CharUtilsTest {
 		Assert.assertArrayEquals("\n".toCharArray(),CharUtils.terminateAndConvert2CharArray("",'\n'));
 		
 		try{CharUtils.terminateAndConvert2CharArray(null,'\n');
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+
+	@Test
+	public void escapeStringTest() {
+		Assert.assertEquals("test",CharUtils.unescapeStringContent(CharUtils.escapeStringContent("test")));
+		Assert.assertEquals("test\b\f\n\r\t\\\"\'\013\uACCAtest",CharUtils.unescapeStringContent(CharUtils.escapeStringContent("test\b\f\n\r\t\\\"\'\013\uACCAtest")));
+		
+		try{CharUtils.escapeStringContent(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.unescapeStringContent(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}

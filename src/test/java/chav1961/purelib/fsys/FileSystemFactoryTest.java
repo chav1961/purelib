@@ -3,6 +3,9 @@ package chav1961.purelib.fsys;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.ServiceLoader;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,9 +56,22 @@ public class FileSystemFactoryTest {
 			Assert.assertTrue(localizer.containsKey(item.getHelpId()));
 			Assert.assertEquals(item,item.getInstance());
 			Assert.assertNotNull(item.getUriTemplate());
-			if (item instanceof FileSystemInMemory) {
-				Assert.assertTrue(item.testConnection(item.getUriTemplate(),null));
-			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void spiTest() throws IOException, EnvironmentException {
+		final Set<Class<FileSystemInterface>>	providers = new HashSet<>(); 
+		
+		for (FileSystemInterface item : ServiceLoader.load(FileSystemInterface.class)) {
+			providers.add((Class<FileSystemInterface>)item.getClass());
+		}
+		Assert.assertEquals(5,providers.size());
+		Assert.assertTrue(providers.contains(FileSystemOnFile.class));
+		Assert.assertTrue(providers.contains(FileSystemOnFileSystem.class));
+		Assert.assertTrue(providers.contains(FileSystemOnXMLReadOnly.class));
+		Assert.assertTrue(providers.contains(FileSystemOnRMI.class));
+		Assert.assertTrue(providers.contains(FileSystemInMemory.class));
 	}
 }
