@@ -24,12 +24,12 @@ public class Constants {
 	
 	
 	public static final String	MODEL_BUILTIN_LANGUAGE = "builtin.languages";
-	public static final String	MODEL_BUILTIN_STYLE = "style";
+	public static final String	MODEL_BUILTIN_LAF = "builtin.lookAndFeel";
 
 	static final Set<String>	MODEL_AVAILABLE_BUILTINS = new HashSet<>();
 	
 	static {
 		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LANGUAGE);
-		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_STYLE);
+		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LAF);
 	}
 }

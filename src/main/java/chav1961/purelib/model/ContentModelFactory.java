@@ -40,6 +40,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -152,8 +153,12 @@ public class ContentModelFactory {
 			}
 		}
 	}
-
+	
 	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription) throws NullPointerException, EnvironmentException {
+		return forXmlDescription(contentDescription,XSDCollection.XMLDescribedApplication);
+	}
+	
+	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription, final XSDCollection contentType) throws NullPointerException, EnvironmentException {
 		if (contentDescription == null) {
 			throw new NullPointerException("Content description can't be null");
 		}
