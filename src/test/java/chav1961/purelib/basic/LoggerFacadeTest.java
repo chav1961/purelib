@@ -38,7 +38,7 @@ public class LoggerFacadeTest {
 	
 			lf.setReducing(Reducing.reduceCause);
 			Assert.assertEquals(1,lf.getReducing().size());
-			lf.setReducing(new HashSet<Reducing>(){{add(Reducing.reduceCause);}});
+			lf.setReducing(new HashSet<Reducing>(){private static final long serialVersionUID = 1L; {add(Reducing.reduceCause);}});
 			Assert.assertEquals(1,lf.getReducing().size());
 
 			try{lf.setReducing((Reducing[])null);

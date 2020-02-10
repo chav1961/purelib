@@ -3,7 +3,6 @@ package chav1961.purelib.basic;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -127,8 +126,6 @@ public class CharUtils {
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
-	
-	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	
 	/**
 	 * <p>Extract unsigned integer value from the current position of the source data</p>
@@ -516,11 +513,8 @@ public class CharUtils {
 		}
 	}
 	
-	public static int howManyEscapedCharsOccupies(final char symbol) {
-		if (isSymbolPrintable(symbol)) {
-			return 1;
-		}
-		else if (symbol < ' ') {
+	public static int howManyEscapedCharsOccupies(final char symbol, final boolean strongEscaping) {
+		if (symbol < ' ') {
 			switch (symbol) {
 				case '\b' : case '\f' : case '\n' : case '\r' : case '\t' : case '\'' : case '\"' : case '\\' :
 					return 2;
@@ -529,7 +523,20 @@ public class CharUtils {
 			}
 		}
 		else {
-			return 6;
+			if (strongEscaping) {
+				return 6;
+			}
+			else if (symbol <= 0xFF) {
+				switch (symbol) {
+					case '\\' : case '\'' : case '\"' :
+						return 2;
+					default :
+						return 1;
+				}
+			}
+			else {
+				return 6;
+			}
 		}
 	}
 	
@@ -1473,12 +1480,7 @@ public class CharUtils {
 			throw new NullPointerException("Source string can't be null"); 
 		}
 		else {
-			final char[]	content = source.toCharArray();
-			final int		amount = calculateSplitters(content,splitter);
-			final String[]	result = new String[amount + 1];
-			
-			split(content,splitter,result);
-			return result;
+			return UnsafedCharUtils.split(source, splitter);
 		}
 	}
 
@@ -1500,16 +1502,7 @@ public class CharUtils {
 			throw new NullPointerException("Traget string array can't be null"); 
 		}
 		else {
-			final char[]	content = source.toCharArray();
-			final int		amount = calculateSplitters(content,splitter);
-
-			if (amount + 1 > target.length) {
-				return -(amount + 1);
-			}
-			else {
-				split(content,splitter,target);
-				return amount + 1;
-			}
+			return UnsafedCharUtils.split(source, splitter, target);
 		}
 	}
 
@@ -1530,13 +1523,7 @@ public class CharUtils {
 			throw new IllegalArgumentException("Splitter string can't be null or empty"); 
 		}
 		else {
-			final char[]	content = source.toCharArray();
-			final char[]	toSplit = splitter.toCharArray();
-			final int		amount = calculateSplitters(content,toSplit);
-			final String[]	result = new String[amount + 1];
-			
-			split(content,toSplit,result);
-			return result;
+			return UnsafedCharUtils.split(source, splitter);
 		}
 	}
 
@@ -1562,17 +1549,7 @@ public class CharUtils {
 			throw new NullPointerException("Traget string array can't be null"); 
 		}
 		else {
-			final char[]	content = source.toCharArray();
-			final char[]	toSplit = splitter.toCharArray();
-			final int		amount = calculateSplitters(content,toSplit);
-
-			if (amount + 1 > target.length) {
-				return -(amount + 1);
-			}
-			else {
-				split(content,toSplit,target);
-				return amount + 1;
-			}
+			return UnsafedCharUtils.split(source, splitter, target);
 		}
 	}
 
@@ -1592,28 +1569,8 @@ public class CharUtils {
 		else if (content == null) {
 			throw new NullPointerException("Content to join can't be null");
 		}
-		else if (content.length == 0) {
-			return EMPTY_CHAR_ARRAY;
-		}
 		else {
-			int		dlen = delimiter.length, clen = content.length - 1, counter = dlen * clen;
-			
-			for (char[] item : content) {
-				counter += item.length;
-			}
-			
-			final char[]	result = new char[counter];
-			int				to = 0, len;
-			
-			for (int index = 0; index < clen; index++) {
-				System.arraycopy(content[index],0,result,to,len = content[index].length);
-				to += len;
-				System.arraycopy(delimiter,0,result,to,dlen);
-				to += dlen;
-			}
-			System.arraycopy(content[clen],0,result,to,len = content[clen].length);
-			
-			return result;
+			return UnsafedCharUtils.join(delimiter, content);
 		}
 	}
 	
@@ -1637,31 +1594,13 @@ public class CharUtils {
 			throw new NullPointerException("Nulls inside content");
 		}
 		else {
-			int	total = 0, count = 0;
-			
-			for (String item : content) {
-				total += item.length();
-				count++;
-			}
-
-			final char[]	result = new char[total + (count-1) * delimiter.length()], delim = delimiter.toCharArray();
-			int				displ = 0, delimLength = delim.length;
-
-			for (int index = 0, maxIndex = content.length - 1; index < maxIndex; index++) {
-				final int	len = content[index].length();
-				
-				content[index].getChars(0,len,result,displ);
-				displ += len;
-				System.arraycopy(delim,0,result,displ,delimLength);
-				displ += delimLength;
-			}
-			content[content.length - 1].getChars(0,content[content.length - 1].length(),result,displ);
-			return new String(result);
+			return UnsafedCharUtils.join(delimiter, content);
 		}
 	}
 
 	/**
-	 * <p>Terminate string content with the givem terminal and convert result to char array</p>
+	 * <p>Terminate string content with the given terminal symbol and convert result to char array. This method is useful for string parsers
+	 * to exclude end-of-string checking from parser code</p>
 	 * @param content content to terminate and convert
 	 * @param terminal terminal to terminate content
 	 * @return content converted
@@ -1696,7 +1635,7 @@ public class CharUtils {
 			int		length = content.length(), additionalLength = 0;
 			
 			for (int index = 0; index < length; index++) {
-				additionalLength += howManyEscapedCharsOccupies(content.charAt(index))-1;
+				additionalLength += howManyEscapedCharsOccupies(content.charAt(index),false)-1;
 			}
 			if (additionalLength > 0) {
 				final char[]	temp = new char[length+additionalLength];
@@ -1705,12 +1644,7 @@ public class CharUtils {
 				for (int index = 0, where = 0; index < length; index++) {
 					currentChar = content.charAt(index);
 					
-					if (isSymbolPrintable(currentChar)) {
-						temp[where++] = currentChar;
-					}
-					else {
-						where = printEscapedChar(temp,where,currentChar,true,false);
-					}
+					where = printEscapedChar(temp,where,currentChar,true,false);
 				}
 				return new String(temp);
 			}
@@ -1750,27 +1684,35 @@ public class CharUtils {
 					switch (content.charAt(index+1)) {
 						case 'b' 	:
 							temp[start++] = '\b';
+							index++;
 							break;
 						case 'f' 	:
 							temp[start++] = '\f';
+							index++;
 							break;
 						case 'n' 	:
 							temp[start++] = '\n';
+							index++;
 							break;
 						case 'r' 	:
 							temp[start++] = '\r';
+							index++;
 							break;
 						case 't' 	:
 							temp[start++] = '\t';
+							index++;
 							break;
 						case '\'' 	:
 							temp[start++] = '\'';
+							index++;
 							break;
 						case '\"' 	:
 							temp[start++] = '\"';
+							index++;
 							break;
 						case '\\' 	:
 							temp[start++] = '\\';
+							index++;
 							break;
 						case '0' 	:
 							int	octal = 0;
@@ -1781,11 +1723,12 @@ public class CharUtils {
 								index++;
 							}
 							temp[start++] = (char)octal;
+							index--;
 							break;
 						case 'u' 	:
 							int	hex = 0;
 							
-							index++;
+							index += 2;
 							while (index < maxIndex && ((currentChar = content.charAt(index)) >= '0' && currentChar <= '9' || currentChar >= 'a' && currentChar <= 'f' || currentChar >= 'A' && currentChar <= 'F') ) {
 								if (currentChar >= '0' && currentChar <= '9') {
 									hex = 16 * hex + currentChar - '0';
@@ -1798,6 +1741,7 @@ public class CharUtils {
 								}
 								index++;
 							}
+							index--;
 							temp[start++] = (char)hex;
 							break;
 						default :

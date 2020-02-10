@@ -13,10 +13,10 @@
 6. Добавить метод AboutPureLib в класс PureLibSettings
 7. Перенести отладочную печать класса из ClassLoaderWRapper и CompilerUtils
 8. Дополнить класс CharUtils методами toCharSequence/toWeakCharSequence для доступа к обернутому символьному массиву (в том числе cо слабой внешней ссылкой)
-9. Перенести методы split и join из CharUtils в UnsafedCharUtils
+*9. Перенести методы split и join из CharUtils в UnsafedCharUtils
 10. Написать метод parseStringExtended c GrowableCharArray вместо StringBuilder 
-11. Переписать класс LineParser на GrowableCharArray вместо StringBuilder
-12. Дополнить класс CharUtils методами escapeStringContent и unescapeStringContent 
+*11. Переписать класс LineByLineProcessor на GrowableCharArray вместо StringBuilder
+*12. Дополнить класс CharUtils методами escapeStringContent и unescapeStringContent 
 В пакете basic необходимо дополнить функциональность LoggerFacade фильтрами, а также набором свойств транзакционных логгеров. Необходимо также поднять MBean для управления 
 этими логгерами (включение фильтров, изменение уровня логирования и других параметров логгера). Транзакционные логгеры необходимо также прокинуть во все трассируемые классы 
 (наподобие asm), а также включить для работы с ними режим упаковки данных (с выбросом части данных в TempStore). Обеспечить также перенаправление и дублирование вывода 
@@ -24,15 +24,15 @@
 Пакет basic.annotations
 *1. Дополнить пакет аннотацией @Preliminary
 Пакет basic.growablrearrays
-1. Выделить обход дерева в отдельный утилитный класс 
-2. Написать тесты для новых методов GrowableCharArray
+*1. Выделить обход дерева в отдельный утилитный класс 
+*2. Написать тесты для новых методов GrowableCharArray
 Пакет cdb
 1. Написать тесты для SyntaxNodeUtils
 Пакет concurrent
 Пакет exceptions
 Пакет fsys
 1. Проверить работу FileSystemInMemory
-2. Дополнить тесты проверкой SPI
+*2. Дополнить тесты проверкой SPI
 3. Написать провайдер к файловым системам, чтобы пользоваться стандартным механизмом файловых систем в Java
 В пакете fsys необходимо отладить InMemory класс, а также обеспечить возможность создания разделяемого экземпляра файловой системы. Необходимо также проверить 
 работоспособность интерфейса с файловой системой "среда выполнения JRE" и исправить собственные ClassLoader-ы для поддержки этих файловых систем

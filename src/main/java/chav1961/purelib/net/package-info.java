@@ -4,7 +4,7 @@
  * <ul>
  * <li><b>{@linkplain chav1961.purelib.net.fsys.Handler fsys}</b> URL - URL for read-only access to any file systems in Pure Library.</li> 
  * <li><b>{@linkplain chav1961.purelib.net.root.Handler root}</b> URL - URL for read-only access to any resources inside your application. It's functionality is similar to
- * {@linkplain Class#getResource(String)} method, but this URS can refers to resource statically.</li> 
+ * {@linkplain Class#getResource(String)} method, but this URL can refers to resource statically.</li> 
  * <li><b>{@linkplain chav1961.purelib.net.self.Handler self}</b> URL - URL, containing data directly inside it in Base64-encoded form. This URL is especially useful for debugging purposes</li> 
  * </ul> 
  * 
