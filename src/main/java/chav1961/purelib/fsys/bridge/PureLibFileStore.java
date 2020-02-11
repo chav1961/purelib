@@ -5,6 +5,8 @@ import java.nio.file.FileStore;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.FileStoreAttributeView;
 
+import chav1961.purelib.fsys.bridge.PureLibFileSystemProvider.OrdinalFileSystemFileAttributes;
+import chav1961.purelib.fsys.bridge.PureLibFileSystemProvider.PureLibFileSystemFileAttributes;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 
 class PureLibFileStore extends FileStore {
@@ -26,8 +28,7 @@ class PureLibFileStore extends FileStore {
 
 	@Override
 	public boolean isReadOnly() {
-		// TODO Auto-generated method stub
-		return false;
+		return desc.isReadOnly();
 	}
 
 	@Override
@@ -46,26 +47,45 @@ class PureLibFileStore extends FileStore {
 	}
 
 	@Override
-	public boolean supportsFileAttributeView(Class<? extends FileAttributeView> type) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean supportsFileAttributeView(final Class<? extends FileAttributeView> type) {
+		if (type == null) {
+			throw new NullPointerException("Attribute type can't be null");
+		}
+		else {
+			return PureLibFileSystemFileAttributes.class.isAssignableFrom(type) || OrdinalFileSystemFileAttributes.class.isAssignableFrom(type); 
+		}
 	}
 
 	@Override
-	public boolean supportsFileAttributeView(String name) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean supportsFileAttributeView(final String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Attribute name can't be null or empty");
+		}
+		else {
+			return PureLibFileSystemProvider.ATTRIBUTE_BASIC.equals(name) || PureLibFileSystemProvider.ATTRIBUTE_PURELIB.equals(name);
+		}
 	}
 
 	@Override
-	public <V extends FileStoreAttributeView> V getFileStoreAttributeView(Class<V> type) {
-		// TODO Auto-generated method stub
+	public <V extends FileStoreAttributeView> V getFileStoreAttributeView(final Class<V> type) {
 		return null;
 	}
 
 	@Override
-	public Object getAttribute(String attribute) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getAttribute(final String attribute) throws IOException {
+		if (attribute == null || attribute.isEmpty()) {
+			throw new IllegalArgumentException("Attribute name can't be null or empty");
+		}
+		else {
+			final int		setIndex = attribute.indexOf(':'); 
+			final String	viewName = setIndex > 0 ? attribute.substring(0,setIndex) : PureLibFileSystemProvider.ATTRIBUTE_BASIC;
+
+			if (PureLibFileSystemProvider.ATTRIBUTE_PURELIB.equals(viewName) || PureLibFileSystemProvider.ATTRIBUTE_BASIC.equals(viewName)) {
+				return null;
+			}
+			else {
+				throw new IllegalArgumentException("View name ["+viewName+"] in the attribute ["+attribute+"] is not supported by this file system");
+			}
+		}
 	}
 }

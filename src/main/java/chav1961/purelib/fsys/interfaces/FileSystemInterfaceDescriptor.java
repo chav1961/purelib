@@ -2,6 +2,7 @@ package chav1961.purelib.fsys.interfaces;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ServiceLoader;
 
 import javax.swing.Icon;
 
@@ -46,14 +47,59 @@ public interface FileSystemInterfaceDescriptor {
 	 * @return Vendor id string. Can be null
 	 */
 	String getVendorId();
+	
+	/**
+	 * <p>Get icon associated with the given driver.</p>
+	 * @return Icon instance. Can be null
+	 */
 	Icon getIcon();
+	
+	/**
+	 * <p>Get license identifier for the given driver. Value returned can be used as key for localizer associated</p>
+	 * @return license id. Can't be null
+	 */
 	String getLicenseId();
+	
+	/**
+	 * <p>Get license content identifier for the given driver (usually license text). Value returned can be used as key for localizer associated</p>
+	 * @return license content id. Can be null
+	 */
 	String getLicenseContentId();
+	
+	/**
+	 * <p>Get help id for the given driver. Value returned can be used as key for localizer associated</p>
+	 * @return Help id. Can be null
+	 */
 	String getHelpId();
+	
+	/**
+	 * <p>Get URI template for the given driver. URI must be absolute and contain at least File system URI scheme and this diver sub-scheme. 
+	 * It's strongly recommended to use URI pointed to root of the file system (path content contains '/' only)</p> 
+	 * @return URI template. Can't be null
+	 */
 	URI getUriTemplate();
+	
+	/**
+	 * <p>Is the file system always read-only</p>
+	 * @return true if yes
+	 */
 	default boolean isReadOnly() {
 		return false;
 	}
+	
+	/**
+	 * <p>Create file system instance. Must returns the same instance as call to {@linkplain ServiceLoader#load(Class)} method.</p>
+	 * @return File system instance returned. Cn't be null
+	 * @throws EnvironmentException if File system instance can't be created
+	 */
 	FileSystemInterface getInstance() throws EnvironmentException;
+	
+	/**
+	 * <p>Test connection to the given file system with the given URI</p>
+	 * @param connection URI to connect to the file system. Must be absolute and it's scheme and sub-scheme must match URi returned by {@linkplain #getUriTemplate()} method
+	 * @param logger logger to print connection messages to
+	 * @return true is connection successful, false otherwise
+	 * @throws IOException any problems on connection
+	 */
 	boolean testConnection(final URI connection, final LoggerFacade logger) throws IOException;
 }
