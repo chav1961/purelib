@@ -120,7 +120,7 @@ public class LineByLineProcessor implements Closeable {
 				}
 			}
 			if (start < off+len) {
-				gca.append(cbuf,start,off+len-start);
+				gca.append(cbuf,start,off+len);
 			}
 		}
 	}
