@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
@@ -23,6 +24,7 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -34,8 +36,11 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
+import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.SwingUtils.InnerActionNode;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
@@ -310,23 +315,41 @@ public class SwingModelUtils {
 			if (node.getApplicationPath() != null && node.getApplicationPath().toString().contains(Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION)) {
 				switch (node.getName()) {
 					case Constants.MODEL_BUILTIN_LANGUAGE	:
+						final String		currentLang = Locale.getDefault().getLanguage();
+						final ButtonGroup	langGroup = new ButtonGroup();
+						
 						AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
-							final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
+							final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(langName,icon);
 							
-							item.setText(langName);
-							item.setIcon(icon);
-							item.setActionCommand(node.getApplicationPath()+":"+lang.name());
-							submenu.add(item);
+							radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LANGUAGE+"?lang="+lang.name());
+							if (currentLang.equals(lang.toString())) {	// Mark current lang
+								radio.setSelected(true);
+							}
+							langGroup.add(radio);
+							submenu.add(radio);
 						});
+						menu.add(submenu);
 						break;
-					case Constants.MODEL_BUILTIN_STYLE		:
+					case Constants.MODEL_BUILTIN_LAF	:
+						final String		currentLafDesc = UIManager.getLookAndFeel().getName();
+						final ButtonGroup	lafGroup = new ButtonGroup();
+						
 						for (LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
-							final JMenuItemWithMeta	item = new JMenuItemWithMeta(node);
-							
-							item.setText(laf.getName());
-							item.setActionCommand(node.getApplicationPath()+":"+laf.getClassName());
-							submenu.add(item);
+							try{final String				clazzName = laf.getClassName();
+								final Class<?> 				clazz = Class.forName(clazzName);
+								final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(clazz.getSimpleName());
+
+								radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LAF+"?laf="+clazzName);
+								radio.setToolTipText(laf.getName());
+								if (currentLafDesc.equals(laf.getName())) {	// Mark current L&F
+									radio.setSelected(true);
+								}
+								lafGroup.add(radio);
+								submenu.add(radio);
+							} catch (ClassNotFoundException e) {
+							}
 						}
+						menu.add(submenu);
 						break;
 					default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");
 				}
@@ -378,13 +401,24 @@ public class SwingModelUtils {
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 			try{fillLocalizedStrings();
+				for (int index = 0, maxIndex = this.getMenuCount(); index < maxIndex; index++) {
+					final JMenu	item = this.getMenu(index);
+					
+					if (item instanceof LocaleChangeListener) {
+						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
+					}
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
-//			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			final String	ttId = getNodeMetadata().getTooltipId();
+			
+			if (ttId != null && !ttId.isEmpty()) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(ttId));
+			}
 		}
 	}
 
@@ -410,13 +444,24 @@ public class SwingModelUtils {
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 			try{fillLocalizedStrings();
+				for (int index = 0, maxIndex = this.getComponentCount(); index < maxIndex; index++) {
+					final Component	item = this.getComponent(index);
+					
+					if (item instanceof LocaleChangeListener) {
+						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
+					}
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
-//			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			final String	ttId = getNodeMetadata().getTooltipId();
+			
+			if (ttId != null && !ttId.isEmpty()) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(ttId));
+			}
 		}
 	}
 	
@@ -529,6 +574,13 @@ public class SwingModelUtils {
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 			try{fillLocalizedStrings();
+				for (int index = 0, maxIndex = this.getMenuComponentCount(); index < maxIndex; index++) {
+					final Component	item = this.getMenuComponent(index);
+					
+					if (item instanceof LocaleChangeListener) {
+						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
+					}
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

@@ -74,6 +74,7 @@ import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -731,8 +732,8 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				for (Entry<String, Method> item : annotatedMethods.entrySet()) {
 					final Method	m = item.getValue();
 					
-					m.setAccessible(true);
-					try{calls.put(item.getKey(),new MethodHandleAndAsync(MethodHandles.lookup().unreflect(m),m.getAnnotation(OnAction.class).async()));
+					try{m.setAccessible(true);
+						calls.put(item.getKey(),new MethodHandleAndAsync(MethodHandles.lookup().unreflect(m),m.getAnnotation(OnAction.class).async()));
 					} catch (IllegalAccessException exc) {
 						throw new IllegalArgumentException("Can't get access to annotated method ["+m+"]: "+exc.getLocalizedMessage()); 
 					}
@@ -741,12 +742,21 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				return new ActionListener() {
 					@Override
 					public void actionPerformed(final ActionEvent e) {
-						if (calls.containsKey(e.getActionCommand())) {
-							try{final MethodHandleAndAsync	mha = calls.get(e.getActionCommand());
+						final URI			action = URI.create(e.getActionCommand());
+						final Map<String,?>	query = URIUtils.parseQuery(action);
+						final String		actionKey = URIUtils.removeQueryFromURI(action).toString();
+						
+						if (calls.containsKey(actionKey)) {
+							try{final MethodHandleAndAsync	mha = calls.get(actionKey);
 							
 								if (mha.async) {
 									new Thread(()->{
-										try{mha.handle.invoke(entity);
+										try{if (!query.isEmpty()) {
+												mha.handle.invoke(entity,query);
+											}
+											else {
+												mha.handle.invoke(entity);
+											}
 										} catch (ThreadDeath d) {
 											throw d;
 										} catch (Throwable t) {
@@ -755,7 +765,12 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 									}).start();
 								}
 								else {
-									mha.handle.invoke(entity);
+									if (!query.isEmpty()) {
+										mha.handle.invoke(entity,query);
+									}
+									else {
+										mha.handle.invoke(entity);
+									}
 								}
 							} catch (Throwable t) {
 								logger.message(Severity.error, t, t.getLocalizedMessage() == null ? t.getClass().getSimpleName() : t.getLocalizedMessage());
