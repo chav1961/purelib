@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import chav1961.purelib.basic.CharUtils;
@@ -76,7 +76,9 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 			throw new IOException("File system for ["+uri+"] not created: URI scheme must be ["+FileSystemInterface.FILESYSTEM_URI_SCHEME+"]");
 		}
 		else {
-			return createFileSystem(uri,joinEnvArguments(env,URIUtils.extractQueryFromURI(uri)));
+			final String	query = URIUtils.extractQueryFromURI(uri);
+			
+			return createFileSystem(uri,query == null ? env : joinEnvArguments(env,query));
 		}
 	}
 
@@ -85,11 +87,8 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 		if (uri == null) {
 			throw new NullPointerException("URI for file system can't be null");
 		}
-		else if (!FileSystemInterface.FILESYSTEM_URI_SCHEME.equalsIgnoreCase(uri.getScheme())) {
-			throw new FileSystemNotFoundException("File system for ["+uri+"] not created: URI scheme must be ["+FileSystemInterface.FILESYSTEM_URI_SCHEME+"]");
-		}
 		else {
-			try{return createFileSystem(uri,joinEnvArguments(new HashMap<>(),URIUtils.extractQueryFromURI(uri)));
+			try{return newFileSystem(uri,Utils.mkMap());
 			} catch (IOException e) {
 				throw new FileSystemNotFoundException("File system for ["+uri+"] not found: "+e.getLocalizedMessage());
 			}
@@ -107,7 +106,6 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 		else if (uri.isAbsolute()) {
 			try(final	FileSystemInterface	fsi = FileSystemFactory.createFileSystem(uri)) {
 				final String			subscheme = URI.create(uri.getSchemeSpecificPart()).getScheme();
-				final URI				root = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+':'+subscheme+":/");
 				final PureLibFileSystem	plfs = new PureLibFileSystem(this); 
 
 				return new PureLibPath(plfs,subscheme,uri.getPath());
@@ -122,18 +120,7 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 
 	@Override
 	public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-		if (path == null) {
-			throw new NullPointerException("Path to get byte channel can't be null"); 
-		}
-		else if (!(path instanceof PureLibPath)) {
-			throw new IllegalArgumentException("Path to get byte channel ["+path+"] is not a Pure library path"); 
-		}
-		else if (!path.isAbsolute()) {
-			throw new IOException("Path to get byte channel ["+path+"] is not absolute, but this file system doesn't support defult directory option"); 
-		}
-		else {
-			throw new UnsupportedOperationException("This file system doesn't support channels to acces content");
-		}
+		throw new UnsupportedOperationException("This file system doesn't support channels to access content");
 	}
 
 	@Override
@@ -507,11 +494,16 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 	}
 	
 	static Map<String,?> joinEnvArguments(final Map<String,?> env, final String query) {
-		return null;
+		final Map queryItems = URIUtils.parseQuery(query);
+		
+		for ( Entry item : env.entrySet()) {
+			queryItems.putIfAbsent(item.getKey(),item.getValue());
+		}
+		return queryItems;
 	}
 
 	FileSystem createFileSystem(final URI uri, Map<String, ?> env) throws IOException {
-		return null;
+		return new PureLibFileSystem(this);
 	}
 	
 	public static class PureLibFileSystemFileAttributes implements BasicFileAttributes {

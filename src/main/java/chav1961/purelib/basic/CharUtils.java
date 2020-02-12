@@ -1480,10 +1480,29 @@ public class CharUtils {
 			throw new NullPointerException("Source string can't be null"); 
 		}
 		else {
-			return UnsafedCharUtils.split(source, splitter);
+			return split(source, splitter, false, false);
 		}
 	}
 
+	/**
+	 * <p>Split string into string arrays. Against {@linkplain String#split(String)} doesn't use regular expressions</p>	
+	 * @param source string to split
+	 * @param splitter splitter char
+	 * @param removeCornerEmpty remove corner elements from result, if they are empty 
+	 * @param removeTotalEmpty remove all empty elements from result
+	 * @return string array with splitter string. Always contains at least one element
+	 * @throws NullPointerException when source string is null
+	 * @since 0.0.4
+	 */
+	public static String[] split(final String source, final char splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty) throws NullPointerException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else {
+			return UnsafedCharUtils.split(source, splitter, removeCornerEmpty, removeTotalEmpty);
+		}
+	}
+	
 	/**
 	 * <p>Split string into string arrays. Against {@linkplain String#split(String)} doesn't use regular expressions</p>
 	 * @param source string to split
@@ -1502,10 +1521,34 @@ public class CharUtils {
 			throw new NullPointerException("Traget string array can't be null"); 
 		}
 		else {
-			return UnsafedCharUtils.split(source, splitter, target);
+			return split(source, splitter, false, false, target);
 		}
 	}
 
+	/**
+	 * <p>Split string into string arrays. Against {@linkplain String#split(String)} doesn't use regular expressions</p>
+	 * @param source string to split
+	 * @param splitter splitter char
+	 * @param removeCornerEmpty remove corner elements from result, if they are empty 
+	 * @param removeTotalEmpty remove all empty elements from result
+	 * @param target target array to receive strings splitted
+	 * @return non-negative number - number of pieces of the splitted string, negative number - -(number of pieces of the splitted string + 1).
+	 * Negative number means that target array is too small to receive content (nothing will be filled in this case)
+	 * @throws NullPointerException when either source or target parameter is null
+	 * @since 0.0.4
+	 */
+	public static int split(final String source, final char splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty, final String[] target) throws NullPointerException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (target == null) {
+			throw new NullPointerException("Traget string array can't be null"); 
+		}
+		else {
+			return UnsafedCharUtils.split(source, splitter, removeCornerEmpty, removeTotalEmpty, target);
+		}
+	}
+	
 	/**
 	 * <p>Split string into string arrays. Against {@linkplain String#split(String)} doesn't use regular expressions</p>	
 	 * @param source string to split
@@ -1523,10 +1566,34 @@ public class CharUtils {
 			throw new IllegalArgumentException("Splitter string can't be null or empty"); 
 		}
 		else {
-			return UnsafedCharUtils.split(source, splitter);
+			return split(source, splitter, false, false);
 		}
 	}
 
+	/**
+	 * <p>Split string into string arrays. Against {@linkplain String#split(String)} doesn't use regular expressions</p>
+	 * @param source string to split
+	 * @param splitter splitter char
+	 * @param removeCornerEmpty remove corner elements from result, if they are empty 
+	 * @param removeTotalEmpty remove all empty elements from result
+	 * @return string array with splitter string. Always contains at least one element
+	 * @throws NullPointerException when source string is null
+	 * @throws IllegalArgumentException when splitter is null or empty
+	 * @since 0.0.4
+	 */
+	public static String[] split(final String source, final String splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty) throws NullPointerException, IllegalArgumentException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (splitter == null || splitter.isEmpty()) {
+			throw new IllegalArgumentException("Splitter string can't be null or empty"); 
+		}
+		else {
+			return UnsafedCharUtils.split(source, splitter, removeCornerEmpty, removeTotalEmpty);
+		}
+	}
+	
+	
 	/**
 	 * <p>Split string into string arrays. Against {@linkplain String#split(String)} doesn't use regular expressions</p>
 	 * @param source string to split
@@ -1549,10 +1616,38 @@ public class CharUtils {
 			throw new NullPointerException("Traget string array can't be null"); 
 		}
 		else {
-			return UnsafedCharUtils.split(source, splitter, target);
+			return split(source, splitter, false, false, target);
 		}
 	}
 
+	/**
+	 * <p>Split string into string arrays. Against {@linkplain String#split(String)} doesn't use regular expressions</p>
+	 * @param source string to split
+	 * @param splitter splitter char
+	 * @param removeCornerEmpty remove corner elements from result, if they are empty 
+	 * @param removeTotalEmpty remove all empty elements from result
+	 * @param target target array to receive strings splitted
+	 * @return non-negative number - number of pieces of the splitted string, negative number - -(number of pieces of the splitted string + 1).
+	 * Negative number means that target array is too small to receive content (nothing will be filled in this case)
+	 * @throws NullPointerException when either source or target parameter is null
+	 * @throws IllegalArgumentException when splitter is null or empty
+	 * @since 0.0.2
+	 */
+	public static int split(final String source, final String splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty, final String[] target) throws NullPointerException, IllegalArgumentException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (splitter == null || splitter.isEmpty()) {
+			throw new IllegalArgumentException("Splitter string can't be null or empty"); 
+		}
+		else if (target == null) {
+			throw new NullPointerException("Traget string array can't be null"); 
+		}
+		else {
+			return UnsafedCharUtils.split(source, splitter, removeCornerEmpty, removeTotalEmpty, target);
+		}
+	}
+	
 	/**
 	 * <p>Concatenate character content to character array using given delimiters</p>
 	 * @param delimiter delimiter to use

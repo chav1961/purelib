@@ -728,7 +728,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			walk((AbstractFileSystem)fsi,path,to,path.length,collection);
 		}
 		else if (to == path.length) {
-			collection.add(afs.createDataWrapper(URI.create(URLEncoder.encode(new String(path,from,to-from), "UTF-8"))));
+			collection.add(afs.createDataWrapper(URI.create(new String(path,from,to-from))));
 		}
 		else {
 			int		slash = -1;

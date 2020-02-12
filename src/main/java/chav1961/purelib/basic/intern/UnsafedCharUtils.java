@@ -1583,48 +1583,48 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 	}
 	
 
-	public static String[] split(final String source, final char splitter) throws NullPointerException {
+	public static String[] split(final String source, final char splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty) throws NullPointerException {
 		final char[]	content = source.toCharArray();
-		final int		amount = calculateSplitters(content,splitter);
+		final int		amount = calculateSplitters(content,splitter,removeCornerEmpty,removeTotalEmpty);
 		final String[]	result = new String[amount + 1];
 		
-		split(content,splitter,result);
+		split(content,splitter,removeCornerEmpty,removeTotalEmpty,result);
 		return result;
 	}
 
-	public static int split(final String source, final char splitter, final String[] target) throws NullPointerException {
+	public static int split(final String source, final char splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty, final String[] target) throws NullPointerException {
 		final char[]	content = source.toCharArray();
-		final int		amount = calculateSplitters(content,splitter);
+		final int		amount = calculateSplitters(content,splitter,removeCornerEmpty,removeTotalEmpty);
 
 		if (amount + 1 > target.length) {
 			return -(amount + 1);
 		}
 		else {
-			split(content,splitter,target);
+			split(content,splitter,removeCornerEmpty,removeTotalEmpty,target);
 			return amount + 1;
 		}
 	}
 
-	public static String[] split(final String source, final String splitter) throws NullPointerException, IllegalArgumentException {
+	public static String[] split(final String source, final String splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty) throws NullPointerException, IllegalArgumentException {
 		final char[]	content = source.toCharArray();
 		final char[]	toSplit = splitter.toCharArray();
-		final int		amount = calculateSplitters(content,toSplit);
+		final int		amount = calculateSplitters(content,toSplit,removeCornerEmpty,removeTotalEmpty);
 		final String[]	result = new String[amount + 1];
 		
-		split(content,toSplit,result);
+		split(content,toSplit,removeCornerEmpty,removeTotalEmpty,result);
 		return result;
 	}
 
-	public static int split(final String source, final String splitter, final String[] target) throws NullPointerException, IllegalArgumentException {
+	public static int split(final String source, final String splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty, final String[] target) throws NullPointerException, IllegalArgumentException {
 		final char[]	content = source.toCharArray();
 		final char[]	toSplit = splitter.toCharArray();
-		final int		amount = calculateSplitters(content,toSplit);
+		final int		amount = calculateSplitters(content,toSplit,removeCornerEmpty,removeTotalEmpty);
 
 		if (amount + 1 > target.length) {
 			return -(amount + 1);
 		}
 		else {
-			split(content,toSplit,target);
+			split(content,toSplit,removeCornerEmpty,removeTotalEmpty,target);
 			return amount + 1;
 		}
 	}
@@ -1678,50 +1678,89 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		return new String(result);
 	}
 
-	private static int calculateSplitters(final char[] source, final char splitter) {
-		int	amount = 0;
-		
-		for (char item : source) {
-			if (item == splitter) {
-				amount++;
+	private static int calculateSplitters(final char[] source, final char splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty) {
+		if (source.length > 0) {
+			int	amount = 0;
+			char prev = ' ';
+			
+			for (char item : source) {
+				if (item == splitter) {
+					if (!removeTotalEmpty || prev != splitter) {
+						amount++;
+					}
+				}
+				prev = item;
 			}
+			if (removeCornerEmpty || removeTotalEmpty) {
+				if (source[0] == splitter) {
+					amount--;
+				}
+				if (source[source.length-1] == splitter) {
+					amount--;
+				}
+			}
+			return amount;
 		}
-		return amount;
+		else {
+			return 0;
+		}
 	}
 
-	private static int calculateSplitters(final char[] source, final char[] splitter) {
+	private static int calculateSplitters(final char[] source, final char[] splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty) {
 		final char	first = splitter[0];
 		final int	splitterLen = splitter.length;
-		int	amount = 0;
+		int			amount = 0, lastCompared = Integer.MIN_VALUE;
 		
 		for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
 			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
+				if (!removeTotalEmpty || lastCompared != index - splitterLen) {
+					amount++;
+				}
+				lastCompared = index;
 				index += splitterLen - 1;
-				amount++;
+			}
+		}
+		if (removeCornerEmpty || removeTotalEmpty) {
+			if (UnsafedCharUtils.uncheckedCompare(source,0,splitter,0,splitter.length)) {
+				amount--;
+			}
+			if (UnsafedCharUtils.uncheckedCompare(source,source.length-splitterLen,splitter,0,splitter.length)) {
+				amount--;
 			}
 		}
 		return amount;
 	}
 	
-	private static void split(final char[] source, final char splitter, final String[] target) {
-		int	start = 0, maxIndex = source.length, targetIndex = 0;
+	private static void split(final char[] source, final char splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty, final String[] target) {
+		final boolean	removeTrims = removeCornerEmpty || removeTotalEmpty;
+		final int		maxIndex = removeTrims && source[source.length-1] == splitter ? source.length - 1 : source.length;
+		int				start = removeTrims && source[0] == splitter ? 1 : 0, targetIndex = 0;
+		char			prev = ' ', current;
 		
-		for (int index = 0; index < maxIndex; index++) {
-			if (source[index] == splitter) {
-				target[targetIndex++] = new String(source,start,index-start);
+		for (int index = start; index < maxIndex; index++) {
+			if ((current = source[index]) == splitter) {
+				if (!removeTotalEmpty || prev != splitter) {
+					target[targetIndex++] = new String(source,start,index-start);
+				}
 				start = index + 1;
 			}
+			prev = current;
 		}
 		target[targetIndex++] = new String(source,start,maxIndex-start);
 	}
 
-	private static void split(final char[] source, final char[] splitter, final String[] target) {
-		final char	first = splitter[0];
-		int	start = 0, splitterLen = splitter.length, maxIndex = source.length, targetIndex = 0;
+	private static void split(final char[] source, final char[] splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty, final String[] target) {
+		final boolean	removeTrims = removeCornerEmpty || removeTotalEmpty;
+		final char		first = splitter[0];
+		final int		splitterLen = splitter.length, maxIndex = removeTrims && UnsafedCharUtils.uncheckedCompare(source,source.length-splitterLen,splitter,0,splitter.length) ? source.length - splitterLen: source.length;
+		int				start = removeTrims && UnsafedCharUtils.uncheckedCompare(source,0,splitter,0,splitter.length) ? splitterLen: 0, targetIndex = 0, lastCompared = Integer.MIN_VALUE;
 		
-		for (int index = 0; index < maxIndex; index++) {
+		for (int index = start; index < maxIndex; index++) {
 			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
-				target[targetIndex++] = new String(source,start,index-start);
+				if (!removeTotalEmpty || lastCompared != index - splitterLen) {
+					target[targetIndex++] = new String(source,start,index-start);
+				}
+				lastCompared = index;
 				index += splitterLen - 1;
 				start = index + 1;
 			}

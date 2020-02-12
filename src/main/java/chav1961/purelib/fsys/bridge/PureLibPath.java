@@ -12,9 +12,15 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
+/*
+ * Pure library path can be absolute or relative. Relative path is usual URI. Absolute path is an URI stared with file system subscheme:
+ * 		<file>:/path....
+ * 
+ */
 class PureLibPath implements Path {
 	private final PureLibFileSystem	fs;
 	private final String			subscheme;
@@ -25,7 +31,7 @@ class PureLibPath implements Path {
 		this.fs = fs;
 		this.subscheme = subscheme;
 		this.path = path;
-		this.ref = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+':'+subscheme+':'+path);
+		this.ref = URI.create(subscheme+(path.charAt(0) == '/' ? ":" : ":/")+path);
 	}
 
 	PureLibPath(final PureLibFileSystem fs, final String path) {
@@ -47,7 +53,12 @@ class PureLibPath implements Path {
 
 	@Override
 	public Path getRoot() {
-		return new PureLibPath(fs,subscheme,PureLibFileSystemProvider.PATH_SPLITTER);
+		if (isAbsolute()) {
+			return new PureLibPath(fs,subscheme,PureLibFileSystemProvider.PATH_SPLITTER);
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -60,12 +71,10 @@ class PureLibPath implements Path {
 
 	@Override
 	public Path getParent() {
-		final URI	resolved = toUri().resolve(URI.create(".."+PureLibFileSystemProvider.PATH_SPLITTER));
+		final URI	resolved = URIUtils.appendRelativePath2URI(toUri(),"../").normalize();
 
 		if (resolved.isAbsolute()) {
-			final URI	subUri = URI.create(resolved.getSchemeSpecificPart());
-			
-			return new PureLibPath(fs,subUri.getScheme(),resolved.getPath());
+			return new PureLibPath(fs,resolved.getScheme(),resolved.getPath());
 		}
 		else {
 			return new PureLibPath(fs,resolved.getPath());
@@ -74,9 +83,9 @@ class PureLibPath implements Path {
 
 	@Override
 	public int getNameCount() {
-		final String[]	components = CharUtils.split(path,PureLibFileSystemProvider.PATH_SPLITTER);
+		final String[]	components = CharUtils.split(path,PureLibFileSystemProvider.PATH_SPLITTER,true,true);
 		
-		return isAbsolute() ? components.length + 1 : components.length; 
+		return (isAbsolute() ? components.length + 1 : components.length);
 	}
 
 	@Override
@@ -85,23 +94,19 @@ class PureLibPath implements Path {
 			throw new IllegalArgumentException("Name index ["+index+"] out of range 0.."+(getNameCount()-1));
 		}
 		else {
+			final String[]	components = CharUtils.split(path,PureLibFileSystemProvider.PATH_SPLITTER,true,true);
 			
-		}
-		final String[]	components = CharUtils.split(path,PureLibFileSystemProvider.PATH_SPLITTER);
-		
-		if (isAbsolute()) {
-			if (index == 0) {
-				return new PureLibPath(fs,PureLibFileSystemProvider.PATH_SPLITTER+FileSystemInterface.FILESYSTEM_URI_SCHEME);
-			}
-			else if (index == 1) {
-				return new PureLibPath(fs,PureLibFileSystemProvider.PATH_SPLITTER+subscheme);
+			if (isAbsolute()) {
+				if (index == 0) {
+					return new PureLibPath(fs,subscheme+":/");
+				}
+				else {
+					return new PureLibPath(fs,PureLibFileSystemProvider.PATH_SPLITTER+components[index-1]);
+				}
 			}
 			else {
-				return new PureLibPath(fs,PureLibFileSystemProvider.PATH_SPLITTER+components[index-1]);
+				return new PureLibPath(fs,PureLibFileSystemProvider.PATH_SPLITTER+components[index]);
 			}
-		}
-		else {
-			return new PureLibPath(fs,PureLibFileSystemProvider.PATH_SPLITTER+components[index+1]);
 		}
 	}
 
@@ -120,7 +125,10 @@ class PureLibPath implements Path {
 			final StringBuilder	sb = new StringBuilder();
 			
 			for (int index = beginIndex; index <= endIndex; index++) {
-				sb.append(PureLibFileSystemProvider.PATH_SPLITTER).append(getName(index));
+				sb.append(getName(index).toUri());
+			}
+			if (endIndex < getNameCount() - 1) {
+				sb.append('/');
 			}
 			
 			return isAbsolute() ? new PureLibPath(fs,subscheme,sb.toString()) : new PureLibPath(fs,sb.toString());
@@ -149,7 +157,7 @@ class PureLibPath implements Path {
 	}
 
 	@Override
-	public boolean endsWith(Path other) {
+	public boolean endsWith(final Path other) {
 		if (other == null) {
 			throw new NullPointerException("Path to test can't be null");
 		}
@@ -157,12 +165,17 @@ class PureLibPath implements Path {
 			throw new IllegalArgumentException("Other path type ["+other.getClass()+"] is not a ["+this.getClass()+"]");
 		}
 		else if (isAbsolute() == other.isAbsolute() && getNameCount() >= other.getNameCount()) {
-			for (int index = 0, shift = getNameCount()-other.getNameCount(), maxIndex = other.getNameCount(); index <  maxIndex; index++) {
+			for (int index = isAbsolute() ? 1 : 0, shift = getNameCount()-other.getNameCount(), maxIndex = other.getNameCount(); index <  maxIndex; index++) {
 				if (!getName(index+shift).equals(other.getName(index))) {
 					return false;
 				}
 			}
-			return true;
+			if (isAbsolute()) {
+				return getName(0).toUri().equals(other.getName(0).toUri());
+			}
+			else {	
+				return true;
+			}
 		}
 		else {
 			return false;
@@ -188,9 +201,7 @@ class PureLibPath implements Path {
 			final URI	resolved = toUri().resolve(other.toUri());
 
 			if (resolved.isAbsolute()) {
-				final URI	subUri = URI.create(resolved.getSchemeSpecificPart());
-				
-				return new PureLibPath(fs,subUri.getScheme(),resolved.getPath());
+				return new PureLibPath(fs,resolved.getScheme(),resolved.getPath());
 			}
 			else {
 				return new PureLibPath(fs,resolved.getPath());
@@ -210,9 +221,7 @@ class PureLibPath implements Path {
 			final URI	relativize = toUri().relativize(other.toUri());
 
 			if (relativize.isAbsolute()) {
-				final URI	subUri = URI.create(relativize.getSchemeSpecificPart());
-				
-				return new PureLibPath(fs,subUri.getScheme(),relativize.getPath());
+				return new PureLibPath(fs,relativize.getScheme(),relativize.getPath());
 			}
 			else {
 				return new PureLibPath(fs,relativize.getPath());
@@ -241,7 +250,7 @@ class PureLibPath implements Path {
 			return this;
 		}
 		else {
-			throw new IOError(new EnvironmentException("Relative path can't be converted to real path, because there is no default directory in the given file system")); 
+			throw new IOException(new EnvironmentException("Relative path can't be converted to real path, because there is no default directory in the given file system")); 
 		}
 	}
 
@@ -262,7 +271,9 @@ class PureLibPath implements Path {
 			int	result;
 			
 			for (int index = 0, maxIndex = Math.min(getNameCount(),other.getNameCount()); index < maxIndex; index++) {
-				if ((result = getName(index).compareTo(other.getName(index))) != 0) {
+				final URI	left = getName(index).toUri(), right = other.getName(index).toUri();
+				
+				if ((result = left.compareTo(right)) != 0) {
 					return result;
 				}
 			}

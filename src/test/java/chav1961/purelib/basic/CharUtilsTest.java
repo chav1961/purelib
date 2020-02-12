@@ -953,9 +953,19 @@ public class CharUtilsTest {
 		String[]	content;
 		
 		Assert.assertArrayEquals(new String[]{"first","second"},CharUtils.split("first,second",','));
+		
 		Assert.assertArrayEquals(new String[]{"first","","second"},CharUtils.split("first,,second",','));
+		Assert.assertArrayEquals(new String[]{"first","second"},CharUtils.split("first,,second",',',false,true));
+		Assert.assertArrayEquals(new String[]{"first","","second"},CharUtils.split("first,,second",',',true,false));
+		
 		Assert.assertArrayEquals(new String[]{"","second"},CharUtils.split(",second",','));
+		Assert.assertArrayEquals(new String[]{"second"},CharUtils.split(",second",',',false,true));
+		Assert.assertArrayEquals(new String[]{"second"},CharUtils.split(",second",',',true,false));
+		
 		Assert.assertArrayEquals(new String[]{"first",""},CharUtils.split("first,",','));
+		Assert.assertArrayEquals(new String[]{"first"},CharUtils.split("first,",',',false,true));
+		Assert.assertArrayEquals(new String[]{"first"},CharUtils.split("first,",',',true,false));
+		
 		Assert.assertArrayEquals(new String[]{"first"},CharUtils.split("first",','));
 		
 		try{CharUtils.split(null,',');
@@ -977,9 +987,19 @@ public class CharUtilsTest {
 		}
 		
 		Assert.assertArrayEquals(new String[]{"first","second"},CharUtils.split("first::second","::"));
+		
 		Assert.assertArrayEquals(new String[]{"first","","second"},CharUtils.split("first::::second","::"));
+		Assert.assertArrayEquals(new String[]{"first","second"},CharUtils.split("first::::second","::",false,true));
+		Assert.assertArrayEquals(new String[]{"first","","second"},CharUtils.split("first::::second","::",true,false));
+		
 		Assert.assertArrayEquals(new String[]{"","second"},CharUtils.split("::second","::"));
+		Assert.assertArrayEquals(new String[]{"second"},CharUtils.split("::second","::",false,true));
+		Assert.assertArrayEquals(new String[]{"second"},CharUtils.split("::second","::",true,false));
+		
 		Assert.assertArrayEquals(new String[]{"first",""},CharUtils.split("first::","::"));
+		Assert.assertArrayEquals(new String[]{"first"},CharUtils.split("first::","::",false,true));
+		Assert.assertArrayEquals(new String[]{"first"},CharUtils.split("first::","::",true,false));
+		
 		Assert.assertArrayEquals(new String[]{"first"},CharUtils.split("first","::"));
 
 		Assert.assertEquals(-2,CharUtils.split("first::second","::",new String[0]));

@@ -235,6 +235,7 @@ public class URIUtils {
 	 * @throws IllegalArgumentException if relative path is null or empty
 	 * @see https://tools.ietf.org/html/rfc3986
 	 * @since 0.0.3
+	 * @lastUpdate 0.0.4
 	 */
 	public static URI appendRelativePath2URI(final URI uri, final String relativePath) throws NullPointerException, IllegalArgumentException {
 		if (uri == null) {
@@ -244,16 +245,24 @@ public class URIUtils {
 			throw new IllegalArgumentException("Uri to append path to can't be null");
 		}
 		else {
-			final String	newPath = URI.create(uri.getPath()+(relativePath.charAt(0) == '/' ? "" : "/")+relativePath).normalize().toString();
-			String			temp = uri.resolve(newPath).toString();
+			final StringBuilder	sb = new StringBuilder();
+			URI					parse = uri;
 			
-			if (uri.getRawQuery() != null) {
-				temp += '?' + uri.getRawQuery();
+			while (parse.isAbsolute()) {
+				sb.append(parse.getScheme()).append(':');
+				parse = URI.create(parse.getSchemeSpecificPart());
 			}
-			if (uri.getRawFragment() != null) {
-				temp += '#' + uri.getRawFragment();
+			if (parse.getPath() != null) {
+				sb.append(URI.create(parse.getPath()+(relativePath.charAt(0) == '/' ? relativePath : '/' + relativePath)).normalize());
 			}
-			return URI.create(temp);
+			if (parse.getFragment() != null) {
+				sb.append('#').append(parse.getFragment());
+			}
+			if (parse.getQuery() != null) {
+				sb.append('?').append(parse.getQuery());
+			}
+			
+			return URI.create(sb.toString());
 		}
 	}
 	

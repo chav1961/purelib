@@ -108,7 +108,12 @@ class PureLibFileSystem extends FileSystem {
 					final URI	template = URI.create(item.getUriTemplate().getSchemeSpecificPart());
 
 					if (first.equals(template.getScheme())) {
-						return new PureLibPath(this,template.getScheme(),PureLibFileSystemProvider.PATH_SPLITTER+CharUtils.join(PureLibFileSystemProvider.PATH_SPLITTER,more));
+						if (more.length == 1 && getSeparator().equals(more[0])) {
+							return new PureLibPath(this,template.getScheme(),getSeparator());
+						}
+						else {
+							return new PureLibPath(this,template.getScheme(),getSeparator()+CharUtils.join(getSeparator(),more));
+						}
 					}
 				}
 			} catch (IOException e) {
@@ -155,36 +160,6 @@ class PureLibFileSystem extends FileSystem {
 			else {
 				throw new IllegalArgumentException("Illegal content ["+syntaxAndPattern+"]: syntax type clause is missing");
 			}
-			// TODO Auto-generated method stub
-			
-//			*.java	Matches a path that represents a file name ending in .java
-//			*.*	Matches file names containing a dot
-//			*.{java,class}	Matches file names ending with .java or .class
-//			foo.?	Matches file names starting with foo. and a single character extension
-//			/home/*/*	Matches /home/gus/data on UNIX platforms
-//			/home/**	Matches /home/gus and /home/gus/data on UNIX platforms
-//			C:\\*	Matches C:\foo and C:\bar on the Windows platform (note that the backslash is escaped; as a string literal in the Java Language the pattern would be "C:\\\\*")
-//			The following rules are used to interpret glob patterns:
-//
-//			The * character matches zero or more characters of a name component without crossing directory boundaries.
-//
-//			The ** characters matches zero or more characters crossing directory boundaries.
-//
-//			The ? character matches exactly one character of a name component.
-//
-//			The backslash character (\) is used to escape characters that would otherwise be interpreted as special characters. The expression \\ matches a single backslash and "\{" matches a left brace for example.
-//
-//			The [ ] characters are a bracket expression that match a single character of a name component out of a set of characters. For example, [abc] matches "a", "b", or "c". The hyphen (-) may be used to specify a range so [a-z] specifies a range that matches from "a" to "z" (inclusive). These forms can be mixed so [abce-g] matches "a", "b", "c", "e", "f" or "g". If the character after the [ is a ! then it is used for negation so [!a-c] matches any character except "a", "b", or "c".
-//
-//			Within a bracket expression the *, ? and \ characters match themselves. The (-) character matches itself if it is the first character within the brackets, or the first character after the ! if negating.
-//
-//			The { } characters are a group of subpatterns, where the group matches if any subpattern in the group matches. The "," character is used to separate the subpatterns. Groups cannot be nested.
-//
-//			Leading period/dot characters in file name are treated as regular characters in match operations. For example, the "*" glob pattern matches file name ".login". The Files.isHidden(java.nio.file.Path) method may be used to test whether a file is considered hidden.
-//
-//			All other characters match themselves in an implementation dependent manner. This includes characters representing any name-separators.
-//
-//			The matching of root components is highly implementation-dependent and is not specified.			
 		}
 	}
 
@@ -207,36 +182,31 @@ class PureLibFileSystem extends FileSystem {
 		AsIs, WildCardAsterisk, WildCardDoubleAsterisk, WildCardExactly, PresenceSet, AbsenceSet, PathSeparator, RootSeparator, OrStart, Div, OrEnd, EOF 
 	}
 	
-	static class Lexema {
-		final LexType	type;
-		final Object	association;
-		
-		Lexema(final LexType type) {
-			this(type,null);
-		}
-
-		Lexema(final LexType type, final Object association) {
-			this.type = type;
-			this.association = association;
-		}
-	}
 	
 	static Test compilePattern(final char[] source) {
-		// TODO Auto-generated method stub
-		final SyntaxNode	root = new SyntaxNode<>(null);
-		final int			term = parseSyntax(parseLexemas(source),0,root);
+		final LexType[]		lexType = new LexType[source.length];  
+		final Object[]		assoc = new Object[source.length];  
+		
+		parseLexemas(source,lexType,assoc);
 		
 		return new Test() {
 			@Override
 			public boolean test(final URI uri) {
-				// TODO Auto-generated method stub
-				return false;
+				final String	content = uri.toString();
+				
+				if (lexType[0] != LexType.PathSeparator) {
+					final int	fileNameIndex = content.lastIndexOf(PureLibFileSystemProvider.PATH_SPLITTER);
+					
+					return checkContent(CharUtils.terminateAndConvert2CharArray(fileNameIndex > 0 ? content.substring(fileNameIndex+1) : content,PATTERN_TERMINAL),lexType,assoc,0,0);
+				}
+				else {
+					return checkContent(CharUtils.terminateAndConvert2CharArray(content,PATTERN_TERMINAL),lexType,assoc,0,0);
+				}
 			}
 		};
 	}
 	
-	static Lexema[] parseLexemas(final char[] source) {
-		final Lexema[]	result = new Lexema[source.length];
+	static int parseLexemas(final char[] source, final LexType[] lexType, final Object[] assoc) {
 		final char[]	subseq = new char[source.length];
 		int				from = 0, target = 0, subseqIndex = 0;
 		boolean			insideGroup = false;
@@ -245,38 +215,46 @@ loop:	for (;;) {
 			switch (source[from]) {
 				case PATTERN_TERMINAL :
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
-					result[target++] = new Lexema(LexType.EOF);
+					lexType[target++] = LexType.EOF;
 					break loop;
 				case '*' 	:
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
 					if (source[from+1] == '*') {
-						result[target++] = new Lexema(LexType.WildCardDoubleAsterisk);
+						lexType[target++] = LexType.WildCardDoubleAsterisk;
 						from++;
 					}
 					else {
-						result[target++] = new Lexema(LexType.WildCardAsterisk);
+						lexType[target++] = LexType.WildCardAsterisk;
 					}
 					break;
 				case '?' 	:
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
-					result[target++] = new Lexema(LexType.WildCardExactly);
+					lexType[target++] = LexType.WildCardExactly;
 					break;
 				case ',' 	:
 					if (insideGroup) {
 						if (subseqIndex > 0) {
-							result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+							lexType[target] = LexType.AsIs;
+							assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+							target++;
 							subseqIndex = 0;
 						}
-						result[target++] = new Lexema(LexType.Div);
+						lexType[target++] = LexType.Div;
 					}
 					else {
 						subseq[subseqIndex++] = source[from];
@@ -287,7 +265,9 @@ loop:	for (;;) {
 					break;
 				case '[' 	:
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
 					
@@ -318,11 +298,14 @@ loop:	for (;;) {
 					if (source[from] == ']') {
 						from++;
 						if (negation) {
-							result[target++] = new Lexema(LexType.PresenceSet,cs);
+							lexType[target++] = LexType.PresenceSet;
+							assoc[target] = cs;
 						}
 						else {
-							result[target++] = new Lexema(LexType.AbsenceSet,cs);
+							lexType[target++] = LexType.AbsenceSet;
+							assoc[target] = cs;
 						}
+						target++;
 					}
 					else {
 						throw new IllegalArgumentException(); 
@@ -330,33 +313,41 @@ loop:	for (;;) {
 					break;
 				case '{' 	:
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
-					result[target++] = new Lexema(LexType.OrStart);
+					lexType[target++] = LexType.OrStart;
 					insideGroup = true;
 					break;
 				case '}' 	:
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
-					result[target++] = new Lexema(LexType.OrEnd);
+					lexType[target++] = LexType.OrEnd;
 					insideGroup = false;
 					break;
 				case '/' 	:
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
-					result[target++] = new Lexema(LexType.PathSeparator);
+					lexType[target++] = LexType.PathSeparator;
 					break;
 				case ':' 	:
 					if (subseqIndex > 0) {
-						result[target++] = new Lexema(LexType.AsIs,Arrays.copyOfRange(subseq,0,subseqIndex));
+						lexType[target] = LexType.AsIs;
+						assoc[target] = Arrays.copyOfRange(subseq,0,subseqIndex);
+						target++;
 						subseqIndex = 0;
 					}
-					result[target++] = new Lexema(LexType.RootSeparator);
+					lexType[target++] = LexType.RootSeparator;
 					break;
 				default :
 					subseq[subseqIndex++] = source[from];
@@ -364,10 +355,59 @@ loop:	for (;;) {
 			}
 			from++;
 		}
-		return result;
+		return target;
 	}
 	
-	static int parseSyntax(final Lexema[] source, final int from, final SyntaxNode root) {
-		return 0;
+	static boolean checkContent(final char[] source, final LexType[] lexType, final Object[] assoc, final int sourcePos, final int checkPos) {
+		switch (lexType[checkPos]) {
+			case AbsenceSet					:
+				return !((ExtendedBitCharSet)assoc[checkPos]).contains(source[sourcePos]) && checkContent(source,lexType,assoc,sourcePos + 1,checkPos + 1);
+			case AsIs						:
+				return CharUtils.compare(source,sourcePos,(char[])assoc[checkPos]) && checkContent(source,lexType,assoc,sourcePos + ((char[])assoc[checkPos]).length, checkPos + 1);
+			case EOF						:
+				return true;
+			case OrStart					:
+				int	endOr = checkPos, groupCount = 1;
+				
+				while (lexType[endOr] != LexType.OrEnd && lexType[endOr] != LexType.EOF) {
+					if (lexType[endOr] == LexType.Div) {
+						groupCount++;
+					}				
+					endOr++;
+				}
+				for (int index = 0; index < groupCount; index++) {
+					if (CharUtils.compare(source,sourcePos,(char[])assoc[checkPos + 2 * index + 1]) && checkContent(source,lexType,assoc,sourcePos + ((char[])assoc[checkPos + 2 * index + 1]).length, endOr + 1)) {
+						return true;
+					}
+				}
+				return false;
+			case PathSeparator				:
+				return source[sourcePos] == '/' && checkContent(source,lexType,assoc,sourcePos + 1,checkPos + 1); 
+			case PresenceSet				:
+				return ((ExtendedBitCharSet)assoc[checkPos]).contains(source[sourcePos]) && checkContent(source,lexType,assoc,sourcePos + 1,checkPos + 1);
+			case RootSeparator				:
+				return source[sourcePos] == ':' && checkContent(source,lexType,assoc,sourcePos + 1,checkPos + 1); 
+			case WildCardAsterisk			:
+				int index = sourcePos;
+				
+				while (source[index] != PATTERN_TERMINAL && source[index] != '/') {
+					index++;
+				}
+				return checkContent(source,lexType,assoc,index,checkPos + 1); 
+			case WildCardDoubleAsterisk		:
+				int wcIndex = sourcePos;
+				
+				while (source[wcIndex] != PATTERN_TERMINAL) {
+					if (checkContent(source,lexType,assoc,wcIndex,checkPos + 1)) {
+						return true;
+					}
+					wcIndex++;
+				}
+				return false;
+			case WildCardExactly			:
+				return source[sourcePos] != PATTERN_TERMINAL && checkContent(source,lexType,assoc,sourcePos + 1,checkPos + 1); 
+			default:
+				throw new UnsupportedOperationException("Lexema type ["+lexType[checkPos]+"] is not supported yet"); 
+		}
 	}
 }
