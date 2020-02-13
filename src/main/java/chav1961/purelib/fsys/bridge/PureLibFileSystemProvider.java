@@ -100,12 +100,9 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 		if (uri == null) {
 			throw new NullPointerException("URI for file system can't be null");
 		}
-		else if (!FileSystemInterface.FILESYSTEM_URI_SCHEME.equalsIgnoreCase(uri.getScheme())) {
-			throw new FileSystemNotFoundException("File system for ["+uri+"] not created: URI scheme must be ["+FileSystemInterface.FILESYSTEM_URI_SCHEME+"]");
-		}
 		else if (uri.isAbsolute()) {
-			try(final	FileSystemInterface	fsi = FileSystemFactory.createFileSystem(uri)) {
-				final String			subscheme = URI.create(uri.getSchemeSpecificPart()).getScheme();
+			try(final	FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":"+uri))) {
+				final String			subscheme = uri.getScheme();
 				final PureLibFileSystem	plfs = new PureLibFileSystem(this); 
 
 				return new PureLibPath(plfs,subscheme,uri.getPath());
@@ -139,10 +136,9 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 		}
 		else {
 			final URI		uri = dir.toUri();
-			final URI		root = dir.getRoot().toUri();
-			final String	subscheme = URI.create(root.getSchemeSpecificPart()).getScheme();
+			final String	subscheme = uri.getScheme();
 			
-			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(root).open(uri.getPath())) {
+			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":"+uri))) {
 				if (fsi.exists() && fsi.isDirectory()) {
 					final PureLibFileSystem	plfs = new PureLibFileSystem(this); 
 					final List<Path>		content = new ArrayList<>();
@@ -180,7 +176,7 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 			final URI	uri = dir.toUri();
 			final URI	root = dir.getRoot().toUri();
 			
-			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(root).open(uri.getPath())) {
+			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":"+root)).open(uri.getPath())) {
 				fsi.mkDir();
 			}
 		}
@@ -196,9 +192,8 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 		}
 		else {
 			final URI	uri = path.toUri();
-			final URI	root = path.getRoot().toUri();
 			
-			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(root).open(uri.getPath())) {
+			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":"+uri))) {
 				fsi.deleteAll();
 			}
 		}
@@ -219,15 +214,15 @@ public class PureLibFileSystemProvider extends FileSystemProvider {
 			throw new IllegalArgumentException("Path to copy to ["+target+"] is not a Pure library path"); 
 		}
 		else {
-			final URI	sourceUri = source.toUri(), targetUri = source.toUri(); 
+			final URI	sourceUri = source.toUri(), targetUri = target.toUri(); 
 
-			try(final FileSystemInterface	fsiSource = FileSystemFactory.createFileSystem(sourceUri);
-				final FileSystemInterface	fsiTarget = FileSystemFactory.createFileSystem(targetUri)) {
+			try(final FileSystemInterface	fsiSource = FileSystemFactory.createFileSystem(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":"+sourceUri));
+				final FileSystemInterface	fsiTarget = FileSystemFactory.createFileSystem(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":"+targetUri))) {
 				
 				fsiSource.copy(fsiTarget);
 			}
 		}
-	}
+	} 
 
 	@Override
 	public void move(final Path source, final Path target, final CopyOption... options) throws IOException {

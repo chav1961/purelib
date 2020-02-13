@@ -112,7 +112,24 @@ class PureLibFileSystem extends FileSystem {
 							return new PureLibPath(this,template.getScheme(),getSeparator());
 						}
 						else {
-							return new PureLibPath(this,template.getScheme(),getSeparator()+CharUtils.join(getSeparator(),more));
+							final StringBuilder	sb = new StringBuilder();
+							char				last = 0;
+							
+							for (String component : more) {
+								if (!component.isEmpty()) {
+									if (component.charAt(0) == '/' && last == '/') {
+										sb.append(component,1,component.length());
+									}
+									else if (component.charAt(0) != '/' && last != '/') {
+										sb.append('/').append(component);
+									}
+									else {
+										sb.append(component);
+									}
+									last = component.charAt(component.length()-1);
+								}
+							}
+							return new PureLibPath(this,template.getScheme(),sb.substring(1));
 						}
 					}
 				}

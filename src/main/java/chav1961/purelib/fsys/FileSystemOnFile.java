@@ -188,7 +188,14 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 		private final URI	wrapper;
 		
 		public FileDataWrapper(final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
-			this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+			final String	relative = wrapper.toString().replace(File.pathSeparator,"/"), root = rootPath.toString().replace(File.pathSeparator,"/"); 
+			
+			if (relative.startsWith("/") && root.endsWith("/")) {
+				this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
+			}
+			else {
+				this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+			}
 		}
 
 		@Override
