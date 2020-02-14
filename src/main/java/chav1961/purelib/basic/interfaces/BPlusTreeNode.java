@@ -1,27 +1,34 @@
 package chav1961.purelib.basic.interfaces;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public interface BPlusTreeNode<Id,K extends Comparable<? super K>,V> {
-	Id getNodeId();
+	boolean isLeaf();
 	
-	int keyNumber();
+	boolean containsKey(K key);
+	
+	boolean containsKeyGE(K key);
+	boolean containsKeyLE(K key);
+	int getKeysGE(K key,Consumer<K> accept);
+	int getKeysLE(K key,Consumer<K> accept);
+	K getFirstLeafKey();
+	K getLastLeafKey();
 
 	V getValue(K key);
+	
+	Id getIdForKey(K key);
+	Id getIdForKeyGE(K key);
+	Id getIdForKeyLE(K key);
+	Id getNextSiblingId();
+	Id getPrevSiblingId();
 
-	void deleteValue(K key);
+	V delete(K key);
+	void insert(K key, V value);
 
-	void insertValue(K key, V value);
+	boolean canInsert();
+	boolean canCompact();
+	
+	void join();
+	void split(Id left, Id right);
 
-	K getFirstLeafKey();
-
-	List<V> getRange(K key1, boolean includeKey1, K key2, boolean includeKey2);
-
-	void merge(BPlusTreeNode<Id,K,V> sibling);
-
-	BPlusTreeNode<Id,K,V> split();
-
-	boolean isOverflow();
-
-	boolean isUnderflow();
 }

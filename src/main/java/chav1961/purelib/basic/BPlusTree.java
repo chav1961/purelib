@@ -1,21 +1,17 @@
 package chav1961.purelib.basic;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.BPlusTreeNode;
+import chav1961.purelib.enumerations.ContinueMode;
 
 public class BPlusTree <NodeId,K extends Comparable<? super K>,V> {
-	private static final int DEFAULT_NODE_CAPACITYFACTOR = 128;
-
 	public static class BPlusTreeConteneException extends ContentException {
 		private static final long serialVersionUID = -5557152301088161210L;
 
@@ -39,451 +35,569 @@ public class BPlusTree <NodeId,K extends Comparable<? super K>,V> {
 	public interface NodeAccessor<Content,Id> {
 		Id getRootId() throws BPlusTreeConteneException;
 		Content getContent(Id id) throws BPlusTreeConteneException;
-		Id createNewId() throws BPlusTreeConteneException;
-		Content createContent(Id id) throws BPlusTreeConteneException;
+		Id createIntermediate() throws BPlusTreeConteneException;
+		Id createLeaf() throws BPlusTreeConteneException;
 		void storeContent(Id id, Content content) throws BPlusTreeConteneException;
 		Content removeContent(Id id) throws BPlusTreeConteneException;
 	}
-		
-		
-		/**
-		 * The branching factor for the B+ tree, that measures the capacity of nodes
-		 * (i.e., the number of children nodes) for internal nodes in the tree.
-		 */
-		private int branchingFactor;
 
-		/**
-		 * The root node of the B+ tree.
-		 */
-		private Object root;
+	@FunctionalInterface
+	public interface WalkerCallback<K,V> {
+		ContinueMode process(K key, V value) throws BPlusTreeConteneException;
+	}
+	
+	private final NodeAccessor<BPlusTreeNode<NodeId, K, V>,NodeId>	accessor;
+	private final Class<NodeId>	idClass;
+	private final Class<K>		keyClass;
+	private final Class<V>		valueClass;
+	private final V[]			emptyArray;
 
-		public BPlusTree() {
-			this(DEFAULT_NODE_CAPACITYFACTOR);
+	public BPlusTree(final Class<NodeId> idClass, final Class<K> keyClass, final Class<V> valueClass, final NodeAccessor<BPlusTreeNode<NodeId,K,V>,NodeId> accessor) throws NullPointerException {
+		if (idClass == null) {
+			throw new NullPointerException("Id class can't be null");
 		}
-
-		public BPlusTree(int branchingFactor) {
-			this(branchingFactor,new InMemoryNodeAccessor<,NodeId>());
+		else if (keyClass == null) {
+			throw new NullPointerException("Key class can't be null");
 		}
+		else if (valueClass == null) {
+			throw new NullPointerException("Value class can't be null");
+		}
+		else if (accessor == null) {
+			throw new NullPointerException("Accessor instance can't be null");
+		}
+		else {
+			this.idClass = idClass;
+			this.keyClass = keyClass;
+			this.valueClass = valueClass;
+			this.accessor = accessor;
+			this.emptyArray = (V[]) Array.newInstance(valueClass,0);
+		}
+	}
 
-		public BPlusTree(final int nodeCapacity, final NodeAccessor<BPlusTreeNode<NodeId,K,V>,NodeId> accessor) {
-			if (nodeCapacity <= 2) {
-				throw new IllegalArgumentException("Illegal branching factor: " + nodeCapacity);
+	public V get(final K key) throws BPlusTreeConteneException, NullPointerException {
+		if (key == null) {
+			throw new NullPointerException("Key to get can't be null");
+		}
+		else {
+			BPlusTreeNode<NodeId, K, V>	node = accessor.getContent(accessor.getRootId());
+			
+			while (node != null && !node.isLeaf()) {
+				node = accessor.getContent(node.getIdForKey(key));
+			}
+			if (node != null && node.containsKey(key)) {
+				return node.getValue(key);
 			}
 			else {
-				this.branchingFactor = nodeCapacity;
-//				this.root = new LeafNode<Node<NodeId,K,V>>();
-			}
-		}
-		
-		/**
-		 * Returns the value to which the specified key is associated, or
-		 * {@code null} if this tree contains no association for the key.
-		 *
-		 * <p>
-		 * A return value of {@code null} does not <i>necessarily</i> indicate that
-		 * the tree contains no association for the key; it's also possible that the
-		 * tree explicitly associates the key to {@code null}.
-		 * 
-		 * @param key
-		 *            the key whose associated value is to be returned
-		 * 
-		 * @return the value to which the specified key is associated, or
-		 *         {@code null} if this tree contains no association for the key
-		 */
-		public V search(K key) {
-			return ((BPlusTreeNode<NodeId, K, V>) root).getValue(key);
-		}
-
-		/**
-		 * Returns the values associated with the keys specified by the range:
-		 * {@code key1} and {@code key2}.
-		 * 
-		 * @param key1
-		 *            the start key of the range
-		 * @param policy1
-		 *            the range policy, {@link RangePolicy#EXCLUSIVE} or
-		 *            {@link RangePolicy#INCLUSIVE}
-		 * @param key2
-		 *            the end end of the range
-		 * @param policy2
-		 *            the range policy, {@link RangePolicy#EXCLUSIVE} or
-		 *            {@link RangePolicy#INCLUSIVE}
-		 * @return the values associated with the keys specified by the range:
-		 *         {@code key1} and {@code key2}
-		 */
-		public List<V> searchRange(K key1, boolean includeKey1, K key2, boolean includeKey2) {
-			return ((BPlusTreeNode<NodeId, K, V>) root).getRange(key1, includeKey1, key2, includeKey2);
-		}
-
-		/**
-		 * Associates the specified value with the specified key in this tree. If
-		 * the tree previously contained a association for the key, the old value is
-		 * replaced.
-		 * 
-		 * @param key
-		 *            the key with which the specified value is to be associated
-		 * @param value
-		 *            the value to be associated with the specified key
-		 */
-		public void insert(K key, V value) {
-			((BPlusTreeNode<NodeId, K, V>) root).insertValue(key, value);
-		}
-
-		/**
-		 * Removes the association for the specified key from this tree if present.
-		 * 
-		 * @param key
-		 *            the key whose association is to be removed from the tree
-		 */
-		public void delete(K key) {
-			((BPlusTreeNode<NodeId,K,V>) root).deleteValue(key);
-		}
-
-		public String toString() {
-			Queue<List<BPlusTreeNode<NodeId,K,V>>> queue = new LinkedList<List<BPlusTreeNode<NodeId,K,V>>>();
-			queue.add(Arrays.asList(((BPlusTreeNode<NodeId,K,V>) root)));
-			StringBuilder sb = new StringBuilder();
-			while (!queue.isEmpty()) {
-				Queue<List<BPlusTreeNode<NodeId,K,V>>> nextQueue = new LinkedList<List<BPlusTreeNode<NodeId,K,V>>>();
-				while (!queue.isEmpty()) {
-					List<BPlusTreeNode<NodeId,K,V>> nodes = queue.remove();
-					sb.append('{');
-					Iterator<BPlusTreeNode<NodeId,K,V>> it = nodes.iterator();
-					while (it.hasNext()) {
-						BPlusTreeNode<NodeId,K,V> node = it.next();
-						sb.append(node.toString());
-						if (it.hasNext())
-							sb.append(", ");
-						if (node instanceof BPlusTree.InternalNode)
-							nextQueue.add(((InternalNode<NodeId,K,V>) node).children);
-					}
-					sb.append('}');
-					if (!queue.isEmpty())
-						sb.append(", ");
-					else
-						sb.append('\n');
-				}
-				queue = nextQueue;
-			}
-
-			return sb.toString();
-		}
-
-		private abstract class NodeImpl<Id,K extends Comparable<? super K>,V> implements BPlusTreeNode<Id,K,V>{
-			List<K> keys;
-
-			public Id getNodeId() {
 				return null;
+			}
+		}
+	}
+
+	public V[] get(final K keyFrom, final K keyTo, final boolean nearestFrom, final boolean nearestTo) throws BPlusTreeConteneException, NullPointerException {
+		if (keyFrom == null) {
+			throw new NullPointerException("Key to get from can't be null");
+		}
+		else if (keyTo == null) {
+			throw new NullPointerException("Key to get to can't be null");
+		}
+		else {
+			BPlusTreeNode<NodeId, K, V>	nodeFrom = accessor.getContent(accessor.getRootId()), nodeTo = nodeFrom, currentNode;
+			
+			while (nodeFrom != null && !nodeFrom.isLeaf()) {
+				nodeFrom = accessor.getContent(nodeFrom.getIdForKeyGE(keyFrom));
+			}
+			while (nodeTo != null && !nodeTo.isLeaf()) {
+				nodeTo = accessor.getContent(nodeTo.getIdForKeyLE(keyTo));
+			}
+			final List<K>	keys = new ArrayList<>();
+			
+			currentNode = nodeFrom;
+			while (currentNode.getFirstLeafKey().compareTo(keyTo) >= 0) {
+				if (currentNode.getLastLeafKey().compareTo(keyTo) <= 0) {
+					currentNode.getKeysGE(keyFrom,(key)->{keys.add(key);});
+				}
+				else {
+					currentNode.getKeysGE(keyFrom,(key)->{if (key.compareTo(keyTo) <= 0) keys.add(key);});
+				}
+				currentNode = accessor.getContent(currentNode.getNextSiblingId()); 
 			}
 			
-			public int keyNumber() {
-				return keys.size();
+			final V[]	result = (V[]) Array.newInstance(valueClass,keys.size());
+			int			index = 0;
+			
+			currentNode = nodeFrom;
+			for (K item : keys) {
+				if (!currentNode.containsKey(item)) {
+					currentNode = accessor.getContent(currentNode.getNextSiblingId()); 
+				}
+				Array.set(result,index++,currentNode.getValue(item));
 			}
-
-			public abstract V getValue(K key);
-
-			public abstract void deleteValue(K key);
-
-			public abstract void insertValue(K key, V value);
-
-			public abstract K getFirstLeafKey();
-
-			public abstract List<V> getRange(K key1, boolean includeKey1, K key2, boolean includeKey2);
-
-			public abstract void merge(BPlusTreeNode<Id,K,V> sibling);
-
-			public abstract BPlusTreeNode<Id,K,V> split();
-
-			public abstract boolean isOverflow();
-
-			public abstract boolean isUnderflow();
-
-			public String toString() {
-				return keys.toString();
+			keys.clear();
+			return result;
+		}
+	}
+	
+	public void insert(final K key, final V value) throws BPlusTreeConteneException, NullPointerException {
+		if (key == null) {
+			throw new NullPointerException("Key to insert can't be null");
+		}
+		else if (value == null) {
+			throw new NullPointerException("Value to insert can't be null");
+		}
+		else {
+			BPlusTreeNode<NodeId, K, V>	node = accessor.getContent(accessor.getRootId());
+			
+loop:		for (;;) {
+				while (node != null && !node.isLeaf()) {
+					node = accessor.getContent(node.getIdForKeyGE(key));
+				}
+				if (node != null) {
+					if (!node.canInsert()) {
+						final NodeId 	leftId = accessor.createLeaf(), rightId = accessor.createLeaf();
+						
+						node.split(leftId, rightId);
+						continue loop;
+					}
+					else {
+						node.insert(key, value);
+					}
+				}
 			}
 		}
-
-		private class InternalNode<Id,K extends Comparable<? super K>,V> extends NodeImpl<Id,K,V> {
-			List<BPlusTreeNode<Id,K,V>> children;
-
-			InternalNode() {
-				this.keys = new ArrayList<K>();
-				this.children = new ArrayList<BPlusTreeNode<Id,K,V>>();
-			}
-
-			@Override
-			public V getValue(K key) {
-				return getChild(key).getValue(key);
-			}
-
-			@Override
-			public void deleteValue(K key) {
-				BPlusTreeNode<Id, K, V> child = getChild(key);
-				child.deleteValue(key);
-				if (child.isUnderflow()) {
-					BPlusTreeNode<Id, K, V> childLeftSibling = getChildLeftSibling(key);
-					BPlusTreeNode<Id, K, V> childRightSibling = getChildRightSibling(key);
-					BPlusTreeNode<Id, K, V> left = childLeftSibling != null ? childLeftSibling : child;
-					BPlusTreeNode<Id, K, V> right = childLeftSibling != null ? child : childRightSibling;
-					
-					left.merge(right);
-					deleteChild(right.getFirstLeafKey());
-					if (left.isOverflow()) {
-						BPlusTreeNode<Id, K, V> sibling = left.split();
-						insertChild(sibling.getFirstLeafKey(), sibling);
-					}
-					if (((BPlusTreeNode<NodeId, K, V>) root).keyNumber() == 0)
-						root = (BPlusTreeNode<NodeId, K, V>) left;
-				}
-			}
-
-			@Override
-			public void insertValue(K key, V value) {
-				BPlusTreeNode<Id, K, V> child = getChild(key);
-				child.insertValue(key, value);
-				if (child.isOverflow()) {
-					BPlusTreeNode<Id, K, V> sibling = child.split();
-					insertChild(sibling.getFirstLeafKey(), sibling);
-				}
-				if (((BPlusTreeNode<NodeId, K, V>) root).isOverflow()) {
-					BPlusTreeNode<Id, K, V> sibling = split();
-					InternalNode<Id,K,V> newRoot = new InternalNode<>();
-					newRoot.keys.add(sibling.getFirstLeafKey());
-					newRoot.children.add(this);
-					newRoot.children.add(sibling);
-					root = (BPlusTreeNode<NodeId, K, V>) newRoot;
-				}
-			}
-
-			@Override
-			public K getFirstLeafKey() {
-				return children.get(0).getFirstLeafKey();
-			}
-
-			@Override
-			public List<V> getRange(K key1, boolean includeKey1, K key2, boolean includeKey2) {
-				return getChild(key1).getRange(key1, includeKey1, key2, includeKey2);
-			}
-
-			@Override
-			public void merge(BPlusTreeNode<Id, K, V> sibling) {
-				InternalNode<Id,K,V> node = (InternalNode<Id,K,V>) sibling;
-				keys.add(node.getFirstLeafKey());
-				keys.addAll(node.keys);
-				children.addAll(node.children);
-
-			}
-
-			@Override
-			public BPlusTreeNode<Id, K, V> split() {
-				int from = keyNumber() / 2 + 1, to = keyNumber();
-				InternalNode<Id,K,V> sibling = new InternalNode<>();
-				sibling.keys.addAll(keys.subList(from, to));
-				sibling.children.addAll(children.subList(from, to + 1));
-
-				keys.subList(from - 1, to).clear();
-				children.subList(from, to + 1).clear();
-
-				return sibling;
-			}
-
-			@Override
-			public boolean isOverflow() {
-				return children.size() > branchingFactor;
-			}
-
-			@Override
-			public boolean isUnderflow() {
-				return children.size() < (branchingFactor + 1) / 2;
-			}
-
-			BPlusTreeNode<Id, K, V> getChild(K key) {
-				int loc = Collections.binarySearch(keys, key);
-				int childIndex = loc >= 0 ? loc + 1 : -loc - 1;
-				return children.get(childIndex);
-			}
-
-			void deleteChild(K key) {
-				int loc = Collections.binarySearch(keys, key);
-				if (loc >= 0) {
-					keys.remove(loc);
-					children.remove(loc + 1);
-				}
-			}
-
-			void insertChild(K key, BPlusTreeNode<Id, K, V> child) {
-				int loc = Collections.binarySearch(keys, key);
-				int childIndex = loc >= 0 ? loc + 1 : -loc - 1;
-				if (loc >= 0) {
-					children.set(childIndex, child);
-				} else {
-					keys.add(childIndex, key);
-					children.add(childIndex + 1, child);
-				}
-			}
-
-			BPlusTreeNode<Id, K, V> getChildLeftSibling(K key) {
-				int loc = Collections.binarySearch(keys, key);
-				int childIndex = loc >= 0 ? loc + 1 : -loc - 1;
-				if (childIndex > 0)
-					return children.get(childIndex - 1);
-
-				return null;
-			}
-
-			BPlusTreeNode<Id, K, V> getChildRightSibling(K key) {
-				int loc = Collections.binarySearch(keys, key);
-				int childIndex = loc >= 0 ? loc + 1 : -loc - 1;
-				if (childIndex < keyNumber())
-					return children.get(childIndex + 1);
-
-				return null;
-			}
+	}
+		
+	public V delete(final K key) throws BPlusTreeConteneException, NullPointerException {
+		if (key == null) {
+			throw new NullPointerException("Key to delete can't be null");
 		}
-
-		private class LeafNode<Id,K extends Comparable<? super K>,V> extends NodeImpl<Id,K,V> {
-			List<V> values;
-			LeafNode<Id,K,V> next;
-
-			LeafNode() {
-				keys = new ArrayList<K>();
-				values = new ArrayList<V>();
+		else {
+			BPlusTreeNode<NodeId, K, V>	node = accessor.getContent(accessor.getRootId());
+			
+			while (node != null && !node.isLeaf()) {
+				node = accessor.getContent(node.getIdForKey(key));
 			}
-
-			@Override
-			public V getValue(K key) {
-				int loc = Collections.binarySearch(keys, key);
-				return loc >= 0 ? values.get(loc) : null;
-			}
-
-			@Override
-			public void deleteValue(K key) {
-				int loc = Collections.binarySearch(keys, key);
-				if (loc >= 0) {
-					keys.remove(loc);
-					values.remove(loc);
-				}
-			}
-
-			@Override
-			public void insertValue(K key, V value) {
-				int loc = Collections.binarySearch(keys, key);
-				int valueIndex = loc >= 0 ? loc : -loc - 1;
-				if (loc >= 0) {
-					values.set(valueIndex, value);
-				} else {
-					keys.add(valueIndex, key);
-					values.add(valueIndex, value);
-				}
-				if (((BPlusTreeNode<NodeId, K, V>) root).isOverflow()) {
-					BPlusTreeNode<Id,K,V> sibling = split();
-					InternalNode<Id,K,V> newRoot = new InternalNode<>();
-					newRoot.keys.add(sibling.getFirstLeafKey());
-					newRoot.children.add(this);
-					newRoot.children.add(sibling);
-					root = newRoot;
-				}
-			}
-
-			@Override
-			public K getFirstLeafKey() {
-				return keys.get(0);
-			}
-
-			@Override
-			public List<V> getRange(K key1, boolean includeKey1, K key2, boolean includeKey2) {
-				List<V> result = new LinkedList<V>();
-				LeafNode<Id,K,V> node = this;
-				while (node != null) {
-					Iterator<K> kIt = node.keys.iterator();
-					Iterator<V> vIt = node.values.iterator();
-					while (kIt.hasNext()) {
-						K key = kIt.next();
-						V value = vIt.next();
-						int cmp1 = key.compareTo(key1);
-						int cmp2 = key.compareTo(key2);
-						if (((!includeKey1 && cmp1 > 0) || (includeKey1 && cmp1 >= 0))
-								&& ((!includeKey2 && cmp2 < 0) || (includeKey2 && cmp2 <= 0)))
-							result.add(value);
-						else if ((!includeKey2 && cmp2 >= 0) || (includeKey2 && cmp2 > 0))
-							return result;
-					}
-					node = node.next;
+			if (node != null) {
+				final V	result = node.getValue(key);
+				
+				node.delete(key);
+				if (node.canCompact()) {
+					node.join();
 				}
 				return result;
 			}
-
-			@Override
-			public void merge(BPlusTreeNode<Id,K,V> sibling) {
-				@SuppressWarnings("unchecked")
-				LeafNode<Id,K,V> node = (LeafNode<Id,K,V>) sibling;
-				keys.addAll(node.keys);
-				values.addAll(node.values);
-				next = node.next;
-			}
-
-			@Override
-			public BPlusTreeNode<Id,K,V> split() {
-				LeafNode<Id,K,V> sibling = new LeafNode<>();
-				int from = (keyNumber() + 1) / 2, to = keyNumber();
-				sibling.keys.addAll(keys.subList(from, to));
-				sibling.values.addAll(values.subList(from, to));
-
-				keys.subList(from, to).clear();
-				values.subList(from, to).clear();
-
-				sibling.next = next;
-				next = sibling;
-				return sibling;
-			}
-
-			@Override
-			public boolean isOverflow() {
-				return values.size() > branchingFactor - 1;
-			}
-
-			@Override
-			public boolean isUnderflow() {
-				return values.size() < branchingFactor / 2;
+			else {
+				return null;
 			}
 		}
 		
-	private static class InMemoryNodeAccessor<Id,K extends Comparable<? super K>,V> implements NodeAccessor<BPlusTreeNode<Id,K,V>,Id> {
+	}
+
+	public boolean walk(final K keyFrom, final K keyTo, final boolean nearestFrom, final boolean nearestTo, final WalkerCallback<K,V> callback) throws BPlusTreeConteneException, NullPointerException {
+		if (keyFrom == null) {
+			throw new NullPointerException("Key to get from can't be null");
+		}
+		else if (keyTo == null) {
+			throw new NullPointerException("Key to get to can't be null");
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Wakler callback can't be null");
+		}
+		else {
+			BPlusTreeNode<NodeId, K, V>	nodeFrom = accessor.getContent(accessor.getRootId()), nodeTo = nodeFrom, currentNode;
+			
+			while (nodeFrom != null && !nodeFrom.isLeaf()) {
+				nodeFrom = accessor.getContent(nodeFrom.getIdForKeyGE(keyFrom));
+			}
+			while (nodeTo != null && !nodeTo.isLeaf()) {
+				nodeTo = accessor.getContent(nodeTo.getIdForKeyLE(keyTo));
+			}
+			
+			final BPlusTreeConteneException[]	error = new BPlusTreeConteneException[1]; 
+			final boolean[]						stop = new boolean[] {false};
+			
+			currentNode = nodeFrom;
+			while (!stop[0] && currentNode.getFirstLeafKey().compareTo(keyTo) >= 0) {
+				final BPlusTreeNode<NodeId, K, V>	toCall = currentNode; 
+				
+				if (currentNode.getLastLeafKey().compareTo(keyTo) <= 0) {
+					currentNode.getKeysGE(keyFrom,(key)->{
+						if (!stop[0]) {
+							try{if (callback.process(key,toCall.getValue(key)) != ContinueMode.CONTINUE) {
+									stop[0] = true;
+								}
+							} catch (BPlusTreeConteneException e) {
+								error[0] = e;
+								stop[0] = true;
+							}
+						}
+					});
+				}
+				else {
+					currentNode.getKeysGE(keyFrom,(key)->{
+						if (!stop[0] && key.compareTo(keyTo) <= 0) {
+							try{if (callback.process(key,toCall.getValue(key)) != ContinueMode.CONTINUE) {
+									stop[0] = true;
+								}
+							} catch (BPlusTreeConteneException e) {
+								error[0] = e;
+								stop[0] = true;
+							}
+						}
+					});
+				}
+				currentNode = accessor.getContent(currentNode.getNextSiblingId()); 
+			}
+			if (error[0] != null) {
+				throw error[0];
+			}
+			else {
+				return stop[0];
+			}
+		}
+	}
+
+	public static <K extends Comparable<? super K>,V> BPlusTreeNode<Long,K,V> buildInMemoryBPlusTree(final Class<K> keyClass, final Class<V> valueClass) throws NullPointerException, BPlusTreeConteneException {
+		return (BPlusTreeNode<Long, K, V>) new BPlusTree(Long.class,keyClass,valueClass, new InMemoryNodeAccessor<>(keyClass,valueClass)); 
+	}
+	
+	private static class InMemoryNodeAccessor<K extends Comparable<? super K>,V> implements NodeAccessor<BPlusTreeNode<Long,K,V>,Long> {
+		private static final int							NODE_CAPACITY = 256;
+		
+		private final LongIdMap<BPlusTreeNode<Long,K,V>>	content = new LongIdMap(BPlusTreeNode.class); 
+		private final Class<K>								keyClass; 
+		private final Class<V>								valueClass;
+		private final AtomicLong							uniqueId = new AtomicLong(0);
+		private final Long									rootId;
+		
+		InMemoryNodeAccessor(final Class<K> keyClass, final Class<V> valueClass) throws BPlusTreeConteneException {
+			this.keyClass = keyClass; 
+			this.valueClass = valueClass;
+			this.rootId = createLeaf();
+		}
 
 		@Override
-		public Id getRootId() throws BPlusTreeConteneException {
+		public Long getRootId() throws BPlusTreeConteneException {
+			return rootId;
+		}
+
+		@Override
+		public BPlusTreeNode<Long, K, V> getContent(final Long id) throws BPlusTreeConteneException {
+			return content.get(id); 
+		}
+
+		@Override
+		public Long createIntermediate() throws BPlusTreeConteneException {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
-		public BPlusTreeNode<Id, K, V> getContent(Id id) throws BPlusTreeConteneException {
+		public Long createLeaf() throws BPlusTreeConteneException {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
-		public Id createNewId() throws BPlusTreeConteneException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public BPlusTreeNode<Id, K, V> createContent(Id id) throws BPlusTreeConteneException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public void storeContent(Id id, BPlusTreeNode<Id, K, V> content) throws BPlusTreeConteneException {
+		public void storeContent(final Long id, final BPlusTreeNode<Long, K, V> content) throws BPlusTreeConteneException {
 			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
-		public BPlusTreeNode<Id, K, V> removeContent(Id id) throws BPlusTreeConteneException {
+		public BPlusTreeNode<Long, K, V> removeContent(final Long id) throws BPlusTreeConteneException {
 			// TODO Auto-generated method stub
 			return null;
 		}
+	}
+
+	private static class InMemoryLeafNode<K extends Comparable<? super K>,V> implements BPlusTreeNode<Long,K,V> {
+		private final Class<K>								keyClass; 
+		private final Class<V>								valueClass;
+		private final Long									nodeId;
+		
+		InMemoryLeafNode(final Long nodeId, final Class<K> keyClass, final Class<V> valueClass) {
+			this.nodeId = nodeId;
+			this.keyClass = keyClass;
+			this.valueClass = valueClass;
+		}
+
+		@Override
+		public boolean isLeaf() {
+			return true;
+		}
+
+		@Override
+		public boolean containsKey(final K key) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean containsKeyGE(final K key) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean containsKeyLE(final K key) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public int getKeysGE(final K key, final Consumer<K> accept) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public int getKeysLE(final K key, Consumer<K> accept) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public K getFirstLeafKey() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public K getLastLeafKey() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public V getValue(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getIdForKey(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getIdForKeyGE(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getIdForKeyLE(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getNextSiblingId() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getPrevSiblingId() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public V delete(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void insert(final K key, final V value) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public boolean canInsert() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean canCompact() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void join() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void split(final Long left, final Long right) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+
+	private static class InMemoryIntermediateNode<K extends Comparable<? super K>,V> implements BPlusTreeNode<Long,K,V> {
+		private final Class<K>	keyClass; 
+		private final Class<V>	valueClass; 
+		private final K[]		keys;
+		private final V[]		values;
+		int						filled = 0;
+		
+		InMemoryIntermediateNode(final Class<K> keyClass, final Class<V> valueClass) {
+			this.keyClass = keyClass;
+			this.valueClass = valueClass;
+			this.keys = (K[]) Array.newInstance(keyClass, InMemoryNodeAccessor.NODE_CAPACITY);
+			this.values = (V[]) Array.newInstance(valueClass, InMemoryNodeAccessor.NODE_CAPACITY);
+		}
+
+		@Override
+		public boolean isLeaf() {
+			return true;
+		}
+
+		@Override
+		public boolean containsKey(final K key) {
+			return Arrays.binarySearch(keys,0,filled,key) >= 0;
+		}
+
+		@Override
+		public boolean containsKeyGE(final K key) {
+			final int	location = Arrays.binarySearch(keys,0,filled,key);
+
+			if (location >= 0) {
+				return true;
+			}
+			else {
+				return 1 - location < filled;
+			}
+		}
+
+		@Override
+		public boolean containsKeyLE(final K key) {
+			final int	location = Arrays.binarySearch(keys,0,filled,key);
+
+			if (location >= 0) {
+				return true;
+			}
+			else {
+				return 1 - location > 0;
+			}
+		}
+
+		@Override
+		public int getKeysGE(final K key, final Consumer<K> accept) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public int getKeysLE(final K key, Consumer<K> accept) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public K getFirstLeafKey() {
+			if (filled > 0) {
+				return keys[0];
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		public K getLastLeafKey() {
+			if (filled > 0) {
+				return keys[filled-1];
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		public V getValue(final K key) {
+			final int	location = Arrays.binarySearch(keys,0,filled,key);
+
+			if (location >= 0 && location < filled) {
+				return values[location];
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		public Long getIdForKey(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getIdForKeyGE(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getIdForKeyLE(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getNextSiblingId() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Long getPrevSiblingId() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public V delete(final K key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void insert(final K key, final V value) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public boolean canInsert() {
+			return filled < keys.length / 2;
+		}
+
+		@Override
+		public boolean canCompact() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void join() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void split(final Long left, final Long right) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 }
