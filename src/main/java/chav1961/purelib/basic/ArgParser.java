@@ -1,5 +1,7 @@
 package chav1961.purelib.basic;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.CommandLineParametersException;
@@ -35,18 +38,37 @@ import chav1961.purelib.sql.SQLUtils;
  * . . .<br>
  * }<br>
  * </code>
- * <p>This class can be used in multithreaded environment</p>
+ * <p>The class supports a set of argument types (marked as ZZZarg in the example above):</p>
+ * <ul>
+ * <li>{linkplain BooleanArg} - argument-flag</li>
+ * <li>{linkplain IntegerArg} - long integer argument</li>
+ * <li>{linkplain RealArg} - double or BigDecimal argument</li>
+ * <li>{linkplain StringArg} - string argument</li>
+ * <li>{linkplain EnumArg} - any enumeration argument</li>
+ * <li>{linkplain URIArg} - {@linkplain URI} argument</li>
+ * <li>{linkplain StringListArg} - list of string argument(s)</li>
+ * <li>{linkplain ConfigArg} - configuration source argument</li>
+ * </ul>
+ * <p>Any of these arguments can be declared as positional or key-value argument. Positional arguments must be declared before key-value arguments.
+ * Positional argument has name to access to it, but doesn't require the name to be typed in the command string. Key-value argument also has a name and the name
+ * must be typed in the command string. Order to type key-value arguments in the command string is not important.</p>
+ * <p>{@linkplain ConfigArg} argument type is used to store part or all the command line arguments in external data source (file, URI connection etc). When you get value
+ * for any argument and it doesn't explicitly typed in the command string, it's value will be extracted from the external data source. External data source must have format
+ * compatible with {@linkplain SubstitutableProperties} requirements.</p>
+ * <p>This class can be used in multi-threaded environment</p>
  * 
  * @see chav1961.purelib.basic JUnit tests
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.4
  */
 public class ArgParser {
 	private final char					keyPrefix;
 	private final boolean				caseSensitive;
 	private final ArgDescription[]		desc;
 	private final Map<String,String[]>	pairs;
+	private final boolean				hasConfigArg;
 
 	protected ArgParser(final ArgDescription... desc) {
 		this('-',true,desc);
@@ -61,7 +83,7 @@ public class ArgParser {
 		}
 		else {
 			final Set<String>	names = new HashSet<>();
-			boolean 			prevPosWasList = false; 
+			boolean 			prevPosWasList = false, hasConfig = false; 
 			
 			for (ArgDescription item : desc) {
 				final String	key = caseSensitive ? item.getName() : item.getName().toLowerCase();
@@ -81,6 +103,9 @@ public class ArgParser {
 				else {
 					prevPosWasList = item.isList();
 					names.add(item.getName());
+					if (item instanceof ConfigArg) {
+						hasConfig = true;
+					}
 				}
 			}
 			
@@ -88,13 +113,15 @@ public class ArgParser {
 			this.caseSensitive = caseSensitive;
 			this.desc = desc;
 			this.pairs = null;
+			this.hasConfigArg = hasConfig;
 		}
 	}
 
-	private ArgParser(final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final Map<String,String[]> pairs) {
+	private ArgParser(final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final boolean hasConfigArg, final Map<String,String[]> pairs) {
 		this.keyPrefix = keyPrefix;
 		this.caseSensitive = caseSensitive;
 		this.desc = desc;
+		this.hasConfigArg = hasConfigArg;
 		this.pairs = Collections.unmodifiableMap(pairs);
 	}
 
@@ -112,8 +139,8 @@ public class ArgParser {
 		else {
 			final Map<String,String[]>	pairs = new HashMap<>();
 			
-			parseParameters(ignoreExtra,ignoreUnknown,keyPrefix,caseSensitive,desc,args,pairs);
-			return new ArgParser(keyPrefix,caseSensitive,desc,pairs);
+			parseParameters(ignoreExtra,ignoreUnknown,keyPrefix,caseSensitive,desc,hasConfigArg,args,pairs);
+			return new ArgParser(keyPrefix,caseSensitive,desc,hasConfigArg,pairs);
 		}
 	}
 	
@@ -131,7 +158,15 @@ public class ArgParser {
 			final String			keyFind = caseSensitive ? key : key.toLowerCase(); 
 			final ArgDescription	found = forKey(keyFind,desc,caseSensitive); 
 			
-			if (pairs.containsKey(keyFind)) {
+			if (found == null) {
+				if (awaited == String.class) {
+					return pairs.get(keyFind) == null ? null : (T)pairs.get(keyFind)[0].toString();
+				}
+				else {
+					throw new IllegalArgumentException("Unknown of undeclared key ["+key+"]: only String.class can be used for awaited class");
+				}
+			}
+			else if (pairs.containsKey(keyFind)) {
 				return (T)convert(found,awaited,pairs.get(keyFind));
 			}
 			else {
@@ -192,14 +227,22 @@ public class ArgParser {
 		}
 	}
 	
-	static void parseParameters(final boolean ignoreExtra, final boolean ignoreUnknown, final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final String[] args, final Map<String, String[]> pairs) throws CommandLineParametersException {
-		int 	positional = 0;
+	static void parseParameters(final boolean ignoreExtra, final boolean ignoreUnknown, final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final boolean hasConfigArg, final String[] args, final Map<String, String[]> pairs) throws CommandLineParametersException {
+		final Set<String>	names =  new HashSet<>();
+		ArgDescription		confArg = null;
+		int 				positional = 0;
 		
 loop:	for (int index = 0; index < args.length; index++) {
 			if (args[index].isEmpty() || args[index].charAt(0) != keyPrefix) {
 				int	found = 0;
 				
 				for (ArgDescription item : desc) {
+					if (hasConfigArg) {
+						names.add(item.getName());
+						if (item instanceof ConfigArg) {
+							confArg = item;
+						}
+					}
 					if (item.isPositional()) {
 						if (found == positional) {
 							if (item.isList()) {
@@ -275,6 +318,31 @@ loop:	for (int index = 0; index < args.length; index++) {
 		if (sb.length() > 0) {
 			throw new CommandLineParametersException("Mandatory argument(s) ["+sb.toString().substring(1)+"] are missing in the parameters");
 		}
+		
+		if (hasConfigArg && confArg != null && (pairs.containsKey(confArg.getName()) || confArg.getDefaultValue() != null)) {
+			final SubstitutableProperties	sp = new SubstitutableProperties();
+			final String					confSource = (pairs.containsKey(confArg.getName()) ? pairs.get(confArg.getName()) : confArg.getDefaultValue())[0];
+			final URI						sourceURI = confArg.getValue(confSource,URI.class);
+			
+			try(final InputStream	is = (sourceURI.isAbsolute() ? sourceURI : URI.create("file:"+sourceURI.toString())).toURL().openStream()) {
+				sp.load(is);
+			} catch (IOException e) {
+				throw new CommandLineParametersException("I/O error reading configuration source ["+confSource+"] : "+e.getLocalizedMessage());
+			}
+			if (!ignoreUnknown) {
+				for (Entry<Object,Object> item : sp.entrySet()) {
+					if (!names.contains(item.getKey().toString())) {
+						sb.append(',').append(item.getKey().toString());
+					}
+				}
+				if (sb.length() > 0) {
+					throw new CommandLineParametersException("Configuration source ["+confSource+"] contains unknown parameters ["+sb.substring(1)+"]");
+				}
+			}
+			for (Entry<Object,Object> item : sp.entrySet()) {
+				pairs.putIfAbsent(item.getKey().toString(),new String[]{sp.getProperty(item.getKey().toString())});
+			}
+		}
 	}
 
 	static int collectList(final String[] args, int from, final char keyPrefix, final List<String> collection) {
@@ -300,7 +368,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 				}
 				return(T)result;
 			}
-			else if (value.length > 0) {
+			else if (value.length > 0 && value[0] != null) {
 				return (T)desc.getValue(value[0],awaited);
 			}
 			else {
@@ -828,6 +896,68 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override
 		public String toString() {
 			return "StringListArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
+		}
+	}
+
+	protected static class ConfigArg extends URIArg {
+		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
+		
+		static {
+			SUPPORTED_CONVERSIONS.add(URI.class);
+			SUPPORTED_CONVERSIONS.add(String.class);
+		}
+		
+		private final String[]	defaults;	
+
+		public ConfigArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
+			super(name, isMandatory, isPositional, helpDescriptor);
+			this.defaults = new String[0];
+		}
+
+		public ConfigArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
+			super(name, false, isPositional, helpDescriptor);
+			this.defaults = new String[]{defaultValue};
+		}
+		
+		@Override
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
+			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
+					return (T)SQLUtils.convert(awaited, value);
+				}
+				else {
+					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				}
+			} catch (ContentException e) {
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
+			}
+		}
+
+		@Override
+		public String[] getDefaultValue() {
+			return defaults;
+		}
+
+		@Override
+		public boolean isList() {
+			return false;
+		}
+
+		@Override
+		public void validate(final String value) throws CommandLineParametersException {
+			if (value == null || value.isEmpty()) {
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
+			}
+			else {
+				try{URI.create(value);
+				} catch (IllegalArgumentException exc) {
+					throw new CommandLineParametersException("Argument ["+getName()+"]: value doesn't have valid URI: "+value+" ("+exc.getLocalizedMessage()+")");
+				}
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "ConfigArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
 		}
 	}
 }

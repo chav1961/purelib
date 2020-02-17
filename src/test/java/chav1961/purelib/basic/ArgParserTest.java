@@ -61,11 +61,11 @@ public class ArgParserTest {
 	public void parseTest() throws ConsoleCommandException, ContentException {
 		final Map<String,String[]>	result = new HashMap<>();
 		
-		ArgParser.parseParameters(false,false,'-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},CharUtils.split("-key",' '),result);
+		ArgParser.parseParameters(false,false,'-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},false,CharUtils.split("-key",' '),result);
 		Assert.assertTrue(result.containsKey("key"));
 		Assert.assertEquals("true",result.get("key")[0]);
 
-		try{ArgParser.parseParameters(false,false,'-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},CharUtils.split("",' '),result);
+		try{ArgParser.parseParameters(false,false,'-',true,new ArgDescription[]{new ArgParser.BooleanArg("key",false,"help",false)},false,CharUtils.split("",' '),result);
 			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
 		} catch (CommandLineParametersException exc) {
 		}
@@ -455,6 +455,49 @@ public class ArgParserTest {
 		}
 		
 		try{new ArgParser(new ArgParser.StringListArg("key",true,false,"help")).parse();
+			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
+		} catch (CommandLineParametersException exc) {
+		}
+	}
+
+	@Test
+	public void ConfigArgTest() throws ConsoleCommandException, ContentException {
+		final ArgParser.ConfigArg	arg = new ArgParser.ConfigArg("key",false,"help","./test/properties");
+
+		Assert.assertNotNull(arg.toString());
+		arg.validate("file://localhost/c:");
+		try{arg.validate(null);
+			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
+		} catch (CommandLineParametersException exc) {
+		}
+		try{arg.validate("");
+			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
+		} catch (CommandLineParametersException exc) {
+		}
+		try{arg.validate("c:#/");
+			Assert.fail("Mandatory exception was not detected (illegal value for the given type)");
+		} catch (CommandLineParametersException exc) {
+		}
+		
+		ArgParser	parser = new ArgParser(arg);
+		
+		Assert.assertEquals("200",parser.parse("-key","200").getValue("key",String.class));
+		Assert.assertEquals(URI.create("c:/200"),parser.parse("-key","c:/200").getValue("key",URI.class));
+		Assert.assertEquals("./test/properties",parser.parse().getValue("key",String.class));
+		
+		parser = new ArgParser(new ArgParser.ConfigArg("key",true,true,"help"));
+		Assert.assertEquals(URI.create("file:./src/test/resources/chav1961/purelib/basic/test.properties"),parser.parse(true,true,"file:./src/test/resources/chav1961/purelib/basic/test.properties").getValue("key",URI.class));
+		Assert.assertEquals("value1",parser.parse(true,true,"file:./src/test/resources/chav1961/purelib/basic/test.properties").getValue("key1",String.class));
+
+		try{parser.parse(true,false,"file:./src/test/resources/chav1961/purelib/basic/test.properties").getValue("key",URI.class);
+			Assert.fail("Mandatory exception was not detected (unknown keys ion the configuration file)");
+		} catch (CommandLineParametersException exc) {
+		}
+		
+		parser = new ArgParser(new ArgParser.ConfigArg("key",false,true,"help"));
+		Assert.assertNull(parser.parse().getValue("key",String.class));
+
+		try{new ArgParser(new ArgParser.ConfigArg("key",true,true,"help")).parse();
 			Assert.fail("Mandatory exception was not detected (missing mandatory argument)");
 		} catch (CommandLineParametersException exc) {
 		}
