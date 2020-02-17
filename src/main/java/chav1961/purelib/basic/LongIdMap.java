@@ -48,7 +48,7 @@ public class LongIdMap<T> {
 	@SuppressWarnings("unchecked")
 	public LongIdMap<T> put(final long id, final T cargo) throws NullPointerException {
 		if (cargo == null) {
-			throw new NullPointerException("Cargo to put must be non-negative");
+			throw new NullPointerException("Cargo to put can't be null");
 		}
 		else {
 			final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
