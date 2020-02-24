@@ -155,13 +155,13 @@ public class SyntaxException extends ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source string can't be null"); 
 		}
-		else if (pos < 0 || pos >= source.length()) {
+		else if (pos < 0 || pos > source.length()) {
 			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length()-1)); 
 		}
 		else {
 			int	rowCount = 0;
 			
-			for (int index = 0; index < pos; index++) {
+			for (int index = 0; index < Math.min(pos,source.length()); index++) {
 				if (source.charAt(index) == '\n') {
 					rowCount++;
 				}
@@ -183,13 +183,13 @@ public class SyntaxException extends ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source string can't be null"); 
 		}
-		else if (pos < 0 || pos >= source.length) {
+		else if (pos < 0 || pos > source.length) {
 			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length-1)); 
 		}
 		else {
 			int	rowCount = 0;
 			
-			for (int index = 0; index < pos; index++) {
+			for (int index = 0; index < Math.min(pos,source.length); index++) {
 				if (source[index] == '\n') {
 					rowCount++;
 				}
@@ -211,13 +211,13 @@ public class SyntaxException extends ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source string can't be null"); 
 		}
-		else if (pos < 0 || pos >= source.length()) {
+		else if (pos < 0 || pos > source.length()) {
 			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length()-1)); 
 		}
 		else {
 			int	colCount = 0;
 			
-			for (int index = 0; index < pos; index++) {
+			for (int index = 0; index < Math.min(pos,source.length()); index++) {
 				if (source.charAt(index) == '\n') {
 					colCount = 0;
 				}
@@ -242,13 +242,13 @@ public class SyntaxException extends ContentException {
 		if (source == null) {
 			throw new NullPointerException("Source string can't be null"); 
 		}
-		else if (pos < 0 || pos >= source.length) {
+		else if (pos < 0 || pos > source.length) {
 			throw new IllegalArgumentException("Position in the source string ["+pos+"] outside the range 0.."+(source.length-1)); 
 		}
 		else {
 			int	colCount = 0;
 			
-			for (int index = 0; index < pos; index++) {
+			for (int index = 0; index < Math.min(pos,source.length); index++) {
 				if (source[index] == '\n') {
 					colCount = 0;
 				}
