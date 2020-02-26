@@ -59,6 +59,7 @@ import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
+import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.useful.LabelledLayout;
@@ -96,7 +97,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
 	private final boolean					tooltipsOnFocus;
-	private boolean							closed = false, localizerPushed = false;
+	private boolean							closed = false;
 	private Color							oldForeground4Label;
 
 	public AutoBuiltForm(final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
@@ -148,54 +149,38 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				this.localizer = new LocalizerStore(localizer,mdi.getRoot().getLocalizerAssociated());
 
 				buttonPanel.add(messages);
-				mdi.walkDown((mode,applicationPath,uiPath,node)->{
-					if (mode == NodeEnterMode.ENTER) {
-						if (node.getApplicationPath() != null){ 
-							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
-								final JButton		button = new JButton();
-								
-								button.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
-								trans.message(Severity.trace,"Append button [%1$s]",node.getApplicationPath());
-	
-								button.setActionCommand(node.getApplicationPath().toString());
-								button.addActionListener((e)->{
-									listeners.fireEvent((l)->{
-										if (l instanceof ActionListener) {
-											((ActionListener)l).actionPerformed(e);
-										}
-									});
-									try{process(MonitorEvent.Action,node,button);
-									} catch (ContentException exc) {
-										logger.message(Severity.error,exc,"Button [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
-									}
-								});
-								
-								buttonPanel.add(button);							
-							}
-							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
-								try{final JLabel		label = new JLabel();
-									final FieldFormat	ff = node.getFormatAssociated();
-									final JComponent 	field = SwingUtils.prepareRenderer(node, ff, this);
-								
-									label.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
-									childPanel.add(label,LabelledLayout.LABEL_AREA);
-									field.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
-									childPanel.add(field,LabelledLayout.CONTENT_AREA);
-									trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",node.getUIPath(),field.getClass().getCanonicalName());
-									labelIds.add(node.getLabelId());
-									if (!ff.isReadOnly(false) && !ff.isReadOnly(true)) {
-										modifiableLabelIds.add(node.getLabelId());
-									}
-									accessors.put(node.getUIPath().toString(),GettersAndSettersFactory.buildGetterAndSetter(instance.getClass(),node.getName()));
-								} catch (LocalizationException | ContentException exc) {
-									logger.message(Severity.error,exc,"Control [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
-								}
-							}
+				
+				FormManagedUtils.parseModel4Form(logger,mdi,instance.getClass(),this,new FormManagerParserCallback() {
+					@Override
+					public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, boolean isModifiable) throws ContentException {
+						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
+						childPanel.add(fieldComponent,LabelledLayout.CONTENT_AREA);
+						trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",metadata.getUIPath(),metadata.getClass().getCanonicalName());
+						labelIds.add(metadata.getLabelId());
+						if (!metadata.getFormatAssociated().isReadOnly(false) && !metadata.getFormatAssociated().isReadOnly(true)) {
+							modifiableLabelIds.add(metadata.getLabelId());
 						}
+						accessors.put(metadata.getUIPath().toString(),gas);
 					}
-					return ContinueMode.CONTINUE;
-				}, mdi.getRoot().getUIPath());
-	
+					
+					@Override
+					public void processActionButton(final ContentNodeMetadata metadata, final JButtonWithMeta button) throws ContentException {
+						button.addActionListener((e)->{
+							listeners.fireEvent((l)->{
+								if (l instanceof ActionListener) {
+									((ActionListener)l).actionPerformed(e);
+								}
+							});
+							try{process(MonitorEvent.Action,metadata,button);
+							} catch (ContentException exc) {
+								logger.message(Severity.error,exc,"Button [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
+							}
+						});
+						
+						buttonPanel.add(button);							
+					}
+				});
+
 				setLayout(totalLayout);
 				childPanel.validate();
 				
@@ -360,9 +345,6 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				}
 				break;
 			case FocusGained:
-				final URI s1 = metadata.getUIPath();
-				final URI s2 = URIUtils.appendRelativePath2URI(metadata.getUIPath(),"./label");
-				
 				try{final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,URIUtils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
 				
 					oldForeground4Label = label.getForeground();
