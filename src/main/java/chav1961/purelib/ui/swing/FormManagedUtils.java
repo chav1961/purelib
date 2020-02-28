@@ -1,27 +1,20 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JSeparator;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.GettersAndSettersFactory;
-import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -32,8 +25,6 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
-import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
-import chav1961.purelib.ui.swing.useful.LabelledLayout;
 
 class FormManagedUtils {
 	static <T> RefreshMode seekAndCall(final T instance, final URI appPath) throws Exception {
@@ -42,18 +33,28 @@ class FormManagedUtils {
 		
 		while (cl != null && parts.length >= 3) {
 			for (Method m : cl.getDeclaredMethods()) {
-				if (parts[2].startsWith(m.getName()+"().")) {
+				if (m.getParameterCount() == 0 && parts[2].startsWith(m.getName()+"()")) {
 					m.setAccessible(true);
 					
-					if (m.getReturnType() == void.class) {
-						m.invoke(instance);
-						return RefreshMode.DEFAULT;
-					}
-					else if (RefreshMode.class.isAssignableFrom(m.getReturnType())) {
-						return (RefreshMode)m.invoke(instance);
-					}
-					else {
-						throw new IllegalArgumentException("Method ["+m+"] returns neither void nor RefreshMode type");
+					try{if (m.getReturnType() == void.class) {
+							m.invoke(instance);
+							return RefreshMode.DEFAULT;
+						}
+						else if (RefreshMode.class.isAssignableFrom(m.getReturnType())) {
+							return (RefreshMode)m.invoke(instance);
+						}
+						else {
+							throw new IllegalArgumentException("Method ["+m+"] returns neither void nor RefreshMode type");
+						}
+					} catch (InvocationTargetException exc) {	// unwrap source exception
+						final Throwable	t = exc.getTargetException(); 
+						
+						if (t instanceof Exception) {
+							throw (Exception)t; 
+						}
+						else {
+							throw exc;
+						}
 					}
 				}
 			}
@@ -97,7 +98,7 @@ class FormManagedUtils {
 						} catch (LocalizationException | ContentException exc) {
 							logger.message(Severity.error,exc,"Control [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 						}
-					}
+					} 
 				}
 				return ContinueMode.CONTINUE;
 			}, mdi.getRoot().getUIPath());
@@ -247,7 +248,9 @@ loop:		for(;;) {
 				}
 				newLine = false;
 				from++;
-				column++;
+			}
+			if (from > start) {
+				processLabel(content,start,from,column,row,bold,italic,false,callback);
 			}
 		} catch (ContentException e) {
 			throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),e.getLocalizedMessage(),e);
@@ -255,12 +258,17 @@ loop:		for(;;) {
 		return from;
 	}
 
-	private static void processLabel(final char[] content, final int from, int to, final int x, final int y, final boolean bold, final boolean italic, final boolean caption, final MarkupParserCallback callback) throws ContentException {
-		if (to > from) {
-			while (to > from && content[to] <= ' ') {	// Trim empty tail 
-				to--;
-			}
-			callback.placePlainText(x,y,to-from,1,bold,italic,caption,new String(content,from,to-from));
+	private static void processLabel(final char[] content, int from, int to, int x, final int y, final boolean bold, final boolean italic, final boolean caption, final MarkupParserCallback callback) throws ContentException {
+		while (from < to && content[from] <= ' ') {	// Trim leading spaces 
+			from++;
+		}
+		while (to >= from && content[to] <= ' ') {	// Trim trailing spaces 
+			to--;
+		}
+		if (to >= from) {
+			final int	width = to-from+1;
+			
+			callback.placePlainText(x,y,width,1,bold,italic,caption,new String(content,from,width));
 		}
 	}
 

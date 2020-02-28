@@ -2,6 +2,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	targetNamespace="http://ui.purelib.chav1961/" xmlns:app="http://ui.purelib.chav1961/"
 	elementFormDefault="qualified">
+<!-- Root descriptor: application described content--> 
 	<xs:element name="root">
 		<xs:complexType>
 			<xs:choice minOccurs="1" maxOccurs="unbounded">
@@ -11,6 +12,22 @@
 			</xs:choice>
 		</xs:complexType>
 	</xs:element>
+
+<!-- Root descriptor: class content--> 
+	<xs:element name="class">
+		<xs:complexType>
+			<xs:sequence minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="i18n" type="app:I18n" minOccurs="1" maxOccurs="1" />
+				<xs:element name="field" type="app:Field" minOccurs="1" maxOccurs="unbounded" />
+				<xs:element name="action" type="app:Action" minOccurs="0" maxOccurs="unbounded" />
+			</xs:sequence>
+			<xs:attribute name="type" type="xs:string" use="required" />
+			<xs:attribute name="label" type="xs:string" use="optional" />
+			<xs:attribute name="tooltip" type="xs:string" use="optional" />
+			<xs:attribute name="help" type="xs:string" use="optional" />
+		</xs:complexType>
+	</xs:element>
+
 
 <!-- Localization descriptor: references to application-wide localizer resource--> 
 	<xs:complexType name="I18n">
@@ -78,4 +95,24 @@
 		<xs:attribute name="shift" type="xs:boolean" use="optional" />
 		<xs:attribute name="alt" type="xs:boolean" use="optional" />
 	</xs:complexType>	
+
+<!-- Field descriptor: field description --> 
+	<xs:complexType name="Field">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="label" type="xs:string" use="optional" />
+		<xs:attribute name="tooltip" type="xs:string" use="optional" />
+		<xs:attribute name="help" type="xs:string" use="optional" />
+		<xs:attribute name="format" type="xs:string" use="optional" />
+		<xs:attribute name="icon" type="xs:anyURI" use="optional" />
+	</xs:complexType>
+
+<!-- Action descriptor: field description --> 
+	<xs:complexType name="Action">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="action" type="xs:string" use="required" />
+		<xs:attribute name="label" type="xs:string" use="optional" />
+		<xs:attribute name="tooltip" type="xs:string" use="optional" />
+		<xs:attribute name="help" type="xs:string" use="optional" />
+		<xs:attribute name="icon" type="xs:anyURI" use="optional" />
+	</xs:complexType>
 </xs:schema>

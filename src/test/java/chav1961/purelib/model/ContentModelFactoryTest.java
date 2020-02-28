@@ -1,5 +1,6 @@
 package chav1961.purelib.model;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -41,7 +42,7 @@ public class ContentModelFactoryTest {
 			Assert.assertEquals("root",cmi.getRoot().getLabelId());
 			Assert.assertNull(cmi.getRoot().getTooltipId());
 			Assert.assertNull(cmi.getRoot().getHelpId());
-			
+			 
 			final ContentNodeMetadata	menu = cmi.byUIPath(URI.create("ui:/model/navigation.top.mainMenu"));
 			
 			Assert.assertNotNull(menu);
@@ -91,6 +92,60 @@ public class ContentModelFactoryTest {
 			cmi.walkDown((mode,applicationPath,uiPath,node)->{countArray[0]++; return ContinueMode.CONTINUE;},URI.create("ui:/model"));
 			Assert.assertEquals(16,countArray[0]);
 		}
+
+		try(final InputStream	is = this.getClass().getResourceAsStream("modelTest2.xml")) {
+			final ContentMetadataInterface 	cmi = ContentModelFactory.forXmlDescription(is);
+			
+			Assert.assertEquals("class",cmi.getRoot().getName());
+			Assert.assertEquals(URI.create("./"+AnnotatedForTest.class.getName()),cmi.getRoot().getRelativeUIPath());
+			Assert.assertEquals(URI.create("ui:/"+AnnotatedForTest.class.getName()),cmi.getRoot().getUIPath());
+			Assert.assertEquals(URI.create("app:class:/"+AnnotatedForTest.class.getName()),cmi.getRoot().getApplicationPath());
+			Assert.assertEquals(URI.create("i18n:prop:chav1961/purelib/i18n/i18n"),cmi.getRoot().getLocalizerAssociated());
+			Assert.assertEquals(2,cmi.getRoot().getChildrenCount());
+			Assert.assertNull(cmi.getRoot().getFormatAssociated());
+			Assert.assertEquals(AnnotatedForTest.class,cmi.getRoot().getType());
+			Assert.assertEquals(cmi,cmi.getRoot().getOwner());
+			Assert.assertNull(cmi.getRoot().getParent());
+			Assert.assertEquals("testLabel",cmi.getRoot().getLabelId());
+			Assert.assertEquals("testTooltip",cmi.getRoot().getTooltipId());
+			Assert.assertEquals("testHelp",cmi.getRoot().getHelpId());
+			
+			ContentNodeMetadata		item= cmi.byUIPath(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1/float"));
+
+			Assert.assertNotNull(item);
+			Assert.assertEquals("testSet1",item.getName());
+			Assert.assertEquals(URI.create("./testSet1/float"),item.getRelativeUIPath());
+			Assert.assertEquals(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1/float"),item.getUIPath());
+			Assert.assertEquals(URI.create("app:field:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1"),item.getApplicationPath());
+			Assert.assertEquals(URI.create("i18n:prop:chav1961/purelib/i18n/i18n"),cmi.getRoot().getLocalizerAssociated());
+			Assert.assertEquals(0,item.getChildrenCount());
+			Assert.assertNotNull(item.getFormatAssociated());
+			Assert.assertEquals(float.class,item.getType());
+			Assert.assertEquals(cmi,item.getOwner());
+			Assert.assertNotNull(item.getParent());
+			Assert.assertEquals("fieldLabel",item.getLabelId());
+			Assert.assertEquals("fieldTooltip",item.getTooltipId());
+			Assert.assertEquals("fieldHelp",item.getHelpId());
+			Assert.assertNotNull(item.getIcon());
+		
+			item= cmi.byUIPath(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()+"/call/methodAction"));
+
+			Assert.assertNotNull(item);
+			Assert.assertEquals("methodAction",item.getName());
+			Assert.assertEquals(URI.create("./call/methodAction"),item.getRelativeUIPath());
+			Assert.assertEquals(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()+"/call/methodAction"),item.getUIPath());
+			Assert.assertEquals(URI.create("app:action:/"+AnnotatedForTest.class.getSimpleName()+"/call().methodAction"),item.getApplicationPath());
+			Assert.assertEquals(URI.create("i18n:prop:chav1961/purelib/i18n/i18n"),cmi.getRoot().getLocalizerAssociated());
+			Assert.assertEquals(0,item.getChildrenCount());
+			Assert.assertNull(item.getFormatAssociated());
+			Assert.assertEquals(ActionEvent.class,item.getType());
+			Assert.assertEquals(cmi,item.getOwner());
+			Assert.assertNotNull(item.getParent());
+			Assert.assertEquals("methodLabel",item.getLabelId());
+			Assert.assertEquals("methodTooltip",item.getTooltipId());
+			Assert.assertEquals("methodHelp",item.getHelpId());
+			Assert.assertNotNull(item.getIcon());
+		}		
 		
 		try{ContentModelFactory.forXmlDescription(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -102,7 +157,7 @@ public class ContentModelFactoryTest {
 	public void annotatedClassDescriptionTest() throws IOException,PreparationException, SyntaxException, LocalizationException, ContentException {
 		final ContentMetadataInterface 	cmi = ContentModelFactory.forAnnotatedClass(AnnotatedForTest.class);
 
-		Assert.assertEquals(AnnotatedForTest.class.getSimpleName(),cmi.getRoot().getName());
+		Assert.assertEquals("class",cmi.getRoot().getName());
 		Assert.assertEquals(URI.create("./"+AnnotatedForTest.class.getCanonicalName()),cmi.getRoot().getRelativeUIPath());
 		Assert.assertEquals(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()),cmi.getRoot().getUIPath());
 		Assert.assertEquals(URI.create("app:class:/"+AnnotatedForTest.class.getCanonicalName()),cmi.getRoot().getApplicationPath());
@@ -147,5 +202,7 @@ class AnnotatedForTest {
 	@LocaleResource(value="testSet1",tooltip="testSet2")
 	@Format("10.3mpzn")
 		private float 	testSet1 = 0.0f;
+	
+		private void call() {}
 	
 }

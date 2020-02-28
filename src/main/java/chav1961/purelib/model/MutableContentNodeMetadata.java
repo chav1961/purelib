@@ -42,7 +42,7 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 		}
 		else {
 			this.name = name;
-			this.type = type;
+			this.type = type; 
 			this.relativeUIPath = relativeUIPath;
 			this.localizerAssociated = localizerAssociated;
 			this.labelId = labelId;

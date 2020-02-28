@@ -29,6 +29,7 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -68,13 +69,18 @@ public class ContentModelFactory {
 	private static final String			XML_TAG_APP_KEY = NAMESPACE_PREFIX+":key";	
 	
 	private static final String			XML_ATTR_ID = "id";
-	private static final String			XML_ATTR_NAME = "name";
+	private static final String			XML_ATTR_NAME = "name"; 
+	private static final String			XML_ATTR_TYPE = "type"; 
+	private static final String			XML_ATTR_LABEL = "label";
 	private static final String			XML_ATTR_CAPTION = "caption";
 	private static final String			XML_ATTR_TOOLTIP = "tooltip";
+	private static final String			XML_ATTR_HELP = "help";
+	private static final String			XML_ATTR_FORMAT = "format";
 	private static final String			XML_ATTR_ACTION = "action";
 	private static final String			XML_ATTR_KEYSET = "keyset";
 	private static final String			XML_ATTR_GROUP = "group";	
 	private static final String			XML_ATTR_ICON = "icon";	
+	
 	
 	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (clazz == null) {
@@ -92,7 +98,7 @@ public class ContentModelFactory {
 				throw new IllegalArgumentException("Class ["+clazz+"]: @LocaleResource annotation has empty value");
 			}
 			else {
-				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(clazz.getSimpleName()
+				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("class"
 															, clazz
 															, clazz.getCanonicalName()
 															, localizerResource
@@ -196,25 +202,63 @@ public class ContentModelFactory {
 			
 			try{final DocumentBuilder 		dBuilder = dbFactory.newDocumentBuilder();
 				final Document 				doc = dBuilder.parse(contentDescription);
+				final Element				docRoot = doc.getDocumentElement(); 
 				
-				doc.getDocumentElement().normalize();
+				docRoot.normalize();
 				
-				final String						localizerResource = (String)xpath.compile("//"+XML_TAG_APP_I18N+"/@location").evaluate(doc,XPathConstants.STRING);
-				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("root"
-														, Document.class
-														, "model"
-														, URI.create(localizerResource)
-														, "root"
-														, null 
-														, null
-														, null
-														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/")
-														, null);
-				buildSubtree(doc.getDocumentElement(),root);
+				final String				localizerResource = (String)xpath.compile("//"+XML_TAG_APP_I18N+"/@location").evaluate(doc,XPathConstants.STRING);
+				final SimpleContentMetadata result;
 				
-				final SimpleContentMetadata result = new SimpleContentMetadata(root);
+				switch (doc.getDocumentElement().getTagName()) {
+					case "app:root"		:
+						final MutableContentNodeMetadata	rootApp = new MutableContentNodeMetadata("root"
+																, Document.class
+																, "model"
+																, URI.create(localizerResource)
+																, "root"
+																, null 
+																, null
+																, null
+																, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/")
+																, null);
+						buildSubtree(doc.getDocumentElement(),rootApp);
+						
+						result = new SimpleContentMetadata(rootApp);
+						
+						rootApp.setOwner(result);
+						break;
+					case "app:class"	:
+						final String	clazzName = getAttribute(docRoot,XML_ATTR_TYPE);
+						final String	clazzLabel = getAttribute(docRoot,XML_ATTR_LABEL);
+						final String	clazzTooltip = getAttribute(docRoot,XML_ATTR_TOOLTIP);
+						final String	clazzHelp = getAttribute(docRoot,XML_ATTR_HELP);
+						
+						try{final Class<?> 	clazz = Class.forName(clazzName);
+							
+							final MutableContentNodeMetadata	rootClass = new MutableContentNodeMetadata("class"
+																	, clazz
+																	, clazz.getCanonicalName()
+																	, URI.create(localizerResource)
+																	, clazzLabel
+																	, clazzTooltip
+																	, clazzHelp
+																	, null
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName())
+																	, null);
+
+							appendFields(docRoot,clazz,rootClass);
+							appendMethods(docRoot,clazz,rootClass);
+							result = new SimpleContentMetadata(rootClass);
+							
+							rootClass.setOwner(result);
+							break;
+						} catch (ClassNotFoundException e) {
+							throw new EnvironmentException("Error preparing xml metadata: class ["+clazzName+"] mentioned in the XML descriptor is unknown in this JVM environment",e);
+						}
+					default :
+						throw new UnsupportedOperationException("Root tag ["+doc.getDocumentElement().getTagName()+"] is not supported yet"); 
+				}
 				
-				root.setOwner(result);
 				return result;
 			} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
 				throw new EnvironmentException("Error preparing xml metadata: "+e.getLocalizedMessage(),e);
@@ -350,6 +394,107 @@ public class ContentModelFactory {
 
 	static URI buildClassMethodApplicationURI(final Class<?> clazz, final String action) {
 		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"."+action);
+	}
+
+	private static void appendFields(final Element root, final Class<?> clazz, final MutableContentNodeMetadata rootClass) throws EnvironmentException {
+		final NodeList	list = root.getChildNodes();
+		
+		for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
+			final Node	item = list.item(index);
+			
+			if ("app:field".equals(item.getNodeName())) {
+				final String		fieldName = getAttribute((Element)item,XML_ATTR_NAME);
+				final String		fieldLabel = getAttribute((Element)item,XML_ATTR_LABEL);
+				final String		fieldTooltip = getAttribute((Element)item,XML_ATTR_TOOLTIP);
+				final String		fieldHelp = getAttribute((Element)item,XML_ATTR_HELP);
+				final String		fieldFormat = getAttribute((Element)item,XML_ATTR_FORMAT);
+				final String		fieldIcon = getAttribute((Element)item,XML_ATTR_ICON);
+				
+				try{final Field		f = seekField(clazz,fieldName);
+					final Class<?>	type = f.getType();
+						
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(f.getName()
+															, type
+															, f.getName()+"/"+type.getCanonicalName()
+															, null
+															, fieldLabel == null ? "?" : fieldLabel
+															, fieldTooltip 
+															, fieldHelp
+															, fieldFormat == null ? null : new FieldFormat(type,fieldFormat)
+															, buildClassFieldApplicationURI(clazz,f)
+															, fieldIcon == null ? null : URI.create(fieldIcon)
+														);
+					rootClass.addChild(metadata);
+					metadata.setParent(rootClass);
+				} catch (NoSuchFieldException exc) {
+					throw new EnvironmentException("Error preparing xml metadata: class ["+clazz.getCanonicalName()+"] doesn't contain field ["+fieldName+"]");
+				}
+			}
+		}
+	}
+
+	private static Field seekField(final Class<?> clazz, final String fieldName) throws NoSuchFieldException {
+		if (clazz != null) {
+			for (Field item : clazz.getDeclaredFields()) {
+				if (fieldName.equals(item.getName())) {
+					return item;
+				}
+			}
+			return seekField(clazz.getSuperclass(),fieldName);
+		}
+		else {
+			throw new NoSuchFieldException("Field ["+fieldName+"] is missing in the class");
+		}
+	}
+
+	private static void appendMethods(final Element root, final Class<?> clazz, final MutableContentNodeMetadata rootClass) throws EnvironmentException {
+		final NodeList	list = root.getChildNodes();
+		
+		for (int index = 0, maxIndex = list.getLength(); index < maxIndex; index++) {
+			final Node	item = list.item(index);
+			
+			if ("app:action".equals(item.getNodeName())) {
+				final String		methodName = getAttribute((Element)item,XML_ATTR_NAME);
+				final String		methodAction = getAttribute((Element)item,XML_ATTR_ACTION);
+				final String		methodLabel = getAttribute((Element)item,XML_ATTR_LABEL);
+				final String		methodTooltip = getAttribute((Element)item,XML_ATTR_TOOLTIP);
+				final String		methodHelp = getAttribute((Element)item,XML_ATTR_HELP);
+				final String		methodIcon = getAttribute((Element)item,XML_ATTR_ICON);
+				
+				try{final Method	m = seekMethod(clazz,methodName);
+						
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(methodAction
+															, ActionEvent.class
+															, m.getName()+"/"+methodAction
+															, null
+															, methodLabel == null ? "?" : methodLabel 
+															, methodTooltip
+															, methodHelp
+															, null
+															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+clazz.getSimpleName()+"/"+m.getName()+"()."+methodAction)
+															, methodIcon == null ? null : URI.create(methodIcon)
+											);
+					rootClass.addChild(metadata);
+					metadata.setParent(rootClass);
+				} catch (NoSuchMethodException exc) {
+					throw new EnvironmentException("Error preparing xml metadata: class ["+clazz.getCanonicalName()+"] doesn't contain method ["+methodName+"()]");
+				}
+			}
+		}
+	}
+	
+	private static Method seekMethod(final Class<?> clazz, final String methodName) throws NoSuchMethodException {
+		if (clazz != null) {
+			for (Method item : clazz.getDeclaredMethods()) {
+				if (item.getParameterCount() == 0 && methodName.equals(item.getName())) {
+					return item;
+				}
+			}
+			return seekMethod(clazz.getSuperclass(),methodName);
+		}
+		else {
+			throw new NoSuchMethodException("Method ["+methodName+"()] is missing in the class");
+		}
 	}
 
 	private static void buildSubtree(final Element document, final MutableContentNodeMetadata node) throws EnvironmentException {

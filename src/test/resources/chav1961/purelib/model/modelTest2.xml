@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<app:class xmlns:app="http://ui.purelib.chav1961/" type="chav1961.purelib.model.AnnotatedForTest" label="testLabel" tooltip="testTooltip" help="testHelp">
+	<app:i18n location="i18n:prop:chav1961/purelib/i18n/i18n"/>
+	<app:field name="testSet1" label="fieldLabel" tooltip="fieldTooltip" help="fieldHelp" format="100" icon="./myicon.icon"/>
+	<app:action name="call" label="methodLabel" tooltip="methodTooltip" help="methodHelp" action="methodAction" icon="./myicon.icon"/>
+</app:class>
