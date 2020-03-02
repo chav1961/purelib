@@ -136,10 +136,210 @@ public class FormManagedUtilsTest {
 		
 		Assert.assertArrayEquals(new boolean[] {true,false,false,false,false},called);
 		Assert.assertEquals(1,plain.size());
-		Assert.assertEquals(new PlainTextKeeper(2,0,1,1,false,false,false,"A"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(2,1,1,1,false,false,false,"A"),plain.get(0));
+
+		// Plain text and caption
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
 		
+		FormManagedUtils.parseMarkup("== Caption \nPlain text",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,false,false,false},called);
+		Assert.assertEquals(2,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(2,1,7,1,true,false,true,"Caption"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(1,2,10,1,false,false,false,"Plain text"),plain.get(1));
+
+		// Bold and italic
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("plain **bold** plain //italic// plain **//bold italic//** plain",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,false,false,false},called);
+		Assert.assertEquals(7,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,5,1,false,false,false,"plain"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(7,1,4,1,true,false,false,"bold"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(12,1,5,1,false,false,false,"plain"),plain.get(2));
+		Assert.assertEquals(new PlainTextKeeper(18,1,6,1,false,true,false,"italic"),plain.get(3));
+		Assert.assertEquals(new PlainTextKeeper(25,1,5,1,false,false,false,"plain"),plain.get(4));
+		Assert.assertEquals(new PlainTextKeeper(31,1,11,1,true,true,false,"bold italic"),plain.get(5));
+		Assert.assertEquals(new PlainTextKeeper(43,1,5,1,false,false,false,"plain"),plain.get(6));
+
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("plain **bold\nplain",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,false,false,false},called);
+		Assert.assertEquals(3,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,5,1,false,false,false,"plain"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(7,1,4,1,true,false,false,"bold"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(1,2,5,1,false,false,false,"plain"),plain.get(2));
+		
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("plain //italic\nplain",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,false,false,false},called);
+		Assert.assertEquals(3,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,5,1,false,false,false,"plain"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(7,1,6,1,false,true,false,"italic"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(1,2,5,1,false,false,false,"plain"),plain.get(2));
+		
+		// Substitutions
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("plain ${var:10=100} plain ${var:10} plain ${var:10='test'} plain",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,true,false,false},called);
+		Assert.assertEquals(4,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,5,1,false,false,false,"plain"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(18,1,5,1,false,false,false,"plain"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(35,1,5,1,false,false,false,"plain"),plain.get(2));
+		Assert.assertEquals(new PlainTextKeeper(52,1,5,1,false,false,false,"plain"),plain.get(3));
+		Assert.assertEquals(3,field.size());
+		Assert.assertEquals(new FieldKeeper(7,1,10,1,"var","100"),field.get(0));
+		Assert.assertEquals(new FieldKeeper(24,1,10,1,"var",null),field.get(1));
+		Assert.assertEquals(new FieldKeeper(41,1,10,1,"var","test"),field.get(2));
+		
+		try {FormManagedUtils.parseMarkup("${:10=100}",callback);
+			Assert.fail("Mandatory exception was not detected (missing field name)");
+		} catch (SyntaxException exc) {
+		}
+		try {FormManagedUtils.parseMarkup("${var 10=100}",callback);
+			Assert.fail("Mandatory exception was not detected (missing colon)");
+		} catch (SyntaxException exc) {
+		}
+		try {FormManagedUtils.parseMarkup("${var:=100}",callback);
+			Assert.fail("Mandatory exception was not detected (missing field length)");
+		} catch (SyntaxException exc) {
+		}
+		try {FormManagedUtils.parseMarkup("${var:10",callback);
+			Assert.fail("Mandatory exception was not detected (missing '}')");
+		} catch (SyntaxException exc) {
+		}
+		try {FormManagedUtils.parseMarkup("${var:10=",callback);
+			Assert.fail("Mandatory exception was not detected (missing '}')");
+		} catch (SyntaxException exc) {
+		}
+		try {FormManagedUtils.parseMarkup("${var:10='}",callback);
+			Assert.fail("Mandatory exception was not detected (unpaired quote)");
+		} catch (SyntaxException exc) {
+		}
+
+		// Separators
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("plain ----- plain",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,true,false,false,false},called);
+		Assert.assertEquals(2,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,5,1,false,false,false,"plain"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(13,1,5,1,false,false,false,"plain"),plain.get(1));
+		Assert.assertEquals(1,separator.size());
+		Assert.assertEquals(new SeparatorKeeper(7,1,5,1),separator.get(0));
+
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("plain | plain\nplain | plain\r\nplain | plain\n",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,true,false,false,false},called);
+		Assert.assertEquals(6,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,5,1,false,false,false,"plain"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(9,1,5,1,false,false,false,"plain"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(1,2,5,1,false,false,false,"plain"),plain.get(2));
+		Assert.assertEquals(new PlainTextKeeper(9,2,5,1,false,false,false,"plain"),plain.get(3));
+		Assert.assertEquals(new PlainTextKeeper(1,3,5,1,false,false,false,"plain"),plain.get(4));
+		Assert.assertEquals(new PlainTextKeeper(9,3,5,1,false,false,false,"plain"),plain.get(5));
+		Assert.assertEquals(1,separator.size());
+		Assert.assertEquals(new SeparatorKeeper(7,1,1,3),separator.get(0));
+		
+		// Escapes
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("plai\\n **bol\\d** plai\\n",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,false,false,false},called);
+		Assert.assertEquals(3,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,5,1,false,false,false,"plain"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(7,1,4,1,true,false,false,"bold"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(12,1,5,1,false,false,false,"plain"),plain.get(2));
+
+		// Frames
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("before1 +--------+ after1\nbefore2 | inside | after2\nbefore3 +--------+ after3\n",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,false,true,true},called);
+		Assert.assertEquals(7,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,7,1,false,false,false,"before1"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(2,1,6,1,false,false,false,"inside"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(20,1,6,1,false,false,false,"after1"),plain.get(2));
+		Assert.assertEquals(new PlainTextKeeper(1,2,7,1,false,false,false,"before2"),plain.get(3));
+		Assert.assertEquals(new PlainTextKeeper(20,2,6,1,false,false,false,"after2"),plain.get(4));
+		Assert.assertEquals(new PlainTextKeeper(1,3,7,1,false,false,false,"before3"),plain.get(5));
+		Assert.assertEquals(new PlainTextKeeper(20,3,6,1,false,false,false,"after3"),plain.get(6));
+
+		Arrays.fill(called,false);
+		plain.clear();
+		separator.clear();
+		field.clear();
+		content.clear();
+		
+		FormManagedUtils.parseMarkup("before1 +--------+ after1\nbefore2 | ${var:6} | after2\nbefore3 +--------+ after3\n",callback);
+		
+		Assert.assertArrayEquals(new boolean[] {true,false,true,true,true},called);
+		Assert.assertEquals(6,plain.size());
+		Assert.assertEquals(new PlainTextKeeper(1,1,7,1,false,false,false,"before1"),plain.get(0));
+		Assert.assertEquals(new PlainTextKeeper(20,1,6,1,false,false,false,"after1"),plain.get(1));
+		Assert.assertEquals(new PlainTextKeeper(1,2,7,1,false,false,false,"before2"),plain.get(2));
+		Assert.assertEquals(new PlainTextKeeper(20,2,6,1,false,false,false,"after2"),plain.get(3));
+		Assert.assertEquals(new PlainTextKeeper(1,3,7,1,false,false,false,"before3"),plain.get(4));
+		Assert.assertEquals(new PlainTextKeeper(20,3,6,1,false,false,false,"after3"),plain.get(5));
+
+		try {FormManagedUtils.parseMarkup("+--\n",callback);
+			Assert.fail("Mandatory exception was not detected (non-rectangle area - missing top-right)");
+		} catch (SyntaxException exc) {
+		}
+		try {FormManagedUtils.parseMarkup("+--+\n+-+",callback);
+			Assert.fail("Mandatory exception was not detected (non-rectangle area - missing bottom-left or bottom-right)");
+		} catch (SyntaxException exc) {
+		}
 	}
-	
+	 
 	private static class PlainTextKeeper {
 		final int 		x, y, width, height;
 		final boolean	bold, italic, caption;

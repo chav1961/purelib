@@ -27,6 +27,9 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
 class FormManagedUtils {
+	private static final char	EOF_MARKUP = '\0';
+	private static final char	SPLITTER_MARKUP = '\1';
+	
 	static <T> RefreshMode seekAndCall(final T instance, final URI appPath) throws Exception {
 		final String[]		parts = URI.create(appPath.getSchemeSpecificPart()).getPath().split("/");
 		Class<?>			cl = instance.getClass();
@@ -116,34 +119,41 @@ class FormManagedUtils {
 	}
 	
 	static int parseMarkup(final String content, final MarkupParserCallback callback) throws SyntaxException, IllegalArgumentException, NullPointerException {
-		return parseMarkup(CharUtils.terminateAndConvert2CharArray(content,'\0'),0,callback);
+		return parseMarkup(CharUtils.terminateAndConvert2CharArray(content,EOF_MARKUP),0,callback);
 	}
 
 	private static int parseMarkup(final char[] content, int from, final MarkupParserCallback callback) throws SyntaxException, IllegalArgumentException, NullPointerException {
-		int		start = from, row = 0, column = 0, displ, index, forName[] = new int[2], forLength[] = new int[1], forInitialValue[] = new int[2];
+		int		start = from, row = 1, column = 1, escapes = 0, displ, index, forName[] = new int[2], forLength[] = new int[1], forInitialValue[] = new int[2];
 		boolean	newLine = true, bold = false, italic = false;
 
 		try{		
 loop:		for(;;) {
-				while (content[from] <= ' ' && content[from] != '\n' && content[from] != '\0') {
+				while (content[from] <= ' ' && content[from] != '\n' && content[from] != EOF_MARKUP && content[from] != SPLITTER_MARKUP) {
 					from++;
-					column++;
 				}
 				
 				switch (content[from]) {
-					case '\0' 	:
+					case EOF_MARKUP 		:
 						break loop;
+					case SPLITTER_MARKUP	:
+						processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
+						column += from - start + 1 - escapes;
+						start = from + 1;
+						escapes = 0;
+						break;
 					case '\r' 	:
-						processLabel(content,start,from-1,column,row,bold,italic,false,callback);
+						processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
+						bold = italic = false; 
 						start = from + 1;
 						break;
 					case '\n' 	:
-						processLabel(content,start,from-1,column,row,bold,italic,false,callback);
+						processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
 						newLine = true;
 						bold = italic = false; 
 						start = ++from;
 						row++;
-						column = 0;
+						column = 1;
+						escapes = 0;
 						continue loop;
 					case '=' 	:
 						if (newLine) {
@@ -151,10 +161,16 @@ loop:		for(;;) {
 								from++;
 							}
 							start = from;
-							while (content[from] != '\r' && content[from] != '\n' && content[from] != '\0') {
+							while (content[from] != '\r' && content[from] != '\n' && content[from] != EOF_MARKUP) {
 								from++;
 							}
-							processLabel(content,start,from-1,column,row,true,false,true,callback);
+							processLabel(content,start,from-1,column,row,escapes > 0,true,false,true,callback);
+							while (content[from] == '\r' || content[from] == '\n') {
+								from++;
+							}
+							start = from;
+							row++;
+							column = 1;
 						}
 						else {
 							from++;
@@ -164,7 +180,10 @@ loop:		for(;;) {
 						if (content[from+1] == '-' && content[from+2] == '-') {
 							int separatorSize = 0;
 							
-							processLabel(content,start,from-1,column,row,bold,italic,false,callback);
+							processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
+							column += from - start - escapes;
+							escapes = 0;
+							
 							while (content[from] == '-') {
 								from++;
 								separatorSize++;
@@ -179,68 +198,98 @@ loop:		for(;;) {
 						}
 						break;
 					case '+' 	:	// Nested component - extract it's content and parse it
-						if (content[from+1] == '-' && content[rowCol2Displ(content,column,row+1,forName)] == '|') {
-							processLabel(content,start,from-1,column,row,bold,italic,false,callback);
+						if (content[from+1] == '-' && content[from+2] == '-') {
+							processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
+							column += from - start - escapes;
 							start = from;
+							escapes = 0;
 							from = cutAndParseNested(content,from,row,column,callback);
-							column += (from - start);
 						}
 						break;
 					case '|' 	:
-						processLabel(content,start,from-1,column,row,bold,italic,false,callback);
+						processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
+						column += from - start - escapes;
+						escapes = 0;
+						
 						for (index = 0; content[displ = rowCol2Displ(content,column,row+index,forName)] == '|'; index++) {
-							content[displ] = '|'; 
+							content[displ] = SPLITTER_MARKUP; 
 						}
 						callback.placeSeparator(column,row,1,index);
+						start = from + 1;
+						column++;
 						break;
 					case '\\'	:
-						if (content[from+1] != '\0') {
-							from += 2;
+						if (content[from+1] != EOF_MARKUP) {
+							from++;
+							escapes++;
 						}
 						break;
 					case '*' 	:
 						if (content[from+1] == '*') {
-							processLabel(content,start,from-1,column,row,bold,italic,false,callback);
+							processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
 							bold = !bold;
-							start = from += 2;
-							column--;	// format doesn't change column position!
+							column += from - start - escapes;
+							escapes = 0;
+							start = from++ + 2;
 						}
 						break;
 					case '/' 	:
-						if (content[from+1] == '*') {
-							processLabel(content,start,from-1,column,row,bold,italic,false,callback);
+						if (content[from+1] == '/') {
+							processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
 							italic = !italic;
-							start = from += 2;
-							column--;	// format doesn't change column position!
+							column += from - start - escapes;
+							escapes = 0;
+							start = from++ + 2;
 						}
 						break;
 					case '$' 	:
 						if (content[from+1] == '{') {	// ${name:length[='initial']}
-							processLabel(content,start,from-1,column,row,bold,italic,false,callback);
-							from = CharUtils.parseName(content,from+2,forName);
-							if (content[from] == ':') {
-								from = CharUtils.parseInt(content,from+1,forLength,true);
-								if (content[from] == '=') {
-									from++;
-									if (content[from] == '\'') {
-										from = CharUtils.parseUnescapedString(content,from+1,'\'',true,forInitialValue);
-									}
-									else {
-										forInitialValue[0] = from;
-										while (content[from] != '}' && content[from] != '\n' && content[from] != '\0') {
+							processLabel(content,start,from-1,column,row,escapes > 0,bold,italic,false,callback);
+							column += from - start - escapes;
+							escapes = 0;
+							if (Character.isJavaIdentifierStart(content[from+2])) {
+								from = CharUtils.parseName(content,from+2,forName);
+								if (content[from] == ':') {
+									from = CharUtils.parseInt(content,from+1,forLength,true);
+									if (content[from] == '=') {
+										from++;
+										if (content[from] == '\'') {
+											try{from = CharUtils.parseUnescapedString(content,from+1,'\'',true,forInitialValue);
+											} catch (IllegalArgumentException exc) {
+												throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),"Illegall string format or string is not terminated with (')");
+											}
+										}
+										else {
+											forInitialValue[0] = from;
+											while (content[from] != '}' && content[from] != '\n' && content[from] != EOF_MARKUP) {
+												from++;
+											}
+											forInitialValue[1] = from-1;
+										}
+										if (content[from] == '}') {
+											callback.placeField(column,row,forLength[0],1,new String(content,forName[0],forName[1]-forName[0]+1),new String(content,forInitialValue[0],forInitialValue[1]-forInitialValue[0]+1));
 											from++;
 										}
-										forInitialValue[1] = from;
+										else {
+											throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),"Missing '}' in field descriptor");
+										}
 									}
-									callback.placeField(column,row,forLength[0],1,new String(content,forName[0],forName[1]-forName[0]+1),new String(content,forName[0],forInitialValue[1]-forInitialValue[0]+1));
+									else if (content[from] == '}') {
+										callback.placeField(column,row,forLength[0],1,new String(content,forName[0],forName[1]-forName[0]+1),null);
+										from++;
+									}
+									else {
+										throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),"Missing '}' in field descriptor");
+									}
+									start = from;
+									column += forLength[0];
 								}
 								else {
-									callback.placeField(column,row,forLength[0],1,new String(content,forName[0],forName[1]-forName[0]+1),null);
+									throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),"Missing ':' in field descriptor");  
 								}
-								column += forLength[0];
 							}
 							else {
-								throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),"Missing ':' in field descriptor");  
+								throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),"Missing field name in field descriptor");  
 							}
 						}
 						break;
@@ -250,7 +299,7 @@ loop:		for(;;) {
 				from++;
 			}
 			if (from > start) {
-				processLabel(content,start,from,column,row,bold,italic,false,callback);
+				processLabel(content,start,from,column,row,escapes > 0,bold,italic,false,callback);
 			}
 		} catch (ContentException e) {
 			throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),e.getLocalizedMessage(),e);
@@ -258,9 +307,10 @@ loop:		for(;;) {
 		return from;
 	}
 
-	private static void processLabel(final char[] content, int from, int to, int x, final int y, final boolean bold, final boolean italic, final boolean caption, final MarkupParserCallback callback) throws ContentException {
+	private static void processLabel(final char[] content, int from, int to, int x, final int y, final boolean escapesDetected, final boolean bold, final boolean italic, final boolean caption, final MarkupParserCallback callback) throws ContentException {
 		while (from < to && content[from] <= ' ') {	// Trim leading spaces 
 			from++;
+			x++;
 		}
 		while (to >= from && content[to] <= ' ') {	// Trim trailing spaces 
 			to--;
@@ -268,7 +318,23 @@ loop:		for(;;) {
 		if (to >= from) {
 			final int	width = to-from+1;
 			
-			callback.placePlainText(x,y,width,1,bold,italic,caption,new String(content,from,width));
+			if (escapesDetected) {					// Remove escaped sequences from the string
+				final StringBuilder	sb = new StringBuilder();
+				
+				for (int index = 0; index < width; index++) {
+					if (content[from+index] == '\\') {
+						sb.append(content[from+index+1]);
+						index++;
+					}
+					else {
+						sb.append(content[from+index]);
+					}
+				}
+				callback.placePlainText(x,y,sb.length(),1,bold,italic,caption,sb.toString());
+			}
+			else {
+				callback.placePlainText(x,y,width,1,bold,italic,caption,new String(content,from,width));
+			}
 		}
 	}
 
@@ -276,38 +342,49 @@ loop:		for(;;) {
 		final int	left = from, right, top = row, bottom, temp[] = new int[2];
 		
 		from++;
-		while (content[from] != '+' && content[from] != '\n' && content[from] != '\0') {
+		while (content[from] != '+' && content[from] != '\n' && content[from] != EOF_MARKUP) {
 			from++;
 		}
 		if (content[from] == '+') {
-			right = from;
+			right = from+1;
 
 			int	rowCount = row+1;
 			
 			while (content[rowCol2Displ(content,column,rowCount,temp)] == '|') {
 				rowCount++;
 			}
-			if (content[rowCol2Displ(content,column,rowCount,temp)] == '+') {
+			if (content[rowCol2Displ(content,column,rowCount,temp)] == '+' && content[rowCol2Displ(content,column+(right-left)-1,rowCount,temp)] == '+') {
 				bottom = rowCount;
 				
-				int	arraySize = 1, ranges[][] = new int[top-bottom][], to = 0;
+				int	arraySize = 1, ranges[][] = new int[bottom-top+1][], to = 0;
 				
 				for(int line = top; line <= bottom; line++) {
-					ranges[line-top] = new int[] {rowCol2Displ(content,left,line,temp), rowCol2Displ(content,right,line,temp)};
+					ranges[line-top] = new int[] {rowCol2Displ(content,column,line,temp), rowCol2Displ(content,column+(right-left),line,temp)};
 					arraySize += ranges[line-top][1] - ranges[line-top][0] + 1; 
 				}
-				final char[]	extracted = new char[arraySize];
+				final char[]	extracted = new char[arraySize-2*(right-left)-2*(bottom-top)];
 				
-				for(int line = top; line <= bottom; line++) {
-					int	fromPos = (ranges[line-top][1]-ranges[line-top][0])-(right-left);
-					
-					System.arraycopy(content,ranges[line-top][0],extracted,to,ranges[line-top][1]-ranges[line-top][0]);	// Extract content
-					Arrays.fill(content,ranges[line-top][0],ranges[line-top][1],' ');									// Fill it by blanks
-					System.arraycopy(content,ranges[line-top][1],content,fromPos,content.length-fromPos);				// Compact
-					to += ranges[line-top][1]-ranges[line-top][0];
+				for(int line = top+1; line < bottom; line++) {	// Escape bounds...
+					System.arraycopy(content,ranges[line-top][0]+1,extracted,to,ranges[line-top][1]-ranges[line-top][0]-3);	// Extract content
+					to += ranges[line-top][1]-ranges[line-top][0]-3;
 					extracted[to++] = '\n';		// Append NL
 				}
-				extracted[to] = '\0';
+				extracted[to] = EOF_MARKUP;
+
+				for(int line = top; line <= bottom; line++) {
+					Arrays.fill(content,ranges[line-top][0],ranges[line-top][1],SPLITTER_MARKUP);	// Fill content by blanks
+				}
+
+				int 	displ = 0, delta;
+				
+				for(int line = top; line <= bottom; line++) {
+					if (ranges[line-top][1] - ranges[line-top][0] > right - left) {
+						delta = (ranges[line-top][1] - ranges[line-top][0]) - (right - left);
+						System.arraycopy(content,ranges[line-top][0]+displ+delta,content,ranges[line-top][0]+displ,content.length-ranges[line-top][0]-displ-delta);	// Compact content
+						displ += delta;
+					}
+				}
+				
 				callback.pushContent(left,top,right-left,bottom-top,"");
 				parseMarkup(extracted,0,callback);
 				callback.popContent();
@@ -323,23 +400,23 @@ loop:		for(;;) {
 	}
 	
 	private static int rowCol2Displ(final char[] content, final int x, final int y, final int[] temp) throws SyntaxException {
-		int 	from = 0, row = 0, col = 0;
+		int 	from = 0, row = 1, col = 1;
 		boolean	newLine = true;
 		
-		while (row < y && content[from] != '\0') {	// Skip rows
+		while (row < y && content[from] != EOF_MARKUP) {	// Skip rows
 			if (content[from] == '\n') {
 				row++;
 			}
 			from++;
 		}
-		while (col < x && content[from] != '\n' && content[from] != '\0') {	// Skip columns
+		while (col < x && content[from] != '\n' && content[from] != EOF_MARKUP) {	// Skip columns
 			switch (content[from]) {
 				case '='	:
 					if (newLine) {
 						while (col < x && content[from] == '=') {
 							from++;
 						}
-						while (col < x && content[from] != '\n' && content[from] != '\0') {
+						while (col < x && content[from] != '\n' && content[from] != EOF_MARKUP) {
 							from++;
 						}
 						if (col == x) {
@@ -368,7 +445,7 @@ loop:		for(;;) {
 					break;
 				case '$' 	:
 					if (content[from+1] == '{') {	// ${name:length[='initial']}
-						while (col < x && content[from] != ':' && content[from] != '\n' && content[from] != '\0') {
+						while (col < x && content[from] != ':' && content[from] != '\n' && content[from] != EOF_MARKUP) {
 							from++;
 						}
 						if (content[from] == ':') {
@@ -385,7 +462,7 @@ loop:		for(;;) {
 									from = CharUtils.parseUnescapedString(content,from+2,'\'',true,temp); 
 								}
 								else {
-									while (content[from] != '}' && content[from] != '\n' && content[from] != '\0') {
+									while (content[from] != '}' && content[from] != '\n' && content[from] != EOF_MARKUP) {
 										from++;
 									}
 								}
@@ -394,6 +471,7 @@ loop:		for(;;) {
 					}
 					break;
 				default :
+					col++;
 			}
 			from++;
 		}

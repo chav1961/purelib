@@ -3,7 +3,6 @@ package chav1961.purelib.basic.intern;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -1510,9 +1509,9 @@ loop:			for (index = from; index < len; index++) {
 			
 			for (int index = from; index < to; index++) {
 				if (value[index] == '$') {
-					final GrowableCharArray	gca = new GrowableCharArray(false);
-					int						dollarPos = index, bracketCount = 0, startName = 0, endName = 0;
-					boolean					wasDollar = false;
+					final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
+					int							dollarPos = index, bracketCount = 0, startName = 0, endName = 0;
+					boolean						wasDollar = false;
 
 nextName:			while (dollarPos >= 0) {
 						gca.append(value,from,dollarPos);

@@ -4,17 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Rectangle;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,21 +22,18 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
+import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
-import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.LineByLineProcessor;
-import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ModelUtils;
@@ -47,16 +42,24 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
+import chav1961.purelib.ui.swing.FormManagedUtils.MarkupParserCallback;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
-import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.JStateString;
 import chav1961.purelib.ui.swing.useful.ScaledLayout;
+import chav1961.purelib.ui.swing.useful.ScaledLayout.AlignmentPolicy;
+import chav1961.purelib.ui.swing.useful.ScaledLayout.FillPolicy;
 
 public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor {
 	private static final long 				serialVersionUID = -1828992791881237479L;
 	public static final int					DEFAULT_WIDTH = 80;
 	public static final int					DEFAULT_HEIGHT = 25;
+	
+	public static final String				WIDTH = "width";
+	public static final String				HEIGHT = "height";
+	public static final String				CAPTION = "caption";
+	public static final String				TOOLTIP = "tooltip";
+	public static final String				HELP = "help";
 	
 	private final Localizer					localizer;
 	private final LoggerFacade				logger;
@@ -119,7 +122,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				}
 			});
 
-			this.desc = buildPresentation(components, this, markupDescriptor, instance.getClass());
+			this.desc = buildPresentation(metadata, components, this, markupDescriptor, instance.getClass());
 			this.lastFocused = new JComponent[desc.getPageCount()];
 			
 			if (!actions.isEmpty()) {
@@ -141,7 +144,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				for (int index = 0; index < desc.getPageCount(); index++) {
 					final PageDescriptor	page = desc.getPage(0); 
 					
-					centralPanel.add(page,"p"+(index+1));
+					centralPanel.add(page.getComponent(),"p"+(index+1));
 					prepareCrossPageMoving(page,index == 0, index == desc.getPageCount()-1);
 				}
 				add(centralPanel,BorderLayout.CENTER);
@@ -158,7 +161,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				this.pageBar = null;
 				this.centralPanel = null;
 				this.pageMark = null;
-				add(desc.getPage(0),BorderLayout.CENTER);
+				add(desc.getPage(0).getComponent(),BorderLayout.CENTER);
 				add(state,BorderLayout.SOUTH);
 			}
 			
@@ -174,7 +177,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			SwingUtils.refreshLocale(pageBar,oldLocale,newLocale);
 		}
 		for (int index = 0; index < desc.getPageCount(); index++) {
-			SwingUtils.refreshLocale(desc.getPage(index),oldLocale,newLocale);
+			SwingUtils.refreshLocale(desc.getPage(index).getComponent(),oldLocale,newLocale);
 		}
 	}
 
@@ -355,7 +358,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			lastFocused[currentPage-1].requestFocus();
 		}
 		else {
-			final JPanel	current = desc.getPage(currentPage-1);
+			final JPanel	current = desc.getPage(currentPage-1).getComponent();
 			
 			for (int index = 0, maxIndex = current.getComponentCount(); index < maxIndex; index++) {
 				if (!(current.getComponent(index) instanceof JLabel)) {
@@ -365,94 +368,79 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		}
 	}
 	
-	private static <T> PresentationDescriptor buildPresentation(final Map<String,JComponent> componentList, final JComponentMonitor monitor, final String markupDescriptor, final  Class<T> clazz) throws SyntaxException {
-		final List<JComponent>		components = new ArrayList<>();
-		final List<Rectangle>		constraints = new ArrayList<>();
+	private static <T> PresentationDescriptor buildPresentation(final ContentMetadataInterface metadata, final Map<String,JComponent> componentList, final JComponentMonitor monitor, final String markupDescriptor, final  Class<T> clazz) throws SyntaxException {
 		final List<PageDescriptor>	pages = new ArrayList<>();
-		final int[]					lastLineNoWidthAndHeight = new int[3];
-		
-		try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement, lineNo, data, from, length)-> {
-				if (data[from] == '>' && data[from+1] == '>') {
-					if (!components.isEmpty()) {
-						pages.add(new PageDescriptor(lastLineNoWidthAndHeight[1],lastLineNoWidthAndHeight[2], components, constraints));
-						components.clear();
-						constraints.clear();
-					}
-					else {
-						if (data[from+2] >= '0' && data[from+2] <= '9') {
-							from = CharUtils.parseInt(data,from+2,lastLineNoWidthAndHeight,true);
-							if (data[from] == 'x') {
-								lastLineNoWidthAndHeight[1] = lastLineNoWidthAndHeight[0]; 
-								from = CharUtils.parseInt(data,from+1,lastLineNoWidthAndHeight,true);
-								lastLineNoWidthAndHeight[2] = lastLineNoWidthAndHeight[0]; 
-							}
-							else {
-								lastLineNoWidthAndHeight[1] = lastLineNoWidthAndHeight[0]; 
-								lastLineNoWidthAndHeight[2] = DEFAULT_HEIGHT;
-							}
-						}
-						else {
-							lastLineNoWidthAndHeight[1] = DEFAULT_WIDTH; 
-							lastLineNoWidthAndHeight[2] = DEFAULT_HEIGHT;
-						}
-					}
-					lastLineNoWidthAndHeight[0] = lineNo;
-				}
-				else {
-					processLine(displacement,lineNo-lastLineNoWidthAndHeight[0],data,from,length,componentList,components,constraints);
-				}
-			})) {
-			
-			lblp.write(markupDescriptor.toCharArray(),0,markupDescriptor.length());
-		} catch (IOException e) {
-			throw new SyntaxException(0,0,e.getLocalizedMessage());
-		}
-		pages.add(new PageDescriptor(lastLineNoWidthAndHeight[1],lastLineNoWidthAndHeight[2], components, constraints));
-		components.clear();
-		constraints.clear();
+		Hashtable<String,String[]>	props;
+		String						pageContent;
+		int							width = 0, height = 0;
+		int							start = 0, end, nl;
 
-		final PageDescriptor[]	pageList = pages.toArray(new PageDescriptor[pages.size()]);
-		
-		pages.clear();
-		return new PresentationDescriptor(lastLineNoWidthAndHeight[1],lastLineNoWidthAndHeight[2],pageList);
+		if (markupDescriptor.startsWith(">>")) {
+			nl = markupDescriptor.indexOf('\n');
+			props = URIUtils.parseQuery(markupDescriptor.substring(start+2,nl));
+			
+			width = Integer.valueOf(props.get("width")[0]);
+			height = Integer.valueOf(props.get("height")[0]);
+			start = nl + 1;
+			
+			while ((end = markupDescriptor.indexOf("\n>>",start)) >= 0) {
+				pageContent = markupDescriptor.substring(start,end);
+				pages.add(new PageDescriptor(buildPage(metadata,componentList,monitor,clazz,width,height,pageContent),props));
+				nl = markupDescriptor.indexOf('\n');
+				props = URIUtils.parseQuery(markupDescriptor.substring(start+2,nl));
+				start = nl + 1;
+			}
+			pages.add(new PageDescriptor(buildPage(metadata,componentList,monitor,clazz,width,height,markupDescriptor.substring(start)),props));
+		}
+		return new PresentationDescriptor(width,height,pages.toArray(new PageDescriptor[pages.size()]));
 	}
 	
-	private static void processLine(final long displacement, final int lineNo, final char[] data, int from, final int length, final Map<String,JComponent> componentList, final List<JComponent> components, final List<Rectangle> constraints) throws IOException, SyntaxException {
-		final int	begin = from; 
-		int 		start, result[] = new int[2], size[] = new int[1], location = 0;
+	private static <T> JPanel buildPage(final ContentMetadataInterface metadata, final Map<String, JComponent> componentList, final JComponentMonitor monitor, final Class<T> clazz, final int width, final int height, final String pageContent) throws SyntaxException, IllegalArgumentException, NullPointerException {
+		final List<JPanel>			stack = new ArrayList<>();
+		final MarkupParserCallback	callback = new MarkupParserCallback() {
+										@Override
+										public void placePlainText(final int x, final int y, final int width, final int height, final boolean bold, final boolean italic, final boolean caption, final String content) throws ContentException {
+											final Font		font = new Font("monospace",(bold ? Font.BOLD : 0) | (italic ? Font.ITALIC : 0),1);
+											final Color		color = caption ? Color.BLUE : Color.BLACK;
+											final JLabel	label = new JLabel(content);
+											
+											label.setForeground(color);
+											label.setFont(font);
+											stack.get(0).add(label);
+										}
+							
+										@Override
+										public void placeSeparator(final int x, final int y, final int width, final int height) throws ContentException {
+											stack.get(0).add(new JSeparator(width > height ? JSeparator.HORIZONTAL : JSeparator.VERTICAL),new Rectangle(x,y,width,height));
+										}
+							
+										@Override
+										public void placeField(final int x, final int y, final int width, final int height, final String componentName, final String initialValue) throws ContentException {
+											if (componentList.containsKey(componentName)) {
+												stack.get(0).add(componentList.get(componentName),new Rectangle(x,y,width,height));
+											}
+											else {
+												throw new ContentException("Field ["+componentName+"] referenced from the form not found");
+											}
+										}
+							
+										@Override
+										public void pushContent(final int x, final int y, final int width, final int height, final String caption) throws ContentException {
+											final JPanel	nested = new JPanel(new ScaledLayout(width, height, FillPolicy.FILL_MINIMUM, AlignmentPolicy.CENTER));
+											
+											stack.get(0).add(nested,new Rectangle(x,y,width,height));
+											stack.add(0,nested);
+										}
+							
+										@Override
+										public void popContent() throws ContentException {
+											stack.remove(0);
+										}
+									};
+		stack.add(new JPanel(new ScaledLayout(width,height,FillPolicy.FILL_MINIMUM,AlignmentPolicy.CENTER)));
+		FormManagedUtils.parseMarkup(pageContent,callback);
 		
-		for (;;) {
-			start = from;
-			
-			while (data[from] != '$' && data[from] != '\n') {	// Parse constant
-				from++;
-			}
-			components.add(new JLabel(new String(data,start,from-start)));
-			constraints.add(new Rectangle(lineNo,location,from-start,1));
-			location += from - start;
-			
-			if (data[from] == '$' && data[from+1] == '{') {		// Parse field description
-				from = CharUtils.parseName(data,from+2, result);
-				if (data[from] == ':') {
-					from = CharUtils.parseInt(data,from+1,size,true);
-					if (data[from] == '}') {
-						final String		name = new String(data,result[0],result[1]-result[0]);
-						final JComponent	currentComponent = componentList.get(name);
-
-						components.add(currentComponent);
-						constraints.add(new Rectangle(lineNo,location,size[0],1));
-						location += size[0];
-						from++;
-					}
-					else {
-						throw new SyntaxException(lineNo,from-begin,"Missing '}'"); 
-					}
-				}
-			}
-			else {
-				break;
-			}
-		}
+		return stack.remove(0);
 	}
 
 	private Component buildToolbar(final List<JButtonWithMeta> actions, final JComponentMonitor monitor, T instance, final FormManager<Object, T> formMgr) throws LocalizationException, ContentException {
@@ -476,13 +464,13 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		
 		if (first) {
 			current = next = null;
-			for (int index = 0; index < page.getComponentCount() && (current == null || next == null); index++) {
-				if (page.getComponent(index).isFocusable()) {
+			for (int index = 0; index < page.getComponent().getComponentCount() && (current == null || next == null); index++) {
+				if (page.getComponent().getComponent(index).isFocusable()) {
 					if (current == null) {
-						current = page.getComponent(index);
+						current = page.getComponent().getComponent(index);
 					}
 					else if (next == null) {
-						next = page.getComponent(index);
+						next = page.getComponent().getComponent(index);
 					}
 				}
 			}
@@ -493,13 +481,13 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		
 		if (last) {
 			current = next = null;
-			for (int index = page.getComponentCount()-1; index >= 0 && (current == null || next == null); index--) {
-				if (page.getComponent(index).isFocusable()) {
+			for (int index = page.getComponent().getComponentCount()-1; index >= 0 && (current == null || next == null); index--) {
+				if (page.getComponent().getComponent(index).isFocusable()) {
 					if (current == null) {
-						current = page.getComponent(index);
+						current = page.getComponent().getComponent(index);
 					}
 					else if (next == null) {
-						next = page.getComponent(index);
+						next = page.getComponent().getComponent(index);
 					}
 				}
 			}
@@ -526,16 +514,24 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	private void fillLocalizedStrings() {
 	}
 	
-	private static class PageDescriptor extends JPanel {
+	private static class PageDescriptor {
 		private static final long serialVersionUID = 5773037141534896393L;
 		
-		PageDescriptor(final int width, final int height, final List<JComponent> components, final List<Rectangle> constraints) {
-			setLayout(new ScaledLayout(width,height,ScaledLayout.FillPolicy.FILL_MINIMUM,ScaledLayout.AlignmentPolicy.CENTER));
-			
-			for (int index = 0, maxIndex = components.size(); index < maxIndex; index++) {
-				add(components.get(index),constraints.get(index));
-			}
-		}		
+		private final JPanel						content;
+		private final Hashtable<String,String[]>	props;
+		
+		PageDescriptor(final JPanel content, final Hashtable<String,String[]> props) {
+			this.content = content;
+			this.props = props;
+		}
+		
+		JPanel getComponent() {
+			return content;
+		}
+		
+		String[] getProperty(final String key) {
+			return props.get(key);
+		}
 	}
 
 	private static class PresentationDescriptor {
