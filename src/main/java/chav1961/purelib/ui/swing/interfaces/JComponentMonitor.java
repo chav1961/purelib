@@ -1,7 +1,5 @@
 package chav1961.purelib.ui.swing.interfaces;
 
-import javax.swing.JComponent;
-
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
@@ -17,5 +15,5 @@ public interface JComponentMonitor {
 		Action,
 		Exit
 	}
-	boolean process(MonitorEvent event, ContentNodeMetadata metadata, JComponent component, Object... parameters) throws ContentException;
+	boolean process(MonitorEvent event, ContentNodeMetadata metadata, JComponentInterface component, Object... parameters) throws ContentException;
 }

@@ -50,6 +50,7 @@ import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.FormMonitor;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
@@ -85,10 +86,11 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final LoggerFacade				logger;
 	private final LocalizerStore			localizer;
 	private final FormManager<Object,T>		formManager;
+	private final FormMonitor<T>			monitor;
 	private final ContentMetadataInterface	mdi;
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
-	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
+	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
 	private final boolean					tooltipsOnFocus;
 	private boolean							closed = false;
@@ -154,7 +156,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						if (!metadata.getFormatAssociated().isReadOnly(false) && !metadata.getFormatAssociated().isReadOnly(true)) {
 							modifiableLabelIds.add(metadata.getLabelId());
 						}
-						accessors.put(metadata.getUIPath().toString(),gas);
+						accessors.put(metadata.getUIPath(),gas);
 					}
 					
 					@Override
@@ -174,6 +176,19 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						buttonPanel.add(button);							
 					}
 				});
+				
+				this.monitor = new FormMonitor<T>(localizer,logger,instance,formMgr,accessors,tooltipsOnFocus) {
+									@Override
+									protected JComponentInterface findComponentByName(final URI uiPath) throws ContentException {
+										return (JComponentInterface)SwingUtils.findComponentByName(AutoBuiltForm.this, uiPath.toString());
+									}
+									
+									@Override
+									protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
+										return AutoBuiltForm.this.processExit(metadata, component, parameters);
+									}
+								};
+
 
 				setLayout(totalLayout);
 				childPanel.validate();
@@ -294,161 +309,10 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	}
 
 	@Override
-	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) throws ContentException {
-		switch (event) {
-			case Action:
-				if (metadata.getApplicationPath().toString().contains("().")) {
-					try{switch (seekAndCall(instance,metadata.getApplicationPath())) {
-							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
-								break;
-							case TOTAL : case RECORD_ONLY :
-								for (ContentNodeMetadata item : metadata.getParent()) {
-									final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
-									
-									process(MonitorEvent.Loading,item,comp);
-								}
-								break;
-							case EXIT :
-								return process(MonitorEvent.Exit,metadata,component,parameters);
-							default	:
-								break;
-						}
-					} catch (Exception exc) {
-						logger.message(Severity.error,exc,"Action [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-					}
-				}
-				else {
-					try{switch (formManager.onAction(instance,null,metadata.getApplicationPath().toString(),null)) {
-							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
-								break;
-							case TOTAL : case RECORD_ONLY :
-								for (ContentNodeMetadata item : metadata.getParent()) {
-									final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
-									
-									process(MonitorEvent.Loading,item,comp);
-								}
-								break;
-							case EXIT :
-								return process(MonitorEvent.Exit,metadata,component,parameters);
-							default	:
-								break;
-						}
-					} catch (LocalizationException | FlowException exc) {
-						logger.message(Severity.error,exc,"Action [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-					}
-				}
-				break;
-			case FocusGained:
-				try{final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,URIUtils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
-				
-					oldForeground4Label = label.getForeground();
-					label.setForeground(Color.BLUE);
-					if (tooltipsOnFocus) {
-						messages.setText(SwingUtils.prepareHtmlMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
-					}
-				} catch (LocalizationException  exc) {
-					logger.message(Severity.error,exc,"FocusGained for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-					if (tooltipsOnFocus) {
-						messages.setText("");
-					}
-				}
-				break;
-			case FocusLost:
-				final JLabel	label = (JLabel)SwingUtils.findComponentByName(this,URIUtils.appendRelativePath2URI(metadata.getUIPath(),"./label").toString());
-				
-				label.setForeground(oldForeground4Label);
-				messages.setText("");
-				break;
-			case Loading:
-				final GetterAndSetter	gas = accessors.get(metadata.getUIPath().toString());
-				
-				if (gas == null) {
-					//System.err.println("SD1");
-				}
-				else {
-					final Object			value = ModelUtils.getValueByGetter(instance, gas, metadata);
-					
-					if (value == null || component == null) {
-						//System.err.println("SD2");
-					}
-					((JComponentInterface)component).assignValueToComponent(value);
-				}
-				break;
-			case Rollback:
-				messages.setText("");
-				break;
-			case Saving:
-				try{final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
-				
-					ModelUtils.setValueBySetter(instance, ((JComponentInterface)component).getChangedValueFromComponent(), accessors.get(metadata.getUIPath().toString()), metadata);
-					switch (formManager.onField(instance,null,metadata.getName(),oldValue)) {
-						case FIELD_ONLY : case DEFAULT : case NONE :
-							break;
-						case TOTAL : case RECORD_ONLY :
-							for (ContentNodeMetadata item : metadata.getParent()) {
-								final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
-								
-								process(MonitorEvent.Loading,item,comp);
-							}
-							break;
-						case REJECT		:
-							ModelUtils.setValueBySetter(instance, oldValue, accessors.get(metadata.getUIPath().toString()), metadata);
-							((JComponentInterface)component).assignValueToComponent(oldValue);
-							break;
-						case EXIT :
-							return process(MonitorEvent.Exit,metadata,component,parameters);
-						default	:
-							break;
-					}
-				} catch (LocalizationException | FlowException exc) {
-					logger.message(Severity.error,exc,"Saving for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-				}
-				break;
-			case Validation:
-				final Object	changed = ((JComponentInterface)component).getChangedValueFromComponent(); 
-				final String	error = ((JComponentInterface)component).standardValidation(changed == null ? null : changed.toString());
-				
-				if (error != null) {
-					messages.setText(SwingUtils.prepareHtmlMessage(Severity.error, error));
-					return false;
-				}
-				else {
-					messages.setText("");
-					return true;
-				}
-			case Exit :
-				return processExit(metadata,component,parameters);
-			default:
-				break;
-		}
-		return true;
+	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
+		return monitor.process(event, metadata, component, parameters);
 	}
 	
-	private RefreshMode seekAndCall(final T instance, final URI appPath) throws Exception {
-		final String[]		parts = URI.create(appPath.getSchemeSpecificPart()).getPath().split("/");
-		Class<?>			cl = instance.getClass();
-		
-		while (cl != null) {
-			for (Method m : cl.getDeclaredMethods()) {
-				if (parts[2].startsWith(m.getName()+"().")) {
-					m.setAccessible(true);
-					if (m.getReturnType() == void.class) {
-						m.invoke(instance);
-						return RefreshMode.DEFAULT;
-					}
-					else if (RefreshMode.class.isAssignableFrom(m.getReturnType())) {
-						return (RefreshMode)m.invoke(instance);
-					}
-					else {
-						throw new IllegalArgumentException("Method ["+m+"] returns neither void nor RefreshMode type");
-					}
-				}
-			}
-			cl = cl.getSuperclass();
-		}
-		return RefreshMode.DEFAULT;
-	}
-
 	/**
 	 * <p>Get Ids of all field labels created</p> 
 	 * @return list of all the labels. Can be empty but not null
@@ -472,7 +336,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @param parameters advanced parameters (usually empty)
 	 * @return returned value is passed to {@linkplain #process(chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent, ContentNodeMetadata, JComponent, Object...)} method
 	 */
-	protected boolean processExit(final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) {
+	protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
 		return true;
 	}
 

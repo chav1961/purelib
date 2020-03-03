@@ -41,9 +41,10 @@ public interface LoggerFacade extends Closeable {
 	 *
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
+	 * @lastUpdate 0.0.4
 	 */
 	public enum Severity {
-		trace, debug, info, warning, error, severe
+		tooltip, trace, debug, info, warning, error, severe
 	}
 
 	/**

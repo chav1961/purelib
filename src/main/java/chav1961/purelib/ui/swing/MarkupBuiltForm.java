@@ -10,6 +10,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -40,9 +42,11 @@ import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.FormMonitor;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
 import chav1961.purelib.ui.swing.FormManagedUtils.MarkupParserCallback;
+import chav1961.purelib.ui.swing.MarkupBuiltForm.Paginator.PageMoving;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.useful.JStateString;
@@ -63,16 +67,13 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	
 	private final Localizer					localizer;
 	private final LoggerFacade				logger;
-	private final ContentMetadataInterface	metadata;
-	private final T							instance;
-	private final FormManager<Object,T>		formMgr;
-	private final boolean					tooltipsOnFocus;
+	private final FormMonitor<T>			monitor;
 	private final PresentationDescriptor	desc;
-	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
+	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JStateString				state;
 	private final JLabel					pageMark;
-	private final JPanel					centralPanel;
-	private final JScrollBar				pageBar;
+	private final Paginator					paginator;
+	private final JLabel					pageCaption;
 	private final Component[]				lastFocused;
 	private int								currentPage = 1;
 	
@@ -98,10 +99,6 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		else {
 			this.localizer = localizer;
 			this.logger = logger;
-			this.metadata = metadata;
-			this.instance = instance;
-			this.formMgr = formMgr;
-			this.tooltipsOnFocus = tooltipsOnFocus;
 			this.state = new JStateString(localizer);
 			
 			setLayout(new BorderLayout());
@@ -112,7 +109,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			FormManagedUtils.parseModel4Form(logger,metadata,instance.getClass(),this,new FormManagerParserCallback() {
 				@Override
 				public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, boolean isModifiable) throws ContentException {
-					accessors.put(metadata.getUIPath().toString(),gas);
+					accessors.put(metadata.getUIPath(),gas);
 					components.put(metadata.getName(),fieldComponent);
 				}
 				
@@ -122,46 +119,78 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				}
 			});
 
+			this.monitor = new FormMonitor<T>(localizer,state,instance,formMgr,accessors,tooltipsOnFocus) {
+								@Override
+								protected JComponentInterface findComponentByName(final URI uiPath) throws ContentException {
+									return (JComponentInterface)SwingUtils.findComponentByName(MarkupBuiltForm.this, uiPath.toString());
+								}
+								
+								@Override
+								protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
+									return MarkupBuiltForm.this.processExit(metadata, component, parameters);
+								}
+							};
+			
 			this.desc = buildPresentation(metadata, components, this, markupDescriptor, instance.getClass());
 			this.lastFocused = new JComponent[desc.getPageCount()];
+
+			final Component	toolBar = !actions.isEmpty() ? buildToolbar(actions,this,instance,formMgr) : null;
+
+			boolean	wasCaptionOrTooltip = false;	// Page caption required?
 			
-			if (!actions.isEmpty()) {
-				add(buildToolbar(actions,this,instance,formMgr),BorderLayout.NORTH);
+			for (int index = 0, maxIndex = desc.getPageCount(); !wasCaptionOrTooltip && index < maxIndex; index++) {
+				wasCaptionOrTooltip |= desc.getPage(index).containsProperty(CAPTION) | desc.getPage(index).containsProperty(TOOLTIP); 
+			}
+			
+			if (wasCaptionOrTooltip) {		// Place caption, toolbar or both to the NORTH location
+				pageCaption = new JLabel("",JLabel.CENTER);
+				if (toolBar != null) {
+					final JPanel	north = new JPanel(new BorderLayout());
+					
+					north.add(pageCaption,BorderLayout.NORTH);
+					north.add(toolBar,BorderLayout.CENTER);
+					add(north,BorderLayout.NORTH);
+				}
+				else {
+					add(pageCaption,BorderLayout.NORTH);
+				}
+			}
+			else {
+				pageCaption = null;
+				if (toolBar != null) {
+					add(toolBar,BorderLayout.NORTH);
+				}
 			}
 			
 			if (desc.getPageCount() > 1) {	// Page bar required
-				this.pageBar = new JScrollBar(JScrollBar.VERTICAL,1,1,1,desc.getPageCount());
-				this.centralPanel = new JPanel();
 				this.pageMark = new JLabel("/");
-
-				add(pageBar,BorderLayout.EAST);
-				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,0),(e)->{movePage(e.getActionCommand());},"next");
-				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,InputEvent.CTRL_DOWN_MASK),(e)->{movePage(e.getActionCommand());},"last");
-				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0),(e)->{movePage(e.getActionCommand());},"prev");
-				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,InputEvent.CTRL_DOWN_MASK),(e)->{movePage(e.getActionCommand());},"first");
+				this.paginator = new Paginator(this,desc,(currentPage,oldPage,totalPages)->{setPage(currentPage,totalPages);});
 				
-				centralPanel.setLayout(new CardLayout());
 				for (int index = 0; index < desc.getPageCount(); index++) {
-					final PageDescriptor	page = desc.getPage(0); 
+					final PageDescriptor	page = desc.getPage(index); 
 					
-					centralPanel.add(page.getComponent(),"p"+(index+1));
 					prepareCrossPageMoving(page,index == 0, index == desc.getPageCount()-1);
 				}
-				add(centralPanel,BorderLayout.CENTER);
-
 				final JPanel	bottom = new JPanel(new BorderLayout());
 				
 				bottom.add(state,BorderLayout.CENTER);
 				bottom.add(pageMark,BorderLayout.EAST);
 				add(bottom,BorderLayout.SOUTH);
 				
-				movePage("first");
+				paginator.movePage(PageMoving.FIRST);
 			}
 			else {
-				this.pageBar = null;
-				this.centralPanel = null;
 				this.pageMark = null;
+				this.paginator = null;
 				add(desc.getPage(0).getComponent(),BorderLayout.CENTER);
+				if (desc.getPage(0).containsProperty(HELP)) {
+					SwingUtils.assignActionKey(desc.getPage(0).getComponent(),JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_HELP,(e)->{
+						try{SwingUtils.showCreoleHelpWindow(MarkupBuiltForm.this,URI.create(e.getActionCommand()));
+						} catch (NullPointerException | IOException exc) {
+							message(Severity.severe,exc.getLocalizedMessage());
+						}
+					},desc.getPage(0).getProperty(HELP)[0]);
+				}
 				add(state,BorderLayout.SOUTH);
 			}
 			
@@ -173,9 +202,6 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
 		state.localeChanged(oldLocale, newLocale);
-		if (pageBar != null) {
-			SwingUtils.refreshLocale(pageBar,oldLocale,newLocale);
-		}
 		for (int index = 0; index < desc.getPageCount(); index++) {
 			SwingUtils.refreshLocale(desc.getPage(index).getComponent(),oldLocale,newLocale);
 		}
@@ -188,134 +214,15 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	}
 
 	@Override
-	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) throws ContentException {
-		switch (event) {
-			case Action:
-				if (metadata.getApplicationPath().toString().contains("().")) {
-					try{switch (FormManagedUtils.seekAndCall(instance,metadata.getApplicationPath())) {
-							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
-								break;
-							case TOTAL : case RECORD_ONLY :
-								for (ContentNodeMetadata item : metadata.getParent()) {
-									final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
-									
-									process(MonitorEvent.Loading,item,comp);
-								}
-								break;
-							case EXIT :
-								return process(MonitorEvent.Exit,metadata,component,parameters);
-							default	:
-								break;
-						}
-					} catch (Exception exc) {
-						logger.message(Severity.error,exc,"Action [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-					}
-				}
-				else {
-					try{switch (formMgr.onAction(instance,null,metadata.getApplicationPath().toString(),null)) {
-							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
-								break;
-							case TOTAL : case RECORD_ONLY :
-								for (ContentNodeMetadata item : metadata.getParent()) {
-									final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
-									
-									process(MonitorEvent.Loading,item,comp);
-								}
-								break;
-							case EXIT :
-								return process(MonitorEvent.Exit,metadata,component,parameters);
-							default	:
-								break;
-						}
-					} catch (LocalizationException | FlowException exc) {
-						logger.message(Severity.error,exc,"Action [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-					}
-				}
-				break;
-			case FocusGained:
-				try{if (tooltipsOnFocus) {
-						message(Severity.trace,SwingUtils.prepareHtmlMessage(Severity.trace, getLocalizerAssociated().getValue(metadata.getTooltipId())));
-					}
-				} catch (LocalizationException  exc) {
-					logger.message(Severity.error,exc,"FocusGained for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-					if (tooltipsOnFocus) {
-						message(Severity.trace,"");
-					}
-				}
-				break;
-			case FocusLost:
-				message(Severity.trace,"");
-				break;
-			case Loading:
-				final GetterAndSetter	gas = accessors.get(metadata.getUIPath().toString());
-				
-				if (gas == null) {
-					//System.err.println("SD1");
-				}
-				else {
-					final Object			value = ModelUtils.getValueByGetter(instance, gas, metadata);
-					
-					if (value == null || component == null) {
-						//System.err.println("SD2");
-					}
-					((JComponentInterface)component).assignValueToComponent(value);
-				}
-				break;
-			case Rollback:
-				message(Severity.trace,"");
-				break;
-			case Saving:
-				try{final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
-				
-					ModelUtils.setValueBySetter(instance, ((JComponentInterface)component).getChangedValueFromComponent(), accessors.get(metadata.getUIPath().toString()), metadata);
-					switch (formMgr.onField(instance,null,metadata.getName(),oldValue)) {
-						case FIELD_ONLY : case DEFAULT : case NONE :
-							break;
-						case TOTAL : case RECORD_ONLY :
-							for (ContentNodeMetadata item : metadata.getParent()) {
-								final JComponent	comp = (JComponent) SwingUtils.findComponentByName(this, item.getUIPath().toString());
-								
-								process(MonitorEvent.Loading,item,comp);
-							}
-							break;
-						case REJECT		:
-							ModelUtils.setValueBySetter(instance, oldValue, accessors.get(metadata.getUIPath().toString()), metadata);
-							((JComponentInterface)component).assignValueToComponent(oldValue);
-							break;
-						case EXIT :
-							return process(MonitorEvent.Exit,metadata,component,parameters);
-						default	:
-							break;
-					}
-				} catch (LocalizationException | FlowException exc) {
-					logger.message(Severity.error,exc,"Saving for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
-				}
-				break;
-			case Validation:
-				final Object	changed = ((JComponentInterface)component).getChangedValueFromComponent(); 
-				final String	error = ((JComponentInterface)component).standardValidation(changed == null ? null : changed.toString());
-				
-				if (error != null) {
-					message(Severity.error,SwingUtils.prepareHtmlMessage(Severity.error, error));
-					return false;
-				}
-				else {
-					message(Severity.trace,"");
-					return true;
-				}
-			case Exit :
-				return processExit(metadata,component,parameters);
-			default:
-				break;
-		}
-		return true;
+	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
+		return monitor.process(event, metadata, component, parameters);
 	}
 
 	public Localizer getLocalizerAssociated() {
 		return localizer;
 	}
 	
-	protected boolean processExit(final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) {
+	protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
 		return true;
 	}
 
@@ -327,45 +234,9 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		state.message(level, t, format, parameters);
 	}
 	
-	private void movePage(final String moving) {
-		lastFocused[currentPage-1] = FocusManager.getCurrentManager().getFocusOwner();
-		
-		switch (moving) {
-			case "first"	:
-				currentPage = 1;
-				break;
-			case "prev"		:
-				if (currentPage > 1) {
-					currentPage--;
-				}
-				break;
-			case "next"		:
-				if (currentPage < desc.getPageCount()) {
-					currentPage++;
-				}
-				break;
-			case "last"		:
-				currentPage = desc.getPageCount();
-				break;
-			default : throw new UnsupportedOperationException("Moving option ["+moving+"] is not supported yet"); 
-		}
-
-		((CardLayout)centralPanel.getLayout()).show(centralPanel,"p"+currentPage);
-		pageBar.setValue(currentPage);
+	private void setPage(final int currentPage, final int totalPages) {
 		pageMark.setText(currentPage+"/"+desc.getPageCount());
-		
-		if (lastFocused[currentPage-1] != null) {
-			lastFocused[currentPage-1].requestFocus();
-		}
-		else {
-			final JPanel	current = desc.getPage(currentPage-1).getComponent();
-			
-			for (int index = 0, maxIndex = current.getComponentCount(); index < maxIndex; index++) {
-				if (!(current.getComponent(index) instanceof JLabel)) {
-					current.getComponent(index).requestFocus();
-				}
-			}
-		}
+		fillPageCaption();
 	}
 	
 	private static <T> PresentationDescriptor buildPresentation(final ContentMetadataInterface metadata, final Map<String,JComponent> componentList, final JComponentMonitor monitor, final String markupDescriptor, final  Class<T> clazz) throws SyntaxException {
@@ -452,7 +323,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				try {
 					formMgr.onAction(instance,null,((NodeMetadataOwner)item).getNodeMetadata().getApplicationPath().toString(),null);
 				} catch (LocalizationException | FlowException exc) {
-					exc.printStackTrace();
+					message(Severity.error,exc,exc.getLocalizedMessage());
 				}
 			});
 		}
@@ -475,7 +346,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				}
 			}
 			if (current != null && next != null) {
-				buildFocusListener(current,next,"prev");
+				buildFocusListener(current,next,PageMoving.PREV);
 			}
 		}
 		
@@ -492,18 +363,18 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				}
 			}
 			if (current != null && next != null) {
-				buildFocusListener(current,next,"next");
+				buildFocusListener(current,next,PageMoving.NEXT);
 			}
 		}
 	}
 
 	
-	private void buildFocusListener(final Component from, final Component to, final String action) {
+	private void buildFocusListener(final Component from, final Component to, final PageMoving action) {
 		from.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
 				if (e.getOppositeComponent() != to) {
-					movePage(action);
+					paginator.movePage(action);
 				}
 			}
 			
@@ -512,11 +383,120 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	}
 
 	private void fillLocalizedStrings() {
+		fillPageCaption();
 	}
 	
-	private static class PageDescriptor {
-		private static final long serialVersionUID = 5773037141534896393L;
+	private void fillPageCaption() {
+		if (pageCaption != null) {
+			if (desc.getPage(currentPage-1).containsProperty(CAPTION)) {
+				try{pageCaption.setText(getLocalizerAssociated().getValue(desc.getPage(currentPage-1).getProperty(CAPTION)[0]));
+					if (desc.getPage(currentPage-1).containsProperty(TOOLTIP)) {
+						pageCaption.setToolTipText(getLocalizerAssociated().getValue(desc.getPage(currentPage-1).getProperty(TOOLTIP)[0]));
+					}
+				} catch (LocalizationException e) {
+					message(Severity.error,e.getLocalizedMessage());
+				}
+			}
+			else {
+				pageCaption.setText("");
+				pageCaption.setToolTipText("");
+			}
+		}
+	}
+	
+	static class Paginator {
+		private final JScrollBar				pageBar;
+		private final JPanel					centralPanel;
+		private final PresentationDescriptor	desc;
+		private final PageIndicator				indicator;
+		private final Component[]				lastFocused;
+		private int								currentPage = 1;
 		
+		@FunctionalInterface
+		interface PageIndicator {
+			void setCurrentPage(final int pageNo, final int lastPageNo, final int pageTotal);
+			default void showHelp(final int pageNo, final URI helpURI) {}
+		}
+
+		enum PageMoving {
+			FIRST, NEXT, PREV, LAST
+		}
+		
+		Paginator(final JComponent container, final PresentationDescriptor desc, final PageIndicator indicator) {
+			this.pageBar = new JScrollBar(JScrollBar.VERTICAL,1,1,1,desc.getPageCount());
+			this.centralPanel = new JPanel();
+			this.desc = desc;
+			this.indicator = indicator;
+			this.lastFocused = new Component[desc.getPageCount()];
+
+			container.add(pageBar,BorderLayout.EAST);
+			SwingUtils.assignActionKey(container,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,0),(e)->{movePage(PageMoving.valueOf(e.getActionCommand()));},PageMoving.NEXT.name());
+			SwingUtils.assignActionKey(container,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,InputEvent.CTRL_DOWN_MASK),(e)->{movePage(PageMoving.valueOf(e.getActionCommand()));},PageMoving.LAST.name());
+			SwingUtils.assignActionKey(container,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0),(e)->{movePage(PageMoving.valueOf(e.getActionCommand()));},PageMoving.PREV.name());
+			SwingUtils.assignActionKey(container,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,InputEvent.CTRL_DOWN_MASK),(e)->{movePage(PageMoving.valueOf(e.getActionCommand()));},PageMoving.FIRST.name());
+			
+			centralPanel.setLayout(new CardLayout());
+			for (int index = 0; index < desc.getPageCount(); index++) {
+				final PageDescriptor	page = desc.getPage(index); 
+				
+				centralPanel.add(page.getComponent(),"p"+(index+1));
+				if (page.containsProperty(HELP)) {
+					SwingUtils.assignActionKey(page.getComponent(),JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_HELP,(e)->{
+						indicator.showHelp(currentPage,URI.create(e.getActionCommand()));
+					},page.getProperty(HELP)[0]);
+				}
+			}
+			container.add(centralPanel,BorderLayout.CENTER);
+
+			movePage(PageMoving.FIRST);
+		}
+		
+		void movePage(final PageMoving action) {
+			final int	lastPageNo = currentPage;
+			
+			lastFocused[currentPage-1] = FocusManager.getCurrentManager().getFocusOwner();
+			
+			switch (action) {
+				case FIRST	:
+					currentPage = 1;
+					break;
+				case PREV	:
+					if (currentPage > 1) {
+						currentPage--;
+					}
+					break;
+				case NEXT	:
+					if (currentPage < desc.getPageCount()) {
+						currentPage++;
+					}
+					break;
+				case LAST	:
+					currentPage = desc.getPageCount();
+					break;
+				default : throw new UnsupportedOperationException("Moving option ["+action+"] is not supported yet"); 
+			}
+
+			((CardLayout)centralPanel.getLayout()).show(centralPanel,"p"+currentPage);
+			pageBar.setValue(currentPage);
+			indicator.setCurrentPage(currentPage,lastPageNo,desc.getPageCount());
+			
+			if (lastFocused[currentPage-1] != null) {
+				lastFocused[currentPage-1].requestFocus();
+			}
+			else {
+				final JPanel	current = desc.getPage(currentPage-1).getComponent();
+				
+				for (int index = 0, maxIndex = current.getComponentCount(); index < maxIndex; index++) {
+					if (!(current.getComponent(index) instanceof JLabel)) {
+						current.getComponent(index).requestFocus();
+					}
+				}
+			}
+		}
+	}
+	
+	
+	private static class PageDescriptor {
 		private final JPanel						content;
 		private final Hashtable<String,String[]>	props;
 		
@@ -532,6 +512,10 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		String[] getProperty(final String key) {
 			return props.get(key);
 		}
+		
+		boolean containsProperty(final String key) {
+			return props.contains(key);
+		}
 	}
 
 	private static class PresentationDescriptor {
@@ -544,19 +528,19 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			this.pages = pages;
 		}
 		
-		public int getWidth() {
+		int getWidth() {
 			return width;
 		}
 
-		public int getHeight() {
+		int getHeight() {
 			return height;
 		}
 		
-		public int getPageCount() {
+		int getPageCount() {
 			return pages.length;
 		}
 		
-		public PageDescriptor getPage(final int index) {
+		PageDescriptor getPage(final int index) {
 			return pages[index];
 		}
 	}

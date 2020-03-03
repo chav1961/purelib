@@ -34,26 +34,6 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
 public class FormManagedUtilsTest {
 	@Test
-	public void seekAndCallTest() throws Exception {
-		final SeekAndCallTest	sact = new SeekAndCallTest();
-		
-		try{FormManagedUtils.seekAndCall(sact,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+SeekAndCallTest.class.getCanonicalName()+"/callMethod1().test"));
-			Assert.fail("Mandatory exception was not detected (Test exception awaited)");
-		} catch (TestException  exc) {
-		}
-		
-		Assert.assertEquals(RefreshMode.DEFAULT,FormManagedUtils.seekAndCall(sact,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+SeekAndCallTest.class.getCanonicalName()+"/callMethod2().test")));
-		Assert.assertEquals(RefreshMode.EXIT,FormManagedUtils.seekAndCall(sact,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+SeekAndCallTest.class.getCanonicalName()+"/callMethod3().test")));
-		Assert.assertEquals(RefreshMode.DEFAULT,FormManagedUtils.seekAndCall(sact,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+SeekAndCallTest.class.getCanonicalName()+"/unknown().test")));
-
-		Assert.assertEquals(RefreshMode.DEFAULT,FormManagedUtils.seekAndCall(new String(),URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+SeekAndCallTest.class.getCanonicalName()+"/unknown().test")));
-		try{FormManagedUtils.seekAndCall(sact,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"+SeekAndCallTest.class.getCanonicalName()+"/callMethod4().test"));
-			Assert.fail("Mandatory exception was not detected (Returned type of the methos is neither void nor RefreshMode)");
-		} catch (IllegalArgumentException exc) {
-		}
-	}
-
-	@Test
 	public void parseModel4FormsTest() throws SyntaxException, LocalizationException, ContentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(SeekAndCallTest.class);
 		final JComponentMonitor			mon = (JComponentMonitor) Proxy.newProxyInstance(this.getClass().getClassLoader(),new Class<?>[]{JComponentMonitor.class},(a,b,c)->null);

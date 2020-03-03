@@ -116,7 +116,7 @@ public class SwingUtilsTest {
 	public void prepareRendererTest() throws LocalizationException {
 		final JComponentMonitor 		monitor = new JComponentMonitor(){
 											@Override
-											public boolean process(MonitorEvent event, ContentNodeMetadata metadata, JComponent component, Object... parameters) throws ContentException {
+											public boolean process(MonitorEvent event, ContentNodeMetadata metadata, JComponentInterface component, Object... parameters) throws ContentException {
 												return true;
 											}
 										};

@@ -141,7 +141,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 	}
 
 	@Override
-	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponent component, final Object... parameters) throws ContentException {
+	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
 		switch (event) {
 			case Action			:
 				return false;

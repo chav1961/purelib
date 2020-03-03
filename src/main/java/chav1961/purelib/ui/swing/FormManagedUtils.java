@@ -30,42 +30,6 @@ class FormManagedUtils {
 	private static final char	EOF_MARKUP = '\0';
 	private static final char	SPLITTER_MARKUP = '\1';
 	
-	static <T> RefreshMode seekAndCall(final T instance, final URI appPath) throws Exception {
-		final String[]		parts = URI.create(appPath.getSchemeSpecificPart()).getPath().split("/");
-		Class<?>			cl = instance.getClass();
-		
-		while (cl != null && parts.length >= 3) {
-			for (Method m : cl.getDeclaredMethods()) {
-				if (m.getParameterCount() == 0 && parts[2].startsWith(m.getName()+"()")) {
-					m.setAccessible(true);
-					
-					try{if (m.getReturnType() == void.class) {
-							m.invoke(instance);
-							return RefreshMode.DEFAULT;
-						}
-						else if (RefreshMode.class.isAssignableFrom(m.getReturnType())) {
-							return (RefreshMode)m.invoke(instance);
-						}
-						else {
-							throw new IllegalArgumentException("Method ["+m+"] returns neither void nor RefreshMode type");
-						}
-					} catch (InvocationTargetException exc) {	// unwrap source exception
-						final Throwable	t = exc.getTargetException(); 
-						
-						if (t instanceof Exception) {
-							throw (Exception)t; 
-						}
-						else {
-							throw exc;
-						}
-					}
-				}
-			}
-			cl = cl.getSuperclass();
-		}
-		return RefreshMode.DEFAULT;
-	}
-	
 	interface FormManagerParserCallback {
 		void processActionButton(final ContentNodeMetadata metadata, final JButtonWithMeta button) throws ContentException;
 		void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, final boolean isModifiable) throws ContentException;
