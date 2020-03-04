@@ -15,9 +15,13 @@ I. New features
 	
 2. Byte code assembler supports generation of <clinit> method and ConstValue attributes for static final fields now.	
 
+3. New class chav1961.purelib.ui.swing.SwingUnitTest was created. This class is a wrapper for java.awt.Robot and is developed especially to test Swing UI components of the Pure Library.
+The most of all classes in the chav1961.purelib.ui.swing and it's sub-packages got test cases with this class. You can use it as stand-alone JUnit test tool for your applications. 
+
 II. Refactoring
 
-1. All special URLs implementation in the Pure library were successfully migrated to Java 9 SPI support  
+1. All special URLs implementation in the Pure library were successfully migrated to Java 9 SPI support. The new package chav1961.purelib.net and it's sub-packages were created to keep new 
+code was refactored.     
 
 2. To prevent some kind of errors on assembler byte code generation, strong data type and stack manipulation check was implemented in it.
 
@@ -25,9 +29,9 @@ II. Refactoring
 
 III. Incompatibilities
 
-1. Class basic.ClassLoaderWrapper was removed from Pure Library, because it's functionality can't be implemented in Java 9 and higher. 
+1. Class basic.ClassLoaderWrapper was removed from Pure Library, because it's functionality can't be supported in Java 9 and higher. 
 
 IV. Bug fix
 
-1. Macro assembler .choise with booleans fixed
-2. AndOrTree last character in node name had been lost on walking fixed. 
+1. Macro assembler .choise with booleans - fixed
+2. AndOrTree last character in node name had been lost on walking - fixed. 

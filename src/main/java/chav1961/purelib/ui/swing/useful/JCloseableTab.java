@@ -14,6 +14,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +42,10 @@ import chav1961.purelib.ui.swing.SwingUtils;
 
 public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	private static final long 	serialVersionUID = -5601021193645267745L;
+	
+	public static final String	LABEL_NAME = "JCloseableTab.label";
+	public static final String	CROSSER_NAME = "JCloseableTab.crosser";
+	
 	private static final Icon	GRAY_ICON = new ImageIcon(JCloseableTab.class.getResource("grayicon.png"));
 	private static final Icon	RED_ICON = new ImageIcon(JCloseableTab.class.getResource("redicon.png"));
 
@@ -72,7 +77,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 					PureLibSettings.CURRENT_LOGGER.message(Severity.warning,e,"Icon loading failure: "+e.getLocalizedMessage());
 				}
 			}
-			prepare();
+			prepare(meta.getUIPath().toString());
 		}
 	}
 	
@@ -84,7 +89,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 		else {
 			this.localizer = localizer;
-			prepare();
+			prepare("");
 		}
 	}
 
@@ -97,7 +102,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.localizer = localizer;
 			label.setIcon(image);
 			label.setHorizontalAlignment(horizontalAlignment);
-			prepare();
+			prepare("");
 		}
 	}
 
@@ -109,7 +114,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		else {
 			this.localizer = localizer;
 			label.setIcon(image);
-			prepare();
+			prepare("");
 		}
 	}
 
@@ -123,7 +128,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.text = text;
 			label.setIcon(icon);
 			label.setHorizontalAlignment(horizontalAlignment);
-			prepare();
+			prepare("");
 		}
 	}
 
@@ -136,7 +141,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.localizer = localizer;
 			this.text = text;
 			label.setHorizontalAlignment(horizontalAlignment);
-			prepare();
+			prepare("");
 		}
 	}
 
@@ -148,7 +153,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		else {
 			this.localizer = localizer;
 			this.text = text;
-			prepare();
+			prepare("");
 		}
 	}
 
@@ -250,7 +255,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		popup = null;
 	}
 	
-	private void prepare() throws LocalizationException, IllegalArgumentException {
+	private void prepare(final String path) throws LocalizationException, IllegalArgumentException {
 		final Font	oldFont = getFont(); 
 		
 		label.setFocusable(true);
@@ -315,6 +320,14 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		});
 		add(label,BorderLayout.CENTER);
 		add(crosser,BorderLayout.EAST);
+		if (path != null && !path.isEmpty()) {
+			label.setName(path+"/"+LABEL_NAME);
+			crosser.setName(path.toString()+"/"+CROSSER_NAME);
+		}
+		else {
+			label.setName(LABEL_NAME);
+			crosser.setName(CROSSER_NAME);
+		}
 		
 		fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 	}

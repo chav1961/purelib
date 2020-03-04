@@ -1094,6 +1094,10 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		return checkFileExistence(path2check, file2check,File.pathSeparatorChar,File.separatorChar);
 	}
 
+	public static <T> T nvl(final T value, final T defaultValue) {
+		return value == null ? defaultValue : value; 
+	}
+	
 	/**
 	 * <p>Check file existence in the given path</p>
 	 * @param path2check path list to seek file in

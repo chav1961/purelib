@@ -5,7 +5,9 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ SimpleWizardTest.class, SwingUtilsTest.class})
+@SuiteClasses({ FormManagedUtilsTest.class, LogicControlsTest.class, SimpleWizardTest.class, SwingUnitTestTest.class,
+		SwingUtilsTest.class, VisualControlsTest.class })
+
 public class AllTests {
 
 }

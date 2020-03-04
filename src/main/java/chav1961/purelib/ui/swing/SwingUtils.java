@@ -296,6 +296,36 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	}
 	
 	/**
+	 * <p>Add prefixes to all the names components in container<p>
+	 * @param node root component to add prefix to it's content names
+	 * @param prefix prefix to all
+	 * @throws NullPointerException root component is null
+	 * @throws IllegalArgumentException prefix to add is null or empty
+	 * @since 0.0.4
+	 */
+	public static void addPrefix2ComponentNames(final Component node, final String prefix) throws NullPointerException, IllegalArgumentException {
+		if (node == null) {
+			throw new NullPointerException("Node can't be null");
+		}
+		else if (prefix == null || prefix.isEmpty()) {
+			throw new IllegalArgumentException("Prefix name can't be null or empty");
+		}
+		else {
+			walkDown(node,(mode,component)->{
+				if (mode == NodeEnterMode.ENTER) {
+					final String	name = component.getName();
+					
+					if (name != null || !name.startsWith(prefix)) {
+						component.setName(prefix+name);
+					}
+				}
+				return ContinueMode.CONTINUE;
+			});
+		}
+	}
+	
+	
+	/**
 	 * <p>Prepare renderer for the given meta data and field format</p>
 	 * @param metadata meta data to prepare renderer for
 	 * @param format field format
