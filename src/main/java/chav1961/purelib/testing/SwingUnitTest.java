@@ -1,4 +1,4 @@
-package chav1961.purelib.ui.swing;
+package chav1961.purelib.testing;
 
 import java.awt.AWTException;
 import java.awt.Component;
@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.ui.swing.SwingUtils;
 
 public class SwingUnitTest {
 	private final Component	root;
@@ -129,7 +130,7 @@ public class SwingUnitTest {
 			processModifiers(modifiers,0);
 			return this;
 		}
-	}
+	} 
 
 	public SwingUnitTest click(final int buttonId, final int clickCount) throws DebuggingException {
 		move(1,1);
@@ -185,8 +186,13 @@ public class SwingUnitTest {
 	
 	public SwingUnitTest select(final String name) throws DebuggingException {
 		seek(name);
-		if (getLastFound().isFocusable()) {
-			getLastFound().requestFocus();
+		final JComponent	found = getLastFound(); 
+		
+		if (found.isFocusable()) {
+			try{SwingTestingUtils.syncRequestFocus(found);
+			} catch (InterruptedException exc) {
+				throw new DebuggingException("Timeout awaiting focus!");
+			}
 		}
 		else {
 			throw new DebuggingException("Last component found is not focusable, and can't be selected. Check previous operation");

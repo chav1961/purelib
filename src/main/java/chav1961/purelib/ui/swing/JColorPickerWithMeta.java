@@ -87,19 +87,13 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 					}					
 				}
 			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JColorPickerWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
-					}
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JColorPickerWithMeta.this)) {
+					assignValueToComponent(currentValue);
 				}
-			});
+				} catch (ContentException exc) {
+				}
+			},"rollback-value");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

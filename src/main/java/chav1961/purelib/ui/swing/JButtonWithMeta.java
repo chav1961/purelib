@@ -9,6 +9,7 @@ import java.util.Locale;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -34,6 +35,9 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 		}
 		else {
 			this.metadata = metadata;
+			
+			final String	name = URIUtils.removeQueryFromURI(metadata.getApplicationPath()).toString(); 
+			
 			if (metadata.getIcon() != null) {
 				try{setIcon(new ImageIcon(metadata.getIcon().toURL()));
 				} catch (MalformedURLException e) {
@@ -50,13 +54,18 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					try{
-						monitor.process(MonitorEvent.FocusGained,metadata,JButtonWithMeta.this);
+					try{monitor.process(MonitorEvent.FocusGained,metadata,JButtonWithMeta.this);
 					} catch (ContentException exc) {
 					}					
 				}
 			});
-			
+			addActionListener((e)->{
+				try{monitor.process(MonitorEvent.Action,metadata,JButtonWithMeta.this,e.getActionCommand());
+				} catch (ContentException exc) {
+				}					
+			});
+			setName(name);
+			setActionCommand(name);
 			fillLocalizedStrings();
 		}
 	}
@@ -97,19 +106,15 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	

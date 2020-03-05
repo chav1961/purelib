@@ -10,7 +10,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
@@ -30,9 +29,7 @@ import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
-import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -47,7 +44,6 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
-import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.FormMonitor;
@@ -348,7 +344,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						final JButton		button = (JButton) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{button.setText(getLocalizerAssociated().getValue(node.getLabelId()));
-						button.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId()));
+							button.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId()));
 						} catch (LocalizationException exc) {
 							logger.message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 						}

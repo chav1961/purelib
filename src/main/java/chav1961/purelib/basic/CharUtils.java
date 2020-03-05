@@ -884,10 +884,12 @@ public class CharUtils {
 	 * <p>This enumeration is used to describe template for extracting content from character array with lexemas.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
+	 * @lastUpdate 0.0.4
 	 */
 	public enum ArgumentType {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat,
-		name, hyphenedName, simpleTerminatedString, specialTerminatedString
+		name, hyphenedName, simpleTerminatedString, specialTerminatedString,
+		colorRepresentation
 	}
 
 	/**
@@ -904,6 +906,7 @@ public class CharUtils {
 	 * @throws IllegalArgumentException on any invalid parameters
 	 * @throws SyntaxException on any syntax error in the content
 	 * @since 0.0.3
+	 * @lastUpdate 0.0.4
 	 */
 	public static int tryExtract(final char[] source, final int from, Object... lexemas) throws IllegalArgumentException, SyntaxException {
 		int	len, start = from;
@@ -970,6 +973,15 @@ public class CharUtils {
 								break;
 							case simpleTerminatedString	:
 							case specialTerminatedString	:
+								break;
+							case colorRepresentation	:
+								if (source[start] == '#') {	// Hex presentation
+									start = UnsafedCharUtils.uncheckedParseHexInt(source,start+1,intResult,true);
+								}
+								else {
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+//									PureLibSettings.colorByName(name,null);
+								}
 								break;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 

@@ -50,6 +50,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -77,6 +79,7 @@ import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -352,7 +355,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 					result = new JCheckBoxWithMeta(metadata,monitor);
 					break;
 				case DateContent	:
-					result = new JDateFieldWithMeta(metadata,format,monitor);
+					result = new JDateFieldWithMeta(metadata,monitor);
 					break;
 				case EnumContent	:
 					result = new JEnumFieldWithMeta(metadata,format,monitor);

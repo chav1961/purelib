@@ -2,6 +2,9 @@ package chav1961.purelib.ui;
 
 import java.awt.Color;
 
+import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+
 public class ColorPair {
 	private Color	foreground, background;
 	
@@ -18,6 +21,19 @@ public class ColorPair {
 		}
 	}
 	
+	public ColorPair(final String val) throws SyntaxException, IllegalArgumentException {		
+		if (val == null || val.isEmpty()) {
+			throw new IllegalArgumentException("String value can't be null or empty");
+		}
+		else {
+			final Object[]	content = new Object[2];
+			
+			CharUtils.extract(val.toCharArray(),0,content,'{',CharUtils.ArgumentType.colorRepresentation,',',CharUtils.ArgumentType.colorRepresentation,'}');
+			this.foreground = (Color)content[0];
+			this.background = (Color)content[0];
+		}
+	}
+
 	public Color getForeground() {
 		return foreground;
 	}

@@ -7,25 +7,23 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.DateFormatter;
 import javax.swing.text.MaskFormatter;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -44,26 +42,30 @@ import chav1961.purelib.ui.swing.useful.JDateSelectionDialog;
 public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
+	public static final String 			CHOOSER_NAME = "chooser";
+	
+	private static final int			DEFAULT_COLUMNS = 10;
+	
 	private final ContentNodeMetadata	metadata;
 	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
 	private	Popup 						window;
 	private Date						currentValue = new Date(System.currentTimeMillis());
 	
-	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		super();
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
-		}
-		else if (format == null) {
-			throw new NullPointerException("Format can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
 		else {
 			this.metadata = metadata;
+
+			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			final FieldFormat	format = metadata.getFormatAssociated();
 			
-			if (format.getFormatMask() != null) {
+			if (format != null && format.getFormatMask() != null) {
 				try{setFormatter(new MaskFormatter(format.getFormatMask()));
 				} catch (ParseException e) {
 				}
@@ -104,7 +106,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 				@Override
 				public void focusGained(final FocusEvent e) {
 					currentValue = (Date) getValue();
-					if (format.needSelectOnFocus()) {
+					if (format != null && format.needSelectOnFocus()) {
 						selectAll();
 					}
 					try{
@@ -121,28 +123,16 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 					}
 				}
 			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JDateFieldWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
-					}
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JDateFieldWithMeta.this)) {
+					assignValueToComponent(currentValue);
 				}
-			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,KeyEvent.ALT_MASK),"show-dropdown");
-			getActionMap().put("show-dropdown", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					callSelect.doClick();
+				} catch (ContentException exc) {
 				}
-			});
+			},"rollback-value");
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				callSelect.doClick();
+			},"show-dropdown");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -153,20 +143,30 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 				}
 			});
 
-			setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
-			switch (format.getAlignment()) {
-				case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
-				case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
-				case RightAlignment	: setAlignmentX(JTextField.RIGHT_ALIGNMENT); break;
-				default: break;
+			if (format != null) {
+				setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
+				switch (format.getAlignment()) {
+					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
+					case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
+					case RightAlignment	: setAlignmentX(JTextField.RIGHT_ALIGNMENT); break;
+					default: break;
+				}
+				if (format.isReadOnly(false)) {
+					setEditable(false);
+					callSelect.setEnabled(false);
+				}
+				setColumns(format.getLength() == 0 ? DEFAULT_COLUMNS : format.getLength());
 			}
-			if (format.isReadOnly(false)) {
-				setEditable(false);
-				callSelect.setEnabled(false);
+			else {
+				setBackground(SwingUtils.OPTIONAL_BACKGROUND);
+				setAlignmentX(JTextField.RIGHT_ALIGNMENT);
+				setColumns(DEFAULT_COLUMNS);
 			}
-			setColumns(format.getLength() == 0 ? 10 : format.getLength());
 			callSelect.addActionListener((e)->{selectDate();});
 			new ComponentKeepedBorder(0,callSelect).install(this);
+			
+			setName(name);
+			callSelect.setName(name+'/'+CHOOSER_NAME);
 			fillLocalizedStrings();
 		}		
 	}
@@ -253,6 +253,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 												if (needExit) {
 													window.hide();
 													window = null;
+													JDateFieldWithMeta.this.requestFocus();
 												}												
 											}
 											);

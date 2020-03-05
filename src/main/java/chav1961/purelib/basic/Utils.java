@@ -1138,4 +1138,9 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	public static void throwException(final Throwable t) throws Throwable {
 		throw t;
 	}
+
+	public static <T> T preventRecursiveCall(final Throwable t) throws Throwable {
+		throw t;
+	}
+
 }

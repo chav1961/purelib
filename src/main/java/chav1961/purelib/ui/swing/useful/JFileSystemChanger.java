@@ -41,6 +41,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
@@ -84,7 +85,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	
 			this.localizer = localizer;
 			this.list = new JList<>(FileSystemFactory.getAvailableFileSystems());
-			this.editor = new J2ColumnEditor(content,(c)-> {
+			this.editor = new J2ColumnEditor(ContentModelFactory.forAnnotatedClass(content.getClass()),content,(c)-> {
 				try{if (c.endsWith("showHelp")) {
 						SwingUtils.showCreoleHelpWindow(JFileSystemChanger.this,URI.create("self:/#"+Base64.getEncoder().encodeToString(localizer.getValue(content.helpId).getBytes())));
 					}
@@ -261,7 +262,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		target.licenseContentId = localizer.getValue(desc.getLicenseContentId());
 		target.helpId = localizer.getValue(desc.getHelpId());
 		target.uriTemplate = desc.getUriTemplate().toString();
-		SwingModelUtils.putToScreen(this.editor.mdi.getRoot(),target,this.editor);
+		SwingModelUtils.putToScreen(this.editor.getMetadata().getRoot(),target,this.editor);
 	}
 
 	@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:root://chav1961.purelib.ui.swing.useful.JFileSystemChanger/chav1961/purelib/i18n/localization.xml")

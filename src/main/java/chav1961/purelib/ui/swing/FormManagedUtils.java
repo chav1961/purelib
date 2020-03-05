@@ -1,8 +1,5 @@
 package chav1961.purelib.ui.swing;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.Arrays;
 
 import javax.swing.JComponent;
@@ -23,19 +20,18 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
-class FormManagedUtils {
+public class FormManagedUtils {
 	private static final char	EOF_MARKUP = '\0';
 	private static final char	SPLITTER_MARKUP = '\1';
 	
-	interface FormManagerParserCallback {
+	public interface FormManagerParserCallback {
 		void processActionButton(final ContentNodeMetadata metadata, final JButtonWithMeta button) throws ContentException;
 		void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, final boolean isModifiable) throws ContentException;
 	}
 	
-	static <T> void parseModel4Form(final LoggerFacade logger, final ContentMetadataInterface mdi, final Class<T> instanceClass, final JComponentMonitor monitor, final FormManagerParserCallback callback) {
+	public static <T> void parseModel4Form(final LoggerFacade logger, final ContentMetadataInterface mdi, final Class<T> instanceClass, final JComponentMonitor monitor, final FormManagerParserCallback callback) {
 		try(final LoggerFacade	trans = logger.transaction("parseModel")) {
 			
 			mdi.walkDown((mode,applicationPath,uiPath,node)->{
@@ -74,7 +70,7 @@ class FormManagedUtils {
 		}
 	}
 	
-	interface MarkupParserCallback {
+	public interface MarkupParserCallback {
 		void placePlainText(int x, int y, int width, int height, boolean bold, boolean italic, boolean caption, String content) throws ContentException;
 		void placeSeparator(int x, int y, int width, int height) throws ContentException;
 		void placeField(int x, int y, int width, int height, String componentName, String initialValue) throws ContentException;
@@ -82,7 +78,7 @@ class FormManagedUtils {
 		void popContent() throws ContentException;
 	}
 	
-	static int parseMarkup(final String content, final MarkupParserCallback callback) throws SyntaxException, IllegalArgumentException, NullPointerException {
+	public static int parseMarkup(final String content, final MarkupParserCallback callback) throws SyntaxException, IllegalArgumentException, NullPointerException {
 		return parseMarkup(CharUtils.terminateAndConvert2CharArray(content,EOF_MARKUP),0,callback);
 	}
 

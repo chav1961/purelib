@@ -1,4 +1,4 @@
-package chav1961.purelib.ui.swing;
+package chav1961.purelib.testing;
 
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -21,6 +21,8 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.testing.SwingUnitTest;
+import chav1961.purelib.ui.swing.SwingUtils;
 
 public class SwingUnitTestTest {
 	final JFrame		root = new JFrame();

@@ -1,29 +1,25 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 
-
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -31,7 +27,8 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 			serialVersionUID = -3207016216489833670L;
 	private final ContentNodeMetadata	metadata;
-	private boolean						currentValue;
+	private boolean						currentValue, invalid = false;
+	private volatile boolean			loaded = false;
 	
 	public JCheckBoxWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
@@ -42,25 +39,49 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 		}
 		else {
 			this.metadata = metadata;
+			
+			final String	name = URIUtils.removeQueryFromURI(metadata.getApplicationPath()).toString(); 
+			
 			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
+				@Override 
+				public void componentResized(ComponentEvent e) {
+					if (!loaded) {
+						callLoad(monitor);
+						loaded = true;
+					}
+				}
+				
+				@Override 
+				public void componentMoved(ComponentEvent e) {
+					if (!loaded) {
+						callLoad(monitor);
+						loaded = true;
+					}
+				}
+				
+				@Override 
+				public void componentHidden(ComponentEvent e) {
+					if (!loaded) {
+						callLoad(monitor);
+						loaded = true;
+					}
+				}
 				
 				@Override
 				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JCheckBoxWithMeta.this);
-						currentValue = isSelected();
-					} catch (ContentException exc) {
-					}					
+					if (!loaded) {
+						callLoad(monitor);
+						loaded = true;
+					}
 				}				
 			});
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
 					try{if (currentValue != isSelected()) {
-							monitor.process(MonitorEvent.Saving,metadata,JCheckBoxWithMeta.this);
-							currentValue = isSelected();
+							if (monitor.process(MonitorEvent.Saving,metadata,JCheckBoxWithMeta.this)) {
+								currentValue = isSelected();
+							}
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JCheckBoxWithMeta.this);
 					} catch (ContentException exc) {
@@ -76,27 +97,13 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 					}					
 				}
 			});
-//			addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					try{monitor.process(MonitorEvent.Action,metadata,JCheckBoxWithMeta.this,e.getActionCommand());
-//					} catch (ContentException exc) {
-//					}
-//				}
-//			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JCheckBoxWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
-					}
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JCheckBoxWithMeta.this)) {
+					assignValueToComponent(currentValue);
 				}
-			});
+				} catch (ContentException exc) {
+				}
+			},"rollback-value");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -107,6 +114,7 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 				}
 			});
 			
+			setName(name);
 			fillLocalizedStrings();
 		}
 	}
@@ -141,11 +149,21 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 		if (value == null) {
 			throw new NullPointerException("Value to assign can't be null");
 		}
-		else if (!(value instanceof Boolean)) {
-			throw new IllegalArgumentException("Value to assign bust be Boolean, not ["+value.getClass().getCanonicalName()+"]");
+		else if (value instanceof Boolean) {
+			setSelected((Boolean)value);
+		}
+		else if (value instanceof String) {
+			final String	message = standardValidation((String)value); 
+			
+			if (message == null) {
+				setSelected(Boolean.valueOf((String)value));
+			}
+			else {
+				throw new IllegalArgumentException("String ["+value+"] to assign contains invald value: "+message);
+			}
 		}
 		else {
-			setSelected((Boolean)value);
+			throw new IllegalArgumentException("Value to assign must be Boolean, not ["+value.getClass().getCanonicalName()+"]");
 		}
 	}
 
@@ -156,30 +174,32 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		return "true".equals(value) || "false".equals(value) ? null : "Neither 'true' nor 'false' for checkbox content!";
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid;
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
+		return invalid;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 			
-	//		setText(localizer.getValue(getNodeMetadata().getLabelId()));
 			setToolTipText(localizer.getValue(getNodeMetadata().getLabelId()));
 		} catch (IOException e) {
 			throw new LocalizationException(e);
 		}
 	}
-
+	
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = isSelected();
+		} catch (ContentException exc) {
+		}					
+	}
 }
