@@ -1,10 +1,9 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.InputVerifier;
@@ -26,9 +25,10 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 			serialVersionUID = -3207016216489833670L;
+	private static final Class<?>[]		VALID_CLASSES = {Boolean.class,boolean.class};
+	
 	private final ContentNodeMetadata	metadata;
 	private boolean						currentValue, invalid = false;
-	private volatile boolean			loaded = false;
 	
 	public JCheckBoxWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
@@ -37,44 +37,15 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+		}
 		else {
 			this.metadata = metadata;
 			
-			final String	name = URIUtils.removeQueryFromURI(metadata.getApplicationPath()).toString(); 
-			
-			addComponentListener(new ComponentListener() {
-				@Override 
-				public void componentResized(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}
-				
-				@Override 
-				public void componentMoved(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}
-				
-				@Override 
-				public void componentHidden(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}				
-			});
+			final String	name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString(); 
+
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {

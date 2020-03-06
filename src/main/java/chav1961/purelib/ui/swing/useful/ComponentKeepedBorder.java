@@ -69,7 +69,7 @@ public class ComponentKeepedBorder implements Border {
 		}
 		else if (current instanceof CompoundBorder) {	// Protection against recursive nesting
 			if (((CompoundBorder)current).getOutsideBorder() != this) {
-				final CompoundBorder 	compound = new CompoundBorder(current, this);
+				final CompoundBorder 	compound = new CompoundBorder(this, current);
 				parent.setBorder(compound);
 			}
 		}
@@ -83,8 +83,18 @@ public class ComponentKeepedBorder implements Border {
 		parent.addComponentListener(cl);
 	}
 
+	protected void resizeOwner(final Component parent) {
+		final Rectangle	area = parent.getBounds();
+		final Insets 	parentInsets = getBorderInsets(parent);
+		
+		for (int index = 0, start = area.x + area.width - components.length * (area.height + gap); index < components.length; index++, start += area.height  + gap) {
+			components[components.length-1-index].setLocation(start, parentInsets.top);
+			components[components.length-1-index].setSize(area.height-2,area.height-2);
+		}
+	}
+	
 	private void determineInsetsAndAlignment(final JComponent parent) {
-		final Insets 	parentInsets = (parent.getBorder() instanceof ComponentKeepedBorder) ? new Insets(0,0,0,0) : parent.getInsets();
+		final Insets 	parentInsets = extractInsets(parent.getBorder(),parent);
 		final int 		parentHeight = parent.getHeight() - parentInsets.top - parentInsets.bottom;
 		
 		borderInsets = new Insets(0, 0, 0, 0);
@@ -96,16 +106,16 @@ public class ComponentKeepedBorder implements Border {
 			components[index].setSize(parentHeight,parentHeight);
 		}
 	}
-
-	protected void resizeOwner(final Component parent) {
-		final Rectangle	area = parent.getBounds();
-		final Insets 	parentInsets = getBorderInsets(parent);
-		
-		for (int index = 0, start = area.x + area.width - components.length * (area.height + gap); index < components.length; index++, start += area.height  + gap) {
-			components[components.length-1-index].setLocation(start, parentInsets.top);
-			components[components.length-1-index].setSize(area.height-2,area.height-2);
-			System.err.println("Border["+index+"]="+components[components.length-1-index].getBounds()+", "+components[components.length-1-index].isVisible());
+	
+	private Insets extractInsets(final Border border, final Component c) {
+		if (border == null || (border instanceof ComponentKeepedBorder)) {
+			return new Insets(0,0,0,0);
+		}
+		else if (border instanceof CompoundBorder) {
+			return extractInsets(((CompoundBorder)border).getOutsideBorder(),c);
+		}
+		else {
+			return border.getBorderInsets(c);
 		}
 	}
-
 }

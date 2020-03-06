@@ -9,6 +9,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -22,6 +24,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.LineBorder;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -39,44 +42,36 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
+	private static final Class<?>[]		VALID_CLASSES = {Enum.class};
+	
 	private final ContentNodeMetadata	metadata;
 	private final Class<Enum<?>>		clazz;
-	private Enum<?>						currentValue;
+	private Enum<?>						currentValue, newValue;
+	private boolean						invalid = false;
 	
-	public JEnumFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	public JEnumFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		super();
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
-		else if (format == null) {
-			throw new NullPointerException("Format can't be null"); 
-		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
+		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
 		}
 		else {
 			this.metadata = metadata;
 			this.clazz = (Class<Enum<?>>) metadata.getType();
 			
+			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			final FieldFormat	format = metadata.getFormatAssociated();
+			
 			for (Enum<?> item : clazz.getEnumConstants()) {
 				addItem(item);
 			}
-			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JEnumFieldWithMeta.this);
-						if (getSelectedIndex() < 0) {
-							setSelectedIndex(0);
-						}
-						currentValue = (Enum<?>) getSelectedItem();
-					} catch (ContentException exc) {
-					}					
-				}				
-			});
+			currentValue = newValue = clazz.getEnumConstants()[0];
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
@@ -98,19 +93,13 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					}					
 				}
 			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JEnumFieldWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JEnumFieldWithMeta.this)) {
+						assignValueToComponent(currentValue);
 					}
+				} catch (ContentException exc) {
 				}
-			});
+			},"rollback-value");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -120,6 +109,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					}
 				}
 			});
+			
 			setRenderer(new ListCellRenderer<Enum<?>>() {
 				@Override
 				public Component getListCellRendererComponent(final JList<? extends Enum<?>> list, final Enum<?> value, final int index, final boolean isSelected, final boolean cellHasFocus) {
@@ -144,6 +134,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 							}
 							else {
 								label.setText(value.name());
+								label.setToolTipText(value.name());
 							}
 						} catch (NoSuchFieldException | LocalizationException | IOException  e) {
 							label.setText(value.name());
@@ -152,26 +143,44 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					}
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JEnumFieldWithMeta.this,e.getActionCommand());
+			
+			addActionListener((e)->{
+				if (getSelectedItem() != null && !getSelectedItem().equals(currentValue)) {
+					try{if (monitor.process(MonitorEvent.Validation,metadata,JEnumFieldWithMeta.this)) {
+							monitor.process(MonitorEvent.Saving,metadata,JEnumFieldWithMeta.this);
+							currentValue = (Enum<?>) getSelectedItem();
+						}
 					} catch (ContentException exc) {
 					}
 				}
 			});
 
-			setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
-			setForeground(format.isMandatory() ? SwingUtils.MANDATORY_FOREGROUND : SwingUtils.OPTIONAL_FOREGROUND);
-			switch (format.getAlignment()) {
-				case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
-				case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
-				case RightAlignment	: setAlignmentX(JTextField.RIGHT_ALIGNMENT); break;
-				default: break;
+			if (format != null) {
+				if (format.isMandatory()) {
+					setBackground(SwingUtils.MANDATORY_BACKGROUND);
+					setForeground(SwingUtils.MANDATORY_FOREGROUND);
+				}
+				else {
+					setBackground(SwingUtils.OPTIONAL_BACKGROUND);
+					setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+				}
+				switch (format.getAlignment()) {
+					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
+					case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
+					case RightAlignment	: setAlignmentX(JTextField.RIGHT_ALIGNMENT); break;
+					default: break;
+				}
+				if (format.isReadOnly(false)) {
+					setEditable(false);
+				}
 			}
-			if (format.isReadOnly(false)) {
-				setEditable(false);
+			else {
+				setBackground(SwingUtils.OPTIONAL_BACKGROUND);
+				setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+				setAlignmentX(JComboBox.LEFT_ALIGNMENT);
 			}
+			
+			setName(name);			
 			fillLocalizedStrings();
 		}		
 	}
@@ -203,38 +212,54 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 
 	@Override
 	public void assignValueToComponent(final Object value) {
-		if (value == null) {
-			throw new NullPointerException("Value to assign can't be null");
+		if ((value instanceof String) && standardValidation((String)value) == null) {
+			final String	test = value.toString().trim();
+			
+			for (Enum<?> item : clazz.getEnumConstants()) {
+				if (test.equals(item.name())) {
+					newValue = item;
+					return;
+				}
+			}
 		}
-		else if (!clazz.isAssignableFrom(value.getClass())) {
+		else if ((value instanceof Enum) && clazz.isAssignableFrom(value.getClass())) {
 			throw new IllegalArgumentException("Value class to assign must be ["+clazz.getCanonicalName()+"], not ["+value.getClass().getCanonicalName()+"]");
 		}
 		else {
-			setSelectedItem(value);
+			throw new IllegalArgumentException("Value can't be null and value class to assign must be ["+clazz.getCanonicalName()+"] or String");
 		}
 	}
 
 	@Override
 	public Class<?> getValueType() {
-		return String.class;
+		return clazz;
 	}
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (value == null || value.isEmpty()) {
+			return "Null or empty value is not valid for enumeration constant";
+		}
+		else {
+			final String	test = value.trim();
+			
+			for (Enum<?> item : clazz.getEnumConstants()) {
+				if (test.equals(item.name())) {
+					return null;
+				}
+			}
+			return "Unknown value ["+value+"] for enumeration constant";
+		}
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid;
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
+		return invalid;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
@@ -244,6 +269,16 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 		} catch (IOException e) {
 			throw new LocalizationException(e);
 		}
+	}
+
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,JEnumFieldWithMeta.this);
+			if (getSelectedIndex() < 0) {
+				setSelectedIndex(0);
+			}
+			currentValue = (Enum<?>) getSelectedItem();
+		} catch (ContentException exc) {
+		}					
 	}
 }
 

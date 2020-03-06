@@ -1,29 +1,34 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.Color;
 import java.awt.Dialog;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Arrays;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
-import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
+import javax.swing.plaf.basic.BasicArrowButton;
 
+import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -38,45 +43,40 @@ import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
 
 public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 			serialVersionUID = 8167088888478756141L;
+
+	public static final String 			CHOOSER_NAME = "chooser";
+	
+	private static final Class<?>[]		VALID_CLASSES = {File.class, FileSystemInterface.class};
 	
 	private final ContentNodeMetadata	metadata;
-	private final JButton				callSelect = new JButton("...");
+	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
 	private final Class<?>				contentClass;
 	private Object						currentValue, newValue;
+	private boolean						invalid = false;	
 	
-	public JFileFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	public JFileFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
-		else if (format == null) {
-			throw new NullPointerException("Format can't be null"); 
-		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
+		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
 		}
 		else {
 			this.metadata = metadata;
 			this.contentClass = metadata.getType();
 			
-			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JFileFieldWithMeta.this);
-						currentValue = getText();
-					} catch (ContentException exc) {
-					}					
-				}				
-			});
+			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			final FieldFormat	format = metadata.getFormatAssociated();
+
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getText().equals(currentValue)) {
+					try{if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
 							monitor.process(MonitorEvent.Saving,metadata,JFileFieldWithMeta.this);
-							currentValue = getText();
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JFileFieldWithMeta.this);
 					} catch (ContentException exc) {
@@ -85,8 +85,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					currentValue = getText();
-					if (format.needSelectOnFocus()) {
+					if (format != null && format.needSelectOnFocus()) {
 						selectAll();
 					}
 					try{
@@ -95,27 +94,18 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 					}					
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JFileFieldWithMeta.this,e.getActionCommand());
-					} catch (ContentException exc) {
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JFileFieldWithMeta.this)) {
+						assignValueToComponent(currentValue);
 					}
+				} catch (ContentException exc) {
+				} finally {
+					JFileFieldWithMeta.this.requestFocus();
 				}
-			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JFileFieldWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
-					}
-				}
-			});
+			},"rollback-value");
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
+				callSelect.doClick();
+			},"show-dropdown");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -125,20 +115,37 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 					}
 				}
 			});
-
-			setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
-			switch (format.getAlignment()) {
-				case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
-				case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
-				case RightAlignment	: setAlignmentX(JTextField.RIGHT_ALIGNMENT); break;
-				default: break;
+			if (format != null) {
+				if (format.isMandatory()) {
+					setBackground(SwingUtils.MANDATORY_BACKGROUND);
+					setForeground(SwingUtils.MANDATORY_FOREGROUND);
+				}
+				else {
+					setBackground(SwingUtils.OPTIONAL_BACKGROUND);
+					setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+				}
+				switch (format.getAlignment()) {
+					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
+					case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
+					case RightAlignment	: setAlignmentX(JTextField.RIGHT_ALIGNMENT); break;
+					default: break;
+				}
+				if (format.isReadOnly(false)) {
+					setEditable(false);
+					callSelect.setEnabled(false);
+				}
 			}
-			if (format.isReadOnly(false)) {
-				setEditable(false);
-				callSelect.setEnabled(false);
+			else {
+				setBackground(SwingUtils.OPTIONAL_BACKGROUND);
+				setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+				setAlignmentX(JTextField.LEFT_ALIGNMENT);
 			}
+			
 			callSelect.addActionListener((e)->{selectFile();});
 			new ComponentKeepedBorder(0,callSelect).install(this);
+			
+			setName(name);
+			callSelect.setName(name+'/'+CHOOSER_NAME);
 			fillLocalizedStrings();
 		}		
 	}
@@ -176,15 +183,26 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public void assignValueToComponent(final Object value) {
-		if (value == null) {
-			throw new NullPointerException("Value to assign can't be null");
-		}
-		else if (value instanceof File) {
-			newValue = value; 
-			setText(((File)value).getName());
-		}
-		else if (value instanceof FileSystemInterface) {
-			setText(value.toString());
+		try{if ((value instanceof File) && (standardValidation(((File)value).getAbsolutePath())) == null) {
+				newValue = value; 
+				setText(((File)value).getName());
+				setToolTipText(((File)value).getAbsolutePath());
+			}
+			else if ((value instanceof FileSystemInterface) && (standardValidation(((FileSystemInterface)value).getPath())) == null) {
+				setText(((FileSystemInterface)value).getName());
+				setToolTipText(((FileSystemInterface)value).getPath());
+				newValue = value; 
+			}
+			else if ((value instanceof String) && (standardValidation((String)value) == null)) {
+				setText(value.toString());
+				setToolTipText(value.toString());
+				newValue = value; 
+			}
+			else {
+				throw new NullPointerException("Value to assign can't be null and must be File, FileSystemInterface or String type only");
+			}
+		} catch (IOException e) {
+			setText("?????");
 		}
 	}
 
@@ -195,20 +213,81 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (value == null || value.isEmpty()) {
+			return "Null or empty value can't be assigned to file";
+		}
+		else if (value.startsWith(FileSystemInterface.FILESYSTEM_URI_SCHEME+':')) {
+			try{final URI	uri = URI.create(value);
+			
+				for (FileSystemInterfaceDescriptor item : FileSystemFactory.getAvailableFileSystems()) {
+					if (item.getInstance().canServe(uri)) {
+						return null;
+					}
+				}
+				throw new IllegalArgumentException("Unknown subscheme or appropriative file system not found");
+			} catch (IllegalArgumentException | IOException | EnvironmentException exc) {
+				return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
+			}
+		}
+		else if (value.startsWith("file:")) {
+			try{final URI	uri = URI.create(value);
+
+				new File(uri);
+				return null;
+			} catch (IllegalArgumentException exc) {
+				return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
+			}
+		}
+		else {
+			new File(value);
+			return null;
+		}
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid;
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
+		return invalid;
+	}
+	
+	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
+		final JFileChooser	chooser = new JFileChooser();
+		
+		if (!getText().isEmpty()) {
+			final File		currentPath = new File(getText());
+			
+			if (currentPath.exists()) {
+				if (currentPath.isFile()) {
+					chooser.setCurrentDirectory(currentPath.getParentFile());
+					chooser.setSelectedFile(currentPath);
+				}
+				else {
+					chooser.setCurrentDirectory(currentPath);
+				}
+			}
+			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+				return chooser.getSelectedFile();
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
+	
+	protected FileSystemInterface chooseFileSystem(final Localizer localizer, final FileSystemInterface initialFS) throws HeadlessException, LocalizationException {
+		try{for(String item : JFileSelectionDialog.select((Dialog)null, localizer, (FileSystemInterface)getValueFromComponent(), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
+				return ((FileSystemInterface)getValueFromComponent()).open(item);
+			}
+		} catch (IOException | LocalizationException e) {
+		} 
+		return null;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
@@ -221,37 +300,34 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 
 	private void selectFile() {
-		if (getValueType().isAssignableFrom(File.class)) {
-			final JFileChooser	chooser = new JFileChooser();
-			
-			if (!getText().isEmpty()) {
-				final File		currentPath = new File(getText());
+		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
+		
+			if (getValueType().isAssignableFrom(File.class)) {
+				final File	result = chooseFile(localizer,(File)currentValue);
 				
-				if (currentPath.exists()) {
-					if (currentPath.isFile()) {
-						chooser.setCurrentDirectory(currentPath.getParentFile());
-						chooser.setSelectedFile(currentPath);
-					}
-					else {
-						chooser.setCurrentDirectory(currentPath);
-					}
-				}
-				if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-					assignValueToComponent(chooser.getSelectedFile());
+				if (result != null) {
+					assignValueToComponent(result);
 				}
 			}
-		}
-		else {
-			
-			try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
-			
-				for(String item : JFileSelectionDialog.select((Dialog)null, localizer, (FileSystemInterface)getValueFromComponent(), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
-					((FileSystemInterface)getValueFromComponent()).open(item);
-					assignValueToComponent(getValueFromComponent());
-					break;
+			else {
+				final FileSystemInterface	result = chooseFileSystem(localizer,(FileSystemInterface)currentValue);
+				
+				if (result != null) {
+					assignValueToComponent(result);
 				}
-			} catch (IOException | LocalizationException e) {
-			} 
+			}
+		} catch (IOException | HeadlessException | LocalizationException e) {
+			e.printStackTrace();
+		} finally {
+			requestFocus();
 		}
 	}
+
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = newValue;
+		} catch (ContentException exc) {
+		}					
+	}
+
 }

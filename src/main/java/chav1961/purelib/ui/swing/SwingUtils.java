@@ -145,7 +145,8 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_HELP = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
 	public static final KeyStroke			KS_ACCEPT = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 	public static final KeyStroke			KS_EXIT = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-	public static final KeyStroke			KS_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke			KS_DROPDOWN = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK);
+	public static final KeyStroke			KS_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK);
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";
@@ -336,8 +337,9 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	 * @return component prepared
 	 * @throws NullPointerException when any parameters are null
 	 * @throws LocalizationException when there are problems with localizers
+	 * @throws SyntaxException on format errors for the given control
 	 */
-	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws NullPointerException, LocalizationException {
+	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws NullPointerException, LocalizationException, SyntaxException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
@@ -358,10 +360,10 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 					result = new JDateFieldWithMeta(metadata,monitor);
 					break;
 				case EnumContent	:
-					result = new JEnumFieldWithMeta(metadata,format,monitor);
+					result = new JEnumFieldWithMeta(metadata,monitor);
 					break;
 				case FileContent	:
-					result = new JFileFieldWithMeta(metadata,format,monitor);
+					result = new JFileFieldWithMeta(metadata,monitor);
 					break;
 				case FormattedStringContent	:
 					result = new JFormattedTextFieldWithMeta(metadata,format,monitor);

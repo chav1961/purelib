@@ -113,7 +113,7 @@ public class SwingUtilsTest {
 	}
 	
 	@Test
-	public void prepareRendererTest() throws LocalizationException {
+	public void prepareRendererTest() throws LocalizationException, SyntaxException {
 		final JComponentMonitor 		monitor = new JComponentMonitor(){
 											@Override
 											public boolean process(MonitorEvent event, ContentNodeMetadata metadata, JComponentInterface component, Object... parameters) throws ContentException {

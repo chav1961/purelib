@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.HeadlessException;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -11,6 +13,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -21,6 +24,9 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -30,6 +36,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -37,43 +44,41 @@ import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
 
 public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 			serialVersionUID = -4542351534072177624L;
+
+	public static final String 			COLOR_NAME = "color";
+	
 	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
+	private static final Class<?>[]		VALID_CLASSES = {Color.class};
 
 	private final ContentNodeMetadata	metadata;
 	private final JButton				callSelect = new JButton("...");
-	private Color						currentValue, newValue;
+	private Color						currentValue = Color.black, newValue = Color.black;
+	private boolean						invalid = false;
 	
-	public JColorPickerWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	public JColorPickerWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
-		}
-		else if (format == null) {
-			throw new NullPointerException("Format can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+		}
 		else {
 			this.metadata = metadata;
-			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JColorPickerWithMeta.this);
-						currentValue = newValue;
-					} catch (ContentException exc) {
-					}					
-				}				
-			});
+			
+			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			final FieldFormat	format = metadata.getFormatAssociated();
+			
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (newValue != null && !newValue.equals(currentValue) || newValue == null && currentValue != null) {
-							monitor.process(MonitorEvent.Saving,metadata,JColorPickerWithMeta.this);
-							currentValue = newValue;
+					try{if (!newValue.equals(currentValue)) {
+							if (monitor.process(MonitorEvent.Validation,metadata,JColorPickerWithMeta.this) && monitor.process(MonitorEvent.Saving,metadata,JColorPickerWithMeta.this)) {
+								currentValue = newValue;
+							}
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JColorPickerWithMeta.this);
 					} catch (ContentException exc) {
@@ -103,29 +108,23 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 					}
 				}
 			});
-			if (format.isReadOnly(false)) {
+			if (format != null && format.isReadOnly(false)) {
 				callSelect.setEnabled(false);
 			}
 			callSelect.addActionListener((e)->{selectColor();});
 			new ComponentKeepedBorder(0,callSelect).install(this);
 			setPreferredSize(new Dimension(2*callSelect.getPreferredSize().width,callSelect.getPreferredSize().height));
+			
+			setName(name);
+			callSelect.setName(name+'/'+COLOR_NAME);
 			fillLocalizedStrings();
 		}
 	}
 	
 	@Override
-	public void setBorder(Border border) {
-		super.setBorder(border);
-		if (!(border instanceof ComponentKeepedBorder)) {
-			new ComponentKeepedBorder(0,callSelect).install(this);
-		}
-	}
-
-	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
 	}
-
 	
 	@Override
 	public String getRawDataFromComponent() {
@@ -144,12 +143,23 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 
 	@Override
 	public void assignValueToComponent(final Object value) {
-		if (value != null && !(value instanceof Color)) {
-			throw new IllegalArgumentException("Value class can be Color only");
-		}
-		else {
+		if (value instanceof Color) {
 			newValue = (Color)value;
 			repaint();
+		}
+		else if (value instanceof String) {
+			final String	val = (String)value;
+			
+			if (standardValidation(val) == null) {
+				newValue = PureLibSettings.colorByName(value.toString(),Color.black);
+				repaint();				
+			}
+			else {
+				throw new IllegalArgumentException("Illegal string value ["+value+"]: "+standardValidation(val));
+			}
+		}
+		else {
+			throw new IllegalArgumentException("Value can't be null and must be String or Color instance only");
 		}
 	}
 
@@ -160,20 +170,25 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (value == null || value.isEmpty()) {
+			return "Null or empty value is not applicable for the color";
+		}
+		else if (PureLibSettings.colorByName(value.trim(),null) == null) {
+			return "Unknown color name ["+value.trim()+"] in the value string";
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid; 
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
+		return invalid;
 	}
 
 	@Override
@@ -185,12 +200,18 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	public void paintComponent(final Graphics g) {
 		final Graphics2D	g2d = (Graphics2D)g;
 		final Color			oldColor = g2d.getColor();
+		final Insets		insets = getInsets();
+		final int			x1 = insets.left, x2 = getWidth()-insets.right, y1 = insets.top, y2 = getHeight()-insets.bottom;   
 
-		g2d.setColor(newValue == null ? Color.BLACK : newValue);
-		g2d.fillRect(0,0,getWidth(),getHeight());
+		g2d.setColor(newValue == null ? Color.WHITE : newValue);
+		g2d.fillRect(x1,y1,x2-x1,y2-y1);
 		g2d.setColor(oldColor);
 	}
 
+	protected Color chooseColor(final Localizer localizer, final Color initialColor, final boolean isForeground) throws HeadlessException, LocalizationException {
+		return Utils.nvl(JColorChooser.showDialog(this,localizer.getValue(TITLE),initialColor),initialColor);
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
@@ -204,10 +225,19 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	
 	private void selectColor() {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-			
-			assignValueToComponent(JColorChooser.showDialog(this,localizer.getValue(TITLE), newValue));
+		
+			assignValueToComponent(chooseColor(localizer,currentValue,false));
 		} catch (IOException | LocalizationException e) {
-			//throw new LocalizationException(e);
+			e.printStackTrace();
+		} finally {
+			requestFocus();
 		}
+	}
+
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = newValue;
+		} catch (ContentException exc) {
+		}					
 	}
 }

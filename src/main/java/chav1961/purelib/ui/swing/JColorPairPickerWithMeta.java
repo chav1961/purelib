@@ -6,11 +6,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.HeadlessException;
 import java.awt.Insets;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.ImageIcon;
@@ -18,7 +17,6 @@ import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
-import javax.swing.border.Border;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -44,13 +42,13 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	public static final String 			BACKGROUND_NAME = "background";
 	
 	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
+	private static final Class<?>[]		VALID_CLASSES = {ColorPair.class};
 
 	private final ContentNodeMetadata	metadata;
 	private final JButton				callSelectF = new JButton(new ImageIcon(JColorPairPickerWithMeta.class.getResource("upperleft.png")));
 	private final JButton				callSelectB = new JButton(new ImageIcon(JColorPairPickerWithMeta.class.getResource("lowerright.png")));
 	private ColorPair					currentValue = new ColorPair(Color.white,Color.black), newValue = currentValue;
 	private boolean						invalid = false;
-	private volatile boolean			loaded = false;
 	
 	public JColorPairPickerWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
@@ -59,44 +57,15 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+		}
 		else {
 			this.metadata = metadata;
 			
-			final String	name = URIUtils.removeQueryFromURI(metadata.getApplicationPath()).toString(); 
+			final String	name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString(); 
 			
-			addComponentListener(new ComponentListener() {
-				@Override 
-				public void componentResized(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}
-				
-				@Override 
-				public void componentMoved(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}
-				
-				@Override 
-				public void componentHidden(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					if (!loaded) {
-						callLoad(monitor);
-						loaded = true;
-					}
-				}				
-			});
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
@@ -146,23 +115,6 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 			callSelectB.setName(name+'/'+BACKGROUND_NAME);
 			fillLocalizedStrings();
 		}
-	}
-	
-	@Override
-	public void setBorder(Border border) {
-		if (!(border instanceof ComponentKeepedBorder)) {
-			new ComponentKeepedBorder(0,callSelectF,callSelectB).install(this);
-		}
-		else {
-			super.setBorder(border);
-		}
-	}
-
-	@Override
-	public void setVisible(final boolean visibility) {
-		super.setVisible(visibility);
-		callSelectF.setVisible(visibility);
-		callSelectB.setVisible(visibility);
 	}
 	
 	@Override

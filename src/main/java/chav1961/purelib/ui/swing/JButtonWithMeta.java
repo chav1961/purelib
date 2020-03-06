@@ -36,7 +36,7 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 		else {
 			this.metadata = metadata;
 			
-			final String	name = URIUtils.removeQueryFromURI(metadata.getApplicationPath()).toString(); 
+			final String	name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString(); 
 			
 			if (metadata.getIcon() != null) {
 				try{setIcon(new ImageIcon(metadata.getIcon().toURL()));
@@ -64,8 +64,9 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 				} catch (ContentException exc) {
 				}					
 			});
+			
 			setName(name);
-			setActionCommand(name);
+			setActionCommand(URIUtils.removeQueryFromURI(metadata.getApplicationPath()).toString());
 			fillLocalizedStrings();
 		}
 	}

@@ -1,15 +1,13 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
@@ -21,7 +19,7 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.DateFormatter;
-import javax.swing.text.MaskFormatter;
+import javax.swing.text.DefaultFormatterFactory;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -44,14 +42,17 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	
 	public static final String 			CHOOSER_NAME = "chooser";
 	
+	private static final Class<?>[]		VALID_CLASSES = {Date.class};
 	private static final int			DEFAULT_COLUMNS = 10;
 	
 	private final ContentNodeMetadata	metadata;
 	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
 	private	Popup 						window;
-	private Date						currentValue = new Date(System.currentTimeMillis());
+	private Date						currentValue = new Date(0), newValue = currentValue;
+	private DateFormat					currentFormat = null;
+	private boolean						invalid = false;
 	
-	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
+	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException, SyntaxException {
 		super();
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
@@ -59,41 +60,20 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+		}
 		else {
 			this.metadata = metadata;
 
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated();
 			
-			if (format != null && format.getFormatMask() != null) {
-				try{setFormatter(new MaskFormatter(format.getFormatMask()));
-				} catch (ParseException e) {
-				}
-			}
-			else {
-				setFormatter(new DateFormatter(DateFormat.getDateInstance(DateFormat.SHORT)));
-			}
-			setValue(this.currentValue);
-			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JDateFieldWithMeta.this);
-						currentValue = (Date) getValue();
-					} catch (ContentException exc) {
-					}					
-				}				
-			});
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					if (window != null) {
-						window.hide();
-						window = null;
-					}
+					closeDropDown();
 					try{if (!getValue().equals(currentValue)) {
 							monitor.process(MonitorEvent.Saving,metadata,JDateFieldWithMeta.this);
 							currentValue = (Date) getValue();
@@ -115,22 +95,22 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 					}					
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JDateFieldWithMeta.this,e.getActionCommand());
-					} catch (ContentException exc) {
-					}
+			addActionListener((e)->{
+				try{monitor.process(MonitorEvent.Action,metadata,JDateFieldWithMeta.this,e.getActionCommand());
+				} catch (ContentException exc) {
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				closeDropDown();
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JDateFieldWithMeta.this)) {
-					assignValueToComponent(currentValue);
-				}
+						assignValueToComponent(currentValue);
+					}
 				} catch (ContentException exc) {
+				} finally {
+					JDateFieldWithMeta.this.requestFocus();
 				}
 			},"rollback-value");
-			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
 				callSelect.doClick();
 			},"show-dropdown");
 			setInputVerifier(new InputVerifier() {
@@ -168,6 +148,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			setName(name);
 			callSelect.setName(name+'/'+CHOOSER_NAME);
 			fillLocalizedStrings();
+			setValue(this.currentValue);
 		}		
 	}
 
@@ -193,7 +174,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return getText();
+		return getValue();
 	}
 
 	@Override
@@ -208,51 +189,61 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 
 	@Override
 	public Class<?> getValueType() {
-		return String.class;
+		return Date.class;
 	}
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (value == null || value.isEmpty()) {
+			return "Null or empty value is not applicable for the date";
+		}
+		else {
+			try{currentFormat.parse(value.trim());
+				return null;
+			} catch (ParseException e) {
+				return e.getLocalizedMessage();
+			}
+		}
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid;
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
+		return invalid;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
 			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+			currentFormat = prepareDateFormat(getNodeMetadata().getFormatAssociated(),localizer.currentLocale().getLocale());
+			setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(currentFormat)));
 		} catch (IOException e) {
 			throw new LocalizationException(e);
 		}
 	}
 
-	private void selectDate() {
+	private void closeDropDown() {
 		if (window != null) {
 			window.hide();
 			window = null;
 		}
+	}
+	
+	private void selectDate() {
+		closeDropDown();
 		
 		try{final Localizer				localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 			final JDateSelectionDialog	dsd = new JDateSelectionDialog(localizer
-											,new Date(System.currentTimeMillis())
+											,currentValue
 											,(newDate,needExit)->{
-												System.err.println("New date="+newDate+", exit="+needExit);
 												assignValueToComponent(newDate);
 												if (needExit) {
-													window.hide();
-													window = null;
+													closeDropDown();
 													JDateFieldWithMeta.this.requestFocus();
 												}												
 											}
@@ -266,4 +257,19 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 		}
 	}
 
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = newValue;
+		} catch (ContentException exc) {
+		}					
+	}
+	
+	private static DateFormat prepareDateFormat(final FieldFormat format, final Locale locale) {
+		if (format == null || format.getFormatMask() == null) {
+			return DateFormat.getDateInstance(DateFormat.MEDIUM,locale);
+		}
+		else {
+			return new SimpleDateFormat(format.getFormatMask(),locale);
+		}
+	}
 }

@@ -8,8 +8,11 @@ import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Formatter;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -18,11 +21,14 @@ import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.MaskFormatter;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -36,24 +42,37 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 public class JFormattedTextFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
-	private final ContentNodeMetadata	metadata;
-	private String						currentValue;
+	private static final Class<?>[]		VALID_CLASSES = {String.class};
 	
-	public JFormattedTextFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	private final ContentNodeMetadata	metadata;
+	private final MaskFormatter			formatter;
+	private String						currentValue, newValue;
+	private boolean						invalid = false;
+	
+	public JFormattedTextFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException, SyntaxException {
 		super();
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
-		else if (format == null) {
-			throw new NullPointerException("Format can't be null"); 
-		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+		}
+		else if (metadata.getFormatAssociated() == null) {
+			throw new IllegalArgumentException("Metadata doesn't contain field format!"); 
+		}
 		else {
 			this.metadata = metadata;
-			try{setFormatter(new MaskFormatter(format.getFormatMask()));
+			
+			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			final FieldFormat	format = metadata.getFormatAssociated();
+			
+			try{this.formatter = new MaskFormatter(format.getFormatMask());
+				setFormatterFactory(new DefaultFormatterFactory(formatter));
 			} catch (ParseException e) {
+				throw new SyntaxException(0,0,"Illegal format mask ["+format.getFormatMask()+"]: "+e.getLocalizedMessage());
 			}
 			setFocusable(true);
 			enableEvents(AWTEvent.FOCUS_EVENT_MASK|AWTEvent.COMPONENT_EVENT_MASK);
@@ -142,6 +161,8 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			if (format.getLength() != 0) {
 				setColumns(format.getLength());
 			}
+			
+			setName(name);
 			fillLocalizedStrings();
 		}		
 	}
@@ -188,20 +209,26 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (value == null) {
+			return "Null value can't ne assigned to string";
+		}
+		else {
+			try{formatter.stringToValue(value);
+				return null;
+			} catch (ParseException e) {
+				return e.getLocalizedMessage();
+			}
+		}
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid; 
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
+		return invalid;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
