@@ -1,10 +1,7 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.HeadlessException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -14,14 +11,12 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.InputVerifier;
-import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.plaf.basic.BasicArrowButton;
 
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -291,12 +286,9 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
+		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
 	}
 
 	private void selectFile() {
@@ -316,7 +308,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 					assignValueToComponent(result);
 				}
 			}
-		} catch (IOException | HeadlessException | LocalizationException e) {
+		} catch (HeadlessException | LocalizationException e) {
 			e.printStackTrace();
 		} finally {
 			requestFocus();
@@ -329,5 +321,4 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		} catch (ContentException exc) {
 		}					
 	}
-
 }

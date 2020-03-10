@@ -3,7 +3,6 @@ package chav1961.purelib.ui.swing;
 import java.awt.Point;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,16 +45,19 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	private static final int			DEFAULT_COLUMNS = 10;
 	
 	private final ContentNodeMetadata	metadata;
+	private final Localizer 			localizer;
 	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
 	private	Popup 						window;
 	private Date						currentValue = new Date(0), newValue = currentValue;
 	private DateFormat					currentFormat = null;
 	private boolean						invalid = false;
 	
-	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException, SyntaxException {
-		super();
+	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException, SyntaxException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
@@ -65,6 +67,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 		}
 		else {
 			this.metadata = metadata;
+			this.localizer = localizer;
 
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated();
@@ -217,14 +220,9 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-			currentFormat = prepareDateFormat(getNodeMetadata().getFormatAssociated(),localizer.currentLocale().getLocale());
-			setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(currentFormat)));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		currentFormat = prepareDateFormat(getNodeMetadata().getFormatAssociated(),localizer.currentLocale().getLocale());
+		setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(currentFormat)));
 	}
 
 	private void closeDropDown() {
@@ -237,8 +235,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	private void selectDate() {
 		closeDropDown();
 		
-		try{final Localizer				localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-			final JDateSelectionDialog	dsd = new JDateSelectionDialog(localizer
+		try{final JDateSelectionDialog	dsd = new JDateSelectionDialog(localizer
 											,currentValue
 											,(newDate,needExit)->{
 												assignValueToComponent(newDate);
@@ -252,7 +249,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			
 			window = PopupFactory.getSharedInstance().getPopup(this,dsd,callSelectLocation.x+callSelect.getWidth()-dsd.getPreferredSize().width,callSelectLocation.y+callSelect.getHeight());
 			window.show();
-		} catch (IOException | LocalizationException  e) {
+		} catch (LocalizationException  e) {
 //			throw new LocalizationException(e);
 		}
 	}

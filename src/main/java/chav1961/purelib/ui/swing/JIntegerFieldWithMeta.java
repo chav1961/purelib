@@ -1,35 +1,29 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.text.NumberFormatter;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.InternationalFormatter;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
@@ -37,62 +31,55 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
+
+	private static final Class<?>[]		VALID_CLASSES = {BigInteger.class, Byte.class, byte.class, Short.class, short.class, Integer.class, int.class, Long.class, long.class};
 	
 	private final ContentNodeMetadata	metadata;
-	private final FieldFormat			format;
-	private Object						currentValue;
+	private final Class<?>				contentType;
+	private Object						currentValue, newValue;
+	private boolean						invalid = false;
 	
-	public JIntegerFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	public JIntegerFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
-		}
-		else if (format == null) {
-			throw new NullPointerException("Format can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+		}
 		else {
 			this.metadata = metadata;
-			this.format = format;
+			this.contentType = metadata.getType();
 			
-			if (metadata.getFormatAssociated().getFormatMask() != null) {
-				setFormatter(new NumberFormatter(new DecimalFormat(metadata.getFormatAssociated().getFormatMask())));
+			final String					name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			final Localizer					localizer = LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated());
+			final FieldFormat				format = metadata.getFormatAssociated();
+			final InternationalFormatter	formatter = InternalUtils.prepareNumberFormatter(format,localizer.currentLocale().getLocale());
+			final int						columns;
+			
+			if (format.getFormatMask() != null) {
+				columns = format.getLength(); 
 			}
 			else {
-				final StringBuilder	sb = new StringBuilder("0");
-				final int 			len = format.getLength() == 0 ? 15 : format.getLength();
-				
-				for (int index = 1, maxIndex = len; index < maxIndex; index++) {
-					sb.insert(0,"#");
-				}
-				setFormatter(new NumberFormatter(new DecimalFormat(sb.toString()+";-"+sb.toString(),new DecimalFormatSymbols())));
-				setColumns(len+1);
+				columns = format.getLength() == 0 ? 15 : format.getLength() + 1;
 			}
+			setFormatterFactory(new DefaultFormatterFactory(formatter));
+			if (columns > 0) {
+				setColumns(columns);
+			}			
 			
 			setHorizontalAlignment(JTextField.RIGHT);
 			setFont(new Font(getFont().getFontName(),Font.BOLD,getFont().getSize()));
 			setAutoscrolls(false);
-			
-			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JIntegerFieldWithMeta.this);
-						currentValue = getText();
-					} catch (ContentException exc) {
-					}					
-				}				
-			});
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getText().equals(currentValue)) {
+					try{if (!getValue().equals(currentValue)) {
 							monitor.process(MonitorEvent.Saving,metadata,JIntegerFieldWithMeta.this);
-							currentValue = getText();
+							currentValue = getValue();
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JIntegerFieldWithMeta.this);
 					} catch (ContentException exc) {
@@ -114,46 +101,35 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 					}					
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JIntegerFieldWithMeta.this,e.getActionCommand());
-					} catch (ContentException exc) {
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JIntegerFieldWithMeta.this)) {
+						assignValueToComponent(currentValue);
 					}
+				} catch (ContentException exc) {
+				} finally {
+					JIntegerFieldWithMeta.this.requestFocus();
 				}
-			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JIntegerFieldWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
-					}
-				}
-			});
+			},"rollback-value");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
 					try{final boolean	validated = monitor.process(MonitorEvent.Validation,metadata,JIntegerFieldWithMeta.this);
+						final Object	value = getValue(); 
 
-						if (getValue() instanceof BigInteger) {
-							setFieldColor(((BigInteger)getValue()).signum());
+						if (value instanceof BigInteger) {
+							InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,((BigInteger)value).signum());
 						}
-						else if (getValue() instanceof Byte) {
-							setFieldColor((int)Math.signum(((Byte)getValue()).longValue()));
+						else if (value instanceof Byte) {
+							InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,(int)Math.signum(((Byte)value).longValue()));
 						}
-						else if (getValue() instanceof Short) {
-							setFieldColor((int)Math.signum(((Short)getValue()).longValue()));
+						else if (value instanceof Short) {
+							InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,(int)Math.signum(((Short)value).longValue()));
 						}
-						else if (getValue() instanceof Integer) {
-							setFieldColor((int)Math.signum(((Integer)getValue()).longValue()));
+						else if (value instanceof Integer) {
+							InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,(int)Math.signum(((Integer)value).longValue()));
 						}
-						else if (getValue() instanceof Long) {
-							setFieldColor((int)Math.signum(((Long)getValue()).longValue()));
+						else if (value instanceof Long) {
+							InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,(int)Math.signum(((Long)value).longValue()));
 						}
 						return validated;
 					} catch (ContentException e) {
@@ -172,6 +148,8 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 			if (format.isReadOnly(false)) {
 				setEditable(false);
 			}
+			
+			setName(name);
 			fillLocalizedStrings();
 		}		
 	}
@@ -183,6 +161,10 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		final Object			value = getValue();
+		
+		setFormatterFactory(new DefaultFormatterFactory(InternalUtils.prepareNumberFormatter(getNodeMetadata().getFormatAssociated(),newLocale)));
+		setValue(value);
 		fillLocalizedStrings();
 	}
 	
@@ -198,7 +180,7 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return getText();
+		return getValue();
 	}
 
 	@Override
@@ -208,52 +190,49 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 		}
 		else {
 			setValue(value);
+			newValue = value;
 		}
 	}
 
 	@Override
 	public Class<?> getValueType() {
-		return String.class;
+		return contentType;
 	}
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (value == null || value.isEmpty()) {
+			return "Null or empty value is not valid for number";
+		}
+		else {
+			try{getFormatter().stringToValue(value.toString());
+				return null;
+			} catch (ParseException exc) {
+				return exc.getLocalizedMessage();
+			}
+		}
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid;
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	private void setFieldColor(final int signum) {
-		if (format.isHighlighted(signum)) {
-			if (signum < 0) {
-				setForeground(SwingUtils.NEGATIVEMARK_FOREGROUND);
-			}
-			else if (signum > 0) {
-				setForeground(SwingUtils.POSITIVEMARK_FOREGROUND);
-			}
-			else {
-				setForeground(SwingUtils.ZEROMARK_FOREGROUND);
-			}
-		}
+		return invalid;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
+		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+	}
+	
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = newValue;
+		} catch (ContentException exc) {
+		}					
 	}
 }

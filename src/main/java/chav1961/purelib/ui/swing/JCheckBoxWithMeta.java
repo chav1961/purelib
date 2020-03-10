@@ -2,7 +2,6 @@ package chav1961.purelib.ui.swing;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -28,11 +27,15 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 	private static final Class<?>[]		VALID_CLASSES = {Boolean.class,boolean.class};
 	
 	private final ContentNodeMetadata	metadata;
+	private final Localizer				localizer;
 	private boolean						currentValue, invalid = false;
 	
-	public JCheckBoxWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
+	public JCheckBoxWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
@@ -42,6 +45,7 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 		}
 		else {
 			this.metadata = metadata;
+			this.localizer = localizer;
 			
 			final String	name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString(); 
 
@@ -159,12 +163,7 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-			
-			setToolTipText(localizer.getValue(getNodeMetadata().getLabelId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getLabelId()));
 	}
 	
 	private void callLoad(final JComponentMonitor monitor) {

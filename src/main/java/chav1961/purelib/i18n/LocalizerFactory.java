@@ -41,9 +41,9 @@ public class LocalizerFactory {
 	 * @param localizerUri resource to get localizer for. Must be any URI with the {@linkplain Localizer#LOCALIZER_SCHEME} scheme
 	 * @return localizer built
 	 * @throws NullPointerException when localizer URI is null
-	 * @throws IOException if any I/O errors were detected during getting localizer
+	 * @throws LocalizationException if any I/O errors were detected during getting localizer
 	 */
-	public static Localizer getLocalizer(final URI localizerUri) throws NullPointerException, IOException {
+	public static Localizer getLocalizer(final URI localizerUri) throws NullPointerException, LocalizationException {
 		if (localizerUri == null) {
 			throw new NullPointerException("Localizer URI can't be null"); 
 		}
@@ -65,13 +65,13 @@ public class LocalizerFactory {
 									cache.put(localizerUri,localizer);
 									return localizer;
 								} catch (EnvironmentException e) {
-									throw new IOException("Error creating localizer instance for the URI ["+localizerUri+"]: "+e.getLocalizedMessage());
+									throw new LocalizationException("Error creating localizer instance for the URI ["+localizerUri+"]: "+e.getLocalizedMessage());
 								}
 							}
 						}
 					}
 				}
-				throw new IOException("No any LocalizerService instances found for URI ["+localizerUri+"]");
+				throw new LocalizationException("No any LocalizerService instances found for URI ["+localizerUri+"]");
 			}
 		}
 	}

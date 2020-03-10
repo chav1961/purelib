@@ -88,6 +88,7 @@ import chav1961.purelib.basic.interfaces.PureLibColorScheme;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -339,7 +340,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	 * @throws LocalizationException when there are problems with localizers
 	 * @throws SyntaxException on format errors for the given control
 	 */
-	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws NullPointerException, LocalizationException, SyntaxException {
+	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final Localizer localizer, final FieldFormat format, final JComponentMonitor monitor) throws NullPointerException, LocalizationException, SyntaxException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
@@ -354,10 +355,10 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			
 			switch (format.getContentType()) {
 				case BooleanContent	:
-					result = new JCheckBoxWithMeta(metadata,monitor);
+					result = new JCheckBoxWithMeta(metadata,localizer,monitor);
 					break;
 				case DateContent	:
-					result = new JDateFieldWithMeta(metadata,monitor);
+					result = new JDateFieldWithMeta(metadata,localizer,monitor);
 					break;
 				case EnumContent	:
 					result = new JEnumFieldWithMeta(metadata,monitor);
@@ -366,22 +367,22 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 					result = new JFileFieldWithMeta(metadata,monitor);
 					break;
 				case FormattedStringContent	:
-					result = new JFormattedTextFieldWithMeta(metadata,format,monitor);
+					result = new JFormattedTextFieldWithMeta(metadata,monitor);
 					break;
 				case IntegerContent	:
-					result = new JIntegerFieldWithMeta(metadata,format,monitor);
+					result = new JIntegerFieldWithMeta(metadata,monitor);
 					break;
 				case NumericContent	:
-					result = new JNumericFieldWithMeta(metadata,format,monitor);
+					result = new JNumericFieldWithMeta(metadata,monitor);
 					break;
 				case StringContent	:
-					result = new JTextFieldWithMeta(metadata,format,monitor);
+					result = new JTextFieldWithMeta(metadata,monitor);
 					break;
 				case Unclassified	:
 					result = null;
 					break;
 				case URIContent		:
-					result = new JTextFieldWithMeta(metadata,format,monitor);
+					result = new JTextFieldWithMeta(metadata,monitor);
 					break;
 				case ArrayContent	:
 				case NestedContent	:

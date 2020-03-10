@@ -52,7 +52,7 @@ public class FormManagedUtilsTest {
 											}
 										};
 		 
-		FormManagedUtils.parseModel4Form(PureLibSettings.CURRENT_LOGGER,mdi,SeekAndCallTest.class,mon,callback);
+		FormManagedUtils.parseModel4Form(PureLibSettings.CURRENT_LOGGER,mdi,PureLibSettings.PURELIB_LOCALIZER,SeekAndCallTest.class,mon,callback);
 	}
 
 

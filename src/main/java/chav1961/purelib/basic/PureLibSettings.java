@@ -232,7 +232,7 @@ public class PureLibSettings {
 															new WellKnownSchemaImpl(Localizer.LOCALIZER_SCHEME, "", LocalizerFactory.class, true, 
 																(uri)->{
 																	try{return LocalizerFactory.getLocalizer(uri);
-																	} catch (IOException e) {
+																	} catch (LocalizationException e) {
 																		throw new EnvironmentException(e); 
 																	}
 																}),

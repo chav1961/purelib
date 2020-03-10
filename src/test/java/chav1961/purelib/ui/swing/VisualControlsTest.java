@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.net.URI;
 import java.text.DateFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -23,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.DebuggingException;
@@ -46,6 +48,8 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 public class VisualControlsTest implements JComponentMonitor {
 	final JFrame		root = new JFrame();
 	final JTextField	text = new JTextField();
+	final Locale		en = Locale.forLanguageTag("en");
+	final Locale		ru = Locale.forLanguageTag("ru");
 
 	volatile boolean	focusGained = false, focusLost = false, action = false, loading = false, validation = false, saving = false;
 	
@@ -98,7 +102,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void basicJButtonWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0];
-		final JButtonWithMeta			butt = new JButtonWithMeta(itemMeta, this);
+		final JButtonWithMeta			butt = new JButtonWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 
 		Assert.assertEquals(itemMeta,butt.getNodeMetadata());
 		Assert.assertNull(butt.getRawDataFromComponent());
@@ -108,12 +112,16 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertNull(butt.standardValidation("test"));
 		Assert.assertFalse(butt.isInvalid());
 		
-		try {new JButtonWithMeta(null, this);
+		try {new JButtonWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try {new JButtonWithMeta(itemMeta, null);
+		try {new JButtonWithMeta(itemMeta, null, this);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JButtonWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
 	}
@@ -123,7 +131,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void uiJButtonWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0];
-		final JButtonWithMeta			butt = new JButtonWithMeta(itemMeta, this);
+		final JButtonWithMeta			butt = new JButtonWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 		final SwingUnitTest				sut = new SwingUnitTest(root);
 		
 		root.getContentPane().add(butt);
@@ -147,7 +155,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void basicJCheckBoxWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0];
-		final JCheckBoxWithMeta			butt = new JCheckBoxWithMeta(itemMeta, this);
+		final JCheckBoxWithMeta			butt = new JCheckBoxWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 
 		Assert.assertEquals(itemMeta,butt.getNodeMetadata());
 		Assert.assertEquals("false",butt.getRawDataFromComponent());
@@ -162,16 +170,20 @@ public class VisualControlsTest implements JComponentMonitor {
 		butt.setInvalid(false);
 		Assert.assertFalse(butt.isInvalid());
 		
-		try {new JCheckBoxWithMeta(null, this);
+		try {new JCheckBoxWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try {new JCheckBoxWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0], this);
+		try {new JCheckBoxWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0], PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try {new JCheckBoxWithMeta(itemMeta, null);
+		try {new JCheckBoxWithMeta(itemMeta, null, this);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JCheckBoxWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
 	}
@@ -181,7 +193,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void uiJCheckBoxWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0];
-		final JCheckBoxWithMeta			butt = new JCheckBoxWithMeta(itemMeta, this);
+		final JCheckBoxWithMeta			butt = new JCheckBoxWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 		final SwingUnitTest				sut = new SwingUnitTest(root);
 		
 		root.getContentPane().add(butt);
@@ -207,7 +219,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void basicJColorPairPickerWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/pair"))[0];
-		final JColorPairPickerWithMeta	picker = new JColorPairPickerWithMeta(itemMeta, this);
+		final JColorPairPickerWithMeta	picker = new JColorPairPickerWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 		
 		Assert.assertEquals(itemMeta,picker.getNodeMetadata());
 		Assert.assertEquals("{#ffffff,#000000}",picker.getRawDataFromComponent());
@@ -226,16 +238,20 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertNotNull(picker.standardValidation("black,unknown"));
 		Assert.assertNull(picker.standardValidation("{ black , white }"));
 		
-		try {new JColorPairPickerWithMeta(null, this);
+		try {new JColorPairPickerWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try {new JColorPairPickerWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], this);
+		try {new JColorPairPickerWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try {new JColorPairPickerWithMeta(itemMeta, null);
+		try {new JColorPairPickerWithMeta(itemMeta, null, this);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JColorPairPickerWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
 	}
@@ -245,7 +261,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void uiJColorPairPickerWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/pair"))[0];
-		final JColorPairPickerWithMeta	picker = new JColorPairPickerWithMeta(itemMeta, this) {
+		final JColorPairPickerWithMeta	picker = new JColorPairPickerWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this) {
 											private static final long serialVersionUID = 1L;
 											
 											@Override
@@ -281,7 +297,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void basicJColorPickerWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/color"))[0];
-		final JColorPickerWithMeta		picker = new JColorPickerWithMeta(itemMeta, this);
+		final JColorPickerWithMeta		picker = new JColorPickerWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 		
 		Assert.assertEquals(itemMeta,picker.getNodeMetadata());
 		Assert.assertEquals("#000000",picker.getRawDataFromComponent());
@@ -297,16 +313,20 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertNotNull(picker.standardValidation("illegal"));
 		Assert.assertNull(picker.standardValidation(" white "));
 		
-		try {new JColorPickerWithMeta(null, this);
+		try {new JColorPickerWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try {new JColorPickerWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], this);
+		try {new JColorPickerWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try {new JColorPickerWithMeta(itemMeta, null);
+		try {new JColorPickerWithMeta(itemMeta, null, this);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JColorPickerWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
 	}
@@ -316,7 +336,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void uiJColorPickerWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/color"))[0];
-		final JColorPickerWithMeta		picker = new JColorPickerWithMeta(itemMeta, this) {
+		final JColorPickerWithMeta		picker = new JColorPickerWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this) {
 											private static final long serialVersionUID = 1L;
 											
 											@Override
@@ -353,7 +373,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0];
 		final Date						nullDate = new Date(0);
 		final String					nullFormatted = DateFormat.getDateInstance(DateFormat.MEDIUM,Locale.getDefault()).format(nullDate);
-		final JDateFieldWithMeta		date = new JDateFieldWithMeta(itemMeta, this);
+		final JDateFieldWithMeta		date = new JDateFieldWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 		
 		Assert.assertEquals(itemMeta,date.getNodeMetadata());
 		Assert.assertEquals(nullDate.toString(),date.getRawDataFromComponent());
@@ -369,16 +389,20 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertNotNull(date.standardValidation("illegal"));
 		Assert.assertNull(date.standardValidation(" "+nullFormatted+" "));
 		
-		try {new JDateFieldWithMeta(null, this);
+		try {new JDateFieldWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try {new JDateFieldWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], this);
+		try {new JDateFieldWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try {new JDateFieldWithMeta(itemMeta, null);
+		try {new JDateFieldWithMeta(itemMeta, null, this);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JDateFieldWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
 	}
@@ -388,9 +412,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	public void uiJDateFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0];
-		final JDateFieldWithMeta		date = new JDateFieldWithMeta(itemMeta, this);
-		final Date						nullDate = new Date(0);
-		final String					nullFormatted = DateFormat.getDateInstance(DateFormat.MEDIUM,Locale.getDefault()).format(nullDate);
+		final JDateFieldWithMeta		date = new JDateFieldWithMeta(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
 		final SwingUnitTest				sut = new SwingUnitTest(root);
 		
 		root.getContentPane().add(date);
@@ -545,5 +567,261 @@ public class VisualControlsTest implements JComponentMonitor {
 		
 		root.setVisible(false);
 	}
+
+	@Test
+	public void basicJFormattedTextFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
+		final ContentMetadataInterface		metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata			itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/text"))[0];
+		final JFormattedTextFieldWithMeta	text = new JFormattedTextFieldWithMeta(itemMeta, this);
+		
+		Assert.assertEquals(itemMeta,text.getNodeMetadata());
+		Assert.assertEquals(null,text.getRawDataFromComponent());
+		Assert.assertEquals(null,text.getValueFromComponent());
+		Assert.assertEquals(null,text.getChangedValueFromComponent());
+		Assert.assertEquals(String.class,text.getValueType());
+		
+		text.setInvalid(true);
+		Assert.assertTrue(text.isInvalid());
+		text.setInvalid(false);
+		Assert.assertFalse(text.isInvalid());
+
+		Assert.assertNotNull(text.standardValidation("text:illegal"));
+		Assert.assertNull(text.standardValidation("VALUE"));
+		
+		try {new JFormattedTextFieldWithMeta(null, this);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JFormattedTextFieldWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], this);
+			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {new JFormattedTextFieldWithMeta(itemMeta, null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+
+	@Category(UITestCategory.class)
+	@Test
+	public void uiJFormattedTextFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
+		final ContentMetadataInterface		metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata			itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/text"))[0];
+		final JFormattedTextFieldWithMeta	text = new JFormattedTextFieldWithMeta(itemMeta, this);
+		final SwingUnitTest					sut = new SwingUnitTest(root);
+		
+		root.getContentPane().add(text);
+		root.setVisible(true);
+		SwingTestingUtils.syncRequestFocus(root);
 	
+		Assert.assertFalse(focusGained);
+		Assert.assertFalse(focusLost);
+		Assert.assertFalse(validation);
+		Assert.assertFalse(saving);
+		Assert.assertTrue(loading);
+		sut.select(URIUtils.removeQueryFromURI(itemMeta.getUIPath()).toString()).keys("VALUE\n");
+		sut.select("TEXT"); // Change value and remove focus from control
+		Assert.assertTrue(focusGained);
+		Assert.assertTrue(validation);
+		Assert.assertTrue(saving);
+		Assert.assertTrue(focusLost);
+		Assert.assertEquals("VALUE",text.getValue());
+		
+		root.setVisible(false);
+	}
+
+	@Test
+	public void basicJIntegerFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/intValue"))[0];
+		final JIntegerFieldWithMeta		text = new JIntegerFieldWithMeta(itemMeta, this);
+		
+		Assert.assertEquals(itemMeta,text.getNodeMetadata());
+		Assert.assertEquals(null,text.getRawDataFromComponent());
+		Assert.assertEquals(null,text.getValueFromComponent());
+		Assert.assertEquals(null,text.getChangedValueFromComponent());
+		Assert.assertEquals(int.class,text.getValueType());
+		
+		text.setInvalid(true);
+		Assert.assertTrue(text.isInvalid());
+		text.setInvalid(false);
+		Assert.assertFalse(text.isInvalid());
+
+		Assert.assertNotNull(text.standardValidation("number:ilegal"));
+		Assert.assertNull(text.standardValidation("12345"));
+		
+		try {new JIntegerFieldWithMeta(null, this);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JIntegerFieldWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], this);
+			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {new JIntegerFieldWithMeta(itemMeta, null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+
+	@Category(UITestCategory.class)
+	@Test
+	public void uiJIntegerFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/intValue"))[0];
+		final JIntegerFieldWithMeta		text = new JIntegerFieldWithMeta(itemMeta, this);
+		final SwingUnitTest				sut = new SwingUnitTest(root);
+		
+		root.getContentPane().add(text);
+		root.setVisible(true);
+		SwingTestingUtils.syncRequestFocus(root);
+	
+		Assert.assertFalse(focusGained);
+		Assert.assertFalse(focusLost);
+		Assert.assertFalse(validation);
+		Assert.assertFalse(saving);
+		Assert.assertTrue(loading);
+		sut.select(URIUtils.removeQueryFromURI(itemMeta.getUIPath()).toString()).keys("12345\n");
+		sut.select("TEXT"); // Change value and remove focus from control
+		Assert.assertTrue(focusGained);
+		Assert.assertTrue(validation);
+		Assert.assertTrue(saving);
+		Assert.assertTrue(focusLost);
+		Assert.assertEquals(12345L,text.getValue());
+		
+		root.setVisible(false);
+	}
+
+	@Test
+	public void basicJNumericFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/doubleValue"))[0];
+		final JNumericFieldWithMeta		text = new JNumericFieldWithMeta(itemMeta, this);
+
+		text.localeChanged(en,ru);
+		
+		Assert.assertEquals(itemMeta,text.getNodeMetadata());
+		Assert.assertEquals(null,text.getRawDataFromComponent());
+		Assert.assertEquals(null,text.getValueFromComponent());
+		Assert.assertEquals(null,text.getChangedValueFromComponent());
+		Assert.assertEquals(double.class,text.getValueType());
+		
+		text.setInvalid(true);
+		Assert.assertTrue(text.isInvalid());
+		text.setInvalid(false);
+		Assert.assertFalse(text.isInvalid());
+		
+		Assert.assertNotNull(text.standardValidation("number:ilegal"));
+		Assert.assertNull(text.standardValidation("123,456"));
+		
+		try {new JNumericFieldWithMeta(null, this);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JNumericFieldWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], this);
+			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {new JNumericFieldWithMeta(itemMeta, null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+	
+	@Category(UITestCategory.class)
+	@Test
+	public void uiJNumericFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/doubleValue"))[0];
+		final JNumericFieldWithMeta		text = new JNumericFieldWithMeta(itemMeta, this);
+		final SwingUnitTest				sut = new SwingUnitTest(root);
+
+		text.localeChanged(en,ru);
+		
+		root.getContentPane().add(text);
+		root.setVisible(true);
+		SwingTestingUtils.syncRequestFocus(root);
+	
+		Assert.assertFalse(focusGained);
+		Assert.assertFalse(focusLost);
+		Assert.assertFalse(validation);
+		Assert.assertFalse(saving);
+		Assert.assertTrue(loading);
+		sut.select(URIUtils.removeQueryFromURI(itemMeta.getUIPath()).toString()).keys("123,456\n");
+		sut.select("TEXT"); // Change value and remove focus from control
+		Assert.assertTrue(focusGained);
+		Assert.assertTrue(validation);
+		Assert.assertTrue(saving);
+		Assert.assertTrue(focusLost);
+		Assert.assertEquals(123.456,text.getValue());
+		
+		Assert.assertEquals("123,456",text.getText());
+		text.localeChanged(ru,en);
+		Assert.assertEquals("123.456",text.getText());
+		
+		root.setVisible(false);
+	}
+
+	@Test
+	public void basicJTextFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/text"))[0];
+		final JTextFieldWithMeta		text = new JTextFieldWithMeta(itemMeta, this);
+
+		Assert.assertEquals(itemMeta,text.getNodeMetadata());
+		Assert.assertEquals(null,text.getRawDataFromComponent());
+		Assert.assertEquals(null,text.getValueFromComponent());
+		Assert.assertEquals("",text.getChangedValueFromComponent());
+		Assert.assertEquals(String.class,text.getValueType());
+		
+		text.setInvalid(true);
+		Assert.assertTrue(text.isInvalid());
+		text.setInvalid(false);
+		Assert.assertFalse(text.isInvalid());
+		
+		Assert.assertNull(text.standardValidation("abcde"));
+		
+		try {new JTextFieldWithMeta(null, this);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JTextFieldWithMeta(metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/boolValue"))[0], this);
+			Assert.fail("Mandatory exception was not detected (invalid content type for this control)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {new JTextFieldWithMeta(itemMeta, null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+
+	@Category(UITestCategory.class)
+	@Test
+	public void uiJTextFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/text"))[0];
+		final JTextFieldWithMeta		text = new JTextFieldWithMeta(itemMeta, this);
+		final SwingUnitTest				sut = new SwingUnitTest(root);
+
+		text.localeChanged(en,ru);
+		
+		root.getContentPane().add(text);
+		root.setVisible(true);
+		SwingTestingUtils.syncRequestFocus(root);
+	
+		Assert.assertFalse(focusGained);
+		Assert.assertFalse(focusLost);
+		Assert.assertFalse(validation);
+		Assert.assertFalse(saving);
+		Assert.assertTrue(loading);
+		sut.select(URIUtils.removeQueryFromURI(itemMeta.getUIPath()).toString()).keys("test\n");
+		sut.select("TEXT"); // Change value and remove focus from control
+		Assert.assertTrue(focusGained);
+		Assert.assertTrue(validation);
+		Assert.assertTrue(saving);
+		Assert.assertTrue(focusLost);
+		Assert.assertEquals("test",text.getText());
+		
+		root.setVisible(false);
+	}
 }

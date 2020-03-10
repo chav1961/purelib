@@ -8,7 +8,6 @@ import java.awt.HeadlessException;
 import java.awt.Insets;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -45,14 +44,18 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	private static final Class<?>[]		VALID_CLASSES = {ColorPair.class};
 
 	private final ContentNodeMetadata	metadata;
+	private final Localizer				localizer;
 	private final JButton				callSelectF = new JButton(new ImageIcon(JColorPairPickerWithMeta.class.getResource("upperleft.png")));
 	private final JButton				callSelectB = new JButton(new ImageIcon(JColorPairPickerWithMeta.class.getResource("lowerright.png")));
 	private ColorPair					currentValue = new ColorPair(Color.white,Color.black), newValue = currentValue;
 	private boolean						invalid = false;
 	
-	public JColorPairPickerWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
+	public JColorPairPickerWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
@@ -62,6 +65,7 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 		}
 		else {
 			this.metadata = metadata;
+			this.localizer = localizer;
 			
 			final String	name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString(); 
 			
@@ -225,19 +229,12 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
 	}
 	
 	private void selectColorF() {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-			
-			assignValueToComponent(new ColorPair(chooseColor(localizer,currentValue.getForeground(),true),currentValue.getBackground()));
-		} catch (IOException | LocalizationException e) {
+		try{assignValueToComponent(new ColorPair(chooseColor(localizer,currentValue.getForeground(),true),currentValue.getBackground()));
+		} catch (LocalizationException e) {
 			e.printStackTrace();
 		} finally {
 			requestFocus();
@@ -245,10 +242,8 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	}
 
 	private void selectColorB() {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-			
-			assignValueToComponent(new ColorPair(currentValue.getForeground(),chooseColor(localizer,currentValue.getBackground(),false)));
-		} catch (IOException | LocalizationException e) {
+		try{assignValueToComponent(new ColorPair(currentValue.getForeground(),chooseColor(localizer,currentValue.getBackground(),false)));
+		} catch (LocalizationException e) {
 			e.printStackTrace();
 		} finally {
 			requestFocus();

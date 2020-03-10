@@ -2,7 +2,6 @@ package chav1961.purelib.ui.swing;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Locale;
 
@@ -25,16 +24,21 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 public class JButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 			serialVersionUID = -3207016216489833670L;
 	private final ContentNodeMetadata	metadata;
+	private final Localizer				localizer;
 	
-	public JButtonWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException, ContentException {
+	public JButtonWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException, ContentException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
 		else {
 			this.metadata = metadata;
+			this.localizer = localizer;
 			
 			final String	name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString(); 
 			
@@ -120,15 +124,9 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-	
-			if (getIcon() == null) {
-				setText(localizer.getValue(getNodeMetadata().getLabelId()));
-			}
-			setToolTipText(localizer.getValue(getNodeMetadata().getLabelId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
+		if (getIcon() == null) {
+			setText(localizer.getValue(getNodeMetadata().getLabelId()));
 		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getLabelId()));
 	}
-
 }

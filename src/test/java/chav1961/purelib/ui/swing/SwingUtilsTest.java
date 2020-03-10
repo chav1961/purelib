@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -124,7 +125,7 @@ public class SwingUtilsTest {
 		for (Class<?> item : new Class<?>[]{boolean.class,String.class,int.class,double.class,Date.class,ContinueMode.class,File.class,URI.class}) {
 			final FieldFormat			format = new FieldFormat(item,"");
 			final ContentNodeMetadata	meta = new MutableContentNodeMetadata("name",item,"test",URI.create(Localizer.LOCALIZER_SCHEME+":xml:file:./src/main/resources/chav1961/purelib/i18n/localization.xml"),"testSet1","testSet2","testSet3",format,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"),null);
-			final JComponent			component = SwingUtils.prepareRenderer(meta, format, monitor);
+			final JComponent			component = SwingUtils.prepareRenderer(meta, PureLibSettings.PURELIB_LOCALIZER, format, monitor);
 			
 			Assert.assertNotNull(component);
 			Assert.assertTrue(component instanceof NodeMetadataOwner);

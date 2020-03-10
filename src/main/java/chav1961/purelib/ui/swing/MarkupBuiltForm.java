@@ -106,7 +106,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			final List<JButtonWithMeta>		actions = new ArrayList<>();
 			final Map<String,JComponent>	components = new HashMap<>();
 
-			FormManagedUtils.parseModel4Form(logger,metadata,instance.getClass(),this,new FormManagerParserCallback() {
+			FormManagedUtils.parseModel4Form(logger,metadata,localizer,instance.getClass(),this,new FormManagerParserCallback() {
 				@Override
 				public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, boolean isModifiable) throws ContentException {
 					accessors.put(metadata.getUIPath(),gas);

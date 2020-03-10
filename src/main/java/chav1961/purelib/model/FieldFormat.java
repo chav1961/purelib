@@ -82,11 +82,11 @@ public class FieldFormat {
 				
 				do {switch (data[pos++]) {
 						case '(' :	depth++; break;
-						case ')' :	depth++; break;
+						case ')' :	depth--; break;
 					}
 					count++;
 				} while (data[pos] != '\n' && depth > 0);
-				mask = new String(data,start+1,count-1);
+				mask = new String(data,start+1,count-2);
 				try{new MaskFormatter(mask);
 				} catch (ParseException e) {
 					throw new IllegalArgumentException("Format mask ["+mask+"]: "+e.getLocalizedMessage()); 

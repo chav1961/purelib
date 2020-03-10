@@ -93,7 +93,7 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 			final List<JButton>	actions = new ArrayList<>();
 //			final JComponent[]	lastComponent = new JComponent[] {null};
 			
-			FormManagedUtils.parseModel4Form(PureLibSettings.CURRENT_LOGGER,metadata,content.getClass(),this
+			FormManagedUtils.parseModel4Form(PureLibSettings.CURRENT_LOGGER,metadata,localizer,content.getClass(),this
 					, new FormManagerParserCallback() {
 						@Override
 						public void processActionButton(final ContentNodeMetadata metadata, final JButtonWithMeta button) throws ContentException {

@@ -1,26 +1,17 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.LineBorder;
 
@@ -136,7 +127,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 								label.setText(value.name());
 								label.setToolTipText(value.name());
 							}
-						} catch (NoSuchFieldException | LocalizationException | IOException  e) {
+						} catch (NoSuchFieldException | LocalizationException e) {
 							label.setText(value.name());
 						}
 						return label;
@@ -263,12 +254,10 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
+		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		repaint();
 	}
 
 	private void callLoad(final JComponentMonitor monitor) {

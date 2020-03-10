@@ -1,6 +1,5 @@
 package chav1961.purelib.i18n;
 
-import java.io.IOException;
 import java.net.URI;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -17,12 +16,9 @@ public class LocalizerStore implements AutoCloseable {
 		}
 		else if (child != null) {
 			if (!parent.containsLocalizerHere(child.toString())) {
-				try{this.currentLocalizer = LocalizerFactory.getLocalizer(child);
-					this.localizer = parent.push(this.currentLocalizer);
-					this.localizerPushed = true;
-				} catch (IOException e) {
-					throw new LocalizationException(e); 
-				}
+				this.currentLocalizer = LocalizerFactory.getLocalizer(child);
+				this.localizer = parent.push(this.currentLocalizer);
+				this.localizerPushed = true;
 			}
 			else {
 				this.localizer = parent;

@@ -39,4 +39,16 @@ public class PseudoData {
 	@LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen")	
 	@Format("1ms")
 	public File			file; 
+
+	@LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen")	
+	@Format("(UUUUU)ms")
+	public String		text; 
+
+	@LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen")	
+	@Format("10ms")
+	public int			intValue; 
+
+	@LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen")	
+	@Format("10.3ms")
+	public double		doubleValue; 
 }

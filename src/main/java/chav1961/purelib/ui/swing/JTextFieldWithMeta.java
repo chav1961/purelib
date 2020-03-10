@@ -7,7 +7,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -16,6 +16,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -31,41 +32,35 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
+
+	private static final Class<?>[]		VALID_CLASSES = {String.class};
 	
 	private final ContentNodeMetadata	metadata;
-	private String						currentValue;
+	private String						currentValue, newValue;
+	private boolean						invalid = false;
 	
-	public JTextFieldWithMeta(final ContentNodeMetadata metadata, final FieldFormat format, final JComponentMonitor monitor) throws LocalizationException {
+	public JTextFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
-		}
-		else if (format == null) {
-			throw new NullPointerException("Format can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+		}
 		else {
 			this.metadata = metadata;
-			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JTextFieldWithMeta.this);
-						currentValue = getText();
-					} catch (ContentException exc) {
-					}					
-				}				
-			});
+
+			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			final FieldFormat	format = metadata.getFormatAssociated();
+			
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getText().equals(currentValue)) {
+					try{if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
 							monitor.process(MonitorEvent.Saving,metadata,JTextFieldWithMeta.this);
-							currentValue = getText();
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JTextFieldWithMeta.this);
 					} catch (ContentException exc) {
@@ -74,8 +69,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					currentValue = getText();
-					if (format.needSelectOnFocus()) {
+					if (format != null && format.needSelectOnFocus()) {
 						selectAll();
 					}
 					try{
@@ -84,31 +78,25 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 					}					
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JTextFieldWithMeta.this,e.getActionCommand());
-					} catch (ContentException exc) {
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JTextFieldWithMeta.this)) {
+						assignValueToComponent(currentValue);
 					}
+				} catch (ContentException exc) {
+				} finally {
+					JTextFieldWithMeta.this.requestFocus();
 				}
-			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JTextFieldWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
-					}
-				}
-			});
+			},"rollback-value");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
-					try{return monitor.process(MonitorEvent.Validation,metadata,JTextFieldWithMeta.this);
+					try{if (monitor.process(MonitorEvent.Validation,metadata,JTextFieldWithMeta.this)) {
+							newValue = (String)getChangedValueFromComponent();
+							return true;
+						}
+						else {
+							return false;
+						}
 					} catch (ContentException e) {
 						return false;
 					}
@@ -128,6 +116,8 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			if (format.getLength() != 0) {
 				setColumns(format.getLength());
 			}
+			
+			setName(name);
 			fillLocalizedStrings();
 		}		
 	}
@@ -163,7 +153,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			throw new NullPointerException("Value to assign can't be null");
 		}
 		else {
-			setText(value.toString());
+			setText(newValue = value.toString());
 		}
 	}
 
@@ -174,28 +164,35 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public String standardValidation(final String value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (value == null) {
+			return "Null value can't be assigned to this field";
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
 	public void setInvalid(boolean invalid) {
-		// TODO Auto-generated method stub
-		
+		this.invalid = invalid;
 	}
 
 	@Override
 	public boolean isInvalid() {
-		// TODO Auto-generated method stub
-		return false;
+		return invalid;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
+		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+	}
+
+	
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = newValue;
+		} catch (ContentException exc) {
+		}					
 	}
 }

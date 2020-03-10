@@ -1,26 +1,16 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.AWTEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Formatter;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.MaskFormatter;
 
@@ -28,13 +18,12 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -74,41 +63,22 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			} catch (ParseException e) {
 				throw new SyntaxException(0,0,"Illegal format mask ["+format.getFormatMask()+"]: "+e.getLocalizedMessage());
 			}
-			setFocusable(true);
 			enableEvents(AWTEvent.FOCUS_EVENT_MASK|AWTEvent.COMPONENT_EVENT_MASK);
-			addComponentListener(new ComponentListener() {
-				@Override public void componentResized(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentShown(ComponentEvent e) {
-					try{monitor.process(MonitorEvent.Loading,metadata,JFormattedTextFieldWithMeta.this);
-						currentValue = getText();
-					} catch (ContentException exc) {
-					}					
-				}				
-			});
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					System.err.println("LOST=====");
-					try{commitEdit();
-						if (!getText().equals(currentValue)) {
+					try{if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
 							monitor.process(MonitorEvent.Saving,metadata,JFormattedTextFieldWithMeta.this);
-							currentValue = getText();
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JFormattedTextFieldWithMeta.this);
-					} catch (ContentException | ParseException exc) {
-						exc.printStackTrace();
+					} catch (ContentException exc) {
 					}					
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					System.err.println("Gained=====");
-					currentValue = getText();
-					if (format.needSelectOnFocus()) {
+					if (format != null && format.needSelectOnFocus()) {
 						selectAll();
 					}
 					try{
@@ -117,31 +87,25 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 					}					
 				}
 			});
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{monitor.process(MonitorEvent.Action,metadata,JFormattedTextFieldWithMeta.this,e.getActionCommand());
-					} catch (ContentException exc) {
+			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JFormattedTextFieldWithMeta.this)) {
+						assignValueToComponent(currentValue);
 					}
+				} catch (ContentException exc) {
+				} finally {
+					JFormattedTextFieldWithMeta.this.requestFocus();
 				}
-			});
-			getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"rollback-value");
-			getActionMap().put("rollback-value", new AbstractAction(){
-				private static final long serialVersionUID = -6372550433958089237L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try{if (monitor.process(MonitorEvent.Rollback,metadata,JFormattedTextFieldWithMeta.this)) {
-							assignValueToComponent(currentValue);
-						}
-					} catch (ContentException exc) {
-					}
-				}
-			});
+			},"rollback-value");
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
-					try{return monitor.process(MonitorEvent.Validation,metadata,JFormattedTextFieldWithMeta.this);
+					try{if (monitor.process(MonitorEvent.Validation,metadata,JFormattedTextFieldWithMeta.this)) {
+							newValue = (String)getChangedValueFromComponent();
+							return true;
+						}
+						else {
+							return false;
+						}
 					} catch (ContentException e) {
 						return false;
 					}
@@ -189,16 +153,18 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return getText();
+		return getValue();
 	}
 
 	@Override
 	public void assignValueToComponent(final Object value) {
 		if (value == null) {
-			throw new NullPointerException("Value to assign can't be null");
+			setValue("");
+			newValue = null;
 		}
 		else {
-			setText(value.toString());
+			setValue(value.toString());
+			newValue = value.toString();
 		}
 	}
 
@@ -213,10 +179,10 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			return "Null value can't ne assigned to string";
 		}
 		else {
-			try{formatter.stringToValue(value);
+			try{getFormatter().stringToValue(value.toString());
 				return null;
-			} catch (ParseException e) {
-				return e.getLocalizedMessage();
+			} catch (ParseException exc) {
+				return exc.getLocalizedMessage();
 			}
 		}
 	}
@@ -232,11 +198,15 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
+		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-		} catch (IOException e) {
-			throw new LocalizationException(e);
-		}
+		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+	}
+	
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = newValue;
+		} catch (ContentException exc) {
+		}					
 	}
 }

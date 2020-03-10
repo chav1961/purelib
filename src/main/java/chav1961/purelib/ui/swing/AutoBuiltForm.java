@@ -142,7 +142,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 				buttonPanel.add(messages);
 				
-				FormManagedUtils.parseModel4Form(logger,mdi,instance.getClass(),this,new FormManagerParserCallback() {
+				FormManagedUtils.parseModel4Form(logger,mdi,localizer,instance.getClass(),this,new FormManagerParserCallback() {
 					@Override
 					public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, boolean isModifiable) throws ContentException {
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);

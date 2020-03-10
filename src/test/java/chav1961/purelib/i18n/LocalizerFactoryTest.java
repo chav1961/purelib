@@ -1,7 +1,6 @@
 package chav1961.purelib.i18n;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Locale;
 
@@ -13,16 +12,15 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
-import chav1961.purelib.i18n.LocalizerFactory.PostProcessCallback;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
+import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 public class LocalizerFactoryTest {
 
 	@Test
-	public void getLocalizerTest() throws NullPointerException, IOException {
+	public void getLocalizerTest() throws NullPointerException, LocalizationException {
 		final Localizer	l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml"));
 		
 		Assert.assertNotNull(l);
@@ -34,7 +32,7 @@ public class LocalizerFactoryTest {
 		}
 		try {LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":unknown:/"));
 			Assert.fail("Mandatory exception was not detected (unknown 1-st argument scheme)");
-		} catch (IOException exc) {
+		} catch (LocalizationException exc) {
 		}
 	}
 
