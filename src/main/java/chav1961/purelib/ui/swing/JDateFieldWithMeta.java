@@ -49,7 +49,6 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
 	private	Popup 						window;
 	private Date						currentValue = new Date(0), newValue = currentValue;
-	private DateFormat					currentFormat = null;
 	private boolean						invalid = false;
 	
 	public JDateFieldWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException, SyntaxException {
@@ -71,6 +70,8 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated();
+			
+			setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(prepareDateFormat(getNodeMetadata().getFormatAssociated(),localizer.currentLocale().getLocale()))));
 			
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
@@ -162,6 +163,10 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		final Object			value = getValue();
+
+		setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(prepareDateFormat(getNodeMetadata().getFormatAssociated(),newLocale))));
+		setValue(value);
 		fillLocalizedStrings();
 	}
 	
@@ -201,7 +206,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			return "Null or empty value is not applicable for the date";
 		}
 		else {
-			try{currentFormat.parse(value.trim());
+			try{getFormatter().stringToValue(value.trim());
 				return null;
 			} catch (ParseException e) {
 				return e.getLocalizedMessage();
@@ -221,8 +226,6 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
-		currentFormat = prepareDateFormat(getNodeMetadata().getFormatAssociated(),localizer.currentLocale().getLocale());
-		setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(currentFormat)));
 	}
 
 	private void closeDropDown() {

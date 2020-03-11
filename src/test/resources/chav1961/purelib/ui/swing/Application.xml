@@ -63,4 +63,12 @@
 		<app:item name="menu.project.exit" caption="exit" tooltip="ttExit"
 			action="exit" />
 	</app:menu>
+	<app:menu id="navigatorTree" keyset="mainMenuKeyset">
+		<app:item name="menu.project.new" caption="testSet1"
+			tooltip="testSet1" action="newProject"
+			icon="file:./src/test/resources/chav1961/purelib/ui/swing/wizard.png" />
+	</app:menu>
+	<app:keyset id="mainMenuKeyset">
+		<app:key code="INSERT" ctrl="true" action="newProject"/>
+	</app:keyset>
 </app:root>

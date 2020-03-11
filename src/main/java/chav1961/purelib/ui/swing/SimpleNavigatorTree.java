@@ -13,10 +13,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -25,6 +28,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolTip;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
@@ -37,47 +41,66 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 
-public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
+public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, NodeMetadataOwner {
 	private static final long 			serialVersionUID = -978827310276837317L;
 
-	private final Localizer				localizer;
-	private final List<ActionListener>	listeners = new ArrayList<>();
-	private final ActionListener		menuListener = new ActionListener() {
-											@Override
-											public void actionPerformed(ActionEvent e) {
-												processAction((JMenuItem)e.getSource(),new ActionEvent(SimpleNavigatorTree.this,0,null));
-											}
-										};
+	private final Localizer					localizer;
+	private final ContentNodeMetadata		metadata;
+	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class); 
 	
-	public SimpleNavigatorTree(final Localizer localizer, final JMenuBar bar) throws LocalizationException {
-		super(menuBar2Tree(bar));
+	public SimpleNavigatorTree(final Localizer localizer, final ContentNodeMetadata metadata) throws LocalizationException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
+		else if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!metadata.getRelativeUIPath().toString().contains(Constants.MODEL_NAVIGATION_TOP_PREFIX)) {
+			throw new IllegalArgumentException("Metadata must be refered to navigation top node");
+		}
 		else {
 			this.localizer = localizer;
+			this.metadata = metadata;
+
+			final String	name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
+			
+			setModel(new DefaultTreeModel(metadata2Tree(metadata)));
+			assignKeys(this,metadata);
+			setRootVisible(false);
 			setEditable(false);
 			setCellRenderer(new DefaultTreeCellRenderer() {
 								private static final long serialVersionUID = 1L;
 				
 								@Override
 								public Component getTreeCellRendererComponent(final JTree tree, final Object value, final boolean selected, final boolean expanded, final boolean leaf, final int row, final boolean hasFocus) {
-									final JComponent	item = (JComponent) ((DefaultMutableTreeNode)value).getUserObject();
-									
-									if (selected || hasFocus) {
-										item.setForeground(Color.WHITE);
-										item.setBackground(Color.BLUE);
+									try{final ContentNodeMetadata	item = (ContentNodeMetadata)((DefaultMutableTreeNode)value).getUserObject();
+										final JLabel 				label = item.getIcon() != null ? new JLabel(localizer.getValue(item.getLabelId()),new ImageIcon(item.getIcon().toURL()),JLabel.LEFT) : new JLabel(localizer.getValue(item.getLabelId()),JLabel.LEFT);
+
+										label.setName(URIUtils.removeQueryFromURI(item.getUIPath()).toString());
+										if (selected || hasFocus) {
+											label.setOpaque(true);
+											label.setForeground(Color.WHITE);
+											label.setBackground(Color.BLUE);
+										}
+										else {
+											label.setForeground(tree.getForeground());
+										}
+										if (hasFocus) {
+											label.setBorder(new LineBorder(Color.RED));
+										}
+										return label;
+									} catch (LocalizationException | MalformedURLException exc) {
+										return new JLabel(exc.getLocalizedMessage());
 									}
-									else {
-										item.setForeground(tree.getForeground());
-										item.setBackground(tree.getBackground());
-									}
-									
-									return item;
 								}
 							});
 			getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -94,18 +117,17 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 							final TreePath 			enterPath = getSelectionPath();
 							
 							if (enterPath != null) {
-								final JMenuItem 	item = (JMenuItem)((DefaultMutableTreeNode)enterPath.getLastPathComponent()).getUserObject();
-
-								processAction(item,new ActionEvent(item,0,null));
+								callAction(enterPath);
 							}
 							break;
 						case KeyEvent.VK_CONTEXT_MENU	:
 							final TreePath 		contentPath = getSelectionPath();
 							
 							if (contentPath != null) {
-								final Rectangle					rect = getRowBounds(getRowForPath(contentPath));
+								final Rectangle				rect = getRowBounds(getRowForPath(contentPath));
+								final ContentNodeMetadata	association = (ContentNodeMetadata)contentPath.getLastPathComponent();
 								
-								showPopupMenu(contentPath,rect.x+rect.width/2,rect.y+rect.height/2);
+								showPopupMenu(contentPath,association,rect.x+rect.width/2,rect.y+rect.height/2);
 							}
 							else {
 								final PointerInfo 	info = MouseInfo.getPointerInfo();
@@ -114,10 +136,10 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 									final Point		p = info.getLocation();
 									
 									SwingUtilities.convertPointFromScreen(p,SimpleNavigatorTree.this);								
-									showPopupMenu(contentPath,p.x,p.y);
+									showPopupMenu(null,metadata,p.x,p.y);
 								}
 								else {
-									showPopupMenu(contentPath,SimpleNavigatorTree.this.getWidth()/2,SimpleNavigatorTree.this.getHeight()/2);
+									showPopupMenu(null,metadata,SimpleNavigatorTree.this.getWidth()/2,SimpleNavigatorTree.this.getHeight()/2);
 								}
 							}
 							break;
@@ -135,29 +157,28 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 				public void mouseClicked(MouseEvent e) {
 					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
 						 if (getRowForLocation(e.getX(), e.getY()) != -1) {
-							final TreePath 		curPath = getPathForLocation(e.getX(), e.getY());
-							final TreeNode 		node = (TreeNode)curPath.getLastPathComponent();
-							final Object		association = ((DefaultMutableTreeNode)node).getUserObject();
-							
-							if (association instanceof JMenuItem) {
-								final JMenuItem		item = (JMenuItem)association; 
-										
-								processAction(item,new ActionEvent(item,0,null));
-							}
+							callAction(getPathForLocation(e.getX(), e.getY()));
 						 }
 					}
 					else if (e.getButton() == MouseEvent.BUTTON3 && e.getClickCount() == 1) {
 						 if (getRowForLocation(e.getX(), e.getY()) != -1) {
 							final TreePath 		curPath = getPathForLocation(e.getX(), e.getY());
-							
-							showPopupMenu(curPath,e.getX(),e.getY());
+
+							if (curPath != null) {
+								showPopupMenu(curPath,(ContentNodeMetadata)curPath.getLastPathComponent(),e.getX(),e.getY());
+							}
+							else {
+								showPopupMenu(null,metadata,e.getX(),e.getY());
+							}
 						 }
 						 else {
-							showPopupMenu(null,e.getX(),e.getY());
+							showPopupMenu(null,metadata,e.getX(),e.getY());
 						 }
 					}
 				}
 			});
+			
+			setName(name);
 		}
 	}
 
@@ -165,8 +186,12 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 	public void localeChanged(Locale oldLocale, Locale newLocale) throws LocalizationException {
 		final DefaultMutableTreeNode	root = (DefaultMutableTreeNode)getModel().getRoot(); 
 		
-		walkAndChange(root,oldLocale,newLocale);
 		((DefaultTreeModel)this.getModel()).setRoot(root);
+	}
+
+	@Override
+	public ContentNodeMetadata getNodeMetadata() {
+		return metadata;
 	}
 	
 	@Override
@@ -175,57 +200,138 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 			return null;
 		}
 		else {
-			final TreePath 		curPath = getPathForLocation(event.getX(), event.getY());
-			final TreeNode 		node = (TreeNode)curPath.getLastPathComponent();
-			final JComponent	comp = (JComponent) ((DefaultMutableTreeNode)node).getUserObject();
-			
-			return comp.getToolTipText();					
+			final TreePath 				curPath = getPathForLocation(event.getX(), event.getY());
+			final TreeNode 				node = (TreeNode)curPath.getLastPathComponent();
+			final ContentNodeMetadata	meta = (ContentNodeMetadata) ((DefaultMutableTreeNode)node).getUserObject();
+
+			if (meta.getTooltipId() != null) {
+				try{return localizer.getValue(meta.getTooltipId());
+				} catch (LocalizationException e) {
+					return meta.getTooltipId(); 
+				}
+			}
+			else {
+				return null;
+			}
 		}
 	}
 	
-	public JPopupMenu getPopupMenu(final TreePath path) {
-		return null;
-	}
-
 	public void addActionListener(final ActionListener listener) {
 		if (listener == null) {
 			throw new NullPointerException("Listener can't be null");
 		}
 		else {
-			synchronized (listeners) {
-				listeners.add(listener);
-			}
+			listeners.addListener(listener);
 		}
 	}
 
-	public boolean findAndSelect(final String action) {
-		return findAndSelect((DefaultMutableTreeNode)getModel().getRoot(),action);
-	}
-	
 	public void removeActionListener(final ActionListener listener) {
 		if (listener == null) {
 			throw new NullPointerException("Listener can't be null");
 		}
 		else {
-			synchronized (listeners) {
-				listeners.remove(listener);
-			}
+			listeners.removeListener(listener);
 		}
 	}
-	
-	private boolean findAndSelect(final DefaultMutableTreeNode node, final String action) {
-		final Object	cargo = node.getUserObject();
-		
-		if ((cargo instanceof JMenuItem) && ((JMenuItem)cargo).getActionCommand().equals(action)) {
-			final TreePath	path = new TreePath(node.getPath());
-			
-			scrollPathToVisible(path);
-			setSelectionRow(getRowForPath(path));
+
+	public boolean findAndSelect(final URI item) {
+		if (findAndSelect((DefaultMutableTreeNode)getModel().getRoot(),item)) {
 			return true;
 		}
 		else {
-			for (int index = 0; index < node.getChildCount(); index++) {
-				if (findAndSelect((DefaultMutableTreeNode)node.getChildAt(index),action)) {
+			setSelectionPath(null);
+			return false;
+		}
+	}
+	
+	public void findAndDoubleClick(final URI item) {
+		if (findAndSelect(item)) {
+			callAction(getSelectionPath());
+		}
+	}
+
+	public ContentNodeMetadata getSelectedNodeMetadata() {
+		final TreePath 	curPath = getSelectionPath();
+		
+		if (curPath != null) {
+			return (ContentNodeMetadata)((DefaultMutableTreeNode)curPath.getLastPathComponent()).getUserObject();
+		}
+		else {
+			return null;
+		}
+	}
+	
+	protected JPopupMenu getPopupMenu(final TreePath path, final ContentNodeMetadata meta) {
+		return null;
+	}
+	
+	private static MutableTreeNode metadata2Tree(final ContentNodeMetadata meta) {
+		final DefaultMutableTreeNode	node = new DefaultMutableTreeNode(meta,true);
+		
+		for (ContentNodeMetadata item : meta) {
+			final String	path = item.getRelativeUIPath().toString(); 
+			
+			if (path.contains(Constants.MODEL_NAVIGATION_NODE_PREFIX) || path.contains(Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
+				node.add(metadata2Tree(item));
+			}				
+		}
+		return node;
+	}
+
+	private static void assignKeys(final SimpleNavigatorTree component, final ContentNodeMetadata meta) {
+		for (ContentNodeMetadata item : meta) {
+			if (meta.getRelativeUIPath().toString().contains(Constants.MODEL_NAVIGATION_KEYSET_PREFIX)) {
+				for (ContentNodeMetadata key : item) {
+					SwingUtils.assignActionKey(component,WHEN_FOCUSED,KeyStroke.getKeyStroke(key.getLabelId()),(e)->{
+						component.findAndDoubleClick(URI.create(e.getActionCommand()));
+					},key.getUIPath().toString());
+				}
+			}				
+		}
+	}
+	
+	private void callAction(final TreePath path) {
+		if (path != null) {
+			final TreeNode 				node = (TreeNode)path.getLastPathComponent();
+			final ContentNodeMetadata	association = (ContentNodeMetadata)((DefaultMutableTreeNode)node).getUserObject();
+			final String				actionCommand = association.getApplicationPath() != null ? association.getApplicationPath().toString() : ""; 
+			
+			processAction(new ActionEvent(this,0,actionCommand),actionCommand);
+		}
+		else {
+			processAction(new ActionEvent(this,0,null),null);
+		}
+	}
+	
+	private void processAction(final ActionEvent event, final String actionCommand) {
+		listeners.fireEvent((listener)->{
+			try{listener.actionPerformed(event);
+			} catch (Exception exc) {
+				exc.printStackTrace();
+			}
+		});
+	}
+
+	private void showPopupMenu(final TreePath path, final ContentNodeMetadata meta, final int x, final int y) {
+		final JPopupMenu	popup = getPopupMenu(path,meta);
+		
+		if (popup != null) {
+			popup.setOpaque(true);  
+			popup.setLightWeightPopupEnabled(true);
+			popup.show(this,x,y);
+		}
+	}
+
+	private boolean findAndSelect(final DefaultMutableTreeNode root, final URI item) {
+		final ContentNodeMetadata	meta = (ContentNodeMetadata)root.getUserObject();
+		
+		if (meta.getUIPath().equals(item)) {
+			setSelectionPath(new TreePath(root.getPath()));
+			return true;
+		}
+		else {
+			for (int index = 0, maxIndex = root.getChildCount(); index < maxIndex; index++) {
+				if (findAndSelect((DefaultMutableTreeNode)root.getChildAt(index),item)) {
 					return true;
 				}
 			}
@@ -233,91 +339,4 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener {
 		}
 	}
 
-	private static MutableTreeNode menuBar2Tree(final JMenuBar bar) throws LocalizationException {
-		final DefaultMutableTreeNode	root = new DefaultMutableTreeNode(new JMenuItem("root"),true);
-		
-		for (int index = 0; index < bar.getMenuCount(); index++) {
-			root.add(menuBar2Tree((JMenuItem)bar.getComponent(index)));
-		}
-		return root;
-	}
-
-	private static MutableTreeNode menuBar2Tree(final JMenu menu) throws LocalizationException {
-		final DefaultMutableTreeNode	root = new DefaultMutableTreeNode(new JLabel(menu.getText()),true);
-		
-		for (int index = 0; index < menu.getMenuComponentCount(); index++) {
-			root.add(menuBar2Tree((JMenuItem)menu.getMenuComponent(index)));
-		}
-		return root;
-	}
-	
-	private static MutableTreeNode menuBar2Tree(final JMenuItem menu) throws LocalizationException {
-//		if (menu instanceof JLocalizedMenu) {
-//			final JLocalizedMenuItem		item = new JLocalizedMenuItem(((JLocalizedMenu)menu).localizer,((JLocalizedMenu)menu).textId,((JLocalizedMenu)menu).tooltipId);
-//			final DefaultMutableTreeNode	node = new DefaultMutableTreeNode(item,true);
-//
-//			for (int index = 0; index < ((JMenu)menu).getMenuComponentCount(); index++) {
-//				node.add(menuBar2Tree(((JMenu)menu).getItem(index)));
-//			}
-//			return node;
-//		}
-//		else {
-			if (menu instanceof JMenu) {
-				return menuBar2Tree((JMenu)menu);
-			}
-			else {
-				return new DefaultMutableTreeNode(menu,false);
-			}
-//		}
-	}
-	
-	private void processAction(final JMenuItem item, final ActionEvent event) {
-		final ActionListener[]	list;
-		
-		synchronized (listeners) {
-			listeners.toArray(list = new ActionListener[listeners.size()]);
-		}
-		for (ActionListener listener : list) {
-			try{listener.actionPerformed(new ActionEvent(this,0,item.getActionCommand()));
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-	}
-
-	private void walkAndChange(final DefaultMutableTreeNode node, final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-		final JMenuItem	item = (JMenuItem) node.getUserObject();
-		
-		if (item instanceof LocaleChangeListener) {
-			((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
-		}
-		for (int index = 0; index < node.getChildCount(); index++) {
-			walkAndChange((DefaultMutableTreeNode)node.getChildAt(index),oldLocale,newLocale);
-		}
-	}
-
-	private void showPopupMenu(final TreePath path, final int x, final int y) {
-		final JPopupMenu	popup = getPopupMenu(path);
-		
-		if (popup != null) {
-			popup.setOpaque(true);  
-			popup.setLightWeightPopupEnabled(true);
-			for (int index = 0; index < popup.getComponentCount(); index++) {
-				reassignListeners((JMenuItem)popup.getComponent(index));
-			}
-			popup.show(this,x,y);
-		}
-	}
-
-	private void reassignListeners(final JMenuItem component) {
-		if (component instanceof JMenu) {
-			for (int index = 0; index < component.getComponentCount(); index++) {
-				reassignListeners((JMenuItem)component.getComponent(index));
-			}
-		}
-		else {
-			component.removeActionListener(menuListener);
-			component.addActionListener(menuListener);
-		}
-	}
 }

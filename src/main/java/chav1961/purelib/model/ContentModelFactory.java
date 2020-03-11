@@ -16,6 +16,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JMenuBar;
+import javax.swing.JPopupMenu;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -266,6 +268,14 @@ public class ContentModelFactory {
 		}
 	}	
 
+	public static ContentMetadataInterface forMenu(final JMenuBar bar) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		return null;
+	}
+
+	public static ContentMetadataInterface forMenu(final JPopupMenu popup) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		return null;
+	}
+	
 	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema, final String table) throws NullPointerException, PreparationException, ContentException {
 		if (dbDescription == null) {
 			throw new NullPointerException("Database description can't be null");
