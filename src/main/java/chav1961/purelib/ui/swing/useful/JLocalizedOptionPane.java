@@ -64,6 +64,9 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 		if (source == null) {
 			return null;
 		}
+		else if (source instanceof LocalizedFormatter) {
+			return ((LocalizedFormatter)source).toString(localizer);
+		}
 		else if (source instanceof String) {
 			return localizer.getValue((String)source);
 		}

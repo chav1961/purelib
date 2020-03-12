@@ -1,20 +1,15 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
+import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Locale;
 
-import javax.swing.AbstractAction;
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -33,7 +28,7 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 
-	private static final Class<?>[]		VALID_CLASSES = {String.class};
+	private static final Class<?>[]		VALID_CLASSES = {String.class, URL.class, URI.class};
 	
 	private final ContentNodeMetadata	metadata;
 	private String						currentValue, newValue;
@@ -47,7 +42,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			throw new NullPointerException("Monitor can't be null"); 
 		}
 		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
-			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+			throw new IllegalArgumentException("Invalid node type ["+metadata.getType().getCanonicalName()+"] for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
 		}
 		else {
 			this.metadata = metadata;

@@ -15,23 +15,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JToolTip;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -197,7 +189,7 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 	@Override
 	public String getToolTipText(final MouseEvent event) {
 		if (getRowForLocation(event.getX(), event.getY()) == -1) {
-			return null;
+			return super.getToolTipText(event);
 		}
 		else {
 			final TreePath 				curPath = getPathForLocation(event.getX(), event.getY());
@@ -211,7 +203,7 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 				}
 			}
 			else {
-				return null;
+				return super.getToolTipText(event);
 			}
 		}
 	}

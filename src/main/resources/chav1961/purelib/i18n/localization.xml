@@ -6,6 +6,10 @@
 		<key name="testSet2">test set 2</key>
 		<key name="testSet3">test set 3</key>
 
+<!-- SwingUtils keys  -->
+		<key name="SwingUtils.unknownAction.title">Unknown action!</key>
+		<key name="SwingUtils.unknownAction.content">Action [%1$s] not found in the current window!</key>
+
 <!-- General keys  -->
 		<key name="ACCEPT">Accept</key>
 		<key name="CANCEL">Cancel</key>
@@ -172,6 +176,10 @@
 		<key name="testSet1">test set 1</key>
 		<key name="testSet2">test set 2</key>
 		<key name="testSet3">test set 3</key>
+
+<!-- Ключи класса SwingUtils  -->
+		<key name="SwingUtils.unknownAction.title">Неизвестное действие!</key>
+		<key name="SwingUtils.unknownAction.content">Описание действия [%1$s] в текущем окна отсутствует!</key>
 
 <!-- Общеупотребительные наименования  --> 
 		<key name="ACCEPT">Принять</key>

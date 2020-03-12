@@ -17,16 +17,12 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.geom.Arc2D;
-import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -43,15 +39,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -74,12 +65,11 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.exceptions.DebuggingException;
+import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -97,12 +87,15 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
+import chav1961.purelib.ui.swing.useful.JLocalizedOptionPane;
+import chav1961.purelib.ui.swing.useful.LocalizedFormatter;
 
 /**
  * <p>This utility class contains a set of useful methods to use in the Swing-based applications.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public abstract class SwingUtils {
@@ -157,6 +150,9 @@ public abstract class SwingUtils {
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
 	private static final Point2D.Float		ZERO_POINT = new Point2D.Float(0.0f,0.0f);
+
+	private static final String				UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
+	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -320,7 +316,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				if (mode == NodeEnterMode.ENTER) {
 					final String	name = component.getName();
 					
-					if (name != null || !name.startsWith(prefix)) {
+					if (name != null && !name.startsWith(prefix)) {
 						component.setName(prefix+name);
 					}
 				}
@@ -333,19 +329,19 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	/**
 	 * <p>Prepare renderer for the given meta data and field format</p>
 	 * @param metadata meta data to prepare renderer for
-	 * @param format field format
+	 * @param content field content format
 	 * @param monitor field monitor
 	 * @return component prepared
 	 * @throws NullPointerException when any parameters are null
 	 * @throws LocalizationException when there are problems with localizers
 	 * @throws SyntaxException on format errors for the given control
 	 */
-	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final Localizer localizer, final FieldFormat format, final JComponentMonitor monitor) throws NullPointerException, LocalizationException, SyntaxException {
+	public static JComponent prepareRenderer(final ContentNodeMetadata metadata, final Localizer localizer, final FieldFormat.ContentType content, final JComponentMonitor monitor) throws NullPointerException, LocalizationException, SyntaxException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
-		else if (format == null) {
-			throw new NullPointerException("Field format can't be null");
+		else if (content == null) {
+			throw new NullPointerException("Content type can't be null");
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null");
@@ -353,7 +349,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 		else {
 			JComponent	result = null;
 			
-			switch (format.getContentType()) {
+			switch (content) {
 				case BooleanContent	:
 					result = new JCheckBoxWithMeta(metadata,localizer,monitor);
 					break;
@@ -388,7 +384,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				case NestedContent	:
 				case TimestampContent	:
 				default:
-					throw new UnsupportedOperationException("Content type ["+format.getContentType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Content type ["+content+"] is not supported yet");
 			}
 			result.setName(metadata.getUIPath().toString());
 			return result;
@@ -436,23 +432,8 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			throw new NullPointerException("Value to get signum can't be null");
 		}
 		else {
-			if (value instanceof Byte) {
-				return (int) Math.signum(((Byte)value).floatValue());
-			}
-			else if (value instanceof Short) {
-				return (int) Math.signum(((Short)value).floatValue());
-			}
-			else if (value instanceof Integer) {
-				return (int) Math.signum(((Integer)value).floatValue());
-			}
-			else if (value instanceof Long) {
-				return (int) Math.signum(((Long)value).floatValue());
-			}
-			else if (value instanceof Float) {
-				return (int) Math.signum(((Float)value).floatValue());
-			}
-			else if (value instanceof Double) {
-				return (int) Math.signum(((Double)value).doubleValue());
+			if (value instanceof Number) {
+				return (int) Math.signum(((Number)value).doubleValue());
 			}
 			else if (value instanceof BigInteger) {
 				return ((BigInteger)value).signum();
@@ -468,7 +449,8 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	
 	
 	/**
-	 * <p>Refresh localization content for all the GUI components tree</p>
+	 * <p>Refresh localization content for all the GUI components tree. The method recursively walks on all the UI component tree, but doesn't walk down if the current
+	 * UI component implements {@linkplain LocaleChangeListener} interface. All the implementers of this interface must refresh it's own content by self</p>
 	 * @param root root of the GUI components to refresh localization
 	 * @param oldLocale old locale
 	 * @param newLocale new locale
@@ -476,7 +458,10 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	 * @throws LocalizationException in any localization errors
 	 */
 	public static void refreshLocale(final Component root, final Locale oldLocale, final Locale newLocale) throws NullPointerException, LocalizationException {
-		if (oldLocale == null) {
+		if (root == null) {
+			throw new NullPointerException("Root component can't be null"); 
+		}
+		else if (oldLocale == null) {
 			throw new NullPointerException("Old locale can't be null"); 
 		}
 		else if (newLocale == null) {
@@ -500,6 +485,15 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 		}
 	}
 
+	/**
+	 * <p>Assign key to process action on component</p>
+	 * @param component component to assign key to
+	 * @param keyStroke keystroke to assign
+	 * @param listener action listener to call
+	 * @param actionId action string to associate with the keystroke
+	 * @throws NullPointerException any parameters are null
+	 * @throws IllegalArgumentException some parameters are invalid
+	 */
 	public static void assignActionKey(final JComponent component, final KeyStroke keyStroke, final ActionListener listener, final String actionId) throws NullPointerException, IllegalArgumentException {
 		assignActionKey(component,JPanel.WHEN_FOCUSED,keyStroke, listener, actionId);
 	}	
@@ -522,14 +516,15 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			throw new NullPointerException("KeyStroke can't be null"); 
 		}
 		else if (listener == null) {
-			throw new IllegalArgumentException("Action listener can't be null"); 
+			throw new NullPointerException("Action listener can't be null"); 
 		}
 		else if (actionId == null || actionId.isEmpty()) {
 			throw new IllegalArgumentException("Action identifier can't be null or empty"); 
 		}
 		else {
 			component.getInputMap(mode).put(keyStroke,actionId);
-			component.getActionMap().put(actionId,new AbstractAction() {private static final long serialVersionUID = 1L;
+			component.getActionMap().put(actionId,new AbstractAction() {
+				private static final long serialVersionUID = 1L;
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					listener.actionPerformed(new ActionEvent(component,0,actionId));
@@ -644,7 +639,6 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				public void windowClosing(final WindowEvent e) {
 					try{callback.processExit();
 					} catch (Exception exc) {
-						exc.printStackTrace();
 					}
 				}				
 			});
@@ -671,7 +665,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	 * @param entity object to call it's annotated methods 
 	 */
 	public static void assignActionListeners(final JComponent root, final Object entity) {
-		assignActionListeners(root,entity,(action)->{JOptionPane.showMessageDialog(null,"unknown action command ["+action+"]");});
+		assignActionListeners(root,entity,(action)->{sayAboutUnknownAction(null,action);});
 	}
 
 	/**
@@ -692,6 +686,14 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 		}
 	}
 	
+	/**
+	 * <p>Prepare action listeners to call {@linkplain FormManager#onAction(Object, Object, String, Object)} method</p>
+	 * @param <T> any entity is used for form manager
+	 * @param root component with action sources inside
+	 * @param entity instance to call onAction for
+	 * @param manager form manager to process action on entity
+	 * @since 0.0.4 
+	 */
 	public static <T> void assignActionListeners(final JComponent root, final T entity, final FormManager<?,T> manager) {
 		if (root == null) {
 			throw new NullPointerException("Root component can't be null"); 
@@ -703,6 +705,11 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			throw new NullPointerException("Form manager can't be null"); 
 		}
 		else {
+			assignActionListeners(root,(e)->{
+				try{manager.onAction(entity,null,e.getActionCommand(),null);
+				} catch (LocalizationException | FlowException exc) {
+				}
+			});
 		}
 	}
 
@@ -714,7 +721,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	 * @throws NullPointerException when entity reference is null
 	 */
 	public static ActionListener buildAnnotatedActionListener(final Object entity) throws IllegalArgumentException, NullPointerException {
-		return buildAnnotatedActionListener(entity,(action)->{JOptionPane.showMessageDialog(null,"unknown action command ["+action+"]");});
+		return buildAnnotatedActionListener(entity,(action)->{sayAboutUnknownAction(null,action);});
 	}
 	
 	/**
@@ -754,11 +761,10 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			
 			CompilerUtils.walkMethods(entityClass,(clazz,m)->{
 				if (m.isAnnotationPresent(OnAction.class)) {
-					if (!annotatedMethods.containsKey(m.getAnnotation(OnAction.class).value())) {
-						annotatedMethods.put(m.getAnnotation(OnAction.class).value(),m);
-					}
+					annotatedMethods.putIfAbsent(m.getAnnotation(OnAction.class).value(),m);
 				}
 			});
+			
 			if (annotatedMethods.size() == 0) {
 				throw new IllegalArgumentException("No any methods in the entity object are annotated with ["+OnAction.class+"] annotation"); 
 			}
@@ -775,46 +781,48 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 					}
 				}
 				
-				return new ActionListener() {
-					@Override
-					public void actionPerformed(final ActionEvent e) {
-						final URI			action = URI.create(e.getActionCommand());
-						final Map<String,?>	query = URIUtils.parseQuery(action);
-						final String		actionKey = URIUtils.removeQueryFromURI(action).toString();
+				return (e)-> {
+					final URI			action = URI.create(e.getActionCommand());
+					final Map<String,?>	query = URIUtils.parseQuery(action);
+					final String		actionKey = URIUtils.removeQueryFromURI(action).toString();
+					
+					if (calls.containsKey(actionKey)) {
+						try{final MethodHandleAndAsync	mha = calls.get(actionKey);
 						
-						if (calls.containsKey(actionKey)) {
-							try{final MethodHandleAndAsync	mha = calls.get(actionKey);
-							
-								if (mha.async) {
-									new Thread(()->{
-										try{if (!query.isEmpty()) {
-												mha.handle.invoke(entity,query);
-											}
-											else {
-												mha.handle.invoke(entity);
-											}
-										} catch (ThreadDeath d) {
-											throw d;
-										} catch (Throwable t) {
-											logger.message(Severity.error, t, t.getLocalizedMessage());
-										}
-									}).start();
+							if (mha.async) {
+								final Thread	t = new Thread(()->{
+													try{if (!query.isEmpty()) {
+															mha.handle.invoke(entity,query);
+														}
+														else {
+															mha.handle.invoke(entity);
+														}
+													} catch (ThreadDeath d) {
+														throw d;
+													} catch (Throwable exc) {
+														logger.message(Severity.error, exc, exc.getLocalizedMessage());
+													}
+												});
+								
+								t.setDaemon(true);
+								t.start();
+							}
+							else {
+								if (!query.isEmpty()) {
+									mha.handle.invoke(entity,query);
 								}
 								else {
-									if (!query.isEmpty()) {
-										mha.handle.invoke(entity,query);
-									}
-									else {
-										mha.handle.invoke(entity);
-									}
+									mha.handle.invoke(entity);
 								}
-							} catch (Throwable t) {
-								logger.message(Severity.error, t, t.getLocalizedMessage() == null ? t.getClass().getSimpleName() : t.getLocalizedMessage());
 							}
+						} catch (ThreadDeath d) {
+							throw d;
+						} catch (Throwable t) {
+							logger.message(Severity.error, t, t.getLocalizedMessage() == null ? t.getClass().getSimpleName() : t.getLocalizedMessage());
 						}
-						else {
-							onUnknown.processUnknown(e.getActionCommand());
-						}
+					}
+					else {
+						onUnknown.processUnknown(e.getActionCommand());
 					}
 				};
 			}
@@ -822,28 +830,23 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	}
 	
 	private static void assignActionListeners(final JComponent root, final ActionListener listener) {
-		if (root != null) {
-			try{root.getClass().getMethod("addActionListener",ActionListener.class).invoke(root,listener);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			}
-			if (root instanceof JMenu) {
-				for (int index = 0; index < ((JMenu)root).getMenuComponentCount(); index++) {
-					assignActionListeners((JComponent)((JMenu)root).getMenuComponent(index),listener);
+		walkDownInternal(root,(mode,node)->{
+			if (mode == NodeEnterMode.ENTER) {
+				try{node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node,listener);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				}
 			}
-			else {
-				if (root instanceof InnerActionNode) {
-					for (JComponent item : ((InnerActionNode)root).getActionNodes()) {
-						assignActionListeners(item,listener);
-					}
-				}
-				for (int index = 0; index < root.getComponentCount(); index++) {
-					assignActionListeners((JComponent)root.getComponent(index),listener);
-				}
-			}
-		}
+			return ContinueMode.CONTINUE;
+		});
 	}
 
+	private static void sayAboutUnknownAction(final Component parent, final String actionName) {
+		try{new JLocalizedOptionPane(PureLibSettings.PURELIB_LOCALIZER).message(parent,new LocalizedFormatter(UNKNOWN_ACTION_CONTENT,actionName),UNKNOWN_ACTION_TITLE,JOptionPane.ERROR_MESSAGE);
+		} catch (LocalizationException exc) {
+			PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc, exc.getLocalizedMessage());
+		}
+	}
+	
 	/**
 	 * <p>Build enable group on the screen. When group leader is turned on, all it's members will be enabled. When group leader is turned off, all it's members will be disabled
 	 * @param leader group leader (usually {@linkplain JCheckBox})

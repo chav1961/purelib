@@ -47,7 +47,7 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			throw new NullPointerException("Monitor can't be null"); 
 		}
 		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
-			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+			throw new IllegalArgumentException("Invalid node type ["+metadata.getType().getCanonicalName()+"] for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
 		}
 		else if (metadata.getFormatAssociated() == null) {
 			throw new IllegalArgumentException("Metadata doesn't contain field format!"); 

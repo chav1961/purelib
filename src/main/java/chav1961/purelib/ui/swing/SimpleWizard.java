@@ -23,7 +23,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Exchanger;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;

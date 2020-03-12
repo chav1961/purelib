@@ -49,7 +49,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			throw new NullPointerException("Monitor can't be null"); 
 		}
 		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
-			throw new IllegalArgumentException("Invalid node type for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
+			throw new IllegalArgumentException("Invalid node type ["+metadata.getType().getCanonicalName()+"] for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
 		}
 		else {
 			this.metadata = metadata;
