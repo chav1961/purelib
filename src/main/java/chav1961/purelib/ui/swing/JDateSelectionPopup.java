@@ -1,7 +1,8 @@
-package chav1961.purelib.ui.swing.useful;
+package chav1961.purelib.ui.swing;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -9,6 +10,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -22,14 +27,20 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.DateFormatter;
 
 import chav1961.purelib.basic.NullLoggerFacade;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
+import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
 /**
  * <p>This class is a simple Date selection dialog. It supports localization for all inner controls</p>
@@ -37,7 +48,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @since 0.0.4
  */
 
-public class JDateSelectionDialog extends JPanel implements LocaleChangeListener {
+public class JDateSelectionPopup extends JPanel implements LocaleChangeListener, JComponentInterface, NodeMetadataOwner {
 	private static final long 			serialVersionUID = -7942828154790537910L;
     private static final int 			DIALOG_WIDTH = 220;
     private static final int 			DIALOG_HEIGHT = 220;
@@ -48,53 +59,21 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 	private static final String			MONTH_TOOLTIP = "JDateSelectionDialog.month.tooltip";
 	private static final String			DAY_NAMES = "JDateSelectionDialog.day.names";
 
-	private static final DateRefresher	NULL_REFRESHER = new DateRefresher() {
-											@Override
-											public void refresh(Date newDate, boolean exitNow) {
-//												System.err.println("Date="+newDate+", exit="+exitNow);
-											}
-										};	
-    
-	@FunctionalInterface
-	public interface DateRefresher {
-		void refresh(Date newDate, boolean exitNow);
-	}
+	private static final Class<?>[]		VALID_CLASSES = {Date.class, Calendar.class};
 	
-	private final Localizer			localizer;
-	@SuppressWarnings("unused")
-	private final LoggerFacade		logger;
-	private final DateRefresher		refresher;
-    private final JLabel 			yearLabel = new JLabel(), monthLabel = new JLabel();
-    private final JSpinner			yearSpin, monthSpin;
-    private final JLabel[]			dayNames = new JLabel[7];  
-    private final JButton[][] 		dayPins = new JButton[6][7];
+	
+	private final ContentNodeMetadata	metadata;
+	private final Localizer				localizer;
+    private final JLabel 				yearLabel = new JLabel(), monthLabel = new JLabel();
+    private final JSpinner				yearSpin, monthSpin;
+    private final JLabel[]				dayNames = new JLabel[7];  
+    private final JButton[][] 			dayPins = new JButton[6][7];
 
-    private Date					currentDate;
+    private DateFormatter				formatter;
+    private Object						currentDate, newDate;
+    private boolean						invalid = false;
 	
     
-    /**
-	 * <p>Constructor of the class</p>
-	 * @param localizer localizer to use with the class. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} 
-	 * localizer to call the constructor</p>
-	 * @throws LocalizationException in any localization errors
-	 * @throws NullPointerException if any parameter is null
-	 */
-	public JDateSelectionDialog(final Localizer localizer) throws LocalizationException {
-		this(localizer,new NullLoggerFacade(),new Date(System.currentTimeMillis()),NULL_REFRESHER);
-	}
-
-	/**
-	 * <p>Constructor of the class</p>
-	 * @param localizer localizer to use with the class. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} 
-	 * @param initialDate initial date to fill in the control
-	 * @param refresher date refresher to notify about changes
-	 * @throws LocalizationException in any localization errors
-	 * @throws NullPointerException if any parameter is null
-	 */
-	public JDateSelectionDialog(final Localizer localizer, final Date initialDate, final DateRefresher refresher) throws LocalizationException, NullPointerException {
-		this(localizer,new NullLoggerFacade(),initialDate,refresher);
-	}
-	
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param localizer localizer to use with the class. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} 
@@ -105,30 +84,26 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 	 * @throws LocalizationException in any localization errors
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public JDateSelectionDialog(final Localizer localizer, final LoggerFacade logger, final Date initialDate, final DateRefresher refresher) throws LocalizationException, NullPointerException {
-		super(new BorderLayout());
-		if (localizer == null) {
-			throw new NullPointerException("Localizer can't be null");
+	public JDateSelectionPopup(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException, NullPointerException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null"); 
 		}
-		else if (logger == null) {
-			throw new NullPointerException("Logger facade can't be null");
+		else if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null"); 
 		}
-		else if (initialDate == null) {
-			throw new NullPointerException("Initial date can't be null");
+		else if (monitor == null) {
+			throw new NullPointerException("Monitor can't be null"); 
 		}
-		else if (refresher == null) {
-			throw new NullPointerException("Date refresher can't be null");
+		else if (!InternalUtils.checkClassTypes(metadata.getType(),VALID_CLASSES)) {
+			throw new IllegalArgumentException("Invalid node type ["+metadata.getType().getCanonicalName()+"] for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
 		}
 		else {
-			final Calendar			current = Calendar.getInstance();
-
-			current.setTimeInMillis(System.currentTimeMillis());
-            this.yearSpin = new JSpinner(new SpinnerNumberModel(current.get(Calendar.YEAR), current.get(Calendar.YEAR) - 100, current.get(Calendar.YEAR) + 100, 1));
-            this.monthSpin = new JSpinner(new SpinnerNumberModel(current.get(Calendar.MONTH) + 1, 1, 12, 1));
+			setLayout(new BorderLayout());
+            this.metadata = metadata;
 			this.localizer = localizer;
-			this.logger = logger;
-			this.currentDate = initialDate;
-			this.refresher = refresher;
+			this.formatter = new DateFormatter(prepareDateFormat(getNodeMetadata().getFormatAssociated(),localizer.currentLocale().getLocale()));
+            this.yearSpin = new JSpinner(new SpinnerNumberModel(2000,1900,2100, 1));
+            this.monthSpin = new JSpinner(new SpinnerNumberModel(1, 1, 12, 1));
 
             setLayout(new BorderLayout(1,1));
             setBackground(SwingUtils.OPTIONAL_FOREGROUND);
@@ -139,15 +114,12 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 
             yearSpin.setPreferredSize(new Dimension(55, 20));
             yearSpin.setEditor(new JSpinner.NumberEditor(yearSpin, "####"));
-            yearSpin.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-		            final Calendar 	cal = getCalendar();
-		            
-	                cal.set(Calendar.YEAR, getSelectedYear());
-		            changeDate(cal.getTime());
-		            fillDays();
-				}
+            yearSpin.addChangeListener((e)->{
+	            final Calendar 	cal = getCalendar();
+	            
+                cal.set(Calendar.YEAR, ((Integer) yearSpin.getValue()).intValue());
+	            newDate = cal;
+	            refreshView();
 			});
             yearAndMonth.add(yearSpin);
 
@@ -156,15 +128,12 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 
             monthSpin.setPreferredSize(new Dimension(35, 20));
             monthSpin.setEditor(new JSpinner.NumberEditor(monthSpin, "##"));
-            monthSpin.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-		            final Calendar 	cal = getCalendar();
-		            
-	                cal.set(Calendar.MONTH, getSelectedMonth() - 1);
-		            changeDate(cal.getTime());
-		            fillDays();
-				}
+            monthSpin.addChangeListener((e)->{
+	            final Calendar 	cal = getCalendar();
+	            
+                cal.set(Calendar.MONTH, ((Integer) monthSpin.getValue()).intValue() - 1);
+	            newDate = cal;
+	            refreshView();
 			});
             yearAndMonth.add(monthSpin);
 
@@ -179,9 +148,6 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
             for (int col = 0; col < dayNames.length; col++) {
                 final JLabel 	cell = new JLabel("",JLabel.RIGHT);
                 
-                cell.setForeground(col == 0 || col == 6 
-                		? SwingUtils.DATEPICKER_WEEKEND_NAME_COLOR 
-                		: SwingUtils.DATEPICKER_DAY_NAME_COLOR);
                 daysAndWeeks.add(cell);
                 dayNames[col] = cell;
             }
@@ -195,22 +161,16 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
                     dayButton.setBackground(SwingUtils.OPTIONAL_BACKGROUND);
                     
                     dayButton.addActionListener((event) -> {
-                        JButton source = (JButton) event.getSource();
-                        if (source.getText().length() == 0) {
-                            return;
-                        }
-                        else {
+                        final JButton 	source = (JButton) event.getSource();
+                        
+                        if (source.getText().length() != 0) {
 	                        final int 		daySelected = Integer.parseInt(source.getText());
 	                        final Calendar	cal = getCalendar();
 	                        
 	                        cal.set(Calendar.DAY_OF_MONTH, daySelected);
-	    		            changeDate(cal.getTime());
+	    		            newDate = cal;
                         }
                     });
-
-                    dayButton.setForeground(j == 0 || j == 6 
-	                    		? SwingUtils.DATEPICKER_WEEKEND_VALUE_COLOR 
-	                    		: SwingUtils.DATEPICKER_DAY_VALUE_COLOR);
                     dayPins[i][j] = dayButton;
                     daysAndWeeks.add(dayButton);
                 }
@@ -218,10 +178,9 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
             add(yearAndMonth, BorderLayout.NORTH);
             add(daysAndWeeks, BorderLayout.CENTER);
 
-            fillDays();
+            refreshView();
             
 			setPreferredSize(new Dimension(DIALOG_WIDTH,DIALOG_HEIGHT));
-			SwingUtils.assignActionKey(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->refresher.refresh(currentDate,true),SwingUtils.ACTION_EXIT);
 			fillLocalizedStrings();
 			setFocusable(true);
 			enableEvents(AWTEvent.FOCUS_EVENT_MASK|AWTEvent.MOUSE_EVENT_MASK|AWTEvent.KEY_EVENT_MASK);
@@ -259,17 +218,81 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 					System.err.println("pressed");
 				}
 			});
-		}
+		}		
 	}
 	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		formatter = new DateFormatter(prepareDateFormat(getNodeMetadata().getFormatAssociated(),newLocale));
 		fillLocalizedStrings();
 	}
 
-	public Date getDateSelected() {
+	@Override
+	public ContentNodeMetadata getNodeMetadata() {
+		return metadata;
+	}
+	
+	@Override
+	public String getRawDataFromComponent() {
+		try{return formatter.valueToString(getChangedValueFromComponent());
+		} catch (SyntaxException | ParseException e) {
+			return "";
+		}
+	}
+
+	@Override
+	public Object getValueFromComponent() {
 		return currentDate;
-	}	
+	}
+
+	@Override
+	public Object getChangedValueFromComponent() throws SyntaxException {
+		return newDate;
+	}
+
+	@Override
+	public void assignValueToComponent(final Object value) {
+		if (value == null) {
+			throw new NullPointerException("Value to assign can't be null");
+		}
+		else if (!getValueType().isAssignableFrom(value.getClass())) {
+			throw new IllegalArgumentException("Ivnalid value class to assign ["+value.getClass().getCanonicalName()+"]. Can be "+Arrays.toString(VALID_CLASSES)+" only");
+		}
+		else {
+			newDate = value;
+			refreshView();
+		}
+	}
+
+
+	@Override
+	public Class<?> getValueType() {
+		return getNodeMetadata().getType();
+	}
+
+	@Override
+	public String standardValidation(final String value) {
+		if (value == null || value.isEmpty()) {
+			return "Null or empty value is not applicable for the date";
+		}
+		else {
+			try{formatter.stringToValue(value.trim());
+				return null;
+			} catch (ParseException e) {
+				return e.getLocalizedMessage();
+			}
+		}
+	}
+
+	@Override
+	public void setInvalid(final boolean invalid) {
+		this.invalid = invalid;
+	}
+
+	@Override
+	public boolean isInvalid() {
+		return invalid;
+	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		yearLabel.setText(localizer.getValue(YEAR_LABEL));
@@ -277,43 +300,60 @@ public class JDateSelectionDialog extends JPanel implements LocaleChangeListener
 		monthLabel.setText(localizer.getValue(MONTH_LABEL));
 		monthSpin.setToolTipText(localizer.getValue(MONTH_TOOLTIP));
         
-		final String days[] = localizer.getValue(DAY_NAMES).split("\\;");
+		final String 	days[] = localizer.getValue(DAY_NAMES).split("\\;");
         
         for (int index = 0; index < days.length; index++) {
-        	dayNames[index].setText(days[index]);
+        	final Color		fore = days[index].startsWith("!") ? SwingUtils.DATEPICKER_WEEKEND_VALUE_COLOR : SwingUtils.DATEPICKER_DAY_VALUE_COLOR;
+        	
+        	dayNames[index].setForeground(fore);
+        	for (JButton item : dayPins[index]) {
+        		item.setForeground(fore);
+        	}
+        	dayNames[index].setText(days[index].replace("!",""));
         }
 	}
 
-	private void changeDate(final Date newDate) {
-		currentDate = newDate;
-		refresher.refresh(newDate,false);
-	}
-	
     private Calendar getCalendar() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(currentDate.getTime());
+        final Calendar 	calendar = Calendar.getInstance(localizer.currentLocale().getLocale());
+        
+    	if (currentDate instanceof Calendar) {
+    		calendar.setTimeInMillis(((Calendar)newDate).getTimeInMillis());
+    	}
+    	else {
+            calendar.setTimeInMillis(((Date)newDate).getTime());
+    	}
         return calendar;
     }
 
-    private int getSelectedYear() {
-        return ((Integer) yearSpin.getValue()).intValue();
-    }
+	private static DateFormat prepareDateFormat(final FieldFormat format, final Locale locale) {
+		if (format == null || format.getFormatMask() == null) {
+			return DateFormat.getDateInstance(DateFormat.MEDIUM,locale);
+		}
+		else {
+			return new SimpleDateFormat(format.getFormatMask(),locale);
+		}
+	}
 
-    private int getSelectedMonth() {
-        return ((Integer) monthSpin.getValue()).intValue();
-    }
-
-    private void fillDays() {
-        final Calendar 	cal = getCalendar();
-        
+	private void refreshView() {
+		final Calendar	cal = getCalendar();
+		
+		yearSpin.setValue(cal.get(Calendar.YEAR));
+		monthSpin.setValue(cal.get(Calendar.MONTH));
         cal.set(Calendar.DAY_OF_MONTH, 1);
         
         final int 	maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
         
         for (int i = 0, minDay = 2 - cal.get(Calendar.DAY_OF_WEEK); i < dayPins.length; i++) {
             for (int j = 0; j < dayPins[i].length; j++, minDay++) {
-                dayPins[i][j].setText(minDay >= 1 && minDay <= maxDay ? String.valueOf(minDay) : "");
+            	if (minDay >= 1 && minDay <= maxDay) {
+            		dayPins[i][j].setText(String.valueOf(minDay));
+            		dayPins[i][j].setEnabled(true);
+            	}
+            	else {
+                    dayPins[i][j].setText("");
+            		dayPins[i][j].setEnabled(false);
+            	}
             }
         }
-    }
+	}
 }

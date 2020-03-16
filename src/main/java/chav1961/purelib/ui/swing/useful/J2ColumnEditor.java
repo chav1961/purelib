@@ -91,7 +91,6 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 			this.localizer = LocalizerFactory.getLocalizer(metadata.getRoot().getLocalizerAssociated());
 
 			final List<JButton>	actions = new ArrayList<>();
-//			final JComponent[]	lastComponent = new JComponent[] {null};
 			
 			FormManagedUtils.parseModel4Form(PureLibSettings.CURRENT_LOGGER,metadata,localizer,content.getClass(),this
 					, new FormManagerParserCallback() {
@@ -119,50 +118,6 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 						}
 			});
 			
-//			metadata.walkDown((mode,applicationPath,uiPath,node)->{
-//				if (node.getApplicationPath() != null){ 
-//					if (node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
-//						switch (mode) {
-//							case ENTER	:
-//								try{final JLabel		label = new JLabel();
-//									final FieldFormat	ff = node.getFormatAssociated();
-//									final JComponent 	field = SwingUtils.prepareRenderer(node, ff, this);
-//								
-//									label.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
-//									add(label,LabelledLayout.LABEL_AREA);
-//									field.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
-//									add(field,LabelledLayout.CONTENT_AREA);
-//									labelIds.add(node.getLabelId());
-//									if (!ff.isReadOnly(false) && !ff.isReadOnly(true)) {
-//										modifiableLabelIds.add(node.getLabelId());
-//									}
-//									accessors.put(node.getUIPath().toString(),GettersAndSettersFactory.buildGetterAndSetter(instanceClass,node.getName()));
-//									lastComponent[0] = field;
-//								} catch (LocalizationException | ContentException exc) {
-//									exc.printStackTrace();
-//								}
-//								actions.clear();
-//								break;
-//							case EXIT	:
-//								if (actions.size() > 0) {
-//									new ComponentKeepedBorder(0,actions.toArray(new JComponent[actions.size()])).install(lastComponent[0]);
-//								}
-//								break;
-//							default :
-//								throw new UnsupportedOperationException("Node enter mode ["+mode+"] is not supported yet");
-//						}
-//					}
-//					else if (mode == NodeEnterMode.ENTER && node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
-//						final JButton		button = new JButton();
-//						
-//						button.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
-//						button.setActionCommand(node.getApplicationPath().toString());
-//						button.addActionListener((e)->{callback.process(e.getActionCommand());});
-//						actions.add(button);
-//					}
-//				}
-//				return ContinueMode.CONTINUE;
-//			}, metadata.getRoot().getUIPath());
 			fillLocalizedStrings();
 			bulkUpload();
 		}

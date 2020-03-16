@@ -33,7 +33,6 @@ import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
-import chav1961.purelib.ui.swing.useful.JDateSelectionDialog;
 
 public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long 	serialVersionUID = -7990739033479280548L;
@@ -237,7 +236,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	private void selectDate() {
 		closeDropDown();
 		
-		try{final JDateSelectionDialog	dsd = new JDateSelectionDialog(localizer
+		try{final JDateSelectionPopup	dsd = new JDateSelectionPopup(localizer
 											,currentValue
 											,(newDate,needExit)->{
 												assignValueToComponent(newDate);

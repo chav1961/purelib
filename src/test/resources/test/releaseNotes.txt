@@ -31,6 +31,7 @@ III. Incompatibilities
 
 1. Class basic.ClassLoaderWrapper was removed from Pure Library, because it's functionality can't be supported in Java 9 and higher. 
 2. Class ui.swing.AnnotatedActionListener was removed, because it's functionality is duplicated with SwingUtils.buildAnnotatedListener(...) methods
+3. Class ui.swing.SwingModelUtils was removed and it's functionality was migrated to SwingUtils
 
 IV. Bug fix
 

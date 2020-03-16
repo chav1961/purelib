@@ -1,15 +1,11 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.Cursor;
-import java.awt.Image;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
@@ -35,7 +31,9 @@ public class JExtendedScrollPane extends JScrollPane {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				pressed = false;
-				setCursor(oldCursor);
+				if (canDragInnerControl) {
+					setCursor(oldCursor);
+				}
 			}
 			
 			@Override

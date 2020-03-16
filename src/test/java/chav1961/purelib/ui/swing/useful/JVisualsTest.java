@@ -26,57 +26,5 @@ import chav1961.purelib.ui.interfaces.WizardStep;
 import chav1961.purelib.fsys.FileSystemOnFile;
 
 public class JVisualsTest {
-//	@Test
-//	public void dateSelectionDialogText() throws LocalizationException {
-//		JOptionPane.showMessageDialog(null,new JDateSelectionDialog(PureLibSettings.PURELIB_LOCALIZER));
-//	}
-
-//	@Test
-//	public void fileSelectionDialogText() throws LocalizationException, IOException {
-//		try(final FileSystemInterface	fsi = new FileSystemOnFile(new File("./").toURI())) {
-//			JFileSelectionDialog.select((Dialog)null,PureLibSettings.PURELIB_LOCALIZER,fsi,JFileSelectionDialog.OPTIONS_FOR_OPEN|JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE);
-//		}
-//	}
-
-//	@Test
-//	public void fileSystemSelectionDialogText() throws LocalizationException, IOException, ContentException{
-//		JOptionPane.showMessageDialog(null,new JFileSystemChanger(PureLibSettings.PURELIB_LOCALIZER));
-//	}
-
-//	@Test
-//	public void dialogContainerSimpleText() throws LocalizationException, IOException, ContentException{
-//		final JButton					pressButton = new JButton("Press");
-//		pressButton.setPreferredSize(new Dimension(100,100));
-//		final JDialogContainer<?,?,?>	jdc = new JDialogContainer<>(PureLibSettings.PURELIB_LOCALIZER,(JDialog)null, "testSet1", pressButton);
-//		
-//		jdc.showDialog();
-//	}
-	 
-//	@Test
-	public void dialogContainerWizardText() throws LocalizationException, IOException, ContentException{
-//		final ErrorProcessing<String,ContinueMode>	proc = new ErrorProcessing<String,ContinueMode>() {
-//			@Override public void processError(String content, ContinueMode err, Object... parameters) throws FlowException, LocalizationException {}
-//			@Override public void processWarning(String content, ContinueMode err, Object... parameters) throws LocalizationException {}
-//		}; 
-//		final JDialogContainer<String,ContinueMode,JComponent>	jdc = new JDialogContainer<String,ContinueMode,JComponent>
-//									(PureLibSettings.PURELIB_LOCALIZER,(JDialog)null,"test",proc,
-//											new AbstractWizardStep<String, ContinueMode, JComponent>() {
-//												@Override public StepType getStepType() {return StepType.INITIAL;}
-//												@Override public String getCaption() {return "testSet1";}
-//												@Override public JComponent getContent() {return new JLabel("sdds");}
-//												@Override public void beforeShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-//												@Override public void afterShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-//											},
-//										new AbstractWizardStep<String, ContinueMode, JComponent>() {
-//											@Override public StepType getStepType() {return StepType.TERM_SUCCESS;}
-//											@Override public String getCaption() {return "testSet2";}
-//											@Override public JComponent getContent() {return new JLabel("12345");}
-//											@Override public void beforeShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-//											@Override public void afterShow(String content, Map<String, Object> temporary, ErrorProcessing<String, ContinueMode> err) throws FlowException {}
-//										}
-//									);
-//		
-//		jdc.showDialog();
-	}
 	
 }
