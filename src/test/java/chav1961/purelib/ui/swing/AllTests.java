@@ -7,8 +7,8 @@ import org.junit.runners.Suite.SuiteClasses;
 import chav1961.purelib.testing.SwingUnitTestTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ FormManagedUtilsTest.class, SimpleNavigatorTreeTest.class, SimpleWizardTest.class, SwingUtilsTest.class,
-		VisualControlsTest.class })
+@SuiteClasses({ FormManagedUtilsTest.class, SimpleNavigatorTreeTest.class,
+		SimpleWizardTest.class, SwingUtilsTest.class, VisualControlsTest.class })
 
 public class AllTests {
 

@@ -38,12 +38,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -69,12 +73,17 @@ import chav1961.purelib.ui.interfaces.WizardStep.StepType;
  * @see WizardStep
  * @see chav1961.purelib.streams JUnit tests
  * @since 0.0.2
+ * @lastUpdate 0.0.4
  */
 public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog implements AutoCloseable, ErrorProcessing<Common,ErrorType> {
 	private static final long 							serialVersionUID = 750522918265155456L;
 	
 	public static final String							PROP_LOCALIZER = "localizer";			
 	public static final String							PROP_SHOW_LOCALIZATION_BOX = "showLocalizationBox";			
+	public static final String							PROP_PREFERRED_SIZE = "preferredSize";			
+	public static final String							PREV_BUTTON_NAME = "SimpleWizard.prev";			
+	public static final String							NEXT_BUTTON_NAME = "SimpleWizard.next";			
+	public static final String							CANCEL_BUTTON_NAME = "SimpleWizard.cancel";			
 
 	protected static final String						ACTION_PREV = "PREV";
 	protected static final String						ACTION_NEXT = "NEXT";
@@ -99,7 +108,10 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 	protected static final int							INITIAL_HEIGHT = 480;
 	protected static final int							INNER_BORDER_GAP = 5;
 	protected static final int							LEFT_LIST_BORDER_GAP = 10;
+	
+	protected static final Dimension					INITIAL_DIMENSION = new Dimension(INITIAL_WIDTH,INITIAL_HEIGHT);
 
+	private final LoggerFacade							logger;
 	private final Window								parent;
 	private final String								caption; 
 	private final boolean								showLocalizer;
@@ -127,9 +139,14 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 	protected enum ActionButton {
 		PREV, NEXT, CANCEL, FINISH
 	}
-	
+
 	@SafeVarargs
 	public SimpleWizard(final Window parent, final String caption, final ModalityType modality, final Map<String,Object> properties, final WizardStep<Common,ErrorType,JComponent>... steps) throws NullPointerException, IllegalArgumentException, LocalizationException {
+		this(PureLibSettings.CURRENT_LOGGER,parent,caption,modality,properties,steps);
+	}
+	
+	@SafeVarargs
+	public SimpleWizard(final LoggerFacade logger, final Window parent, final String caption, final ModalityType modality, final Map<String,Object> properties, final WizardStep<Common,ErrorType,JComponent>... steps) throws NullPointerException, IllegalArgumentException, LocalizationException {
 		super(parent,modality);
 		if (caption == null || caption.isEmpty()) {
 			throw new IllegalArgumentException("Caption string can;t be null or empty");
@@ -165,6 +182,11 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 				throw new IllegalArgumentException("No any steps with [TERM_SUCCESS] type was detected!");
 			}
 			
+			this.prev.setName(PREV_BUTTON_NAME);
+			this.next.setName(NEXT_BUTTON_NAME);
+			this.cancel.setName(CANCEL_BUTTON_NAME);
+
+			this.logger = logger;
 			this.parent = parent;
 			this.caption = caption;
 			this.properties.putAll(properties);
@@ -199,6 +221,11 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 			}
 			else {
 				this.showLocalizer = false;
+			}
+			if (this.properties.containsKey(PROP_PREFERRED_SIZE)) {
+				if (!(this.properties.get(PROP_PREFERRED_SIZE) instanceof Dimension)) {
+					throw new IllegalArgumentException("Properties list contains ["+PROP_PREFERRED_SIZE+"] with non-DImension instance associated!");
+				}
 			}
 			if (this.localizer != null) {
 				setTitle(localizer.getValue(caption));
@@ -245,7 +272,10 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 			final String	format = getMessageByType(err);
 			final String	message = parameters.length == 0 ? format : String.format(format,parameters);
 			
-			if (isVisible()) {
+			if (logger != null) {
+				logger.message(Severity.warning,message);
+			}
+			else if (isVisible()) {
 				JOptionPane.showMessageDialog(this,message,extractLocalizedValue(localizer,CAPTION_ERROR,DEFAULT_CAPTION_ERROR),JOptionPane.ERROR_MESSAGE|JOptionPane.OK_OPTION);
 			}
 			throw new FlowException(message);
@@ -264,12 +294,14 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 			final String	format = getMessageByType(err);
 			final String	message = parameters.length == 0 ? format : String.format(format,parameters);
 			
-			if (isVisible()) {
+			if (logger != null) {
+				logger.message(Severity.warning,message);
+			}
+			else if (isVisible()) {
 				JOptionPane.showMessageDialog(this,message,extractLocalizedValue(localizer,CAPTION_WARNING,DEFAULT_CAPTION_WARNING),JOptionPane.WARNING_MESSAGE|JOptionPane.OK_OPTION);
 			}
 		}
 	}
-
 	
 	@Override
 	public void close() throws LocalizationException {
@@ -278,6 +310,7 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 			localizer.removeLocaleChangeListener(lcl);
 			localizer.setCurrentLocale(oldLocale);
 		}
+		dispose();
 	}
 
 	protected int getStepIndexById(final String stepId) {
@@ -340,22 +373,17 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 	
 	protected void prepareLeftPanel(final JPanel panel) {
 		final JList<WizardStep<?,?,?>>				histList = new JList<>(hist);
-		final ListCellRenderer<WizardStep<?,?,?>>	renderer = new ListCellRenderer<WizardStep<?,?,?>>() {
-			@Override
-			public Component getListCellRendererComponent(JList<? extends WizardStep<?,?,?>> list, WizardStep<?,?,?> value, int index, boolean isSelected, boolean cellHasFocus) {
-				final String	content = (index + 1)+": "+value.getTabName();
-				
-				try{final JLabel 	result = new JLabel(extractLocalizedValue(localizer,content,content));
-				
-					result.setToolTipText(extractLocalizedValue(localizer,value.getDescription(),value.getDescription()));
-					result.setBackground(histList.getBackground());
-					return result;
-				} catch (LocalizationException e) {
-					return new JLabel(content);
-				}
-				
-			}
-		}; 
+		final ListCellRenderer<WizardStep<?,?,?>>	renderer = (list,value,index,isSelected,cellHasFocus)-> {
+														final String	content = (index + 1)+": "+value.getTabName();
+														
+														try{final JLabel 	result = new JLabel(extractLocalizedValue(localizer,content,content));
+														
+															result.setToolTipText(extractLocalizedValue(localizer,value.getDescription(),value.getDescription()));
+															return result;
+														} catch (LocalizationException e) {
+															return new JLabel(content);
+														}
+													}; 
 		
 		panel.setLayout(new BorderLayout(LEFT_LIST_BORDER_GAP,LEFT_LIST_BORDER_GAP));
 		histList.setCellRenderer(renderer);
@@ -402,18 +430,12 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 		}
 
 		if (getModalityType() != ModalityType.MODELESS) {	// Protection from modality, because setVisible is synchronous call in this case!
-			final Thread	t = new Thread(new Runnable(){
-								@Override
-								public void run() {
-									setVisible(true);
-								}
-							});
-			t.setDaemon(true);
-			t.start();
+			SwingUtilities.invokeLater(()->{setVisible(true);});
 		}
 		else {
 			setVisible(true);
 		}
+		
 		try{int				newStep;
 			ActionButton	ab;
 			String			newStepName;
@@ -519,9 +541,10 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 		final JPanel		left = new JPanel();
 		final JPanel		buttons = new JPanel();
 		final JPanel		centerPanel = new JPanel();
+		final Dimension		wizardSize = (Dimension)properties.get(PROP_PREFERRED_SIZE);
 		
-		setMinimumSize(new Dimension(INITIAL_WIDTH,INITIAL_HEIGHT));
-		setPreferredSize(new Dimension(INITIAL_WIDTH,INITIAL_HEIGHT));
+		setMinimumSize(wizardSize != null ? wizardSize : INITIAL_DIMENSION);
+		setPreferredSize(wizardSize != null ? wizardSize : INITIAL_DIMENSION);
 		setLocationRelativeTo(parent);
 		setIconImages(Arrays.asList(new ImageIcon(SimpleWizard.class.getResource("wizard.png")).getImage()));
 		getContentPane().setLayout(new BorderLayout());
@@ -572,13 +595,10 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 					maxHeight = item.getIcon().getIconHeight();
 				}
 			}
-			combo.addItemListener(new ItemListener(){
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					if (e.getStateChange() == ItemEvent.SELECTED) {
-						try{localizer.setCurrentLocale(((LocaleDescriptor)e.getItem()).getLocale());
-						} catch (LocalizationException exc) {
-						}
+			combo.addItemListener((e) -> {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					try{localizer.setCurrentLocale(((LocaleDescriptor)e.getItem()).getLocale());
+					} catch (LocalizationException exc) {
 					}
 				}
 			});
@@ -588,30 +608,21 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 		
 		buttons.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(prev);		
-		prev.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try{stepper.put(ActionButton.valueOf(e.getActionCommand()));
-				} catch (Exception exc) {
-				}
+		prev.addActionListener((e) -> {
+			try{stepper.put(ActionButton.valueOf(e.getActionCommand()));
+			} catch (Exception exc) {
 			}
 		});
 		buttons.add(next);		
-		next.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try{stepper.put(ActionButton.valueOf(e.getActionCommand()));
-				} catch (Exception exc) {
-				}
+		next.addActionListener((e) -> {
+			try{stepper.put(ActionButton.valueOf(e.getActionCommand()));
+			} catch (Exception exc) {
 			}
 		});
 		buttons.add(cancel);	
-		cancel.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try{stepper.put(ActionButton.valueOf(e.getActionCommand()));
-				} catch (Exception exc) {
-				}
+		cancel.addActionListener((e) -> {
+			try{stepper.put(ActionButton.valueOf(e.getActionCommand()));
+			} catch (Exception exc) {
 			}
 		});
 		refreshButtonsState(getCurrentStep());
@@ -630,7 +641,7 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 		return centerPanel;
 	}
 	
-	private void refreshButtonsState(final int currentState) throws LocalizationException {
+	private void refreshButtonsState(final int currentStep) throws LocalizationException {
 		prev.setText(extractLocalizedValue(localizer,CAPTION_PREV,DEFAULT_CAPTION_PREV));
 		prev.setActionCommand(ACTION_PREV);
 		cancel.setText(extractLocalizedValue(localizer,CAPTION_CANCEL,DEFAULT_CAPTION_CANCEL));

@@ -45,9 +45,9 @@ import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
-import chav1961.purelib.ui.swing.SwingModelUtils;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
+import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
 public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final long 		serialVersionUID = 6307351718365525165L;
@@ -106,7 +106,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			this.list.addListSelectionListener((e)->{
 				try{fillRecord((FileSystemInterfaceDescriptor)list.getSelectedValue(),content);
 					this.testButton.setIcon(null);
-				} catch (LocalizationException exc) {
+				} catch (LocalizationException | ContentException exc) {
 					exc.printStackTrace();
 				}
 			});
@@ -254,7 +254,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		((LocaleChangeListener)editor).localeChanged(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 	}
 
-	private void fillRecord(final FileSystemInterfaceDescriptor desc, final FileSystemDescription target) throws LocalizationException, IllegalArgumentException {
+	private void fillRecord(final FileSystemInterfaceDescriptor desc, final FileSystemDescription target) throws LocalizationException, IllegalArgumentException, NullPointerException, ContentException {
 		target.className = desc.getClassName();
 		target.version = desc.getVersion();
 		target.vendorId = localizer.getValue(desc.getVendorId());
@@ -262,7 +262,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		target.licenseContentId = localizer.getValue(desc.getLicenseContentId());
 		target.helpId = localizer.getValue(desc.getHelpId());
 		target.uriTemplate = desc.getUriTemplate().toString();
-		SwingModelUtils.putToScreen(this.editor.getMetadata().getRoot(),target,this.editor);
+		SwingUtils.putToScreen(this.editor.getMetadata().getRoot(),target,this.editor);
 	}
 
 	@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:root://chav1961.purelib.ui.swing.useful.JFileSystemChanger/chav1961/purelib/i18n/localization.xml")

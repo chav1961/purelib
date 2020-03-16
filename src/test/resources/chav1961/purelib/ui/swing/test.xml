@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localization xmlns="http://www.i18n.purelib.chav1961.ru/">
+	<lang name="en">
+		<key name="projects">Projects</key>
+		<key name="newProject">new Project</key>
+		<key name="openProject">open Project</key>
+		<key name="saveProject">save Project</key>
+		<key name="saveProjectAs">save Project as...</key>
+		<key name="closeProject">close Project</key>
+		<key name="playProject">play Project</key>
+		<key name="exit">exit</key>
+		<key name="settings">settings</key>
+		<key name="soundAndMusic">sound and music</key>
+		<key name="graphics">graphics</key>
+		<key name="demo">demo</key>
+		<key name="duneZZZ">dune ZZZ</key>
+		<key name="fineFarm">fine Farm</key>
+		<key name="help">help</key>
+		<key name="updateSoft">update soft</key>
+		<key name="pluginMarket">plugin market</key>
+		<key name="about">about</key>
+		<key name="ttProjects">Projects menu</key>
+		<key name="ttNewProject">New project item</key>
+		<key name="ttOpenProject">Open project item</key>
+		<key name="ttSaveProject">Save prohect item</key>
+		<key name="ttSaveProjectAs">Save as project item</key>
+		<key name="ttCloseProject">Close project item</key>
+		<key name="ttPlayProject">Play project item</key>
+		<key name="ttExit">Exit item</key>
+		<key name="ttSettings">Settings menu</key>
+		<key name="ttSoundAndMusic">Sound and music item</key>
+		<key name="ttGraphics">Graphics item</key>
+		<key name="ttDemo">Demo menu</key>
+		<key name="ttDuneZZZ">Dune item</key>
+		<key name="ttFineFarm">Fine farm item</key>
+		<key name="ttHelp">Help menu</key>
+		<key name="ttUpdateSoft">Update soft item</key>
+		<key name="ttPluginMarket">Plugin market item</key>
+		<key name="ttAbout">About item</key>
+	</lang>
+</localization>
+		

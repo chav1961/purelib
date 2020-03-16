@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Array;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +23,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
@@ -1051,6 +1054,23 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 				}
 			}
 			return result.toString();
+		}
+	}
+
+	/**
+	 * <p>Start available browser with the given query address</p>
+	 * @param query query URI to start for
+	 * @since 0.0.4
+	 */
+	public static void startBrowser(final URL query) throws NullPointerException {
+		if (query == null) {
+			throw new NullPointerException("Query string can't be null");
+		}
+		else {
+			try{Desktop.getDesktop().browse(query.toURI());
+			} catch (URISyntaxException | IOException exc) {
+				PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
+			}
 		}
 	}
 	

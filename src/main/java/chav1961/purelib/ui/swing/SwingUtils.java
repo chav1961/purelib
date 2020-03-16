@@ -3,6 +3,7 @@ package chav1961.purelib.ui.swing;
 
 
 
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -39,32 +40,48 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
+import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -78,13 +95,20 @@ import chav1961.purelib.basic.interfaces.PureLibColorScheme;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.AbstractLocalizer;
+import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.ModelUtils;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.streams.StreamsUtil;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
-import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.useful.JLocalizedOptionPane;
@@ -392,6 +416,167 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	}
 
 	/**
+	 * <p>Build JComponent child by it's model description. Awaited classes can be JMenuBar, JPopupMenu or JToolBar only</p>
+	 * @param <T> awaited JComponent type
+	 * @param node metadata to build component for
+	 * @param awaited awaited class for returned component
+	 * @return returned component
+	 * @throws NullPointerException on any nulls in the parameter's list
+	 * @throws IllegalArgumentException unsupported class to build component.
+	 */
+	public static <T extends JComponent> T toJComponent(final ContentNodeMetadata node, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
+		if (node == null) {
+			throw new NullPointerException("Model node can't be null"); 
+		}
+		else if (awaited == null) {
+			throw new NullPointerException("Awaited class can't be null"); 
+		}
+		else {
+			if (awaited.isAssignableFrom(JMenuBar.class)) {
+				if (!node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_TOP_PREFIX)) {
+					throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
+				}
+				else {
+					final JMenuBar	result = new JMenuBarWithMeta(node);
+					
+					for (ContentNodeMetadata child : node) {
+						toMenuEntity(child,result);
+					}
+					return (T) result;
+				}
+			}
+			else if (awaited.isAssignableFrom(JPopupMenu.class)) {
+				if (!node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_TOP_PREFIX)) {
+					throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
+				}
+				else {
+					final JPopupMenu	result = new JMenuPopupWithMeta(node);
+					
+					for (ContentNodeMetadata child : node) {
+						toMenuEntity(child,result);
+					}
+					return (T) result;
+				}
+			}
+			else if (awaited.isAssignableFrom(JToolBar.class)) {
+				if (!node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_TOP_PREFIX)) {
+					throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
+				}
+				else {
+					final JToolBar	result = new JToolBarWithMeta(node);
+					
+					for (ContentNodeMetadata child : node) {
+						if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
+							final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child);
+							final JButton 				btn = new JButtonWithMetaAndActions(child,JButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
+							
+							for (ContentNodeMetadata item : child) {
+								toMenuEntity(item,menu);
+							}
+							
+							btn.addActionListener((e)->{
+								menu.show(btn,btn.getWidth()/2,btn.getHeight()/2);
+							});
+							result.add(btn);
+						}
+						else if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
+							result.add(new JButtonWithMeta(child,JButtonWithMeta.LAFType.ICON_THEN_TEXT));
+						}
+						else if (URI.create("./navigation.separator").equals(child.getRelativeUIPath())) {
+							result.addSeparator();
+						}
+					}
+					return (T) result;
+				}
+			}
+			else {
+				throw new IllegalArgumentException("Unsupported awaited class ["+awaited.getCanonicalName()+"]. Only JMenuBar, JPopupMenu or JToolBar are supported"); 
+			}
+		}
+	}
+	
+	/**
+	 * <p>Assign value of pointed argument to it's screen presentation</p>
+	 * @param metadata metadata to point argument to
+	 * @param content object instance with value will be got from
+	 * @param uiRoot any root of screen presentation
+	 * @return true is assignment was successful
+	 * @throws NullPointerException on any null arguments
+	 * @throws IllegalArgumentException content instance is not annotated with @LocaleResource
+	 * @throws ContentException exception on extracting data or storing it to screen
+	 * @since 0.0.4
+	 */
+	public static boolean putToScreen(final ContentNodeMetadata metadata, final Object content, final Container uiRoot) throws NullPointerException, ContentException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content instance object can't be null"); 
+		}
+		else if (uiRoot == null) {
+			throw new NullPointerException("UI root component can't be null"); 
+		}
+		else if (!content.getClass().isAnnotationPresent(LocaleResource.class)) {
+			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] doesn't annotated with @LocaleResource, and can't be used here"); 
+		}
+		else {
+			final Component	component = SwingUtils.findComponentByName(uiRoot,metadata.getUIPath().toString());
+			
+			if (component instanceof JComponentInterface) {
+				((JComponentInterface)component).assignValueToComponent(
+							ModelUtils.getValueByGetter(content,
+									GettersAndSettersFactory.buildGetterAndSetter(metadata.getApplicationPath())
+							,metadata));
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	
+	/**
+	 * <p>Read value from screen presentation and assign it to instance value for pointed argument</p> 
+	 * @param metadata metadata to point argument to
+	 * @param uiRoot any root of screen presentation
+	 * @param content object instance with value will be stored from
+	 * @return true is assignment was successful
+	 * @throws NullPointerException on any null arguments
+	 * @throws IllegalArgumentException content instance is not annotated with @LocaleResource
+	 * @throws ContentException exception on extracting data or storing it to the instance
+	 * @since 0.0.4
+	 */
+	public static boolean getFromScreen(final ContentNodeMetadata metadata, final Component uiRoot, final Object content) throws ContentException, NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content instance object can't be null"); 
+		}
+		else if (uiRoot == null) {
+			throw new NullPointerException("UI root component can't be null"); 
+		}
+		else if (!content.getClass().isAnnotationPresent(LocaleResource.class)) {
+			throw new IllegalArgumentException("Content instance class ["+content.getClass().getCanonicalName()+"] doesn't annotated with @LocaleResource, and can't be used here"); 
+		}
+		else {
+			final Component	component = SwingUtils.findComponentByName(uiRoot,metadata.getUIPath().toString());
+			
+			if (component instanceof JComponentInterface) {
+				ModelUtils.setValueBySetter(content,
+							((JComponentInterface)component).getChangedValueFromComponent(),
+								GettersAndSettersFactory.buildGetterAndSetter(metadata.getApplicationPath())
+							,metadata);
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	
+	
+	/**
 	 * <p>Prepare message in HTML format to show it in the JTextComponent controls</p>
 	 * @param severity message severity
 	 * @param format message format (see {@linkplain String#format(String, Object...)}
@@ -432,14 +617,14 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			throw new NullPointerException("Value to get signum can't be null");
 		}
 		else {
-			if (value instanceof Number) {
-				return (int) Math.signum(((Number)value).doubleValue());
-			}
-			else if (value instanceof BigInteger) {
+			if (value instanceof BigInteger) {
 				return ((BigInteger)value).signum();
 			}
 			else if (value instanceof BigDecimal) {
 				return ((BigDecimal)value).signum();
+			}
+			else if (value instanceof Number) {
+				return (int) Math.signum(((Number)value).doubleValue());
 			}
 			else {
 				throw new IllegalArgumentException("Value type ["+value.getClass().getCanonicalName()+"] for value ["+value+"] is not a numerical type");
@@ -497,6 +682,20 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	public static void assignActionKey(final JComponent component, final KeyStroke keyStroke, final ActionListener listener, final String actionId) throws NullPointerException, IllegalArgumentException {
 		assignActionKey(component,JPanel.WHEN_FOCUSED,keyStroke, listener, actionId);
 	}	
+
+	/**
+	 * <p>Remove action key was assigned earlier</p>
+	 * @param component component to remove key from
+	 * @param keyStroke keystroke assigned
+	 * @param actionId action string assigned
+	 * @throws NullPointerException any parameters are null
+	 * @throws IllegalArgumentException some parameters are invalid
+	 * @see #assignActionKey(JComponent, KeyStroke, ActionListener, String)
+	 * @since 0.0.4
+	 */
+	public static void removeActionKey(final JComponent component, final KeyStroke keyStroke, final String actionId) throws NullPointerException, IllegalArgumentException {
+		removeActionKey(component,JPanel.WHEN_FOCUSED,keyStroke, actionId);
+	}	
 	
 	/**
 	 * <p>Assign key to process action on component</p>
@@ -533,6 +732,33 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 		}
 	}
 
+	/**
+	 * <p>Remove action key was assigned earlier</p>
+	 * @param component component to remove key from
+	 * @param mode input map mode
+	 * @param keyStroke keystroke assigned
+	 * @param actionId action string assigned
+	 * @throws NullPointerException any parameters are null
+	 * @throws IllegalArgumentException some parameters are invalid
+	 * @see #removeActionKey(JComponent, KeyStroke, String)
+	 * @since 0.0.4
+	 */
+	public static void removeActionKey(final JComponent component, final int mode, final KeyStroke keyStroke, final String actionId) throws NullPointerException, IllegalArgumentException {
+		if (component == null) {
+			throw new NullPointerException("Component can't be null"); 
+		}
+		else if (keyStroke == null) {
+			throw new NullPointerException("KeyStroke can't be null"); 
+		}
+		else if (actionId == null || actionId.isEmpty()) {
+			throw new IllegalArgumentException("Action identifier can't be null or empty"); 
+		}
+		else {
+			component.getInputMap(mode).remove(keyStroke);
+			component.getActionMap().remove(actionId);
+		}
+	}	
+	
 	/**
 	 * <p>Center main window on the screen</p>
 	 * @param frame main window
@@ -906,17 +1132,11 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			final PopupFactory		pf = PopupFactory.getSharedInstance();
 			final JEditorPane		pane = new JEditorPane("text/html","");
 			final JScrollPane		scroll = new JScrollPane(pane);
-			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(200,300); 
+			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(Math.max(200,ownerSize.width),Math.max(ownerSize.height,300)); 
 			final Point				point = new Point((ownerSize.width-helpSize.width)/2,(ownerSize.height-helpSize.height)/2);
-			final HyperlinkListener	hll = new HyperlinkListener() {
-										@Override
-										public void hyperlinkUpdate(final HyperlinkEvent e) {
-											if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-												try{Desktop.getDesktop().browse(e.getURL().toURI());
-												} catch (URISyntaxException | IOException exc) {
-													PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
-												}
-											}
+			final HyperlinkListener	hll = (e)->{
+										if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+											Utils.startBrowser(e.getURL());
 										}
 									}; 
 			
@@ -926,27 +1146,12 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 			
 			final Popup				popup = pf.getPopup(owner,scroll,point.x,point.y);
 			
-			try(final InputStream	is = helpContent.toURL().openStream();
-				final Reader		rdr = new InputStreamReader(is);
-				final Writer		wr = new StringWriter()) {
-				
-				try(final Writer	cwr = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML)) {
-				
-					Utils.copyStream(rdr,cwr);
-				}
-				pane.setText(wr.toString());
-			}
-			
-			pane.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).put(SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
-			pane.getActionMap().put(SwingUtils.ACTION_EXIT,new AbstractAction() {private static final long serialVersionUID = 1L;
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					popup.hide();
-					pane.removeHyperlinkListener(hll);
-					pane.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).remove(SwingUtils.KS_EXIT);
-					pane.getActionMap().remove(SwingUtils.ACTION_EXIT);
-				}
-			});
+			pane.setText(StreamsUtil.loadCreoleContent(helpContent.toURL(),MarkupOutputFormat.XML2HTML));
+			assignActionKey(pane,JPanel.WHEN_IN_FOCUSED_WINDOW,SwingUtils.KS_EXIT,(e)->{
+				popup.hide();
+				pane.removeHyperlinkListener(hll);
+				removeActionKey(pane,JPanel.WHEN_IN_FOCUSED_WINDOW,SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
+			},SwingUtils.ACTION_EXIT);
 			pane.addMouseListener(new MouseListener() {
 				@Override public void mouseReleased(MouseEvent e) {}
 				@Override public void mousePressed(MouseEvent e) {}
@@ -957,8 +1162,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				public void mouseExited(MouseEvent e) {
 					popup.hide();
 					pane.removeHyperlinkListener(hll);
-					pane.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).remove(SwingUtils.KS_EXIT);
-					pane.getActionMap().remove(SwingUtils.ACTION_EXIT);
+					removeActionKey(pane,JPanel.WHEN_IN_FOCUSED_WINDOW,SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
 					pane.removeMouseListener(this);
 				}
 			});
@@ -1024,19 +1228,17 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
     private static GraphicsConfiguration getCurrentGraphicsConfiguration(final Point popupLocation) {
         final GraphicsEnvironment 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] 		gd = ge.getScreenDevices();
-        GraphicsConfiguration 		gc = null;
         
         for(int i = 0; i < gd.length; i++) {
             if(gd[i].getType() == GraphicsDevice.TYPE_RASTER_SCREEN) {
                 final GraphicsConfiguration 	dgc = gd[i].getDefaultConfiguration();
                 
                 if(dgc.getBounds().contains(popupLocation)) {
-                    gc = dgc;
-                    break;
+                    return dgc;
                 }
             }
         }
-        return gc;
+        return gd[0].getDefaultConfiguration();
     }
 
 	private static class MethodHandleAndAsync {
@@ -1046,6 +1248,486 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 		public MethodHandleAndAsync(MethodHandle handle, boolean async) {
 			this.handle = handle;
 			this.async = async;
+		}
+	}
+
+	private static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
+		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
+			final JMenu	menu = new JMenuWithMeta(node);
+			
+			for (ContentNodeMetadata child : node) {
+				toMenuEntity(child,menu);
+			}
+			buildRadioButtonGroups(menu);
+			bar.add(menu);
+		} 
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
+			bar.add(new JMenuItemWithMeta(node));
+		}
+	}
+
+	private static void toMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) throws NullPointerException, IllegalArgumentException{
+		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
+			final JMenu	menu = new JMenuWithMeta(node);
+			
+			for (ContentNodeMetadata child : node) {
+				toMenuEntity(child,menu);
+			}
+			buildRadioButtonGroups(menu);
+			popup.add(menu);
+		} 
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
+			popup.add(new JMenuItemWithMeta(node));
+		}
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
+			popup.add(new JSeparator());
+		}
+	}
+
+	private static void buildRadioButtonGroups(final JMenu menu) {
+		final Set<String>	availableGroups = new HashSet<>(); 
+		
+		for (int index = 0, maxIndex = menu.getMenuComponentCount(); index < maxIndex; index++) {
+			if (menu.getMenuComponent(index) instanceof JRadioMenuItemWithMeta) {
+				availableGroups.add(((JRadioMenuItemWithMeta)menu.getMenuComponent(index)).getRadioGroup());
+			}
+		}
+		if (availableGroups.size() > 0) {
+			for (String group : availableGroups) {
+				final ButtonGroup 	buttonGroup = new ButtonGroup();
+				ButtonModel			buttonModel = null;
+
+				for (int index = 0, maxIndex = menu.getMenuComponentCount(); index < maxIndex; index++) {
+					Component	c = menu.getMenuComponent(index); 
+					
+					if ((c instanceof JRadioMenuItemWithMeta) && group.equals(((JRadioMenuItemWithMeta)c).getRadioGroup())) {
+						buttonGroup.add((JRadioMenuItemWithMeta)c);
+						if (buttonModel == null) {
+							buttonModel = ((JRadioMenuItemWithMeta)c).getModel();
+						}
+					}
+				}
+				if (buttonModel != null) {
+					buttonGroup.setSelected(buttonModel,true);
+				}
+			}
+		}				
+	}
+
+	private static void toMenuEntity(final ContentNodeMetadata node, final JMenu menu) throws NullPointerException, IllegalArgumentException{
+		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
+			final JMenu	submenu = new JMenuWithMeta(node);
+			
+			if (node.getApplicationPath() != null && node.getApplicationPath().toString().contains(Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION)) {
+				switch (node.getName()) {
+					case Constants.MODEL_BUILTIN_LANGUAGE	:
+						final String		currentLang = Locale.getDefault().getLanguage();
+						final ButtonGroup	langGroup = new ButtonGroup();
+						
+						AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
+							final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(langName,icon);
+							
+							radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LANGUAGE+"?lang="+lang.name());
+							if (currentLang.equals(lang.toString())) {	// Mark current lang
+								radio.setSelected(true);
+							}
+							langGroup.add(radio);
+							submenu.add(radio);
+						});
+						menu.add(submenu);
+						break;
+					case Constants.MODEL_BUILTIN_LAF	:
+						final String		currentLafDesc = UIManager.getLookAndFeel().getName();
+						final ButtonGroup	lafGroup = new ButtonGroup();
+						
+						for (LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
+							try{final String				clazzName = laf.getClassName();
+								final Class<?> 				clazz = Class.forName(clazzName);
+								final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(clazz.getSimpleName());
+
+								radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LAF+"?laf="+clazzName);
+								radio.setToolTipText(laf.getName());
+								if (currentLafDesc.equals(laf.getName())) {	// Mark current L&F
+									radio.setSelected(true);
+								}
+								lafGroup.add(radio);
+								submenu.add(radio);
+							} catch (ClassNotFoundException e) {
+							}
+						}
+						menu.add(submenu);
+						break;
+					default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");
+				}
+			}
+			else {
+				for (ContentNodeMetadata child : node) {
+					toMenuEntity(child,submenu);
+				}
+				buildRadioButtonGroups(submenu);
+				menu.add(submenu);
+			}
+		} 
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
+			if (node.getApplicationPath().getFragment() != null) {
+				final JRadioMenuItemWithMeta	item = new JRadioMenuItemWithMeta(node);
+				
+				menu.add(item);
+			}
+			else {
+				final JMenuItemWithMeta			item = new JMenuItemWithMeta(node);
+				
+				menu.add(item);
+			}
+		}
+		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
+			menu.add(new JSeparator());
+		}
+	}
+
+	private static class JMenuBarWithMeta extends JMenuBar implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = 2873312186080690483L;
+		
+		private final ContentNodeMetadata	metadata;
+		
+		private JMenuBarWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.setName(metadata.getName());
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+				for (int index = 0, maxIndex = this.getMenuCount(); index < maxIndex; index++) {
+					final JMenu	item = this.getMenu(index);
+					
+					if (item instanceof LocaleChangeListener) {
+						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			final String	ttId = getNodeMetadata().getTooltipId();
+			
+			if (ttId != null && !ttId.isEmpty()) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(ttId));
+			}
+		}
+	}
+
+	private static class JMenuPopupWithMeta extends JPopupMenu implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = 2873312186080690483L;
+		
+		private final ContentNodeMetadata	metadata;
+		
+		private JMenuPopupWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.setName(metadata.getName());
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+				for (int index = 0, maxIndex = this.getComponentCount(); index < maxIndex; index++) {
+					final Component	item = this.getComponent(index);
+					
+					if (item instanceof LocaleChangeListener) {
+						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			final String	ttId = getNodeMetadata().getTooltipId();
+			
+			if (ttId != null && !ttId.isEmpty()) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(ttId));
+			}
+		}
+	}
+	
+	private static class JMenuItemWithMeta extends JMenuItem implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = -1731094524456032387L;
+
+		private final ContentNodeMetadata	metadata;
+		
+		private JMenuItemWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.setName(metadata.getName());
+			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
+			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
+				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+					this.setAccelerator(KeyStroke.getKeyStroke(item.getLabelId()));
+					break;
+				}
+			}
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+
+	private static class JRadioMenuItemWithMeta extends JRadioButtonMenuItem implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = -1731094524456032387L;
+
+		private final ContentNodeMetadata	metadata;
+		private final String				radioGroup;
+		
+		private JRadioMenuItemWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.radioGroup = metadata.getApplicationPath().getFragment();
+			this.setName(metadata.getName());
+			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
+			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
+				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+					this.setAccelerator(KeyStroke.getKeyStroke(item.getLabelId()));
+					break;
+				}
+			}
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+
+		public String getRadioGroup() {
+			return radioGroup;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+	
+	
+	private static class JMenuWithMeta extends JMenu implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = 366031204608808220L;
+		
+		private final ContentNodeMetadata	metadata;
+		
+		private JMenuWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.setName(metadata.getName());
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+				for (int index = 0, maxIndex = this.getMenuComponentCount(); index < maxIndex; index++) {
+					final Component	item = this.getMenuComponent(index);
+					
+					if (item instanceof LocaleChangeListener) {
+						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+
+	private static class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = 366031204608808220L;
+		
+		private final ContentNodeMetadata	metadata;
+		
+		private JToolBarWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.setName(metadata.getName());
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			if (getNodeMetadata().getTooltipId() != null) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			}
+		}
+	}
+
+	private static class JButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = 366031204608808220L;
+		
+		protected enum LAFType {
+			TEXT_ONLY, ICON_INLY, BOTH, ICON_THEN_TEXT
+		}
+		
+		private final ContentNodeMetadata	metadata;
+		private final LAFType				type;
+
+		private JButtonWithMeta(final ContentNodeMetadata metadata) {
+			this(metadata,LAFType.BOTH);
+		}		
+		
+		private JButtonWithMeta(final ContentNodeMetadata metadata, final LAFType type) {
+			this.metadata = metadata;
+			this.type = type;
+			this.setName(metadata.getName());
+			this.setActionCommand(metadata.getApplicationPath() != null ? metadata.getApplicationPath().getSchemeSpecificPart() : "action:/"+metadata.getName());
+			try{fillLocalizedStrings();
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+		
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			if (getNodeMetadata().getTooltipId() != null) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			}
+			switch (type) {
+				case BOTH			:
+					if (getNodeMetadata().getIcon() != null) {
+						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
+					}
+					setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+					break;
+				case ICON_INLY		:
+					if (getNodeMetadata().getIcon() != null) {
+						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
+					}
+					break;
+				case ICON_THEN_TEXT	:
+					if (getNodeMetadata().getIcon() != null) {
+						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
+						break;
+					}
+					// break doesn't need!
+				case TEXT_ONLY		:
+					setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+					break;
+				default:
+					throw new UnsupportedOperationException("LAF type ["+type+"] is not supported yet"); 
+			}
+		}
+	}
+
+	private static class JButtonWithMetaAndActions extends JButtonWithMeta implements InnerActionNode {
+		private static final long serialVersionUID = 366031204608808220L;
+		
+		private final JComponent[]	actionable;
+
+		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final JComponent... actionable) {
+			super(metadata);
+			this.actionable = actionable;
+		}
+		
+		
+		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final LAFType type, final JComponent... actionable) {
+			super(metadata,type);
+			this.actionable = actionable;
+		}
+
+		@Override
+		public JComponent[] getActionNodes() {
+			return actionable;
+		}
+
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			super.localeChanged(oldLocale, newLocale);
+			for (JComponent item : getActionNodes()) {
+				SwingUtils.refreshLocale(item,oldLocale, newLocale);
+			}
 		}
 	}
 }

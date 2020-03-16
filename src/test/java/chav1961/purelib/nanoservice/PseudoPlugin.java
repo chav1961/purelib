@@ -408,7 +408,7 @@ public class PseudoPlugin {
 
 	@Path(value="/post/body/JsonStaxParser",type={QueryType.POST,QueryType.PUT})
 	public int callJson(@FromBody(mimeType="application/json") final JsonStaxParser source, @ToBody(mimeType="application/json") final JsonStaxPrinter target) throws IOException, PrintingException, SyntaxException {
-		StreamsUtil.copyStax(source, target);
+		StreamsUtil.copyJsonStax(source, target);
 		return 200;
 	}
 

@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -25,10 +26,14 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,6 +45,7 @@ import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -47,6 +53,8 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.DummyLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -60,6 +68,7 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
+import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 
 public class SwingUtilsTest {
@@ -239,6 +248,10 @@ public class SwingUtilsTest {
 			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
+		
+		Assert.assertEquals(new Point(0,0),SwingUtils.locateRelativeToAnchor(0,0,100,100));
+		Assert.assertTrue(SwingUtils.locateRelativeToAnchor(screenSize.width,screenSize.height,100,100).x < screenSize.width);
+		Assert.assertTrue(SwingUtils.locateRelativeToAnchor(screenSize.width,screenSize.height,100,100).y < screenSize.height);
 	}
 	
 	
@@ -305,7 +318,7 @@ public class SwingUtilsTest {
 		try{SwingUtils.getSignum4Value("100");
 			Assert.fail("Mandatory exception was not detected (illegal 1-st argument type)");
 		} catch (IllegalArgumentException exc) {
-		}
+		} 
 	}
 	
 	@Category(UITestCategory.class)
@@ -316,10 +329,11 @@ public class SwingUtilsTest {
 		final CountDownLatch	latch = new CountDownLatch(1);
 		final JFrame			root = new JFrame();
 		final SwingUnitTest		sut = new SwingUnitTest(root);
+		final ActionListener	al = (e)->{bool.set(true); latch.countDown();};
 
 		try{button.setName("button");
 			root.getContentPane().add(button);
-			SwingUtils.assignActionKey(button,SwingUtils.KS_ACCEPT,(e)->{bool.set(true); latch.countDown();},"click");
+			SwingUtils.assignActionKey(button,SwingUtils.KS_ACCEPT,al,"click");
 		
 			root.setVisible(true);
 			SwingTestingUtils.syncRequestFocus(root);
@@ -329,16 +343,18 @@ public class SwingUtilsTest {
 			Assert.assertTrue(latch.await(1000,TimeUnit.MILLISECONDS));
 			Assert.assertTrue(bool.get());
 			
+			SwingUtils.removeActionKey(button,SwingUtils.KS_ACCEPT,"click");
+			
 			root.setVisible(false);
 		} finally {
 			root.dispose();
 		}
 		
-		try{SwingUtils.assignActionKey(null,SwingUtils.KS_ACCEPT,(e)->{bool.set(true); latch.countDown();},"click");
+		try{SwingUtils.assignActionKey(null,SwingUtils.KS_ACCEPT,al,"click");
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{SwingUtils.assignActionKey(button,null,(e)->{bool.set(true); latch.countDown();},"click");
+		try{SwingUtils.assignActionKey(button,null,al,"click");
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
@@ -346,12 +362,29 @@ public class SwingUtilsTest {
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{SwingUtils.assignActionKey(button,SwingUtils.KS_ACCEPT,(e)->{bool.set(true); latch.countDown();},null);
+		try{SwingUtils.assignActionKey(button,SwingUtils.KS_ACCEPT,al,null);
 			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{SwingUtils.assignActionKey(button,SwingUtils.KS_ACCEPT,(e)->{bool.set(true); latch.countDown();},"");
+		try{SwingUtils.assignActionKey(button,SwingUtils.KS_ACCEPT,al,"");
 			Assert.fail("Mandatory exception was not detected (empty 4-th argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{SwingUtils.removeActionKey(null,SwingUtils.KS_ACCEPT,"click");
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.removeActionKey(button,null,"click");
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.removeActionKey(button,SwingUtils.KS_ACCEPT,null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{SwingUtils.removeActionKey(button,SwingUtils.KS_ACCEPT,"");
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 	}
@@ -419,6 +452,16 @@ public class SwingUtilsTest {
 		try{SwingUtils.buildAnnotatedActionListener("test");
 			Assert.fail("Mandatory exception was not detected (1-st argument doesn't mark with OnAction annotation)");
 		} catch (IllegalArgumentException exc) {
+		}
+
+		try{SwingUtils.buildAnnotatedActionListener(test,null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{SwingUtils.buildAnnotatedActionListener(test,(e)->{},null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (NullPointerException exc) {
 		}
 	}	
 
@@ -496,32 +539,89 @@ public class SwingUtilsTest {
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
+	}
+	
+	@Test
+	public void getAndPutValuesTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
+		final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = mdi.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/intValue"))[0];
+		final PseudoData				instance = new PseudoData();
+		final JComponentMonitor			mon = (event, md, component, parameters)->{return true;};
+		final JPanel					panel = new JPanel();
+		final JIntegerFieldWithMeta		field = new JIntegerFieldWithMeta(itemMeta, mon);
 		
+		panel.add(field);
+		
+		Assert.assertEquals("",field.getText());
+		instance.intValue = 123;
+		SwingUtils.putToScreen(itemMeta,instance,panel);
+		Assert.assertEquals("123",field.getText());
+		
+		Assert.assertEquals(123,instance.intValue);
+		field.setValue(456);
+		SwingUtils.getFromScreen(itemMeta,panel,instance);
+		Assert.assertEquals(456,instance.intValue);
+		
+		try{SwingUtils.putToScreen(null,instance,panel);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.putToScreen(itemMeta,null,panel);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.putToScreen(itemMeta,"",panel);
+			Assert.fail("Mandatory exception was not detected (2-nd argument is not annotated with @LocaleResource)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{SwingUtils.putToScreen(itemMeta,instance,null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{SwingUtils.getFromScreen(null,panel,instance);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.getFromScreen(itemMeta,null,instance);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.getFromScreen(itemMeta,panel,null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.getFromScreen(itemMeta,panel,"");
+			Assert.fail("Mandatory exception was not detected (3-rd argument is not annotated with @LocaleResource)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}	
+
+	@Test
+	public void navigationBuildTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
+		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));
+		JComponent						value = null;
+
+		Assert.assertTrue((value = SwingUtils.toJComponent(mdi.byUIPath(URI.create("ui:/model/navigation.top.mainmenu")),JMenuBar.class)) instanceof JMenuBar);
+		((LocaleChangeListener)value).localeChanged(Locale.getDefault(),Locale.getDefault());
+		Assert.assertTrue((value = SwingUtils.toJComponent(mdi.byUIPath(URI.create("ui:/model/navigation.top.mainmenu")),JPopupMenu.class)) instanceof JPopupMenu);
+		((LocaleChangeListener)value).localeChanged(Locale.getDefault(),Locale.getDefault());
+		Assert.assertTrue((value = SwingUtils.toJComponent(mdi.byUIPath(URI.create("ui:/model/navigation.top.toolbar")),JToolBar.class)) instanceof JToolBar);
+		((LocaleChangeListener)value).localeChanged(Locale.getDefault(),Locale.getDefault());
+		
+		try{SwingUtils.toJComponent(null,JMenuBar.class);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.toJComponent(mdi.byUIPath(URI.create("ui:/model/navigation.top.mainmenu")),null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.toJComponent(mdi.byUIPath(URI.create("ui:/model/navigation.top.mainmenu")),JLabel.class);
+			Assert.fail("Mandatory exception was not detected (illegal 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
 }
 
 
-class AnnotatedWithOnAction  {
-	volatile Semaphore	sema = new Semaphore(0);
-	volatile boolean	wasCall1 = false, wasCall2 = false, wasCall3 = false;
-	
-	void clear() {
-		wasCall1 = wasCall2 = wasCall3 = false;
-	}
-	
-	@OnAction("action1")
-	public void call1() {
-		wasCall1 = true;
-	}
-
-	@OnAction(value="action2",async=true)
-	public void call2() {
-		wasCall2 = true;
-		sema.release();
-	}
-
-	@OnAction("action3")
-	public void call3() {
-		wasCall3 = true;
-	}
-}
