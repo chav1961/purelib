@@ -824,4 +824,67 @@ public class VisualControlsTest implements JComponentMonitor {
 		
 		root.setVisible(false);
 	}
+
+	@Test
+	public void basicJDateSelectionDialogTest() throws SyntaxException, LocalizationException,ContentException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0];
+		final JDateSelectionDialog		dsd = new JDateSelectionDialog(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
+
+		Assert.assertEquals(itemMeta,dsd.getNodeMetadata());
+		Assert.assertNotNull(dsd.getRawDataFromComponent());
+		Assert.assertNull(dsd.getValueFromComponent());
+		Assert.assertNotNull(dsd.getChangedValueFromComponent());
+		Assert.assertEquals(Date.class,dsd.getValueType());
+		Assert.assertNotNull(dsd.standardValidation("2002"));
+		
+		dsd.setInvalid(true);
+		Assert.assertTrue(dsd.isInvalid());
+		dsd.setInvalid(false);
+		Assert.assertFalse(dsd.isInvalid());
+		
+		try {new JDateSelectionDialog(null, PureLibSettings.PURELIB_LOCALIZER, this);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JDateSelectionDialog(itemMeta, null, this);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {new JDateSelectionDialog(itemMeta, PureLibSettings.PURELIB_LOCALIZER, null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+
+	@Category(UITestCategory.class)
+	@Test
+	public void uiJDateSelectionDialogTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
+		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
+		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/date1"))[0];
+		final JDateSelectionDialog		dsd = new JDateSelectionDialog(itemMeta, PureLibSettings.PURELIB_LOCALIZER, this);
+		final SwingUnitTest				sut = new SwingUnitTest(root);
+
+		dsd.localeChanged(en,ru);
+		
+		root.getContentPane().add(dsd);
+		root.setVisible(true);
+		SwingTestingUtils.syncRequestFocus(root);
+	
+		Assert.assertFalse(focusGained);
+		Assert.assertFalse(focusLost);
+		Assert.assertFalse(validation);
+		Assert.assertFalse(saving);
+		Assert.assertTrue(loading);
+		sut.select(URIUtils.removeQueryFromURI(itemMeta.getUIPath()).toString()).keys("\t\t\t");
+		sut.select("TEXT"); // Change value and remove focus from control
+		Assert.assertTrue(focusGained);
+		Assert.assertTrue(validation);
+		Assert.assertTrue(saving);
+		Assert.assertTrue(focusLost);
+		Assert.assertEquals(Date.class,dsd.getValueFromComponent().getClass());
+		
+		root.setVisible(false);
+	}
+
 }

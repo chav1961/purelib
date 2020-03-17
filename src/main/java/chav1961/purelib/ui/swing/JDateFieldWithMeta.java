@@ -236,16 +236,13 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	private void selectDate() {
 		closeDropDown();
 		
-		try{final JDateSelectionPopup	dsd = new JDateSelectionPopup(localizer
-											,currentValue
-											,(newDate,needExit)->{
-												assignValueToComponent(newDate);
-												if (needExit) {
-													closeDropDown();
-													JDateFieldWithMeta.this.requestFocus();
-												}												
-											}
-											);
+		try{final JDateSelectionDialog	dsd = new JDateSelectionDialog(getNodeMetadata(),localizer,new SimpleComponentMonitor<Date>(currentValue) {
+																		@Override
+																		public void change(final Date value) {
+																			newValue = value;
+																			super.change(value);
+																		}
+																});
 			final Point					callSelectLocation = callSelect.getLocationOnScreen();
 			
 			window = PopupFactory.getSharedInstance().getPopup(this,dsd,callSelectLocation.x+callSelect.getWidth()-dsd.getPreferredSize().width,callSelectLocation.y+callSelect.getHeight());

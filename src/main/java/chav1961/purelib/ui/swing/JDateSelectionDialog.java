@@ -3,6 +3,7 @@ package chav1961.purelib.ui.swing;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -18,19 +19,33 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.swing.InputVerifier;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 import javax.swing.text.DateFormatter;
 
 import chav1961.purelib.basic.NullLoggerFacade;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -41,6 +56,7 @@ import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
+import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 /**
  * <p>This class is a simple Date selection dialog. It supports localization for all inner controls</p>
@@ -48,9 +64,9 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
  * @since 0.0.4
  */
 
-public class JDateSelectionPopup extends JPanel implements LocaleChangeListener, JComponentInterface, NodeMetadataOwner {
+public class JDateSelectionDialog extends JComponent implements LocaleChangeListener, JComponentInterface, NodeMetadataOwner {
 	private static final long 			serialVersionUID = -7942828154790537910L;
-    private static final int 			DIALOG_WIDTH = 220;
+    private static final int 			DIALOG_WIDTH = 400;
     private static final int 			DIALOG_HEIGHT = 220;
 
 	private static final String			YEAR_LABEL = "JDateSelectionDialog.yearLabel";
@@ -66,11 +82,12 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
 	private final Localizer				localizer;
     private final JLabel 				yearLabel = new JLabel(), monthLabel = new JLabel();
     private final JSpinner				yearSpin, monthSpin;
-    private final JLabel[]				dayNames = new JLabel[7];  
-    private final JButton[][] 			dayPins = new JButton[6][7];
+    private final DaysModel				days = new DaysModel();
+    private final JTable				daysTable = new JTable(days);
+    private final JScrollPane			dayScroll = new JScrollPane(daysTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
     private DateFormatter				formatter;
-    private Object						currentDate, newDate;
+    private Object						currentValue, newValue = new Date();
     private boolean						invalid = false;
 	
     
@@ -84,7 +101,7 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
 	 * @throws LocalizationException in any localization errors
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public JDateSelectionPopup(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException, NullPointerException {
+	public JDateSelectionDialog(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException, NullPointerException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
@@ -111,14 +128,13 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
             final JPanel 	yearAndMonth = new JPanel(new FlowLayout());
             
             yearAndMonth.setBackground(SwingUtils.MANDATORY_BACKGROUND);
-
-            yearSpin.setPreferredSize(new Dimension(55, 20));
+            
             yearSpin.setEditor(new JSpinner.NumberEditor(yearSpin, "####"));
             yearSpin.addChangeListener((e)->{
 	            final Calendar 	cal = getCalendar();
 	            
                 cal.set(Calendar.YEAR, ((Integer) yearSpin.getValue()).intValue());
-	            newDate = cal;
+	            newValue = cal;
 	            refreshView();
 			});
             yearAndMonth.add(yearSpin);
@@ -126,13 +142,12 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
             yearLabel.setForeground(SwingUtils.MANDATORY_FOREGROUND);
             yearAndMonth.add(yearLabel);
 
-            monthSpin.setPreferredSize(new Dimension(35, 20));
             monthSpin.setEditor(new JSpinner.NumberEditor(monthSpin, "##"));
             monthSpin.addChangeListener((e)->{
 	            final Calendar 	cal = getCalendar();
 	            
                 cal.set(Calendar.MONTH, ((Integer) monthSpin.getValue()).intValue() - 1);
-	            newDate = cal;
+	            newValue = cal;
 	            refreshView();
 			});
             yearAndMonth.add(monthSpin);
@@ -140,84 +155,67 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
             monthLabel.setForeground(SwingUtils.MANDATORY_FOREGROUND);
             yearAndMonth.add(monthLabel);
             
-            final JPanel 	daysAndWeeks = new JPanel();
-            
-            daysAndWeeks.setLayout(new GridLayout(7, 7));
-            daysAndWeeks.setBackground(SwingUtils.MANDATORY_BACKGROUND);
-
-            for (int col = 0; col < dayNames.length; col++) {
-                final JLabel 	cell = new JLabel("",JLabel.RIGHT);
-                
-                daysAndWeeks.add(cell);
-                dayNames[col] = cell;
+            daysTable.setDefaultRenderer(String.class,days);
+            daysTable.getTableHeader().setDefaultRenderer((table,value,isSelected,hasFocus,row,column)->{
+    			final JLabel	label = new JLabel(value == null ? "" : value.toString());
+    			
+    			label.setForeground(days.weekends[column] ? Color.RED : Color.BLACK);
+    			label.setBorder(new LineBorder(Color.BLACK));
+            	return label;
+            });
+            daysTable.getTableHeader().setReorderingAllowed(false);
+            daysTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            daysTable.setColumnSelectionAllowed(true);
+            for (int index = 0, maxIndex = daysTable.getColumnCount(); index < maxIndex; index++) {
+            	final TableColumn col = daysTable.getColumnModel().getColumn(index);
+            	col.setWidth(30);
+            	col.setMinWidth(30);
+            	col.setPreferredWidth(30);
+            	col.setMaxWidth(30);
+            	col.setResizable(false);
             }
 
-            for (int i = 0; i < dayPins.length; i++)
-                for (int j = 0; j < dayPins[i].length; j++) {
-                    final JButton 	dayButton = new JButton();
-                    
-                    dayButton.setBorder(new EmptyBorder(1,1,1,1));
-                    dayButton.setHorizontalAlignment(SwingConstants.RIGHT);
-                    dayButton.setBackground(SwingUtils.OPTIONAL_BACKGROUND);
-                    
-                    dayButton.addActionListener((event) -> {
-                        final JButton 	source = (JButton) event.getSource();
-                        
-                        if (source.getText().length() != 0) {
-	                        final int 		daySelected = Integer.parseInt(source.getText());
-	                        final Calendar	cal = getCalendar();
-	                        
-	                        cal.set(Calendar.DAY_OF_MONTH, daySelected);
-	    		            newDate = cal;
-                        }
-                    });
-                    dayPins[i][j] = dayButton;
-                    daysAndWeeks.add(dayButton);
-                }
-
             add(yearAndMonth, BorderLayout.NORTH);
-            add(daysAndWeeks, BorderLayout.CENTER);
+            add(dayScroll, BorderLayout.CENTER);
 
-            refreshView();
-            
+			setMinimumSize(new Dimension(DIALOG_WIDTH,DIALOG_HEIGHT));
 			setPreferredSize(new Dimension(DIALOG_WIDTH,DIALOG_HEIGHT));
-			fillLocalizedStrings();
+			
 			setFocusable(true);
-			enableEvents(AWTEvent.FOCUS_EVENT_MASK|AWTEvent.MOUSE_EVENT_MASK|AWTEvent.KEY_EVENT_MASK);
+			enableEvents(AWTEvent.COMPONENT_EVENT_MASK|AWTEvent.FOCUS_EVENT_MASK|AWTEvent.MOUSE_EVENT_MASK|AWTEvent.KEY_EVENT_MASK);
+			setFocusCycleRoot(true);
+			setFocusTraversalPolicyProvider(true);
+
+			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
-				
 				@Override
-				public void focusLost(FocusEvent e) {
-					// TODO Auto-generated method stub
-					System.err.println("LOST");
+				public void focusLost(final FocusEvent e) {
+					try{monitor.process(MonitorEvent.Saving,metadata,JDateSelectionDialog.this);
+						monitor.process(MonitorEvent.FocusLost,metadata,JDateSelectionDialog.this);
+					} catch (ContentException exc) {
+					}
 				}
 				
 				@Override
-				public void focusGained(FocusEvent e) {
-					// TODO Auto-generated method stub
-					System.err.println("GAINED");
-				}
-			});
-			addKeyListener(new KeyListener() {
-				
-				@Override
-				public void keyTyped(KeyEvent e) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void keyReleased(KeyEvent e) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void keyPressed(KeyEvent e) {
-					// TODO Auto-generated method stub
-					System.err.println("pressed");
+				public void focusGained(final FocusEvent e) {
+					try{
+						monitor.process(MonitorEvent.FocusGained,metadata,JDateSelectionDialog.this);
+					} catch (ContentException exc) {
+					}					
 				}
 			});
+			setInputVerifier(new InputVerifier() {
+				@Override
+				public boolean verify(final JComponent input) {
+					try{return monitor.process(MonitorEvent.Validation,metadata,JDateSelectionDialog.this);
+					} catch (ContentException e) {
+						return false;
+					}
+				}
+			});
+			setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString());
+			
+			fillLocalizedStrings();
 		}		
 	}
 	
@@ -242,12 +240,12 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
 
 	@Override
 	public Object getValueFromComponent() {
-		return currentDate;
+		return currentValue;
 	}
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return newDate;
+		return newValue;
 	}
 
 	@Override
@@ -259,11 +257,10 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
 			throw new IllegalArgumentException("Ivnalid value class to assign ["+value.getClass().getCanonicalName()+"]. Can be "+Arrays.toString(VALID_CLASSES)+" only");
 		}
 		else {
-			newDate = value;
+			newValue = value;
 			refreshView();
 		}
 	}
-
 
 	@Override
 	public Class<?> getValueType() {
@@ -299,28 +296,17 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
 		yearSpin.setToolTipText(localizer.getValue(YEAR_TOOLTIP));
 		monthLabel.setText(localizer.getValue(MONTH_LABEL));
 		monthSpin.setToolTipText(localizer.getValue(MONTH_TOOLTIP));
-        
-		final String 	days[] = localizer.getValue(DAY_NAMES).split("\\;");
-        
-        for (int index = 0; index < days.length; index++) {
-        	final Color		fore = days[index].startsWith("!") ? SwingUtils.DATEPICKER_WEEKEND_VALUE_COLOR : SwingUtils.DATEPICKER_DAY_VALUE_COLOR;
-        	
-        	dayNames[index].setForeground(fore);
-        	for (JButton item : dayPins[index]) {
-        		item.setForeground(fore);
-        	}
-        	dayNames[index].setText(days[index].replace("!",""));
-        }
+		days.refreshDayNames(localizer);
 	}
 
     private Calendar getCalendar() {
         final Calendar 	calendar = Calendar.getInstance(localizer.currentLocale().getLocale());
         
-    	if (currentDate instanceof Calendar) {
-    		calendar.setTimeInMillis(((Calendar)newDate).getTimeInMillis());
+    	if (newValue instanceof Calendar) {
+    		calendar.setTimeInMillis(((Calendar)newValue).getTimeInMillis());
     	}
     	else {
-            calendar.setTimeInMillis(((Date)newDate).getTime());
+            calendar.setTimeInMillis(((Date)newValue).getTime());
     	}
         return calendar;
     }
@@ -334,26 +320,108 @@ public class JDateSelectionPopup extends JPanel implements LocaleChangeListener,
 		}
 	}
 
+	private boolean 	recursionProtect = false;
+	
 	private void refreshView() {
-		final Calendar	cal = getCalendar();
+		if (!recursionProtect) {
+			recursionProtect = true;
+			final Calendar	cal = getCalendar();
+			final int		year = cal.get(Calendar.YEAR);
+			final int		month = cal.get(Calendar.MONTH)+1;
+			
+			yearSpin.setValue(year);
+			monthSpin.setValue(month);
+			days.refreshDays(cal);
+			recursionProtect = false;
+		}
+	}
+	
+	private static class DaysModel extends DefaultTableModel implements TableCellRenderer {
+		private static final long 	serialVersionUID = 1L;
+		private static final int	ROWS = 6;
+		private static final int	COLUMNS = 7;
+
+		private final boolean[]		weekends = new boolean[COLUMNS];
+		private final String[]		labels = new String[COLUMNS];
+		private final String[]		days = new String[ROWS*COLUMNS];
+
 		
-		yearSpin.setValue(cal.get(Calendar.YEAR));
-		monthSpin.setValue(cal.get(Calendar.MONTH));
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        
-        final int 	maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        
-        for (int i = 0, minDay = 2 - cal.get(Calendar.DAY_OF_WEEK); i < dayPins.length; i++) {
-            for (int j = 0; j < dayPins[i].length; j++, minDay++) {
-            	if (minDay >= 1 && minDay <= maxDay) {
-            		dayPins[i][j].setText(String.valueOf(minDay));
-            		dayPins[i][j].setEnabled(true);
-            	}
-            	else {
-                    dayPins[i][j].setText("");
-            		dayPins[i][j].setEnabled(false);
-            	}
-            }
-        }
+		@Override
+		public int getRowCount() {
+			return ROWS;
+		}
+
+		@Override
+		public int getColumnCount() {
+			return COLUMNS;
+		}
+
+
+		@Override
+		public String getColumnName(final int columnIndex) {
+			return labels[columnIndex];
+		}
+
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			return String.class;
+		}
+
+
+		@Override
+		public boolean isCellEditable(int rowIndex, int columnIndex) {
+			return false;
+		}
+
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			return days[rowIndex*COLUMNS+columnIndex];
+		}
+
+		public void refreshDayNames(final Localizer localizer) throws LocalizationException {
+			final String 	dayNames[] = localizer.getValue(DAY_NAMES).split("\\;");
+			final Calendar	cal = Calendar.getInstance(localizer.currentLocale().getLocale());
+	        
+	        for (int index = 0; index < dayNames.length; index++) {
+	        	final int	dayIndex = (8 - cal.getFirstDayOfWeek() + index) % 7;
+	        	
+	        	weekends[dayIndex] = dayNames[index].startsWith("!");
+	        	labels[dayIndex] = dayNames[index].replace("!","");
+	        }
+	        fireTableStructureChanged();
+		}		
+		
+		public void refreshDays(final Calendar cal) {
+			final Calendar	tmp = (Calendar)cal.clone();
+			
+			Arrays.fill(days,"");
+			tmp.set(Calendar.DAY_OF_MONTH,1);
+			
+			final int 	delta = (cal.getFirstDayOfWeek() + tmp.get(Calendar.DAY_OF_WEEK) + 5) % 7; 
+			for (int index = 0, maxIndex = tmp.getActualMaximum(Calendar.DAY_OF_MONTH); index < maxIndex; index++) {
+				days[index + delta] = String.valueOf(index+1);
+			}
+	        fireTableDataChanged();
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, int column) {
+			final JLabel	label = new JLabel(value == null ? "" : value.toString());
+			
+			label.setForeground(weekends[column] ? Color.RED : Color.BLACK);
+			if (hasFocus) {
+				label.setBorder(new LineBorder(Color.BLUE));
+			}
+			return label;
+		}
+	}
+
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			currentValue = newValue;
+			refreshView();
+		} catch (ContentException exc) {
+		}					
 	}
 }

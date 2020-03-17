@@ -135,7 +135,7 @@
 		<key name="JDateSelectionDialog.monthLabel">Month</key>
 		<key name="JDateSelectionDialog.year.tooltip">Select year of the date</key>
 		<key name="JDateSelectionDialog.month.tooltip">Select month of the date</key>
-		<key name="JDateSelectionDialog.day.names">Sun;Mon;Tue;Wed;Thu;Fri;Sat</key>
+		<key name="JDateSelectionDialog.day.names">!Sun;Mon;Tue;Wed;Thu;Fri;!Sat</key>
 
 <!-- File system selection dialog localization  -->
 		<key name="JFileSystemChanger.button.accept">${ACCEPT}</key>
@@ -306,7 +306,7 @@
 		<key name="JDateSelectionDialog.monthLabel">Месяц</key>
 		<key name="JDateSelectionDialog.year.tooltip">Выберите год даты</key>
 		<key name="JDateSelectionDialog.month.tooltip">Выберите месяц даты</key>
-		<key name="JDateSelectionDialog.day.names">Вс;Пн;Вт;Ср;Чт;Пт;Сб</key>
+		<key name="JDateSelectionDialog.day.names">!Вс;Пн;Вт;Ср;Чт;Пт;!Сб</key>
 		
 <!-- Локализация диалога выбора файловой системы  -->
 		<key name="JFileSystemChanger.button.accept">${ACCEPT}</key>
