@@ -123,40 +123,9 @@ import chav1961.purelib.ui.swing.useful.LocalizedFormatter;
  */
 
 public abstract class SwingUtils {
-	public static final Color				MANDATORY_BACKGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_BACKGROUND,Color.class,"LightCyan3");
-	public static final Color				MANDATORY_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_FOREGROUND,Color.class,"blue");
-	public static final Color				MANDATORY_FOREGROUND_NEGATIVE = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_FOREGROUND_NEGATIVE,Color.class,"red");
-	public static final Color				MANDATORY_FOREGROUND_ZERO = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_FOREGROUND_ZERO,Color.class,"blue");
-	public static final Color				MANDATORY_FOREGROUND_POSITIVE = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_FOREGROUND_POSITIVE,Color.class,"green");
-	public static final Color				MANDATORY_SELECTION_BACKGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_SELECTED,Color.class,"blue");
-	public static final Color				MANDATORY_SELECTION_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_SELECTED_TEXT,Color.class,"white");
-	public static final Color				OPTIONAL_BACKGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.OPTIONAL_BACKGROUND,Color.class,"white");
-	public static final Color				OPTIONAL_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.OPTIONAL_FOREGROUND,Color.class,"black");
-	public static final Color				OPTIONAL_FOREGROUND_NEGATIVE = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_FOREGROUND_NEGATIVE,Color.class,"red");
-	public static final Color				OPTIONAL_FOREGROUND_ZERO = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_FOREGROUND_ZERO,Color.class,"blue");
-	public static final Color				OPTIONAL_FOREGROUND_POSITIVE = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_FOREGROUND_POSITIVE,Color.class,"green");
-	public static final Color				OPTIONAL_SELECTION_BACKGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_SELECTED,Color.class,"blue");
-	public static final Color				OPTIONAL_SELECTION_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.MANDATORY_SELECTED_TEXT,Color.class,"white");
-	public static final Color				READONLY_BACKGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.READONLY_BACKGROUND,Color.class,"LightGray");
-	public static final Color				READONLY_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.READONLY_FOREGROUND,Color.class,"black");
-
-	public static final Color				NEGATIVEMARK_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.NEGATIVEMARK_FOREGROUND,Color.class,"red");
-	public static final Color				POSITIVEMARK_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.POSITIVEMARK_FOREGROUND,Color.class,"green");
-	public static final Color				ZEROMARK_FOREGROUND = PureLibSettings.instance().getProperty(PureLibColorScheme.ZEROMARK_FOREGROUND,Color.class,"brown");
-	
-	public static final Color				DATEPICKER_DAY_NAME_COLOR = PureLibSettings.instance().getProperty(PureLibColorScheme.DATEPICKER_DAY_NAME_COLOR,Color.class,"blue"); 
-	public static final Color				DATEPICKER_WEEKEND_NAME_COLOR = PureLibSettings.instance().getProperty(PureLibColorScheme.DATEPICKER_WEEKEND_NAME_COLOR,Color.class,"red");
-	public static final Color				DATEPICKER_DAY_VALUE_COLOR = PureLibSettings.instance().getProperty(PureLibColorScheme.DATEPICKER_DAY_VALUE_COLOR,Color.class,"black");
-	public static final Color				DATEPICKER_WEEKEND_VALUE_COLOR = PureLibSettings.instance().getProperty(PureLibColorScheme.DATEPICKER_WEEKEND_VALUE_COLOR,Color.class,"red");
-			
 	public static final Border				TABLE_CELL_BORDER = new LineBorder(Color.BLACK,1);
 	public static final Border				TABLE_HEADER_BORDER = new LineBorder(Color.BLACK,1);	
 	public static final Border				FOCUSED_TABLE_CELL_BORDER = new LineBorder(Color.BLUE,1);
-	
-	public static final Color				TOOLTIP_BORDER_COLOR = PureLibSettings.instance().getProperty(PureLibColorScheme.TOOLTIP_BORDER_COLOR,Color.class,"IndianRed");
-	
-	public static final Color				SELECTED_TABLE_LINE = Color.WHITE;
-	public static final Color				UNSELECTED_TABLE_LINE = new Color(224,224,224);
 	
 	public static final KeyStroke			KS_BACKWARD = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_FORWARD = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK);

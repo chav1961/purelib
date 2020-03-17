@@ -13,6 +13,7 @@ import javax.swing.text.InternationalFormatter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.model.FieldFormat;
 
 class InternalUtils {
@@ -70,13 +71,13 @@ class InternalUtils {
 	static void setFieldColor(final JTextComponent component, final FieldFormat format, final int signum) {
 		if (format.isHighlighted(signum)) {
 			if (signum < 0) {
-				component.setForeground(SwingUtils.NEGATIVEMARK_FOREGROUND);
+				component.setForeground(PureLibSettings.defaultColorScheme().NEGATIVEMARK_FOREGROUND);
 			}
 			else if (signum > 0) {
-				component.setForeground(SwingUtils.POSITIVEMARK_FOREGROUND);
+				component.setForeground(PureLibSettings.defaultColorScheme().POSITIVEMARK_FOREGROUND);
 			}
 			else {
-				component.setForeground(SwingUtils.ZEROMARK_FOREGROUND);
+				component.setForeground(PureLibSettings.defaultColorScheme().ZEROMARK_FOREGROUND);
 			}
 		}
 	}

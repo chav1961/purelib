@@ -15,6 +15,7 @@ import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.LineBorder;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -111,10 +112,10 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 						final JLabel	label = new JLabel();
 
 						label.setOpaque(true);
-						label.setBackground(isSelected ? SwingUtils.MANDATORY_SELECTION_BACKGROUND : (format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND));
-						label.setForeground(isSelected ? SwingUtils.MANDATORY_SELECTION_FOREGROUND : (format.isMandatory() ? SwingUtils.MANDATORY_FOREGROUND : SwingUtils.OPTIONAL_FOREGROUND));
+						label.setBackground(isSelected ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND : (format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND));
+						label.setForeground(isSelected ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND : (format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND));
 						if (cellHasFocus) {
-							label.setBorder(new LineBorder(SwingUtils.MANDATORY_SELECTION_FOREGROUND));
+							label.setBorder(new LineBorder(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
 						}
 						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
 								final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);
@@ -148,12 +149,12 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 
 			if (format != null) {
 				if (format.isMandatory()) {
-					setBackground(SwingUtils.MANDATORY_BACKGROUND);
-					setForeground(SwingUtils.MANDATORY_FOREGROUND);
+					setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
+					setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
 				}
 				else {
-					setBackground(SwingUtils.OPTIONAL_BACKGROUND);
-					setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+					setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+					setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
 				}
 				switch (format.getAlignment()) {
 					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
@@ -166,8 +167,8 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 				}
 			}
 			else {
-				setBackground(SwingUtils.OPTIONAL_BACKGROUND);
-				setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+				setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
 				setAlignmentX(JComboBox.LEFT_ALIGNMENT);
 			}
 			

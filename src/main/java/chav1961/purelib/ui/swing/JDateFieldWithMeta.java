@@ -20,6 +20,7 @@ import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.DateFormatter;
 import javax.swing.text.DefaultFormatterFactory;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -126,7 +127,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			});
 
 			if (format != null) {
-				setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
+				setBackground(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
 				switch (format.getAlignment()) {
 					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
 					case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
@@ -140,7 +141,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 				setColumns(format.getLength() == 0 ? DEFAULT_COLUMNS : format.getLength());
 			}
 			else {
-				setBackground(SwingUtils.OPTIONAL_BACKGROUND);
+				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
 				setAlignmentX(JTextField.RIGHT_ALIGNMENT);
 				setColumns(DEFAULT_COLUMNS);
 			}

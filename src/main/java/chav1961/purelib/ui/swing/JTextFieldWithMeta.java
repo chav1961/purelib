@@ -11,6 +11,7 @@ import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -98,7 +99,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			});
 
-			setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
+			setBackground(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
 			switch (format.getAlignment()) {
 				case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
 				case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;

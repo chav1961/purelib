@@ -15,6 +15,7 @@ import javax.swing.JTextField;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.InternationalFormatter;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -131,9 +132,9 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				}
 			});
 
-			setBackground(format.isMandatory() ? SwingUtils.MANDATORY_BACKGROUND : SwingUtils.OPTIONAL_BACKGROUND);
-			setSelectionColor(format.isMandatory() ? SwingUtils.MANDATORY_SELECTION_BACKGROUND : SwingUtils.OPTIONAL_SELECTION_BACKGROUND);
-			setSelectedTextColor(format.isMandatory() ? SwingUtils.MANDATORY_SELECTION_FOREGROUND : SwingUtils.OPTIONAL_SELECTION_FOREGROUND);
+			setBackground(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+			setSelectionColor(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
+			setSelectedTextColor(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
 			switch (format.getAlignment()) {
 				case CenterAlignment: setHorizontalAlignment(JTextField.CENTER); break;
 				case LeftAlignment	: setHorizontalAlignment(JTextField.LEFT); break;

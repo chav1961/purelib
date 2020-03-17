@@ -16,6 +16,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.plaf.basic.BasicArrowButton;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -112,12 +113,12 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			});
 			if (format != null) {
 				if (format.isMandatory()) {
-					setBackground(SwingUtils.MANDATORY_BACKGROUND);
-					setForeground(SwingUtils.MANDATORY_FOREGROUND);
+					setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
+					setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
 				}
 				else {
-					setBackground(SwingUtils.OPTIONAL_BACKGROUND);
-					setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+					setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+					setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
 				}
 				switch (format.getAlignment()) {
 					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
@@ -131,8 +132,8 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			}
 			else {
-				setBackground(SwingUtils.OPTIONAL_BACKGROUND);
-				setForeground(SwingUtils.OPTIONAL_FOREGROUND);
+				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+				setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
 				setAlignmentX(JTextField.LEFT_ALIGNMENT);
 			}
 			

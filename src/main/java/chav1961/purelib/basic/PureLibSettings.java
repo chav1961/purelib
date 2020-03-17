@@ -35,6 +35,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.monitoring.MonitoringManager;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.content.ResultSetFactory;
+import chav1961.purelib.ui.ColorScheme;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 
@@ -225,8 +226,10 @@ public class PureLibSettings {
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
+	private static final ColorScheme				DEFAULT_COLOR_SCHEME = new ColorScheme();
 	private static final SubstitutableProperties	defaults = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	props = new SubstitutableProperties(defaults);
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static final WellKnownSchema[]			schemasList = {
 															new WellKnownSchemaImpl(Localizer.LOCALIZER_SCHEME, "", LocalizerFactory.class, true, 
@@ -301,6 +304,10 @@ public class PureLibSettings {
 		return props;
 	}
 
+	public static ColorScheme defaultColorScheme() {
+		return DEFAULT_COLOR_SCHEME;
+	}
+	
 	/**
 	 * <p>Convert color name to it's {@linkplain Color} representation</p>
 	 * @param name name to convert
