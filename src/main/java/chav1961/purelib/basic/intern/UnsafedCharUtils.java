@@ -1,5 +1,6 @@
 package chav1961.purelib.basic.intern;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.CharUtils;
@@ -887,18 +888,22 @@ public class UnsafedCharUtils {
 		throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
 	}
 	
-	public static int uncheckedParseString(final char[] source, final int from, final char terminal, final StringBuilder result) {
+	public static int uncheckedParseString(final char[] source, final int from, final char terminal, final Appendable result) throws IOException {
 		final int		len = source.length;
 		
 		int		index;
 		
 		for (index = from; index < len; index++) {
 			if (source[index] == terminal) {
-				result.append(source,from,index-from);
+				for (int moveIndex = from; moveIndex < index;  moveIndex++) {
+					result.append(source[moveIndex]);
+				}
 				return index + 1;
 			}
 			else if (source[index] == '\\') {
-				result.append(source,from,index-from);
+				for (int moveIndex = from; moveIndex < index;  moveIndex++) {
+					result.append(source[moveIndex]);
+				}
 				break;
 			}
 		}
@@ -912,14 +917,14 @@ public class UnsafedCharUtils {
 				}
 				else {
 					switch (source[index+1]) {
-						case '\"' 	: result.append("\""); break;
-						case '\\' 	: result.append("\\"); break;
-						case '/' 	: result.append("/"); break;
-						case 'b' 	: result.append("\b"); break;
-						case 'f' 	: result.append("\f"); break;
-						case 'n' 	: result.append("\n"); break;
-						case 'r' 	: result.append("\r"); break;
-						case 't' 	: result.append("\t"); break;
+						case '\"' 	: result.append('\"'); break;
+						case '\\' 	: result.append('\\'); break;
+						case '/' 	: result.append('/'); break;
+						case 'b' 	: result.append('\b'); break;
+						case 'f' 	: result.append('\f'); break;
+						case 'n' 	: result.append('\n'); break;
+						case 'r' 	: result.append('\r'); break;
+						case 't' 	: result.append('\t'); break;
 						case 'u' 	:
 							if (index + 2 >= len - U_ESCAPE_SIZE) {
 								throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char is too short");
@@ -958,17 +963,21 @@ public class UnsafedCharUtils {
 		throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
 	}
 	
-	public static int uncheckedParseStringExtended(final char[] source, final int from, final char terminal, final StringBuilder result) {
+	public static int uncheckedParseStringExtended(final char[] source, final int from, final char terminal, final Appendable result) throws IOException {
 		final int		len = source.length;
 		int		index;
 		
 		for (index = from; index < len; index++) {
 			if (source[index] == terminal) {
-				result.append(source,from,index-from);
+				for (int moveIndex = from; moveIndex < index;  moveIndex++) {
+					result.append(source[moveIndex]);
+				}
 				return index + 1;
 			}
 			else if (source[index] == '\\') {
-				result.append(source,from,index-from);
+				for (int moveIndex = from; moveIndex < index;  moveIndex++) {
+					result.append(source[moveIndex]);
+				}
 				break;
 			}
 		}
@@ -982,15 +991,15 @@ public class UnsafedCharUtils {
 				}
 				else {
 					switch (source[index+1]) {
-						case '\"' 	: result.append("\""); break;
-						case '\'' 	: result.append("\'"); break;
-						case '\\' 	: result.append("\\"); break;
-						case '/' 	: result.append("/"); break;
-						case 'b' 	: result.append("\b"); break;
-						case 'f' 	: result.append("\f"); break;
-						case 'n' 	: result.append("\n"); break;
-						case 'r' 	: result.append("\r"); break;
-						case 't' 	: result.append("\t"); break;
+						case '\"' 	: result.append('\"'); break;
+						case '\'' 	: result.append('\''); break;
+						case '\\' 	: result.append('\\'); break;
+						case '/' 	: result.append('/'); break;
+						case 'b' 	: result.append('\b'); break;
+						case 'f' 	: result.append('\f'); break;
+						case 'n' 	: result.append('\n'); break;
+						case 'r' 	: result.append('\r'); break;
+						case 't' 	: result.append('\t'); break;
 						case 'u' 	:
 							if (index + 2 >= len - U_ESCAPE_SIZE) {
 								throw new IllegalArgumentException("Escape \\uXXXX sequence at the "+(index-from+1)+"-th char is too short");

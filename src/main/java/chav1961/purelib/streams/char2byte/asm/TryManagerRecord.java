@@ -5,7 +5,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 
-class TryManagerRecord extends NestedEntity {
+class TryManagerRecord {
 	private final AbstractMethodBody	amb;
 	private final short 				codeStart;
 	private final long 					labelId;

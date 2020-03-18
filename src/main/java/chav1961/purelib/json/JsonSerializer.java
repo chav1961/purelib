@@ -1877,7 +1877,7 @@ public abstract class JsonSerializer<T> {
 				else if (instance == null) {
 					writer.nullValue();
 				}
-				else {
+				else { 
 					writer.value(instance);
 				}
 			} catch (IOException e) {
@@ -1975,6 +1975,8 @@ public abstract class JsonSerializer<T> {
 						
 						try{from = UnsafedCharUtils.uncheckedParseString(content,from+1,STRING_TERMINATOR,sb);
 							result[0] = sb.toString();
+						} catch (IOException e) {
+							throw new SyntaxException(0,from,e.getLocalizedMessage()); 
 						} finally {
 							stringBuilderMemory.free(sb);
 						}

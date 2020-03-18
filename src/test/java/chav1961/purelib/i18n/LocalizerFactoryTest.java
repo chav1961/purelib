@@ -2,7 +2,10 @@ package chav1961.purelib.i18n;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.ServiceLoader;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -11,7 +14,14 @@ import javax.swing.JTextField;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.fsys.FileSystemInMemory;
+import chav1961.purelib.fsys.FileSystemOnFile;
+import chav1961.purelib.fsys.FileSystemOnFileSystem;
+import chav1961.purelib.fsys.FileSystemOnRMI;
+import chav1961.purelib.fsys.FileSystemOnXMLReadOnly;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;
@@ -106,6 +116,20 @@ public class LocalizerFactoryTest {
 		} catch (NullPointerException exc) {
 		}
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void spiTest() throws IOException, EnvironmentException {
+		final Set<Class<Localizer>>	providers = new HashSet<>(); 
+		
+		for (Localizer item : ServiceLoader.load(Localizer.class)) {
+			providers.add((Class<Localizer>)item.getClass());
+		}
+		Assert.assertEquals(2,providers.size());
+		Assert.assertTrue(providers.contains(XMLLocalizer.class));
+		Assert.assertTrue(providers.contains(PropertiesLocalizer.class));
+	}
+
 }
 
 @LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml")

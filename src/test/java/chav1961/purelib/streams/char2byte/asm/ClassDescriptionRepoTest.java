@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 public class ClassDescriptionRepoTest {
 	public static final int		testField = 0;	// For testing purposes only!
@@ -40,12 +41,12 @@ public class ClassDescriptionRepoTest {
 		Assert.assertEquals(cdr.getFieldDescription(longFieldName,0,longFieldName.length),f);
 		
 		final Method				m = clazz.getMethod("basicTest");	// It's a name of THIS method!
-		final char[]				longMethodName = (clazz.getName()+'.'+m.getName()+InternalUtils.buildSignature(m)).toCharArray();
+		final char[]				longMethodName = (clazz.getName()+'.'+m.getName()+CompilerUtils.buildMethodSignature(m)).toCharArray();
 		
 		Assert.assertEquals(cdr.getMethodDescription(longMethodName,0,longMethodName.length),m);
 
 		final Constructor<?>		c = clazz.getConstructor(constr);
-		final char[]				longConstructorName = (clazz.getName()+'.'+clazz.getSimpleName()+InternalUtils.buildSignature(c)).toCharArray();
+		final char[]				longConstructorName = (clazz.getName()+'.'+clazz.getSimpleName()+CompilerUtils.buildConstructorSignature(c)).toCharArray();
 
 		Assert.assertEquals(cdr.getConstructorDescription(longConstructorName,0,longConstructorName.length),c);
 	}

@@ -418,7 +418,10 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		
 		if ((temp = UnsafedCharUtils.uncheckedParseUnescapedString(data,from+1,'\"',true,locations)) < 0) {
 			sb.setLength(0);
-			temp = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',sb);
+			try{temp = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',sb);
+			} catch (IOException e) {
+				throw new ContentException(e.getLocalizedMessage(),e); 
+			}
 			handler.startName(sb.toString().toCharArray(),0,sb.length());
 		}
 		else {
@@ -431,7 +434,7 @@ public class JsonSaxParser implements LineByLineProcessorCallback {
 		if (UnsafedCharUtils.uncheckedCompare(data,from,CONST_NULL,0,CONST_NULL.length)) {
 			handler.value();
 			return from + CONST_NULL.length;
-		}
+		} 
 		else {
 			throw new IllegalArgumentException();
 		}

@@ -28,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -92,24 +93,23 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private boolean							closed = false;
 	private Color							oldForeground4Label;
 
-	public AutoBuiltForm(final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(localizer, null, instance, formMgr, 1);
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, instance, formMgr, 1);
 	}
 
-	public AutoBuiltForm(final Localizer localizer, final T instance, final FormManager<Object,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(localizer, null, instance, formMgr, columns);
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final T instance, final FormManager<Object,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, null, instance, formMgr, columns, false);
 	}
 
-	public AutoBuiltForm(final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(localizer, leftIcon, instance, formMgr, 1);
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, leftIcon, instance, formMgr, 1, false);
 	}
 
-	public AutoBuiltForm(final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(localizer,new SystemErrLoggerFacade(),leftIcon,instance,formMgr,numberOfBars,false);
-	}
-	
-	public AutoBuiltForm(final Localizer localizer, final LoggerFacade logger, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		if (localizer == null) {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		if (mdi == null) {
+			throw new NullPointerException("Metadata interface can't be null");
+		}
+		else if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
 		else if (logger == null) {
@@ -128,15 +128,14 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			final BorderLayout				totalLayout = new BorderLayout(GAP_SIZE, GAP_SIZE);
 			final JPanel					childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
 			final JPanel					buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-			final Class<?>					instanceClass = instance.getClass();
 
+			this.mdi = mdi;
 			this.logger = logger;
+			this.formManager = formMgr;
 			this.tooltipsOnFocus = tooltipsOnFocus; 
 			
 			try(final LoggerFacade			trans = logger.transaction(this.getClass().getSimpleName())) {
 				this.instance = instance;
-				this.formManager = formMgr;
-				this.mdi = ContentModelFactory.forAnnotatedClass(instanceClass);
 				
 				this.localizer = new LocalizerStore(localizer,mdi.getRoot().getLocalizerAssociated());
 
@@ -155,7 +154,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						accessors.put(metadata.getUIPath(),gas);
 					}
 					
-					@Override
+			 		@Override
 					public void processActionButton(final ContentNodeMetadata metadata, final JButtonWithMeta button) throws ContentException {
 						button.addActionListener((e)->{
 							listeners.fireEvent((l)->{
@@ -187,7 +186,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 
 				setLayout(totalLayout);
-				childPanel.validate();
+				childPanel.validate(); 
 				
 				if (leftIcon != null) {
 					add(new JLabel(new ImageIcon(leftIcon)),BorderLayout.WEST);
@@ -195,7 +194,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 				add(childPanel,BorderLayout.CENTER);
 				add(buttonPanel,BorderLayout.SOUTH);
-				fillLocalizedStrings();
+				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 				
 				trans.rollback();
 			}
@@ -204,15 +203,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException, NullPointerException {
-		if (oldLocale == null) {
-			throw new NullPointerException("Old locale can't be null");
-		}
-		else if (newLocale == null) {
-			throw new NullPointerException("New locale can't be null");
-		}
-		else {
-			fillLocalizedStrings();
-		}
+		fillLocalizedStrings(oldLocale,newLocale);
 	}
 
 	@Override
@@ -336,7 +327,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		return true;
 	}
 
-	private void fillLocalizedStrings() {
+	private void fillLocalizedStrings(final Locale oldLocale, final Locale newLocale) {
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				if(node.getApplicationPath() != null) {
@@ -355,6 +346,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		
 						try{label.setText(getLocalizerAssociated().getValue(node.getLabelId()));
 							field.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId()));
+							if (field instanceof LocaleChangeListener) {
+								((LocaleChangeListener)field).localeChanged(oldLocale, newLocale);
+							}
 						} catch (LocalizationException exc) {
 							logger.message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 						}
@@ -424,19 +418,12 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			throw new IllegalArgumentException("Ok and cancel URI array length is too long. Only 0..2 are available");
 		}
 		else {
-			final boolean[]	result = new boolean[] {false};
-			final ActionListener okListener = (e)->{result[0] = true; dlg.setVisible(false);}; 
-			final ActionListener cancelListener = (e)->{result[0] = false; dlg.setVisible(false);}; 
+			final boolean[]			result = new boolean[] {false};
+			final ActionListener 	okListener = (e)->{result[0] = true; dlg.setVisible(false);}; 
+			final ActionListener 	cancelListener = (e)->{result[0] = false; dlg.setVisible(false);}; 
 			
-			form.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"ask.accept");
-			form.getActionMap().put("ask.accept",new AbstractAction() {
-				private static final long serialVersionUID = 1L;
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					okListener.actionPerformed(e);
-				}
-			});			
-			
+			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,(e)->okListener.actionPerformed(e),"ask.accept");
+			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,(e)->cancelListener.actionPerformed(e),"ask.cancel");
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if(node.getApplicationPath() != null) {
@@ -445,18 +432,6 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 							} catch (LocalizationException exc) {
 								form.formManager.getLogger().message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 							}
-						}
-						else if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
-							final JComponent	item = (JComponent) SwingUtils.findComponentByName(form,uiPath.toString());
-							
-							item.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),"ask.cancel");
-							item.getActionMap().put("ask.cancel",new AbstractAction() {
-								private static final long serialVersionUID = 1L;
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									cancelListener.actionPerformed(e);
-								}
-							});			
 						}
 					}
 				}
@@ -475,64 +450,47 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				dlg.getContentPane().add(bottomPanel,BorderLayout.SOUTH);
 			}
 			else if (okAndCancel.length == 1) {
-				addActionListener(form,form.mdi,okAndCancel[0],cancelListener);
+				makeActionListener(form,form.mdi,okAndCancel[0],cancelListener,true);
 			}
 			else {
-				addActionListener(form,form.mdi,okAndCancel[0],okListener);
-				addActionListener(form,form.mdi,okAndCancel[1],cancelListener);
+				makeActionListener(form,form.mdi,okAndCancel[0],okListener,true);
+				makeActionListener(form,form.mdi,okAndCancel[1],cancelListener,true);
 			}
 			dlg.getContentPane().add(form,BorderLayout.CENTER);
 			dlg.pack();
 			dlg.setLocationRelativeTo(parent);
 			
 			try{dlg.setVisible(true);
-				dlg.dispose();
 				return result[0];
 			} finally {
 				if (okAndCancel.length == 1) {	// Exclude memory leaks by subscribing
-					removeActionListener(form,form.mdi,okAndCancel[0],cancelListener);
+					makeActionListener(form,form.mdi,okAndCancel[0],cancelListener,false);
 				}
 				else if (okAndCancel.length == 2) {
-					removeActionListener(form,form.mdi,okAndCancel[0],okListener);
-					removeActionListener(form,form.mdi,okAndCancel[1],cancelListener);
+					makeActionListener(form,form.mdi,okAndCancel[0],okListener,false);
+					makeActionListener(form,form.mdi,okAndCancel[1],cancelListener,false);
 				}
+				SwingUtils.removeActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,"ask.accept");
+				SwingUtils.removeActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,"ask.cancel");
 			}
 		}
 	}
 
-	private static void addActionListener(final AutoBuiltForm<?> form, final ContentMetadataInterface mdi, final URI appPath, final ActionListener listener) {
+	private static void makeActionListener(final AutoBuiltForm<?> form, final ContentMetadataInterface mdi, final URI appPath, final ActionListener listener, final boolean add) {
 		final boolean[]	result = new boolean[]{false};
 		
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
-				if (node.getApplicationPath() != null){ 
-					if(appPath.equals(node.getApplicationPath())) {
-						final JButton		button = (JButton) SwingUtils.findComponentByName(form,node.getUIPath().toString());
-						
+				if (node.getApplicationPath() != null && appPath.equals(node.getApplicationPath())) {
+					final JButton		button = (JButton) SwingUtils.findComponentByName(form,node.getUIPath().toString());
+
+					if (add) {
 						button.addActionListener(listener);
-						return ContinueMode.STOP;
 					}
-				}
-			}
-			return ContinueMode.CONTINUE;
-		}, mdi.getRoot().getUIPath());
-		if (!result[0]) {
-			throw new IllegalArgumentException("Application path ["+appPath+"] of the button to use as 'OK'/'Cancel' not found enywhere");  
-		}
-	}
-
-	private static void removeActionListener(final AutoBuiltForm<?> form, final ContentMetadataInterface mdi, final URI appPath, final ActionListener listener) {
-		final boolean[]	result = new boolean[]{false};
-		
-		mdi.walkDown((mode,applicationPath,uiPath,node)->{
-			if (mode == NodeEnterMode.ENTER) {
-				if (node.getApplicationPath() != null){ 
-					if(appPath.equals(node.getApplicationPath())) {
-						final JButton		button = (JButton) SwingUtils.findComponentByName(form,node.getUIPath().toString());
-						
+					else {
 						button.removeActionListener(listener);
-						return ContinueMode.STOP;
 					}
+					return ContinueMode.STOP;
 				}
 			}
 			return ContinueMode.CONTINUE;

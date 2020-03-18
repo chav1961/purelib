@@ -1,5 +1,6 @@
 package chav1961.purelib.model;
 
+import java.awt.Color;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -14,6 +15,7 @@ import javax.swing.text.MaskFormatter;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.ui.ColorPair;
 
 public class FieldFormat {
 	public enum ContentType {
@@ -28,6 +30,8 @@ public class FieldFormat {
 		EnumContent,
 		FileContent,
 		URIContent,
+		ColorContent,
+		ColorPairContent,
 		ArrayContent,
 		NestedContent,
 		Unclassified
@@ -292,6 +296,12 @@ public class FieldFormat {
 				}
 				else if (URI.class.isAssignableFrom(clazz)) {
 					return ContentType.URIContent;
+				}
+				else if (Color.class.isAssignableFrom(clazz)) {
+					return ContentType.ColorContent;
+				}
+				else if (ColorPair.class.isAssignableFrom(clazz)) {
+					return ContentType.ColorPairContent;
 				}
 				else  {
 					return ContentType.Unclassified;

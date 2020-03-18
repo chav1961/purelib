@@ -20,6 +20,7 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.HighlightItem;
 
@@ -168,13 +169,8 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 			if (tt != null) {
 				tt.cancel();
 			}
-			tt = new TimerTask() {
-				@Override
-				public void run() {
-					callHighlighter();
-				}
-			};
+			tt = new SimpleTimerTask(()->callHighlighter());
+			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,REFRESH_DELAY_MILLISECONDS);
 		}
-		PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,REFRESH_DELAY_MILLISECONDS);
 	}
 }

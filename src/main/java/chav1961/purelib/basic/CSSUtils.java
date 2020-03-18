@@ -285,10 +285,13 @@ public class CSSUtils {
 						final int 	start = from;
 						
 						sb.setLength(0);
-						from = UnsafedCharUtils.uncheckedParseString(src,from+1,'\"',sb);
+						try{from = UnsafedCharUtils.uncheckedParseString(src,from+1,'\"',sb);
+						} catch (IOException e) {
+							throw new SyntaxException(0,from,e.getLocalizedMessage());
+						}
 						if (from >= src.length || src[from] == '\0') {
 							throw new SyntaxException(0,start,"Unpaired quotes");
-						}
+		 				}
 						else {
 							lexemas.add(new CSSLex(from,CSSLex.CSSLExType.STRING,sb.toString()));
 						}
@@ -741,7 +744,10 @@ public class CSSUtils {
 					if (src[from] == '\"') {
 						sb.setLength(0);
 						begin = from;
-						from = UnsafedCharUtils.uncheckedParseString(src,from+1,'\"',sb);
+						try{from = UnsafedCharUtils.uncheckedParseString(src,from+1,'\"',sb);
+						} catch (IOException exc) {
+							throw new SyntaxException(0,begin,exc.getLocalizedMessage()); 
+						}
 						if (from >= src.length) {
 							throw new SyntaxException(0,begin,"Unclosed double quote"); 
 						}

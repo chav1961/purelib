@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -56,60 +57,6 @@ class InternalUtils {
 
 	/**
 	 * <p>Build field signature by it's description</p>
-	 * @param field field to build signature for
-	 * @return signature built
-	 */
-	static final String buildSignature(final Field field) {
-		if (field == null) {
-			throw new IllegalArgumentException("Field can't be null");
-		}
-		else {
-			return buildSignature(field.getType());
-		}
-	}	
-	
-	/**
-	 * <p>Build method signature by it's description</p>
-	 * @param method method to build signature for
-	 * @return signature built
-	 */
-	static final String buildSignature(final Method method) {
-		if (method == null) {
-			throw new IllegalArgumentException("Method can't be null");
-		}
-		else {
-			final StringBuilder	sb = new StringBuilder();
-			
-			sb.append('(');
-			for (Class<?> item : method.getParameterTypes()) {
-				sb.append(buildSignature(item));
-			}
-			return sb.append(')').append(buildSignature(method.getReturnType())).toString();
-		}
-	}
-
-	/**
-	 * <p>Build constructor signature by it's description</p>
-	 * @param constructor constructor to build signature for
-	 * @return signature built
-	 */
-	static final String buildSignature(final Constructor<?> constructor) {
-		if (constructor == null) {
-			throw new IllegalArgumentException("Method can't be null");
-		}
-		else {
-			final StringBuilder	sb = new StringBuilder();
-			
-			sb.append('(');
-			for (Class<?> item : constructor.getParameterTypes()) {
-				sb.append(buildSignature(item));
-			}
-			return sb.append(")V").toString();
-		}
-	}
-
-	/**
-	 * <p>Build field signature by it's description</p>
 	 * @param tree name tree containing names
 	 * @param item name id in the tree
 	 * @return signature
@@ -159,27 +106,6 @@ class InternalUtils {
 	}
 	
 	
-	private static String buildSignature(final Class<?> item) {
-		if (item.isArray()) {
-			return '['+buildSignature(item.getComponentType());
-		} 
-		else {
-			switch (CompilerUtils.defineClassType(item)) {
-				case CompilerUtils.CLASSTYPE_REFERENCE	: return 'L'+item.getName().replace('.','/')+';';
-				case CompilerUtils.CLASSTYPE_BOOLEAN	: return "Z";
-				case CompilerUtils.CLASSTYPE_BYTE		: return "B";
-				case CompilerUtils.CLASSTYPE_CHAR		: return "C";
-				case CompilerUtils.CLASSTYPE_DOUBLE		: return "D";
-				case CompilerUtils.CLASSTYPE_FLOAT		: return "F";
-				case CompilerUtils.CLASSTYPE_INT		: return "I";
-				case CompilerUtils.CLASSTYPE_LONG		: return "J";
-				case CompilerUtils.CLASSTYPE_SHORT		: return "S";
-				case CompilerUtils.CLASSTYPE_VOID		: return "V";
-				default : throw new UnsupportedOperationException("Primitive class ["+item.getSimpleName()+"] is not supported yet");
-			}
-		}
-	}
-
 	private static String fieldSignature(final String name) {
 		final int	trunc = name.lastIndexOf("[]"); 
 		
@@ -228,14 +154,17 @@ class InternalUtils {
 			from++;
 		}
 		return from;
-	}
+	} 
 
 	static int parseConstant(final char[] data, int from, final boolean treatUnknownAsString, final ExpressionNode[] result) throws CalculationException, SyntaxException {
 		switch (data[from = skipBlank(data,from)]) {
 			case '\"' :
 				final StringBuilder	sb = new StringBuilder();
 				
-				from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',sb);
+				try{from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',sb);
+				} catch (IOException e) {
+					throw new IllegalArgumentException(e.getLocalizedMessage());
+				}
 				result[0] = new ConstantNode(sb.toString().toCharArray());
 				return from;
 			case '-' :
@@ -605,7 +534,11 @@ class InternalUtils {
 				switch (data[from[0]]) {
 					case '\"' 	:
 						final StringBuilder	sb = new StringBuilder();
-						from[0] = UnsafedCharUtils.uncheckedParseString(data,from[0]+1,'\"',sb);
+						
+						try{from[0] = UnsafedCharUtils.uncheckedParseString(data,from[0]+1,'\"',sb);
+						} catch (IOException e) {
+							throw new IllegalArgumentException(e.getLocalizedMessage());
+						}
 						return new ConstantNode(sb.toString().toCharArray());
 					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 						final long[]	numbers = new long[2];
@@ -775,7 +708,10 @@ class InternalUtils {
 		
 		while (from < end && data[from] != '\r' && data[from] != '\n') {
 			if (data[from] == '\"') {
-				bounds[1] = from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',new StringBuilder());
+				try{bounds[1] = from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',new StringBuilder());
+				} catch (IOException e) {
+					throw new IllegalArgumentException(e.getLocalizedMessage());
+				}
 			}
 			else if (data[from] == ',' || data[from] == '=') {
 				bounds[1] = from - 1;

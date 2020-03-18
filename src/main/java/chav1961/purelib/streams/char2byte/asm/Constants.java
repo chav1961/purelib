@@ -85,6 +85,7 @@ class Constants {
 	public static final char[]			ATTRIBUTE_LocalVariableTable = "LocalVariableTable".toCharArray();
 	public static final char[]			ATTRIBUTE_LineNumberTable = "LineNumberTable".toCharArray();
 	public static final char[]			ATTRIBUTE_Signature = "Signature".toCharArray();
+	public static final char[]			ATTRIBUTE_ConstantValue = "ConstantValue".toCharArray();
 	
 	/**
 	 * <p>Source names for ACC_ZZZ attributes

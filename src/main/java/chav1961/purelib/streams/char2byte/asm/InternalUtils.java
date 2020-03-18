@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 
-public class InternalUtils {
+class InternalUtils {
 	static final char[]				FALSE = "false".toCharArray();
 	static final char[]				TRUE = "true".toCharArray();
 	
@@ -27,60 +27,6 @@ public class InternalUtils {
 	static final int				ORDER_NOT = 7;
 	static final int				ORDER_AND = 8;
 	static final int				ORDER_OR = 9;
-
-	/**
-	 * <p>Build field signature by it's description</p>
-	 * @param field field to build signature for
-	 * @return signature built
-	 */
-	public static final String buildSignature(final Field field) {
-		if (field == null) {
-			throw new IllegalArgumentException("Field can't be null");
-		}
-		else {
-			return buildSignature(field.getType());
-		}
-	}	
-	
-	/**
-	 * <p>Build method signature by it's description</p>
-	 * @param method method to build signature for
-	 * @return signature built
-	 */
-	public static final String buildSignature(final Method method) {
-		if (method == null) {
-			throw new IllegalArgumentException("Method can't be null");
-		}
-		else {
-			final StringBuilder	sb = new StringBuilder();
-			
-			sb.append('(');
-			for (Class<?> item : method.getParameterTypes()) {
-				sb.append(buildSignature(item));
-			}
-			return sb.append(')').append(buildSignature(method.getReturnType())).toString();
-		}
-	}
-
-	/**
-	 * <p>Build constructor signature by it's description</p>
-	 * @param constructor constructor to build signature for
-	 * @return signature built
-	 */
-	public static final String buildSignature(final Constructor<?> constructor) {
-		if (constructor == null) {
-			throw new IllegalArgumentException("Method can't be null");
-		}
-		else {
-			final StringBuilder	sb = new StringBuilder();
-			
-			sb.append('(');
-			for (Class<?> item : constructor.getParameterTypes()) {
-				sb.append(buildSignature(item));
-			}
-			return sb.append(")V").toString();
-		}
-	}
 
 	/**
 	 * <p>Build field signature by it's description</p>
@@ -186,24 +132,20 @@ public class InternalUtils {
 	}	
 
 	static int methodSignature2Stack(final Method method, int[] result) {
-		return methodSignature2Stack(buildSignature(method),result);
+		return methodSignature2Stack(CompilerUtils.buildMethodSignature(method),result);
 	}
 
 	static int constructorSignature2Stack(final Constructor<?> constructor, int[] result) {
-		return methodSignature2Stack(buildSignature(constructor),result);
+		return methodSignature2Stack(CompilerUtils.buildConstructorSignature(constructor),result);
 	}
 	
 	static int methodSignature2Type(final Method method) {
-		return methodSignature2Type(buildSignature(method));
+		return methodSignature2Type(CompilerUtils.buildMethodSignature(method));
 	}
 	
 	static int constructorSignature2Type(final Constructor<?> constructor) {
-		return methodSignature2Type(buildSignature(constructor));
+		return methodSignature2Type(CompilerUtils.buildConstructorSignature(constructor));
 	}
-	
-	static int fieldSignature2Type(final Field field) {
-		return fieldSignature2Type(buildSignature(field));
-	}	
 	
 	private static int signatureByLetter(final char letter) {
 		switch(letter) {
@@ -232,27 +174,6 @@ public class InternalUtils {
 		}
 	}
 	
-	private static String buildSignature(final Class<?> item) {
-		if (item.isArray()) {
-			return '['+buildSignature(item.getComponentType());
-		} 
-		else {
-			switch (CompilerUtils.defineClassType(item)) {
-				case CompilerUtils.CLASSTYPE_REFERENCE	: return 'L'+item.getName().replace('.','/')+';';
-				case CompilerUtils.CLASSTYPE_BOOLEAN	: return "Z";
-				case CompilerUtils.CLASSTYPE_BYTE		: return "B";
-				case CompilerUtils.CLASSTYPE_CHAR		: return "C";
-				case CompilerUtils.CLASSTYPE_DOUBLE		: return "D";
-				case CompilerUtils.CLASSTYPE_FLOAT		: return "F";
-				case CompilerUtils.CLASSTYPE_INT		: return "I";
-				case CompilerUtils.CLASSTYPE_LONG		: return "J";
-				case CompilerUtils.CLASSTYPE_SHORT		: return "S";
-				case CompilerUtils.CLASSTYPE_VOID		: return "V";
-				default : throw new UnsupportedOperationException("Primitive class ["+item.getSimpleName()+"] is not supported yet");
-			}
-		}
-	}
-
 	private static String fieldSignature(final String name) {
 		final int	trunc = name.lastIndexOf("[]"); 
 		

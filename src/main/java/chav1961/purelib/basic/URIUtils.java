@@ -255,11 +255,21 @@ public class URIUtils {
 			if (parse.getPath() != null) {
 				sb.append(URI.create(parse.getPath()+(relativePath.charAt(0) == '/' ? relativePath : '/' + relativePath)).normalize());
 			}
-			if (parse.getFragment() != null) {
-				sb.append('#').append(parse.getFragment());
-			}
-			if (parse.getQuery() != null) {
-				sb.append('?').append(parse.getQuery());
+			final String	fragment = uri.getFragment(), query = uri.getQuery();
+			
+			if (fragment != null || query != null) {
+				if (fragment == null) {
+					sb.append('?').append(query);
+				}
+				else if (query == null) {
+					sb.append('#').append(fragment);
+				}
+				else if (fragment.endsWith(query)) {
+					sb.append('#').append(fragment);
+				}
+				else {
+					sb.append('#').append(fragment).append('?').append(query);
+				}
 			}
 			
 			return URI.create(sb.toString());

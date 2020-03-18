@@ -209,16 +209,16 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			
 			for (Enum<?> item : clazz.getEnumConstants()) {
 				if (test.equals(item.name())) {
-					newValue = item;
+					setSelectedItem(newValue = item);
 					return;
 				}
 			}
 		}
-		else if ((value instanceof Enum) && clazz.isAssignableFrom(value.getClass())) {
-			throw new IllegalArgumentException("Value class to assign must be ["+clazz.getCanonicalName()+"], not ["+value.getClass().getCanonicalName()+"]");
+		else if ((value instanceof Enum) && getValueType().isAssignableFrom(value.getClass())) {
+			setSelectedItem(newValue = (Enum<?>) value);
 		}
 		else {
-			throw new IllegalArgumentException("Value can't be null and value class to assign must be ["+clazz.getCanonicalName()+"] or String");
+			throw new IllegalArgumentException("Value can't be null and value class to assign must be ["+getValueType().getCanonicalName()+"] or String");
 		}
 	}
 

@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+import java.awt.Color;
 import java.util.Arrays;
 
 import org.junit.Assert;
@@ -816,19 +817,26 @@ public class CharUtilsTest {
 	public void extractTest() throws SyntaxException {
 		final Object[]	result= new Object[10];
 		
-		// Constants
+		// Constants (extract)
 		Assert.assertEquals(3,CharUtils.extract("text".toCharArray(),0,result,'t','e','x'));	
 		Assert.assertEquals(4,CharUtils.extract("text".toCharArray(),0,result,"text".toCharArray()));
+		
 		try{CharUtils.extract("text".toCharArray(),0,result,'z');
-			Assert.fail("Mandatory exception was not detected (mizzing 'z')");
+			Assert.fail("Mandatory exception was not detected (missing 'z')");
 		} catch (SyntaxException exc) {
 		}
 		try{CharUtils.extract("text".toCharArray(),0,result,"z".toCharArray());
-			Assert.fail("Mandatory exception was not detected (mizzing 'z')");
+			Assert.fail("Mandatory exception was not detected (missing 'z')");
 		} catch (SyntaxException exc) {
 		}
+
+		// Constants (tyExtract)
+		Assert.assertEquals(3,CharUtils.tryExtract("text".toCharArray(),0,'t','e','x'));	
+		Assert.assertEquals(4,CharUtils.tryExtract("text".toCharArray(),0,"text".toCharArray()));
+		Assert.assertEquals(-2,CharUtils.tryExtract("try".toCharArray(),0,'t','e','x'));
+		Assert.assertEquals(-1,CharUtils.tryExtract("try".toCharArray(),0,"text".toCharArray()));
 		
-		// Lexemas
+		// Lexemas (extract)
 		Assert.assertEquals(3,CharUtils.extract("120".toCharArray(),0,result,ArgumentType.ordinalInt));	
 		Assert.assertEquals(120,((Integer)result[0]).intValue());
 		
@@ -856,12 +864,52 @@ public class CharUtilsTest {
 		Assert.assertEquals("test",result[0].toString());
 		Assert.assertEquals(6,CharUtils.extract("\"test\"".toCharArray(),0,result,ArgumentType.simpleTerminatedString));
 		Assert.assertEquals("test",result[0].toString());
+
+		Assert.assertEquals(4,CharUtils.extract("test".toCharArray(),0,result,ArgumentType.specialTerminatedString));
+		Assert.assertEquals("test",result[0].toString());
+		Assert.assertEquals(6,CharUtils.extract("'test'".toCharArray(),0,result,ArgumentType.specialTerminatedString));
+		Assert.assertEquals("test",result[0].toString());
+		Assert.assertEquals(6,CharUtils.extract("\"test\"".toCharArray(),0,result,ArgumentType.specialTerminatedString));
+		Assert.assertEquals("test",result[0].toString());
+
+		Assert.assertEquals(5,CharUtils.extract("black".toCharArray(),0,result,ArgumentType.colorRepresentation));
+		Assert.assertEquals(Color.BLACK,result[0]);
+		Assert.assertEquals(7,CharUtils.extract("#FFFFFF".toCharArray(),0,result,ArgumentType.colorRepresentation));
+		Assert.assertEquals(Color.WHITE,result[0]);
+		
+		// Lexemas (tryExtract)
+		Assert.assertEquals(3,CharUtils.tryExtract("120".toCharArray(),0,ArgumentType.ordinalInt));	
+		
+		Assert.assertEquals(2,CharUtils.tryExtract("CC".toCharArray(),0,ArgumentType.hexInt));
+
+		Assert.assertEquals(3,CharUtils.tryExtract("120".toCharArray(),0,ArgumentType.ordinalLong));
+		
+		Assert.assertEquals(2,CharUtils.tryExtract("CC".toCharArray(),0,ArgumentType.hexLong));
+
+		Assert.assertEquals(4,CharUtils.tryExtract("12.5".toCharArray(),0,ArgumentType.ordinalFloat));
+
+		Assert.assertEquals(4,CharUtils.tryExtract("test".toCharArray(),0,ArgumentType.name));
+
+		Assert.assertEquals(9,CharUtils.tryExtract("test-test".toCharArray(),0,ArgumentType.hyphenedName));
+
+		Assert.assertEquals(4,CharUtils.tryExtract("test".toCharArray(),0,ArgumentType.simpleTerminatedString));
+		Assert.assertEquals(6,CharUtils.tryExtract("'test'".toCharArray(),0,ArgumentType.simpleTerminatedString));
+		Assert.assertEquals(6,CharUtils.tryExtract("\"test\"".toCharArray(),0,ArgumentType.simpleTerminatedString));
+
+		Assert.assertEquals(4,CharUtils.tryExtract("test".toCharArray(),0,ArgumentType.specialTerminatedString));
+		Assert.assertEquals(6,CharUtils.tryExtract("'test'".toCharArray(),0,ArgumentType.specialTerminatedString));
+		Assert.assertEquals(6,CharUtils.tryExtract("\"test\"".toCharArray(),0,ArgumentType.specialTerminatedString));
+
+		Assert.assertEquals(5,CharUtils.tryExtract("black".toCharArray(),0,ArgumentType.colorRepresentation));
+		Assert.assertEquals(7,CharUtils.tryExtract("#FFFFFF".toCharArray(),0,ArgumentType.colorRepresentation));
 		
 		// Complex test
 		Assert.assertEquals(13,CharUtils.extract("test 120 test".toCharArray(),0,result,"test".toCharArray(),ArgumentType.ordinalInt,"test".toCharArray()));	// Complex
 		Assert.assertEquals(120,((Integer)result[0]).intValue());
+
+		Assert.assertEquals(13,CharUtils.tryExtract("test 120 test".toCharArray(),0,"test".toCharArray(),ArgumentType.ordinalInt,"test".toCharArray()));	// Complex
 		
-		// Invalid argumenrs
+		// Invalid arguments (extract)
 		try{CharUtils.extract(null,0,result,"z".toCharArray());		
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
@@ -896,6 +944,34 @@ public class CharUtilsTest {
 
 		try{CharUtils.extract("test".toCharArray(),0,new Object[0],ArgumentType.hexLong);
 			Assert.fail("Mandatory exception was not detected (3-rd argument is too small)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		// Invalid arguments (tryExtract)
+		try{CharUtils.tryExtract(null,0,"z".toCharArray());		
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.tryExtract("".toCharArray(),0,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.tryExtract("test".toCharArray(),-1,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.tryExtract("test".toCharArray(),10,"z".toCharArray());
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.tryExtract("test".toCharArray(),0,(Object[])null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.tryExtract("test".toCharArray(),0);
+			Assert.fail("Mandatory exception was not detected (empty 3-rd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 	}	
@@ -1140,6 +1216,102 @@ public class CharUtilsTest {
 		try{CharUtils.unescapeStringContent(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
+		}
+	}
+	
+	@Test
+	public void charSequenceWrappersTest() {
+		final char[]		content = "test string".toCharArray();
+		
+		innerTest(CharUtils.toCharSequence(content,0,content.length-1));
+		innerTest(CharUtils.toWeakCharSequence(content,0,content.length-1));
+		
+		try{CharUtils.toCharSequence(null,0,content.length-1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.toCharSequence(content,-1,content.length-1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toCharSequence(content,content.length,content.length-1);
+		Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toCharSequence(content,0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toCharSequence(content,0,content.length);
+		Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toCharSequence(content,1,0);
+			Assert.fail("Mandatory exception was not detected (3-rd argument less than 2-nd one)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.toWeakCharSequence(null,0,content.length-1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.toWeakCharSequence(content,-1,content.length-1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toWeakCharSequence(content,content.length,content.length-1);
+		Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toWeakCharSequence(content,0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toWeakCharSequence(content,0,content.length);
+		Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toWeakCharSequence(content,1,0);
+			Assert.fail("Mandatory exception was not detected (3-rd argument less than 2-nd one)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
+	
+	private static void innerTest(final CharSequence seq) {
+		Assert.assertEquals(11,seq.length());
+		Assert.assertEquals('t',seq.charAt(0));
+		Assert.assertEquals('g',seq.charAt(10));
+		Assert.assertEquals(seq,seq.subSequence(0,seq.length()-1));
+		
+		try{seq.charAt(-1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (StringIndexOutOfBoundsException exc) {
+		}
+		try{seq.charAt(666);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (StringIndexOutOfBoundsException exc) {
+		}
+		try{seq.subSequence(-1,seq.length()-1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (StringIndexOutOfBoundsException exc) {
+		}
+		try{seq.subSequence(666,seq.length()-1);
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (StringIndexOutOfBoundsException exc) {
+		}
+		
+		try{seq.subSequence(0,-1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (StringIndexOutOfBoundsException exc) {
+		}
+		try{seq.subSequence(1,666);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (StringIndexOutOfBoundsException exc) {
+		}
+		
+		try{seq.subSequence(1,0);
+			Assert.fail("Mandatory exception was not detected (3-rd argument less than 2-nd)");
+		} catch (StringIndexOutOfBoundsException exc) {
 		}
 	}
 }

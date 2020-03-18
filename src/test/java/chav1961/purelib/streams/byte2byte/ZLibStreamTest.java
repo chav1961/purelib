@@ -13,14 +13,17 @@ import java.io.Reader;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+
 public class ZLibStreamTest {
 	@Test
-	public void complexTest() throws IOException {
+	public void lifeCycleTest() throws IOException {
 		try(final ByteArrayOutputStream		baos = new ByteArrayOutputStream()) {
 			try(final ZLibOutputStream		zlos = new ZLibOutputStream(baos)) {
 		
 				zlos.write("test string".getBytes());
-				zlos.flush();
+				zlos.flush(); 
 				
 				try {zlos.write(null);
 					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -76,6 +79,30 @@ public class ZLibStreamTest {
 			} catch (NullPointerException exc) {
 			}
 			
+		}
+	}
+
+	@Test
+	public void basicTest() throws IOException {
+		final byte[]	content = new byte[1<<20];
+		
+		for (int index = 0; index < content.length; index++) {
+			content[index] = (byte)index;
+		}
+		
+		try(final ByteArrayOutputStream		baos = new ByteArrayOutputStream()) {
+			try(final ZLibOutputStream		zlos = new ZLibOutputStream(baos)) {
+				
+				zlos.write(content);
+			}
+			
+			try(final ByteArrayInputStream	bais = new ByteArrayInputStream(baos.toByteArray());
+				final ZLibInputStream		zlis = new ZLibInputStream(bais);
+				final ByteArrayOutputStream	tmp = new ByteArrayOutputStream()) {
+				
+				Utils.copyStream(zlis,tmp);
+				Assert.assertArrayEquals(content,tmp.toByteArray());
+			}			
 		}
 	}
 }

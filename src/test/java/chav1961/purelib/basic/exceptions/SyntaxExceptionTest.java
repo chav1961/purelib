@@ -20,7 +20,7 @@ public class SyntaxExceptionTest {
 			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{SyntaxException.toRow(test,test.length());
+		try{SyntaxException.toRow(test,test.length()+1);
 			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -37,7 +37,7 @@ public class SyntaxExceptionTest {
 			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{SyntaxException.toCol(test,test.length());
+		try{SyntaxException.toCol(test,test.length()+1);
 			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -56,7 +56,7 @@ public class SyntaxExceptionTest {
 			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{SyntaxException.toRow(testArr,testArr.length);
+		try{SyntaxException.toRow(testArr,testArr.length+1);
 			Assert.fail("Mandatory exception was not detected (2-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -73,7 +73,7 @@ public class SyntaxExceptionTest {
 			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{SyntaxException.toCol(testArr,testArr.length);
+		try{SyntaxException.toCol(testArr,testArr.length+1);
 			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}

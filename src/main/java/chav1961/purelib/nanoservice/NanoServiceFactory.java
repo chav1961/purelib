@@ -94,6 +94,7 @@ import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.byte2byte.ZLibInputStream;
 import chav1961.purelib.streams.byte2byte.ZLibOutputStream;
 import chav1961.purelib.streams.char2byte.AsmWriter;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
@@ -1139,7 +1140,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				}
 			}
 			
-			result.append("\tinvokevirtual ").append(m.getDeclaringClass().getCanonicalName()).append('.').append(m.getName()).append(chav1961.purelib.streams.char2byte.asm.InternalUtils.buildSignature(m)).append('\n');
+			result.append('\t').append(CompilerUtils.buildMethodCall(m)).append('\n');
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"GetExecutor").append(unique).append("\"\n");
 			
@@ -1205,7 +1206,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				}
 			}
 	
-			result.append("\tinvokevirtual ").append(m.getDeclaringClass().getCanonicalName()).append('.').append(m.getName()).append(chav1961.purelib.streams.char2byte.asm.InternalUtils.buildSignature(m)).append('\n');
+			result.append('\t').append(CompilerUtils.buildMethodCall(m)).append('\n');
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"PostExecutor").append(unique).append("\"\n");
 			
@@ -1271,7 +1272,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				}
 			}
 			
-			result.append("\tinvokevirtual ").append(m.getDeclaringClass().getCanonicalName()).append('.').append(m.getName()).append(chav1961.purelib.streams.char2byte.asm.InternalUtils.buildSignature(m)).append('\n');
+			result.append('\t').append(CompilerUtils.buildMethodCall(m)).append('\n');
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"PostExecutor").append(unique).append("\"\n");
 			
@@ -1332,7 +1333,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				}
 			}
 			
-			result.append("\tinvokevirtual ").append(m.getDeclaringClass().getCanonicalName()).append('.').append(m.getName()).append(chav1961.purelib.streams.char2byte.asm.InternalUtils.buildSignature(m)).append('\n');
+			result.append('\t').append(CompilerUtils.buildMethodCall(m)).append('\n');
 			result.append(" getExecutorMethodTail responsePresent="+(responseHeaderNames.length > 0)+"\n");
 			result.append(" getExecutorClassTail \"PostExecutor").append(unique).append("\"\n");
 			

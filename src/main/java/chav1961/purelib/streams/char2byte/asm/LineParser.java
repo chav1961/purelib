@@ -2455,14 +2455,14 @@ class LineParser implements LineByLineProcessorCallback {
 							result[0] = cc.getConstantPool().asInterfaceMethodRefDescription(
 									tree.placeOrChangeName(toCanonicalName(m.getDeclaringClass()).replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)),
 									tree.placeOrChangeName(m.getName(),new NameDescriptor(retType)),
-									tree.placeOrChangeName(InternalUtils.buildSignature(m),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
+									tree.placeOrChangeName(CompilerUtils.buildMethodSignature(m),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
 							);
 						}
 						else {
 							result[0] = cc.getConstantPool().asMethodRefDescription(
 									tree.placeOrChangeName(toCanonicalName(m.getDeclaringClass()).replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)),
 									tree.placeOrChangeName(m.getName(),new NameDescriptor(retType)),
-									tree.placeOrChangeName(InternalUtils.buildSignature(m),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
+									tree.placeOrChangeName(CompilerUtils.buildMethodSignature(m),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
 							);
 						}
 						argsLengthAndRetSignature[0] = 0;
@@ -2479,7 +2479,7 @@ class LineParser implements LineByLineProcessorCallback {
 						result[0] = cc.getConstantPool().asMethodRefDescription(
 								tree.placeOrChangeName(c.getDeclaringClass().getName().replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)),
 								tree.placeOrChangeName("<init>",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),
-								tree.placeOrChangeName(InternalUtils.buildSignature(c),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
+								tree.placeOrChangeName(CompilerUtils.buildConstructorSignature(c),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
 						);
 						argsLengthAndRetSignature[0] = 0;
 						for (Parameter item : c.getParameters()) {

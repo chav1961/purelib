@@ -1,5 +1,6 @@
 package chav1961.purelib.sql;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -568,13 +569,13 @@ public class FilteredReadOnlyResultSet extends AbstractReadOnlyResultSet {
 					try{pos = UnsafedCharUtils.uncheckedParseStringExtended(content,pos+1,'\'',sb);
 						stringValue = sb.toString();
 						return lexType = LEX_CHAR_CONST;
-					} catch (IllegalArgumentException exc) {
+					} catch (IllegalArgumentException | IOException exc) {
 						throw new SyntaxException(0,startPos,exc.getLocalizedMessage());
 					}
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 					pos = UnsafedCharUtils.uncheckedParseNumber(content,pos,numbers,CharUtils.PREF_ANY,true);
 					switch ((int)numbers[1]) {
-						case CharUtils.PREF_INT : case CharUtils.PREF_LONG :
+						case CharUtils.PREF_INT : case CharUtils.PREF_LONG : 
 							longValue = numbers[0];
 							return lexType = LEX_INT_CONST;
 						case CharUtils.PREF_FLOAT :

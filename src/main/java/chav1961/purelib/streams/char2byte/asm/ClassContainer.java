@@ -33,7 +33,7 @@ class ClassContainer implements Closeable {
 	public ClassContainer() {
 		tree.placeName("long",null);			// To use in LocalVarTable descriptors
 		tree.placeName("double",null);
-		constantValueId = tree.placeName("ConstantValue",null);	// To use in initials
+		constantValueId = tree.placeName(Constants.ATTRIBUTE_ConstantValue,0,Constants.ATTRIBUTE_ConstantValue.length,null);	// To use in initials
 	}
 
 	@Override

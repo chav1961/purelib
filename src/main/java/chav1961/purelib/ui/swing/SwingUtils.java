@@ -43,6 +43,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -259,6 +260,64 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	}
 
 	/**
+	 * <p>Make iterable for all children of the given component</p>
+	 * @param component component to make children iterable for
+	 * @return iterable for children. Can be empty but not null
+	 * @throws NullPointerException
+	 */
+	public static Iterable<Component> children(final Component component) throws NullPointerException {
+		if (component == null) {
+			throw new NullPointerException("Component to get children for can't be null");
+		}
+		else if ((component instanceof JMenu)) {
+			return new Iterable<Component>() {
+				@Override
+				public Iterator<Component> iterator() {
+					return new Iterator<Component>() {
+						final int 	count = ((JMenu)component).getMenuComponentCount();
+						int			index = 0;
+
+						@Override
+						public boolean hasNext() {
+							return index < count;
+						}
+
+						@Override
+						public Component next() {
+							return ((JMenu)component).getMenuComponent(index++);
+						}
+					};
+				}
+			};
+		}
+		else if ((component instanceof Container)) {
+			return new Iterable<Component>() {
+				@Override
+				public Iterator<Component> iterator() {
+					return new Iterator<Component>() {
+						final int 	count = ((Container)component).getComponentCount();
+						int			index = 0;
+
+						@Override
+						public boolean hasNext() {
+							return index < count;
+						}
+
+						@Override
+						public Component next() {
+							return ((Container)component).getComponent(index++);
+						}
+					};
+				}
+			};
+		}
+		else {
+			throw new IllegalArgumentException("Component class ["+component.getClass().getCanonicalName()+"] is neither Container nor JMenu");
+		}
+	}
+	
+	
+	/**
 	 * <p>Find  component in the component tree by it's name</p>
 	 * @param node root node to seek component
 	 * @param name component name
@@ -367,17 +426,21 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 				case StringContent	:
 					result = new JTextFieldWithMeta(metadata,monitor);
 					break;
-				case Unclassified	:
-					result = null;
-					break;
 				case URIContent		:
 					result = new JTextFieldWithMeta(metadata,monitor);
 					break;
+				case ColorContent	:
+					result = new JColorPickerWithMeta(metadata,localizer,monitor);
+					break;
+				case ColorPairContent	:
+					result = new JColorPairPickerWithMeta(metadata,localizer,monitor);
+					break;
+				case Unclassified	:
 				case ArrayContent	:
 				case NestedContent	:
 				case TimestampContent	:
 				default:
-					throw new UnsupportedOperationException("Content type ["+content+"] is not supported yet");
+					throw new UnsupportedOperationException("Content type ["+content+"] for metadata ["+metadata.getName()+"] is not supported yet");
 			}
 			result.setName(metadata.getUIPath().toString());
 			return result;

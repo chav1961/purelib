@@ -312,11 +312,11 @@ public class ModelUtils {
 				if (value == null) {
 					throw new NullPointerException("Value to assign to primitive type can't be null");
 				}
-				else if (!(value instanceof Byte)) {
-					throw new IllegalArgumentException("Value to assign to primitive byte type must be [Byte], not ["+value.getClass().getCanonicalName()+"]");
+				else if (!(value instanceof Number)) {
+					throw new IllegalArgumentException("Value to assign to primitive int type must be [Number], not ["+value.getClass().getCanonicalName()+"]");
 				}
 				else {
-					((ByteGetterAndSetter)gas).set(instance,((Byte)value).byteValue());
+					((ByteGetterAndSetter)gas).set(instance,((Number)value).byteValue());
 				}
 			}
 			else if (gas instanceof CharGetterAndSetter) {
@@ -334,55 +334,55 @@ public class ModelUtils {
 				if (value == null) {
 					throw new NullPointerException("Value to assign to primitive type can't be null");
 				}
-				else if (!(value instanceof Short)) {
-					throw new IllegalArgumentException("Value to assign to primitive short type must be [Short], not ["+value.getClass().getCanonicalName()+"]");
+				else if (!(value instanceof Number)) {
+					throw new IllegalArgumentException("Value to assign to primitive int type must be [Number], not ["+value.getClass().getCanonicalName()+"]");
 				}
 				else {
-					((ShortGetterAndSetter)gas).set(instance,((Short)value).shortValue());
+					((ShortGetterAndSetter)gas).set(instance,((Number)value).shortValue());
 				}
 			}
 			else if (gas instanceof IntGetterAndSetter) {
 				if (value == null) {
 					throw new NullPointerException("Value to assign to primitive type can't be null");
 				}
-				else if (!(value instanceof Integer)) {
-					throw new IllegalArgumentException("Value to assign to primitive int type must be [Integer], not ["+value.getClass().getCanonicalName()+"]");
+				else if (!(value instanceof Number)) {
+					throw new IllegalArgumentException("Value to assign to primitive int type must be [Number], not ["+value.getClass().getCanonicalName()+"]");
 				}
 				else {
-					((IntGetterAndSetter)gas).set(instance,((Integer)value).intValue());
+					((IntGetterAndSetter)gas).set(instance,((Number)value).intValue());
 				}
 			}
 			else if (gas instanceof LongGetterAndSetter) {
 				if (value == null) {
 					throw new NullPointerException("Value to assign to primitive type can't be null");
 				}
-				else if (!(value instanceof Long)) {
-					throw new IllegalArgumentException("Value to assign to primitive int type must be [Long], not ["+value.getClass().getCanonicalName()+"]");
+				else if (!(value instanceof Number)) {
+					throw new IllegalArgumentException("Value to assign to primitive int type must be [Number], not ["+value.getClass().getCanonicalName()+"]");
 				}
 				else {
-					((LongGetterAndSetter)gas).set(instance,((Long)value).longValue());
+					((LongGetterAndSetter)gas).set(instance,((Number)value).longValue());
 				}
 			}
 			else if (gas instanceof FloatGetterAndSetter) {
 				if (value == null) {
 					throw new NullPointerException("Value to assign to primitive type can't be null");
 				}
-				else if (!(value instanceof Float)) {
-					throw new IllegalArgumentException("Value to assign to primitive float type must be [Float], not ["+value.getClass().getCanonicalName()+"]");
+				else if (!(value instanceof Number)) {
+					throw new IllegalArgumentException("Value to assign to primitive int type must be [Number], not ["+value.getClass().getCanonicalName()+"]");
 				}
 				else {
-					((FloatGetterAndSetter)gas).set(instance,((Float)value).floatValue());
+					((FloatGetterAndSetter)gas).set(instance,((Number)value).floatValue());
 				}
 			}
 			else if (gas instanceof DoubleGetterAndSetter) {
 				if (value == null) {
 					throw new NullPointerException("Value to assign to primitive type can't be null");
 				}
-				else if (!(value instanceof Double)) {
-					throw new IllegalArgumentException("Value to assign to primitive double type must be [Double], not ["+value.getClass().getCanonicalName()+"]");
+				else if (!(value instanceof Number)) {
+					throw new IllegalArgumentException("Value to assign to primitive int type must be [Number], not ["+value.getClass().getCanonicalName()+"]");
 				}
 				else {
-					((DoubleGetterAndSetter)gas).set(instance,((Double)value).doubleValue());
+					((DoubleGetterAndSetter)gas).set(instance,((Number)value).doubleValue());
 				}
 			}
 			else {

@@ -95,8 +95,8 @@ public class URIUtilsTest {
 		}
 		
 		Assert.assertEquals(URI.create("scheme:/path1/path2#fragment?query=value"),URIUtils.appendRelativePath2URI(URI.create("scheme:/path1#fragment?query=value"),"path2"));
-		Assert.assertEquals(URI.create("scheme:/path1/path2?#fragmentquery=value"),URIUtils.appendRelativePath2URI(URI.create("scheme:/path1#fragment?query=value"),"/path2"));
-		Assert.assertEquals(URI.create("scheme:/path2?query=value#fragment"),URIUtils.appendRelativePath2URI(URI.create("scheme:/path1?query=value#fragment"),"../path2"));
+		Assert.assertEquals(URI.create("scheme:/path1/path2#fragment?query=value"),URIUtils.appendRelativePath2URI(URI.create("scheme:/path1#fragment?query=value"),"/path2"));
+		Assert.assertEquals(URI.create("scheme:/path2#fragment?query=value"),URIUtils.appendRelativePath2URI(URI.create("scheme:/path1?query=value#fragment"),"../path2"));
 
 		try{URIUtils.appendRelativePath2URI(null,"../path2");
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

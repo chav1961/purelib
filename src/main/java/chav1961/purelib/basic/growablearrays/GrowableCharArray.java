@@ -18,7 +18,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @lastUpdate 0.0.4
  */
 
-public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence {
+public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence, Appendable {
 	private static final char[]	NULL_CHAR = new char[0];
 	
 	private final boolean		usePlain;
@@ -261,6 +261,38 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 			while ((len = rdr.read(buffer)) > 0) {
 				append(buffer,0,len);
 			}
+		}
+	}
+
+	@Override
+	public T append(final CharSequence csq) throws IOException {
+		if (csq == null) {
+			throw new NullPointerException("Char sequence to append can't be null"); 
+		}
+		else {
+			return append(csq,0,csq.length()-1);
+		}
+	}
+
+	@Override
+	public T append(final CharSequence csq, final int start, final int end) throws IOException {
+		if (csq == null) {
+			throw new NullPointerException("Char sequence to append can't be null"); 
+		}
+		else if (start < 0 || start >= csq.length()) {
+			throw new IllegalArgumentException("Start position ["+start+"] out of range 0.."+(csq.length()-1)); 
+		}
+		else if (end < 0 || end >= csq.length()) {
+			throw new IllegalArgumentException("End position ["+end+"] out of range 0.."+(csq.length()-1)); 
+		}
+		else if (end < start) {
+			throw new IllegalArgumentException("End position ["+end+"] less than start position ["+start+"]"); 
+		}
+		else {
+			for (int index = start, maxIndex = csq.length(); index < maxIndex; index++) {
+				append(csq.charAt(index));
+			}
+			return (T)this;
 		}
 	}
 	

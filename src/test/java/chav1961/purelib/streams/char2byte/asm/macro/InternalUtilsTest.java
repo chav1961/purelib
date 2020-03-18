@@ -18,34 +18,6 @@ public class InternalUtilsTest {
 	public InternalUtilsTest(){}
 
 	@Test
-	public void strongTypeSignatures() throws NoSuchMethodException, SecurityException, NoSuchFieldException {
-		final Field 			f = InternalUtilsTest.class.getField("testField");
-		final Method 			m = InternalUtilsTest.class.getMethod("testMethod",boolean.class,byte.class,char.class,double.class,float.class,int.class,long.class,String.class,short[][].class);
-		final Constructor<?>	c = InternalUtilsTest.class.getConstructor();
-		
-		Assert.assertEquals(InternalUtils.buildSignature(f),"Ljava/lang/String;");
-		
-		try{InternalUtils.buildSignature((Field)null);
-			Assert.fail("Mandatory exception was not detected(null argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
-		Assert.assertEquals(InternalUtils.buildSignature(m),"(ZBCDFIJLjava/lang/String;[[S)V");
-		
-		try{InternalUtils.buildSignature((Method)null);
-			Assert.fail("Mandatory exception was not detected(null argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
-		Assert.assertEquals(InternalUtils.buildSignature(c),"()V");
-		
-		try{InternalUtils.buildSignature((Constructor<?>)null);
-			Assert.fail("Mandatory exception was not detected(null argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-	}
-
-	@Test
 	public void softSignatures() throws NoSuchMethodException, SecurityException, NoSuchFieldException {
 		final SyntaxTreeInterface<String>	tree = new AndOrTree<String>(1,16);
 		final long					field1 = tree.placeName("java.lang.String",null), field2 = tree.placeName("java.lang.String[]",null), field3 = tree.placeName("int",null);

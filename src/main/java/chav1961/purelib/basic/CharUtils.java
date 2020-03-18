@@ -1,7 +1,11 @@
 package chav1961.purelib.basic;
 
 
+import java.awt.Color;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -608,7 +612,7 @@ public class CharUtils {
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
 	 * @lastUpdate 0.0.4
 	 */
-	public static int parseString(final char[] source, final int from, final char terminal, final StringBuilder result) {
+	public static int parseString(final char[] source, final int from, final char terminal, final Appendable result) {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -621,7 +625,10 @@ public class CharUtils {
 			throw new NullPointerException("Result builder can't be null"); 
 		}
 		else {
-			return UnsafedCharUtils.uncheckedParseString(source, from, terminal, result);
+			try{return UnsafedCharUtils.uncheckedParseString(source, from, terminal, result);
+			} catch (IOException e) {
+				throw new IllegalArgumentException(e.getLocalizedMessage()); 
+			}
 		}
 	}
 
@@ -635,7 +642,7 @@ public class CharUtils {
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
 	 * @lastUpdate 0.0.4
 	 */
-	public static int parseStringExtended(final char[] source, final int from, final char terminal, final StringBuilder result) {
+	public static int parseStringExtended(final char[] source, final int from, final char terminal, final Appendable result) {
 		int		len;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -648,7 +655,10 @@ public class CharUtils {
 			throw new NullPointerException("Result builder can't be null"); 
 		}
 		else {
-			return 	UnsafedCharUtils.uncheckedParseStringExtended(source, from, terminal, result);
+			try{return 	UnsafedCharUtils.uncheckedParseStringExtended(source, from, terminal, result);
+			} catch (IOException e) {
+				throw new IllegalArgumentException(e.getLocalizedMessage()); 
+			}
 		}
 	}
 
@@ -921,9 +931,10 @@ public class CharUtils {
 			throw new IllegalArgumentException("Lexemas list can't be null or empty");
 		}
 		else {
-			final int[]		intResult = new int[2];
-			final long[]	longResult = new long[2];
-			final float[]	floatResult = new float[2];
+			final int[]			intResult = new int[2];
+			final long[]		longResult = new long[2];
+			final float[]		floatResult = new float[2];
+			final StringBuilder	sb = new StringBuilder();
 			
 			for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++) {
 				final Object	lexema = lexemas[index];
@@ -936,7 +947,7 @@ public class CharUtils {
 						start += item.length;
 					}
 					else {
-						return -start; 
+						return -(start+1); 
 					}
 				}
 				else if (lexema instanceof Character) {
@@ -944,7 +955,7 @@ public class CharUtils {
 						start++;
 					}
 					else {
-						return -start; 
+						return -(start+1); 
 					}
 				}
 				else if (lexema instanceof ArgumentType) {
@@ -966,28 +977,78 @@ public class CharUtils {
 								start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
 								break;
 							case name			:
-								start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+								if (Character.isJavaIdentifierStart(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case hyphenedName	:
-								start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+								if (Character.isJavaIdentifierStart(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,HYPHEN_NAME);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case simpleTerminatedString	:
+								if (source[start] == '\"') {
+									start = UnsafedCharUtils.uncheckedParseUnescapedString(source,start+1,'\"',false,intResult);
+								}
+								else if (source[start] == '\'') {
+									start = UnsafedCharUtils.uncheckedParseUnescapedString(source,start+1,'\'',false,intResult);
+								}
+								else if (Character.isJavaIdentifierStart(source[start])){
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+								}
+								else {
+									return -(start+1);
+								}
+								break;
 							case specialTerminatedString	:
+								try{if (source[start] == '\"') {
+											start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\"',sb);
+									}
+									else if (source[start] == '\'') {
+										start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\'',sb);
+									}
+									else if (Character.isJavaIdentifierStart(source[start])){
+										start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+									}
+									else {
+										return -(start+1);
+									}
+								} catch (IOException e) {
+									return -(start+1);
+								}
 								break;
 							case colorRepresentation	:
 								if (source[start] == '#') {	// Hex presentation
-									start = UnsafedCharUtils.uncheckedParseHexInt(source,start+1,intResult,true);
+									if ("0123456789abcdefABCDEF".indexOf(source[start+1]) >= 0) {
+										start = UnsafedCharUtils.uncheckedParseHexInt(source,start+1,intResult,true);
+									}
+									else {
+										return -(start+1);
+									}
+								}
+								else if (Character.isJavaIdentifierStart(source[start])){
+									final int	oldStart = start;
+									
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+									if (PureLibSettings.colorByName(new String(source,intResult[0],intResult[1]-intResult[0]+1),null) == null) {
+										return - (oldStart+1);
+									}
 								}
 								else {
-									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
-//									PureLibSettings.colorByName(name,null);
+									return -(start+1);
 								}
 								break;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
 						}
 					} catch (IllegalArgumentException exc) {
-						return -start; 
+						return -(start+1); 
 					}
 				}
 				else {
@@ -1102,6 +1163,25 @@ public class CharUtils {
 								}
 								result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 								break;
+							case specialTerminatedString	:
+								final StringBuilder	sb = new StringBuilder();
+								
+								try{if (source[start] == '\"') {
+										start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\"',sb);
+										result[resultIndex++] = sb.toString();
+									}
+									else if (source[start] == '\'') {
+										start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\'',sb);
+										result[resultIndex++] = sb.toString();
+									}
+									else {
+										start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+										result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+									}
+								} catch (IOException exc) {
+									throw new SyntaxException(0,start,"Parse error: "+exc.getLocalizedMessage()); 
+								}
+								break;
 							case hyphenedName	:
 								final int	startName = start--;
 								
@@ -1109,6 +1189,20 @@ public class CharUtils {
 								} while (start < source.length && source[start] == '-');
 								result[resultIndex++] = new String(source,startName,intResult[1]-startName+1);
 								break; 
+							case colorRepresentation	:
+								if (source[start] == '#') {	// Hex presentation
+									start = UnsafedCharUtils.uncheckedParseHexInt(source,start+1,intResult,true);
+									result[resultIndex++] = new Color(intResult[0]);
+								}
+								else {
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+									final String	color = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+									
+									if ((result[resultIndex++] = PureLibSettings.colorByName(color,null)) == null) {
+										throw new IllegalArgumentException("Unknonw color name ["+color+"]");
+									}
+								}
+								break;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
 						}
@@ -1864,6 +1958,60 @@ public class CharUtils {
 	}
 
 	/**
+	 * <p>Create {@linkplain CharSequence} wrapper for the given piece of char array</p>
+	 * @param content char array to make wrapper for
+	 * @param from start index inside char array to make sequence
+	 * @param to end index inside char array to make sequence
+	 * @return wrapper created. Can't be null
+	 * @throws NullPointerException if char array reference is null
+	 * @throws IllegalArgumentException from or to indices out of range
+	 */
+	public static CharSequence toCharSequence(final char[] content, final int from, final int to) throws NullPointerException, IllegalArgumentException {
+		if (content == null) {
+			throw new NullPointerException("Content to make sequence for can't be null"); 
+		}
+		else if (from < 0 || from >= content.length) {
+			throw new IllegalArgumentException("From index ["+from+"] out of range 0.."+(content.length-1)); 
+		}
+		else if (to < 0 || to >= content.length) {
+			throw new IllegalArgumentException("To index ["+to+"] out of range 0.."+(content.length-1)); 
+		}
+		else if (to < from) {
+			throw new IllegalArgumentException("To index ["+to+"] less than from index ["+from+"]"); 
+		}
+		else {
+			return new OrdinalCharSequence(content, from, to);
+		}
+	}
+	
+	/**
+	 * <p>Create {@linkplain CharSequence} wrapper for the given piece of char array. Differ to {@linkplain #toCharSequence(char[], int, int)}, makes weak reference for wrapper content</p>
+	 * @param content char array to make wrapper for
+	 * @param from start index inside char array to make sequence
+	 * @param to end index inside char array to make sequence
+	 * @return wrapper created. Can't be null
+	 * @throws NullPointerException if char array reference is null
+	 * @throws IllegalArgumentException from or to indices out of range
+	 */
+	public static CharSequence toWeakCharSequence(final char[] content, final int from, final int to) throws NullPointerException, IllegalArgumentException {
+		if (content == null) {
+			throw new NullPointerException("Content to make sequence for can't be null"); 
+		}
+		else if (from < 0 || from >= content.length) {
+			throw new IllegalArgumentException("From index ["+from+"] out of range 0.."+(content.length-1)); 
+		}
+		else if (to < 0 || to >= content.length) {
+			throw new IllegalArgumentException("To index ["+to+"] out of range 0.."+(content.length-1)); 
+		}
+		else if (to < from) {
+			throw new IllegalArgumentException("To index ["+to+"] less than from index ["+from+"]"); 
+		}
+		else {
+			return new WeakCharSequence(content, from, to);
+		}
+	}
+	
+	/**
 	 * <p>This class describes LEvenstain distance and editor prescription for two strins.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 */
@@ -1961,56 +2109,166 @@ public class CharUtils {
 	        
 		return new Prescription(D[m][n], opers.toArray(new int[opers.size()][]));
     }
-	
-	
-	private static int calculateSplitters(final char[] source, final char splitter) {
-		int	amount = 0;
-		
-		for (char item : source) {
-			if (item == splitter) {
-				amount++;
-			}
-		}
-		return amount;
-	}
 
-	private static int calculateSplitters(final char[] source, final char[] splitter) {
-		final char	first = splitter[0];
-		final int	splitterLen = splitter.length;
-		int	amount = 0;
-		
-		for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
-			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
-				index += splitterLen - 1;
-				amount++;
-			}
-		}
-		return amount;
-	}
-	
-	private static void split(final char[] source, final char splitter, final String[] target) {
-		int	start = 0, maxIndex = source.length, targetIndex = 0;
-		
-		for (int index = 0; index < maxIndex; index++) {
-			if (source[index] == splitter) {
-				target[targetIndex++] = new String(source,start,index-start);
-				start = index + 1;
-			}
-		}
-		target[targetIndex++] = new String(source,start,maxIndex-start);
-	}
+    private static class OrdinalCharSequence implements CharSequence {
+    	private final char[]	content;
+    	private final int		from;
+    	private final int 		to;
 
-	private static void split(final char[] source, final char[] splitter, final String[] target) {
-		final char	first = splitter[0];
-		int	start = 0, splitterLen = splitter.length, maxIndex = source.length, targetIndex = 0;
-		
-		for (int index = 0; index < maxIndex; index++) {
-			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
-				target[targetIndex++] = new String(source,start,index-start);
-				index += splitterLen - 1;
-				start = index + 1;
+		private OrdinalCharSequence(final char[] content, final int from, final int to) {
+			this.content = content;
+			this.from = from;
+			this.to = to;
+		}
+
+		@Override
+		public int length() {
+			return to-from+1;
+		}
+
+		@Override
+		public char charAt(final int index) throws StringIndexOutOfBoundsException {
+			if (index < 0 || index >= length()) {
+				throw new StringIndexOutOfBoundsException("Char index ["+index+"] out of range 0.."+(length()-1)); 
+			}
+			else {
+				return content[index-from];
 			}
 		}
-		target[targetIndex++] = new String(source,start,maxIndex-start);
-	}
+
+		@Override
+		public CharSequence subSequence(final int start, final int end) {
+			if (start < 0 || start >= length()) {
+				throw new StringIndexOutOfBoundsException("Start index ["+start+"] out of range 0.."+(length()-1)); 
+			}
+			else if (end < 0 || end >= length()) {
+				throw new StringIndexOutOfBoundsException("End index ["+end+"] out of range 0.."+(length()-1)); 
+			}
+			else if (end < start) {
+				throw new StringIndexOutOfBoundsException("End index ["+end+"] less than start index ["+start+"]"); 
+			}
+			else {
+				return new OrdinalCharSequence(content,from+start,from+end);
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + Arrays.hashCode(content);
+			result = prime * result + from;
+			result = prime * result + to;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			OrdinalCharSequence other = (OrdinalCharSequence) obj;
+			if (!Arrays.equals(content, other.content)) return false;
+			if (from != other.from) return false;
+			if (to != other.to) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "OrdinalCharSequence [content=" + Arrays.toString(content) + ", from=" + from + ", to=" + to + "]";
+		}
+    }
+
+    private static class WeakCharSequence implements CharSequence {
+    	private final WeakReference<char[]>	content;
+    	private final int		from;
+    	private final int 		to;
+
+		private WeakCharSequence(final char[] content, final int from, final int to) {
+			this.content = new WeakReference<char[]>(content);
+			this.from = from;
+			this.to = to;
+		}
+
+		@Override
+		public int length() {
+			return to-from+1;
+		}
+
+		@Override
+		public char charAt(final int index) throws StringIndexOutOfBoundsException {
+			if (index < 0 || index >= length()) {
+				throw new StringIndexOutOfBoundsException("Char index ["+index+"] out of range 0.."+(length()-1)); 
+			}
+			else {
+				final char[]	val = content.get();
+				
+				if (val != null) {
+					return val[index-from];
+				}
+				else {
+					throw new IllegalStateException("Reference for inner array was garbaged");
+				}
+			}
+		}
+
+		@Override
+		public CharSequence subSequence(final int start, final int end) {
+			if (start < 0 || start >= length()) {
+				throw new StringIndexOutOfBoundsException("Start index ["+start+"] out of range 0.."+(length()-1)); 
+			}
+			else if (end < 0 || end >= length()) {
+				throw new StringIndexOutOfBoundsException("End index ["+end+"] out of range 0.."+(length()-1)); 
+			}
+			else if (end < start) {
+				throw new StringIndexOutOfBoundsException("End index ["+end+"] less than start index ["+start+"]"); 
+			}
+			else {
+				final char[]	val = content.get();
+				
+				if (val != null) {
+					return new WeakCharSequence(val,from+start,from+end);
+				}
+				else {
+					throw new IllegalStateException("Reference for inner array was garbaged");
+				}
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((content == null) ? 0 : content.hashCode());
+			result = prime * result + from;
+			result = prime * result + to;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			WeakCharSequence other = (WeakCharSequence) obj;
+			if (content == null) {
+				if (other.content != null) return false;
+			} else if (!equals(content,other.content)) return false;
+			if (from != other.from) return false;
+			if (to != other.to) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "WeakCharSequence [content=" + content + ", from=" + from + ", to=" + to + "]";
+		}
+		
+		private boolean equals(final WeakReference<char[]> left, final WeakReference<char[]> right) {
+			final char[]	leftVal = left.get(), rightVal = right.get();
+			
+			return leftVal != null && rightVal != null && Arrays.equals(leftVal,rightVal);
+		}
+    }
 }

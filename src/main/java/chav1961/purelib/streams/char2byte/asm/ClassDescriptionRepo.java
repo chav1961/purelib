@@ -18,6 +18,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.Prescription;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 
 class ClassDescriptionRepo {
@@ -253,12 +254,12 @@ class ClassDescriptionRepo {
 	}
 
 	private static void addMethodDescription(final SyntaxTreeInterface<Keeper> longTree, final String className, final Method m) throws ContentException {
-		addAnyDescription(longTree,KIND_METHOD,className+'.'+m.getName()+InternalUtils.buildSignature(m),m.getName()+InternalUtils.buildSignature(m),KeeperContent.IsMethod,m);
-	}
+		addAnyDescription(longTree,KIND_METHOD,className+'.'+m.getName()+CompilerUtils.buildMethodSignature(m),m.getName()+CompilerUtils.buildMethodSignature(m),KeeperContent.IsMethod,m);
+	} 
 
 	private static void addConstructorDescription(final SyntaxTreeInterface<Keeper> longTree, final String className, final Constructor<?> c) throws ContentException {
-		addAnyDescription(longTree,KIND_CONSTRUCTOR,className+'.'+c.getDeclaringClass().getSimpleName()+InternalUtils.buildSignature(c),c.getDeclaringClass().getSimpleName()+InternalUtils.buildSignature(c),KeeperContent.isConstructor,c);
-		addAnyDescription(longTree,KIND_CONSTRUCTOR,className+".<init>"+InternalUtils.buildSignature(c),c.getDeclaringClass().getSimpleName()+InternalUtils.buildSignature(c),KeeperContent.isConstructor,c);
+		addAnyDescription(longTree,KIND_CONSTRUCTOR,className+'.'+c.getDeclaringClass().getSimpleName()+CompilerUtils.buildConstructorSignature(c),c.getDeclaringClass().getSimpleName()+CompilerUtils.buildConstructorSignature(c),KeeperContent.isConstructor,c);
+		addAnyDescription(longTree,KIND_CONSTRUCTOR,className+".<init>"+CompilerUtils.buildConstructorSignature(c),c.getDeclaringClass().getSimpleName()+CompilerUtils.buildConstructorSignature(c),KeeperContent.isConstructor,c);
 	}
 
 	private static void addAnyDescription(final SyntaxTreeInterface<Keeper> longTree, final String entityType, final String qualifiedName, final String simpleName, final KeeperContent context, final Object entity) throws ContentException {

@@ -226,9 +226,9 @@ public class PureLibSettings {
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
-	private static final ColorScheme				DEFAULT_COLOR_SCHEME = new ColorScheme();
 	private static final SubstitutableProperties	defaults = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	props = new SubstitutableProperties(defaults);
+	private static final ColorScheme				DEFAULT_COLOR_SCHEME = new ColorScheme();	// Don't move before previous line! 
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static final WellKnownSchema[]			schemasList = {

@@ -303,7 +303,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertEquals("#000000",picker.getRawDataFromComponent());
 		Assert.assertEquals(Color.black,picker.getValueFromComponent());
 		Assert.assertEquals(Color.black,picker.getChangedValueFromComponent());
-		Assert.assertEquals(Color.class,picker.getValueType());
+		Assert.assertEquals(Color.class,picker.getValueType()); 
 		
 		picker.setInvalid(true);
 		Assert.assertTrue(picker.isInvalid());
