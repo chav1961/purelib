@@ -28,6 +28,7 @@ public class SimpleComponentMonitor<T> implements JComponentMonitor {
 		changed = true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
 		switch (event) {

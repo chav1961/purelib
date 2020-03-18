@@ -2,34 +2,31 @@ package chav1961.purelib.ui.swing;
 
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -44,7 +41,6 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
-import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.FormMonitor;
@@ -71,15 +67,18 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and so on). You must close this form yourself</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor {
 	private static final long 				serialVersionUID = 4920624779261769348L;
+	
+	public static final String				DEFAULT_OK_BUTTON_NAME = "ask.accept";
+	public static final String				DEFAULT_CANCEL_BUTTON_NAME = "ask.cancel";
+	
 	private static final URI[]				DUMMY_OK_AND_CANCEL = new URI[0];
 	private static final int				GAP_SIZE = 5; 
 
-	private final T							instance;
 	private final LoggerFacade				logger;
 	private final LocalizerStore			localizer;
 	private final FormManager<Object,T>		formManager;
@@ -89,9 +88,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
-	private final boolean					tooltipsOnFocus;
 	private boolean							closed = false;
-	private Color							oldForeground4Label;
 
 	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, instance, formMgr, 1);
@@ -132,10 +129,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			this.mdi = mdi;
 			this.logger = logger;
 			this.formManager = formMgr;
-			this.tooltipsOnFocus = tooltipsOnFocus; 
 			
 			try(final LoggerFacade			trans = logger.transaction(this.getClass().getSimpleName())) {
-				this.instance = instance;
 				
 				this.localizer = new LocalizerStore(localizer,mdi.getRoot().getLocalizerAssociated());
 
@@ -422,8 +417,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			final ActionListener 	okListener = (e)->{result[0] = true; dlg.setVisible(false);}; 
 			final ActionListener 	cancelListener = (e)->{result[0] = false; dlg.setVisible(false);}; 
 			
-			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,(e)->okListener.actionPerformed(e),"ask.accept");
-			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,(e)->cancelListener.actionPerformed(e),"ask.cancel");
+			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,(e)->okListener.actionPerformed(e),DEFAULT_OK_BUTTON_NAME);
+			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,(e)->cancelListener.actionPerformed(e),DEFAULT_CANCEL_BUTTON_NAME);
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if(node.getApplicationPath() != null) {
@@ -438,11 +433,14 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				return ContinueMode.CONTINUE;
 			}, form.mdi.getRoot().getUIPath());
 
+			final JPanel	bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+			
 			if (okAndCancel.length == 0) {
 				final JButton	okButton = new JButton(localizer.getValue(PureLibLocalizer.BUTTON_OK));
 				final JButton	cancelButton = new JButton(localizer.getValue(PureLibLocalizer.BUTTON_CANCEL));
-				final JPanel	bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 				
+				okButton.setName(DEFAULT_OK_BUTTON_NAME);
+				cancelButton.setName(DEFAULT_CANCEL_BUTTON_NAME);
 				okButton.addActionListener(okListener);
 				cancelButton.addActionListener(cancelListener);
 				bottomPanel.add(okButton);
@@ -459,16 +457,20 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			dlg.getContentPane().add(form,BorderLayout.CENTER);
 			dlg.pack();
 			dlg.setLocationRelativeTo(parent);
-			
+
 			try{dlg.setVisible(true);
 				return result[0];
 			} finally {
+				dlg.getContentPane().remove(form);
 				if (okAndCancel.length == 1) {	// Exclude memory leaks by subscribing
 					makeActionListener(form,form.mdi,okAndCancel[0],cancelListener,false);
 				}
 				else if (okAndCancel.length == 2) {
 					makeActionListener(form,form.mdi,okAndCancel[0],okListener,false);
 					makeActionListener(form,form.mdi,okAndCancel[1],cancelListener,false);
+				}
+				else {
+					dlg.getContentPane().remove(bottomPanel);
 				}
 				SwingUtils.removeActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,"ask.accept");
 				SwingUtils.removeActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,"ask.cancel");
@@ -490,6 +492,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					else {
 						button.removeActionListener(listener);
 					}
+					result[0] = true;
 					return ContinueMode.STOP;
 				}
 			}

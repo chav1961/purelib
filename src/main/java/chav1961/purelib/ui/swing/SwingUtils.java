@@ -7,7 +7,6 @@ package chav1961.purelib.ui.swing;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -24,14 +23,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
@@ -39,15 +32,13 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -60,6 +51,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -67,6 +59,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
@@ -92,7 +85,6 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.basic.interfaces.PureLibColorScheme;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -104,8 +96,8 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.streams.StreamsUtil;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.ui.interfaces.FormManager;
@@ -143,7 +135,6 @@ public abstract class SwingUtils {
 	public static final String				ACTION_EXIT = "exit";
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
-	private static final Point2D.Float		ZERO_POINT = new Point2D.Float(0.0f,0.0f);
 
 	private static final String				UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
@@ -209,40 +200,20 @@ public abstract class SwingUtils {
 	private static ContinueMode walkDownInternal(final Component node, final WalkCallback callback) {
 		switch (callback.process(NodeEnterMode.ENTER,node)) {
 			case CONTINUE		:
-				if ((node instanceof Container) && ((Container)node).getComponentCount() > 0) {
-loop:				for (int index = 0, maxIndex = ((Container)node).getComponentCount(); index < maxIndex; index++) {
-						switch (walkDownInternal(((Container)node).getComponent(index),callback)) {
-							case CONTINUE:
-								break;
-							case SKIP_CHILDREN:
-								break loop;
-							case SKIP_SIBLINGS	:
-								callback.process(NodeEnterMode.EXIT,node);
-								return ContinueMode.SKIP_CHILDREN;
-							case STOP:
-								callback.process(NodeEnterMode.EXIT,node);
-								return ContinueMode.STOP;
-							default:
-								break;
-						}
-					}
-				}
-				else if ((node instanceof JMenu) && ((JMenu)node).getMenuComponentCount() > 0) {
-loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); index < maxIndex; index++) {
-						switch (walkDownInternal(((JMenu)node).getMenuComponent(index),callback)) {
-							case CONTINUE:
-								break;
-							case SKIP_CHILDREN	:
-								break loop;
-							case SKIP_SIBLINGS	:
-								callback.process(NodeEnterMode.EXIT,node);
-								return ContinueMode.SKIP_CHILDREN;
-							case STOP:
-								callback.process(NodeEnterMode.EXIT,node);
-								return ContinueMode.STOP;
-							default:
-								break;
-						}
+loop:			for (Component comp : children(node)) {
+					switch (walkDownInternal(comp,callback)) {
+						case CONTINUE:
+							break;
+						case SKIP_CHILDREN:
+							break loop;
+						case SKIP_SIBLINGS	:
+							callback.process(NodeEnterMode.EXIT,node);
+							return ContinueMode.SKIP_CHILDREN;
+						case STOP:
+							callback.process(NodeEnterMode.EXIT,node);
+							return ContinueMode.STOP;
+						default:
+							break;
 					}
 				}
 			case SKIP_CHILDREN	:
@@ -269,50 +240,44 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 		if (component == null) {
 			throw new NullPointerException("Component to get children for can't be null");
 		}
-		else if ((component instanceof JMenu)) {
-			return new Iterable<Component>() {
-				@Override
-				public Iterator<Component> iterator() {
-					return new Iterator<Component>() {
-						final int 	count = ((JMenu)component).getMenuComponentCount();
-						int			index = 0;
-
-						@Override
-						public boolean hasNext() {
-							return index < count;
-						}
-
-						@Override
-						public Component next() {
-							return ((JMenu)component).getMenuComponent(index++);
-						}
-					};
-				}
-			};
-		}
-		else if ((component instanceof Container)) {
-			return new Iterable<Component>() {
-				@Override
-				public Iterator<Component> iterator() {
-					return new Iterator<Component>() {
-						final int 	count = ((Container)component).getComponentCount();
-						int			index = 0;
-
-						@Override
-						public boolean hasNext() {
-							return index < count;
-						}
-
-						@Override
-						public Component next() {
-							return ((Container)component).getComponent(index++);
-						}
-					};
-				}
-			};
-		}
 		else {
-			throw new IllegalArgumentException("Component class ["+component.getClass().getCanonicalName()+"] is neither Container nor JMenu");
+			final Set<Component>	result = new HashSet<>();
+			Component[]				content;
+			
+			if (component instanceof Container) {
+				if ((content = ((Container)component).getComponents()) != null) {
+					result.addAll(Set.of(content));
+				}				
+			}
+			if (component instanceof JMenu) {
+				if ((content = ((JMenu)component).getMenuComponents()) != null) {
+					result.addAll(Set.of(content));
+				}				
+			}
+			if (component instanceof JFrame) {
+				if ((content = ((JFrame)component).getRootPane().getComponents()) != null) {
+					result.addAll(Set.of(content));
+				}				
+			}
+			if (component instanceof JDialog) {
+				if ((content = ((JDialog)component).getRootPane().getComponents()) != null) {
+					result.addAll(Set.of(content));
+				}				
+			}
+			if (component instanceof JLayeredPane) {
+				final JLayeredPane	pane = ((JLayeredPane)component);
+				
+				for (int index = pane.lowestLayer(), maxIndex = pane.highestLayer(); index <= maxIndex; index++) {
+					if (pane.getComponentCountInLayer(index) > 0 && (content = pane.getComponentsInLayer(index)) != null) {
+						result.addAll(Set.of(content));
+					}				
+				}
+			}
+			System.err.println("Seek: "+component.getClass().getCanonicalName()+", name="+component.getName());
+			for (Component item : result) {
+				System.err.println("LP: "+item.getClass().getCanonicalName()+", name="+item.getName());
+			}
+			return result;
 		}
 	}
 	
@@ -456,6 +421,7 @@ loop:				for (int index = 0, maxIndex = ((JMenu)node).getMenuComponentCount(); i
 	 * @throws NullPointerException on any nulls in the parameter's list
 	 * @throws IllegalArgumentException unsupported class to build component.
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T extends JComponent> T toJComponent(final ContentNodeMetadata node, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
 		if (node == null) {
 			throw new NullPointerException("Model node can't be null"); 

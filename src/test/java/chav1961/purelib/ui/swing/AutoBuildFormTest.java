@@ -1,15 +1,19 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,8 +28,6 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -33,14 +35,18 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
-import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.interfaces.FormManager;
-import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
 public class AutoBuildFormTest {
 	private boolean		callListener = false;
+
+	@FunctionalInterface
+	private interface CallInterface {
+		void process() throws Exception;
+	}
 	
+	@SuppressWarnings("resource")
 	@Test
 	public void basicTest() throws SyntaxException, LocalizationException, ContentException, MalformedURLException {		
 		final PseudoData						pd = new PseudoData();
@@ -159,4 +165,55 @@ public class AutoBuildFormTest {
 		}
 		Assert.assertEquals(1230,pd.intValue);
 	}	
+
+	@Category(UITestCategory.class)
+	@Test
+	public void uiStaticTest() throws SyntaxException, ContentException, MalformedURLException, EnvironmentException, InterruptedException, DebuggingException, NullPointerException, InvocationTargetException {		
+		final PseudoData						pd = new PseudoData();
+		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
+													@Override
+													public RefreshMode onField(PseudoData inst, Object id, String fieldName, Object oldValue) throws FlowException, LocalizationException {
+														return RefreshMode.FIELD_ONLY;
+													}
+										
+													@Override
+													public LoggerFacade getLogger() {
+														return PureLibSettings.CURRENT_LOGGER;
+													}
+												};
+		final ContentMetadataInterface			mdi = ContentModelFactory.forAnnotatedClass(pd.getClass());
+		final JFrame							root = new JFrame();
+		
+		pd.date1 = new Date(0);
+		pd.file = new File("./"); 
+		pd.text = "text"; 
+		
+		try(final AutoBuiltForm<PseudoData>		abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,pd,fm)) {
+			
+			callUI(()->AutoBuiltForm.ask(root,PureLibSettings.PURELIB_LOCALIZER,abf),root,URI.create(AutoBuiltForm.DEFAULT_OK_BUTTON_NAME));
+			callUI(()->AutoBuiltForm.ask(root,PureLibSettings.PURELIB_LOCALIZER,abf,new URI[]{URI.create("app:action:/PseudoData.calculate")}),root,URI.create("app:action:/PseudoData.calculate"));
+			callUI(()->AutoBuiltForm.ask(root,PureLibSettings.PURELIB_LOCALIZER,abf,new URI[]{URI.create("app:action:/PseudoData.calculate"),URI.create("app:action:/PseudoData.calculate")}),root,URI.create("app:action:/PseudoData.calculate"));
+		} finally {
+			root.dispose();
+		}
+	}
+
+	private static void callUI(final CallInterface runnable, final JFrame form, final URI click) throws InterruptedException, InvocationTargetException, EnvironmentException {
+		final SwingUnitTest		sut = new SwingUnitTest(form);
+		final CountDownLatch	latch1 = new CountDownLatch(1), latch2 = new CountDownLatch(1);
+		
+		final Thread	t = new Thread(()->{
+								try{runnable.process();
+									latch1.countDown();
+								} catch (Exception e) {
+								} finally {
+									latch2.countDown();
+								}
+						});
+		t.start();
+		latch1.await(100,TimeUnit.MILLISECONDS);
+		sut.await();
+		((JButton)SwingUtils.findComponentByName(form,click.toString())).doClick();
+		latch2.await(100,TimeUnit.MILLISECONDS);
+	}
 }

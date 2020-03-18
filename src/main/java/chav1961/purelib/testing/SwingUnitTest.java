@@ -200,6 +200,11 @@ public class SwingUnitTest {
 		return this;
 	}
 	
+	public SwingUnitTest await() {
+		robo.waitForIdle();
+		return this;
+	}
+	
 	private void processModifiers(final int oldModifiers, final int newModifiers) {
 		for (int mask = 0x01, changes = newModifiers ^ oldModifiers; changes != 0; changes >>= 1, mask <<= 1) {
 			if ((changes & 0x01) != 0) {
