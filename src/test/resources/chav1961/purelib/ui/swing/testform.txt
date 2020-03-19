@@ -1,0 +1,4 @@
+>>width=200&height=200
+label1 ${intValue:10}
+>>
+label2 ${boolValue:1}

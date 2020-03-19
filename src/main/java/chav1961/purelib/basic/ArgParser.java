@@ -144,6 +144,7 @@ public class ArgParser {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <T> T getValue(final String key, final Class<T> awaited) throws CommandLineParametersException {
 		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call getValue(...) on 'parent' instance. Call parse(...) method and use value returned for this purpose");

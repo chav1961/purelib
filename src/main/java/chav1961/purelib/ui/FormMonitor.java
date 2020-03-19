@@ -104,12 +104,12 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 				} catch (LocalizationException  exc) {
 					getLogger().message(Severity.error,exc,"FocusGained for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 					if (tooltipsOnFocus) {
-						getLogger().message(Severity.tooltip,"");
+						getLogger().message(Severity.tooltip,"a");
 					}
 				}
 				break;
 			case FocusLost:
-				getLogger().message(Severity.tooltip,"");
+				getLogger().message(Severity.tooltip,"a");
 				break;
 			case Loading:
 				final GetterAndSetter	gas = accessors.get(metadata.getUIPath());

@@ -408,7 +408,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		return askInternal(window,new JDialog(window,true), localizer, form, okAndCancel);
 	}
 	
-	private static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer, final AutoBuiltForm<?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
+	static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer, final AutoBuiltForm<?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
 		if (okAndCancel.length > 2) {
 			throw new IllegalArgumentException("Ok and cancel URI array length is too long. Only 0..2 are available");
 		}

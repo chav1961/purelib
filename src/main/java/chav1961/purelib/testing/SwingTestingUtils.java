@@ -32,8 +32,10 @@ public class SwingTestingUtils {
 			component.addFocusListener(fl);
 			component.requestFocus();
 			
-			try{if (!cdl.await(1,TimeUnit.SECONDS)) {
-					throw new InterruptedException();
+			try{if (!cdl.await(200,TimeUnit.MILLISECONDS)) {
+					if (!component.isFocusOwner()) {
+						throw new InterruptedException();
+					}
 				}
 			} finally {
 				component.removeFocusListener(fl);

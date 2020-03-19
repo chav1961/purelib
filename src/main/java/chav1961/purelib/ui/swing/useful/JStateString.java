@@ -383,7 +383,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	public LoggerFacade message(final Severity level, final String format, final Object... parameters) {
 		try{delegate.message(level, localize(format), parameters);
 		} catch (LocalizationException e) {
-			delegate.message(level, format, parameters);		}
+			delegate.message(level, format, parameters);
+		}
 		return this;
 	}
 

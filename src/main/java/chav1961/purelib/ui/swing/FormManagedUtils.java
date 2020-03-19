@@ -88,11 +88,7 @@ public class FormManagedUtils {
 		boolean	newLine = true, bold = false, italic = false;
 
 		try{		
-loop:		for(;;) {
-				while (content[from] <= ' ' && content[from] != '\n' && content[from] != EOF_MARKUP && content[from] != SPLITTER_MARKUP) {
-					from++;
-				}
-				
+loop:		while(from < content.length) {
 				switch (content[from]) {
 					case EOF_MARKUP 		:
 						break loop;
@@ -260,7 +256,7 @@ loop:		for(;;) {
 				from++;
 			}
 			if (from > start) {
-				processLabel(content,start,from,column,row,escapes > 0,bold,italic,false,callback);
+				processLabel(content,start,Math.min(from,content.length-1),column,row,escapes > 0,bold,italic,false,callback);
 			}
 		} catch (ContentException e) {
 			throw new SyntaxException(SyntaxException.toRow(content,from),SyntaxException.toCol(content,from),e.getLocalizedMessage(),e);

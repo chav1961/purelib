@@ -3,11 +3,15 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Locale;
 
@@ -28,6 +32,11 @@ import chav1961.purelib.ui.swing.SwingUtils;
 
 public class JPaginator extends JPanel implements LocaleChangeListener {
 	private static final long serialVersionUID = -6595903486155330434L;
+	
+	public static final String			PAGINATOR_NAME = "paginator";
+	public static final String			PAGINATOR_PAGER_NAME = "paginator.pager";
+	public static final String			PAGINATOR_PAGE_PREFIX = "paginator.p";
+	public static final String			PAGINATOR_PAGE_TOOLTIP_SUFFIX = ".tt";
 	
 	private final Localizer				localizer;
 	private final PageSelectCallback	callback;
@@ -80,7 +89,9 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 			this.pages = pages;
 			this.totalPages = pages.length;
 			this.lastFocused = new Component[totalPages];
-					
+	
+			setName(PAGINATOR_NAME);
+			
 			if (needCaption) {
 				add(captionLabel,BorderLayout.NORTH);
 			}
@@ -96,17 +107,18 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 				this.pager = new JScrollBar(JScrollBar.VERTICAL,1,1,1,pages.length);
 				
 				for (int index = 1; index <= totalPages; index++) {
-					pageContainer.add(pages[index-1],"p"+index);
+					pageContainer.add(pages[index-1],PAGINATOR_PAGE_PREFIX+index);
 					prepareCrossPageMoving(pages[index-1],index == 1, index == totalPages);
 				}
 				add(pageContainer,BorderLayout.CENTER);
 				add(pager,BorderLayout.EAST);
+				pager.setName(PAGINATOR_PAGER_NAME);
 				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,0),(e)->{movePageInternal(PageMoving.valueOf(e.getActionCommand()));},PageMoving.NEXT.name());
 				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,InputEvent.CTRL_DOWN_MASK),(e)->{movePageInternal(PageMoving.valueOf(e.getActionCommand()));},PageMoving.LAST.name());
 				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0),(e)->{movePageInternal(PageMoving.valueOf(e.getActionCommand()));},PageMoving.PREV.name());
 				SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,InputEvent.CTRL_DOWN_MASK),(e)->{movePageInternal(PageMoving.valueOf(e.getActionCommand()));},PageMoving.FIRST.name());
 			}
-			SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_HELP,(e)->{callHelp(help);},"");
+			SwingUtils.assignActionKey(this,JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_HELP,(e)->{callHelp(help);},"help");
 			movePage(PageMoving.FIRST);
 		}
 	}
@@ -114,7 +126,9 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
-		SwingUtils.refreshLocale(this,oldLocale,newLocale);
+		for (JComponent item : pages) {
+			SwingUtils.refreshLocale(item,oldLocale,newLocale);
+		}
 	}
 	
 	public void movePage(final PageMoving action) throws NullPointerException, LocalizationException {
@@ -124,7 +138,9 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 		else {
 			final int	lastPageNo = currentPage;
 			
-			lastFocused[currentPage-1] = FocusManager.getCurrentManager().getFocusOwner();
+			if (currentPage >= 0) {
+				lastFocused[currentPage-1] = FocusManager.getCurrentManager().getFocusOwner();
+			}
 			
 			switch (action) {
 				case FIRST	:
@@ -147,30 +163,40 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 			}
 	
 			if (cardLayout != null) {
-				cardLayout.show(pageContainer,"p"+currentPage);
+				cardLayout.show(pageContainer,PAGINATOR_PAGE_PREFIX+currentPage);
 			}
-			pager.setValue(currentPage);
+			if (pager != null) {
+				pager.setValue(currentPage);
+			}
 			callback.selectPage(lastPageNo,currentPage,totalPages);
 			caption = callback.getPageCaption(currentPage);
 			tooltip = callback.getPageTooltip(currentPage);
 			help = callback.getPageHelp(currentPage);
 			
+			fillLocalizedStrings();
 			if (lastFocused[currentPage-1] != null) {
 				lastFocused[currentPage-1].requestFocus();
 			}
 			else {
 				final JComponent	current = pages[currentPage-1];
 				
-				for (int index = 0, maxIndex = current.getComponentCount(); index < maxIndex; index++) {
-					if (!(current.getComponent(index) instanceof JLabel)) {
-						current.getComponent(index).requestFocus();
+				for (Component item : SwingUtils.children(current)) {
+					if (item.isFocusable()) {
+						item.requestFocus();
 					}
 				}
 			}
-			fillLocalizedStrings();
 		}
 	}
 
+	public int getCurrentPage() {
+		return currentPage;
+	}
+
+	public int getTotalPages() {
+		return pages.length;
+	}
+	
 	protected Localizer getLocalizerAssociated() {
 		return localizer;
 	}
@@ -183,12 +209,11 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 			}
 		}
 	}
-
 	
 	private void prepareCrossPageMoving(final JComponent page, final boolean first, final boolean last) {
 		Component	current, next;
 		
-		if (first) {
+		if (!first) {
 			current = next = null;
 			for (int index = 0; index < page.getComponentCount() && (current == null || next == null); index++) {
 				if (page.getComponent(index).isFocusable()) {
@@ -203,9 +228,12 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 			if (current != null && next != null) {
 				buildFocusListener(current,next,PageMoving.PREV);
 			}
+			else if (current != null) {
+				buildFocusListener(current,PageMoving.NEXT);
+			}
 		}
 		
-		if (last) {
+		if (!last) {
 			current = next = null;
 			for (int index = page.getComponentCount()-1; index >= 0 && (current == null || next == null); index--) {
 				if (page.getComponent(index).isFocusable()) {
@@ -219,6 +247,9 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 			}
 			if (current != null && next != null) {
 				buildFocusListener(current,next,PageMoving.NEXT);
+			}
+			else if (current != null) {
+				buildFocusListener(current,PageMoving.NEXT);
 			}
 		}
 	}
@@ -236,6 +267,19 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 		});
 	}
 
+	private void buildFocusListener(final Component from, final PageMoving action) {
+		try{final Method	m = from.getClass().getMethod("addActionListener",ActionListener.class);
+
+			m.invoke(from,new ActionListener(){
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					movePageInternal(action);
+				}
+			});
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+		}
+	}
+	
 	private void movePageInternal(final PageMoving action) throws NullPointerException {
 		try{movePage(action);
 		} catch (LocalizationException e) {
@@ -244,7 +288,7 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 	}	
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		captionLabel.setText(Utils.nvl(getLocalizerAssociated().getValue(caption),"p"+currentPage));
-		captionLabel.setToolTipText(Utils.nvl(getLocalizerAssociated().getValue(tooltip),""));
+		captionLabel.setText(getLocalizerAssociated().getValue(Utils.nvl(caption,PAGINATOR_PAGE_PREFIX+currentPage)));
+		captionLabel.setToolTipText(getLocalizerAssociated().getValue(Utils.nvl(tooltip,PAGINATOR_PAGE_PREFIX+currentPage+PAGINATOR_PAGE_TOOLTIP_SUFFIX)));
 	}
 }

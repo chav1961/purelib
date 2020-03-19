@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -41,11 +42,6 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 public class AutoBuildFormTest {
 	private boolean		callListener = false;
 
-	@FunctionalInterface
-	private interface CallInterface {
-		void process() throws Exception;
-	}
-	
 	@SuppressWarnings("resource")
 	@Test
 	public void basicTest() throws SyntaxException, LocalizationException, ContentException, MalformedURLException {		
@@ -182,7 +178,6 @@ public class AutoBuildFormTest {
 													}
 												};
 		final ContentMetadataInterface			mdi = ContentModelFactory.forAnnotatedClass(pd.getClass());
-		final JFrame							root = new JFrame();
 		
 		pd.date1 = new Date(0);
 		pd.file = new File("./"); 
@@ -190,30 +185,41 @@ public class AutoBuildFormTest {
 		
 		try(final AutoBuiltForm<PseudoData>		abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,pd,fm)) {
 			
-			callUI(()->AutoBuiltForm.ask(root,PureLibSettings.PURELIB_LOCALIZER,abf),root,URI.create(AutoBuiltForm.DEFAULT_OK_BUTTON_NAME));
-			callUI(()->AutoBuiltForm.ask(root,PureLibSettings.PURELIB_LOCALIZER,abf,new URI[]{URI.create("app:action:/PseudoData.calculate")}),root,URI.create("app:action:/PseudoData.calculate"));
-			callUI(()->AutoBuiltForm.ask(root,PureLibSettings.PURELIB_LOCALIZER,abf,new URI[]{URI.create("app:action:/PseudoData.calculate"),URI.create("app:action:/PseudoData.calculate")}),root,URI.create("app:action:/PseudoData.calculate"));
-		} finally {
-			root.dispose();
+			callUI(abf,new URI[0],URI.create(AutoBuiltForm.DEFAULT_OK_BUTTON_NAME));
+			callUI(abf,new URI[]{URI.create("app:action:/PseudoData.calculate")},URI.create("ui:/chav1961.purelib.ui.swing.PseudoData/./PseudoData.calculate"));
+			callUI(abf,new URI[]{URI.create("app:action:/PseudoData.calculate"),URI.create("app:action:/PseudoData.calculate")},URI.create("ui:/chav1961.purelib.ui.swing.PseudoData/./PseudoData.calculate"));
 		}
 	}
 
-	private static void callUI(final CallInterface runnable, final JFrame form, final URI click) throws InterruptedException, InvocationTargetException, EnvironmentException {
-		final SwingUnitTest		sut = new SwingUnitTest(form);
-		final CountDownLatch	latch1 = new CountDownLatch(1), latch2 = new CountDownLatch(1);
-		
-		final Thread	t = new Thread(()->{
-								try{runnable.process();
-									latch1.countDown();
-								} catch (Exception e) {
-								} finally {
-									latch2.countDown();
-								}
-						});
+	private static void callUI(final AutoBuiltForm<PseudoData> abf, final URI[] buttons, final URI click) throws InterruptedException, EnvironmentException {
+		final CountDownLatch	cdl = new CountDownLatch(1);	// Protection against infinite wait in the test
+		final Thread			t = new Thread(()->{
+									JDialog	frame = null;
+									
+									try{frame = new JDialog((JFrame)null,true) {
+														@Override
+														public void setVisible(final boolean visible) {
+															if (visible) {
+																final JButton	btn = (JButton)SwingUtils.findComponentByName(this,click.toString());
+																
+																Assert.assertNotNull(btn);
+																SwingUtilities.invokeLater(()->{btn.doClick();});
+															}
+															super.setVisible(visible);
+														}
+												};
+													
+										AutoBuiltForm.askInternal((JFrame)null,frame,PureLibSettings.PURELIB_LOCALIZER,abf,buttons);
+									} catch (Exception e) {
+										Assert.fail("Exception detected: "+e.getLocalizedMessage());
+									} finally {
+										frame.dispose();
+										cdl.countDown();
+									}
+								});
+
+		t.setDaemon(true);
 		t.start();
-		latch1.await(100,TimeUnit.MILLISECONDS);
-		sut.await();
-		((JButton)SwingUtils.findComponentByName(form,click.toString())).doClick();
-		latch2.await(100,TimeUnit.MILLISECONDS);
+		Assert.assertTrue(cdl.await(2000,TimeUnit.MILLISECONDS));
 	}
 }

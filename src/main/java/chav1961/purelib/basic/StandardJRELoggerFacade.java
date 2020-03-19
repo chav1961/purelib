@@ -51,6 +51,8 @@ public class StandardJRELoggerFacade extends AbstractLoggerFacade {
 				case severe 	: actualLogger.log(Level.SEVERE,text);	break;
 				case trace 		: actualLogger.log(Level.FINEST,text);	break;
 				case warning	: actualLogger.log(Level.WARNING,text);	break;
+				case tooltip	: break;
+				default			: throw new IllegalArgumentException("Severity level ["+level+"] is not supported yet"); 
 			}
 		}
 		else {
@@ -61,6 +63,8 @@ public class StandardJRELoggerFacade extends AbstractLoggerFacade {
 				case severe 	: actualLogger.log(Level.SEVERE,text,throwable);	break;
 				case trace 		: actualLogger.log(Level.FINEST,text,throwable);	break;
 				case warning	: actualLogger.log(Level.WARNING,text,throwable);	break;
+				case tooltip	: break;
+				default			: throw new IllegalArgumentException("Severity level ["+level+"] is not supported yet"); 
 			}
 		}
 	}

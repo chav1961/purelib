@@ -14,11 +14,9 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
@@ -29,12 +27,10 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
-import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.FormManagedUtils;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
 import chav1961.purelib.ui.swing.JButtonWithMeta;
@@ -47,7 +43,6 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 	private static final int				GAP_SIZE = 5; 
 
 	private final Object					content;
-	private final J2ColumnEditorCallback	callback;
 	private final Localizer					localizer;
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<String,GetterAndSetter>	accessors = new HashMap<>();	
@@ -56,6 +51,12 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 	@FunctionalInterface
 	public interface J2ColumnEditorCallback {
 		void process(String actionCommand);
+	}	
+
+	@FunctionalInterface
+	public interface J2ColumnEditorFilterCallback {
+		default boolean useAction(final ContentNodeMetadata metadata) {return true;}
+		boolean useField(final ContentNodeMetadata metadata);
 	}	
 	
 	public J2ColumnEditor(final ContentMetadataInterface metadata, final Object content) throws SyntaxException, LocalizationException, NullPointerException, PreparationException, IllegalArgumentException, ContentException, IOException {
@@ -69,8 +70,12 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 	public J2ColumnEditor(final ContentMetadataInterface metadata, final Object content, final int numberOfBars) throws SyntaxException, LocalizationException, NullPointerException, PreparationException, IllegalArgumentException, ContentException, IOException {
 		this(metadata,content,numberOfBars,(c)->{});
 	}
-	
+
 	public J2ColumnEditor(final ContentMetadataInterface metadata, final Object content, final int numberOfBars, final J2ColumnEditorCallback callback) throws SyntaxException, LocalizationException, NullPointerException, PreparationException, IllegalArgumentException, ContentException, IOException {
+		this(metadata,content,numberOfBars,(meta)->true,callback);
+	}
+	
+	public J2ColumnEditor(final ContentMetadataInterface metadata, final Object content, final int numberOfBars, final J2ColumnEditorFilterCallback filter, final J2ColumnEditorCallback callback) throws SyntaxException, LocalizationException, NullPointerException, PreparationException, IllegalArgumentException, ContentException, IOException {
 		super(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
 		
 		if (metadata == null) {
@@ -79,14 +84,14 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 		else if (content == null) {
 			throw new NullPointerException("Content to show can't be null"); 
 		}
+		else if (filter == null) {
+			throw new NullPointerException("Filter callback can't be null"); 
+		}
 		else if (callback == null) {
 			throw new NullPointerException("Editor callback can't be null"); 
 		}
 		else {
-			final Class<?>	instanceClass = content.getClass();
-			
 			this.content = content;
-			this.callback = callback;
 			this.metadata = metadata;
 			this.localizer = LocalizerFactory.getLocalizer(metadata.getRoot().getLocalizerAssociated());
 
@@ -96,25 +101,29 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 					, new FormManagerParserCallback() {
 						@Override
 						public void processActionButton(final ContentNodeMetadata metadata, final JButtonWithMeta button) throws ContentException {
-							button.setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString());
-							button.setActionCommand(metadata.getApplicationPath().toString());
-							button.addActionListener((e)->{callback.process(e.getActionCommand());});
-							actions.add(button);
+							if (filter.useAction(metadata)) {
+								button.setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString());
+								button.setActionCommand(metadata.getApplicationPath().toString());
+								button.addActionListener((e)->{callback.process(e.getActionCommand());});
+								actions.add(button);
+							}
 						}
 
 						@Override
 						public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, final boolean isModifiable) throws ContentException {
-							final FieldFormat	ff = metadata.getFormatAssociated();
-							
-							fieldLabel.setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString()+"/label");
-							add(fieldLabel,LabelledLayout.LABEL_AREA);
-							fieldComponent.setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString());
-							add(fieldComponent,LabelledLayout.CONTENT_AREA);
-							labelIds.add(metadata.getLabelId());
-							if (!ff.isReadOnly(false) && !ff.isReadOnly(true)) {
-								modifiableLabelIds.add(metadata.getLabelId());
+							if (filter.useField(metadata)) {
+								final FieldFormat	ff = metadata.getFormatAssociated();
+								
+								fieldLabel.setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString()+"/label");
+								add(fieldLabel,LabelledLayout.LABEL_AREA);
+								fieldComponent.setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString());
+								add(fieldComponent,LabelledLayout.CONTENT_AREA);
+								labelIds.add(metadata.getLabelId());
+								if (!ff.isReadOnly(false) && !ff.isReadOnly(true)) {
+									modifiableLabelIds.add(metadata.getLabelId());
+								}
+								accessors.put(metadata.getUIPath().toString(),gas);
 							}
-							accessors.put(metadata.getUIPath().toString(),gas);
 						}
 			});
 			

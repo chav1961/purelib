@@ -191,11 +191,11 @@ public class SwingUnitTest {
 		if (found.isFocusable()) {
 			try{SwingTestingUtils.syncRequestFocus(found);
 			} catch (InterruptedException exc) {
-				throw new DebuggingException("Timeout awaiting focus!");
+				throw new DebuggingException("Timeout awaiting focus for ["+name+"]");
 			}
 		}
 		else {
-			throw new DebuggingException("Last component found is not focusable, and can't be selected. Check previous operation");
+			throw new DebuggingException("Component ["+name+"] is not focusable, and can't be selected. Check previous operation");
 		}
 		return this;
 	}

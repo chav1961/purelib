@@ -115,8 +115,8 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 		}
 		else {
 			try{setBundle(ResourceBundle.getBundle(getResourceAddress(), newLocale, this.getClass().getClassLoader(), new UTF8Control()));
-			} catch (MissingResourceException exc) {
-				throw new LocalizationException(exc.getLocalizedMessage(),exc); 
+			} catch (MissingResourceException | UnsupportedOperationException exc) {
+				throw new LocalizationException("Resource ["+getResourceAddress()+"], locale ["+newLocale+"]: "+exc.getLocalizedMessage(),exc); 
 			}
 		}
 	}

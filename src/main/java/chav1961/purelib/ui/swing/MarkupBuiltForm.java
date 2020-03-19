@@ -64,9 +64,10 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	public static final String				TOOLTIP = "tooltip";
 	public static final String				HELP = "help";
 	
+	private final ContentMetadataInterface	metadata;
 	private final Localizer					localizer;
-	private final LoggerFacade				logger;
 	private final FormMonitor<T>			monitor;
+	private final FormManager<Object,T> 	formMgr;
 	private final PresentationDescriptor	desc;
 	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JStateString				state;
@@ -76,7 +77,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	private final Component[]				lastFocused;
 	private int								currentPage = 1;
 	
-	public MarkupBuiltForm(final Localizer localizer, final LoggerFacade logger, final ContentMetadataInterface metadata, final String markupDescriptor, final T instance, final FormManager<Object,T> formMgr, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public MarkupBuiltForm(final ContentMetadataInterface metadata, final Localizer localizer, final LoggerFacade logger, final String markupDescriptor, final T instance, final FormManager<Object,T> formMgr, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -96,8 +97,9 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			throw new NullPointerException("Form manager to edit can't be null");
 		}
 		else {
+			this.metadata = metadata;
 			this.localizer = localizer;
-			this.logger = logger;
+			this.formMgr = formMgr;
 			this.state = new JStateString(localizer);
 			
 			setLayout(new BorderLayout());
@@ -209,7 +211,6 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	@Override
 	public void close() throws RuntimeException {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -217,8 +218,28 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		return monitor.process(event, metadata, component, parameters);
 	}
 
+	/**
+	 * <p>Get localizer associated with the form</p>
+	 * @return localizer associated. Can't be null
+	 */
 	public Localizer getLocalizerAssociated() {
 		return localizer;
+	}
+
+	/**
+	 * <p>Get form manager associated with the form</p>
+	 * @return form manager associated. Can't be null
+	 */
+	public FormManager<Object,T> getFormManagerAssociated() {
+		return formMgr;
+	}
+	
+	/**
+	 * <p>Get content model for instance </p>
+	 * @return content model. Can't be null
+	 */
+	public ContentMetadataInterface getContentModel() {
+		return metadata;
 	}
 	
 	protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
@@ -238,7 +259,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		fillPageCaption();
 	}
 	
-	private static <T> PresentationDescriptor buildPresentation(final ContentMetadataInterface metadata, final Map<String,JComponent> componentList, final JComponentMonitor monitor, final String markupDescriptor, final  Class<T> clazz) throws SyntaxException {
+	private static <T> PresentationDescriptor buildPresentation(final ContentMetadataInterface metadata, final Map<String,JComponent> componentList, final JComponentMonitor monitor, final String markupDescriptor, final Class<T> clazz) throws SyntaxException {
 		final List<PageDescriptor>	pages = new ArrayList<>();
 		Hashtable<String,String[]>	props;
 		String						pageContent;
@@ -247,17 +268,28 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 
 		if (markupDescriptor.startsWith(">>")) {
 			nl = markupDescriptor.indexOf('\n');
-			props = URIUtils.parseQuery(markupDescriptor.substring(start+2,nl));
+			if (nl > start+2) {
+				props = URIUtils.parseQuery(markupDescriptor.substring(start+2,nl));
+			}
+			else {
+				props = new Hashtable<>();
+			}
 			
-			width = Integer.valueOf(props.get("width")[0]);
-			height = Integer.valueOf(props.get("height")[0]);
+			width = props.contains(WIDTH) ? Integer.valueOf(props.get(WIDTH)[0]) : DEFAULT_WIDTH;
+			height = props.contains(HEIGHT) ? Integer.valueOf(props.get(HEIGHT)[0]) : DEFAULT_HEIGHT;
 			start = nl + 1;
 			
 			while ((end = markupDescriptor.indexOf("\n>>",start)) >= 0) {
 				pageContent = markupDescriptor.substring(start,end);
 				pages.add(new PageDescriptor(buildPage(metadata,componentList,monitor,clazz,width,height,pageContent),props));
-				nl = markupDescriptor.indexOf('\n');
-				props = URIUtils.parseQuery(markupDescriptor.substring(start+2,nl));
+				start = end+1;
+				nl = markupDescriptor.indexOf('\n',start);
+				if (nl > start+2) {
+					props = URIUtils.parseQuery(markupDescriptor.substring(start+2,nl));
+				}
+				else {
+					props = new Hashtable<>();
+				}
 				start = nl + 1;
 			}
 			pages.add(new PageDescriptor(buildPage(metadata,componentList,monitor,clazz,width,height,markupDescriptor.substring(start)),props));
@@ -276,7 +308,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 											
 											label.setForeground(color);
 											label.setFont(font);
-											stack.get(0).add(label);
+											stack.get(0).add(label, new Rectangle(x,y,width,height));
 										}
 							
 										@Override
@@ -287,7 +319,9 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 										@Override
 										public void placeField(final int x, final int y, final int width, final int height, final String componentName, final String initialValue) throws ContentException {
 											if (componentList.containsKey(componentName)) {
-												stack.get(0).add(componentList.get(componentName),new Rectangle(x,y,width,height));
+												final JComponent	component = componentList.get(componentName); 
+												
+												stack.get(0).add(component,new Rectangle(x,y,width,height));
 											}
 											else {
 												throw new ContentException("Field ["+componentName+"] referenced from the form not found");

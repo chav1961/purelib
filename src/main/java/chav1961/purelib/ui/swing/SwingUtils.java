@@ -32,9 +32,12 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -241,27 +244,27 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Component to get children for can't be null");
 		}
 		else {
-			final Set<Component>	result = new HashSet<>();
+			final List<Component>	result = new ArrayList<>();
 			Component[]				content;
 			
 			if (component instanceof Container) {
 				if ((content = ((Container)component).getComponents()) != null) {
-					result.addAll(Set.of(content));
+					result.addAll(Arrays.asList(content));
 				}				
 			}
 			if (component instanceof JMenu) {
 				if ((content = ((JMenu)component).getMenuComponents()) != null) {
-					result.addAll(Set.of(content));
+					result.addAll(Arrays.asList(content));
 				}				
 			}
 			if (component instanceof JFrame) {
 				if ((content = ((JFrame)component).getRootPane().getComponents()) != null) {
-					result.addAll(Set.of(content));
+					result.addAll(Arrays.asList(content));
 				}				
 			}
 			if (component instanceof JDialog) {
 				if ((content = ((JDialog)component).getRootPane().getComponents()) != null) {
-					result.addAll(Set.of(content));
+					result.addAll(Arrays.asList(content));
 				}				
 			}
 			if (component instanceof JLayeredPane) {
@@ -269,14 +272,14 @@ loop:			for (Component comp : children(node)) {
 				
 				for (int index = pane.lowestLayer(), maxIndex = pane.highestLayer(); index <= maxIndex; index++) {
 					if (pane.getComponentCountInLayer(index) > 0 && (content = pane.getComponentsInLayer(index)) != null) {
-						result.addAll(Set.of(content));
+						result.addAll(Arrays.asList(content));
 					}				
 				}
 			}
-			System.err.println("Seek: "+component.getClass().getCanonicalName()+", name="+component.getName());
-			for (Component item : result) {
-				System.err.println("LP: "+item.getClass().getCanonicalName()+", name="+item.getName());
-			}
+//			System.err.println("Seek: "+component.getClass().getCanonicalName()+", name="+component.getName());
+//			for (Component item : result) {
+//				System.err.println("LP: "+item.getClass().getCanonicalName()+", name="+item.getName());
+//			}
 			return result;
 		}
 	}

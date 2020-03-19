@@ -69,7 +69,7 @@ public class VisualControlsTest implements JComponentMonitor {
 
 	@Override
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
-		System.err.println("Event="+event);
+//		System.err.println("Event="+event);
 		switch (event) {
 			case Action			:
 				action = true;
