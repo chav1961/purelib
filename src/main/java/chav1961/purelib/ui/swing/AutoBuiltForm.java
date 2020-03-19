@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.ImageIcon;
@@ -210,6 +211,13 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		}
 	}
 
+	public Module getUnnamedModule() {
+		for (Entry<URI, GetterAndSetter> item : accessors.entrySet()) {
+			return item.getValue().getClass().getClassLoader().getUnnamedModule();
+		}
+		return null;
+	}
+	
 	/**
 	 * <p>Get localizer associated with the form</p>
 	 * @return localizer associated. Can't be null

@@ -51,6 +51,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 		}
 		else {
 			this.resourceAddress = resourceAddress;
+			this.localizerURI = resourceAddress.toString();
 			
 			try(final LoggerFacade	trans = facade.transaction(this.getClass().getName())) {
 				if (resourceAddress.getScheme() != null) {

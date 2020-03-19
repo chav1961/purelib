@@ -15,10 +15,16 @@ public class LocalizerStore implements AutoCloseable {
 			throw new NullPointerException("Parent can't be null");
 		}
 		else if (child != null) {
-			if (!parent.containsLocalizerHere(child.toString())) {
+			if (!parent.containsLocalizerAnywhere(child.toString())) {
 				this.currentLocalizer = LocalizerFactory.getLocalizer(child);
-				this.localizer = parent.push(this.currentLocalizer);
-				this.localizerPushed = true;
+				if (this.currentLocalizer != parent) {
+					this.localizer = parent.push(this.currentLocalizer);
+					this.localizerPushed = true;
+				}
+				else {
+					this.localizer = parent;
+					this.localizerPushed = false;
+				}
 			}
 			else {
 				this.localizer = parent;
