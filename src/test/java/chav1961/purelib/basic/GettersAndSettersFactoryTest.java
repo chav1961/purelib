@@ -7,6 +7,7 @@ import java.net.URI;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
@@ -21,7 +22,9 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class GettersAndSettersFactoryTest {
 	@Before
 	public void prepare() {
@@ -263,7 +266,7 @@ public class GettersAndSettersFactoryTest {
 
 	@Test
 	public void primitivePrivateTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
-		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+//		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		
 		try{final Method	m = GettersAndSettersFactory.class.getDeclaredMethod("prepareStatic");
 			m.setAccessible(true);
@@ -421,13 +424,13 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertEquals(((StaticShortOwner)publicStaticShortObj).getPrivateValue(),Short.MAX_VALUE);
 			Assert.assertEquals(shortStaticGS.get(publicStaticShortObj),Short.MAX_VALUE);
 		} finally {
-			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+//			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		}
 	}
 
 	@Test
 	public void referencedPrivateTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
-		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+//		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		
 		try{final Method	m = GettersAndSettersFactory.class.getDeclaredMethod("prepareStatic");
 			m.setAccessible(true);
@@ -473,13 +476,13 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertArrayEquals(((StaticArrayReferencedOwner)publicStaticArrayRefObj).getPrivateValue(),new int[]{1,2,3});
 			Assert.assertArrayEquals(arrayRefStaticGS.get(publicStaticArrayRefObj),new int[]{1,2,3});
 		} finally {
-			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+//			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		}
 	}
 
-	@Test
+//	@Test
 	public void primitiveUnsafeTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
-		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"true");
+//		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"true");
 		
 		try{final Method	m = GettersAndSettersFactory.class.getDeclaredMethod("prepareStatic");
 			m.setAccessible(true);
@@ -636,13 +639,13 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertEquals(((StaticShortOwner)publicStaticShortObj).getPrivateValue(),Short.MAX_VALUE);
 			Assert.assertEquals(shortStaticGS.get(publicStaticShortObj),Short.MAX_VALUE);
 		} finally {
-			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+//			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		}
 	}
 
-	@Test
+//	@Test
 	public void referencedUnsafeTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
-		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"true");
+//		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"true");
 		
 		try{final Method	m = GettersAndSettersFactory.class.getDeclaredMethod("prepareStatic");
 			m.setAccessible(true);
@@ -688,13 +691,13 @@ public class GettersAndSettersFactoryTest {
 			Assert.assertArrayEquals(((StaticArrayReferencedOwner)publicStaticArrayRefObj).getPrivateValue(),new int[]{1,2,3});
 			Assert.assertArrayEquals(arrayRefStaticGS.get(publicStaticArrayRefObj),new int[]{1,2,3});
 		} finally {
-			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+//			PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		}
 	}
 
 	@Test
 	public void instantiatorAsmTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException {
-		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
+//		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"false");
 		
 		final Instantiator<String>	inst = GettersAndSettersFactory.buildInstantiator(String.class);
 		
@@ -707,7 +710,7 @@ public class GettersAndSettersFactoryTest {
 
 	@Test
 	public void instantiatorUnsafeTest() throws IllegalArgumentException, NullPointerException, ContentException, NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
-		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"true");
+//		PureLibSettings.instance().setProperty(PureLibSettings.ALLOW_UNSAFE,"true");
 	}		
 	
 }

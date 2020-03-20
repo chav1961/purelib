@@ -12,9 +12,12 @@ import javax.swing.text.StyledDocument;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.HighlightItem;
 
+@Category(OrdinalTestCategory.class)
 public class JTextPaneHighlighterTest {
 	enum TestEnum {
 		ORDINAL, STYLE, PARAGRAPH

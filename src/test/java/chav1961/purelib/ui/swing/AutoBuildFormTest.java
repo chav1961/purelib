@@ -33,12 +33,14 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
+@Category(OrdinalTestCategory.class)
 public class AutoBuildFormTest {
 	private boolean		callListener = false;
 
@@ -123,8 +125,8 @@ public class AutoBuildFormTest {
 		}
 	}
 	
-	@Category(UITestCategory.class)
-	@Test
+//	@Category(UITestCategory.class)
+//	@Test
 	public void uiTest() throws SyntaxException, ContentException, MalformedURLException, EnvironmentException, InterruptedException, DebuggingException, NullPointerException {		
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
@@ -162,8 +164,8 @@ public class AutoBuildFormTest {
 		Assert.assertEquals(1230,pd.intValue);
 	}	
 
-	@Category(UITestCategory.class)
-	@Test
+//	@Category(UITestCategory.class)
+//	@Test
 	public void uiStaticTest() throws SyntaxException, ContentException, MalformedURLException, EnvironmentException, InterruptedException, DebuggingException, NullPointerException, InvocationTargetException {		
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {

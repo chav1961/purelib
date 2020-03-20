@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -26,7 +27,9 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class LocalizerFactoryTest {
 
 	@Test

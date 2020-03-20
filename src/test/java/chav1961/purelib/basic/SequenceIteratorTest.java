@@ -8,7 +8,11 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.testing.OrdinalTestCategory;
+
+@Category(OrdinalTestCategory.class)
 public class SequenceIteratorTest {
 
 	@SuppressWarnings("unchecked")

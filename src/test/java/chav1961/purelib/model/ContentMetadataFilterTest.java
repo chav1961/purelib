@@ -6,10 +6,13 @@ import java.net.URI;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class ContentMetadataFilterTest {
 	@Test
 	public void basicTest() throws IOException, EnvironmentException {

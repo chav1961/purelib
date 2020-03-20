@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
@@ -27,7 +28,9 @@ import chav1961.purelib.basic.interfaces.OnlineIntGetter;
 import chav1961.purelib.basic.interfaces.OnlineLongGetter;
 import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
 import chav1961.purelib.basic.interfaces.OnlineStringGetter;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class SVGUtilsTest {
 	@Test
 	public void extractPointsTest() throws SyntaxException {

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -11,8 +12,10 @@ import chav1961.purelib.json.JsonSaxDeserializerFactory;
 import chav1961.purelib.streams.JsonPrimitives;
 import chav1961.purelib.streams.JsonSaxParser;
 import chav1961.purelib.streams.interfaces.JsonSaxDeserializer;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
 
+@Category(OrdinalTestCategory.class)
 public class JsonSaxHandlerFactoryTest {
 	 
 	@Test

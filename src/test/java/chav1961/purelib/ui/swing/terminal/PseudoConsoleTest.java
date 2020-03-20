@@ -6,10 +6,13 @@ import java.awt.Rectangle;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.ColorPair;
 
 
+@Category(OrdinalTestCategory.class)
 public class PseudoConsoleTest {
 	@Test
 	public void basicTest() {

@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.Assert;
 
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -16,7 +17,9 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.sql.interfaces.ORMProvider;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class SimpleProviderTest {
 	private Connection	conn;
 	

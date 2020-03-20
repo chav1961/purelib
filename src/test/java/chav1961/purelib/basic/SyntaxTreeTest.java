@@ -2,10 +2,14 @@ package chav1961.purelib.basic;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
+import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.PerformanceTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class SyntaxTreeTest {
 	private final int				PERF_AMOUNT = 20;
 	private final int[]				amount = new int[1];
@@ -49,6 +53,7 @@ public class SyntaxTreeTest {
 		extendedFunctionalityTest(new OrdinalSyntaxTree<Object>());
 	}
 
+//	@Category(PerformanceTestCategory.class)
 //	@Test
 	public void performanceTest() throws InterruptedException {
 		final SyntaxTreeInterface<Object>	tt = new AndOrTree<>();
@@ -57,6 +62,7 @@ public class SyntaxTreeTest {
 		System.err.println("Start preparation...");
 		
 		for (int index = 0; index < data.length; index++) {
+			
 			final char[]	element = new char[64];
 			
 			for (int curs = 0; curs < 63; curs++) {

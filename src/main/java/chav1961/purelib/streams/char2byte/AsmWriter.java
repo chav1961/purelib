@@ -251,7 +251,7 @@ public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
 		if (clazz == null) {
 			throw new NullPointerException("Class to import can't be null");
 		}
-		else if (refName == null || refName.isBlank()) {
+		else if (refName == null || refName.isEmpty()) {
 			throw new IllegalArgumentException("Reference name for class can't be null");
 		}
 		else {

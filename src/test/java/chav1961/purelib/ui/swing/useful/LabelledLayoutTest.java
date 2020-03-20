@@ -12,7 +12,11 @@ import javax.swing.JTextField;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.testing.OrdinalTestCategory;
+
+@Category(OrdinalTestCategory.class)
 public class LabelledLayoutTest {
 	@Test
 	public void basicTest() {

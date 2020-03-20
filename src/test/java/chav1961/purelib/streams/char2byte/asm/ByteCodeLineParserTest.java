@@ -6,18 +6,21 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
 interface ByteCodeTestInterface {
 	void callInterfaceVoid(long parameter);
 	int callInterfaceInt(long parameter);
 }
 
+@Category(OrdinalTestCategory.class)
 public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 	public static int callTest() {return 666;}	// Do not remove - need for test purposes! 
 

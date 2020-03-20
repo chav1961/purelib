@@ -18,12 +18,14 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.swing.useful.JPaginator.PageMoving;
 import chav1961.purelib.ui.swing.useful.JPaginator.PageSelectCallback;
 
+@Category(OrdinalTestCategory.class)
 public class JPaginatorTest {
 	@Test
 	public void basicTest() throws LocalizationException {

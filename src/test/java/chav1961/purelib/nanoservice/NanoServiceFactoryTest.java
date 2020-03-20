@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.sun.net.httpserver.Authenticator;
 import com.sun.net.httpserver.Filter;
@@ -55,8 +56,10 @@ import chav1961.purelib.nanoservice.NanoServiceFactory.ResponseHeadSetter;
 import chav1961.purelib.nanoservice.interfaces.MethodExecutor;
 import chav1961.purelib.nanoservice.interfaces.QueryType;
 import chav1961.purelib.streams.byte2byte.ZLibInputStream;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
 @SuppressWarnings("restriction")
+@Category(OrdinalTestCategory.class)
 public class NanoServiceFactoryTest {
 	private static final String			LOOPBACK_RESPONSE = 
 											"<html>\n"+

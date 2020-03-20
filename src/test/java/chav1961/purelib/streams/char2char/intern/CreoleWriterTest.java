@@ -13,6 +13,7 @@ import java.io.StringWriter;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.FSM;
@@ -31,7 +32,9 @@ import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
 import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
 import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
 import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class CreoleWriterTest {
 	@Test
 	public void txtTest() throws IOException {

@@ -9,10 +9,13 @@ import java.util.HashMap;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class PreprocessingReaderTest {
 	private static final String			BASIC_STRING = "line1\nline2\nline3"; 
 	private static final String			DEFINE_AND_IF_STRING = "#define var1 10\n#if ?var1\ntrue\n#else\nfalse\n#endif"; 

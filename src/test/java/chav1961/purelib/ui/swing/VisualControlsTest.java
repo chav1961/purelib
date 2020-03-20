@@ -38,6 +38,7 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
@@ -45,6 +46,7 @@ import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
+@Category(OrdinalTestCategory.class)
 public class VisualControlsTest implements JComponentMonitor {
 	final JFrame		root = new JFrame();
 	final JTextField	text = new JTextField();

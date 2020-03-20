@@ -9,6 +9,7 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -21,14 +22,18 @@ import chav1961.purelib.streams.charsource.ArrayCharSource;
 import chav1961.purelib.streams.chartarget.ArrayCharTarget;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
+import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.PerformanceTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class JsonSerializerTest {
 	@BeforeClass
 	public static void prepare() {
 		System.err.println("before");
 	}
 
-//	Temporary disable performance tests @Test 
+//	@Category(PerformanceTestCategory.class)
+//	@Test 
 	public void performanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		basicBytePerformanceTest();
 		basicShortPerformanceTest();

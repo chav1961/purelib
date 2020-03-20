@@ -2,13 +2,16 @@ package chav1961.purelib.streams.char2byte.asm;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChanges;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChangesCallback;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class StackAndVarRepoTest {
 	@Test
 	public void basicTest() throws ContentException {

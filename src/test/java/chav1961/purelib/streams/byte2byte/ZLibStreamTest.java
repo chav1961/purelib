@@ -12,10 +12,13 @@ import java.io.Reader;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class ZLibStreamTest {
 	@Test
 	public void lifeCycleTest() throws IOException {

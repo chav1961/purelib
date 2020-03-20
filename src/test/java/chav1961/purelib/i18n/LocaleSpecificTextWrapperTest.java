@@ -9,7 +9,11 @@ import javax.swing.text.JTextComponent;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.testing.OrdinalTestCategory;
+
+@Category(OrdinalTestCategory.class)
 public class LocaleSpecificTextWrapperTest {
 	private static final String		FOR_TEXT = "text";
 	private static final String		FOR_TOOLTIP = "tooltip";

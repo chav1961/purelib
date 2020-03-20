@@ -10,11 +10,14 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.FilterTree;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.Lexema;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class ResultSetTests {
 	@FunctionalInterface
 	interface ExceptionTest {

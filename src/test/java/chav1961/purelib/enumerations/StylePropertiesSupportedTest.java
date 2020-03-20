@@ -4,11 +4,14 @@ import java.awt.Color;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.enumerations.StylePropertiesSupported.ContentType;
 import chav1961.purelib.enumerations.StylePropertiesSupported.Keyword;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class StylePropertiesSupportedTest {
 	@Test
 	public void basicTest() {

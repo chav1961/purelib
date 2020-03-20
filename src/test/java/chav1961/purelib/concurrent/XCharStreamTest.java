@@ -8,9 +8,12 @@ import java.io.Writer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class XCharStreamTest {
 	@Test
 	public void basicTest() throws IOException {

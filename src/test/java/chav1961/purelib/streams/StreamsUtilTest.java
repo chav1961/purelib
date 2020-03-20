@@ -8,13 +8,16 @@ import java.io.Writer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.char2char.CreoleWriter;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class StreamsUtilTest {
 	@Test
 	public void getStreamClass4OutputTest() throws IOException {

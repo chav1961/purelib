@@ -24,7 +24,7 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
-import sun.misc.Unsafe;
+//import sun.misc.Unsafe;
 
 /**
  * <p>This class contains a factory method to build getters and setters for primitive and referenced items in the class and/or it's instance. All the 
@@ -68,7 +68,7 @@ import sun.misc.Unsafe;
  */
 
 public class GettersAndSettersFactory {
-	private static sun.misc.Unsafe		unsafe;
+//	private static sun.misc.Unsafe		unsafe;
 	private static AsmWriter			writer;
 	private static SimpleURLClassLoader	internalLoader = new SimpleURLClassLoader(new URL[0]);
 	private static Map<String,Map<String,GetterAndSetter>>	gettersAndSettersCache = new HashMap<>();
@@ -78,19 +78,19 @@ public class GettersAndSettersFactory {
 	}
 
 	private static void prepareStatic() {
-		if (PureLibSettings.instance().getProperty(PureLibSettings.ALLOW_UNSAFE,boolean.class,"false")) {
-			try{final Field	f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-			
-				f.setAccessible(true);
-				unsafe = (Unsafe) f.get(null);
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-				PureLibSettings.logger.log(Level.WARNING,"["+PureLibSettings.ALLOW_UNSAFE+"] property was typed for the Pure Library, but attempt to get access to Unsafe functionality failed: "+e.getMessage()+". This ability will be ignored", e);
-				unsafe = null;
-			}
-		} 
-		else {
-			unsafe = null;
-		}
+//		if (PureLibSettings.instance().getProperty(PureLibSettings.ALLOW_UNSAFE,boolean.class,"false")) {
+//			try{final Field	f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+//			
+//				f.setAccessible(true);
+//				unsafe = (Unsafe) f.get(null);
+//			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+//				PureLibSettings.logger.log(Level.WARNING,"["+PureLibSettings.ALLOW_UNSAFE+"] property was typed for the Pure Library, but attempt to get access to Unsafe functionality failed: "+e.getMessage()+". This ability will be ignored", e);
+//				unsafe = null;
+//			}
+//		} 
+//		else {
+//			unsafe = null;
+//		}
 		
 		try{final AsmWriter			tempWriter = new AsmWriter(new ByteArrayOutputStream(),new OutputStreamWriter(System.err));
 		
@@ -468,15 +468,16 @@ public class GettersAndSettersFactory {
 
 			try{if (Modifier.isPublic(f.getModifiers())) {
 					if (fType.isPrimitive()) {
-						if (unsafe != null) {
-							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildPrimitiveUnsafeStatic(unsafe,f,fType);
-							}
-							else {
-								gas = buildPrimitiveUnsafeInstance(unsafe,f,fType);
-							}
-						}
-						else if (writer != null) {
+//						if (unsafe != null) {
+//							if (Modifier.isStatic(f.getModifiers())) {
+//								gas = buildPrimitiveUnsafeStatic(unsafe,f,fType);
+//							}
+//							else {
+//								gas = buildPrimitiveUnsafeInstance(unsafe,f,fType);
+//							}
+//						}
+//						else 
+						if (writer != null) {
 							if (Modifier.isStatic(f.getModifiers())) {
 								gas = buildPrimitiveAsmStatic(writer,awaited,f,fType);
 							}
@@ -494,15 +495,16 @@ public class GettersAndSettersFactory {
 						}
 					}
 					else {
-						if (unsafe != null) {
-							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildReferencedUnsafeStatic(unsafe,f,fType);
-							}
-							else {
-								gas = buildReferencedUnsafeInstance(unsafe,f,fType);
-							}
-						}
-						else if (writer != null) {
+//						if (unsafe != null) {
+//							if (Modifier.isStatic(f.getModifiers())) {
+//								gas = buildReferencedUnsafeStatic(unsafe,f,fType);
+//							}
+//							else {
+//								gas = buildReferencedUnsafeInstance(unsafe,f,fType);
+//							}
+//						}
+//						else 
+						if (writer != null) {
 							if (Modifier.isStatic(f.getModifiers())) {
 								gas = buildReferencedAsmStatic(writer,awaited,f,fType);
 							}
@@ -522,15 +524,16 @@ public class GettersAndSettersFactory {
 				}
 				else {
 					if (fType.isPrimitive()) {
-						if (unsafe != null) {
-							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildPrimitiveUnsafeStatic(unsafe,f,fType);
-							}
-							else {
-								gas = buildPrimitiveUnsafeInstance(unsafe,f,fType);
-							}
-						}
-						else {
+//						if (unsafe != null) {
+//							if (Modifier.isStatic(f.getModifiers())) {
+//								gas = buildPrimitiveUnsafeStatic(unsafe,f,fType);
+//							}
+//							else {
+//								gas = buildPrimitiveUnsafeInstance(unsafe,f,fType);
+//							}
+//						}
+//						else 
+						{
 							if (Modifier.isStatic(f.getModifiers())) {
 								gas = buildPrimitiveHandleStatic(f,fType);
 							}
@@ -540,15 +543,16 @@ public class GettersAndSettersFactory {
 						}
 					}
 					else {
-						if (unsafe != null) {
-							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildReferencedUnsafeStatic(unsafe,f,fType);
-							}
-							else {
-								gas = buildReferencedUnsafeInstance(unsafe,f,fType);
-							}
-						}
-						else {
+//						if (unsafe != null) {
+//							if (Modifier.isStatic(f.getModifiers())) {
+//								gas = buildReferencedUnsafeStatic(unsafe,f,fType);
+//							}
+//							else {
+//								gas = buildReferencedUnsafeInstance(unsafe,f,fType);
+//							}
+//						}
+//						else 
+						{
 							if (Modifier.isStatic(f.getModifiers())) {
 								gas = buildReferencedHandleStatic(f,fType);
 							}
@@ -595,14 +599,14 @@ public class GettersAndSettersFactory {
 				throw new ContentException(exc.getLocalizedMessage(),exc);
 			}
 		} 
-		else if (unsafe != null) {
-			return new InstantiatorImpl<T>(clazz){
-				@SuppressWarnings("unchecked")
-				@Override
-				public T newInstance() throws InstantiationException {
-					return (T)unsafe.allocateInstance(clazz);
-				}}; 
-		}
+//		else if (unsafe != null) {
+//			return new InstantiatorImpl<T>(clazz){
+//				@SuppressWarnings("unchecked")
+//				@Override
+//				public T newInstance() throws InstantiationException {
+//					return (T)unsafe.allocateInstance(clazz);
+//				}}; 
+//		}
 		else {
 			throw new IllegalStateException("Class to build instantitor for is not public, but sun.misc.Unsafe functionality is not available to build memory allocation code.");
 		}
@@ -622,102 +626,102 @@ public class GettersAndSettersFactory {
 		}
 	}
 	
-	private static GetterAndSetter buildPrimitiveUnsafeStatic(final Unsafe unsafe, final Field f, final Class<?> fType) {
-		final Class<?>	container = f.getDeclaringClass();
-		final long		displ = unsafe.staticFieldOffset(f);
-		
-		switch (CompilerUtils.defineClassType(fType)) {
-			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-				return new BooleanGetterAndSetter() {
-					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(container,displ);}
-					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(container,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_BYTE		: 
-				return new ByteGetterAndSetter() {
-					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(container,displ);}
-					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(container,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_CHAR		:
-				return new CharGetterAndSetter() {
-					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(container,displ);}
-					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(container,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_DOUBLE		:
-				return new DoubleGetterAndSetter() {
-					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(container,displ);}
-					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(container,displ,value);}					
-				};
-			case CompilerUtils.CLASSTYPE_FLOAT		:
-				return new FloatGetterAndSetter() {
-					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(container,displ);}
-					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(container,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_INT		:
-				return new IntGetterAndSetter() {
-					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(container,displ);}
-					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(container,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_LONG		:
-				return new LongGetterAndSetter() {
-					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(container,displ);}
-					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(container,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_SHORT		:
-				return new ShortGetterAndSetter() {
-					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(container,displ);}
-					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(container,displ,value);}
-				};
-			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
-		}
-	}
+//	private static GetterAndSetter buildPrimitiveUnsafeStatic(final Unsafe unsafe, final Field f, final Class<?> fType) {
+//		final Class<?>	container = f.getDeclaringClass();
+//		final long		displ = unsafe.staticFieldOffset(f);
+//		
+//		switch (CompilerUtils.defineClassType(fType)) {
+//			case CompilerUtils.CLASSTYPE_BOOLEAN	:
+//				return new BooleanGetterAndSetter() {
+//					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(container,displ);}
+//					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(container,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_BYTE		: 
+//				return new ByteGetterAndSetter() {
+//					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(container,displ);}
+//					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(container,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_CHAR		:
+//				return new CharGetterAndSetter() {
+//					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(container,displ);}
+//					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(container,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_DOUBLE		:
+//				return new DoubleGetterAndSetter() {
+//					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(container,displ);}
+//					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(container,displ,value);}					
+//				};
+//			case CompilerUtils.CLASSTYPE_FLOAT		:
+//				return new FloatGetterAndSetter() {
+//					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(container,displ);}
+//					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(container,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_INT		:
+//				return new IntGetterAndSetter() {
+//					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(container,displ);}
+//					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(container,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_LONG		:
+//				return new LongGetterAndSetter() {
+//					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(container,displ);}
+//					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(container,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_SHORT		:
+//				return new ShortGetterAndSetter() {
+//					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(container,displ);}
+//					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(container,displ,value);}
+//				};
+//			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
+//		}
+//	}
 
-	private static GetterAndSetter buildPrimitiveUnsafeInstance(final Unsafe unsafe, final Field f, final Class<?> fType) {
-		final long	displ = unsafe.objectFieldOffset(f);
-		
-		switch (CompilerUtils.defineClassType(fType)) {
-			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-				return new BooleanGetterAndSetter() {
-					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(instance,displ);}
-					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(instance,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_BYTE		:
-				return new ByteGetterAndSetter() {
-					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(instance,displ);}
-					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(instance,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_CHAR		:
-				return new CharGetterAndSetter() {
-					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(instance,displ);}
-					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(instance,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_DOUBLE		:
-				return new DoubleGetterAndSetter() {
-					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(instance,displ);}
-					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(instance,displ,value);}					
-				};
-			case CompilerUtils.CLASSTYPE_FLOAT		:
-				return new FloatGetterAndSetter() {
-					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(instance,displ);}
-					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(instance,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_INT		:
-				return new IntGetterAndSetter() {
-					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(instance,displ);}
-					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(instance,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_LONG		:
-				return new LongGetterAndSetter() {
-					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(instance,displ);}
-					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(instance,displ,value);}
-				};
-			case CompilerUtils.CLASSTYPE_SHORT		:
-				return new ShortGetterAndSetter() {
-					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(instance,displ);}
-					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(instance,displ,value);}
-				};
-			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
-		}
-	}
+//	private static GetterAndSetter buildPrimitiveUnsafeInstance(final Unsafe unsafe, final Field f, final Class<?> fType) {
+//		final long	displ = unsafe.objectFieldOffset(f);
+//		
+//		switch (CompilerUtils.defineClassType(fType)) {
+//			case CompilerUtils.CLASSTYPE_BOOLEAN	:
+//				return new BooleanGetterAndSetter() {
+//					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(instance,displ);}
+//					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(instance,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_BYTE		:
+//				return new ByteGetterAndSetter() {
+//					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(instance,displ);}
+//					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(instance,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_CHAR		:
+//				return new CharGetterAndSetter() {
+//					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(instance,displ);}
+//					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(instance,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_DOUBLE		:
+//				return new DoubleGetterAndSetter() {
+//					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(instance,displ);}
+//					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(instance,displ,value);}					
+//				};
+//			case CompilerUtils.CLASSTYPE_FLOAT		:
+//				return new FloatGetterAndSetter() {
+//					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(instance,displ);}
+//					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(instance,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_INT		:
+//				return new IntGetterAndSetter() {
+//					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(instance,displ);}
+//					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(instance,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_LONG		:
+//				return new LongGetterAndSetter() {
+//					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(instance,displ);}
+//					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(instance,displ,value);}
+//				};
+//			case CompilerUtils.CLASSTYPE_SHORT		:
+//				return new ShortGetterAndSetter() {
+//					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(instance,displ);}
+//					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(instance,displ,value);}
+//				};
+//			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
+//		}
+//	}
 
 	private static GetterAndSetter buildPrimitiveAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
@@ -1085,38 +1089,38 @@ public class GettersAndSettersFactory {
 		}
 	}
 	
-	private static <T> GetterAndSetter buildReferencedUnsafeStatic(final Unsafe unsafe, final Field f, final Class<T> fType) {
-		final Class<?>	container = f.getDeclaringClass();
-		final long		displ = unsafe.staticFieldOffset(f);
-		
-		return new ObjectGetterAndSetter<T>() {
-			@Override
-			public T get(final Object instance) throws ContentException {
-				return fType.cast(unsafe.getObject(container,displ));
-			}
+//	private static <T> GetterAndSetter buildReferencedUnsafeStatic(final Unsafe unsafe, final Field f, final Class<T> fType) {
+//		final Class<?>	container = f.getDeclaringClass();
+//		final long		displ = unsafe.staticFieldOffset(f);
+//		
+//		return new ObjectGetterAndSetter<T>() {
+//			@Override
+//			public T get(final Object instance) throws ContentException {
+//				return fType.cast(unsafe.getObject(container,displ));
+//			}
+//
+//			@Override
+//			public void set(final Object instance, final T value) throws ContentException {
+//				unsafe.putObject(container,displ,value);
+//			}
+//		};
+//	}
 
-			@Override
-			public void set(final Object instance, final T value) throws ContentException {
-				unsafe.putObject(container,displ,value);
-			}
-		};
-	}
-
-	private static <T> GetterAndSetter buildReferencedUnsafeInstance(final Unsafe unsafe, final Field f, final Class<T> fType) {
-		final long	displ = unsafe.objectFieldOffset(f);
-		
-		return new ObjectGetterAndSetter<T>() {
-			@Override
-			public T get(final Object instance) throws ContentException {
-				return fType.cast(unsafe.getObject(instance,displ));
-			}
-
-			@Override
-			public void set(final Object instance, final T value) throws ContentException {
-				unsafe.putObject(instance,displ,value);
-			}
-		};
-	}
+//	private static <T> GetterAndSetter buildReferencedUnsafeInstance(final Unsafe unsafe, final Field f, final Class<T> fType) {
+//		final long	displ = unsafe.objectFieldOffset(f);
+//		
+//		return new ObjectGetterAndSetter<T>() {
+//			@Override
+//			public T get(final Object instance) throws ContentException {
+//				return fType.cast(unsafe.getObject(instance,displ));
+//			}
+//
+//			@Override
+//			public void set(final Object instance, final T value) throws ContentException {
+//				unsafe.putObject(instance,displ,value);
+//			}
+//		};
+//	}
 
 	private static GetterAndSetter buildReferencedAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();

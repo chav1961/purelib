@@ -1129,15 +1129,15 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @since 0.0.4
 	 */
 	public static boolean checkFileExistence(final String path2check, final String file2check, final char pathSeparator, final char fileSeparator) throws IllegalArgumentException {
-		if (path2check == null || path2check.isBlank()) {
+		if (path2check == null || path2check.isEmpty()) {
 			throw new NullPointerException("Path to check can't be null or empty string");
 		} 
-		else if (file2check == null || file2check.isBlank()) {
+		else if (file2check == null || file2check.isEmpty()) {
 			throw new NullPointerException("File to check can't be null or empty string");
 		} 
 		else {
 			for (String item : CharUtils.split(path2check,pathSeparator)) {
-				if (!item.isBlank()) {
+				if (!item.isEmpty()) {
 					final File		f = new File(item.charAt(item.length()-1) == fileSeparator ? item + file2check : item + fileSeparator + file2check);
 					
 					if (f.exists() && f.isFile()) {

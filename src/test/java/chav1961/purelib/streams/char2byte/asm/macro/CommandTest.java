@@ -2,6 +2,7 @@ package chav1961.purelib.streams.char2byte.asm.macro;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2byte.asm.macro.BreakCommand;
@@ -21,7 +22,9 @@ import chav1961.purelib.streams.char2byte.asm.macro.OtherwiseCommand;
 import chav1961.purelib.streams.char2byte.asm.macro.SetCommand;
 import chav1961.purelib.streams.char2byte.asm.macro.SubstitutionCommand;
 import chav1961.purelib.streams.char2byte.asm.macro.WhileCommand;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class CommandTest {
 
 	@Test

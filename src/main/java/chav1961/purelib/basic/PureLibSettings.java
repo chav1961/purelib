@@ -55,7 +55,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @lastUpdate 0.0.4
  */
 
-public class PureLibSettings {
+public final class PureLibSettings {
 	/**
 	 * <p>This logger is used to print any internal problems in the Pure Library</p>
 	 */
@@ -81,11 +81,11 @@ public class PureLibSettings {
 	 */
 	public static final String		SETTINGS_KEY = "purelib.settings.source";
 
-	/**
-	 * <p>This is a key to "Allow Unsafe" functionality in the Pure Library. Set this Pure Library property to <b>true</b> supports usage of the {@linkplain sun.misc.Unsafe} class inside Pure library. Default for the given property is <b>false</b>
-	 * and it strongly recommends not to use <b>true</b> for this property </p>
-	 */
-	public static final String		ALLOW_UNSAFE = "purelib.settings.allow.unsafe";
+//	/**
+//	 * <p>This is a key to "Allow Unsafe" functionality in the Pure Library. Set this Pure Library property to <b>true</b> supports usage of the {@linkplain sun.misc.Unsafe} class inside Pure library. Default for the given property is <b>false</b>
+//	 * and it strongly recommends not to use <b>true</b> for this property </p>
+//	 */
+//	public static final String		ALLOW_UNSAFE = "purelib.settings.allow.unsafe";
 	
 	/**
 	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>

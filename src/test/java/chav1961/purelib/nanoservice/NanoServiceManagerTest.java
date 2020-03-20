@@ -16,6 +16,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
@@ -30,7 +31,9 @@ import chav1961.purelib.nanoservice.NanoServiceManager.DeploymentDesc;
 import chav1961.purelib.nanoservice.NanoServiceManager.DeploymentMode;
 import chav1961.purelib.nanoservice.interfaces.NanoService;
 import chav1961.purelib.nanoservice.internal.PseudoPlugin2;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class NanoServiceManagerTest {
 	final File	rootDir = new File("./src/test/resources/chav1961/purelib/nanoservice/deploy/");
 	
@@ -44,7 +47,7 @@ public class NanoServiceManagerTest {
 		Utils.deleteDir(rootDir);
 	}
 
-	@Test
+//	@Test
 	public void staticsTest() throws IOException, ContentException, SyntaxException, InterruptedException {
 		final Map<String,NanoServiceManager.DeploymentDesc>	content = new HashMap<>(), newContent = new HashMap<>(); 
 		

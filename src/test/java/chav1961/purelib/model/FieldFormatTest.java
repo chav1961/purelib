@@ -10,12 +10,15 @@ import java.util.Date;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.model.FieldFormat.Alignment;
 import chav1961.purelib.model.FieldFormat.ContentType;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class FieldFormatTest {
 	@Test
 	public void staticTest() throws SyntaxException {

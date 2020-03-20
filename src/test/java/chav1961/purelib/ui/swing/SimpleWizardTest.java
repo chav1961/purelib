@@ -20,6 +20,7 @@ import javax.swing.JTextField;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -28,11 +29,13 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.AbstractWizardStep;
 import chav1961.purelib.ui.interfaces.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.WizardStep;
 import chav1961.purelib.ui.swing.SimpleWizard.ActionButton;
 
+@Category(OrdinalTestCategory.class)
 public class SimpleWizardTest {
 	public static final String		KEY_PREPARE = "prepare";
 	public static final String		KEY_BEFORE_SHOW = "beforeShow";

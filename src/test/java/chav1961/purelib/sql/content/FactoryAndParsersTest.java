@@ -9,13 +9,16 @@ import java.util.Hashtable;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class FactoryAndParsersTest {
 	@Test
 	public void factoryTest() throws SQLException, IOException {

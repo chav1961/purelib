@@ -5,10 +5,13 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class CharUtilsTest {
 	public static final float		EPSILON_FLOAT = 0.00001f;
 	public static final double		EPSILON = 0.000000001;

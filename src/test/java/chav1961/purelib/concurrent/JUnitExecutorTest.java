@@ -2,9 +2,12 @@ package chav1961.purelib.concurrent;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class JUnitExecutorTest {
 	@Test
 	public void basicTest() throws InterruptedException, FlowException {

@@ -60,6 +60,7 @@ import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
@@ -71,6 +72,7 @@ import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 
+@Category(OrdinalTestCategory.class)
 public class SwingUtilsTest {
 	@Test
 	public void walkingTest() { 
@@ -323,7 +325,7 @@ public class SwingUtilsTest {
 	
 	@Category(UITestCategory.class)
 	@Test
-	public void assignActionKeyTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
+	public void uiAssignActionKeyTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final JButton			button = new JButton();
 		final AtomicBoolean		bool = new AtomicBoolean(false);
 		final CountDownLatch	latch = new CountDownLatch(1);
@@ -391,7 +393,7 @@ public class SwingUtilsTest {
 
 	@Category(UITestCategory.class)
 	@Test
-	public void assignExitMethod4MainWindowTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
+	public void uiAssignExitMethod4MainWindowTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final AtomicBoolean		bool = new AtomicBoolean(false);
 		final CountDownLatch	latch = new CountDownLatch(1);
 		final JFrame			root = new JFrame();
@@ -467,7 +469,7 @@ public class SwingUtilsTest {
 
 	@Category(UITestCategory.class)
 	@Test
-	public void actionListenersTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
+	public void uiActionListenersTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final AnnotatedWithOnAction	test = new AnnotatedWithOnAction();
 		final JFrame				root = new JFrame();
 		final JButton				button = new JButton();

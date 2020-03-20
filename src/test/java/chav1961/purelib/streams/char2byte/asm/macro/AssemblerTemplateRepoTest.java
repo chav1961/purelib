@@ -6,12 +6,15 @@ import java.io.InputStream;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepo.NameKeeper;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
 @SuppressWarnings("deprecation")
+@Category(OrdinalTestCategory.class)
 public class AssemblerTemplateRepoTest {
 	private static final byte[]		content = "{PART1}\nline1\n${subst1}\nline3\n${subst2}\nline5\n{PART2}\nLINE1\n${subst1}\nLINE3\n${subst2}\nLINE5".getBytes(); 
 	

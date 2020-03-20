@@ -43,10 +43,10 @@ public class MimeType {
 	 * @throws IllegalArgumentException on null or empty parameters
 	 */
 	public MimeType(final String primaryType, final String subtype) throws MimeTypeParseException, IllegalArgumentException {
-		if (primaryType == null || primaryType.isBlank()) {
+		if (primaryType == null || primaryType.isEmpty()) {
 			throw new IllegalArgumentException("Primary MIME type can't be null or empty");
 		}
-		else if (subtype == null || subtype.isBlank()) {
+		else if (subtype == null || subtype.isEmpty()) {
 			throw new IllegalArgumentException("Primary MIME subtype can't be null or empty");
 		}
 		else {
@@ -72,7 +72,7 @@ public class MimeType {
 	 * @throws IllegalArgumentException on null or empty parameters
 	 */
 	public MimeType(final String mime) throws MimeTypeParseException, IllegalArgumentException {
-		if (mime == null || mime.isBlank()) {
+		if (mime == null || mime.isEmpty()) {
 			throw new IllegalArgumentException("MIME description can't be null or empty");
 		}
 		else {

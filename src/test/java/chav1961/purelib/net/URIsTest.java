@@ -7,11 +7,14 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.net.fsys.FSysHandlerProvider;
 import chav1961.purelib.net.root.RootHandlerProvider;
 import chav1961.purelib.net.self.SelfHandlerProvider;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class URIsTest {
 	@Test
 	public void spiTest() {

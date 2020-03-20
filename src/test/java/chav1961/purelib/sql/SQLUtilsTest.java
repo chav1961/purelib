@@ -21,12 +21,15 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.SQLUtils.ByteArrayInputStreamWithEquals;
 import chav1961.purelib.sql.SQLUtils.StringReaderWithEquals;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class SQLUtilsTest {
 	private static final ConversionPairTest[]	PAIRS = {new ConversionPairTest(Boolean.class,Boolean.class,true,false)
 													, new ConversionPairTest(Boolean.class,Byte.class,true,false)

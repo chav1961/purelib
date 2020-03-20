@@ -7,10 +7,13 @@ import java.sql.SQLException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.sql.content.ResultSetFactory;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class JdbcReadersTest {
 	@Test
 	public void csvReaderTest() throws SQLException, IOException {

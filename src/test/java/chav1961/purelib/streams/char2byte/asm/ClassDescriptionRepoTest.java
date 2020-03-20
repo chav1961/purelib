@@ -7,10 +7,13 @@ import java.lang.reflect.Method;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class ClassDescriptionRepoTest {
 	public static final int		testField = 0;	// For testing purposes only!
 	public void basicTest() {}	// For testing purposes only!

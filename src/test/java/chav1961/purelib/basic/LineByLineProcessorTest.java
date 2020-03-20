@@ -6,9 +6,12 @@ import java.io.StringReader;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class LineByLineProcessorTest {
 	private static String[]	SOURCE = new String[]{"123\n456","\n789","\n","A","BC","\nDEF"};
 	

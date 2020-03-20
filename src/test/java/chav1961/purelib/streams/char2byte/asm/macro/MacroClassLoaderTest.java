@@ -6,10 +6,13 @@ import java.io.Writer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class MacroClassLoaderTest {
 	@Test
 	public void complexTest() throws CalculationException, IOException {

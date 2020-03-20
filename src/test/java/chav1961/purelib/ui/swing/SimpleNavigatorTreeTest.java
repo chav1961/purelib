@@ -23,10 +23,12 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class SimpleNavigatorTreeTest {
 	final JFrame		root = new JFrame();
 	final JTextField	text = new JTextField();

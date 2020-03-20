@@ -16,13 +16,16 @@ import javax.net.ssl.SSLSocketFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class NanoServiceHttpsTest {
 
 	private final File			serverStore = new File(System.getProperty("java.io.tmpdir"),"server.jks"); 

@@ -6,11 +6,14 @@ import java.io.StringReader;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.interfaces.CsvSaxHandler;
+import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Category(OrdinalTestCategory.class)
 public class CsvSaxParserTest {
 	private static final String		SOURCE_1 = "name1, name2,name3 ,\"name4\"\n"+
 												"value 1.1, value 1.2,value 1.3 ,\"value 1.4\"\n"+

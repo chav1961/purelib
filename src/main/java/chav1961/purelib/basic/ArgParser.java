@@ -409,7 +409,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		private final boolean	isPositional;
 
 		public AbstractArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
-			if (name == null || name.isBlank()) {
+			if (name == null || name.isEmpty()) {
 				throw new IllegalArgumentException("Argument name can't be null or empty");
 			}
 			else if (helpDescriptor == null || helpDescriptor.isEmpty()) {
