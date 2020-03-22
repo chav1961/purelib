@@ -43,14 +43,11 @@ public class ComponentKeepedBorder implements Border {
 
 	@Override
 	public void paintBorder(final Component c, final Graphics g, final int x, final int y, final int width, final int height) {
-		
 //		final Insets 	parentInsets = getBorderInsets(c);
 //		
-//		System.err.println("X="+x+", Y="+y+", W="+width+", H="+height);
 //		for (int index = 0, start = x + width - components.length * height; index < components.length; index++, start += height) {
 //			components[components.length-1-index].setLocation(start, parentInsets.top);
 //			components[components.length-1-index].setSize(height-2,height-2);
-//			System.err.println("Border["+index+"]="+components[components.length-1-index].getBounds()+", "+components[components.length-1-index].isVisible());
 //		}
 	}
 	

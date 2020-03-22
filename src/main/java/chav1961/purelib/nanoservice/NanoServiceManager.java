@@ -89,7 +89,6 @@ public class NanoServiceManager implements Closeable {
 						final TimerTask tt = new TimerTask() {
 							@Override
 							public void run() {
-								System.err.println("Run deploy");
 								try{redeploy();
 								} catch (IOException | ContentException e) {
 									getLogger().message(Severity.error,e,"Error redeploying plugins");

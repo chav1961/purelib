@@ -27,6 +27,8 @@ code was refactored.
 
 3. Performance of the byte code assembler and macro assembler were increased
 
+4. Maven scripts and all tests were radically refactored to support correct UI Swing testing (JUnit test categories were placed)
+
 III. Incompatibilities
 
 1. Class basic.ClassLoaderWrapper was removed from Pure Library, because it's functionality can't be supported in Java 9 and higher. 

@@ -28,7 +28,6 @@ import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
 
-@Category(OrdinalTestCategory.class)
 public class SimpleNavigatorTreeTest {
 	final JFrame		root = new JFrame();
 	final JTextField	text = new JTextField();
@@ -51,6 +50,7 @@ public class SimpleNavigatorTreeTest {
 		root.dispose();
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicTest() throws EnvironmentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));

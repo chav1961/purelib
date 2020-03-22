@@ -96,7 +96,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 						uri2test.setText(content.uriTemplate);
 					}
 					else {
-						System.err.println("Press: "+c+" "+content.helpId+" "+content.licenseContentId);
+						// TODO:
 					}
 				} catch (LocalizationException | NullPointerException | IllegalArgumentException | IOException exc) {
 					exc.printStackTrace();

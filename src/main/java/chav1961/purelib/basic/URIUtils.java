@@ -252,6 +252,9 @@ public class URIUtils {
 				sb.append(parse.getScheme()).append(':');
 				parse = URI.create(parse.getSchemeSpecificPart());
 			}
+			if (parse.getHost() != null) {
+				sb.append("//").append(parse.getHost());
+			}
 			if (parse.getPath() != null) {
 				sb.append(URI.create(parse.getPath()+(relativePath.charAt(0) == '/' ? relativePath : '/' + relativePath)).normalize());
 			}

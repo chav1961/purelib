@@ -81,11 +81,10 @@ public final class PureLibSettings {
 	 */
 	public static final String		SETTINGS_KEY = "purelib.settings.source";
 
-//	/**
-//	 * <p>This is a key to "Allow Unsafe" functionality in the Pure Library. Set this Pure Library property to <b>true</b> supports usage of the {@linkplain sun.misc.Unsafe} class inside Pure library. Default for the given property is <b>false</b>
-//	 * and it strongly recommends not to use <b>true</b> for this property </p>
-//	 */
-//	public static final String		ALLOW_UNSAFE = "purelib.settings.allow.unsafe";
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
+	 */
+	public static final String		SUPPRESS_PRINT_ASSEMBLER = "purelib.settings.assembler.printSuppress";
 	
 	/**
 	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
@@ -226,8 +225,8 @@ public final class PureLibSettings {
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
-	private static final SubstitutableProperties	defaults = new SubstitutableProperties(System.getProperties()); 
-	private static final SubstitutableProperties	props = new SubstitutableProperties(defaults);
+	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
+	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
 	private static final ColorScheme				DEFAULT_COLOR_SCHEME = new ColorScheme();	// Don't move before previous line! 
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -249,14 +248,14 @@ public final class PureLibSettings {
 															new WellKnownSchemaImpl(ResultSetFactory.RESULTSET_PARSERS_SCHEMA, "", ResultSetFactory.class, false, 
 																(uri)->{throw new EnvironmentException("This service doesn't supports SpiService interface");})
 														};
-	private static final AtomicInteger				helpContextCount = new AtomicInteger();
-	private static final Object						helpContextCountSync = new Object();
+	private static final AtomicInteger				HELP_CONTEXT_COUNT = new AtomicInteger();
+	private static final Object						HELP_CONTEXT_COUNT_SYNC = new Object();
 	private static volatile NanoServiceFactory		helpServer = null;
 	
 	static {
 		try(final InputStream	is = PureLibSettings.class.getResourceAsStream("/purelib.default.properties")) {
 			
-			defaults.load(is);			
+			DEFAULTS.load(is);			
 		} catch (IOException exc) {
 			logger.log(Level.WARNING,"Default properties for the Pure library were not loaded: "+exc.getMessage(),exc);
 		}
@@ -267,7 +266,7 @@ public final class PureLibSettings {
 				final URLConnection		conn = url.openConnection();	
 				
 				try(final InputStream	is = conn.getInputStream()){
-					props.load(is);
+					PROPS.load(is);
 				}
 			} catch (IllegalArgumentException | IOException exc) {
 				logger.log(Level.WARNING,"Properties from the ["+System.getProperty(SETTINGS_KEY)+"] for the Pure library were not loaded: "+exc.getMessage(),exc);
@@ -301,7 +300,7 @@ public final class PureLibSettings {
 	 * @return singleton instance of the Pure Library settings
 	 */
 	public static SubstitutableProperties instance() {
-		return props;
+		return PROPS;
 	}
 
 	public static ColorScheme defaultColorScheme() {
@@ -369,18 +368,18 @@ public final class PureLibSettings {
 			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
 		}
 		else {
-			synchronized (helpContextCountSync) {
+			synchronized (HELP_CONTEXT_COUNT_SYNC) {
 				if (helpServer == null) {
-					if (!props.containsKey(NanoServiceFactory.NANOSERVICE_PORT)) {
-						props.setProperty(NanoServiceFactory.NANOSERVICE_PORT,instance().getProperty(BUILTIN_HELP_PORT));
+					if (!PROPS.containsKey(NanoServiceFactory.NANOSERVICE_PORT)) {
+						PROPS.setProperty(NanoServiceFactory.NANOSERVICE_PORT,instance().getProperty(BUILTIN_HELP_PORT));
 					}
-					if (!props.containsKey(NanoServiceFactory.NANOSERVICE_ROOT)) {
-						props.setProperty(NanoServiceFactory.NANOSERVICE_ROOT,FileSystemInterface.FILESYSTEM_URI_SCHEME+":memory:/");
+					if (!PROPS.containsKey(NanoServiceFactory.NANOSERVICE_ROOT)) {
+						PROPS.setProperty(NanoServiceFactory.NANOSERVICE_ROOT,FileSystemInterface.FILESYSTEM_URI_SCHEME+":memory:/");
 					}
-					if (!props.containsKey(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY)) {
-						props.setProperty(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY,"true");
+					if (!PROPS.containsKey(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY)) {
+						PROPS.setProperty(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY,"true");
 					}
-					helpServer = new NanoServiceFactory(new StandardJRELoggerFacade(logger), props);
+					helpServer = new NanoServiceFactory(new StandardJRELoggerFacade(logger), PROPS);
 					helpServer.start();
 				}
 				try(final FileSystemInterface fsi = helpServer.getServiceRoot().clone().open(helpPath)) {
@@ -392,7 +391,7 @@ public final class PureLibSettings {
 						helpServer.getServiceRoot().open(helpPath).mount(helpContent).open("/");
 					}
 				}			
-				helpContextCount.incrementAndGet();
+				HELP_CONTEXT_COUNT.incrementAndGet();
 			}
 		}
 	}
@@ -416,8 +415,8 @@ public final class PureLibSettings {
 			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
 		}
 		else {
-			synchronized (helpContextCountSync) {
-				final int	value = helpContextCount.decrementAndGet();
+			synchronized (HELP_CONTEXT_COUNT_SYNC) {
+				final int	value = HELP_CONTEXT_COUNT.decrementAndGet();
 				
 				if (value < 0) {
 					throw new IllegalArgumentException("Help path ["+helpPath+"] was not deployed earlier"); 
@@ -491,6 +490,9 @@ public final class PureLibSettings {
 		} catch (LocalizationException exc) {
 			logger.log(Level.SEVERE,"Pure library localizer can't be initiated: "+exc.getMessage(),exc);
 			return null;
+		} catch (Throwable exc) {
+			exc.printStackTrace();
+			throw exc;
 		}
 	}
 
@@ -499,7 +501,7 @@ public final class PureLibSettings {
 	}
 
 	private static void stopPureLib() {
-		synchronized (helpContextCountSync) {
+		synchronized (HELP_CONTEXT_COUNT_SYNC) {
 			if (helpServer != null) {
 				try{helpServer.stop();
 				} catch (IOException e) {

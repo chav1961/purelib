@@ -3,6 +3,7 @@ package chav1961.purelib.json;
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -24,16 +25,18 @@ import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
 import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.PerformanceTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
-@Category(OrdinalTestCategory.class)
 public class JsonSerializerTest {
+	final static PrintStream	ps = TestingUtils.err();
+	
 	@BeforeClass
 	public static void prepare() {
-		System.err.println("before");
+		ps.println("before");
 	}
 
-//	@Category(PerformanceTestCategory.class)
-//	@Test 
+	@Category(PerformanceTestCategory.class)
+	@Test 
 	public void performanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		basicBytePerformanceTest();
 		basicShortPerformanceTest();
@@ -57,6 +60,7 @@ public class JsonSerializerTest {
 		basicAnyClassPerformanceTest();		
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicByteTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -134,7 +138,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(Byte.MAX_VALUE,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicBytePerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBytePerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -159,7 +163,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicBytePerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBytePerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -181,9 +185,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicBytePerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBytePerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicShortTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -261,7 +266,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(Short.MAX_VALUE,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicShortPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicShortPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -286,7 +291,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicShortPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicShortPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -308,9 +313,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicShortPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicShortPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicIntegerTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -388,7 +394,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(Integer.MAX_VALUE,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicIntegerPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicIntegerPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -413,7 +419,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicIntegerPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicIntegerPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -435,9 +441,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicIntegerPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicIntegerPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicLongTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -515,7 +522,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(Long.MAX_VALUE,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicLongPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicLongPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -540,7 +547,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicLongPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicLongPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -562,9 +569,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicLongPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicLongPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicFloatTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -642,7 +650,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(Float.MAX_VALUE,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicFloatPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicFloatPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -667,7 +675,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicFloatPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicFloatPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -689,9 +697,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicFloatPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicFloatPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicDoubleTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -769,7 +778,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(Double.MAX_VALUE,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicDoublePerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicDoublePerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -794,7 +803,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicDoublePerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicDoublePerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -816,9 +825,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicDoublePerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicDoublePerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicBooleanTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -878,7 +888,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(false,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicBooleanPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBooleanPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -898,7 +908,7 @@ public class JsonSerializerTest {
 			ser.deserialize(source);
 
 		}
-		System.err.println("basicBooleanPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBooleanPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -916,9 +926,10 @@ public class JsonSerializerTest {
 			ser.deserialize(collector.getParser());
 
 		}
-		System.err.println("basicBooleanPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBooleanPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicCharTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -978,7 +989,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize('\u2040',buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicCharPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicCharPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -998,7 +1009,7 @@ public class JsonSerializerTest {
 			ser.deserialize(source);
 
 		}
-		System.err.println("basicCharPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicCharPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1015,9 +1026,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicCharPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicCharPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicStringTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1094,7 +1106,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize("1234567890\u2040",buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicStringPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicStringPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1114,7 +1126,7 @@ public class JsonSerializerTest {
 			ser.deserialize(source);
 
 		}
-		System.err.println("basicStringPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicStringPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1131,9 +1143,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicStringPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicStringPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicEnumTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]								buffer = new char[1024];
@@ -1175,7 +1188,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(MarkupOutputFormat.TEXT,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicEnumPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicEnumPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1188,7 +1201,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicEnumPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicEnumPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1200,9 +1213,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicEnumPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicEnumPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicBooleanArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1245,7 +1259,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicBooleanArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBooleanArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1258,7 +1272,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicBooleanArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBooleanArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1270,9 +1284,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicBooleanArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicBooleanArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicByteArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1315,7 +1330,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicByteArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicByteArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1328,7 +1343,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicByteArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicByteArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1340,9 +1355,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicByteArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicByteArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicCharArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1385,7 +1401,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicCharArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicCharArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1398,7 +1414,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicCharArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicCharArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1410,9 +1426,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicCharArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicCharArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicDoubleArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1455,7 +1472,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicDoubleArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicDoubleArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1468,7 +1485,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicDoubleArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicDoubleArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1480,9 +1497,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicDoubleArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicDoubleArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicFloatArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1525,7 +1543,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicFloatArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicFloatArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1538,7 +1556,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicFloatArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicFloatArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1550,9 +1568,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicFloatArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicFloatArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicIntArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1595,7 +1614,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicIntArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicIntArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1608,7 +1627,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicIntArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicIntArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1620,9 +1639,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicIntArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicIntArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicLongArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1665,7 +1685,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicLongArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicLongArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1678,7 +1698,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicLongArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicLongArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1690,9 +1710,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicLongArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicLongArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicShortArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1735,7 +1756,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicShortArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicShortArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1748,7 +1769,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicShortArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicShortArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1760,9 +1781,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicShortArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicShortArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicRefArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1805,7 +1827,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicRefArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicRefArrayPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1818,7 +1840,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicRefArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicRefArrayPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1830,9 +1852,10 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicRefArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicRefArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicAnyClassTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]									buffer = new char[1024];
@@ -1934,7 +1957,7 @@ public class JsonSerializerTest {
 			buffer[ser.serialize(data,buffer,0,true)] = ' ';
 			ser.deserialize(buffer,0,result);
 		}
-		System.err.println("basicAnyClassPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicAnyClassPerformanceTest on arrays: duration="+((System.nanoTime()-startArray)/1000000)+" msec, "+((memoryArray - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1947,7 +1970,7 @@ public class JsonSerializerTest {
 			source.reset();
 			ser.deserialize(source);
 		}
-		System.err.println("basicAnyClassPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicAnyClassPerformanceTest on source/target: duration="+((System.nanoTime()-startStream)/1000000)+" msec, "+((memoryTarget - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 
 		System.gc();
 		
@@ -1959,7 +1982,7 @@ public class JsonSerializerTest {
 			prn.flush();
 			ser.deserialize(collector.getParser());
 		}
-		System.err.println("basicAnyClassPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
+		ps.println("basicAnyClassPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 }
 

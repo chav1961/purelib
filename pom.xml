@@ -40,33 +40,6 @@
         </repository>
     </repositories>
     
-<!-- 	<profiles>
-	    <profile>
-	        <id>default-profile</id>
-	        <activation>
-	            <activeByDefault>true</activeByDefault>
-	            <file>
-	                <exists>${env.JAVA_HOME}/lib/tools.jar</exists>
-	            </file>
-	        </activation>
-	        <properties>
-	            <toolsjar>${env.JAVA_HOME}/lib/tools.jar</toolsjar>
-	        </properties>
-	    </profile>
-	    <profile>
-	        <id>mac-profile</id>
-	        <activation>
-	            <activeByDefault>false</activeByDefault>
-	            <file>
-	                <exists>${env.JAVA_HOME}/../Classes/classes.jar</exists>
-	            </file>
-	        </activation>
-	        <properties>
-	            <toolsjar>${env.JAVA_HOME}/../Classes/classes.jar</toolsjar>
-	        </properties>
-	    </profile>
-	</profiles>  -->
-
  	<properties>
 		<github.global.server>github</github.global.server>
 	</properties> 
@@ -114,7 +87,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-               	<version>3.7.0</version>
+               	<version>3.8.0</version>
 				<inherited>true</inherited>
 				<configuration>
   					<source>9</source>
@@ -122,11 +95,73 @@
 				</configuration>
 			</plugin>
 			<plugin>
+	            <artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+	            <executions>
+	                <execution>
+	                	<id>copy-resources01</id>
+	                    <phase>process-resources</phase>
+	                    <goals>
+	                        <goal>copy-resources</goal>
+	                    </goals>
+	                    <configuration>
+	                        <outputDirectory>${basedir}/target/classes</outputDirectory>
+	                        <resources>
+	                            <resource>
+	                                <directory>${basedir}/src/main/java</directory>
+	                                <includes>
+	                                    <include>**/*.*</include>
+	                                </includes>
+	                                <excludes>
+	                                    <exclude>**/*.java</exclude>
+	                                </excludes>
+	                            </resource>
+	                            <resource>
+	                                <directory>${basedir}/src/main/resources</directory>
+	                                <includes>
+	                                    <include>**/*.*</include>
+	                                </includes>
+	                            </resource>
+	                        </resources>
+	                    </configuration>
+	                </execution>
+	                <execution>
+	                	<id>copy-resources02</id>
+	                    <phase>process-test-resources</phase>
+	                    <goals>
+	                        <goal>copy-resources</goal>
+	                    </goals>
+	                    <configuration>
+	                        <outputDirectory>${basedir}/target/test-classes</outputDirectory>
+	                        <resources>
+	                            <resource>
+	                                <directory>${basedir}/src/test/java</directory>
+	                                <includes>
+	                                    <include>**/*.*</include>
+	                                </includes>
+	                                <excludes>
+	                                    <exclude>**/*.java</exclude>
+	                                    <exclude>**/*.class</exclude>
+	                                </excludes>
+	                            </resource>
+	                            <resource>
+	                                <directory>${basedir}/src/test/resources</directory>
+	                                <includes>
+	                                    <include>**/*.*</include>
+	                                </includes>
+	                            </resource>
+	                        </resources>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	        </plugin>			
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
                	<version>3.0.0-M4</version>
                	<configuration>
 					<groups>chav1961.purelib.testing.OrdinalTestCategory</groups>
+					<argLine>-Dsuppress.junit.trace=true</argLine>					
         		</configuration>
 			</plugin>
 			<plugin>

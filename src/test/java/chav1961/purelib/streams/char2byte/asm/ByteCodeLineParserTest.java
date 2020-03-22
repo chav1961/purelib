@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
@@ -14,6 +15,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
 interface ByteCodeTestInterface {
 	void callInterfaceVoid(long parameter);
@@ -22,6 +24,8 @@ interface ByteCodeTestInterface {
 
 @Category(OrdinalTestCategory.class)
 public class ByteCodeLineParserTest implements ByteCodeTestInterface {
+	private final PrintStream	ps = TestingUtils.err();
+	
 	public static int callTest() {return 666;}	// Do not remove - need for test purposes! 
 
 	public static void callStaticVoid(final long parameter) {}
@@ -766,7 +770,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			final Class<?>	clazz = ClassLineParserTest.checkClass(cc,this.getClass().getPackage().getName()+".Test");
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
-			System.err.println("Con=="+Arrays.toString(clazz.getFields()));
+			ps.println("Con=="+Arrays.toString(clazz.getFields()));
 			Assert.assertEquals(clazz.getField("val").getType(),int.class);
 			Assert.assertEquals(clazz.getMethod("get").getReturnType(),int.class);
 			Assert.assertEquals(clazz.getMethod("set",int.class).getReturnType(),void.class);

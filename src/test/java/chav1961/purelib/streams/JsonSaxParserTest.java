@@ -14,6 +14,8 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.PerformanceTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
 @Category(OrdinalTestCategory.class)
 public class JsonSaxParserTest {
@@ -218,6 +220,7 @@ public class JsonSaxParserTest {
 		}
 	}
 
+	@Category(PerformanceTestCategory.class)
 	@Test	// Need 2G memory to execute
 	public void performanceTest() throws IOException, SyntaxException {
 		final JsonSaxHandler	jch	= new JsonSaxHandler(){
@@ -241,7 +244,7 @@ public class JsonSaxParserTest {
 									@Override public void value() {}
 								};
 		final JsonSaxParser		jcp = new JsonSaxParser(jch);
-		final GrowableCharArray	gca = new GrowableCharArray(false);
+		final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
 		final char[]			buffer = new char[8192];
 		int						len = 0;
 		
@@ -264,6 +267,6 @@ public class JsonSaxParserTest {
 		}
 		final long				end = System.nanoTime();
 		
-		System.err.println("Parsing complete, data processed = "+gca.length()+", duration="+(end-start)+", speed="+(1000.0*gca.length()/(end-start))+" MBytes/sec");
+		TestingUtils.err().println("Parsing complete, data processed = "+gca.length()+", duration="+(end-start)+", speed="+(1000.0*gca.length()/(end-start))+" MBytes/sec");
 	}
 }

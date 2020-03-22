@@ -58,7 +58,12 @@ public class XMLLocalizer extends AbstractLocalizer {
 					try{final URL 	url = resourceAddress.toURL();
 					
 						try(final InputStream	is = url.openStream()) {
-							loadDom(is,trans);
+							if (is == null) {
+								throw new ContentException("XML localizer error: URL ["+url+"] is not exists or it's content not acsessible"); 
+							}
+							else {
+								loadDom(is,trans);
+							}
 						}
 					} catch (ContentException | IOException e) {
 						throw new LocalizationException(e.getLocalizedMessage(),e);
@@ -80,7 +85,12 @@ public class XMLLocalizer extends AbstractLocalizer {
 
 						if (possibleLocalResource != null) {
 							try(final InputStream	is = possibleLocalResource.openStream()) {
-								loadDom(is,trans);
+								if (is == null) {
+									throw new ContentException("XML localizer error: URL ["+possibleLocalResource+"] is not exists or it's content not acsessible"); 
+								}
+								else {
+									loadDom(is,trans);
+								}
 							} catch (ContentException | IOException e) {
 								throw new LocalizationException(e.getLocalizedMessage(),e);
 							}
@@ -163,39 +173,43 @@ public class XMLLocalizer extends AbstractLocalizer {
 		final Map<String,URI>		helpRefs = new HashMap<>();
 		final String[]				langName = new String[1];
 		
-		XMLUtils.walkDownXML(XMLUtils.validateAndLoadXML(is,XSDConst.class.getResourceAsStream("XMLLocalizerContent.xsd"),logger).getDocumentElement(), (mode,node)->{
-			switch (mode) {
-				case ENTER	:
-					switch (node.getNodeName()) {
-						case "lang"	:
-							langName[0] = node.getAttributes().getNamedItem("name").getTextContent();
-							keysAndValues.clear();
-							helpRefs.clear();
-							break;
-						case "key"	:
-							keysAndValues.put(node.getAttributes().getNamedItem("name").getTextContent(),node.getTextContent());
-							break;
-						case "ref"	:
-							final String		name = node.getAttributes().getNamedItem("name").getTextContent();
-							final String		ref = node.getAttributes().getNamedItem("ref").getTextContent();
-				
-							helpRefs.put(name,URI.create(ref));
-							break;
-					}
-					break;
-				case EXIT	:
-					switch (node.getNodeName()) {
-						case "lang"	:
-							keys.put(langName[0],new KeyCollection(keysAndValues,helpRefs));
-							langName[0] = null;
-							break;
-					}
-					break;
-				default		:
-					throw new UnsupportedOperationException("Mode ["+mode+"] is not supported yet");
-			}
-			return ContinueMode.CONTINUE;
-		});
+		try(final InputStream	xsd = XSDConst.getResourceAsStream("XMLLocalizerContent.xsd")) {
+			XMLUtils.walkDownXML(XMLUtils.validateAndLoadXML(is,xsd,logger).getDocumentElement(), (mode,node)->{
+				switch (mode) {
+					case ENTER	:
+						switch (node.getNodeName()) {
+							case "lang"	:
+								langName[0] = node.getAttributes().getNamedItem("name").getTextContent();
+								keysAndValues.clear();
+								helpRefs.clear();
+								break;
+							case "key"	:
+								keysAndValues.put(node.getAttributes().getNamedItem("name").getTextContent(),node.getTextContent());
+								break;
+							case "ref"	:
+								final String		name = node.getAttributes().getNamedItem("name").getTextContent();
+								final String		ref = node.getAttributes().getNamedItem("ref").getTextContent();
+					
+								helpRefs.put(name,URI.create(ref));
+								break;
+						}
+						break;
+					case EXIT	:
+						switch (node.getNodeName()) {
+							case "lang"	:
+								keys.put(langName[0],new KeyCollection(keysAndValues,helpRefs));
+								langName[0] = null;
+								break;
+						}
+						break;
+					default		:
+						throw new UnsupportedOperationException("Mode ["+mode+"] is not supported yet");
+				}
+				return ContinueMode.CONTINUE;
+			});
+		} catch (IOException e) {
+			throw new ContentException("Localizer ["+resourceAddress+"] - XSD scheme close error: "+e.getLocalizedMessage()); 
+		}
 		
 		final Set<String>	totalKeys = new HashSet<>();	// Check key definitions in all languages
 		final StringBuilder	sb = new StringBuilder();

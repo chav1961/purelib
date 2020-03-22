@@ -4,6 +4,7 @@ package chav1961.purelib.streams.char2byte.asm.macro;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
@@ -22,6 +23,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
 @Category(OrdinalTestCategory.class)
 public class MacroCompilerTest {
@@ -91,7 +93,7 @@ public class MacroCompilerTest {
 				try{instF.exec(pmF.getRoot().getDeclarations(),targetF);
 					Assert.fail("Mandatory exception was not detected (non-initialzed var)");
 				} catch (CalculationException exc) {
-					exc.printStackTrace();
+					//exc.printStackTrace();
 				}
 			}
 		}
@@ -531,7 +533,7 @@ public class MacroCompilerTest {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 
 			try(final Reader			rdr = gca.getReader()) {
-				Utils.copyStream(rdr,new OutputStreamWriter(System.out));
+				Utils.copyStream(rdr,new OutputStreamWriter(TestingUtils.err()));
 			}
 			
 			try(final Writer			asm = new AsmWriter(baos);
@@ -546,22 +548,23 @@ public class MacroCompilerTest {
 	public static Class<?> loadClass(final ClassLoader parent, final String className, final ByteArrayOutputStream baos) throws IOException {
 		try(final SimpleURLClassLoader	clw = new SimpleURLClassLoader(new URL[0],parent)) {
 			final byte[]				buffer = baos.toByteArray();
+			final PrintStream			ps = TestingUtils.err();
 	
-			System.err.println("----------");
+			ps.println("----------");
 			for (int index = 0, maxIndex = buffer.length; index < maxIndex; index++) {
-				System.err.print(String.format("%1$02x ",buffer[index]));
+				ps.print(String.format("%1$02x ",buffer[index]));
 				if (index % 16 == 15) {
-					System.err.println();
+					ps.println();
 				}
 			}
-			System.err.println("\n----------");
+			ps.println("\n----------");
 			for (int index = 0, maxIndex = buffer.length; index < maxIndex; index++) {
-				System.err.print(String.format("%1$c",(char)buffer[index]));
+				ps.print(String.format("%1$c",(char)buffer[index]));
 				if (index % 16 == 15) {
-					System.err.println();
+					ps.println();
 				}
 			}
-			System.err.println("\n----------");
+			ps.println("\n----------");
 			
 			final Class<?>	result = clw.createClass(className,baos.toByteArray()); 
 			

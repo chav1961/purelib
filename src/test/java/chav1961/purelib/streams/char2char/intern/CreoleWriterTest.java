@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringWriter;
 
@@ -33,9 +34,12 @@ import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
 import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
 import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
 @Category(OrdinalTestCategory.class)
 public class CreoleWriterTest {
+	private final PrintStream	ps = TestingUtils.err();
+	
 	@Test
 	public void txtTest() throws IOException {
 		testLoop(MarkupOutputFormat.XML2TEXT,"txt");
@@ -70,32 +74,32 @@ public class CreoleWriterTest {
 
 					@Override
 					public void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
-						System.err.print(new String(content,from,to-from));
+						ps.print(new String(content,from,to-from));
 					}
 
 					@Override
 					public void writeEscaped(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
-						System.err.print(new String(content,from,to-from));
+						ps.print(new String(content,from,to-from));
 					}
 					
 					@Override
 					public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-						System.err.print("<IMAGE: "+new String(data,startLink,endLink-startLink)+">");
+						ps.print("<IMAGE: "+new String(data,startLink,endLink-startLink)+">");
 					}
 
 					@Override
 					public void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-						System.err.print("<LINK: "+new String(data,startLink,endLink-startLink)+">");
+						ps.print("<LINK: "+new String(data,startLink,endLink-startLink)+">");
 					}
 
 					@Override
 					public void processSection(final FSM<CreoleTerminals, CreoleSectionState, CreoleSectionActions, Long> fsm, final CreoleTerminals terminal, final CreoleSectionState fromState, final CreoleSectionState toState, final CreoleSectionActions[] action, final Long parameter) throws FlowException {
-						System.err.print("<Section: "+fromState+"->"+toState+">");
+						ps.print("<Section: "+fromState+"->"+toState+">");
 					}
 
 					@Override
 					public void processFont(final FSM<CreoleTerminals, CreoleFontState, CreoleFontActions, Long> fsm, final CreoleTerminals terminal, final CreoleFontState fromState, final CreoleFontState toState, final CreoleFontActions[] action, final Long parameter) throws FlowException {
-						System.err.print("<Font: "+fromState+"->"+toState+">");
+						ps.print("<Font: "+fromState+"->"+toState+">");
 					}
 				}; 
 				final CreoleWriter			cwr = new CreoleWriter(cow)) {
@@ -116,7 +120,7 @@ public class CreoleWriterTest {
 			}
 			processed = wr.toString().replace("\r","");
 		}
-		System.err.println(processed);
+		ps.println(processed);
 		
 		try(final InputStream	xsd = XMLUtils.getPurelibXSD(coll);
 			final InputStream	xml = new ByteArrayInputStream(processed.getBytes("UTF-8"));) {

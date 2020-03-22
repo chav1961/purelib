@@ -50,7 +50,7 @@ public class FormManagedUtilsTest {
 											public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, final boolean isModifiable) throws ContentException {
 												// TODO Auto-generated method stub
 												Assert.assertEquals("testSet1",metadata.getName());
-												Assert.assertEquals("key1",metadata.getLabelId());
+												Assert.assertEquals("testSet1",metadata.getLabelId());
 												Assert.assertTrue(isModifiable);
 											}
 										};
@@ -517,13 +517,13 @@ public class FormManagedUtilsTest {
 	}
 }
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/test/resources/chav1961/purelib/i18n/test.xml")
-@LocaleResource(value="key1",tooltip="key2",help="key3")
-@Action(resource=@LocaleResource(value="key2",tooltip="key2"),actionString="press",simulateCheck=true) 
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:root://chav1961.purelib.ui.swing.FormManagedUtilsTest/chav1961/purelib/i18n/test.xml")
+@LocaleResource(value="testSet1",tooltip="testSet2",help="testSet3")
+@Action(resource=@LocaleResource(value="testSet1",tooltip="testSet1"),actionString="press",simulateCheck=true) 
 class SeekAndCallTest {
-	@LocaleResource(value="key1",tooltip="key2")
+	@LocaleResource(value="testSet1",tooltip="testSet1")
 	@Format("10.3mpzn")
-		private float 	testSet1 = 0.0f;
+	private float 	testSet1 = 0.0f;
 	
 
 	void callMethod1() throws TestException {

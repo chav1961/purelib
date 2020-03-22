@@ -11,7 +11,6 @@ import org.junit.experimental.categories.Category;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
 public class TermTest {
 	private static final char	ESC = 0x1F;
 	
@@ -20,6 +19,7 @@ public class TermTest {
 		void process(Term term) throws PrintingException;
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void printingTest() throws PrintingException, IOException {
 		try(final Term	term = new Term(20, 10)) {
@@ -42,6 +42,7 @@ public class TermTest {
 		}
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void cursorTest() throws PrintingException, IOException {
 		try(final Term	term = new Term(20, 10)) {
@@ -75,6 +76,7 @@ public class TermTest {
 		}
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void escapingTest() throws PrintingException, IOException {
 		try(final Term	term = new Term(20, 10)) {

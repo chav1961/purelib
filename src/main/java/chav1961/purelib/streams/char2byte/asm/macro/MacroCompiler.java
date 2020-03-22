@@ -89,7 +89,8 @@ public class MacroCompiler {
 			ME_TO_BOOLEAN = macroExecutorClass.getMethod("toBoolean",char[].class); 
 			ME_SPLIT = macroExecutorClass.getMethod("split",char[].class,char[].class);
 			
-			final Class<GrowableCharArray>			growableCharArrayClass = GrowableCharArray.class; 
+			@SuppressWarnings("rawtypes")
+			final Class<GrowableCharArray>		growableCharArrayClass = GrowableCharArray.class; 
 
 			GCA_APPEND = growableCharArrayClass.getMethod("append",char[].class);
 			
@@ -109,7 +110,7 @@ public class MacroCompiler {
 		}
 	}
 	
-	public static void compile(final String className, final Command command, final GrowableCharArray writer, final GrowableCharArray stringRepo) throws IOException, SyntaxException, CalculationException {
+	public static void compile(final String className, @SuppressWarnings("exports") final Command command, final GrowableCharArray<?> writer, final GrowableCharArray<?> stringRepo) throws IOException, SyntaxException, CalculationException {
 		try(final InputStream			is = MacroCompiler.class.getResourceAsStream(MACROCOMPILER_RESOURCE)) {
 			final AssemblerTemplateRepo	repo = new AssemblerTemplateRepo(is);
 			final Storage				storage = new Storage(stringRepo); 
@@ -119,7 +120,7 @@ public class MacroCompiler {
 		}
 	}
 	
-	private static void compile(final Command command, final GrowableCharArray writer, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final JumpStack jumpStack) throws CalculationException {
+	private static void compile(final Command command, final GrowableCharArray<?> writer, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final JumpStack jumpStack) throws CalculationException {
 		try(final NameKeeper	current = callback.push()) {
 			
 			storage.unconditionalBrunchWasDetected = false;
@@ -379,7 +380,7 @@ public class MacroCompiler {
 		}
 	}
 	
-	static void compileSequence(final List<Command> list, final GrowableCharArray writer, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final JumpStack jumpStack) throws CalculationException {
+	static void compileSequence(final List<Command> list, final GrowableCharArray<?> writer, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final JumpStack jumpStack) throws CalculationException {
 		boolean brunchOut = false;
 		
 		for (Command item : list) {
@@ -393,7 +394,7 @@ public class MacroCompiler {
 		}
 	}
 
-	private static void storeValue(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray writer) throws CalculationException {
+	private static void storeValue(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer) throws CalculationException {
 		switch (node.getValueType()) {
 			case INTEGER	: repo.append(writer,PART_STORE_INT,callback); break;
 			case REAL		: repo.append(writer,PART_STORE_REAL,callback); break;
@@ -403,7 +404,7 @@ public class MacroCompiler {
 		}
 	}
 
-	static void compileExpression(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray writer, final int trueLabel, final int falseLabel) throws CalculationException {
+	static void compileExpression(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer, final int trueLabel, final int falseLabel) throws CalculationException {
 		try(final NameKeeper	current = callback.push()) {
 			switch (node.getType()) {
 				case CONSTANT				:
@@ -763,7 +764,7 @@ public class MacroCompiler {
 		}
 	}
 
-	private static void buildConstant(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray writer, final int trueLabel, final int falseLabel) throws NullPointerException, CalculationException {
+	private static void buildConstant(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer, final int trueLabel, final int falseLabel) throws NullPointerException, CalculationException {
 		switch (node.getValueType()) {
 			case INTEGER	:
 				repo.append(writer,("	ldc2_w "+node.getLong()+"L\n"));
@@ -796,7 +797,7 @@ public class MacroCompiler {
 		}
 	}
 
-	private static void buldComparison(final ExpressionNodeValue value, final ExpressionNodeOperator operator, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray writer, final int trueLabel, final int falseLabel) {
+	private static void buldComparison(final ExpressionNodeValue value, final ExpressionNodeOperator operator, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer, final int trueLabel, final int falseLabel) {
 		final int	labelTrue = storage.uniqueLabel++, labelFalse = storage.uniqueLabel++;
 		
 		switch (value) {
@@ -855,12 +856,12 @@ public class MacroCompiler {
 	}
 
 	static class Storage {
-		final GrowableCharArray		stringRepo;
+		final GrowableCharArray<?>	stringRepo;
 		int							uniqueLabel = 1;
 		boolean						needMarkExit = false;
 		boolean						unconditionalBrunchWasDetected = false;
 		
-		Storage(final GrowableCharArray stringRepo) {
+		Storage(final GrowableCharArray<?> stringRepo) {
 			this.stringRepo = stringRepo;
 		}
 		

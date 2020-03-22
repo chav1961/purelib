@@ -1,5 +1,7 @@
 package chav1961.purelib.model;
 
+import java.io.PrintStream;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -13,11 +15,14 @@ import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 
 @Category(OrdinalTestCategory.class)
 public class ModelManagedMapTest {
+	private final PrintStream	ps = TestingUtils.err();
+	
 	@Test
 	public void basicTest() throws SyntaxException, LocalizationException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		final ContentMetadataInterface 	cmi = ContentModelFactory.forAnnotatedClass(AnnotatedForTest.class);	// see ContentModelFactoryTest
@@ -51,7 +56,7 @@ public class ModelManagedMapTest {
 		Assert.assertEquals(mmm,mmm.setFloat("testSet1",1f));
 		Assert.assertEquals(1f,mmm.getFloat("testSet1"),0.001f);
 		
-		System.err.println(mmm.toString());
+		ps.println(mmm.toString());
 		
 		try{new ModelManagedMap(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

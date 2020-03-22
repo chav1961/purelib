@@ -1,5 +1,6 @@
 package chav1961.purelib.concurrent;
 
+import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
@@ -10,9 +11,12 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
 @Category(OrdinalTestCategory.class)
 public class ListenablesTest {
+	final PrintStream	ps = TestingUtils.err();
+	
 	/*
 	 * Test scenario:
 	 *   1. First thread sets current LL value to 1 and tests, that previous value was 0
@@ -30,15 +34,15 @@ public class ListenablesTest {
 		final Thread			t1 = new Thread(()->{
 									try{
 										stepper1s.exchange(null);	// step 1 started
-//										System.err.println(Thread.currentThread().getName()+": step1 started");
+//										ps.println(Thread.currentThread().getName()+": step1 started");
 										Assert.assertEquals(0,li.set(1));										
-//										System.err.println(Thread.currentThread().getName()+": step1 ended");
+//										ps.println(Thread.currentThread().getName()+": step1 ended");
 										stepper1e.exchange(null);	// step 1 ended
 										
 										stepper1s.exchange(null);	// step 3 started
-//										System.err.println(Thread.currentThread().getName()+": step3 started");
+//										ps.println(Thread.currentThread().getName()+": step3 started");
 										li.await(3);										
-//										System.err.println(Thread.currentThread().getName()+": step3 ended");
+//										ps.println(Thread.currentThread().getName()+": step3 ended");
 										stepper1e.exchange(null);	// step 3 ended
 										
 										latch.countDown();
@@ -50,28 +54,28 @@ public class ListenablesTest {
 		final Thread			t2 = new Thread(()->{
 									try{
 										stepper2s.exchange(null);	// step 2 started
-//										System.err.println(Thread.currentThread().getName()+": step2 started");
+//										ps.println(Thread.currentThread().getName()+": step2 started");
 										Assert.assertEquals(1,li.set(2));
-//										System.err.println(Thread.currentThread().getName()+": step2 ended");
+//										ps.println(Thread.currentThread().getName()+": step2 ended");
 										stepper2e.exchange(null);	// step 2 ended
 										
 										stepper2s.exchange(null);	// step 4 started
-//										System.err.println(Thread.currentThread().getName()+": step4 started");
+//										ps.println(Thread.currentThread().getName()+": step4 started");
 										li.set(4);
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										stepper2e.exchange(null);	// step 4 ended
 									
 										stepper2s.exchange(null);	// step 5 started
-//										System.err.println(Thread.currentThread().getName()+": step5 started");
+//										ps.println(Thread.currentThread().getName()+": step5 started");
 										li.set(3);
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										
 										stepper2s.exchange(null);	// step 6 started
-//										System.err.println(Thread.currentThread().getName()+": step6 started");
+//										ps.println(Thread.currentThread().getName()+": step6 started");
 										li.await(3);
 										stepper2e.exchange(null);	// step 6 ended
 										latch.countDown();
-//										System.err.println(Thread.currentThread().getName()+": step6 ended");
+//										ps.println(Thread.currentThread().getName()+": step6 ended");
 									} catch (Exception exc) {
 										exc.printStackTrace();
 									}
@@ -164,15 +168,15 @@ public class ListenablesTest {
 		final Thread			t1 = new Thread(()->{
 									try{
 										stepper1s.exchange(null);	// step 1 started
-//										System.err.println(Thread.currentThread().getName()+": step1 started");
+//										ps.println(Thread.currentThread().getName()+": step1 started");
 										Assert.assertEquals(0,ll.set(1));										
-//										System.err.println(Thread.currentThread().getName()+": step1 ended");
+//										ps.println(Thread.currentThread().getName()+": step1 ended");
 										stepper1e.exchange(null);	// step 1 ended
 										
 										stepper1s.exchange(null);	// step 3 started
-//										System.err.println(Thread.currentThread().getName()+": step3 started");
+//										ps.println(Thread.currentThread().getName()+": step3 started");
 										ll.await(3);										
-//										System.err.println(Thread.currentThread().getName()+": step3 ended");
+//										ps.println(Thread.currentThread().getName()+": step3 ended");
 										stepper1e.exchange(null);	// step 3 ended
 										
 										latch.countDown();
@@ -184,28 +188,28 @@ public class ListenablesTest {
 		final Thread			t2 = new Thread(()->{
 									try{
 										stepper2s.exchange(null);	// step 2 started
-//										System.err.println(Thread.currentThread().getName()+": step2 started");
+//										ps.println(Thread.currentThread().getName()+": step2 started");
 										Assert.assertEquals(1,ll.set(2));
-//										System.err.println(Thread.currentThread().getName()+": step2 ended");
+//										ps.println(Thread.currentThread().getName()+": step2 ended");
 										stepper2e.exchange(null);	// step 2 ended
 										
 										stepper2s.exchange(null);	// step 4 started
-//										System.err.println(Thread.currentThread().getName()+": step4 started");
+//										ps.println(Thread.currentThread().getName()+": step4 started");
 										ll.set(4);
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										stepper2e.exchange(null);	// step 4 ended
 									
 										stepper2s.exchange(null);	// step 5 started
-//										System.err.println(Thread.currentThread().getName()+": step5 started");
+//										ps.println(Thread.currentThread().getName()+": step5 started");
 										ll.set(3);
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										
 										stepper2s.exchange(null);	// step 6 started
-//										System.err.println(Thread.currentThread().getName()+": step6 started");
+//										ps.println(Thread.currentThread().getName()+": step6 started");
 										ll.await(3);
 										stepper2e.exchange(null);	// step 6 ended
 										latch.countDown();
-//										System.err.println(Thread.currentThread().getName()+": step6 ended");
+//										ps.println(Thread.currentThread().getName()+": step6 ended");
 									} catch (Exception exc) {
 										exc.printStackTrace();
 									}
@@ -298,15 +302,15 @@ public class ListenablesTest {
 		final Thread			t1 = new Thread(()->{
 									try{
 										stepper1s.exchange(null);	// step 1 started
-//										System.err.println(Thread.currentThread().getName()+": step1 started");
+//										ps.println(Thread.currentThread().getName()+": step1 started");
 										Assert.assertEquals(0,ld.set(1),0.0001);										
-//										System.err.println(Thread.currentThread().getName()+": step1 ended");
+//										ps.println(Thread.currentThread().getName()+": step1 ended");
 										stepper1e.exchange(null);	// step 1 ended
 										
 										stepper1s.exchange(null);	// step 3 started
-//										System.err.println(Thread.currentThread().getName()+": step3 started");
+//										ps.println(Thread.currentThread().getName()+": step3 started");
 										ld.await(3);										
-//										System.err.println(Thread.currentThread().getName()+": step3 ended");
+//										ps.println(Thread.currentThread().getName()+": step3 ended");
 										stepper1e.exchange(null);	// step 3 ended
 										
 										latch.countDown();
@@ -318,28 +322,28 @@ public class ListenablesTest {
 		final Thread			t2 = new Thread(()->{
 									try{
 										stepper2s.exchange(null);	// step 2 started
-//										System.err.println(Thread.currentThread().getName()+": step2 started");
+//										ps.println(Thread.currentThread().getName()+": step2 started");
 										Assert.assertEquals(1,ld.set(2),0.0001);
-//										System.err.println(Thread.currentThread().getName()+": step2 ended");
+//										ps.println(Thread.currentThread().getName()+": step2 ended");
 										stepper2e.exchange(null);	// step 2 ended
 										
 										stepper2s.exchange(null);	// step 4 started
-//										System.err.println(Thread.currentThread().getName()+": step4 started");
+//										ps.println(Thread.currentThread().getName()+": step4 started");
 										ld.set(4);
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										stepper2e.exchange(null);	// step 4 ended
 									
 										stepper2s.exchange(null);	// step 5 started
-//										System.err.println(Thread.currentThread().getName()+": step5 started");
+//										ps.println(Thread.currentThread().getName()+": step5 started");
 										ld.set(3);
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										
 										stepper2s.exchange(null);	// step 6 started
-//										System.err.println(Thread.currentThread().getName()+": step6 started");
+//										ps.println(Thread.currentThread().getName()+": step6 started");
 										ld.await(3);
 										stepper2e.exchange(null);	// step 6 ended
 										latch.countDown();
-//										System.err.println(Thread.currentThread().getName()+": step6 ended");
+//										ps.println(Thread.currentThread().getName()+": step6 ended");
 									} catch (Exception exc) {
 										exc.printStackTrace();
 									}
@@ -432,15 +436,15 @@ public class ListenablesTest {
 		final Thread			t1 = new Thread(()->{
 									try{
 										stepper1s.exchange(null);	// step 1 started
-//										System.err.println(Thread.currentThread().getName()+": step1 started");
+//										ps.println(Thread.currentThread().getName()+": step1 started");
 										Assert.assertEquals("0",ls.set("1"));										
-//										System.err.println(Thread.currentThread().getName()+": step1 ended");
+//										ps.println(Thread.currentThread().getName()+": step1 ended");
 										stepper1e.exchange(null);	// step 1 ended
 										
 										stepper1s.exchange(null);	// step 3 started
-//										System.err.println(Thread.currentThread().getName()+": step3 started");
+//										ps.println(Thread.currentThread().getName()+": step3 started");
 										ls.await("3");										
-//										System.err.println(Thread.currentThread().getName()+": step3 ended");
+//										ps.println(Thread.currentThread().getName()+": step3 ended");
 										stepper1e.exchange(null);	// step 3 ended
 										
 										latch.countDown();
@@ -452,28 +456,28 @@ public class ListenablesTest {
 		final Thread			t2 = new Thread(()->{
 									try{
 										stepper2s.exchange(null);	// step 2 started
-//										System.err.println(Thread.currentThread().getName()+": step2 started");
+//										ps.println(Thread.currentThread().getName()+": step2 started");
 										Assert.assertEquals("1",ls.set("2"));
-//										System.err.println(Thread.currentThread().getName()+": step2 ended");
+//										ps.println(Thread.currentThread().getName()+": step2 ended");
 										stepper2e.exchange(null);	// step 2 ended
 										
 										stepper2s.exchange(null);	// step 4 started
-//										System.err.println(Thread.currentThread().getName()+": step4 started");
+//										ps.println(Thread.currentThread().getName()+": step4 started");
 										ls.set("4");
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										stepper2e.exchange(null);	// step 4 ended
 									
 										stepper2s.exchange(null);	// step 5 started
-//										System.err.println(Thread.currentThread().getName()+": step5 started");
+//										ps.println(Thread.currentThread().getName()+": step5 started");
 										ls.set("3");
-//										System.err.println(Thread.currentThread().getName()+": step5 ended");
+//										ps.println(Thread.currentThread().getName()+": step5 ended");
 										
 										stepper2s.exchange(null);	// step 6 started
-//										System.err.println(Thread.currentThread().getName()+": step6 started");
+//										ps.println(Thread.currentThread().getName()+": step6 started");
 										ls.await("3");
 										stepper2e.exchange(null);	// step 6 ended
 										latch.countDown();
-//										System.err.println(Thread.currentThread().getName()+": step6 ended");
+//										ps.println(Thread.currentThread().getName()+": step6 ended");
 									} catch (Exception exc) {
 										exc.printStackTrace();
 									}

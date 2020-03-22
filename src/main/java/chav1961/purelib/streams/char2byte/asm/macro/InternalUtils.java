@@ -235,7 +235,7 @@ class InternalUtils {
 		try{result[0] = parseExpression(order,data,pos,macro); 
 			return pos[0];
 		} catch (IllegalArgumentException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			throw new SyntaxException(lineNo,pos[0]-begin,exc.getLocalizedMessage()); 
 		}
 	}

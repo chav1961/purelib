@@ -71,8 +71,6 @@ public class BitCharSetTest {
 		bcs.addRange('e','g');
 		
 		Assert.assertArrayEquals(bcs.toArrayPairs(),new char[][] {new char[] {'a'}, new char[] {'e','g'}});
-		
-		System.err.println(bcs);
 	}
 
 	@Test
@@ -92,8 +90,6 @@ public class BitCharSetTest {
 		
 		bcs.remove('\uFFFF');
 		Assert.assertEquals(bcs.size(),1);
-		
-		System.err.println(bcs);		
 	}
 
 	@Test

@@ -154,7 +154,6 @@ class AssemblerTemplateRepo {
 					else {
 						arr.append(partNames[index].content);
 					}
-//					System.err.println(new String(subst));
 					return this;
 				}
 			}
@@ -183,11 +182,9 @@ class AssemblerTemplateRepo {
 		}
 		else if (parameters.length == 0) {
 			arr.append(format);
-//			System.err.println(format);
 		}
 		else {
 			arr.append(String.format(format,parameters));
-//			System.err.println(String.format(format,parameters));
 		}
 		return this;
 	}

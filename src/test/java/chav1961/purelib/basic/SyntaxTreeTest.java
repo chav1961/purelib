@@ -1,5 +1,7 @@
 package chav1961.purelib.basic;
 
+import java.io.PrintStream;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -8,21 +10,21 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.PerformanceTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
-@Category(OrdinalTestCategory.class)
 public class SyntaxTreeTest {
 	private final int				PERF_AMOUNT = 20;
+	private final PrintStream		ps = TestingUtils.err(); 
 	private final int[]				amount = new int[1];
 	private final Walker<Object>	PRINT = new Walker<Object>(){
 												@Override
 												public boolean process(char[] name, int len, long id, Object cargo) {
-//													System.err.println(new String(name,0,len)+"="+id);
 													amount[0]++;
 													return true;
 												}
 											};  
 	
-	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicFunctionalityTest() {
 		basicFunctionalityTest(new AndOrTree<Object>());
@@ -47,19 +49,20 @@ public class SyntaxTreeTest {
 		}
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void extendedFunctionalityTest() {
 		extendedFunctionalityTest(new AndOrTree<Object>());
 		extendedFunctionalityTest(new OrdinalSyntaxTree<Object>());
 	}
 
-//	@Category(PerformanceTestCategory.class)
-//	@Test
+	@Category(PerformanceTestCategory.class)
+	@Test
 	public void performanceTest() throws InterruptedException {
 		final SyntaxTreeInterface<Object>	tt = new AndOrTree<>();
 		final char[][]						data = new char[(1 << PERF_AMOUNT)][];
 		
-		System.err.println("Start preparation...");
+		ps.println("Start preparation...");
 		
 		for (int index = 0; index < data.length; index++) {
 			
@@ -75,7 +78,7 @@ public class SyntaxTreeTest {
 		System.gc();		
 		Thread.sleep(1000);		
 		
-		System.err.println("Start test...");
+		ps.println("Start test...");
 		
 		final long	startTime1 = System.nanoTime();
 		final long	freeMem1 = Runtime.getRuntime().freeMemory();
@@ -108,9 +111,9 @@ public class SyntaxTreeTest {
 		final long	startTime4 = System.nanoTime();
 		final long	freeMem4 = Runtime.getRuntime().freeMemory();
 		
-		System.err.println("Place new: time="+((startTime2-startTime1)/data.length)+", size="+((freeMem1-freeMem2)/(1 << PERF_AMOUNT))+", after GC="+((freeMem1-freeMem2A)/(1 << PERF_AMOUNT)));
-		System.err.println("Place existent: time="+((startTime3-startTime2A)/data.length)+", size="+((freeMem2A-freeMem3)/(1 << PERF_AMOUNT)));
-		System.err.println("Seek: time="+((startTime4-startTime3)/data.length)+", size="+((freeMem3-freeMem4)/(1 << PERF_AMOUNT)));
+		ps.println("Place new: time="+((startTime2-startTime1)/data.length)+", size="+((freeMem1-freeMem2)/(1 << PERF_AMOUNT))+", after GC="+((freeMem1-freeMem2A)/(1 << PERF_AMOUNT)));
+		ps.println("Place existent: time="+((startTime3-startTime2A)/data.length)+", size="+((freeMem2A-freeMem3)/(1 << PERF_AMOUNT)));
+		ps.println("Seek: time="+((startTime4-startTime3)/data.length)+", size="+((freeMem3-freeMem4)/(1 << PERF_AMOUNT)));
 	}
 
 	private void basicFunctionalityTest(final SyntaxTreeInterface<Object> tt) {

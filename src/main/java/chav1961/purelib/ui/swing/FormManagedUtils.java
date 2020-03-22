@@ -16,6 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.LocalizerStore;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
@@ -33,13 +34,15 @@ public class FormManagedUtils {
 	}
 	
 	public static <T> void parseModel4Form(final LoggerFacade logger, final ContentMetadataInterface mdi, final Localizer localizer, final Class<T> instanceClass, final JComponentMonitor monitor, final FormManagerParserCallback callback) {
-		try(final LoggerFacade	trans = logger.transaction("parseModel")) {
+		try(final LoggerFacade		trans = logger.transaction("parseModel")) {
 			
 			mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if (node.getApplicationPath() != null){
-						try{if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
-								final JButtonWithMeta		button = new JButtonWithMeta(node,localizer,monitor);
+						try (final LocalizerStore	store = new LocalizerStore(localizer,node.getLocalizerAssociated())){
+							
+							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
+								final JButtonWithMeta		button = new JButtonWithMeta(node,store.getLocalizer(),monitor);
 								
 								button.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
 								trans.message(Severity.trace,"Process button [%1$s]",node.getApplicationPath());
@@ -50,7 +53,7 @@ public class FormManagedUtils {
 							else if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 								final JLabel			label = new JLabel();
 								final FieldFormat		ff = node.getFormatAssociated();
-								final JComponent 		field = SwingUtils.prepareRenderer(node, localizer, ff.getContentType(), monitor);
+								final JComponent 		field = SwingUtils.prepareRenderer(node, store.getLocalizer(), ff.getContentType(), monitor);
 								final GetterAndSetter	gas = GettersAndSettersFactory.buildGetterAndSetter(instanceClass,node.getName());
 							
 								label.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString()+"/label");

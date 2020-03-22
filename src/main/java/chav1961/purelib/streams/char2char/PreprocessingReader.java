@@ -409,8 +409,6 @@ public class PreprocessingReader extends Reader {
 	protected void internalProcessLine(final long displacement, final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
 		final int	to = from + length;
 		
-		System.err.println(new String(data,from,length));
-		
 		if (data[from] == '#') {
 			int		start = from++, end;
 			

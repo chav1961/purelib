@@ -206,17 +206,24 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 							else {
 								final int	bounds[] = new int[2];
 								
-								from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from),bounds));
-								if (data[from] == '=') {
-									final ExpressionNode[]			value = new ExpressionNode[1];
-									final AssignableExpressionNode	var = new LocalVariable(name,InternalUtils.defineType(data,bounds));
-									
-									InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from+1,(MacroCommand)stack[0],value);
-									setInitialValue(var,value[0]);
-									((MacroCommand)stack[stackTop]).addDeclaration(var);
+								from = InternalUtils.skipBlank(data,from);
+								
+								if (Character.isJavaIdentifierStart(data[from])) {
+									from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,from,bounds));
+									if (data[from] == '=') {
+										final ExpressionNode[]			value = new ExpressionNode[1];
+										final AssignableExpressionNode	var = new LocalVariable(name,InternalUtils.defineType(data,bounds));
+										
+										InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from+1,(MacroCommand)stack[0],value);
+										setInitialValue(var,value[0]);
+										((MacroCommand)stack[stackTop]).addDeclaration(var);
+									}
+									else {
+										((MacroCommand)stack[stackTop]).addDeclaration(new LocalVariable(name,InternalUtils.defineType(data,bounds)));
+									}
 								}
 								else {
-									((MacroCommand)stack[stackTop]).addDeclaration(new LocalVariable(name,InternalUtils.defineType(data,bounds)));
+									throw new SyntaxException(lineNo,from-begin,".local declaration doesn't have legal name"); 
 								}
 							}
 						}

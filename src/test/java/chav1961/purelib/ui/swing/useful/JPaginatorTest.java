@@ -25,8 +25,8 @@ import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.swing.useful.JPaginator.PageMoving;
 import chav1961.purelib.ui.swing.useful.JPaginator.PageSelectCallback;
 
-@Category(OrdinalTestCategory.class)
 public class JPaginatorTest {
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicTest() throws LocalizationException {
 		final int[]					pages = new int[3];
@@ -149,8 +149,6 @@ public class JPaginatorTest {
 		tf2.setName("tf2");			page2.add(tf2);//		page2.add(new JLabel("p2"));
 		tf3.setName("tf3");			page3.add(tf3);//		page3.add(new JLabel("p3"));
 
-		System.err.println("------------");
-		
 		final JFrame				root = new JFrame();
 		final JPaginator			p = new JPaginator(PureLibSettings.PURELIB_LOCALIZER,true,psc,page1,page2,page3);
 		final SwingUnitTest			sut = new SwingUnitTest(root);

@@ -25,7 +25,6 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.ui.swing.SwingUtils;
 
-@Category(UITestCategory.class)
 public class SwingUnitTestTest {
 	final JFrame		root = new JFrame();
 	final JTextField	field1 = new JTextField(), field2 = new JTextField();
@@ -51,6 +50,7 @@ public class SwingUnitTestTest {
 		root.dispose();
 	}
 	
+	@Category(UITestCategory.class)
 	@Test
 	public void uiBasicTest() throws EnvironmentException, DebuggingException, InterruptedException {
 		final SwingUnitTest	sut = new SwingUnitTest(root);
@@ -132,6 +132,7 @@ public class SwingUnitTestTest {
 		}
 	}
 
+	@Category(UITestCategory.class)
 	@Test
 	public void uiMouseTest() throws EnvironmentException, DebuggingException, InterruptedException {
 		final SwingUnitTest	sut = new SwingUnitTest(root);

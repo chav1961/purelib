@@ -35,8 +35,9 @@ import chav1961.purelib.ui.interfaces.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.WizardStep;
 import chav1961.purelib.ui.swing.SimpleWizard.ActionButton;
 
-@Category(OrdinalTestCategory.class)
 public class SimpleWizardTest {
+	public static final URI			LOCALIZER_URI = URI.create(Localizer.LOCALIZER_SCHEME+":xml:root://chav1961.purelib.ui.swing.SimpleWizardTest/chav1961/purelib/i18n/test.xml");
+	
 	public static final String		KEY_PREPARE = "prepare";
 	public static final String		KEY_BEFORE_SHOW = "beforeShow";
 	public static final String		KEY_VALIDATE = "validate";
@@ -53,6 +54,7 @@ public class SimpleWizardTest {
 	public static final String		CTRL_STEP3_PREV = "step3Prev";
 	public static final String		CTRL_STEP3_NEXT = "step3Next";
 	
+	@Category(OrdinalTestCategory.class)
 //	@Test
 	public void lifeCycleTest() throws LocalizationException, InterruptedException, TimeoutException {
 		final Properties									props = new Properties();
@@ -131,9 +133,9 @@ public class SimpleWizardTest {
 			wiz.accessProperties().put(CTRL_STEP2_VALIDATION,true);		// Simulate Step2 validation true
 			ex.put(ActionButton.NEXT);
 			ex.put(ActionButton.CANCEL);
-			t.join(5000);
+			t.join(1000);
 			Assert.assertFalse(results[0]);
-			Assert.assertFalse(results[1]);
+			Assert.assertTrue(results[1]);
 			Assert.assertEquals(props.getProperty(KEY_PREPARE,""),"123");
 			Assert.assertEquals(props.getProperty(KEY_BEFORE_SHOW,""),"12123");
 			Assert.assertEquals(props.getProperty(KEY_VALIDATE,""),"1122");
@@ -143,11 +145,12 @@ public class SimpleWizardTest {
 		}
 	}
 	
+	@Category(OrdinalTestCategory.class)
 //	@Test
 	public void localizationTest() throws LocalizationException, InterruptedException, TimeoutException, IOException {
 		final Properties									props = new Properties();
 		final HashMap<String,Object>						ctrl = new HashMap<String,Object>();
-		final Localizer										l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test"));
+		final Localizer										l = LocalizerFactory.getLocalizer(LOCALIZER_URI);
 		final WizardStep<Properties,TestError,JComponent>	ws1 = new WizardStep1(ctrl), ws3 = new WizardStep3(ctrl); 
 
 		ctrl.put(SimpleWizard.PROP_LOCALIZER,l);
@@ -176,14 +179,14 @@ public class SimpleWizardTest {
 			t.setDaemon(true);				t.start();
 			
 			ex.put(ActionButton.NEXT);
-			Thread.sleep(500);
+			Thread.sleep(1000);
 			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"value1");
 			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"value2");
 			l.setCurrentLocale(new Locale("ru"));
 			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"значение1");
 			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"значение2");
 			ex.put(ActionButton.CANCEL);
-			t.join(5000);
+			t.join(1000);
 			Assert.assertFalse(results[0]);
 			Assert.assertFalse(results[1]);
 		}
@@ -228,7 +231,8 @@ public class SimpleWizardTest {
 		}
 	}
 
-//	@Test
+	@Category(OrdinalTestCategory.class)
+	@Test
 	public void processingTest() throws LocalizationException, InterruptedException, TimeoutException, IOException {
 		final Properties									props = new Properties();
 		final HashMap<String,Object>						ctrl = new HashMap<String,Object>();
@@ -284,11 +288,13 @@ public class SimpleWizardTest {
 		}
 	}
 	
-//	@Test
+	@Category(OrdinalTestCategory.class)
+	@Test
 	public void exceptionsTest() throws LocalizationException, InterruptedException, TimeoutException, IOException {
 		final Properties									props = new Properties();
 		final HashMap<String,Object>						ctrl = new HashMap<String,Object>();
-		final Localizer										l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test"));
+		final Localizer										l = LocalizerFactory.getLocalizer(LOCALIZER_URI);
+		
 		final WizardStep<Properties,TestError,JComponent>	ws1 = new WizardStep1(ctrl), ws4 = new WizardStep4(ctrl), ws3 = new WizardStep3(ctrl);
 		
 		try{new PseudoWizard(null,null,ModalityType.DOCUMENT_MODAL,ctrl,ws1,ws4,ws3);
@@ -341,11 +347,12 @@ public class SimpleWizardTest {
 		}
 	}	
 
+	@Category(OrdinalTestCategory.class)
 //	@Test
 	public void complexTest() throws NullPointerException, IOException, LocalizationException, PreparationException, FlowException, InterruptedException {
 		final Properties									props = new Properties();
 		final HashMap<String,Object>						ctrl = new HashMap<String,Object>();
-		final Localizer										l = LocalizerFactory.getLocalizer(URI.create(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test"));
+		final Localizer										l = LocalizerFactory.getLocalizer(LOCALIZER_URI);
 		final WizardStep<Properties,TestError,JComponent>	ws1 = new WizardStep1(ctrl), ws2 = new WizardStep2(ctrl), ws3 = new WizardStep3(ctrl);
 
 		ctrl.put(SimpleWizard.PROP_LOCALIZER,l);
@@ -353,15 +360,9 @@ public class SimpleWizardTest {
 		l.setCurrentLocale(new Locale("en"));
 
 		try(final SimpleWizard<Properties,TestError> wiz = new SimpleWizard(null,"key1",ModalityType.DOCUMENT_MODAL,ctrl,ws1,ws2,ws3)) {
-			System.err.println("------------------------------------------");
 			wiz.animate(props);
 		}
 	}
-	
-	@Test
-	public void empty() {
-	}
-	
 }
 
 enum TestError {
@@ -524,7 +525,7 @@ class WizardStep2 extends AbstractWizardStep<Properties,TestError,JComponent> {
 	}
 }
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":prop:chav1961/purelib/i18n/test")
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:root://chav1961.purelib.ui.swing.SimpleWizardTest/chav1961/purelib/i18n/test.xml")
 class WizardStep3 extends AbstractWizardStep<Properties,TestError,JComponent> {
 	private final HashMap<String, Object>	ctrl;
 

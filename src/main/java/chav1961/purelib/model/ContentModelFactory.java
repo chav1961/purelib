@@ -200,7 +200,7 @@ public class ContentModelFactory {
 			dbFactory.setNamespaceAware(true);
 			dbFactory.setValidating(true);
 			dbFactory.setAttribute(XSDConst.SCHEMA_LANGUAGE, XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			dbFactory.setAttribute(XSDConst.SCHEMA_SOURCE, XSDConst.class.getResource("XMLDescribedApplication.xsd").toString());
+			dbFactory.setAttribute(XSDConst.SCHEMA_SOURCE, XSDConst.getResource("XMLDescribedApplication.xsd").toString());
 			
 			try{final DocumentBuilder 		dBuilder = dbFactory.newDocumentBuilder();
 				final Document 				doc = dBuilder.parse(contentDescription);

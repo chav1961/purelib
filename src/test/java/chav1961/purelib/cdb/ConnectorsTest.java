@@ -132,10 +132,8 @@ public class ConnectorsTest {
 					}
 				}
 			}
-//			System.err.println("line="+line);
 		}
 		p.waitFor();
-//		System.err.println("The end! "+p.exitValue());
 	}
 	
 	private static boolean contains(final String item, final String... list) {

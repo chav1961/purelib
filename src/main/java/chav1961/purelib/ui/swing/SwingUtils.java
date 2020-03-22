@@ -276,10 +276,6 @@ loop:			for (Component comp : children(node)) {
 					}				
 				}
 			}
-//			System.err.println("Seek: "+component.getClass().getCanonicalName()+", name="+component.getName());
-//			for (Component item : result) {
-//				System.err.println("LP: "+item.getClass().getCanonicalName()+", name="+item.getName());
-//			}
 			return result;
 		}
 	}

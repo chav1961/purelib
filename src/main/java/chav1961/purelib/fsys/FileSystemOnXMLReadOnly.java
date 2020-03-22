@@ -101,7 +101,7 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 			dbf.setNamespaceAware(true);
 			dbf.setValidating(true);
 			dbf.setAttribute(XSDConst.SCHEMA_LANGUAGE, XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			dbf.setAttribute(XSDConst.SCHEMA_SOURCE, XSDConst.class.getResource("XMLReadOnlyFSys.xsd").toString());
+			dbf.setAttribute(XSDConst.SCHEMA_SOURCE, XSDConst.getResource("XMLReadOnlyFSys.xsd").toString());
 			
 			try(final LoggerFacade			log = new SystemErrLoggerFacade()){
 				final DocumentBuilder 		dBuilder = dbf.newDocumentBuilder();

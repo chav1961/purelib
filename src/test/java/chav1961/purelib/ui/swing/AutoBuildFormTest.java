@@ -40,13 +40,14 @@ import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
-@Category(OrdinalTestCategory.class)
 public class AutoBuildFormTest {
 	private boolean		callListener = false;
 
 	@SuppressWarnings("resource")
+	@Category(OrdinalTestCategory.class)
 	@Test
-	public void basicTest() throws SyntaxException, LocalizationException, ContentException, MalformedURLException {		
+	public void basicTest() throws SyntaxException, LocalizationException, ContentException, MalformedURLException {
+		try {
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
 													@Override
@@ -97,6 +98,9 @@ public class AutoBuildFormTest {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw t;
 		}
 
 		try{new AutoBuiltForm<PseudoData>(null,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,new URL("file:./"),pd,fm,1,true);
@@ -123,10 +127,14 @@ public class AutoBuildFormTest {
 			Assert.fail("Mandatory exception was not detected (illegal 7-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw t;
+		}
 	}
 	
-//	@Category(UITestCategory.class)
-//	@Test
+	@Category(UITestCategory.class)
+	@Test
 	public void uiTest() throws SyntaxException, ContentException, MalformedURLException, EnvironmentException, InterruptedException, DebuggingException, NullPointerException {		
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
@@ -164,8 +172,8 @@ public class AutoBuildFormTest {
 		Assert.assertEquals(1230,pd.intValue);
 	}	
 
-//	@Category(UITestCategory.class)
-//	@Test
+	@Category(UITestCategory.class)
+	@Test
 	public void uiStaticTest() throws SyntaxException, ContentException, MalformedURLException, EnvironmentException, InterruptedException, DebuggingException, NullPointerException, InvocationTargetException {		
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {

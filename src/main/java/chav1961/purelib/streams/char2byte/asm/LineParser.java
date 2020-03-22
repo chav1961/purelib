@@ -498,7 +498,7 @@ class LineParser implements LineByLineProcessorCallback {
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 
-		if (diagnostics != null) {
+		if (diagnostics != null && !PureLibSettings.instance().getProperty(PureLibSettings.SUPPRESS_PRINT_ASSEMBLER,boolean.class,"true")) {
 			diagnostics.write("\t"+new String(data,from,len));
 		}
 		

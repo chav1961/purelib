@@ -33,6 +33,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -71,7 +72,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * @lastUpdate 0.0.4
  */
 
-public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor {
+public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter {
 	private static final long 				serialVersionUID = 4920624779261769348L;
 	
 	public static final String				DEFAULT_OK_BUTTON_NAME = "ask.accept";
@@ -123,9 +124,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			throw new IllegalArgumentException("Bars count must be positive");
 		}
 		else {
-			final BorderLayout				totalLayout = new BorderLayout(GAP_SIZE, GAP_SIZE);
-			final JPanel					childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
-			final JPanel					buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+			final BorderLayout	totalLayout = new BorderLayout(GAP_SIZE, GAP_SIZE);
+			final JPanel		childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
+			final JPanel		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
 			this.mdi = mdi;
 			this.logger = logger;

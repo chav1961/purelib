@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -16,9 +17,12 @@ import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
 @Category(OrdinalTestCategory.class)
 public class XByteStreamTest {
+	final PrintStream	ps = TestingUtils.err();
+	
 	@Test
 	public void basicTest() throws IOException {
 		try(final XByteStream	xcs = new XByteStream()) {
@@ -57,7 +61,7 @@ public class XByteStreamTest {
 		try(final XByteStream	xcs = new XByteStream()) {
 			final JUnitExecutor<String,String>	t1Ex = new JUnitExecutor<>(); 
 			final Thread		t1 = new Thread(()->{
-									System.err.println("Writer started");
+									ps.println("Writer started");
 				
 									try(final OutputStream	os = xcs.createOutputStream();
 										final Writer		wr = new OutputStreamWriter(os);
@@ -71,7 +75,7 @@ public class XByteStreamTest {
 															final String	line = "line";
 															
 															pwr.println(line);
-															System.err.println("Write: "+line);
+															ps.println("Write: "+line);
 															return "ok";
 														case "flush"	:
 															pwr.flush();
@@ -85,15 +89,15 @@ public class XByteStreamTest {
 											}
 										}
 									} catch (IOException e) {
-										System.err.println("Writer I/O error: "+e);
+										ps.println("Writer I/O error: "+e);
 									} finally {
-										System.err.println("Writer ended");
+										ps.println("Writer ended");
 									}
 								});
 			
 			final JUnitExecutor<String,String>	t2Ex = new JUnitExecutor<>(); 
 			final Thread		t2 = new Thread(()->{
-									System.err.println("Reader started");
+									ps.println("Reader started");
 									
 									try(final InputStream		is = xcs.createInputStream();
 										final Reader			rdr = new InputStreamReader(is);
@@ -106,7 +110,7 @@ public class XByteStreamTest {
 														case "readLine"	:
 															final String	line = brdr.readLine(); 
 															
-															System.err.println("Read: "+line);
+															ps.println("Read: "+line);
 															return line;
 														default :
 															throw new UnsupportedOperationException("Unsupported command ["+cmd+"]"); 
@@ -117,9 +121,9 @@ public class XByteStreamTest {
 											}
 										}
 									} catch (IOException e) {
-										System.err.println("Reader I/O error: "+e);
+										ps.println("Reader I/O error: "+e);
 									} finally {
-										System.err.println("Reader ended");
+										ps.println("Reader ended");
 									}
 								});
 			
@@ -129,7 +133,7 @@ public class XByteStreamTest {
 			t2.start();
 			
 			// Scenario 1: 
-			System.err.println("Scenario 1:");
+			ps.println("Scenario 1:");
 			// - step 1.1: get content for empty pipe (wait state will be detected)
 			Assert.assertTrue(t2Ex.execute("readLine",1000));
 			Assert.assertFalse(t2Ex.hasResponse());
@@ -142,7 +146,7 @@ public class XByteStreamTest {
 			Assert.assertEquals("ok",t1Ex.getResponse(1000));
 
 			// Scenario 2: 
-			System.err.println("Scenario 2:");
+			ps.println("Scenario 2:");
 			// - step 2.1: send and flush string (wait state will be detected)
 			Assert.assertTrue(t1Ex.execute("writeLine",1000));
 			Assert.assertEquals("ok",t1Ex.getResponse(1000));
@@ -154,7 +158,7 @@ public class XByteStreamTest {
 			Assert.assertEquals("ok",t1Ex.getResponse(1000));
 
 			// Scenario 3: 
-			System.err.println("Scenario 3:");
+			ps.println("Scenario 3:");
 			// - step 3.1: send and flush string (wait state will be detected) 
 			Assert.assertTrue(t1Ex.execute("writeLine",1000));
 			Assert.assertEquals("ok",t1Ex.getResponse(1000));

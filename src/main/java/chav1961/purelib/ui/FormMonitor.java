@@ -115,13 +115,13 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 				final GetterAndSetter	gas = accessors.get(metadata.getUIPath());
 				
 				if (gas == null) {
-					//System.err.println("SD1");
+					// TODO:
 				}
 				else {
 					final Object			value = ModelUtils.getValueByGetter(instance, gas, metadata);
 					
 					if (value == null || component == null) {
-						//System.err.println("SD2");
+						// TODO:
 					}
 					((JComponentInterface)component).assignValueToComponent(value);
 				}

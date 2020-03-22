@@ -2,6 +2,7 @@ package chav1961.purelib.streams.char2byte.asm;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -14,10 +15,13 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 
 
 @Category(OrdinalTestCategory.class)
 public class ClassContainerTest {
+	private static final PrintStream	ps = TestingUtils.err();
+	
 	@Test
 	public void emptyClassTest() throws IOException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
@@ -131,7 +135,7 @@ public class ClassContainerTest {
 			long	id;
 			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,id = cc.getNameTree().placeName("voidMethodWithThrows",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			
-			System.err.println(cc.getNameTree().getName(id));
+			ps.println(cc.getNameTree().getName(id));
 			desc.getBody().putCommand(0,(byte)0xB1);	// Void method with return command only
 			desc.complete();
 			
@@ -143,7 +147,7 @@ public class ClassContainerTest {
 			Assert.assertEquals(loaded.getName(),"Test");
 			Assert.assertEquals(loaded.getMethod("voidAbstractMethod").getReturnType(),void.class);
 			Assert.assertEquals(loaded.getMethod("voidAbstractMethodWithThrows").getReturnType(),void.class);
-			System.err.println("Methods: "+Arrays.toString(loaded.getMethods()));
+			ps.println("Methods: "+Arrays.toString(loaded.getMethods()));
 			Assert.assertEquals(loaded.getMethod("voidMethodWithThrows").getReturnType(),void.class);
 		}
 
@@ -178,21 +182,21 @@ public class ClassContainerTest {
 		final TestClassLoader	tcl = new TestClassLoader();
 		final byte[]			buffer = baos.toByteArray();
 
-		System.err.println("----------");
+		ps.println("----------");
 		for (int index = 0, maxIndex = buffer.length; index < maxIndex; index++) {
-			System.err.print(String.format("%1$02x ",buffer[index]));
+			ps.print(String.format("%1$02x ",buffer[index]));
 			if (index % 16 == 15) {
-				System.err.println();
+				ps.println();
 			}
 		}
-		System.err.println("\n----------");
+		ps.println("\n----------");
 		for (int index = 0, maxIndex = buffer.length; index < maxIndex; index++) {
-			System.err.print(String.format("%1$c",(char)buffer[index]));
+			ps.print(String.format("%1$c",(char)buffer[index]));
 			if (index % 16 == 15) {
-				System.err.println();
+				ps.println();
 			}
 		}
-		System.err.println("\n----------");
+		ps.println("\n----------");
 		
 		final Class<?>	result = tcl.defineClass(className,baos.toByteArray()); 
 		

@@ -33,8 +33,8 @@ import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
-@Category(OrdinalTestCategory.class)
 public class MarkupBuildFormTest {
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicTest() throws LocalizationException, ContentException, IOException {
 		final PseudoData						pd = new PseudoData();
@@ -62,9 +62,8 @@ public class MarkupBuildFormTest {
 		}		
 	}
 	
-	
-//	@Category(UITestCategory.class)
-//	@Test
+	@Category(UITestCategory.class)
+	@Test
 	public void uiTest() throws ContentException, EnvironmentException, InterruptedException, DebuggingException, IOException {		
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {

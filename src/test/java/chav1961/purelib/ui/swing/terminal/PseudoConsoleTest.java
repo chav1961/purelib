@@ -12,8 +12,8 @@ import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.ColorPair;
 
 
-@Category(OrdinalTestCategory.class)
 public class PseudoConsoleTest {
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicTest() {
 		final PseudoConsole	pc = new PseudoConsole(10,10);

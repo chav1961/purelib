@@ -18,6 +18,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.FocusManager;
 import javax.swing.JComponent;
@@ -36,6 +37,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -53,7 +55,7 @@ import chav1961.purelib.ui.swing.useful.ScaledLayout;
 import chav1961.purelib.ui.swing.useful.ScaledLayout.AlignmentPolicy;
 import chav1961.purelib.ui.swing.useful.ScaledLayout.FillPolicy;
 
-public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor {
+public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter {
 	private static final long 				serialVersionUID = -1828992791881237479L;
 	public static final int					DEFAULT_WIDTH = 80;
 	public static final int					DEFAULT_HEIGHT = 25;
@@ -213,6 +215,14 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		// TODO Auto-generated method stub
 	}
 
+	@Override
+	public Module getUnnamedModule() {
+		for (Entry<URI, GetterAndSetter> item : accessors.entrySet()) {
+			return item.getValue().getClass().getClassLoader().getUnnamedModule();
+		}
+		return null;
+	}
+	
 	@Override
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
 		return monitor.process(event, metadata, component, parameters);
@@ -577,4 +587,5 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			return pages[index];
 		}
 	}
+
 }

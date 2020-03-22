@@ -72,8 +72,8 @@ import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 
-@Category(OrdinalTestCategory.class)
 public class SwingUtilsTest {
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void walkingTest() { 
 		final StringBuilder	sb = new StringBuilder();
@@ -194,6 +194,7 @@ public class SwingUtilsTest {
 		}
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void prepareRendererTest() throws LocalizationException, SyntaxException {
 		final JComponentMonitor 		monitor = new JComponentMonitor(){
@@ -214,6 +215,7 @@ public class SwingUtilsTest {
 		}
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void windowPropertiesTest() throws IOException, URISyntaxException, InterruptedException {
 		final Dimension	screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -265,6 +267,7 @@ public class SwingUtilsTest {
 		Thread.sleep(5000);
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void prepareHtmlMessageTest() throws IOException, URISyntaxException, InterruptedException, LocalizationException {
 		Assert.assertEquals("<html><body><font color=gray>test string</font></body></html>",SwingUtils.prepareHtmlMessage(Severity.debug,"test %1$s","string"));
@@ -285,6 +288,7 @@ public class SwingUtilsTest {
 		}
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void refreshLocaleTest() throws IOException, URISyntaxException, InterruptedException, LocalizationException {
 		final JFrame		frame = new JFrame();
@@ -307,6 +311,7 @@ public class SwingUtilsTest {
 		}
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void getSignum4ValueTest() throws IOException, URISyntaxException, InterruptedException, LocalizationException {
 		Assert.assertEquals(-1,SwingUtils.getSignum4Value(Integer.valueOf(-1)));
@@ -422,6 +427,7 @@ public class SwingUtilsTest {
 		}
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void annotatedActionListenersTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final AnnotatedWithOnAction	test = new AnnotatedWithOnAction();
@@ -543,6 +549,7 @@ public class SwingUtilsTest {
 		}
 	}
 	
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void getAndPutValuesTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -599,6 +606,7 @@ public class SwingUtilsTest {
 		}
 	}	
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void navigationBuildTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));
