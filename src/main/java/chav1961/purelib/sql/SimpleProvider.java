@@ -44,7 +44,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.interfaces.ORMProvider;
 
-public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Record>, ModuleExporter {
+public abstract class SimpleProvider<Record> implements ORMProvider<Record>, ModuleExporter {
 	private static final int				SELECT_INDEX = 0;
 	private static final int				INSERT_INDEX = 1;
 	private static final int				UPDATE_INDEX = 2;
@@ -53,7 +53,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	protected final ContentNodeMetadata		tableModel;
 	protected final ContentNodeMetadata		clazzModel;
 	
-	private final ORMProvider<Key, Record>	parent;
+	private final ORMProvider<Record>		parent;
 	private final Connection				conn;
 	private final String					selectString, insertString, updateString, deleteString, bulkSelectString, bulkCountString;
 	private final GetterAndSetter[]			gas;
@@ -65,8 +65,6 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	private final int[][]					forUpdateKeys;	// length = 3 : [0] - index in the 'gas' to call getter, [1] - parameter index in the prepared statement, [2] - SQL type of the parameter (see java.sql.Types)
 	private final PreparedStatement[]		hardCodedStatements;
 	private final PreparedStatementCache	contentCache, contentCountCache;
-	
-	private ProgressIndicator				progress = null;
 	
 	public SimpleProvider(final ContentNodeMetadata tableModel, final ContentNodeMetadata clazzModel, final Class<Record> clazz, final String[] fields, final String[] primaryKeys) throws IOException, ContentException {
 		if (tableModel == null) {
@@ -127,7 +125,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 		}
 	}
 	
-	private SimpleProvider(final SimpleProvider<Key,Record> parent, final Connection conn) throws SQLException {
+	private SimpleProvider(final SimpleProvider<Record> parent, final Connection conn) throws SQLException {
 		this.parent = parent;
 		this.conn = conn;
 		this.tableModel = parent.tableModel;
@@ -163,7 +161,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	}
 	
 	@Override
-	public ORMProvider<Key, Record> associate(final Connection conn) throws SQLException {
+	public ORMProvider<Record> associate(final Connection conn) throws SQLException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
 		}
@@ -172,11 +170,11 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 		}
 		else {
 			@SuppressWarnings("resource")
-			final ORMProvider<Key, Record>	owner = this; 
+			final ORMProvider<Record>	owner = this; 
 					
-			return new SimpleProvider<Key,Record>(this,conn){
-				@Override public Key newKey() throws SQLException {return owner.newKey();}
-				@Override public Key getKey(Record rec) throws SQLException {return owner.getKey(rec);}
+			return new SimpleProvider<Record>(this,conn){
+				@Override public Record newRecord() throws SQLException {return owner.newRecord();}
+				@Override public Record duplicateRecord(Record rec) throws SQLException {return owner.duplicateRecord(rec);}
 			}; 
 		}
 	}
@@ -329,8 +327,8 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	}
 	
 	@Override
-	public void create(final Key key, final Record record) throws SQLException {
-		try{upload(hardCodedStatements[INSERT_INDEX],record,gas,forInsert);
+	public void create(final Record record) throws SQLException {
+		try{upload(hardCodedStatements[INSERT_INDEX],record,getGAS(),getFields2Insert());
 			if (hardCodedStatements[INSERT_INDEX].executeUpdate() != 1) {
 				throw new SQLException("No any record was inserted");
 			}
@@ -340,11 +338,12 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	}
 
 	@Override
-	public void read(final Key key, final Record record) throws SQLException {
-		try{upload(hardCodedStatements[SELECT_INDEX],key,gas,forSelectKeys);
+	public void read(final Record record) throws SQLException {
+		try{upload(hardCodedStatements[SELECT_INDEX],record,getGAS(),getFields2SelectKeys());
+			
 			try(final ResultSet	rs = hardCodedStatements[SELECT_INDEX].executeQuery()) {
 				if (rs.next()) {
-					download(rs,record,gas,forSelect);
+					download(rs,record,getGAS(),getFields2Select());
 				}
 				else {
 					throw new SQLException("No any record was selected");
@@ -356,9 +355,9 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	}
 
 	@Override
-	public void update(final Key key, final Record record) throws SQLException {
-		try{upload(hardCodedStatements[UPDATE_INDEX],record,gas,forUpdate);
-			upload(hardCodedStatements[UPDATE_INDEX],key,gas,forUpdateKeys);
+	public void update(final Record record) throws SQLException {
+		try{upload(hardCodedStatements[UPDATE_INDEX],record,getGAS(),getFields2Update());
+			upload(hardCodedStatements[UPDATE_INDEX],record,getGAS(),getFields2UpdateKeys());
 			if (hardCodedStatements[UPDATE_INDEX].executeUpdate() != 1) {
 				throw new SQLException("No any record was updated");
 			}
@@ -368,8 +367,8 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	}
 
 	@Override
-	public void delete(final Key key) throws SQLException {
-		try{upload(hardCodedStatements[DELETE_INDEX],key,gas,forDelete);
+	public void delete(final Record record) throws SQLException {
+		try{upload(hardCodedStatements[DELETE_INDEX],record,getGAS(),getFields2Delete());
 			if (hardCodedStatements[DELETE_INDEX].executeUpdate() != 1) {
 				throw new SQLException("No any record was deleted");
 			}
@@ -379,19 +378,10 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	}
 
 	@Override
-	public abstract Key newKey() throws SQLException;
+	public abstract Record newRecord() throws SQLException;
 	
 	@Override
-	public abstract Key getKey(final Record rec) throws SQLException;
-	
-	public void setProgressIndicator(final ProgressIndicator indicator) {
-		if (parent == null) {
-			throw new IllegalStateException("Attempt to set progress indicator with non-associated instance. Call associate(...) to get appropriative instance"); 
-		}
-		else {
-			this.progress = indicator; 
-		}
-	}	
+	public abstract Record duplicateRecord(final Record rec) throws SQLException;
 	
 	static String buildSelectString(final String table, final String[] fields, final String[] primaryKeys) {
 		final StringBuilder	sb = new StringBuilder("select ");
@@ -415,16 +405,16 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 		
 		sb.append(table);
 		
-		String	prefix = "(";
+		char	prefix = '(';
 		for (String item : fields) {
 			sb.append(prefix).append(item);
-			prefix = ",";
+			prefix = ',';
 		}
 		sb.append(") values ");
-		prefix = "(";
+		prefix = '(';
 		for (String item : fields) {
-			sb.append(prefix).append("?");
-			prefix = ",";
+			sb.append(prefix).append('?');
+			prefix = ',';
 		}
 		return sb.append(')').toString();
 	}
@@ -478,7 +468,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	
 	static void download(final ResultSet rs, final Object instance, final GetterAndSetter[] gas, final int[][] toAndType) throws ContentException, SQLException, IOException {
 		for (int index = 0, maxIndex = toAndType.length; index < maxIndex; index++) {
-			switch (toAndType[index][1]) {
+			switch (toAndType[index][2]) {
 				case Types.BIT : case Types.BOOLEAN :
 					((BooleanGetterAndSetter)gas[toAndType[index][0]]).set(instance,rs.getBoolean(index+1));
 					break;
@@ -489,7 +479,6 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 					((ShortGetterAndSetter)gas[toAndType[index][0]]).set(instance,rs.getShort(index+1));
 					break;
 				case Types.INTEGER	:
-					int xxxxx = rs.getInt(index+1);
 					((IntGetterAndSetter)gas[toAndType[index][0]]).set(instance,rs.getInt(index+1));
 					break;
 				case Types.BIGINT	:
@@ -657,7 +646,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 		}
 	}
 	
-	static void upload(final ResultSet rs, final Object instance, final GetterAndSetter[] gas, final int[][] fromToAndType) throws ContentException, SQLException, IOException {
+	static void uploadKeys(final ResultSet rs, final Object instance, final GetterAndSetter[] gas, final int[][] fromToAndType) throws ContentException, SQLException, IOException {
 		for (int index = 0, maxIndex = fromToAndType.length; index < maxIndex; index++) {
 			switch (fromToAndType[index][2]) {
 				case Types.BIT : case Types.BOOLEAN :
@@ -748,7 +737,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 	private GetterAndSetter[] getGAS() {
 		if (gas == null) {
 			if (parent != null && (parent instanceof SimpleProvider)) {
-				return ((SimpleProvider<?,?>)parent).getGAS();
+				return ((SimpleProvider<?>)parent).getGAS();
 			}
 			else {
 				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
@@ -759,10 +748,52 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 		}
 	}
 
-	private int[][] getField2Delete() {
+	private int[][] getFields2Insert() {
+		if (forInsert == null) {
+			if (parent != null && (parent instanceof SimpleProvider)) {
+				return ((SimpleProvider<?>)parent).getFields2Insert();
+			}
+			else {
+				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+			}
+		}
+		else {
+			return forInsert;
+		}
+	}
+
+	private int[][] getFields2Update() {
+		if (forUpdate == null) {
+			if (parent != null && (parent instanceof SimpleProvider)) {
+				return ((SimpleProvider<?>)parent).getFields2Update();
+			}
+			else {
+				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+			}
+		}
+		else {
+			return forUpdate;
+		}
+	}
+
+	private int[][] getFields2UpdateKeys() {
+		if (forUpdateKeys == null) {
+			if (parent != null && (parent instanceof SimpleProvider)) {
+				return ((SimpleProvider<?>)parent).getFields2UpdateKeys();
+			}
+			else {
+				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+			}
+		}
+		else {
+			return forUpdateKeys;
+		}
+	}
+	
+	private int[][] getFields2Delete() {
 		if (forDelete == null) {
 			if (parent != null && (parent instanceof SimpleProvider)) {
-				return ((SimpleProvider<?,?>)parent).getField2Delete();
+				return ((SimpleProvider<?>)parent).getFields2Delete();
 			}
 			else {
 				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
@@ -773,10 +804,10 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 		}
 	}
 
-	private int[][] getField2Select() {
+	private int[][] getFields2Select() {
 		if (forSelect == null) {
 			if (parent != null && (parent instanceof SimpleProvider)) {
-				return ((SimpleProvider<?,?>)parent).getField2Select();
+				return ((SimpleProvider<?>)parent).getFields2Select();
 			}
 			else {
 				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
@@ -784,6 +815,20 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 		}
 		else {
 			return forSelect;
+		}
+	}
+
+	private int[][] getFields2SelectKeys() {
+		if (forSelectKeys == null) {
+			if (parent != null && (parent instanceof SimpleProvider)) {
+				return ((SimpleProvider<?>)parent).getFields2SelectKeys();
+			}
+			else {
+				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+			}
+		}
+		else {
+			return forSelectKeys;
 		}
 	}
 	
@@ -797,7 +842,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 				long	count = 0;
 				
 				while (rs.next()) {
-					download(rs,item,getGAS(),getField2Select());
+					download(rs,item,getGAS(),getFields2Select());
 					if (callback.process(count,count,item) != ContinueMode.CONTINUE) {
 						break;
 					}
@@ -819,7 +864,7 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 				long	count = 0, from = offset;
 				
 				while (rs.next()) {
-					download(rs,item,getGAS(),getField2Select());
+					download(rs,item,getGAS(),getFields2Select());
 					if (callback.process(count,from,item) != ContinueMode.CONTINUE) {
 						break;
 					}
@@ -879,15 +924,16 @@ public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Rec
 			if (mode == NodeEnterMode.ENTER && fieldSet.contains(node.getName().toUpperCase())) {
 				for (int index = 0; index < fields.length; index++) {
 					if (node.getName().equalsIgnoreCase(fields[index])) {
-						final int[]	desc = new int[2];
+						final int[]	desc = new int[3];
 						
 						desc[0] = indexNumber[0]++;
+						desc[1] = index + 1;
 						new SimpleContentMetadata(tableModel).walkDown((modeT,applicationPathT,uiPathT,nodeT)->{
 							if (modeT == NodeEnterMode.ENTER && nodeT.getName().equalsIgnoreCase(node.getName())) {
 								final Map<String,String[]>	parameters = URIUtils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT));
 								
 								if (parameters.containsKey("type")) {
-									desc[1] = Integer.valueOf(parameters.get("type")[0].toString());
+									desc[2] = Integer.valueOf(parameters.get("type")[0].toString());
 								}
 								else {
 									errors[0] = new ContentException("Table field ["+nodeT.getApplicationPath()+"] doesn't contain type in it's query string");

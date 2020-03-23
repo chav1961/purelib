@@ -34,73 +34,73 @@ public class SimpleProviderTest {
 			final ContentMetadataInterface	tableModel = ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"public","test");
 			final String[]					fields = new String[]{"f1","f2"}, primaryKeys = new String[]{"f1"};
 			
-			try(final SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>	provider = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(
+			try(final SimpleProvider<SimpleProviderRecord>	provider = new SimpleProvider<SimpleProviderRecord>(
 																	tableModel.getRoot(), 
 																	clazzModel.getRoot(), 
 																	SimpleProviderRecord.class, 
 																	fields, 
 																	primaryKeys){
-																		@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-																		@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}
+																		@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+																		@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}
 				
 						}) {
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = provider.associate(conn)) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = provider.associate(conn)) {
 				}
 				
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(null,clazzModel.getRoot(),SimpleProviderRecord.class,fields,primaryKeys){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(null,clazzModel.getRoot(),SimpleProviderRecord.class,fields,primaryKeys){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 				} catch (NullPointerException exc) {
 				} 
 				
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(tableModel.getRoot(),null,SimpleProviderRecord.class,fields,primaryKeys){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(tableModel.getRoot(),null,SimpleProviderRecord.class,fields,primaryKeys){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 				} catch (NullPointerException exc) {
 				}
 				
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),null,fields,primaryKeys){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),null,fields,primaryKeys){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 				} catch (NullPointerException exc) {
 				}
 				
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,null,primaryKeys){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,null,primaryKeys){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 4-st argument)");
 				} catch (IllegalArgumentException exc) {
 				}
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,new String[0],primaryKeys){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,new String[0],primaryKeys){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 4-st argument)");
 				} catch (IllegalArgumentException exc) {
 				}
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,new String[]{null},primaryKeys){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,new String[]{null},primaryKeys){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 4-st argument)");
 				} catch (NullPointerException exc) {
 				}
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,fields,null){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(tableModel.getRoot(),clazzModel.getRoot(),SimpleProviderRecord.class,fields,null){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 				} catch (IllegalArgumentException exc) {
 				}
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(null,clazzModel.getRoot(),SimpleProviderRecord.class,fields,new String[0]){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(null,clazzModel.getRoot(),SimpleProviderRecord.class,fields,new String[0]){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 				} catch (NullPointerException exc) {
 				}
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(tableModel.getRoot(),null,SimpleProviderRecord.class,fields,new String[]{null}){
-											@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-											@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}}) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = new SimpleProvider<SimpleProviderRecord>(tableModel.getRoot(),null,SimpleProviderRecord.class,fields,new String[]{null}){
+											@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+											@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}}) {
 					Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 				} catch (NullPointerException exc) {
 				}
@@ -132,17 +132,17 @@ public class SimpleProviderTest {
 			final String[]					fields = new String[]{"f1","f2"}, primaryKeys = new String[]{"f1"};
 			final SimpleProviderRecord		rec = new SimpleProviderRecord();
 			
-			try(final SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>	provider = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(
+			try(final SimpleProvider<SimpleProviderRecord>	provider = new SimpleProvider<SimpleProviderRecord>(
 																	tableModel.getRoot(), 
 																	clazzModel.getRoot(), 
 																	SimpleProviderRecord.class, 
 																	fields, 
 																	primaryKeys){
-																		@Override public SimpleProviderRecord newKey() throws SQLException {return null;}
-																		@Override public SimpleProviderRecord getKey(SimpleProviderRecord rec) throws SQLException {return null;}
+																		@Override public SimpleProviderRecord newRecord() throws SQLException {return null;}
+																		@Override public SimpleProviderRecord duplicateRecord(SimpleProviderRecord rec) throws SQLException {return null;}
 				
 						}) {
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = provider.associate(conn)) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = provider.associate(conn)) {
 					Assert.assertEquals(3,associated.contentSize());
 					Assert.assertEquals(1,associated.contentSize("f1=10"));
 					
@@ -491,25 +491,28 @@ public class SimpleProviderTest {
 			final SimpleProviderRecord		rec = new SimpleProviderRecord();
 			final AtomicInteger				ai = new AtomicInteger(100); 
 			
-			try(final SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>	provider = new SimpleProvider<SimpleProviderRecord,SimpleProviderRecord>(
+			try(final SimpleProvider<SimpleProviderRecord>	provider = new SimpleProvider<SimpleProviderRecord>(
 																	tableModel.getRoot(), 
 																	clazzModel.getRoot(), 
 																	SimpleProviderRecord.class, 
 																	fields, 
 																	primaryKeys){
 											@Override 
-											public SimpleProviderRecord newKey() throws SQLException {
-												final SimpleProviderRecord		rec = new SimpleProviderRecord();
+											public SimpleProviderRecord newRecord() throws SQLException {
+												final SimpleProviderRecord 	newRec = new SimpleProviderRecord();
 												
-												rec.f1 = ai.addAndGet(100);
-												return rec;
+												newRec.f1 = ai.addAndGet(100); 
+												
+												return newRec;
 											}
 											
 											@Override 
-											public SimpleProviderRecord getKey(final SimpleProviderRecord rec) throws SQLException {
+											public SimpleProviderRecord duplicateRecord(final SimpleProviderRecord rec) throws SQLException {
 												try{final SimpleProviderRecord 	newRec = (SimpleProviderRecord) rec.clone();
+													final int					newKey = ai.addAndGet(100);
 												
-													newRec.f1 = ai.addAndGet(100);
+													newRec.f1 = newKey;
+													create(newRec);
 													return newRec;
 												} catch (CloneNotSupportedException e) {
 													throw new SQLException(e.getLocalizedMessage(),e);
@@ -517,10 +520,27 @@ public class SimpleProviderTest {
 											}
 							
 				}) {
-				try(final ORMProvider<SimpleProviderRecord,SimpleProviderRecord>	associated = provider.associate(conn)) {
+				try(final ORMProvider<SimpleProviderRecord>	associated = provider.associate(conn)) {
 					Assert.assertEquals(3,associated.contentSize());
+					final SimpleProviderRecord	newRec = associated.newRecord();
 					
+					newRec.f2 = "test string";
+					associated.create(newRec);
+					Assert.assertEquals(4,associated.contentSize());
 					
+					rec.f1 = newRec.f1;
+					associated.read(rec);
+					Assert.assertEquals("test string",rec.f2);
+					
+					rec.f2 = "updated string";
+					associated.update(rec);
+					Assert.assertEquals(4,associated.contentSize());
+					
+					associated.read(newRec);
+					Assert.assertEquals("updated string",newRec.f2);
+					
+					associated.delete(newRec);
+					Assert.assertEquals(3,associated.contentSize());
 				}
 			}
 		} finally {

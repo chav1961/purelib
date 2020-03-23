@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import chav1961.purelib.sql.interfaces.ORMProvider;
 
 public class SimpleProviderCache<Record>  {
-	public SimpleProviderCache(final ORMProvider<Record,Record> provider, final Class<Record> clazz) {
+	public SimpleProviderCache(final ORMProvider<Record> provider, final Class<Record> clazz) {
 		
 	}
 	
