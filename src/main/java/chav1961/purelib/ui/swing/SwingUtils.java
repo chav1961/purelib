@@ -51,6 +51,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -265,6 +266,11 @@ loop:			for (Component comp : children(node)) {
 			if (component instanceof JDialog) {
 				if ((content = ((JDialog)component).getRootPane().getComponents()) != null) {
 					result.addAll(Arrays.asList(content));
+				}				
+			}
+			if (component instanceof JDesktopPane) {
+				if ((content = ((JDesktopPane)component).getComponents()) != null) {
+					result.addAll(Arrays.asList(((JDesktopPane)component).getComponents()));
 				}				
 			}
 			if (component instanceof JLayeredPane) {
