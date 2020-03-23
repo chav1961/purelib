@@ -11,9 +11,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JMenuBar;
@@ -293,51 +295,62 @@ public class ContentModelFactory {
 			throw new UnsupportedOperationException("Wildcards in the table name are not supported yet");
 		}
 		else {
-			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(table
+			final String						schemaAndTable = schema+"."+table; 
+			
+			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("table"
 													, TableContainer.class
-													, table
+													, schemaAndTable
 													, null
-													, schema+"."+table
-													, schema+"."+table+".tt" 
-													, schema+"."+table+".help"
+													, schemaAndTable
+													, schemaAndTable+".tt" 
+													, schemaAndTable+".help"
 													, null
-													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_TABLE+":/"+TableContainer.class.getCanonicalName())
+													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_TABLE+":/"+schemaAndTable)
 													, null);
+			final Map<String,Class<?>>			fieldTypes = new HashMap<>();
 			
-			
+			boolean		found = false;
 			try(final ResultSet	rs = dbDescription.getColumns(catalog, schema, table, "%")) {
 				while (rs.next()) {
 					final Class<?>			type = SQLUtils.classByTypeId(rs.getInt("DATA_TYPE"));
-					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(rs.getString("COLUMN_NAME")
+					final String			fieldName = rs.getString("COLUMN_NAME");
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(fieldName
 																	, type
-																	, rs.getString("TABLE_NAME")+"/"+rs.getString("COLUMN_NAME")
+																	, fieldName
 																	, null
-																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")
-																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".tt" 
-																	, rs.getString("REMARKS") == null ? "?" : rs.getString("REMARKS")+".help"
+																	, rs.getString("REMARKS") == null ? schemaAndTable+"."+fieldName : rs.getString("REMARKS")
+																	, rs.getString("REMARKS") == null ? schemaAndTable+"."+fieldName+".tt" : rs.getString("REMARKS")+".tt" 
+																	, rs.getString("REMARKS") == null ? schemaAndTable+"."+fieldName+".help" : rs.getString("REMARKS")+".help"
 																	, new FieldFormat(type,buildColumnFormat(rs))
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+table+"/"+rs.getString("COLUMN_NAME")+"?seq="+rs.getString("ORDINAL_POSITION")+"&type"+rs.getString("DATA_TYPE"))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+schemaAndTable+"/"+fieldName
+																			+"?seq="+rs.getString("ORDINAL_POSITION")+"&type="+rs.getString("DATA_TYPE"))
 																	, null
 																);
 					root.addChild(metadata);
 					metadata.setParent(root);
+					fieldTypes.put(fieldName,type);
+					found = true;
 				}
 			} catch (SQLException e) {
 				throw new ContentException(e.getLocalizedMessage());
 			}
+			if (!found) {
+				throw new ContentException("Table ["+schema+'.'+table+"] is missing in the database");
+			}
 			try(final ResultSet	rs = dbDescription.getPrimaryKeys(catalog, schema, table)) {
 				
 				while (rs.next()) {
-					final Class<?>			type = SQLUtils.classByTypeId(rs.getInt("DATA_TYPE"));
-					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(rs.getString("PKCOLUMN_NAME")
+					final String			columnName = rs.getString("COLUMN_NAME");
+					final Class<?>			type = fieldTypes.get(columnName);
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(rs.getString("COLUMN_NAME")
 																	, type
-																	, rs.getString("PKTABLE_NAME")+"/"+rs.getString("PKCOLUMN_NAME")
+																	, columnName+"/primaryKey"
 																	, null
-																	, "?"
-																	, "?" 
-																	, "?"
+																	, schemaAndTable+"."+columnName
+																	, schemaAndTable+"."+columnName+".tt" 
+																	, schemaAndTable+"."+columnName+".help"
 																	, null
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ID+":/"+table+"/"+rs.getString("PKCOLUMN_NAME"))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ID+":/"+schemaAndTable+"/"+columnName)
 																	, null
 																);
 					root.addChild(metadata);
@@ -350,51 +363,6 @@ public class ContentModelFactory {
 			
 			root.setOwner(result);
 			return result;
-		}
-	}
-
-	public static <Record> ORMProvider<Record, Record> buildORMProvider(final ContentNodeMetadata clazz, final ContentNodeMetadata table) throws IOException, ContentException {
-		if (clazz == null) {
-			throw new NullPointerException("Class metadata can't be null");
-		}
-		else if (table == null) {
-			throw new NullPointerException("Table metadata can't be null");
-		}
-		else {
-			// TODO:
-			final Set<String>	tableFields = new HashSet<>(), classFields = new HashSet<>();
-			final List<String>	pkFields = new ArrayList<>();
-			
-			new SimpleContentMetadata(clazz).walkDown((mode, applicationPath, uiPath, node)->{
-				if (mode == NodeEnterMode.ENTER) {
-					if (applicationPath.toString().contains(Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
-						classFields.add(node.getName().toUpperCase());
-					}
-				}
-				return ContinueMode.CONTINUE;
-			},clazz.getUIPath());
-			new SimpleContentMetadata(table).walkDown((mode, applicationPath, uiPath, node)->{
-				if (mode == NodeEnterMode.ENTER) {
-					if (applicationPath.toString().contains(Constants.MODEL_APPLICATION_SCHEME_COLUMN)) {
-						tableFields.add(node.getName().toUpperCase());
-					}
-					else if (applicationPath.toString().contains(Constants.MODEL_APPLICATION_SCHEME_ID)) {
-						pkFields.add(node.getName().toUpperCase());
-					}
-				}
-				return ContinueMode.CONTINUE;
-			},clazz.getUIPath());
-			classFields.retainAll(tableFields);
-			
-			if (classFields.size() == 0) {
-				throw new IllegalArgumentException("Class and table has no any intersections by it's fields. At least one field name must be common for them");
-			}
-			else {
-				@SuppressWarnings("unchecked")
-				final Class<Record>	cl = (Class<Record>)clazz.getType();
-				
-				return new SimpleProvider<Record,Record>(table, clazz, cl, classFields.toArray(new String[classFields.size()]), pkFields.toArray(new String[pkFields.size()]));
-			}
 		}
 	}
 

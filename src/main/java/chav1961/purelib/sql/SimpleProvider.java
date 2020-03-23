@@ -35,14 +35,16 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.model.SimpleContentMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.interfaces.ORMProvider;
 
-public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
+public abstract class SimpleProvider<Key,Record> implements ORMProvider<Key, Record>, ModuleExporter {
 	private static final int				SELECT_INDEX = 0;
 	private static final int				INSERT_INDEX = 1;
 	private static final int				UPDATE_INDEX = 2;
@@ -52,6 +54,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	protected final ContentNodeMetadata		clazzModel;
 	
 	private final ORMProvider<Key, Record>	parent;
+	private final Connection				conn;
 	private final String					selectString, insertString, updateString, deleteString, bulkSelectString, bulkCountString;
 	private final GetterAndSetter[]			gas;
 	private final int[][]					forSelect;		// length = 2: [0] - index in the 'gas' to call setter, [1] - SQL type of the field (see java.sql.Types)
@@ -86,6 +89,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			
 			this.tableModel = tableModel;
 			this.clazzModel = clazzModel;
+			this.conn = null;
 			this.parent = null;
 			
 			for (String item : fields) {
@@ -97,25 +101,27 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 
 			this.gas = buildGettersAndSetters(clazzModel,fieldSet);
 			
-			this.selectString = buildSelectString(tableModel.getName(),fields,primaryKeys);
+			final String	tableName = URIUtils.extractSubURI(tableModel.getApplicationPath(),ContentMetadataInterface.APPLICATION_SCHEME).getPath().substring(1); 
+			
+			this.selectString = buildSelectString(tableName,fields,primaryKeys);
 			this.forSelect = buildSelectNumbers(clazzModel,tableModel,fields,fieldSet);
 			this.forSelectKeys = buildModifyNumbers(clazzModel,tableModel,primaryKeys,keySet);
 			
-			this.insertString = buildInsertString(tableModel.getName(),fields,primaryKeys);
+			this.insertString = buildInsertString(tableName,fields,primaryKeys);
 			this.forInsert = buildModifyNumbers(clazzModel,tableModel,fields,fieldSet);
 			
-			this.updateString = buildUpdateString(tableModel.getName(),fields,primaryKeys);
+			this.updateString = buildUpdateString(tableName,fields,primaryKeys);
 			this.forUpdate = this.forInsert;
 			this.forUpdateKeys = buildModifyNumbers(clazzModel,tableModel,primaryKeys,keySet);
 			for (int[] item : this.forUpdateKeys) {	// Primary key indices must be shifted abroad the 'set' clause parameters of the 'update' statement
 				item[1] += forUpdate.length;
 			}
 			
-			this.deleteString = buildDeleteString(tableModel.getName(),fields,primaryKeys);
+			this.deleteString = buildDeleteString(tableName,fields,primaryKeys);
 			this.forDelete = buildModifyNumbers(clazzModel,tableModel,primaryKeys,keySet);
 			
-			this.bulkSelectString = buildBulkSelectString(tableModel.getName(),fields);
-			this.bulkCountString = buildBulkCountString(tableModel.getName(),fields);
+			this.bulkSelectString = buildBulkSelectString(tableName,fields);
+			this.bulkCountString = buildBulkCountString(tableName,fields);
 			this.hardCodedStatements = null;
 			this.contentCache = this.contentCountCache = null;
 		}
@@ -123,6 +129,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	
 	private SimpleProvider(final SimpleProvider<Key,Record> parent, final Connection conn) throws SQLException {
 		this.parent = parent;
+		this.conn = conn;
 		this.tableModel = parent.tableModel;
 		this.clazzModel = parent.clazzModel;
 		
@@ -146,6 +153,16 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	}
 
 	@Override
+	public Module getUnnamedModule() {
+		if (gas.length > 0) {
+			return gas[0].getClass().getClassLoader().getUnnamedModule();
+		}
+		else {
+			return null;
+		}
+	}
+	
+	@Override
 	public ORMProvider<Key, Record> associate(final Connection conn) throws SQLException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
@@ -154,7 +171,13 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			throw new IllegalStateException("Attempt to associate connection with already associated instance. Chain of associations is not supported!"); 
 		}
 		else {
-			return new SimpleProvider<Key,Record>(this,conn); 
+			@SuppressWarnings("resource")
+			final ORMProvider<Key, Record>	owner = this; 
+					
+			return new SimpleProvider<Key,Record>(this,conn){
+				@Override public Key newKey() throws SQLException {return owner.newKey();}
+				@Override public Key getKey(Record rec) throws SQLException {return owner.getKey(rec);}
+			}; 
 		}
 	}
 
@@ -169,22 +192,19 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	}
 
 	@Override
-	public long contentSize(final Record item) throws SQLException {
-		if (item == null) {
-			throw new NullPointerException("Record item can't be null"); 
-		}
-		else {
-			return calculate(item,"");
-		}
+	public long contentSize() throws SQLException {
+		testAssociated();
+		return calculateCount("");
 	}
 
 	@Override
-	public long contentSize(final Record item,final String filter) throws SQLException {
-		if (item == null) {
-			throw new NullPointerException("Record item can't be null"); 
+	public long contentSize(final String filter) throws SQLException {
+		if (filter == null || filter.isEmpty()) {
+			throw new IllegalArgumentException("Filter can't be null or empty");
 		}
 		else {
-			return calculate(item,filter);
+			testAssociated();
+			return calculateCount(filter);
 		}
 	}
 
@@ -197,6 +217,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			throw new NullPointerException("Callback can't be null"); 
 		}
 		else {
+			testAssociated();
 			iterate(item,callback,"","");
 		}
 	}
@@ -216,6 +237,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			throw new IllegalArgumentException("Count ["+count+"] must be positive"); 
 		}
 		else {
+			testAssociated();
 			iterate(item,callback,"","",from,count);
 		}
 	}
@@ -228,7 +250,11 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 		else if (callback == null) {
 			throw new NullPointerException("Callback can't be null"); 
 		}
+		else if (filter == null || filter.isEmpty()) {
+			throw new IllegalArgumentException("Filter can't be null or empty");
+		}
 		else {
+			testAssociated();
 			iterate(item,callback,filter,"");
 		}
 	}
@@ -241,6 +267,9 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 		else if (callback == null) {
 			throw new NullPointerException("Callback can't be null"); 
 		}
+		else if (filter == null || filter.isEmpty()) {
+			throw new IllegalArgumentException("Filter can't be null or empty");
+		}
 		else if (from < 0) {
 			throw new IllegalArgumentException("From index ["+from+"] can't be negative"); 
 		}
@@ -248,6 +277,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			throw new IllegalArgumentException("Count ["+count+"] must be positive"); 
 		}
 		else {
+			testAssociated();
 			iterate(item,callback,filter,"",from,count);
 		}
 	}
@@ -257,10 +287,17 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 		if (item == null) {
 			throw new NullPointerException("Record item can't be null"); 
 		}
+		else if (filter == null || filter.isEmpty()) {
+			throw new IllegalArgumentException("Filter can't be null or empty");
+		}
+		else if (ordering == null || ordering.isEmpty()) {
+			throw new IllegalArgumentException("Ordering can't be null or empty");
+		}
 		else if (callback == null) {
 			throw new NullPointerException("Callback can't be null"); 
 		}
 		else {
+			testAssociated();
 			iterate(item,callback,filter,ordering);
 		}
 	}
@@ -273,6 +310,12 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 		else if (callback == null) {
 			throw new NullPointerException("Callback can't be null"); 
 		}
+		else if (filter == null || filter.isEmpty()) {
+			throw new IllegalArgumentException("Filter can't be null or empty");
+		}
+		else if (ordering == null || ordering.isEmpty()) {
+			throw new IllegalArgumentException("Ordering can't be null or empty");
+		}
 		else if (from < 0) {
 			throw new IllegalArgumentException("From index ["+from+"] can't be negative"); 
 		}
@@ -280,6 +323,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			throw new IllegalArgumentException("Count ["+count+"] must be positive"); 
 		}
 		else {
+			testAssociated();
 			iterate(item,callback,filter,ordering,from,count);
 		}
 	}
@@ -335,14 +379,10 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	}
 
 	@Override
-	public Key newKey() throws SQLException {
-		return null;
-	}
+	public abstract Key newKey() throws SQLException;
 	
 	@Override
-	public Key getKey(final Record rec) throws SQLException {
-		return null;
-	}
+	public abstract Key getKey(final Record rec) throws SQLException;
 	
 	public void setProgressIndicator(final ProgressIndicator indicator) {
 		if (parent == null) {
@@ -433,7 +473,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	}
 
 	private String buildBulkCountString(final String table, final String[] fields) {
-		return new StringBuilder("select count(*) from ").append(table).toString();
+		return new StringBuilder("select count(*) as cnt from ").append(table).toString();
 	}
 	
 	static void download(final ResultSet rs, final Object instance, final GetterAndSetter[] gas, final int[][] toAndType) throws ContentException, SQLException, IOException {
@@ -449,6 +489,7 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 					((ShortGetterAndSetter)gas[toAndType[index][0]]).set(instance,rs.getShort(index+1));
 					break;
 				case Types.INTEGER	:
+					int xxxxx = rs.getInt(index+1);
 					((IntGetterAndSetter)gas[toAndType[index][0]]).set(instance,rs.getInt(index+1));
 					break;
 				case Types.BIGINT	:
@@ -704,16 +745,59 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 		}
 	}
 
+	private GetterAndSetter[] getGAS() {
+		if (gas == null) {
+			if (parent != null && (parent instanceof SimpleProvider)) {
+				return ((SimpleProvider<?,?>)parent).getGAS();
+			}
+			else {
+				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+			}
+		}
+		else {
+			return gas;
+		}
+	}
+
+	private int[][] getField2Delete() {
+		if (forDelete == null) {
+			if (parent != null && (parent instanceof SimpleProvider)) {
+				return ((SimpleProvider<?,?>)parent).getField2Delete();
+			}
+			else {
+				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+			}
+		}
+		else {
+			return forDelete;
+		}
+	}
+
+	private int[][] getField2Select() {
+		if (forSelect == null) {
+			if (parent != null && (parent instanceof SimpleProvider)) {
+				return ((SimpleProvider<?,?>)parent).getField2Select();
+			}
+			else {
+				throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+			}
+		}
+		else {
+			return forSelect;
+		}
+	}
+	
 	private void iterate(final Record item, final ContentIteratorCallback<Record> callback, final String filter, final String ordering) throws SQLException {
 		// TODO Auto-generated method stub
 		final PreparedStatement	ps = contentCache.get(filter,ordering,false);
 		
-		try{upload(ps,item,gas,new int[0][]);
+		try{upload(ps,item,getGAS(),new int[0][]);
+		
 			try(final ResultSet	rs = ps.executeQuery()) {
 				long	count = 0;
 				
 				while (rs.next()) {
-					download(rs,item,gas,forSelect);
+					download(rs,item,getGAS(),getField2Select());
 					if (callback.process(count,count,item) != ContinueMode.CONTINUE) {
 						break;
 					}
@@ -726,16 +810,16 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 	}
 
 	private void iterate(final Record item, final ContentIteratorCallback<Record> callback, final String filter, final String ordering, final long offset, final long limit) throws SQLException {
-		final PreparedStatement	ps = contentCache.get(filter,ordering,false);
+		final PreparedStatement	ps = contentCache.get(filter,ordering,true);
 		
-		try{upload(ps,item,gas,new int[0][]);
+		try{upload(ps,item,getGAS(),new int[0][]);
 			ps.setLong(1,offset);
 			ps.setLong(2,limit);
 			try(final ResultSet	rs = ps.executeQuery()) {
 				long	count = 0, from = offset;
 				
 				while (rs.next()) {
-					download(rs,item,gas,forSelect);
+					download(rs,item,getGAS(),getField2Select());
 					if (callback.process(count,from,item) != ContinueMode.CONTINUE) {
 						break;
 					}
@@ -748,21 +832,16 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 		}
 	}
 
-	private long calculate(final Record item, final String filter) throws SQLException {
+	private long calculateCount(final String filter) throws SQLException {
 		final PreparedStatement	ps = contentCountCache.get(filter,"",false);
 		
-		try{upload(ps,item,gas,forDelete);
-			
-			try(final ResultSet	rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getLong(1);
-				}
-				else {
-					return 0;
-				}
+		try(final ResultSet	rs = ps.executeQuery()) {
+			if (rs.next()) {
+				return rs.getLong(1);
 			}
-		} catch (ContentException | IOException e) {
-			throw new SQLException(e.getLocalizedMessage(),e);
+			else {
+				return 0;
+			}
 		}
 	}
 	
@@ -783,14 +862,18 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 		if (errors[0] != null) {
 			throw errors[0]; 
 		}
+		else if (result.isEmpty()) {
+			throw new ContentException("There are no any intersections with table field names and class field names. Nothing can't be used in ORM");
+		}
 		else {
 			return result.toArray(new GetterAndSetter[result.size()]);
 		}
 	}
 
-	static int[][] buildSelectNumbers(final ContentNodeMetadata clazzModel, final ContentNodeMetadata tableModel, final String[] fields, final Set<String> fieldSet) {
-		final List<int[]>	result = new ArrayList<>(); 
-		final int[]			indexNumber = new int[]{0};
+	static int[][] buildSelectNumbers(final ContentNodeMetadata clazzModel, final ContentNodeMetadata tableModel, final String[] fields, final Set<String> fieldSet) throws ContentException {
+		final List<int[]>			result = new ArrayList<>(); 
+		final int[]					indexNumber = new int[]{0};
+		final ContentException[]	errors = new ContentException[] {null};
 		
 		new SimpleContentMetadata(clazzModel).walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER && fieldSet.contains(node.getName().toUpperCase())) {
@@ -801,7 +884,14 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 						desc[0] = indexNumber[0]++;
 						new SimpleContentMetadata(tableModel).walkDown((modeT,applicationPathT,uiPathT,nodeT)->{
 							if (modeT == NodeEnterMode.ENTER && nodeT.getName().equalsIgnoreCase(node.getName())) {
-								desc[1] = Integer.valueOf(URIUtils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
+								final Map<String,String[]>	parameters = URIUtils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT));
+								
+								if (parameters.containsKey("type")) {
+									desc[1] = Integer.valueOf(parameters.get("type")[0].toString());
+								}
+								else {
+									errors[0] = new ContentException("Table field ["+nodeT.getApplicationPath()+"] doesn't contain type in it's query string");
+								}
 								return ContinueMode.STOP;
 							}
 							else {
@@ -817,13 +907,19 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			}
 			return ContinueMode.CONTINUE;
 		}, clazzModel.getUIPath());
-		
-		return result.toArray(new int[result.size()][]);
+
+		if (errors[0] != null) {
+			throw errors[0];
+		}
+		else {
+			return result.toArray(new int[result.size()][]);
+		}
 	}
 
-	static int[][] buildModifyNumbers(final ContentNodeMetadata clazzModel, final ContentNodeMetadata tableModel, final String[] fields, final Set<String> fieldSet) {
-		final List<int[]>	result = new ArrayList<>(); 
-		final int[]			indexNumber = new int[]{0};
+	static int[][] buildModifyNumbers(final ContentNodeMetadata clazzModel, final ContentNodeMetadata tableModel, final String[] fields, final Set<String> fieldSet) throws ContentException {
+		final List<int[]>			result = new ArrayList<>(); 
+		final int[]					indexNumber = new int[]{0};
+		final ContentException[]	errors = new ContentException[] {null};
 		
 		new SimpleContentMetadata(clazzModel).walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER && fieldSet.contains(node.getName().toUpperCase())) {
@@ -835,7 +931,14 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 						desc[1] = index + 1;
 						new SimpleContentMetadata(tableModel).walkDown((modeT,applicationPathT,uiPathT,nodeT)->{
 							if (modeT == NodeEnterMode.ENTER && nodeT.getName().equalsIgnoreCase(node.getName())) {
-								desc[2] = Integer.valueOf(URIUtils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT)).get("type").toString());
+								final Map<String,String[]>	parameters = URIUtils.parseQuery(URIUtils.extractQueryFromURI(applicationPathT));
+								
+								if (parameters.containsKey("type")) {
+									desc[2] = Integer.valueOf(parameters.get("type")[0].toString());
+								}
+								else {
+									errors[0] = new ContentException("Table field ["+nodeT.getApplicationPath()+"] doesn't contain type in it's query string");
+								}
 								return ContinueMode.STOP;
 							}
 							else {
@@ -852,9 +955,20 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			return ContinueMode.CONTINUE;
 		}, clazzModel.getUIPath());
 		
-		return result.toArray(new int[result.size()][]);
+		if (errors[0] != null) {
+			throw errors[0];
+		}
+		else {
+			return result.toArray(new int[result.size()][]);
+		}
 	}
 
+	private void testAssociated() {
+		if (conn == null) {
+			throw new IllegalStateException("Attempt to call method without associated connection. Call associate(...) and use returned value instead of direct call of this instance"); 
+		}
+	}
+	
 	static class PreparedStatementCache implements AutoCloseable {
 		private final Map<String,Map<String,PreparedStatement[]>>	cache = new HashMap<>();
 		private final Connection 	conn;
@@ -874,11 +988,11 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			if (!cache.containsKey(reducedFilter)) {
 				cache.put(reducedFilter,new HashMap<>());
 			}
-			if (!cache.get(reducedOrdering).containsKey(reducedOrdering)) {
-				cache.get(reducedOrdering).put(reducedOrdering,new PreparedStatement[2]);
+			if (!cache.get(reducedFilter).containsKey(reducedOrdering)) {
+				cache.get(reducedFilter).put(reducedOrdering,new PreparedStatement[2]);
 			}
 			
-			ps = cache.get(reducedOrdering).get(reducedOrdering);
+			ps = cache.get(reducedFilter).get(reducedOrdering);
 			if (offsetAndLimit) {
 				if (ps[1] == null) {
 					ps[1] = conn.prepareStatement(selectTemplate+(filter.isEmpty() ? "" : " where "+filter)+(ordering.isEmpty() ? "" : " order by "+ordering)+" offset ? limit ?");
@@ -900,9 +1014,11 @@ public class SimpleProvider<Key,Record> implements ORMProvider<Key, Record> {
 			for (Entry<String, Map<String, PreparedStatement[]>> item : cache.entrySet()) {
 				for (Entry<String, PreparedStatement[]> subitem : item.getValue().entrySet()) {
 					for (PreparedStatement ps : subitem.getValue()) {
-						try{ps.close();
-						} catch (SQLException exc) {
-							wasExceptions = true;
+						if (ps != null) {
+							try{ps.close();
+							} catch (SQLException exc) {
+								wasExceptions = true;
+							}
 						}
 					}
 				}

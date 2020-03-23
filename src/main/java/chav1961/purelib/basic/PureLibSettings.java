@@ -82,6 +82,26 @@ public final class PureLibSettings {
 	public static final String		SETTINGS_KEY = "purelib.settings.source";
 
 	/**
+	 * <p>This is a key name to use test database connection driver</p>
+	 */
+	public static final String		TEST_CONNECTION_DRIVER = "purelib.test.connection.driver";
+	
+	/**
+	 * <p>This is a key name to use test database connection string</p>
+	 */
+	public static final String		TEST_CONNECTION_URI = "purelib.test.connection.uri";
+	
+	/**
+	 * <p>This is a key name to use test database connection user</p>
+	 */
+	public static final String		TEST_CONNECTION_USER = "purelib.test.connection.user";
+	
+	/**
+	 * <p>This is a key name to use test database connection password</p>
+	 */
+	public static final String		TEST_CONNECTION_PASSWORD = "purelib.test.connection.password";
+	
+	/**
 	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
 	 */
 	public static final String		SUPPRESS_PRINT_ASSEMBLER = "purelib.settings.assembler.printSuppress";

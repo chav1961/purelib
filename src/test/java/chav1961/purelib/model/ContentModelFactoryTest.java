@@ -4,12 +4,16 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
@@ -20,12 +24,14 @@ import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.testing.DatabaseTestCategory;
 import chav1961.purelib.testing.OrdinalTestCategory;
+import chav1961.purelib.testing.TestingUtils;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 
-@Category(OrdinalTestCategory.class)
 public class ContentModelFactoryTest {
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void xmlDescriptionTest() throws IOException, EnvironmentException {
 		try(final InputStream	is = this.getClass().getResourceAsStream("modelTest1.xml")) {
@@ -156,6 +162,7 @@ public class ContentModelFactoryTest {
 		}
 	}
 
+	@Category(OrdinalTestCategory.class)
 	@Test
 	public void annotatedClassDescriptionTest() throws IOException,PreparationException, SyntaxException, LocalizationException, ContentException {
 		final ContentMetadataInterface 	cmi = ContentModelFactory.forAnnotatedClass(AnnotatedForTest.class);
@@ -194,6 +201,100 @@ public class ContentModelFactoryTest {
 		final int 	countArray[] = new int[]{0};
 		cmi.walkDown((mode,applicationPath,uiPath,node)->{countArray[0]++; return ContinueMode.CONTINUE;},URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()));
 		Assert.assertEquals(6,countArray[0]);
+	}
+	
+	@Category(DatabaseTestCategory.class)
+	@Test
+	public void databaseTableDescriptionTest() throws IOException,PreparationException, SyntaxException, LocalizationException, ContentException, DebuggingException, SQLException {
+		TestingUtils.prepareDatabase("drop table public.test");
+		Assert.assertTrue(TestingUtils.prepareDatabase("create table public.test (f1 integer primary key, f2 varchar(100))"));
+		
+		try(final Connection				conn = TestingUtils.getTestConnection()) {
+			final ContentMetadataInterface 	cmi = ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"public","test");
+			
+			Assert.assertEquals("table",cmi.getRoot().getName());
+			Assert.assertEquals(URI.create("./public.test"),cmi.getRoot().getRelativeUIPath());
+			Assert.assertEquals(URI.create("ui:/public.test"),cmi.getRoot().getUIPath());
+			Assert.assertEquals(URI.create("app:table:/public.test"),cmi.getRoot().getApplicationPath());
+			Assert.assertNull(cmi.getRoot().getLocalizerAssociated());
+			Assert.assertEquals(3,cmi.getRoot().getChildrenCount());
+			Assert.assertNull(cmi.getRoot().getFormatAssociated());
+			Assert.assertEquals(TableContainer.class,cmi.getRoot().getType());
+			Assert.assertEquals(cmi,cmi.getRoot().getOwner());
+			Assert.assertNull(cmi.getRoot().getParent());
+			Assert.assertEquals("public.test",cmi.getRoot().getLabelId());
+			Assert.assertEquals("public.test.tt",cmi.getRoot().getTooltipId());
+			Assert.assertEquals("public.test.help",cmi.getRoot().getHelpId());
+
+			final ContentNodeMetadata		md = cmi.byUIPath(URI.create("ui:/public.test/f1"));
+			
+			Assert.assertEquals("f1",md.getName());
+			Assert.assertEquals(URI.create("./f1"),md.getRelativeUIPath());
+			Assert.assertEquals(URI.create("ui:/public.test/f1"),md.getUIPath());
+			Assert.assertEquals(URI.create("app:column:/public.test/f1?seq=1&type=4"),md.getApplicationPath());
+			Assert.assertNull(md.getLocalizerAssociated());
+			Assert.assertNotNull(md.getFormatAssociated());
+			Assert.assertEquals(int.class,md.getType());
+			Assert.assertEquals(cmi,md.getOwner());
+			Assert.assertEquals(cmi.getRoot(),md.getParent());
+			Assert.assertEquals("public.test.f1",md.getLabelId());
+			Assert.assertEquals("public.test.f1.tt",md.getTooltipId());
+			Assert.assertEquals("public.test.f1.help",md.getHelpId());
+
+			final ContentNodeMetadata		mdPK = cmi.byUIPath(URI.create("ui:/public.test/f1/primaryKey"));
+
+			Assert.assertEquals("f1",mdPK.getName());
+			Assert.assertEquals(URI.create("./f1/primaryKey"),mdPK.getRelativeUIPath());
+			Assert.assertEquals(URI.create("ui:/public.test/f1/primaryKey"),mdPK.getUIPath());
+			Assert.assertEquals(URI.create("app:id:/public.test/f1"),mdPK.getApplicationPath());
+			Assert.assertNull(mdPK.getLocalizerAssociated());
+			Assert.assertNull(mdPK.getFormatAssociated());
+			Assert.assertEquals(int.class,mdPK.getType());
+			Assert.assertEquals(cmi,mdPK.getOwner());
+			Assert.assertEquals(cmi.getRoot(),mdPK.getParent());
+			Assert.assertEquals("public.test.f1",mdPK.getLabelId());
+			Assert.assertEquals("public.test.f1.tt",mdPK.getTooltipId());
+			Assert.assertEquals("public.test.f1.help",mdPK.getHelpId());
+			
+			try{ContentModelFactory.forDBContentDescription(null,null,"public","test");
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,null,"test");
+				Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"","test");
+				Assert.fail("Mandatory exception was not detected (empty 3-rd argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"%","test");
+				Assert.fail("Mandatory exception was not detected (wildcards in 3-rd argument)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"unknown","test");
+				Assert.fail("Mandatory exception was not detected (unknown 3-rd argument)");
+			} catch (ContentException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"public",null);
+				Assert.fail("Mandatory exception was not detected (null 4-th argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"public","");
+				Assert.fail("Mandatory exception was not detected (empty 4-th argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"%","");
+				Assert.fail("Mandatory exception was not detected (wildcards 4-th argument)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try{ContentModelFactory.forDBContentDescription(conn.getMetaData(),null,"public","unknown");
+				Assert.fail("Mandatory exception was not detected (unknown 4-th argument)");
+			} catch (ContentException exc) {
+			}
+		} finally {
+			TestingUtils.prepareDatabase("drop table public.test");
+		}
 	}
 }
 

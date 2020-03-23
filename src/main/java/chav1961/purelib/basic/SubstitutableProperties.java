@@ -10,9 +10,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * <p>This class is an extension of the standard {@link Properties} class to support automatic substitutions and data type conversions 
@@ -75,7 +77,11 @@ public class SubstitutableProperties extends Properties {
 								put(char[].class,Conversions.CHARARRAY);
 								}};
 
-	public SubstitutableProperties() {}
+	private final Properties	defaults;
+	
+	public SubstitutableProperties() {
+		this.defaults = new Properties();
+	}
 	
 	/**
 	 * <p>Constructor of the class. Gets another property class and fill own content with it's content</p> 
@@ -87,13 +93,22 @@ public class SubstitutableProperties extends Properties {
 			throw new NullPointerException("Defaults for the properties can't be null");
 		}
 		else {
-			putAll(defaults);
+			this.defaults = defaults;
 		}
 	}
+	
+    @Override
+    public boolean containsKey(Object key) {
+        return !super.containsKey(key) ? defaults.containsKey(key) : true;
+    }
 
 	@Override 
 	public String getProperty(final String key) {
-		final String	value = super.getProperty(key);
+		String	value = super.getProperty(key);
+		
+		if (value == null) {
+			value = defaults.getProperty(key);
+		}
 		
 		return value != null ? CharUtils.substitute(key,value,(key2Subst)->{return super.getProperty(key2Subst);}) : null;
 	}
@@ -146,9 +161,7 @@ public class SubstitutableProperties extends Properties {
 			throw new NullPointerException("Another properties can't be null");
 		}
 		else {
-			for (Entry<Object, Object> item : this.entrySet()) {
-				final String	key = (String)item.getKey();
-				
+			for (String key : extractKeys(this)) {
 				if (!another.containsKey(key)) {
 					return false;
 				}
@@ -156,9 +169,7 @@ public class SubstitutableProperties extends Properties {
 					return false;
 				}
 			}
-			for (Entry<Object, Object> item : another.entrySet()) {
-				final String	key = (String)item.getKey();
-				
+			for (String key : extractKeys(another)) {
 				if (!this.containsKey(key)) {
 					return false;
 				}
@@ -249,5 +260,17 @@ public class SubstitutableProperties extends Properties {
 		else {
 			return System.getProperties().getProperty(key);
 		}
+	}
+	
+	private static Set<String> extractKeys(final SubstitutableProperties props) {
+		final Set<String>	result = new HashSet<>();
+		
+		for (Entry<Object,Object> item : props.entrySet()) {
+			result.add(item.getKey().toString());
+		}
+		for (Entry<Object,Object> item : props.defaults.entrySet()) {
+			result.add(item.getKey().toString());
+		}
+		return result;
 	}
 }

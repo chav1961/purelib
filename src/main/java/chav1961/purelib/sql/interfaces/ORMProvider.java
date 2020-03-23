@@ -14,8 +14,8 @@ public interface ORMProvider<Key,Record> extends AutoCloseable {
 		ContinueMode process(long seq, long offset, Record record) throws SQLException;
 	}
 	
-	long contentSize(Record item) throws SQLException;
-	long contentSize(Record item, String filter) throws SQLException;
+	long contentSize() throws SQLException;
+	long contentSize(String filter) throws SQLException;
 	void content(Record item, ContentIteratorCallback<Record> callback) throws SQLException;
 	void content(Record item, ContentIteratorCallback<Record> callback, long from, long count) throws SQLException;
 	void content(Record item, ContentIteratorCallback<Record> callback, String filter) throws SQLException;
