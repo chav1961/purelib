@@ -64,8 +64,8 @@ public class FileSystemLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalizerId() {
-		return "debug:/";
+	public URI getLocalizerId() {
+		return URI.create(resourceAddress);
 	}
 
 	

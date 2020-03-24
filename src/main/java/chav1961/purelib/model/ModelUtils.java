@@ -35,7 +35,6 @@ import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocal
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.model.interfaces.ORMSerializer;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 
@@ -80,45 +79,6 @@ public class ModelUtils {
 		ContinueMode difference(ContentNodeMetadata left, ContentNodeMetadata right, DifferenceType diffType, Set<DifferenceLocalization> details);
 	}
 	
-	public static <Key,Content> ORMSerializer<Key,Content> buildORMSerializer(final ContentMetadataInterface metadata, final ClassLoader deploy) {
-		if (metadata == null) {
-			throw new NullPointerException("Metadata can't be null");
-		}
-		else {
-			// TODO:
-			return null;
-		}
-	}
-
-	public static <Key,Content> ORMSerializer<Key,Content> buildResultsetSerializer(final ContentMetadataInterface metadata, final Class<Key> keyClass, final Class<Content> contentClass, final ClassLoader deploy) {
-		if (metadata == null) {
-			throw new NullPointerException("Metadata can't be null");
-		}
-		else if (keyClass == null) {
-			throw new NullPointerException("Key class can't be null");
-		}
-		else if (contentClass == null) {
-			throw new NullPointerException("Content class can't be null");
-		}
-		else if (deploy == null) {
-			throw new NullPointerException("Loader to deploy to can't be null");
-		}
-		else if (initExc != null) {
-			throw new PreparationException("Class ["+ModelUtils.class.getCanonicalName()+"]: error during static initialization: ("+initExc.getLocalizedMessage()+"). This class can't be used before solving problems",initExc);
-		}
-		else {
-			// TODO:
-			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-				final Writer				wr = writer.clone(baos)) {
-//				final int					suffix = uniqueSuffix.incrementAndGet();
-				
-				wr.write(" makeIncludes \""+keyClass.getCanonicalName()+"\",\""+keyClass.getCanonicalName()+"\",\"");
-			} catch (IOException e) {
-			}
-			return null;
-		}
-	}
-
 	/**
 	 * <p>Convert model tree to tree text</p>
 	 * @param metaData model tree to convert

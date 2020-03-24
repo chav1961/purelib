@@ -216,9 +216,9 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	}
 
 	@Override
-	public Module getUnnamedModule() {
+	public Module[] getUnnamedModules() {
 		for (Entry<URI, GetterAndSetter> item : accessors.entrySet()) {
-			return item.getValue().getClass().getClassLoader().getUnnamedModule();
+			return new Module[] {item.getValue().getClass().getClassLoader().getUnnamedModule()};
 		}
 		return null;
 	}

@@ -64,8 +64,8 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalizerId() {
-		return localizerURI == null ? "debug:/" : localizerURI;
+	public URI getLocalizerId() {
+		return URI.create(localizerURI);
 	}
 	
 	@Override

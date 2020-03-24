@@ -37,7 +37,7 @@ import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.i18n.LocalizerStore;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -81,8 +81,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private static final URI[]				DUMMY_OK_AND_CANCEL = new URI[0];
 	private static final int				GAP_SIZE = 5; 
 
+	private final Localizer					localizer;
 	private final LoggerFacade				logger;
-	private final LocalizerStore			localizer;
 	private final FormManager<Object,T>		formManager;
 	private final FormMonitor<T>			monitor;
 	private final ContentMetadataInterface	mdi;
@@ -132,10 +132,10 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			this.logger = logger;
 			this.formManager = formMgr;
 			
-			try(final LoggerFacade			trans = logger.transaction(this.getClass().getSimpleName())) {
+			try(final LoggerFacade	trans = logger.transaction(this.getClass().getSimpleName())) {
 				
-				this.localizer = new LocalizerStore(localizer,mdi.getRoot().getLocalizerAssociated());
-
+				this.localizer = localizer.push(mdi.getRoot().getLocalizerAssociated());
+				
 				buttonPanel.add(messages);
 				
 				FormManagedUtils.parseModel4Form(logger,mdi,localizer,instance.getClass(),this,new FormManagerParserCallback() {
@@ -207,14 +207,17 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	public void close() {
 		if (!closed){
 			listeners.clear();
-			localizer.close();
+			try{localizer.close();
+			} catch (LocalizationException e) {
+			}
 			closed = true;
 		}
 	}
 
-	public Module getUnnamedModule() {
+	@Override
+	public Module[] getUnnamedModules() {
 		for (Entry<URI, GetterAndSetter> item : accessors.entrySet()) {
-			return item.getValue().getClass().getClassLoader().getUnnamedModule();
+			return new Module[] {item.getValue().getClass().getClassLoader().getUnnamedModule()};
 		}
 		return null;
 	}
@@ -224,7 +227,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @return localizer associated. Can't be null
 	 */
 	public Localizer getLocalizerAssociated() {
-		return localizer.getLocalizer();
+		return localizer;
 	}
 
 	/**

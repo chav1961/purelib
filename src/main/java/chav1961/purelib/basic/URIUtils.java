@@ -368,7 +368,7 @@ public class URIUtils {
 	 * extractSubURI(uri,"scheme1","scheme2") returns URI.create("scheme3://path")</br> 
 	 * </code> 
 	 * @param uri uri to extract sub-scheme from
-	 * @param schemas sequence of schemas to extract content from
+	 * @param schemas sequence of schemas to extract content from. Use wildcard '*' for any subscheme to extract
 	 * @return URI extracted
 	 * @throws NullPointerException if any parameters are null
 	 * @throws IllegalArgumentException if schemas list is empty or contains nulls, or sequence of sub-schemas is missing in the uri
@@ -393,7 +393,7 @@ public class URIUtils {
 			URI	current = uri;
 			
 			for (String scheme : schemas) {
-				if (scheme.equals(current.getScheme())) {
+				if (scheme.equals(current.getScheme()) || "*".equals(scheme)) {
 					current = URI.create(current.getSchemeSpecificPart());
 				}
 				else {

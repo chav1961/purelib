@@ -4921,14 +4921,8 @@ loop:						for (JsonStaxParserLexType item : reader) {
 		
 		private GetterAndSetter(final Field field, final JsonSerializer<?> serializer) throws IllegalAccessException {
 			field.setAccessible(true);
-//			if (PureLibSettings.instance().getProperty(PureLibSettings.ALLOW_UNSAFE,boolean.class,"false")) {
-//				this.getter = MethodHandles.lookup().unreflectGetter(field);
-//				this.setter = MethodHandles.lookup().unreflectSetter(field);
-//			}
-//			else {
-				this.getter = MethodHandles.lookup().unreflectGetter(field);
-				this.setter = MethodHandles.lookup().unreflectSetter(field);
-//			} 
+			this.getter = MethodHandles.lookup().unreflectGetter(field);
+			this.setter = MethodHandles.lookup().unreflectSetter(field);
 			this.serializer = serializer;
 			this.valueType = field.getType();
 			if (this.valueType.isPrimitive()) {

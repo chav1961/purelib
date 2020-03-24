@@ -149,7 +149,7 @@ public class LocalizerTest {
 		}
 		Assert.assertEquals(count,2);
 		
-		try{root.add(null);
+		try{root.add((Localizer)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {			
 		}
@@ -198,7 +198,7 @@ public class LocalizerTest {
 		}
 		Assert.assertEquals(count,3);
 		
-		try{root.push(null);
+		try{root.push((Localizer)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {			
 		}
@@ -357,8 +357,8 @@ class PseudoLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalizerId() {
-		return "AnyId";
+	public URI getLocalizerId() {
+		return URI.create("AnyId");
 	}	
 }
 
@@ -412,7 +412,7 @@ class SingleKeyLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalizerId() {
-		return "AnyId";
+	public URI getLocalizerId() {
+		return URI.create("AnyId");
 	}	
 }

@@ -107,8 +107,8 @@ public class XMLLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalizerId() {
-		return localizerURI == null ? "debug:/" : localizerURI;
+	public URI getLocalizerId() {
+		return URI.create(localizerURI);
 	}
 
 	@Override
@@ -140,6 +140,11 @@ public class XMLLocalizer extends AbstractLocalizer {
 		else {
 			return null;
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "XMLLocalizer [resourceAddress=" + resourceAddress + ", localizerURI=" + localizerURI + ", currentLocale=" + currentLocale().getLanguage() + "]";
 	}
 
 	@Override
