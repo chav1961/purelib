@@ -21,6 +21,9 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 
 public class DummyLocalizer extends AbstractLocalizer {
 	private static final List<String>	keys = new ArrayList<>();
+	
+	private static final URI			DUMMY_URI = URI.create("dummy:/");
+	
 
 	/**
 	 * <p>Create dummy localizer</p>
@@ -32,8 +35,8 @@ public class DummyLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalizerId() {
-		return "dummy:";
+	public URI getLocalizerId() {
+		return DUMMY_URI;
 	}
 
 	@Override

@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 import javax.swing.JMenuBar;
@@ -50,6 +51,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.SPIServiceNavigationMember;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.sql.SimpleProvider;
 import chav1961.purelib.sql.interfaces.ORMProvider;
@@ -270,14 +272,6 @@ public class ContentModelFactory {
 		}
 	}	
 
-	public static ContentMetadataInterface forMenu(final JMenuBar bar) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		return null;
-	}
-
-	public static ContentMetadataInterface forMenu(final JPopupMenu popup) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		return null;
-	}
-	
 	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema, final String table) throws NullPointerException, PreparationException, ContentException {
 		if (dbDescription == null) {
 			throw new NullPointerException("Database description can't be null");
@@ -366,6 +360,62 @@ public class ContentModelFactory {
 		}
 	}
 
+	public static <T> ContentMetadataInterface forSPIServiceTree(final Class<T> spiService) throws NullPointerException, PreparationException, ContentException {
+		if (spiService == null) {
+			throw new NullPointerException("SPI service can't be null"); 
+		}
+		else {
+			// TODO:
+			final List<T>	services = new ArrayList<>();
+			
+			for (T item : ServiceLoader.load(spiService)) {
+				services.add(item);
+			}
+			if (services.isEmpty()) {
+				throw new ContentException("No any services for ["+spiService.getCanonicalName()+"] were found");
+			}
+			else {
+				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("root"
+														, String.class
+														, Constants.MODEL_NAVIGATION_TOP_PREFIX+".root"
+														, null
+														, "root"
+														, null 
+														, null
+														, null
+														, null
+														, null);
+				for (T item : services) {
+					try{final ContentMetadataInterface	mdi = forAnnotatedClass(item.getClass());
+						final ContentNodeMetadata		metadata = mdi.getRoot(); 
+						
+						final MutableContentNodeMetadata	child = new MutableContentNodeMetadata(metadata.getName()
+																, metadata.getType()
+																, Constants.MODEL_NAVIGATION_LEAF_PREFIX+'.'+metadata.getName()
+																, null
+																, metadata.getLabelId()
+																, metadata.getTooltipId()
+																, null
+																, null
+																, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+metadata.getName())
+																, metadata.getIcon());
+						final MutableContentNodeMetadata	current = (item instanceof SPIServiceNavigationMember) 
+																	? (MutableContentNodeMetadata)buildSPIPluginMenuSubtree(root,((SPIServiceNavigationMember)item).getNavigationURI().getPath().toString()) 
+																	: root;
+						
+						current.addChild(child);
+						child.setParent(current);
+					} catch (Exception exc) {
+					}
+				}
+				final SimpleContentMetadata result = new SimpleContentMetadata(root);
+				
+				root.setOwner(result);
+				return result;
+			}
+		}
+	}
+	
 	static URI buildClassFieldApplicationURI(final Class<?> clazz, final Field f) {
 		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName());
 	}
@@ -751,4 +801,36 @@ public class ContentModelFactory {
 		}
 		return sb.toString();
 	}
+
+	private static ContentNodeMetadata buildSPIPluginMenuSubtree(final ContentNodeMetadata root, final String path) {
+		if (path.isEmpty()) {
+			return root;
+		}
+		else {
+			final int		slashIndex = path.indexOf('/');
+			final String	prefix = slashIndex == -1 ? path : path.substring(0,slashIndex), suffix = slashIndex == -1 ? "" : path.substring(slashIndex+1);
+			
+			for (ContentNodeMetadata item : root) {
+				if (prefix.equals(item.getName())) {
+					return buildSPIPluginMenuSubtree(item,suffix);
+				}				
+			}
+			
+			final MutableContentNodeMetadata	child = new MutableContentNodeMetadata(prefix
+													, String.class
+													, Constants.MODEL_NAVIGATION_NODE_PREFIX+'.'+prefix
+													, null
+													, prefix
+													, null 
+													, null
+													, null
+													, null
+													, null);
+			((MutableContentNodeMetadata)root).addChild(child);
+			child.setParent(root);
+			
+			return buildSPIPluginMenuSubtree(root,path);
+		}
+	}
+
 }

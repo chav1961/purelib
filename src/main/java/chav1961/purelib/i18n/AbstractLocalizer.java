@@ -31,6 +31,7 @@ import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -45,7 +46,7 @@ import chav1961.purelib.streams.StreamsUtil;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public abstract class AbstractLocalizer implements Localizer {
@@ -349,9 +350,9 @@ public abstract class AbstractLocalizer implements Localizer {
 	}
 
 	@Override
-	public boolean containsLocalizerHere(final String localizerId) throws NullPointerException, IllegalArgumentException {
-		if (localizerId == null || localizerId.isEmpty()) {
-			throw new IllegalArgumentException("Localizer id can't be null or empty");
+	public boolean containsLocalizerHere(final URI localizerId) throws NullPointerException, IllegalArgumentException {
+		if (localizerId == null) {
+			throw new NullPointerException("Localizer id can't be null or empty");
 		}
 		else {
 			LocalizerNode	item = node;
@@ -368,15 +369,16 @@ public abstract class AbstractLocalizer implements Localizer {
 	}
 
 	@Override
-	public boolean containsLocalizerAnywhere(final String localizerId) throws NullPointerException, IllegalArgumentException {
-		if (localizerId == null || localizerId.isEmpty()) {
-			throw new IllegalArgumentException("Localizer id can't be null or empty");
+	public boolean containsLocalizerAnywhere(final URI localizerId) throws NullPointerException, IllegalArgumentException {
+		if (localizerId == null) {
+			throw new NullPointerException("Localizer id can't be null or empty");
 		}
 		else {
 			final boolean[]		result = new boolean[] {false};
+			final URI			id = URIUtils.extractSubURI(localizerId,LOCALIZER_SCHEME,"*");
 			
 			try{walkUp((current,depth)->{
-					if (localizerId.equals(current.getLocalizerId())) {
+					if (current.canServe(localizerId) && id.equals(current.getLocalizerId())) {
 						result[0] = true;
 						return ContinueMode.STOP;
 					}
@@ -386,7 +388,7 @@ public abstract class AbstractLocalizer implements Localizer {
 				});
 				if (!result[0]) {
 					walkDown((current,depth)->{
-						if (localizerId.equals(current.getLocalizerId())) {
+						if (current.canServe(localizerId) && localizerId.equals(current.getLocalizerId())) {
 							result[0] = true;
 							return ContinueMode.STOP;
 						}
@@ -403,15 +405,16 @@ public abstract class AbstractLocalizer implements Localizer {
 	}
 
 	@Override
-	public Localizer getLocalizerById(final String localizerId) throws NullPointerException, IllegalArgumentException {
-		if (localizerId == null || localizerId.isEmpty()) {
-			throw new IllegalArgumentException("Localizer id can't be null or empty");
+	public Localizer getLocalizerById(final URI localizerId) throws NullPointerException, IllegalArgumentException {
+		if (localizerId == null) {
+			throw new NullPointerException("Localizer id can't be null or empty");
 		}
 		else {
 			final Localizer[]	result = new Localizer[] {null};
+			final URI			id = URIUtils.extractSubURI(localizerId,LOCALIZER_SCHEME,"*");
 			
 			try{walkUp((current,depth)->{
-					if (localizerId.equals(current.getLocalizerId())) {
+					if (current.canServe(localizerId) && id.equals(current.getLocalizerId())) {
 						result[0] = current;
 						return ContinueMode.STOP;
 					}
@@ -421,7 +424,7 @@ public abstract class AbstractLocalizer implements Localizer {
 				});
 				if (result[0] == null) {
 					walkDown((current,depth)->{
-						if (localizerId.equals(current.getLocalizerId())) {
+						if (current.canServe(localizerId) && id.equals(current.getLocalizerId())) {
 							result[0] = current;
 							return ContinueMode.STOP;
 						}
@@ -442,7 +445,7 @@ public abstract class AbstractLocalizer implements Localizer {
 		if (newLocalizer == null) {
 			throw new NullPointerException("Localizer to add can't be null"); 
 		}
-		else if (newLocalizer == this) {
+		else if (isInParentChain(newLocalizer,this)) {
 			throw new IllegalArgumentException("Attempt to add self to localizer chain"); 
 		}
 		else {
@@ -467,11 +470,21 @@ public abstract class AbstractLocalizer implements Localizer {
 	}
 
 	@Override
+	public Localizer add(final URI newLocalizer) throws LocalizationException, NullPointerException, IllegalArgumentException {
+		if (newLocalizer == null) {
+			throw new NullPointerException("Localizer to add can't be null"); 
+		}
+		else {
+			return add(LocalizerFactory.getLocalizer(newLocalizer));
+		}
+	}	
+	
+	@Override
 	public Localizer remove(final Localizer localizer) throws LocalizationException, NullPointerException, IllegalStateException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer to remove can't be null"); 
 		}
-		else if (localizer == this) {
+		else if (isInParentChain(localizer,this)) {
 			throw new IllegalArgumentException("Attempt to remove self from localizer chain"); 
 		}
 		else {
@@ -479,15 +492,9 @@ public abstract class AbstractLocalizer implements Localizer {
 			boolean			deleted = false;
 			
 loop:		do {if (cursor.child != null) {
-					for (int index = 0; index < cursor.child.length; index++) {
-						if (cursor.child[index].item == localizer) {
-							if (cursor.child.length == 1) {
-								cursor.child = null;
-							}
-							else {
-								System.arraycopy(cursor.child,index+1,cursor.child,index,cursor.child.length-index-1);
-								cursor.child = Arrays.copyOf(cursor.child,cursor.child.length-1);
-							}
+					for (int index = 0, maxIndex = cursor.child.size(); index < maxIndex; index++) {
+						if (cursor.child.get(index).item == localizer) {
+							cursor.child.remove(index);
 							deleted = true;
 							break loop;
 						}
@@ -517,19 +524,11 @@ loop:		do {if (cursor.child != null) {
 		if (newLocalizer == null) {
 			throw new NullPointerException("Localizer to add can't be null"); 
 		}
-		else if (newLocalizer == this) {
+		else if (isInParentChain(newLocalizer,this)) {
 			throw new IllegalArgumentException("Attempt to push self to localizer chain"); 
 		}
-		else if (node.child != null) {
-			node.child = Arrays.copyOf(node.child,node.child.length+1);
-			node.child[node.child.length-1] = new LocalizerNode(newLocalizer);
-			newLocalizer.setParent(this);
-			return this;
-		} 
 		else {
-			final LocalizerNode		newNode = new LocalizerNode(newLocalizer);
-			
-			node.child = new LocalizerNode[]{newNode};
+			node.child.add(new LocalizerNode(newLocalizer));
 			newLocalizer.setParent(this);
 			newLocalizer.setCurrentLocale(currentLocale().getLocale());
 			return newLocalizer;
@@ -537,12 +536,42 @@ loop:		do {if (cursor.child != null) {
 	}
 
 	@Override
+	public Localizer push(final URI newLocalizer) throws LocalizationException, NullPointerException, IllegalArgumentException {
+		if (newLocalizer == null) {
+			throw new NullPointerException("Localizer to add can't be null"); 
+		}
+		else if (containsLocalizerAnywhere(newLocalizer)) {
+			return push(new LocalizerWrapper((AbstractLocalizer)getLocalizerById(newLocalizer)));
+		}
+		else {
+			return push(LocalizerFactory.getLocalizer(newLocalizer));
+		}
+	}	
+	
+	@Override
+	public Localizer pop(final Localizer oldLocalizer) throws LocalizationException {
+		if (oldLocalizer == null) {
+			throw new NullPointerException("Localizer to remove can't be null"); 
+		}
+		else if (oldLocalizer.getParent() == null) {
+			throw new IllegalArgumentException("Localizer to remove is not in localizer hierarchy"); 
+		}
+		else {
+			final Localizer	parent = oldLocalizer.getParent();
+			
+			parent.remove(oldLocalizer);
+			return parent;
+		}
+	}
+	
+	@Override
 	public Localizer pop() throws LocalizationException {
 		if (node.child != null) {
-			for (LocalizerNode item : node.child) {
+			for (LocalizerNode item : node.child.toArray(new LocalizerNode[node.child.size()])) {
 				item.item.close();
 				item.item.setParent(null);
 			}
+			node.child.clear();
 			node.child = null;
 		}
 		return this;
@@ -703,6 +732,9 @@ sw:				for(;;) {
 	public void close() throws LocalizationException {
 		synchronized(listeners) {
 			listeners.clear();
+			if (getParent() != null) {
+				getParent().pop(this);
+			}
 		}
 	}
 
@@ -732,6 +764,79 @@ sw:				for(;;) {
 		});
 	}
 
+	private boolean isInParentChain(final Localizer toTest, final Localizer chain) {
+		if (chain == null) {
+			return false;
+		}
+		else if (toTest == chain) {
+			return true;
+		}
+		else {
+			return isInParentChain(toTest,chain.getParent());
+		}
+	}
+
+	private static class LocalizerWrapper extends AbstractLocalizer {
+		private final AbstractLocalizer	nested;
+		private Localizer				parent = null;
+		private LocaleDescriptor		currentLocale = null;
+		
+		LocalizerWrapper(final AbstractLocalizer nested) throws LocalizationException {
+			this.nested = nested;
+		}
+
+		@Override
+		protected void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException {
+			nested.loadResource(newLocale);
+		}
+
+		@Override
+		protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
+			return nested.getHelp(helpId, encoding);
+		}
+		
+		@Override
+		public boolean canServe(final URI resource) throws NullPointerException {
+			return nested.canServe(resource);
+		}
+
+		@Override
+		public Localizer newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+			return nested.newInstance(resource);
+		}
+
+		@Override
+		public Iterable<String> localKeys() {
+			return nested.localKeys();
+		}
+
+		@Override
+		public String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException {
+			return nested.getLocalValue(key);
+		}
+
+		@Override
+		public URI getLocalizerId() {
+			return nested.getLocalizerId();
+		}
+
+		@Override
+		public Localizer getParent() {
+			return parent;
+		}
+
+		@Override
+		public Localizer setParent(final Localizer parent) throws LocalizationException {
+			this.parent = parent;
+			return this;
+		}
+
+		@Override
+		public void close() throws LocalizationException {
+			getParent().pop(this);
+		}
+	}
+	
 	private static class LocaleDescriptorImpl implements LocaleDescriptor {
 		final Locale				locale;
 		final SupportedLanguages	lang;
@@ -752,9 +857,9 @@ sw:				for(;;) {
 	}
 	
 	private static class LocalizerNode {
-		Localizer		item;
-		LocalizerNode	sibling = this;
-		LocalizerNode[]	child = null;
+		Localizer			item;
+		LocalizerNode		sibling = this;
+		List<LocalizerNode>	child = new ArrayList<>();
 		
 		public LocalizerNode(Localizer item) {
 			this.item = item;

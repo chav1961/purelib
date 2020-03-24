@@ -269,8 +269,8 @@ loop:			for (Component comp : children(node)) {
 				}				
 			}
 			if (component instanceof JDesktopPane) {
-				if ((content = ((JDesktopPane)component).getComponents()) != null) {
-					result.addAll(Arrays.asList(((JDesktopPane)component).getComponents()));
+				if ((content = ((JDesktopPane)component).getAllFrames()) != null) {
+					result.addAll(Arrays.asList(content));
 				}				
 			}
 			if (component instanceof JLayeredPane) {
@@ -666,7 +666,7 @@ loop:			for (Component comp : children(node)) {
 				((LocaleChangeListener)root).localeChanged(oldLocale, newLocale);
 			}
 			else if (root instanceof Container) {
-				for (Component item : ((Container)root).getComponents()) {
+				for (Component item : children(root)) {
 					refreshLocaleInternal(item,oldLocale,newLocale);
 				}
 			}

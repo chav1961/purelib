@@ -25,6 +25,8 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 
 public class DebuggingLocalizer extends AbstractLocalizer {
 	private static final Map<String,String>	EMPTY_HELP = new HashMap<>();
+	
+	private static final URI				DEBUG_URI = URI.create("debug:/");
 
 	private final Map<String,SubstitutableProperties>	keysAndValues;
 	private final Map<String,String>					helps;
@@ -68,8 +70,8 @@ public class DebuggingLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalizerId() {
-		return "debug:/";
+	public URI getLocalizerId() {
+		return DEBUG_URI;
 	}
 	
 	@Override

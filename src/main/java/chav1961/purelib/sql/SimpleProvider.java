@@ -35,14 +35,19 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
-import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.json.JsonSerializer;
+import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.SimpleContentMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.interfaces.ORMProvider;
+import chav1961.purelib.streams.charsource.StringCharSource;
+import chav1961.purelib.streams.chartarget.StringBuilderCharTarget;
+import chav1961.purelib.streams.interfaces.CharacterTarget;
 
 public abstract class SimpleProvider<Record> implements ORMProvider<Record>, ModuleExporter {
 	private static final int				SELECT_INDEX = 0;
@@ -57,6 +62,8 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 	private final Connection				conn;
 	private final String					selectString, insertString, updateString, deleteString, bulkSelectString, bulkCountString;
 	private final GetterAndSetter[]			gas;
+	private final ContentNodeMetadata[]		metadata;
+	private final JsonSerializer<Record>	serializer;	
 	private final int[][]					forSelect;		// length = 2: [0] - index in the 'gas' to call setter, [1] - SQL type of the field (see java.sql.Types)
 	private final int[][]					forInsert;		// length = 3 : [0] - index in the 'gas' to call getter, [1] - parameter index in the prepared statement, [2] - SQL type of the parameter (see java.sql.Types) 
 	private final int[][]					forUpdate;		// length = 3 : [0] - index in the 'gas' to call getter, [1] - parameter index in the prepared statement, [2] - SQL type of the parameter (see java.sql.Types)
@@ -85,6 +92,11 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 		else {
 			final Set<String>	fieldSet = new HashSet<>(), keySet = new HashSet<>();
 			
+			try{this.serializer = JsonSerializer.buildSerializer(clazz);
+			} catch (EnvironmentException e) {
+				throw new ContentException(e.getLocalizedMessage(),e);
+			}
+			
 			this.tableModel = tableModel;
 			this.clazzModel = clazzModel;
 			this.conn = null;
@@ -97,7 +109,10 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 				keySet.add(item.toUpperCase());
 			}
 
-			this.gas = buildGettersAndSetters(clazzModel,fieldSet);
+			final List<ContentNodeMetadata>	fieldList = new ArrayList<>();
+			
+			this.gas = buildGettersAndSetters(clazzModel,fieldSet,fieldList);
+			this.metadata = fieldList.toArray(new ContentNodeMetadata[fieldList.size()]);
 			
 			final String	tableName = URIUtils.extractSubURI(tableModel.getApplicationPath(),ContentMetadataInterface.APPLICATION_SCHEME).getPath().substring(1); 
 			
@@ -118,7 +133,7 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 			this.deleteString = buildDeleteString(tableName,fields,primaryKeys);
 			this.forDelete = buildModifyNumbers(clazzModel,tableModel,primaryKeys,keySet);
 			
-			this.bulkSelectString = buildBulkSelectString(tableName,fields);
+			this.bulkSelectString = buildBulkSelectString(tableName,fields,primaryKeys);
 			this.bulkCountString = buildBulkCountString(tableName,fields);
 			this.hardCodedStatements = null;
 			this.contentCache = this.contentCountCache = null;
@@ -128,10 +143,12 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 	private SimpleProvider(final SimpleProvider<Record> parent, final Connection conn) throws SQLException {
 		this.parent = parent;
 		this.conn = conn;
+		this.serializer = parent.serializer;
 		this.tableModel = parent.tableModel;
 		this.clazzModel = parent.clazzModel;
 		
 		this.gas = null;
+		this.metadata = parent.metadata;
 		this.forSelect = this.forInsert = this.forUpdate = this.forDelete = null;    
 		this.forSelectKeys = this.forUpdateKeys = null;    
 		this.selectString = null;
@@ -151,9 +168,11 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 	}
 
 	@Override
-	public Module getUnnamedModule() {
+	public Module[] getUnnamedModules() {
 		if (gas.length > 0) {
-			return gas[0].getClass().getClassLoader().getUnnamedModule();
+			return new Module[] {gas[0].getClass().getClassLoader().getUnnamedModule(),
+								
+					};
 		}
 		else {
 			return null;
@@ -189,6 +208,66 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 		}
 	}
 
+	@Override
+	public ContentNodeMetadata[] getContentMetadata() {
+		return metadata;
+	}
+	
+	@Override
+	public <T> T getValue(final ContentNodeMetadata desc, final Record record) throws ContentException {
+		if (desc == null) {
+			throw new NullPointerException("Metadata descriptor can't be null");
+		}
+		else if (record == null) {
+			throw new NullPointerException("Record instance can't be null");
+		}
+		else {
+			for (int index = 0, maxIndex = metadata.length; index < maxIndex; index++) {
+				if (metadata[index].getApplicationPath() != null && metadata[index].getApplicationPath().equals(desc.getApplicationPath())) {
+					return (T) ModelUtils.getValueByGetter(record,getGAS()[index],desc);
+				}
+			}
+			throw new ContentException("Unknown metadata to get value for");
+		}
+	}
+	
+	@Override
+	public <T> void setValue(final ContentNodeMetadata desc, final Record record, final T value) throws ContentException {
+		if (desc == null) {
+			throw new NullPointerException("Metadata descriptor can't be null");
+		}
+		else if (record == null) {
+			throw new NullPointerException("Record instance can't be null");
+		}
+		else {
+			for (int index = 0, maxIndex = metadata.length; index < maxIndex; index++) {
+				if (metadata[index].getApplicationPath() != null && metadata[index].getApplicationPath().equals(desc.getApplicationPath())) {
+					ModelUtils.setValueBySetter(record,value,getGAS()[index],desc);
+					return;
+				}
+			}
+			throw new ContentException("Unknown metadata to set value for");
+		}
+	}
+	
+	@Override
+	public Record clone(final Record record) throws SQLException {
+		if (record == null) {
+			throw new NullPointerException("record to clone can't be null");
+		}
+		else {
+			final StringBuilder		sb = new StringBuilder();
+			final CharacterTarget	ct = new StringBuilderCharTarget(sb);
+			
+			try{serializer.serialize(record,ct);
+				return (Record)serializer.deserialize(new StringCharSource(sb.toString()));
+			} catch (ContentException e) {
+				throw new SQLException(e.getLocalizedMessage(),e);
+			}
+		}
+	} 
+	
+	
 	@Override
 	public long contentSize() throws SQLException {
 		testAssociated();
@@ -450,7 +529,7 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 		return sb.toString();
 	}
 
-	static String buildBulkSelectString(final String table, final String[] fields) {
+	static String buildBulkSelectString(final String table, final String[] fields, final String[] primaryKeys) {
 		final StringBuilder	sb = new StringBuilder("select ");
 		
 		String	prefix = "";
@@ -459,6 +538,13 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 			prefix = ",";
 		}
 		sb.append(" from ").append(table);
+		if (primaryKeys.length > 0) {
+			prefix = " order by ";			
+			for (String field : primaryKeys) {
+				sb.append(prefix).append(field);
+				prefix = ", ";
+			}
+		}
 		return sb.toString();
 	}
 
@@ -833,7 +919,6 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 	}
 	
 	private void iterate(final Record item, final ContentIteratorCallback<Record> callback, final String filter, final String ordering) throws SQLException {
-		// TODO Auto-generated method stub
 		final PreparedStatement	ps = contentCache.get(filter,ordering,false);
 		
 		try{upload(ps,item,getGAS(),new int[0][]);
@@ -890,13 +975,14 @@ public abstract class SimpleProvider<Record> implements ORMProvider<Record>, Mod
 		}
 	}
 	
-	static GetterAndSetter[] buildGettersAndSetters(final ContentNodeMetadata clazzModel, final Set<String> fieldSet) throws ContentException {
+	static GetterAndSetter[] buildGettersAndSetters(final ContentNodeMetadata clazzModel, final Set<String> fieldSet, final List<ContentNodeMetadata> fields) throws ContentException {
 		final List<GetterAndSetter>	result = new ArrayList<>();
 		final ContentException[]	errors = new ContentException[1]; 
 		
 		new SimpleContentMetadata(clazzModel).walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER && fieldSet.contains(node.getName().toUpperCase())) {
 				try{result.add(GettersAndSettersFactory.buildGetterAndSetter(applicationPath));
+					fields.add(node);
 				} catch (ContentException e) {
 					errors[0] = e;
 				}

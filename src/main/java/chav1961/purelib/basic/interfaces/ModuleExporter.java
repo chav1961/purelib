@@ -10,8 +10,8 @@ import chav1961.purelib.basic.GettersAndSettersFactory;
  */
 public interface ModuleExporter {
 	/**
-	 * <p>Get access to unnamed module inside the the class</p>
-	 * @return unnamed module description or null if nothing to grant access for
+	 * <p>Get access to unnamed modules inside the the class</p>
+	 * @return unnamed modules description or null if nothing to grant access for
 	 */
-	Module getUnnamedModule();
+	Module[] getUnnamedModules();
 }

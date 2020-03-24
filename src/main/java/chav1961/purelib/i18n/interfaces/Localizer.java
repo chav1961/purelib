@@ -1,6 +1,7 @@
 package chav1961.purelib.i18n.interfaces;
 
 import java.io.Reader;
+import java.net.URI;
 import java.util.Locale;
 
 import javax.swing.ImageIcon;
@@ -49,7 +50,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see SubstitutableProperties
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- *
+ * @lastUpdate 0.0.4
  */
 public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	/**
@@ -206,7 +207,6 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 */
 	void associateValue(String key, LocaleParametersGetter parametersGetter) throws IllegalArgumentException, NullPointerException;
 	
-	
 	/**
 	 * <p>Get localization value for the given key in the current Localizer only.</p>
 	 * @param key key to get localization string for. Key content is case-sensitive
@@ -252,7 +252,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * <p>Get unique identifier of the localizer</p>
 	 * @return unique identifier of the localized. Can't be null or empty. It's strongly recommended to use localizer URI as value returned
 	 */
-	String getLocalizerId();
+	URI getLocalizerId();
 
 	/**
 	 * <p>Test that localizer level contains localizer with the given id</p>
@@ -261,7 +261,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @throws NullPointerException string is null
 	 * @throws IllegalArgumentException string is empty
 	 */
-	boolean containsLocalizerHere(String localizerId) throws NullPointerException, IllegalArgumentException;
+	boolean containsLocalizerHere(URI localizerId) throws NullPointerException, IllegalArgumentException;
 
 	/**
 	 * <p>Test that localizer hierarchy contains localizer with the given id</p>
@@ -270,7 +270,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @throws NullPointerException string is null
 	 * @throws IllegalArgumentException string is empty
 	 */
-	boolean containsLocalizerAnywhere(String localizerId) throws NullPointerException, IllegalArgumentException;
+	boolean containsLocalizerAnywhere(URI localizerId) throws NullPointerException, IllegalArgumentException;
 
 	/**
 	 * <p>Get localizer description by it's id
@@ -279,7 +279,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @throws NullPointerException string is null
 	 * @throws IllegalArgumentException string is empty
 	 */
-	Localizer getLocalizerById(String localizerId) throws NullPointerException, IllegalArgumentException;
+	Localizer getLocalizerById(URI localizerId) throws NullPointerException, IllegalArgumentException;
 	
 	/**
 	 * <p>Add new localizer to the current level of the hierarchy. Adding the localizer doesn't change it's own parent, siblings and children. Parent for
@@ -291,6 +291,17 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @throws IllegalArgumentException if the localized already was added
 	 */
 	Localizer add(Localizer newLocalizer) throws LocalizationException, NullPointerException, IllegalArgumentException;
+
+	/**
+	 * <p>Add new localizer to the current level of the hierarchy. Adding the localizer doesn't change it's own parent, siblings and children.</p>
+	 * @param newLocalizer new localizer URI to add
+	 * @return self
+	 * @throws LocalizationException localizer to add has duplicated keys at the given hierarchy level
+	 * @throws NullPointerException localizer to add is null
+	 * @throws IllegalArgumentException if the localized already was added
+	 * @since 0.0.4
+	 */
+	Localizer add(URI newLocalizer) throws LocalizationException, NullPointerException, IllegalArgumentException;
 	
 	/**
 	 * <p>Remove the localizer from any level of the hierarchy. Removing the localizer doesn't remove it's children from it. Parent of the localizer to remove will be cleared</p>
@@ -304,16 +315,38 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	Localizer remove(Localizer localizer) throws LocalizationException, NullPointerException, IllegalArgumentException, IllegalStateException;
 	
 	/**
-	 * <p>Create new level or the hierarchy and push first localizer here. Localizer added can be removed by {@linkplain #remove(Localizer)} or by {@linkplain #pop()} method.
+	 * <p>Create new level or the hierarchy, and push localizer here. Localizer added can be removed by {@linkplain #remove(Localizer)} or by {@linkplain #pop(Localizer)} method.
 	 * If child level of the hierarchy already exists, simply adds new localizer in it. Parent for the localizer to push will be set to <b>this</b> localizer.
 	 * Duplicated keys in the localizer blind the same keys in the hierarchy tail</p> 
 	 * @param newLocalizer localizer to push.
-	 * @return <b>clone</b> of the localizer. Calling {@linkplain #close()} on this instance should automatically calls the {@linkplain #pop()} method on the 'parent' localizer 
+	 * @return Added localizer. Calling {@linkplain #close()} on this instance should automatically calls the {@linkplain #pop(Localizer)} method on the 'parent' localizer 
+	 * @throws LocalizationException when any localization problems were detected   
+	 * @throws NullPointerException localizer to add is null
+	 * @throws IllegalArgumentException if the localized already was added
+	 * @since 0.0.4
+	 */
+	Localizer push(Localizer newLocalizer) throws LocalizationException, NullPointerException, IllegalArgumentException;
+
+	/**
+	 * <p>Create new level or the hierarchy, and push localizer here. Localizer added can be removed by {@linkplain #remove(Localizer)} or by {@linkplain #pop(Localizer)} method.
+	 * If child level of the hierarchy already exists, simply adds new localizer in it. Parent for the localizer to push will be set to <b>this</b> localizer.
+	 * Duplicated keys in the localizer blind the same keys in the hierarchy tail</p> 
+	 * @param newLocalizer localizer URI to push
+	 * @return Added localizer. Calling {@linkplain #close()} on this instance should automatically calls the {@linkplain #pop(Localizer)} method on the 'parent' localizer 
 	 * @throws LocalizationException when any localization problems were detected   
 	 * @throws NullPointerException localizer to add is null
 	 * @throws IllegalArgumentException if the localized already was added
 	 */
-	Localizer push(Localizer newLocalizer) throws LocalizationException, NullPointerException, IllegalArgumentException;
+	Localizer push(URI newLocalizer) throws LocalizationException, NullPointerException, IllegalArgumentException;
+	
+	/**
+	 * <p>Remove all localizers from the current hierarchy level and pop it</p>
+	 * @param newLocalizer localizer to pop.
+	 * @return parent localizer
+	 * @throws LocalizationException when any localization problems were detected
+	 * @since 0.0.4   
+	 */
+	Localizer pop(Localizer oldLocalizer) throws LocalizationException;
 	
 	/**
 	 * <p>Remove all localizers from the current hierarchy level and pop it</p>

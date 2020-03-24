@@ -165,6 +165,13 @@ public class LongIdMap<T> {
 		}
 		return maxValue()+1;
 	}
+
+	public void clear() {
+		for (long index = 0; index < maxValue; index++) {
+			remove(index);
+		}
+		maxValue = 0;
+	}
 	
 	@Override
 	public String toString() {
