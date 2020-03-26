@@ -1,6 +1,8 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
@@ -43,21 +45,27 @@ public class ComponentKeepedBorder implements Border {
 
 	@Override
 	public void paintBorder(final Component c, final Graphics g, final int x, final int y, final int width, final int height) {
-//		final Insets 	parentInsets = getBorderInsets(c);
-//		
-//		for (int index = 0, start = x + width - components.length * height; index < components.length; index++, start += height) {
-//			components[components.length-1-index].setLocation(start, parentInsets.top);
-//			components[components.length-1-index].setSize(height-2,height-2);
-//		}
+		final Insets 	parentInsets = getBorderInsets(c);
+		
+		for (int index = 0, start = x + width - components.length * height; index < components.length; index++, start += height) {
+			components[components.length-1-index].setLocation(start, parentInsets.top);
+			components[components.length-1-index].setSize(height-2,height-2);
+		}
 	}
 	
 
 	public void install(final JComponent parent) {
 		if (this.parent != null) {
 			this.parent.removeComponentListener(cl);
+			for (JComponent item : components) {
+				this.parent.remove(item);
+			}
 		}
 		this.parent = parent;
-//		determineInsetsAndAlignment(parent);
+		for (JComponent item : components) {
+			this.parent.add(item);
+		}
+		determineInsetsAndAlignment(parent);
 
 		final Border current = parent.getBorder();
 
@@ -87,6 +95,10 @@ public class ComponentKeepedBorder implements Border {
 		for (int index = 0, start = area.x + area.width - components.length * (area.height + gap); index < components.length; index++, start += area.height  + gap) {
 			components[components.length-1-index].setLocation(start, parentInsets.top);
 			components[components.length-1-index].setSize(area.height-2,area.height-2);
+			components[components.length-1-index].setVisible(parent.isVisible());
+		}
+		for (Component item : ((Container)parent).getComponents()) {
+			System.err.println("Item="+item.getClass()+", vis="+item.isVisible()+", size="+item.getSize());
 		}
 	}
 	

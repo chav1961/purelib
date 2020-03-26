@@ -25,6 +25,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
@@ -185,13 +186,12 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 	}
 
 	@Override
-	public void assignValueToComponent(final Object value) {
+	public void assignValueToComponent(final Object value) throws ContentException {
 		if (value == null) {
 			throw new NullPointerException("Value to assign can't be null");
 		}
 		else {
-			setValue(value);
-			newValue = value;
+			setValue(newValue = SQLUtils.convert(getValueType(),value));
 		}
 	}
 
