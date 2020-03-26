@@ -171,8 +171,15 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		try{return newValue == null ? null : ((newValue instanceof File) ? ((File)newValue).getAbsolutePath() : ((FileSystemInterface)newValue).getPath());
-		} catch (IOException e) {
+		final String	currentText = getText();
+			
+		if (getValueType().isAssignableFrom(File.class)) {
+			return newValue = new File(currentText);
+		}
+		else if (getValueType().isAssignableFrom(FileSystemInterface.class)) {
+			throw new UnsupportedOperationException();
+		}
+		else {
 			return null;
 		}
 	}

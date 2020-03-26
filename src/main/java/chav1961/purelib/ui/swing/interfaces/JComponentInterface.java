@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.interfaces;
 
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 /**
@@ -34,7 +35,7 @@ public interface JComponentInterface {
 	 * <p>Assing new value to component</p>
 	 * @param value value to assign
 	 */
-	void assignValueToComponent(Object value);
+	void assignValueToComponent(Object value) throws ContentException;
 	
 	/**
 	 * <p>Get current value type in the component</p>
