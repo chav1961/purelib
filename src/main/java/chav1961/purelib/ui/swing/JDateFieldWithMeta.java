@@ -16,6 +16,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
+import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.DateFormatter;
 import javax.swing.text.DefaultFormatterFactory;
@@ -89,13 +90,15 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 				@Override
 				public void focusGained(final FocusEvent e) {
 					currentValue = (Date) getValue();
-					if (format != null && format.needSelectOnFocus()) {
-						selectAll();
-					}
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JDateFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
+					SwingUtilities.invokeLater(()->{
+						if (format.needSelectOnFocus()) {
+							selectAll();
+						}
+					});
 				}
 			});
 			addActionListener((e)->{

@@ -2,6 +2,7 @@ package chav1961.purelib.ui.swing;
 
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
@@ -9,6 +10,7 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
@@ -43,6 +45,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.FormMonitor;
@@ -139,10 +142,16 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				buttonPanel.add(messages);
 				
 				FormManagedUtils.parseModel4Form(logger,mdi,localizer,instance.getClass(),this,new FormManagerParserCallback() {
+					boolean	firstFocused = false;
+					
 					@Override
 					public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, boolean isModifiable) throws ContentException {
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
 						childPanel.add(fieldComponent,LabelledLayout.CONTENT_AREA);
+						if (!firstFocused) {
+							firstFocused = true;
+							fieldComponent.requestFocusInWindow();
+						}
 						trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",metadata.getUIPath(),metadata.getClass().getCanonicalName());
 						labelIds.add(metadata.getLabelId());
 						if (!metadata.getFormatAssociated().isReadOnly(false) && !metadata.getFormatAssociated().isReadOnly(true)) {
@@ -304,6 +313,22 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 	@Override
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
+		final JLabel		label = (JLabel) SwingUtils.findComponentByName(this,metadata.getUIPath().toString()+"/label");
+		
+		switch(event) {
+			case FocusGained	:
+				if (label != null) {
+					label.setForeground(Color.BLUE);
+				}
+				break;
+			case FocusLost		:
+				if (label != null) {
+					label.setForeground(Color.BLACK);
+				}
+				break;
+			default:
+				break;
+		}
 		return monitor.process(event, metadata, component, parameters);
 	}
 	

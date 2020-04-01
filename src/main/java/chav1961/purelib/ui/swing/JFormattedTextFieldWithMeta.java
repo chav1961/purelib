@@ -11,6 +11,7 @@ import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.MaskFormatter;
 
@@ -69,9 +70,14 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
-							monitor.process(MonitorEvent.Saving,metadata,JFormattedTextFieldWithMeta.this);
-						}
+					try{
+						SwingUtilities.invokeLater(()->{
+							if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
+								try{monitor.process(MonitorEvent.Saving,metadata,JFormattedTextFieldWithMeta.this);
+								} catch (ContentException e1) {
+								}
+							}
+						});
 						monitor.process(MonitorEvent.FocusLost,metadata,JFormattedTextFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
@@ -79,13 +85,15 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					if (format != null && format.needSelectOnFocus()) {
-						selectAll();
-					}
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JFormattedTextFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
+					SwingUtilities.invokeLater(()->{
+						if (format.needSelectOnFocus()) {
+							selectAll();
+						}
+					});
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{

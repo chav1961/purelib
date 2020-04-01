@@ -12,6 +12,7 @@ import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.InternationalFormatter;
 
@@ -78,10 +79,14 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getValue().equals(currentValue)) {
-							monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMeta.this);
-							currentValue = getValue();
-						}
+					try{SwingUtilities.invokeLater(()->{
+							if (!getValue().equals(currentValue)) {
+								try{monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMeta.this);
+								} catch (ContentException e1) {
+								}
+								prepareFieldColor(currentValue = getValue(), format);
+							}
+						});
 						monitor.process(MonitorEvent.FocusLost,metadata,JNumericFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
@@ -89,17 +94,19 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					currentValue = getText();
-					if (format.needSelectOnFocus()) {
-						selectAll();
-					}
-					if (getDocument().getLength() > 0) {
-						setCaretPosition(getDocument().getLength()-1);
-					}
+					currentValue = getValue();
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JNumericFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
+					SwingUtilities.invokeLater(()->{
+						if (getDocument().getLength() > 0) {
+							setCaretPosition(getDocument().getLength());
+						}
+						if (format.needSelectOnFocus()) {
+							selectAll();
+						}
+					});
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
@@ -117,15 +124,6 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 					try{final boolean	validated = monitor.process(MonitorEvent.Validation,metadata,JNumericFieldWithMeta.this);
 						final Object	value = getValue(); 
 
-						if (value instanceof BigDecimal) {
-							InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,((BigDecimal)value).signum());
-						}
-						else if (value instanceof Float) {
-							InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Float)value).floatValue()));
-						}
-						else if (value instanceof Double) {
-							InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Double)value).doubleValue()));
-						}
 						return validated;
 					} catch (ContentException e) {
 						return false;
@@ -133,9 +131,16 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				}
 			});
 
-			setBackground(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-			setSelectionColor(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
-			setSelectedTextColor(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
+			if (format.isMandatory()) {
+				setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
+				setSelectionColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND);
+				setSelectedTextColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND);
+			}
+			else {
+				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+				setSelectionColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
+				setSelectedTextColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
+			}
 			switch (format.getAlignment()) {
 				case CenterAlignment: setHorizontalAlignment(JTextField.CENTER); break;
 				case LeftAlignment	: setHorizontalAlignment(JTextField.LEFT); break;
@@ -187,6 +192,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 		}
 		else {
 			setValue(newValue = SQLUtils.convert(getValueType(),value));
+			prepareFieldColor(newValue,metadata.getFormatAssociated());
 		}
 	}
 
@@ -230,5 +236,20 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			currentValue = newValue;
 		} catch (ContentException exc) {
 		}					
+	}
+	
+	private void prepareFieldColor(final Object value, final FieldFormat format) {
+		if (value instanceof BigDecimal) {
+			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,((BigDecimal)value).signum());
+		}
+		else if (value instanceof Float) {
+			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Float)value).floatValue()));
+		}
+		else if (value instanceof Double) {
+			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Double)value).doubleValue()));
+		}
+		else if (value instanceof Long) {
+			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Long)value).longValue()));
+		}
 	}
 }

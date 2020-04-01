@@ -12,6 +12,7 @@ import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.InternationalFormatter;
 
@@ -79,10 +80,14 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 			addFocusListener(new FocusListener() {
 				@Override
 				public void focusLost(final FocusEvent e) {
-					try{if (!getValue().equals(currentValue)) {
-							monitor.process(MonitorEvent.Saving,metadata,JIntegerFieldWithMeta.this);
-							currentValue = getValue();
-						}
+					try{SwingUtilities.invokeLater(()->{
+							if (!getValue().equals(currentValue)) {
+								try{monitor.process(MonitorEvent.Saving,metadata,JIntegerFieldWithMeta.this);
+								} catch (ContentException ex) {
+								}
+								prepareFieldColor(currentValue = getValue(), format);
+							}
+						});
 						monitor.process(MonitorEvent.FocusLost,metadata,JIntegerFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
@@ -91,16 +96,18 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 				@Override
 				public void focusGained(final FocusEvent e) {
 					currentValue = getText();
-					if (format.needSelectOnFocus()) {
-						selectAll();
-					}
-					if (getDocument().getLength() > 0) {
-						setCaretPosition(getDocument().getLength()-1);
-					}
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JIntegerFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
+					SwingUtilities.invokeLater(()->{
+						if (getDocument().getLength() > 0) {
+							setCaretPosition(getDocument().getLength());
+						}
+						if (format.needSelectOnFocus()) {
+							selectAll();
+						}
+					});
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
@@ -192,6 +199,7 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 		}
 		else {
 			setValue(newValue = SQLUtils.convert(getValueType(),value));
+			prepareFieldColor(newValue,metadata.getFormatAssociated());
 		}
 	}
 
@@ -235,5 +243,14 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 			currentValue = newValue;
 		} catch (ContentException exc) {
 		}					
+	}
+
+	private void prepareFieldColor(final Object value, final FieldFormat format) {
+		if (value instanceof BigInteger) {
+			InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,((BigInteger)value).signum());
+		}
+		else if (value instanceof Long) {
+			InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,(int)Math.signum(((Long)value).longValue()));
+		}
 	}
 }

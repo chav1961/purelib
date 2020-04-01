@@ -247,7 +247,7 @@ public final class PureLibSettings {
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
 	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
-	private static final ColorScheme				DEFAULT_COLOR_SCHEME = new ColorScheme();	// Don't move before previous line! 
+	private static final ColorScheme				DEFAULT_COLOR_SCHEME; 
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static final WellKnownSchema[]			schemasList = {
@@ -311,6 +311,7 @@ public final class PureLibSettings {
 		}
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
+		DEFAULT_COLOR_SCHEME = new ColorScheme();
 	}
 	
 	private PureLibSettings(){}

@@ -10,6 +10,7 @@ import java.util.Locale;
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -65,13 +66,15 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					if (format != null && format.needSelectOnFocus()) {
-						selectAll();
-					}
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JTextFieldWithMeta.this);
 					} catch (ContentException exc) {
 					}					
+					SwingUtilities.invokeLater(()->{
+						if (format.needSelectOnFocus()) {
+							selectAll();
+						}
+					});
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{

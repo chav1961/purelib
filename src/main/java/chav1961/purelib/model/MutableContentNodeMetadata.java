@@ -35,10 +35,10 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 			throw new IllegalArgumentException("Label identifier can't be null or empty");
 		}
 		else if (localizerAssociated != null && !Localizer.LOCALIZER_SCHEME.equals(localizerAssociated.getScheme())) {
-			throw new IllegalArgumentException("Invalid localizer scheme ["+localizerAssociated.getScheme()+"], must be ["+Localizer.LOCALIZER_SCHEME+"]");
+			throw new IllegalArgumentException("Localizer ["+localizerAssociated+"]: invalid localizer scheme ["+localizerAssociated.getScheme()+"], must be ["+Localizer.LOCALIZER_SCHEME+"]");
 		}
 		else if (applicationPath != null && !ContentMetadataInterface.APPLICATION_SCHEME.equals(applicationPath.getScheme())) {
-			throw new IllegalArgumentException("Invalid applicaiton path scheme ["+applicationPath.getScheme()+"], must be ["+ContentMetadataInterface.APPLICATION_SCHEME+"]");
+			throw new IllegalArgumentException("Application path ["+applicationPath+"]: invalid applicaiton path scheme ["+applicationPath.getScheme()+"], must be ["+ContentMetadataInterface.APPLICATION_SCHEME+"]");
 		}
 		else {
 			this.name = name;

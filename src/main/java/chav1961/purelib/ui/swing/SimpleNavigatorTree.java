@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.MouseInfo;
@@ -16,6 +17,7 @@ import java.awt.event.MouseListener;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Locale;
+import java.util.ServiceLoader;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -252,19 +254,27 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 			return null;
 		}
 	}
+
+	protected void appendNodes(final ContentNodeMetadata submenu, final DefaultMutableTreeNode node) {
+	}
 	
 	protected JPopupMenu getPopupMenu(final TreePath path, final ContentNodeMetadata meta) {
 		return null;
 	}
 	
-	private static MutableTreeNode metadata2Tree(final ContentNodeMetadata meta) {
+	private MutableTreeNode metadata2Tree(final ContentNodeMetadata meta) {
 		final DefaultMutableTreeNode	node = new DefaultMutableTreeNode(meta,true);
 		
 		for (ContentNodeMetadata item : meta) {
 			final String	path = item.getRelativeUIPath().toString(); 
 			
 			if (path.contains(Constants.MODEL_NAVIGATION_NODE_PREFIX) || path.contains(Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-				node.add(metadata2Tree(item));
+				final MutableTreeNode	child = metadata2Tree(item);  
+				
+				if (path.contains(Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
+					appendNodes(item,(DefaultMutableTreeNode)child);
+				}
+				node.add(child);
 			}				
 		}
 		return node;
