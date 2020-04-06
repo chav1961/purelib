@@ -180,7 +180,7 @@ public class NanoServiceManagerTest {
 		}
 	}	
 	
-	@Test
+//	@Test
 	public void lifeCycleTest() throws IOException, ContentException, SyntaxException, InterruptedException {
 		final Set<String>			pseudoDeploy = new HashSet<>();
 		final NanoService			ns = new NanoService(){

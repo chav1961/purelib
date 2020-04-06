@@ -457,6 +457,8 @@ public class SQLUtils {
 		toMap.put(Short.class,(source)->{return Short.valueOf(((Byte)source).shortValue());});
 		toMap.put(Integer.class,(source)->{return Integer.valueOf(((Byte)source).intValue());});
 		toMap.put(Long.class,(source)->{return Long.valueOf(((Byte)source).longValue());});
+		toMap.put(Float.class,(source)->{return Float.valueOf(((Integer)source).floatValue());});
+		toMap.put(Double.class,(source)->{return Double.valueOf(((Integer)source).doubleValue());});
 		toMap.put(BigInteger.class,(source)->{return BigInteger.valueOf(((Byte)source).longValue());});
 		toMap.put(byte[].class,(source)->{return new byte[]{((Byte)source).byteValue()};});
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(new byte[]{((Byte)source).byteValue()});});
@@ -485,6 +487,8 @@ public class SQLUtils {
 		toMap.put(Byte.class,(source)->{return Byte.valueOf(((Short)source).byteValue());});
 		toMap.put(Integer.class,(source)->{return Integer.valueOf(((Short)source).intValue());});
 		toMap.put(Long.class,(source)->{return Long.valueOf(((Short)source).longValue());});
+		toMap.put(Float.class,(source)->{return Float.valueOf(((Integer)source).floatValue());});
+		toMap.put(Double.class,(source)->{return Double.valueOf(((Integer)source).doubleValue());});
 		toMap.put(BigInteger.class,(source)->{return BigInteger.valueOf(((Short)source).longValue());});
 		toMap.put(byte[].class,(source)->{return new byte[]{(byte)(((Short)source).shortValue() >> 8), (byte)(((Short)source).shortValue() >> 0)};});
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(new byte[]{(byte)(((Short)source).shortValue() >> 8), (byte)(((Short)source).shortValue() >> 0)});});
@@ -513,6 +517,8 @@ public class SQLUtils {
 		toMap.put(Byte.class,(source)->{return Byte.valueOf(((Integer)source).byteValue());});
 		toMap.put(Short.class,(source)->{return Short.valueOf(((Integer)source).shortValue());});
 		toMap.put(Long.class,(source)->{return Long.valueOf(((Integer)source).longValue());});
+		toMap.put(Float.class,(source)->{return Float.valueOf(((Integer)source).floatValue());});
+		toMap.put(Double.class,(source)->{return Double.valueOf(((Integer)source).doubleValue());});
 		toMap.put(BigInteger.class,(source)->{return BigInteger.valueOf(((Integer)source).longValue());});
 		toMap.put(byte[].class,(source)->{return new byte[]{(byte)(((Integer)source).intValue() >> 24), (byte)(((Integer)source).intValue() >> 16), (byte)(((Integer)source).intValue() >> 8), (byte)(((Integer)source).intValue() >> 0)};});
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(new byte[]{(byte)(((Integer)source).intValue() >> 24), (byte)(((Integer)source).intValue() >> 16), (byte)(((Integer)source).intValue() >> 8), (byte)(((Integer)source).intValue() >> 0)});});
@@ -542,6 +548,8 @@ public class SQLUtils {
 		toMap.put(Short.class,(source)->{return Short.valueOf(((Long)source).shortValue());});
 		toMap.put(Integer.class,(source)->{return Integer.valueOf(((Long)source).intValue());});
 		toMap.put(Long.class,(source)->{return Long.valueOf(((Long)source).longValue());});
+		toMap.put(Float.class,(source)->{return Float.valueOf(((Long)source).floatValue());});
+		toMap.put(Double.class,(source)->{return Double.valueOf(((Long)source).doubleValue());});
 		toMap.put(BigInteger.class,(source)->{return BigInteger.valueOf((((Long)source).longValue()));});
 		toMap.put(byte[].class,(source)->{
 			final long	temp = ((Long)source).longValue();

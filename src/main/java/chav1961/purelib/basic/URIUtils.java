@@ -513,4 +513,13 @@ public class URIUtils {
 			}
 		}
 	}
+	
+	public static URI deepNormalize(final URI source) {
+		if (source == null) {
+			throw new NullPointerException("Content for URI can't be null");
+		}
+		else {
+			return appendRelativePath2URI(source,".");
+		}
+	}
 }

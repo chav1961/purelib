@@ -9,7 +9,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
-public class MutableContentNodeMetadata implements ContentNodeMetadata {
+public class MutableContentNodeMetadata implements ContentNodeMetadata, Cloneable {
 	private final List<ContentNodeMetadata>	children = new ArrayList<>();
 	private final String				name;
 	private final Class<?>				type;
@@ -189,5 +189,16 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 				+ tooltipId + ", helpId=" + helpId + ", relativeUIPath=" + relativeUIPath + ", formatAssociated="
 				+ formatAssociated + ", localizerAssociated=" + localizerAssociated + ", applicationPath="
 				+ applicationPath + ", iconURI=" + iconURI + "]";
+	}
+	
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		final MutableContentNodeMetadata	clone = (MutableContentNodeMetadata)super.clone();
+
+		clone.children.clear();
+		for (ContentNodeMetadata item : this) {
+			clone.addChild(((MutableContentNodeMetadata)((MutableContentNodeMetadata)item).clone()));
+		}
+		return clone;
 	}
 }

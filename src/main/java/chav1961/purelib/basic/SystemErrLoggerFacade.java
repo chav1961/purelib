@@ -45,9 +45,11 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 
 	@Override
 	protected void toLogger(final Severity level, final String text, final Throwable throwable) {
-		ps.println(level+": "+text);
-		if (throwable != null) {
-			throwable.printStackTrace(ps);
+		if (level != Severity.tooltip) {
+			ps.println("System.err.logger["+level+"]: "+text);
+			if (throwable != null) {
+				throwable.printStackTrace(ps);
+			}
 		}
 	}
 }

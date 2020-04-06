@@ -259,6 +259,54 @@ public class FieldFormat {
 		return useInListAnchored;
 	}
 
+	public String toFormatString() {
+		final StringBuilder	sb = new StringBuilder();
+		
+		if (mask != null) {
+			sb.append('(').append(mask).append(')');
+		}
+		if (length > 0) {
+			sb.append(length);
+			if (frac > 0) {
+				sb.append('.').append(frac);
+			}
+		}
+		if (isMandatory) {
+			sb.append('m');
+		}
+		if (isReadOnly || isReadOnlyOnExistent) {
+			sb.append(isReadOnly ? 'r' : 'R');
+		}
+		if (useInList || useInListAnchored) {
+			sb.append(useInList ? 'l' : 'L');
+		}
+		if (negativeHighlight) {
+			sb.append('n');
+		}
+		if (zeroHighlight) {
+			sb.append('z');
+		}
+		if (positiveHighlight) {
+			sb.append('z');
+		}
+		switch (alignment) {
+			case Ajusted		: sb.append("<>"); break;
+			case CenterAlignment: sb.append("><"); break;
+			case LeftAlignment	: sb.append("<"); break;
+			case RightAlignment	: sb.append(">"); break;
+			case NoMatter		: break;
+			default : throw new UnsupportedOperationException("Alignment ["+alignment+"] is not supported yet");
+		}
+		if (isOutput) {
+			sb.append('o');
+		}
+		if (needSelect) {
+			sb.append('s');
+		}
+		
+		return sb.toString();
+	}
+	
 	static ContentType defineContentType(final Class<?> clazz, final String mask) {
 		switch (CompilerUtils.defineClassType(clazz)) {
 			case CompilerUtils.CLASSTYPE_REFERENCE	:

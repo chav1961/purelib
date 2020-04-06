@@ -15,6 +15,8 @@ import java.awt.event.MouseWheelListener;
 
 import javax.swing.SwingUtilities;
 
+import chav1961.purelib.ui.swing.SwingUtils;
+
 
 public class DnDManager implements AutoCloseable {
 	public enum DnDMode {
@@ -139,12 +141,15 @@ public class DnDManager implements AutoCloseable {
 		componentRemoved(this.owner);
 	}
 	
-	public void selectDnDMode(final DnDMode mode) {
+	public DnDMode selectDnDMode(final DnDMode mode) {
 		if (mode == null) {
 			throw new NullPointerException("Mode to set can't be null");
 		}
 		else {
+			final DnDMode	oldMode = currentDnDMode;
+			
 			currentDnDMode = mode;
+			return oldMode;
 		}
 	}
 	
@@ -154,19 +159,19 @@ public class DnDManager implements AutoCloseable {
 	
 	private void componentAdded(final Component component) {
 		component.addMouseListener(totalListener);
-		if (component instanceof Container) {
-			for (Component item : ((Container)component).getComponents()) {
-				componentAdded(item);
-			}
+		component.addMouseMotionListener(totalListener);
+		component.addMouseWheelListener(totalListener);
+		for (Component child : SwingUtils.children(component)) {
+			componentAdded(child);
 		}
 	}
 
 	private void componentRemoved(final Component component) {
-		if (component instanceof Container) {
-			for (Component item : ((Container)component).getComponents()) {
-				componentRemoved(item);
-			}
+		for (Component child : SwingUtils.children(component)) {
+			componentRemoved(child);
 		}
+		component.removeMouseWheelListener(totalListener);
+		component.removeMouseMotionListener(totalListener);
 		component.removeMouseListener(totalListener);
 	}
 	

@@ -29,6 +29,17 @@
 		<key name="MIT">[[https://en.wikipedia.org/wiki/MIT_License|MIT license]]</key>
 		<key name="NAVIGATION.ROOT">Navigation</key>
 
+<!-- Well-known keys  -->
+		<key name="wklk.check.nullOrEmptyValue">Null or empty value is not supported for current control</key>
+		<key name="wklk.check.classNotFound">Class [%1$s] you type not found anywhere</key>
+		<key name="wklk.check.absoluteUriRequired">URI you type must be absolute (contain scheme)</key>
+		<key name="wklk.check.relativeUriRequired">URI you type must be relative (doensn't contain scheme)</key>
+		<key name="wklk.check.illegalUriFormat">Illegal URI format [%1$s]</key>
+		<key name="wklk.check.uriRefers2NoWhere">URI [%1$s] refers to missing or non-existent resource</key>
+		<key name="wklk.check.localization.keyMissing">Localization URI [%1$s] doens't contain localization id [%2$s]</key>
+		<key name="wklk.check.illegalFieldFormat">Illegal field format [%2$s] for type [%1$s]: %3$s</key>
+		
+
 <!-- FileSystem descriptors  --> 
 		<key name="fileSystems.FileSystemInMemory.description">In-memory file system</key>
 		<key name="fileSystems.FileSystemInMemory.vendor">${VENDOR} </key>
@@ -170,6 +181,36 @@
 		<key name="JSimpleHelpWindow.desktopTitle">Browser error:</key>
 		<key name="JSimpleHelpWindow.desktopError">Error calling browser: %1$s</key>
 		<key name="JSimpleHelpWindow.desktopNotSet">Desktop tools are unavailable</key>
+		
+<!-- Content model editor localization  -->
+		<key name="JContentMetadataEditor.single.caption">Single node editor:</key>
+		<key name="JContentMetadataEditor.single.caption.tt">Edit single node in the model:</key>
+		<key name="JContentMetadataEditor.single.fieldName">Node name:</key>
+		<key name="JContentMetadataEditor.single.fieldName.tt">Name of the current node:</key>
+		<key name="JContentMetadataEditor.single.fieldType">Node type:</key>
+		<key name="JContentMetadataEditor.single.fieldType.tt">Type of the current node (one of the Java classes)</key>
+		<key name="JContentMetadataEditor.single.fieldRelUI">Relative UI name:</key>
+		<key name="JContentMetadataEditor.single.fieldRelUI.tt">Name of UI control in the UI tree</key>
+		<key name="JContentMetadataEditor.single.fieldLocalizer">Localizer:</key>
+		<key name="JContentMetadataEditor.single.fieldLocalizer.tt">Localizer URI to associate with the given node. Retain empty if not required</key>
+		<key name="JContentMetadataEditor.single.labelId">Node label ID:</key>
+		<key name="JContentMetadataEditor.single.labelId.tt">Human-readable name if the current node (ID must present in the localizer associated)</key>
+		<key name="JContentMetadataEditor.single.tooltipId">Node tooltip ID:</key>
+		<key name="JContentMetadataEditor.single.tooltipId.tt">Tooltip for the current node (ID must present in the localizer associated). Retain empty if not required</key>
+		<key name="JContentMetadataEditor.single.helpId">Node help ID:</key>
+		<key name="JContentMetadataEditor.single.helpId.tt">Tooltip for the current node (ID must present in the localizer associated). Retain empty if not required</key>
+		<key name="JContentMetadataEditor.single.fieldFormat">Node value format:</key>
+		<key name="JContentMetadataEditor.single.fieldFormat.tt">Format to represents node value on screens and hardcopies</key>
+		<key name="JContentMetadataEditor.single.fieldApplicationUri">Application URI:</key>
+		<key name="JContentMetadataEditor.single.fieldApplicationUri.tt">Any URI associated with the current node. Retain empty if not required</key>
+		<key name="JContentMetadataEditor.single.iconUri">Icon URI:</key>
+		<key name="JContentMetadataEditor.single.iconUri.tt">URI of the icon, associated with the current node. Retain empty if not required</key>
+		
+		<key name="JContentMetadataEditor.root.caption">Model editor:</key>
+		<key name="JContentMetadataEditor.root.caption.tt">Edit model description:</key>
+		<key name="JContentMetadataEditor.root.fieldName">Model name:</key>
+		<key name="JContentMetadataEditor.root.fieldName.tt">Name id the model:</key>
+		
 	</lang>
 	<lang name="ru">
 <!-- Тестовый набор  -->
@@ -199,6 +240,16 @@
 		<key name="Advanced">...</key>
 		<key name="MIT">[[https://en.wikipedia.org/wiki/MIT_License|лицензия MIT]]</key>
 		<key name="NAVIGATION.ROOT">Навигация</key>
+
+<!-- Общеизвестные ключи -->
+		<key name="wklk.check.nullOrEmptyValue">Пустое или отсутствующее значение для данного поля недопустимо</key>
+		<key name="wklk.check.classNotFound">Заданный класс [%1$s] не найден или не существует</key>
+		<key name="wklk.check.absoluteUriRequired">Заданный URI должен быть абсолютным (содержать схему)</key>
+		<key name="wklk.check.relativeUriRequired">Заданный URI должен быть относительным (не содержать схему)</key>
+		<key name="wklk.check.illegalUriFormat">Ошибка в формате URI [%1$s]</key>
+		<key name="wklk.check.uriRefers2NoWhere">URI [%1$s] ссылается на несуществующий ресурс</key>
+		<key name="wklk.check.localization.keyMissing">Локализатор (URI [%1$s]) не содержит идентификатора [%2$s]</key>
+		<key name="wklk.check.illegalFieldFormat">Неверный формат поля [%2$s] для типа [%1$s]: %3$s</key>
 
 <!-- Описания файловых систем   -->
 		<key name="fileSystems.FileSystemInMemory.description">ФС в памяти</key>
@@ -341,5 +392,35 @@
 		<key name="JSimpleHelpWindow.desktopTitle">Ошибка просмотра:</key>
 		<key name="JSimpleHelpWindow.desktopError">Ошибка вызова браузера: %1$s</key>
 		<key name="JSimpleHelpWindow.desktopNotSet">Инструменты рабочего стола недоступны</key> 
+
+<!-- Локализация редактора контентной модели -->
+		<key name="JContentMetadataEditor.single.caption">Редактор узла:</key>
+		<key name="JContentMetadataEditor.single.caption.tt">Редактирует отдельный узел модели</key>
+		<key name="JContentMetadataEditor.single.fieldName">Имя узла:</key>
+		<key name="JContentMetadataEditor.single.fieldName.tt">Имя текущего узла</key>
+		<key name="JContentMetadataEditor.single.fieldType">Тип узла:</key>
+		<key name="JContentMetadataEditor.single.fieldType.tt">Тип текущего узла (один из классов Java)</key>
+		<key name="JContentMetadataEditor.single.fieldRelUI">Относит. имя UI:</key>
+		<key name="JContentMetadataEditor.single.fieldRelUI.tt">Относительное имя органа управления в графическом дереве</key>
+		<key name="JContentMetadataEditor.single.fieldLocalizer">Локализатор:</key>
+		<key name="JContentMetadataEditor.single.fieldLocalizer.tt">URI локализатора, связанного с данным узлом. Если не требуется, оставьте поле пустым</key>
+		<key name="JContentMetadataEditor.single.labelId">Ид. метки узла:</key>
+		<key name="JContentMetadataEditor.single.labelId.tt">Человекочитаемое имя текущего узла (Ид. должен быть описан в локализаторе)</key>
+		<key name="JContentMetadataEditor.single.tooltipId">Ид. подсказки узла:</key>
+		<key name="JContentMetadataEditor.single.tooltipId.tt">Подсказка по текущему узлу (Ид. должен быть описан в локализаторе). Если не требуется, оставьте поле пустым</key>
+		<key name="JContentMetadataEditor.single.helpId">Ид. справки узла:</key>
+		<key name="JContentMetadataEditor.single.helpId.tt">Справка (HELP) по текущему узлу (Ид. должен быть описан в локализаторе). Если не требуется, оставьте поле пустым</key>
+		<key name="JContentMetadataEditor.single.fieldFormat">Формат значения узла:</key>
+		<key name="JContentMetadataEditor.single.fieldFormat.tt">Формат для представления значения узла на экране или принтере</key>
+		<key name="JContentMetadataEditor.single.fieldApplicationUri">URI приложения:</key>
+		<key name="JContentMetadataEditor.single.fieldApplicationUri.tt">Любой URI, связанный с текущим узлом. Если не требуется, оставьте поле пустым</key>
+		<key name="JContentMetadataEditor.single.iconUri">URI иконки:</key>
+		<key name="JContentMetadataEditor.single.iconUri.tt">URI иконки текущего узла. Если не требуется, оставьте поле пустым</key>
+		
+		<key name="JContentMetadataEditor.root.caption">Редактор модели:</key>
+		<key name="JContentMetadataEditor.root.caption.tt">Редактирует описание модели в целом</key>
+		<key name="JContentMetadataEditor.root.fieldName">Имя модели:</key>
+		<key name="JContentMetadataEditor.root.fieldName.tt">Имя модели</key>
+
 	</lang>
 </localization>

@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
@@ -25,6 +28,7 @@ import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableModel;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
@@ -43,6 +47,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @see ProgressIndicator
  * @see JTextPaneHighlighter
  * @since 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public class JStateString extends JPanel implements LoggerFacade, ProgressIndicator, LocaleChangeListener {
@@ -93,6 +98,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private int 					currentState = STATE_PLAIN; 
 	private volatile CancelCallback	currentCallback = null;
 	private volatile boolean		canceled = false;
+	private int[]					timeouts = new int[Severity.values().length];
 	
 	/**
 	 * <p>Create ordinal state string with no history and no logging</p>
@@ -467,6 +473,32 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		delegate.close();
 	}
 
+	/**
+	 * <p>Set automatic clear in state string for message severities</p>
+	 * @param severity message severity
+	 * @param time time to clear. Value 0 turns off automatic clearing
+	 * @param units time units to clear 
+	 * @throws NullPointerException when any parameter is null
+	 * @throws IllegalArgumentException on negative time value
+	 */
+	public void setAutomaticClearTime(final Severity severity, final int time, final TimeUnit units) throws NullPointerException, IllegalArgumentException {
+		if (severity == null) {
+			throw new NullPointerException("Severity can't be null");
+		}
+		else if (time < 0) {
+			throw new IllegalArgumentException("Time ["+time+"] must be greater or equals 0");
+		}
+		else if (units == null) {
+			throw new NullPointerException("Time units can't be null");
+		}
+		else if (time == 0) {
+			timeouts[severity.ordinal()] = 0;
+		}
+		else {
+			timeouts[severity.ordinal()] = (int)TimeUnit.MILLISECONDS.convert(time,units);
+		}
+	}
+
 	protected void showHistory(final JTable historyContent) {
 		final Point			location = historyView.getLocationOnScreen();
 		final JScrollPane	pane = new JScrollPane(historyContent);
@@ -620,6 +652,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 	
 	private class InternalLoggerFacade extends AbstractLoggerFacade {
+		private volatile AtomicReference<TimerTask>		tt = new AtomicReference<>();
+		
 		private InternalLoggerFacade() {
 		}
 
@@ -666,6 +700,24 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 					break;
 				default:
 					break;
+			}
+			final TimerTask	old;
+			
+			if (timeouts[level.ordinal()] > 0) {
+				final TimerTask	temp = new TimerTask() {
+											@Override
+											public void run() {
+												state.setText("");
+											}
+										};
+				PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(temp,timeouts[level.ordinal()]);
+				old = tt.getAndSet(temp);
+			}
+			else {
+				old = tt.getAndSet(null);
+			}
+			if (old != null) {
+				old.cancel();
 			}
 		}
 	}

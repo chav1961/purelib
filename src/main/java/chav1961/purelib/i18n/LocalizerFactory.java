@@ -27,15 +27,36 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see LocaleSpecificTextSetter
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
-public class LocalizerFactory {
+public final class LocalizerFactory {
 	private static final Map<URI,Localizer>	cache = new ConcurrentHashMap<>();
 
 	private LocalizerFactory() {
 	}
 
+	/**
+	 * <p>Test existence of localizer for the given URI</p>
+	 * @param localizerUri localizer URI to test
+	 * @return true if appropriative localized is accessible, false otherwise
+	 * @throws NullPointerException if localizerUri is null
+	 * @since 0.0.4
+	 */
+	public static boolean hasLocalizerFor(final URI localizerUri) throws NullPointerException {
+		if (localizerUri == null) {
+			throw new NullPointerException("Localizer URI can't be null"); 
+		}
+		else {
+			for (Localizer item : ServiceLoader.load(Localizer.class)) {
+				if (item.canServe(localizerUri)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+	
 	/**
 	 * <p>Get localizer for the given localizer URI. Any localizers were registered thru SPI can be used. SPI service name is the name of {@linkplain Localizer} class</p>
 	 * @param localizerUri resource to get localizer for. Must be any URI with the {@linkplain Localizer#LOCALIZER_SCHEME} scheme

@@ -282,6 +282,9 @@ loop:			for (Component comp : children(node)) {
 					}				
 				}
 			}
+			if (component instanceof JButtonWithMetaAndActions) {
+				result.addAll(Arrays.asList(((JButtonWithMetaAndActions)component).getActionNodes()));
+			}
 			return result;
 		}
 	}

@@ -14,6 +14,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.SwingUtils;
@@ -132,7 +133,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 			case Saving:
 				try{final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
 				
-					ModelUtils.setValueBySetter(instance, ((JComponentInterface)component).getChangedValueFromComponent(), accessors.get(metadata.getUIPath()), metadata);
+					ModelUtils.setValueBySetter(instance, SQLUtils.convert(metadata.getType(),((JComponentInterface)component).getChangedValueFromComponent()), accessors.get(metadata.getUIPath()), metadata);
 					switch (formMgr.onField(instance,null,metadata.getName(),oldValue)) {
 						case FIELD_ONLY : case DEFAULT : case NONE :
 							break;
@@ -142,7 +143,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 							}
 							break;
 						case REJECT		:
-							ModelUtils.setValueBySetter(instance, oldValue, accessors.get(metadata.getUIPath()), metadata);
+							ModelUtils.setValueBySetter(instance, SQLUtils.convert(metadata.getType(),oldValue), accessors.get(metadata.getUIPath()), metadata);
 							((JComponentInterface)component).assignValueToComponent(oldValue);
 							break;
 						case EXIT :
@@ -150,7 +151,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 						default	:
 							break;
 					}
-				} catch (LocalizationException | FlowException exc) {
+				} catch (LocalizationException | FlowException | ContentException | RuntimeException exc) {
 					getLogger().message(Severity.error,exc,"Saving for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 				}
 				break;

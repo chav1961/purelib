@@ -97,9 +97,6 @@ public class ComponentKeepedBorder implements Border {
 			components[components.length-1-index].setSize(area.height-2,area.height-2);
 			components[components.length-1-index].setVisible(parent.isVisible());
 		}
-		for (Component item : ((Container)parent).getComponents()) {
-			System.err.println("Item="+item.getClass()+", vis="+item.isVisible()+", size="+item.getSize());
-		}
 	}
 	
 	private void determineInsetsAndAlignment(final JComponent parent) {

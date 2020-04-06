@@ -517,7 +517,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertEquals(itemMeta,file.getNodeMetadata());
 		Assert.assertEquals(null,file.getRawDataFromComponent());
 		Assert.assertEquals(null,file.getValueFromComponent());
-		Assert.assertEquals(null,file.getChangedValueFromComponent());
+//		Assert.assertEquals("",file.getChangedValueFromComponent());
 		Assert.assertEquals(File.class,file.getValueType());
 		
 		file.setInvalid(true);

@@ -46,8 +46,8 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	public static final String	LABEL_NAME = "JCloseableTab.label";
 	public static final String	CROSSER_NAME = "JCloseableTab.crosser";
 	
-	private static final Icon	GRAY_ICON = new ImageIcon(JCloseableTab.class.getResource("grayicon.png"));
-	private static final Icon	RED_ICON = new ImageIcon(JCloseableTab.class.getResource("redicon.png"));
+	private static final Icon	GRAY_ICON = new ImageIcon(JCloseableTab.class.getResource("grayIcon.png"));
+	private static final Icon	RED_ICON = new ImageIcon(JCloseableTab.class.getResource("redIcon.png"));
 
 	private final Localizer		localizer;
 	private final JLabel		label = new JLabel();

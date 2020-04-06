@@ -249,8 +249,9 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @throws NullPointerException if the reader is null
 	 * @throws IOException on any I/O errors
 	 * @since 0.0.2 
+	 * @lastUpdate 0.0.4 
 	 */
-	public void append(final Reader rdr) throws NullPointerException, IOException {
+	public T append(final Reader rdr) throws NullPointerException, IOException {
 		if (rdr == null) {
 			throw new NullPointerException("Reader can't be null"); 
 		}
@@ -261,6 +262,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 			while ((len = rdr.read(buffer)) > 0) {
 				append(buffer,0,len);
 			}
+			return (T) this;
 		}
 	}
 

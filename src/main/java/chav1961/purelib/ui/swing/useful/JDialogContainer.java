@@ -32,6 +32,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.exceptions.FlowException;
@@ -337,8 +338,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	}
 
 	private void prepareSimpleDialog(final JComponent inner) {
-		try(final LoggerFacade	lf = new SystemErrLoggerFacade();
-			final LoggerFacade	trans = lf.transaction(this.getClass().getSimpleName())) {
+		try(final LoggerFacade	trans = PureLibSettings.CURRENT_LOGGER.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
 			final Dimension		screenSize = Toolkit.getDefaultToolkit().getScreenSize(), innerSize = inner.getPreferredSize();
@@ -364,8 +364,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	}
 
 	private void prepareWizardDialog(WizardStep<Common, ErrorType, Content>[] steps) throws LocalizationException {
-		try(final LoggerFacade	lf = new SystemErrLoggerFacade();
-			final LoggerFacade	trans = lf.transaction(this.getClass().getSimpleName())) {
+		try(final LoggerFacade	trans = PureLibSettings.CURRENT_LOGGER.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
 			

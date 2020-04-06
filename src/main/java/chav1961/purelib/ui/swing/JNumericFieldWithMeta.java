@@ -83,6 +83,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 							if (!getValue().equals(currentValue)) {
 								try{monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMeta.this);
 								} catch (ContentException e1) {
+									e1.printStackTrace();
 								}
 								prepareFieldColor(currentValue = getValue(), format);
 							}

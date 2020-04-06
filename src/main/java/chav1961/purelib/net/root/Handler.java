@@ -46,20 +46,20 @@ public class Handler extends URLStreamHandler {
 				}				
 			}
 			else {
-				final String	host = url.getHost();
-				final String	path = url.getPath();
-				final Class<?>	clazz = Class.forName(host);
-				final URI		resource = clazz.getResource(clazz.getSimpleName()+".class").toURI();
+				final String		host = url.getHost();
+				final String		path = url.getPath();
+				final Class<?>		clazz = Class.forName(host);
+				final URI			resource = clazz.getResource(clazz.getSimpleName()+".class").toURI();
+				final StringBuilder	resourcePath = new StringBuilder(resource.toString());
+				int poz = -1;
 				
-				final StringBuilder	resourcePath = new StringBuilder(resource.toString()).append("/../");
-				int				index = 0;
-				
-				while ((index = host.indexOf('.',index)) > 0) {
-					resourcePath.append("../");
-					index++;
+				while ((poz = host.indexOf('.',poz+1)) >= 0) {
+					resourcePath.setLength(Math.max(resourcePath.lastIndexOf("/"),resourcePath.lastIndexOf("\\")));
 				}
+				resourcePath.setLength(Math.max(resourcePath.lastIndexOf("/"),resourcePath.lastIndexOf("\\"))+1);
 				resourcePath.append(path.substring(1));
-				final URI		location = URI.create(resourcePath.toString()).normalize();
+				
+				final URI		location = URI.create(resourcePath.toString());
 				
 				return location.toURL().openConnection();
 			}

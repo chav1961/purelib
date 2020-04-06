@@ -31,6 +31,8 @@ code was refactored.
 
 4. Maven scripts and all tests were radically refactored to support correct UI Swing testing (JUnit test categories were placed)
 
+5. Method setAutomaticClearTime(...) was added to JStateString for automatical clearing of state string with different message severities 
+
 III. Incompatibilities
 
 1. Class basic.ClassLoaderWrapper was removed from Pure Library, because it's functionality can't be supported in Java 9 and higher. 
@@ -42,3 +44,4 @@ IV. Bug fix
 1. Macro assembler .choise with booleans - fixed
 2. AndOrTree last character in node name had been lost on walking - fixed. 
 3. SubstitutableProperrties didnt't get values from default source after it's changing - fixed. 
+4. Problems with 'root' URL path normalization - fixed.
