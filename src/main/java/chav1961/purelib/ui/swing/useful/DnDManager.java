@@ -3,6 +3,7 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.dnd.DragSource;
 import java.awt.event.ContainerEvent;
@@ -32,83 +33,33 @@ public class DnDManager implements AutoCloseable {
 	}
 
 	private interface TotalMouseListener extends MouseListener, MouseMotionListener, MouseWheelListener {}
+
+	private enum MouseAction {
+		CLICKED, MOVED, WHEEL_MOVED, PRESSED, RELEASED, ENTERED, EXITED, DRAGGED, UNKNOWN
+	}
 	
 	private final TotalMouseListener	totalListener = new TotalMouseListener() {
-												@Override public void mouseClicked(MouseEvent e) {}
-												@Override public void mouseMoved(MouseEvent e) {}
-												@Override public void mouseWheelMoved(MouseWheelEvent e) {}
-										
-												@Override
-												public void mousePressed(MouseEvent e) {
-													wasPressed = true;
-												}
-										
-												@Override
-												public void mouseReleased(MouseEvent e) {
-													wasPressed = false;
-													if (wasDragged && class2Process != null) {
-														if (e.getComponent() != owner) {
-															if (dndInterface.canReceive(currentDnDMode(),sourceComponent,sourcePoint.x,sourcePoint.x, e.getComponent(), e.getPoint().x, e.getPoint().y,class2Process)) {
-																dndInterface.complete(currentDnDMode(),sourceComponent,sourcePoint.x,sourcePoint.y,e.getComponent(), e.getPoint().x, e.getPoint().y
-																		,dndInterface.getSource(currentDnDMode(),sourceComponent,sourcePoint.x,sourcePoint.y,e.getComponent(),e.getPoint().x,e.getPoint().y)
-																		);
-															}
-														}
-														e.getComponent().setCursor(savedCursor);
-													}
-													wasDragged = false;
-												}
-										
-												@Override
-												public void mouseEntered(MouseEvent e) {
-													if (wasDragged && currentDnDMode != DnDMode.NONE && class2Process != null) {
-														if (e.getComponent() == owner) {
-															validTarget = true;
-														}
-														else {
-															validTarget = dndInterface.canReceive(currentDnDMode(),sourceComponent,sourcePoint.x,sourcePoint.x, e.getComponent(), e.getPoint().x, e.getPoint().y,class2Process);
-														}
-														savedCursor = e.getComponent().getCursor();
-														e.getComponent().setCursor(currentCursor(e.getComponent()));
-													}
-												}
-
-												@Override 
-												public void mouseExited(MouseEvent e) {
-													if (wasDragged && currentDnDMode != DnDMode.NONE && class2Process != null) {
-														e.getComponent().setCursor(savedCursor);
-														validTarget = true;
-													}
-												}
-												
-												@Override
-												public void mouseDragged(MouseEvent e) {
-													if (currentDnDMode != DnDMode.NONE) {
-														if (!wasDragged) {
-															class2Process = dndInterface.getSourceClass(currentDnDMode(),e.getComponent(), e.getX(), e.getY());
-															sourceComponent = e.getComponent();
-															sourcePoint = e.getPoint();
-															wasDragged = true;
-														}
-														else if (wasDragged && currentDnDMode == DnDMode.LINK && class2Process != null) {
-															final Point	pFrom = SwingUtilities.convertPoint(sourceComponent,sourcePoint,owner);
-															final Point	pTo = SwingUtilities.convertPoint(e.getComponent(),e.getPoint(),owner);
-															
-															dndInterface.track(DnDMode.LINK,sourceComponent,pFrom.x,pFrom.y,e.getComponent(),pTo.x,pTo.y);
-														}
-													}
-												}
+												@Override public void mouseClicked(final MouseEvent e) {processMouseEvent(MouseAction.CLICKED,e);}
+												@Override public void mouseMoved(final MouseEvent e) {processMouseEvent(MouseAction.MOVED,e);}
+												@Override public void mouseWheelMoved(final MouseWheelEvent e) {processMouseEvent(MouseAction.WHEEL_MOVED,e);}
+												@Override public void mousePressed(final MouseEvent e) {processMouseEvent(MouseAction.PRESSED,e);}
+												@Override public void mouseReleased(final MouseEvent e) {processMouseEvent(MouseAction.RELEASED,e);}
+												@Override public void mouseEntered(final MouseEvent e) {processMouseEvent(MouseAction.ENTERED,e);}
+												@Override public void mouseExited(final MouseEvent e) {processMouseEvent(MouseAction.EXITED,e);}
+												@Override public void mouseDragged(final MouseEvent e) {processMouseEvent(MouseAction.DRAGGED,e);}
 										
 											};
 	private final Container				owner;
 	private final DnDInterface			dndInterface;
 	
-	private DnDMode						currentDnDMode = DnDMode.NONE; 
-	private Component					sourceComponent;
+	private DnDMode						currentDnDMode = DnDMode.NONE, draggedDndMode = currentDnDMode; 
+	private Component					sourceComponent, enteredComponent;
 	private Point						sourcePoint;
-	private boolean						wasPressed = false, wasDragged = false, validTarget = false;
+	private boolean						allowDrag = false, cursorWasSet = false, validTarget = false;
 	private Cursor						savedCursor = null, dragCursor = null;
 	private Class<?>					class2Process = null;
+	private int							lastX = Integer.MAX_VALUE, lastY = Integer.MAX_VALUE;
+	private MouseAction					lastAction = MouseAction.UNKNOWN;
 	
 	public DnDManager(final Container container, final DnDInterface dndInterface) {
 		if (container == null) {
@@ -175,13 +126,96 @@ public class DnDManager implements AutoCloseable {
 		component.removeMouseListener(totalListener);
 	}
 	
-	private Cursor currentCursor(final Component component) {
-		switch (currentDnDMode()) {
-			case COPY	: return validTarget ? DragSource.DefaultCopyDrop : DragSource.DefaultCopyNoDrop; 
-			case LINK	: return validTarget ? DragSource.DefaultLinkDrop : DragSource.DefaultLinkNoDrop;
-			case MOVE	: return validTarget ? DragSource.DefaultMoveDrop : DragSource.DefaultMoveNoDrop;
-			case NONE	: return component.getCursor();
+	private void processMouseEvent(final MouseAction action, final MouseEvent event) {
+		if (!(action == lastAction && event.getX() == lastX && event.getY() == lastY)) {
+			final Component	lastComponent = event.getComponent();
+			
+			lastX = event.getX();
+			lastY = event.getY();
+			lastAction = action;
+			switch (action) {
+				case CLICKED		:
+					break;
+				case DRAGGED		:
+					if (allowDrag) {
+						final Point		pFrom = SwingUtilities.convertPoint(sourceComponent,sourcePoint,owner);
+						final Point		pTo = SwingUtilities.convertPoint(lastComponent,event.getPoint(),owner);
+
+						if (!cursorWasSet) {
+							cursorWasSet = true;
+							lastComponent.setCursor(selectCursor(lastComponent,validTarget));
+						}
+						
+						dndInterface.track(draggedDndMode,sourceComponent,pFrom.x,pFrom.y,lastComponent,pTo.x,pTo.y);
+					}
+					break;
+				case ENTERED		:
+					if (allowDrag) {
+						enteredComponent = lastComponent;
+						dragCursor = lastComponent.getCursor();
+						validTarget = dndInterface.canReceive(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.x,lastComponent,lastX,lastY,class2Process);
+						lastComponent.setCursor(selectCursor(lastComponent,validTarget));
+					}
+					break;
+				case EXITED			:
+					if (allowDrag) {
+						enteredComponent.setCursor(dragCursor);
+						enteredComponent = null; 
+						validTarget = true;
+					}
+					break;
+				case MOVED			:
+					break;
+				case PRESSED		:
+					if (currentDnDMode != DnDMode.NONE) {
+						savedCursor = dragCursor = lastComponent.getCursor();
+						sourceComponent = enteredComponent = lastComponent;
+						sourcePoint = event.getPoint();
+						draggedDndMode = currentDnDMode;
+						cursorWasSet = false;
+						validTarget = false;
+						allowDrag = (class2Process = dndInterface.getSourceClass(draggedDndMode,lastComponent,lastX,lastY)) != null;
+					}
+					break;
+				case RELEASED		:
+					if (allowDrag) {
+						allowDrag = false;
+						sourceComponent.setCursor(savedCursor);
+						if (enteredComponent != null) {
+							enteredComponent.setCursor(dragCursor);
+							if (enteredComponent != owner) {
+								final Point	enteredPoint = new Point(event.getLocationOnScreen()); 
+								
+								SwingUtilities.convertPointFromScreen(enteredPoint,enteredComponent);
+								if (dndInterface.canReceive(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.x,enteredComponent,enteredPoint.x,enteredPoint.y,class2Process)) {
+									dndInterface.complete(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y
+											,dndInterface.getSource(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y)
+											);
+								}
+							}
+						}
+					}
+					break;
+				case WHEEL_MOVED	:
+					break;
+				case UNKNOWN		:
+					break;
+				default:
+					throw new UnsupportedOperationException("Mouse action ["+action+"] is not supported yet");
+			}
+		}
+	}
+
+	private Cursor selectCursor(final Component component, final boolean validTarget) {
+		final Cursor	result;
+		
+		switch (draggedDndMode) {
+			case COPY	: result = validTarget ? DragSource.DefaultCopyDrop : DragSource.DefaultCopyNoDrop; break; 
+			case LINK	: result = validTarget ? DragSource.DefaultLinkDrop : DragSource.DefaultLinkNoDrop; break;
+			case MOVE	: result = validTarget ? DragSource.DefaultMoveDrop : DragSource.DefaultMoveNoDrop; break;
+			case NONE	: result = component.getCursor(); break;
 			default		: throw new UnsupportedOperationException("Drag&Drop mode ["+currentDnDMode()+"] is not supported yet"); 
 		}
+		return result;
 	}
 }

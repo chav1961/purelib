@@ -273,39 +273,38 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 	}
 
 	private void fillContent() throws ContentException {
-		throw new IllegalStateException(); 
-//		switch (getEditorMode()) {
-//			case FULL_TREE			:
-//				if (mdi != null) {
-//					fillRoot(mdi);
-//					fillNavigator(mdi.getRoot());
-//					navigator.setSelectionRow(0);
-//				}
-//				else {
-//					clearRoot();
-//					clearNavigator();
-//				}
-//				break;
-//			case NODE_AND_SUBTREE	:
-//				if (node != null) {
-//					fillNavigator(node);
-//					navigator.setSelectionRow(0);
-//				}
-//				else { 
-//					clearNavigator();
-//				}
-//				break;
-//			case SINGLE_NODE		:
-//				if (node != null) {
-//					fillSingleNode(node);
-//				}
-//				else {
-//					clearSingleNode();
-//				}
-//				break;
-//			default :
-//				throw new UnsupportedOperationException("Editor mode ["+getEditorMode()+"] is not supported yet");
-//		}
+		switch (getEditorMode()) {
+			case FULL_TREE			:
+				if (mdi != null) {
+					fillRoot(mdi);
+					fillNavigator(mdi.getRoot());
+					navigator.setSelectionRow(0);
+				}
+				else {
+					clearRoot();
+					clearNavigator();
+				}
+				break;
+			case NODE_AND_SUBTREE	:
+				if (node != null) {
+					fillNavigator(node);
+					navigator.setSelectionRow(0);
+				}
+				else { 
+					clearNavigator();
+				}
+				break;
+			case SINGLE_NODE		:
+				if (node != null) {
+					fillSingleNode(node);
+				}
+				else {
+					clearSingleNode();
+				}
+				break;
+			default :
+				throw new UnsupportedOperationException("Editor mode ["+getEditorMode()+"] is not supported yet");
+		}
 	}
 
 	private void clearRoot() {
