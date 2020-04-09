@@ -3,7 +3,6 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.dnd.DragSource;
 import java.awt.event.ContainerEvent;
@@ -34,7 +33,7 @@ public class DnDManager implements AutoCloseable {
 
 	private interface TotalMouseListener extends MouseListener, MouseMotionListener, MouseWheelListener {}
 
-	private enum MouseAction {
+	public enum MouseAction {
 		CLICKED, MOVED, WHEEL_MOVED, PRESSED, RELEASED, ENTERED, EXITED, DRAGGED, UNKNOWN
 	}
 	
@@ -188,9 +187,11 @@ public class DnDManager implements AutoCloseable {
 								
 								SwingUtilities.convertPointFromScreen(enteredPoint,enteredComponent);
 								if (dndInterface.canReceive(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.x,enteredComponent,enteredPoint.x,enteredPoint.y,class2Process)) {
-									dndInterface.complete(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y
-											,dndInterface.getSource(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y)
-											);
+									final Object 	src = dndInterface.getSource(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y);
+
+									if (src != null) {
+										dndInterface.complete(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y,src);
+									}
 								}
 							}
 						}
