@@ -60,6 +60,7 @@ public class FieldFormat {
 	private final boolean		useInList;
 	private final boolean		useInListAnchored;
 	private final boolean		isOutput;
+	private final boolean		supportNulls;
 	
 	public FieldFormat(final Class<?> clazz) throws NullPointerException, IllegalArgumentException {
 		this(clazz,"");
@@ -77,6 +78,7 @@ public class FieldFormat {
 			boolean			isMandatory = false, isReadOnly = false, isReadOnlyOnExistent = false, isOutput = false;
 			boolean			negativeHighlight = false, zeroHighlight = false, positiveHighlight = false;
 			boolean			useInList = false, useInListAnchored = false, needSelect = false;
+			boolean			supportNulls = false;
 			String			mask = null;
 			Alignment		alignment = Alignment.NoMatter;
 			int				pos = 0, len = 0, frac = 0, value;
@@ -133,6 +135,7 @@ public class FieldFormat {
 						break;
 					case 'm' : isMandatory = true; break;
 					case 'n' : negativeHighlight = true; break;
+					case 'N' : supportNulls = true; break;
 					case 'o' : isOutput = true; break;
 					case 'z' : zeroHighlight = true; break;
 					case 'p' : positiveHighlight = true; break;
@@ -203,6 +206,7 @@ public class FieldFormat {
 			this.needSelect = needSelect;
 			this.useInList = useInList;
 			this.useInListAnchored = useInListAnchored;
+			this.supportNulls = supportNulls;
 			this.alignment = alignment;
 			this.length = len;
 			this.frac = frac;
@@ -259,6 +263,10 @@ public class FieldFormat {
 		return useInListAnchored;
 	}
 
+	public boolean isNullSupported() {
+		return supportNulls;
+	}
+	
 	public String toFormatString() {
 		final StringBuilder	sb = new StringBuilder();
 		
@@ -288,6 +296,9 @@ public class FieldFormat {
 		}
 		if (positiveHighlight) {
 			sb.append('z');
+		}
+		if (supportNulls) {
+			sb.append('N');
 		}
 		switch (alignment) {
 			case Ajusted		: sb.append("<>"); break;
@@ -367,11 +378,62 @@ public class FieldFormat {
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((alignment == null) ? 0 : alignment.hashCode());
+		result = prime * result + ((contentType == null) ? 0 : contentType.hashCode());
+		result = prime * result + frac;
+		result = prime * result + (isMandatory ? 1231 : 1237);
+		result = prime * result + (isOutput ? 1231 : 1237);
+		result = prime * result + (isReadOnly ? 1231 : 1237);
+		result = prime * result + (isReadOnlyOnExistent ? 1231 : 1237);
+		result = prime * result + length;
+		result = prime * result + ((mask == null) ? 0 : mask.hashCode());
+		result = prime * result + (needSelect ? 1231 : 1237);
+		result = prime * result + (negativeHighlight ? 1231 : 1237);
+		result = prime * result + (positiveHighlight ? 1231 : 1237);
+		result = prime * result + (supportNulls ? 1231 : 1237);
+		result = prime * result + (useInList ? 1231 : 1237);
+		result = prime * result + (useInListAnchored ? 1231 : 1237);
+		result = prime * result + (zeroHighlight ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		FieldFormat other = (FieldFormat) obj;
+		if (alignment != other.alignment) return false;
+		if (contentType != other.contentType) return false;
+		if (frac != other.frac) return false;
+		if (isMandatory != other.isMandatory) return false;
+		if (isOutput != other.isOutput) return false;
+		if (isReadOnly != other.isReadOnly) return false;
+		if (isReadOnlyOnExistent != other.isReadOnlyOnExistent) return false;
+		if (length != other.length) return false;
+		if (mask == null) {
+			if (other.mask != null) return false;
+		} else if (!mask.equals(other.mask)) return false;
+		if (needSelect != other.needSelect) return false;
+		if (negativeHighlight != other.negativeHighlight) return false;
+		if (positiveHighlight != other.positiveHighlight) return false;
+		if (supportNulls != other.supportNulls) return false;
+		if (useInList != other.useInList) return false;
+		if (useInListAnchored != other.useInListAnchored) return false;
+		if (zeroHighlight != other.zeroHighlight) return false;
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		return "FieldFormat [contentType=" + contentType + ", alignment=" + alignment + ", length=" + length + ", frac="
 				+ frac + ", mask=" + mask + ", isMandatory=" + isMandatory + ", isReadOnly=" + isReadOnly
 				+ ", isReadOnlyOnExistent=" + isReadOnlyOnExistent + ", negativeHighlight=" + negativeHighlight
 				+ ", zeroHighlight=" + zeroHighlight + ", positiveHighlight=" + positiveHighlight + ", needSelect="
-				+ needSelect + ", useInList=" + useInList + ", useInListAnchored=" + useInListAnchored + "]";
+				+ needSelect + ", useInList=" + useInList + ", useInListAnchored=" + useInListAnchored + ", isOutput="
+				+ isOutput + ", supportNulls=" + supportNulls + "]";
 	}
 }

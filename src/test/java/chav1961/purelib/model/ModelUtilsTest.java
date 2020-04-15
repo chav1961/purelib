@@ -1,16 +1,30 @@
 package chav1961.purelib.model;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.model.ModelUtils.ModelComparisonCallback;
+import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
+import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.streams.JsonStaxParser;
+import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -135,6 +149,107 @@ public class ModelUtilsTest {
 		try{ModelUtils.setValueBySetter(tc,10,intUri,null);
 			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
 		} catch (NullPointerException exc) {
+		}
+	}
+	
+	@Test
+	public void nodeComparisonTest() {
+		final Set<DifferenceLocalization>	diff = new HashSet<>();
+		final ModelComparisonCallback		mcc = new ModelComparisonCallback() {
+												@Override
+												public ContinueMode difference(final ContentNodeMetadata left, final ContentNodeMetadata right, final DifferenceType diffType, final Set<DifferenceLocalization> details) {
+													diff.addAll(details);
+													return ContinueMode.CONTINUE;
+												}
+											}; 
+		final MutableContentNodeMetadata	md1 = new MutableContentNodeMetadata("name",String.class,"./name",null,"labelId","tooltipId",null,new FieldFormat(String.class,"m"),URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/test"),null);
+		final MutableContentNodeMetadata	md2 = new MutableContentNodeMetadata("name",String.class,"./name",null,"labelId","tooltipId",null,new FieldFormat(String.class,"m"),URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/test"),null);
+		final MutableContentNodeMetadata	md3 = new MutableContentNodeMetadata("name",String.class,"./name2",null,"labelId",null,"helpId",new FieldFormat(String.class,"m"),URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/another"),null);
+
+		Assert.assertTrue(ModelUtils.compare(md1,md2,mcc));
+		Assert.assertEquals(Set.of(),diff);
+		Assert.assertTrue(ModelUtils.compare(md1,md3,mcc));
+		Assert.assertEquals(Set.of(DifferenceLocalization.IN_UI_PATH,DifferenceLocalization.IN_HELP,DifferenceLocalization.IN_APP_PATH,DifferenceLocalization.IN_TOOLTIP),diff);
+
+		try{ModelUtils.compare(null,md3,mcc);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{ModelUtils.compare(md1,null,mcc);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{ModelUtils.compare(md1,md3,null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+
+	@Test
+	public void nodeSerializationTest() throws IOException {
+		final MutableContentNodeMetadata	md = new MutableContentNodeMetadata("name",String.class,"./name",null,"labelId","tooltipId",null,new FieldFormat(String.class,"m"),URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/test"),null);
+		
+		try(final StringWriter			wr = new StringWriter()) {
+			try(final JsonStaxPrinter	prn = new JsonStaxPrinter(wr)) {
+				ModelUtils.serializeToJson(md,prn);
+				
+				try{ModelUtils.serializeToJson(null,prn);
+					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+				} catch (NullPointerException exc) {
+				}
+				try{ModelUtils.serializeToJson(md,null);
+					Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+				} catch (NullPointerException exc) {
+				}
+			}
+			
+			try(final Reader			rdr = new StringReader(wr.toString());
+				final JsonStaxParser	parser= new JsonStaxParser(rdr)) {
+				
+				Assert.assertTrue(ModelUtils.compare(md, ModelUtils.deserializeFromJson(parser), (a,b,c,d)->ContinueMode.CONTINUE));
+
+				try{ModelUtils.deserializeFromJson(null);
+					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+				} catch (NullPointerException exc) {
+				}
+			}
+			
+			try{testErroneousJsonDeserialization(wr.toString().replace("\"version\":\"1.0\",",""));
+				Assert.fail("Mandatory exception was not detected (missing version field)");
+			} catch (IOException exc) {
+			}
+			try{testErroneousJsonDeserialization(wr.toString().replace("\"1.0\"","\"0.0\""));
+				Assert.fail("Mandatory exception was not detected (unsupported version)");
+			} catch (IOException exc) {
+			}
+			try{testErroneousJsonDeserialization(wr.toString().replace("\"name\"","\"unknown\""));
+				Assert.fail("Mandatory exception was not detected (unsupported field name)");
+			} catch (IOException exc) {
+			}
+			try{testErroneousJsonDeserialization(wr.toString().replace("\"name\":\"name\",",""));
+				Assert.fail("Mandatory exception was not detected (mandatory field missing)");
+			} catch (IOException exc) {
+			}
+			try{testErroneousJsonDeserialization(wr.toString().replace("\"type\":\"java.lang.String\"","\"type\":\"unknown\""));
+				Assert.fail("Mandatory exception was not detected (unknown class in the class loader)");
+			} catch (IOException exc) {
+			}
+			try{testErroneousJsonDeserialization(wr.toString().replace("\"format\":\"m\"","\"format\":\"?\""));
+				Assert.fail("Mandatory exception was not detected (illegal format)");
+			} catch (IOException exc) {
+			}
+			try{testErroneousJsonDeserialization(wr.toString().replace("\"appUri\":\"app:/test\"","\"appUri\":\"a b c d e\""));
+				Assert.fail("Mandatory exception was not detected (illegal URI)");
+			} catch (IOException exc) {
+			}
+		}
+	}
+	
+	private void testErroneousJsonDeserialization(final String content) throws IOException {
+		try(final Reader			rdr = new StringReader(content);
+			final JsonStaxParser	parser= new JsonStaxParser(rdr)) {
+			
+			ModelUtils.deserializeFromJson(parser);
 		}
 	}
 }
