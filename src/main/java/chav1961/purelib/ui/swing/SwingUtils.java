@@ -300,7 +300,7 @@ loop:			for (Component comp : children(node)) {
 	 */
 	public static Container findComponentByName(final Component node, final String name) throws NullPointerException, IllegalArgumentException {
 		if (node == null) {
-			throw new NullPointerException("Node callbacl can't be null");
+			throw new NullPointerException("Node component can't be null");
 		}
 		else if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Name to find can't be null or empty");

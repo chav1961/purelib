@@ -554,8 +554,8 @@ public class ModelUtils {
 				pairs.put(item,null);
 			}
 			
-loop:		while (parser.hasNext()) {
-				final JsonStaxParserLexType 	lex = parser.next();
+loop:		for(;;) {
+				final JsonStaxParserLexType 	lex = parser.current();
 				
 				switch (currentState) {
 					case 0 :	// before '{'
@@ -647,6 +647,12 @@ loop:		while (parser.hasNext()) {
 					default :
 						throw new UnsupportedOperationException("Internal error");
 				}
+				if (parser.hasNext()) {
+					parser.next();
+				}
+			}
+			if (parser.current() == JsonStaxParserLexType.END_OBJECT && parser.hasNext()) {
+				parser.next();
 			}
 			
 			if (pairs.containsKey(JSON_METADATA_VERSION) && pairs.get(JSON_METADATA_VERSION) != null) {

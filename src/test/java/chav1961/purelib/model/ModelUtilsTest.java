@@ -204,8 +204,9 @@ public class ModelUtilsTest {
 			}
 			
 			try(final Reader			rdr = new StringReader(wr.toString());
-				final JsonStaxParser	parser= new JsonStaxParser(rdr)) {
+				final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
 				
+				parser.next();
 				Assert.assertTrue(ModelUtils.compare(md, ModelUtils.deserializeFromJson(parser), (a,b,c,d)->ContinueMode.CONTINUE));
 
 				try{ModelUtils.deserializeFromJson(null);
@@ -248,7 +249,8 @@ public class ModelUtilsTest {
 	private void testErroneousJsonDeserialization(final String content) throws IOException {
 		try(final Reader			rdr = new StringReader(content);
 			final JsonStaxParser	parser= new JsonStaxParser(rdr)) {
-			
+
+			parser.next();
 			ModelUtils.deserializeFromJson(parser);
 		}
 	}

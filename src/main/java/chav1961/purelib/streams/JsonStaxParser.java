@@ -660,7 +660,7 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 	 */
 	@Override
 	public long row() {
-		return 0;
+		return currentRow;
 	}
 
 	/**
@@ -669,7 +669,7 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 	 */
 	@Override
 	public long col() {
-		return 0;
+		return currentCol;
 	}
 	
 	/**
@@ -680,7 +680,14 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 	public Exception getLastError() {
 		return detected;
 	}
+
 	
+	
+	@Override
+	public String toString() {
+		return "JsonStaxParser [current()=" + current() + ", row()=" + row() + ", col()=" + col() + "]";
+	}
+
 	private boolean readBlock() throws IOException {
 		cursor = 0;
 		buffer[0] = 0;

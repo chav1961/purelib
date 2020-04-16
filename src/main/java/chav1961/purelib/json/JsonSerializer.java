@@ -39,6 +39,9 @@ import chav1961.purelib.basic.growablearrays.GrowableShortArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.model.ModelUtils;
+import chav1961.purelib.model.MutableContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
@@ -151,6 +154,9 @@ public abstract class JsonSerializer<T> {
 			}
 			else if (Serializable.class.isAssignableFrom(awaited) || Externalizable.class.isAssignableFrom(awaited)) {
 				return buildTotalSerializer(awaited);
+			}
+			else if (ContentNodeMetadata.class.isAssignableFrom(awaited)) {
+				return (JsonSerializer<Type>) new ContentNodeMetadataSerializer();
 			}
 			else {
 				return buildPublicSerializer(awaited);
@@ -4971,6 +4977,67 @@ loop:						for (JsonStaxParserLexType item : reader) {
 		}
 	}
 
+	private static class ContentNodeMetadataSerializer extends JsonSerializer<ContentNodeMetadata> {
+		@Override
+		public void serialize(final ContentNodeMetadata instance, final JsonStaxPrinter writer) throws PrintingException {
+			if (writer == null) {
+				throw new NullPointerException("Writer to serialize can't be null"); 
+			}
+			else {
+				try{if (instance == null) {
+						writer.nullValue();
+					}
+					else {
+						ModelUtils.serializeToJson(instance,writer);
+					}
+				} catch (IOException e) {
+					throw new PrintingException(e.getLocalizedMessage(),e);
+				}
+			}
+		}
+
+		@Override
+		public void serialize(ContentNodeMetadata instance, CharacterTarget writer) throws PrintingException {
+			throw new UnsupportedOperationException("Not inplemented yet");
+		}
+
+		@Override
+		public int serialize(ContentNodeMetadata instance, char[] content, int from, boolean reallyFilled) {
+			throw new UnsupportedOperationException("Not inplemented yet");
+		}
+
+		@Override
+		public ContentNodeMetadata deserialize(final JsonStaxParser reader) throws ContentException, SyntaxException {
+			if (reader == null) {
+				throw new NullPointerException("Reader to deserialize can't be null"); 
+			}
+			else {
+				try{if (reader.current() == JsonStaxParserLexType.NULL_VALUE) {
+						if (reader.hasNext()) {
+							reader.next();
+						}
+						return null;
+					}
+					else {
+						return ModelUtils.deserializeFromJson(reader);
+					}
+				} catch (IOException e) {
+					throw new PrintingException(e.getLocalizedMessage(),e);
+				}
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata deserialize(CharacterSource reader) throws ContentException, SyntaxException {
+			throw new UnsupportedOperationException("Not inplemented yet");
+		}
+
+		@Override
+		public int deserialize(char[] content, int from, ContentNodeMetadata[] result) throws SyntaxException {
+			throw new UnsupportedOperationException("Not inplemented yet");
+		}
+	}	
+	
 	private static class ObjectSerializer<T> extends JsonSerializer<T> {
 		private final ReusableInstances<char[]>				forNames = new ReusableInstances<char[]>(()->{return new char[100];});  
 		private final Class<T>								contentType;
@@ -5145,7 +5212,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					} while (symbol == LIST_SPLITTER);
 					
 					if (symbol != OBJECT_TERMINATOR) {
-						throw new SyntaxException(reader.atRow(),reader.atColumn(),"Ref obj unclosed");
+						throw new SyntaxException(reader.atRow(),reader.atColumn(),"'}' is missing");
 					}
 					else {
 						return instance;
@@ -5235,7 +5302,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 					} while (newFrom < to && content[newFrom] == LIST_SPLITTER);
 				
 					if (newFrom >= to || content[newFrom] != OBJECT_TERMINATOR) {
-						throw new SyntaxException(0,newFrom,"Unclosed ref object");
+						throw new SyntaxException(0,newFrom,"'}' is missing");
 					}
 					else {
 						result[0] = instance;
@@ -5275,7 +5342,7 @@ loop:						for (JsonStaxParserLexType item : reader) {
 								final long	nameId = names.seekName(buffer,0,nameLen);
 									
 								if (nameId < 0) {
-									throw new SyntaxException(reader.row(),reader.col(),"Ref obj unknown field name ["+new String(buffer,0,nameLen)+"]");
+									throw new SyntaxException(reader.row(),reader.col(),"Class ["+contentType.getCanonicalName()+"] - unknown field name ["+new String(buffer,0,nameLen)+"]");
 								}
 								else {
 									final GetterAndSetter	cargo = names.getCargo(nameId);
@@ -5294,10 +5361,18 @@ loop:						for (JsonStaxParserLexType item : reader) {
 									}
 								}							
 							} while (reader.current() == JsonStaxParserLexType.LIST_SPLITTER);
-						
+							
+							if (reader.current() == JsonStaxParserLexType.END_OBJECT && reader.hasNext()) {
+								reader.next();
+							}
+							else {
+								throw new SyntaxException(reader.row(),reader.col(),"'}' is missing");
+							}
 							return instance;
-						} catch (IOException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-							throw new SyntaxException(reader.row(),reader.col(),"Ref obj unknown field name",e);
+						} catch (InvocationTargetException | NoSuchMethodException e) {
+							throw new SyntaxException(reader.row(),reader.col(),"Class ["+contentType.getCanonicalName()+"] - method to call ["+e.getLocalizedMessage()+"] is unknown or unaccesible",e);
+						} catch (IOException | InstantiationException | IllegalAccessException | SecurityException e) {
+							throw new SyntaxException(reader.row(),reader.col(),"Class ["+contentType.getCanonicalName()+"] - member to access ["+e.getLocalizedMessage()+"] is unknown or unaccesible",e);
 						} finally {
 							forNames.free(buffer);
 						}
