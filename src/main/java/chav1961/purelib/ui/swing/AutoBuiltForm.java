@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Window;
@@ -86,6 +87,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 	private final Localizer					localizer;
 	private final LoggerFacade				logger;
+	private final JPanel					childPanel;
+	private final JLabel					leftIconLabel;
 	private final FormManager<Object,T>		formManager;
 	private final FormMonitor<T>			monitor;
 	private final ContentMetadataInterface	mdi;
@@ -128,12 +131,12 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		}
 		else {
 			final BorderLayout	totalLayout = new BorderLayout(GAP_SIZE, GAP_SIZE);
-			final JPanel		childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
 			final JPanel		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
 			this.mdi = mdi;
 			this.logger = logger;
 			this.formManager = formMgr;
+			childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
 			
 			try(final LoggerFacade	trans = logger.transaction(this.getClass().getSimpleName())) {
 				
@@ -195,7 +198,10 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				childPanel.validate(); 
 				
 				if (leftIcon != null) {
-					add(new JLabel(new ImageIcon(leftIcon)),BorderLayout.WEST);
+					add(leftIconLabel = new JLabel(new ImageIcon(leftIcon)),BorderLayout.WEST);
+				}
+				else {
+					leftIconLabel = null;
 				}
 
 				add(childPanel,BorderLayout.CENTER);
@@ -229,6 +235,15 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			return new Module[] {item.getValue().getClass().getClassLoader().getUnnamedModule()};
 		}
 		return null;
+	}
+
+	@Override
+	public void setPreferredSize(final Dimension preferredSize) {
+		final Dimension	childPanelPrefSize = childPanel.getPreferredSize(); 	
+		final Dimension	leftIconPrefSize = leftIconLabel != null ? leftIconLabel.getPreferredSize() : new Dimension(0,0); 	
+		
+		super.setPreferredSize(preferredSize);
+		childPanel.setPreferredSize(new Dimension(preferredSize.width-leftIconPrefSize.width,childPanelPrefSize.height));
 	}
 	
 	/**

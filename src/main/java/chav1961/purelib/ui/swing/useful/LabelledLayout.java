@@ -3,8 +3,11 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.LayoutManager2;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,14 +16,18 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.SizeRequirements;
 
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+
 public class LabelledLayout implements LayoutManager2, Serializable {
 	public static final String		LABEL_AREA = "labelArea";
 	public static final String		CONTENT_AREA = "contentArea";
 	public static final int			HORIZONTAL_FILLING = 1;
 	public static final int			VERTICAL_FILLING = 2;
-	
+
 	private static final long 		serialVersionUID = 5377169415875489416L;
-	private static final JLabel		NULL_LABEL = new JLabel();
+	private static final String		ABSTRACT_TEXT = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	private static final JLabel		NULL_LABEL = new JLabel(); 
 	
 	private final int				numberOfBars, hGap, vGap, filling;
 	private final List<Component>	labels = new ArrayList<>();
@@ -173,13 +180,13 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 			final Pair[]	pairs = toPairs(labels,content);
 			final Insets	ins = parent.getInsets();
 			
-			parentSize.width -= ins.left + ins.right + (2 * pairs.length * hGap);
+			parentSize.width -= ins.left + ins.right + (2 * hGap);
 			parentSize.height -= ins.top + ins.bottom + ((pairs.length + 1)* vGap);
 			
-			final float		yScale = preferredSize.height > parentSize.height 
+			final float		yScale = preferredSize.height < parentSize.height 
 								? 1.0f * parentSize.height / preferredSize.height 
 								: 1.0f; 
-			final float		xScale = preferredSize.width > parentSize.width 
+			final float		xScale = preferredSize.width < parentSize.width 
 								? 1.0f * parentSize.width / preferredSize.width
 								: 1.0f;
 			int		maxLabelWidth = 0, minContentWidth = parentSize.width;
@@ -275,7 +282,7 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 			y[index] = list[index].totalY;
 		}
 		
-		return new SizeRequirements[]{SizeRequirements.getTiledSizeRequirements(x),SizeRequirements.getAlignedSizeRequirements(y)};
+		return new SizeRequirements[]{SizeRequirements.getAlignedSizeRequirements(x),SizeRequirements.getTiledSizeRequirements(y)};
 	}
 
 	private static final SizeRequirements[] calculateAreaSize(final Pair[][] list) {
@@ -292,17 +299,23 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 			totalX[bar] = SizeRequirements.getAlignedSizeRequirements(x);
 			totalY[bar] = SizeRequirements.getTiledSizeRequirements(y);
 		}
-		return new SizeRequirements[]{SizeRequirements.getTiledSizeRequirements(totalX),SizeRequirements.getAlignedSizeRequirements(totalY)};
+		return new SizeRequirements[]{SizeRequirements.getAlignedSizeRequirements(totalX),SizeRequirements.getTiledSizeRequirements(totalY)};
 	}
 	
 	private static SizeRequirements toXSizeRequirements(final Component comp) {
 		final Dimension		min = comp.getMinimumSize(), pref = comp.getPreferredSize(), max = comp.getMaximumSize();
+		final int			preferredSize = calcXSizeByFormat(comp);
 		
 		if (comp.isVisible()) {
-			return new SizeRequirements(min != null ? min.width : 0
-					,pref != null ? pref.width : 0
-					,max != null ? max.width : 0
-					,comp.getAlignmentX());
+			if (preferredSize > 0) {
+				return new SizeRequirements(preferredSize,preferredSize,preferredSize,comp.getAlignmentX());
+			}
+			else {
+				return new SizeRequirements(min != null ? min.width : 0
+						,pref != null ? pref.width : calcXSizeByFormat(comp)
+						,max != null ? max.width : calcXSizeByFormat(comp)
+						,comp.getAlignmentX());
+			}
 		}
 		else {
 			return new SizeRequirements(0,0,0,comp.getAlignmentX());
@@ -353,7 +366,28 @@ public class LabelledLayout implements LayoutManager2, Serializable {
 		}
 		return result;
 	}
-	
+
+	private static int calcXSizeByFormat(final Component comp) {
+		if (comp instanceof NodeMetadataOwner) {
+			final ContentNodeMetadata	meta = ((NodeMetadataOwner)comp).getNodeMetadata();
+			
+			if (meta.getFormatAssociated() != null) {
+				final int				requiredSize = meta.getFormatAssociated().getLength();
+				final Font				font = comp.getFont();
+				final FontRenderContext frc = new FontRenderContext(null, false, false);
+				final Rectangle2D 		boundingBox = font.getStringBounds(ABSTRACT_TEXT.substring(0,Math.min(requiredSize,ABSTRACT_TEXT.length())), frc);
+
+				return boundingBox.getBounds().width;
+			}
+			else {
+				return 0;
+			}
+		}
+		else {
+			return 0;
+		}
+	}
+
 	private static class Pair {
 		final Component		label;
 		final Component		content;
