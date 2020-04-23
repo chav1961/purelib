@@ -128,12 +128,12 @@ public class LabelledLayoutTest {
 
 		left2.setPreferredSize(new Dimension(100,200));
 		Assert.assertEquals(new Dimension(0-(ins.left+ins.right),0-(ins.top+ins.bottom)),layout.minimumLayoutSize(parent));
-		Assert.assertEquals(new Dimension(350-(ins.left+ins.right),300-(ins.top+ins.bottom)),layout.preferredLayoutSize(parent));
+		Assert.assertEquals(new Dimension(250-(ins.left+ins.right),500-(ins.top+ins.bottom)),layout.preferredLayoutSize(parent));
 		Assert.assertEquals(new Dimension(32767-(ins.left+ins.right),32767-(ins.top+ins.bottom)),layout.maximumLayoutSize(parent));
 
 		right2.setPreferredSize(new Dimension(150,300));
 		Assert.assertEquals(new Dimension(0-(ins.left+ins.right),0-(ins.top+ins.bottom)),layout.minimumLayoutSize(parent));
-		Assert.assertEquals(new Dimension(500-(ins.left+ins.right),300-(ins.top+ins.bottom)),layout.preferredLayoutSize(parent));
+		Assert.assertEquals(new Dimension(250-(ins.left+ins.right),600-(ins.top+ins.bottom)),layout.preferredLayoutSize(parent));
 		Assert.assertEquals(new Dimension(32767-(ins.left+ins.right),32767-(ins.top+ins.bottom)),layout.maximumLayoutSize(parent));
 	}
 
@@ -152,17 +152,17 @@ public class LabelledLayoutTest {
 		
 		parent.setSize(800, 600);
 		layout.layoutContainer(parent);
-		Assert.assertEquals(new Rectangle(0,0,25,20),left1.getBounds());
-		Assert.assertEquals(new Rectangle(25,0,775,20),right1.getBounds());
-		Assert.assertEquals(new Rectangle(0,20,25,20),left2.getBounds());
-		Assert.assertEquals(new Rectangle(25,20,775,20),right2.getBounds());
+		Assert.assertEquals(new Rectangle(0,0,25,300),left1.getBounds());
+		Assert.assertEquals(new Rectangle(25,0,775,300),right1.getBounds());
+		Assert.assertEquals(new Rectangle(0,300,25,300),left2.getBounds());
+		Assert.assertEquals(new Rectangle(25,300,775,300),right2.getBounds());
 
 		parent.setSize(20, 20);
 		layout.layoutContainer(parent);
-		Assert.assertEquals(new Rectangle(0,0,8,20),left1.getBounds());
-		Assert.assertEquals(new Rectangle(8,0,12,20),right1.getBounds());
-		Assert.assertEquals(new Rectangle(0,20,8,20),left2.getBounds());
-		Assert.assertEquals(new Rectangle(8,20,12,20),right2.getBounds());
+		Assert.assertEquals(new Rectangle(0,0,25,20),left1.getBounds());
+		Assert.assertEquals(new Rectangle(25,0,-5,20),right1.getBounds());
+		Assert.assertEquals(new Rectangle(0,20,25,20),left2.getBounds());
+		Assert.assertEquals(new Rectangle(25,20,-5,20),right2.getBounds());
 	}
 
 	@Test

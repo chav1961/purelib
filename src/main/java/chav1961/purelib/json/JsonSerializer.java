@@ -5362,8 +5362,10 @@ loop:						for (JsonStaxParserLexType item : reader) {
 								}							
 							} while (reader.current() == JsonStaxParserLexType.LIST_SPLITTER);
 							
-							if (reader.current() == JsonStaxParserLexType.END_OBJECT && reader.hasNext()) {
-								reader.next();
+							if (reader.current() == JsonStaxParserLexType.END_OBJECT) {
+								if (reader.hasNext()) {
+									reader.next();
+								}
 							}
 							else {
 								throw new SyntaxException(reader.row(),reader.col(),"'}' is missing");

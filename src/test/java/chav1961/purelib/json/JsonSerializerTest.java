@@ -35,8 +35,8 @@ public class JsonSerializerTest {
 		ps.println("before");
 	}
 
-	@Category(PerformanceTestCategory.class)
-	@Test 
+//	@Category(PerformanceTestCategory.class)
+//	@Test 
 	public void performanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		basicBytePerformanceTest();
 		basicShortPerformanceTest();
