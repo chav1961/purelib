@@ -12,15 +12,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.Set;
 
-import javax.swing.JMenuBar;
-import javax.swing.JPopupMenu;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -44,8 +40,6 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.xsd.XSDConst;
-import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
@@ -53,13 +47,17 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.SPIServiceNavigationMember;
 import chav1961.purelib.sql.SQLUtils;
-import chav1961.purelib.sql.SimpleProvider;
-import chav1961.purelib.sql.interfaces.ORMProvider;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.interfaces.MultiAction;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
+
+/**
+ * <p>THis class is a factory for most model sources. It can load models from external sources or build models by exsitent entities.</p>  
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class ContentModelFactory {
 	private static final String			NAMESPACE_PREFIX = "app";
 	private static final String			NAMESPACE_VALUE = "http://ui.purelib.chav1961/";
@@ -87,8 +85,18 @@ public class ContentModelFactory {
 	private static final String			XML_ATTR_GROUP = "group";	
 	private static final String			XML_ATTR_ICON = "icon";	
 	
+	/**
+	 * <p>Build model for annotated class. Class to build model for must be annotated with {@linkplain LocaleResourceLocation} and {@linkplain LocaleResource} annotations,
+	 * and some of it's fields must be annotated with {@linkplain LocaleResource} and/or {@linkplain Format} annotations</p>
+	 * @param clazz class to build model for
+	 * @return model built. Can't be null
+	 * @throws NullPointerException class to build model for is null
+	 * @throws IllegalArgumentException come mandatory annotations are missing in the class
+	 * @throws LocalizationException on any localization exceptions
+	 * @throws ContentException on any format errors 
+	 */
 	
-	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, PreparationException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, IllegalArgumentException, LocalizationException, ContentException {
 		if (clazz == null) {
 			throw new NullPointerException("Clazz to build model for can't be null"); 
 		}
@@ -161,7 +169,7 @@ public class ContentModelFactory {
 					
 					root.setOwner(result);
 					return result;
-			}
+				}
 			}
 		}
 	}

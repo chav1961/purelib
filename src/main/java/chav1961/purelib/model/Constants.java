@@ -3,6 +3,12 @@ package chav1961.purelib.model;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * <p>This class contains a set of well-known constants for the model entities</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
+
 public class Constants {
 	public static final String	MODEL_NAVIGATION_TOP_PREFIX = "navigation.top";
 	public static final String	MODEL_NAVIGATION_NODE_PREFIX = "navigation.node";
@@ -20,7 +26,6 @@ public class Constants {
 	public static final String	MODEL_APPLICATION_SCHEME_NAVIGATOR = "navigator";
 	public static final String	MODEL_APPLICATION_SCHEME_ACTION = "action";
 	public static final String	MODEL_APPLICATION_SCHEME_BUILTIN_ACTION = "builtin";
-	
 	
 	
 	public static final String	MODEL_BUILTIN_LANGUAGE = "builtin.languages";

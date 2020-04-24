@@ -13,11 +13,23 @@ import java.util.Date;
 import javax.swing.text.MaskFormatter;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.ui.ColorPair;
 
+/**
+ * <p>This class describes format string associated with any model entity.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ * @lastUpdate 0.0.4
+ */
 public class FieldFormat {
+	/**
+	 * <p>Content type for the given format</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	public enum ContentType {
 		BooleanContent,
 		StringContent,
@@ -37,12 +49,23 @@ public class FieldFormat {
 		Unclassified
 	} 
 	
+	/**
+	 * <p>Alignment mode for the given format</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	public enum Alignment {
 		LeftAlignment,
 		RightAlignment,
 		CenterAlignment,
 		Ajusted,
 		NoMatter
+	}
+	
+	public enum PrintMode {
+		SINGLE_TEXT,
+		CREOLE_TEXT,
+		HTML_TEXT
 	}
 
 	private final ContentType	contentType;
@@ -62,10 +85,50 @@ public class FieldFormat {
 	private final boolean		isOutput;
 	private final boolean		supportNulls;
 	
-	public FieldFormat(final Class<?> clazz) throws NullPointerException, IllegalArgumentException {
+	/**
+	 * <p>Constructor of the class. Build default format for the given class</p>
+	 * @param clazz class to build format for. Can't be null
+	 * @throws NullPointerException class is null
+	 */
+	public FieldFormat(final Class<?> clazz) throws NullPointerException {
 		this(clazz,"");
 	}
 	
+	/**
+	 * <p>Constructor of the class. Build format for the given class and given format string. Format string can be (in BNC):</p>
+	 * <code>
+	 * &lt;format&gt; ::= [&lt;mask&gt;]&lt;lengthAndFrac&gt;[&lt;options&gt;]</br>
+	 * &lt;mask&gt; ::= '('&lt;{@linkplain MaskFormatter} mask&gt;')'</br>
+	 * &lt;lengthAndFrac&gt; ::= &lt;length&gt;['.'&lt;frac&gt;]</br>
+	 * &lt;length&gt; ::= &lt;number&gt;</br>
+	 * &lt;frac&gt; ::= &lt;number&gt;</br>
+	 * &lt;options&gt; ::= &lt;option&gt;[&lt;options&gt;]</br>
+	 * &lt;option&gt; ::= {'r'|'R'|'l'|'L'|'m'|'n'|'N'|'o'|'z'|'p'|'s'|'&lt;'|'&gt;'|'&lt;&gt;'|'&gt;&lt;'}</br>
+	 * </code>
+	 * <p>Option codes are:</p>
+	 * <ul>
+	 * <li><b>r</b> - field is read-only</li>
+	 * <li><b>R</b> - field is read-only except new and duplicated records</li>
+	 * <li><b>l</b> - field must be appear in the search list and/or table</li>
+	 * <li><b>L</b> - field must be appear in the search list and/or table and must be anchored in it</li>
+	 * <li><b>m</b> - field is mandatory to input</li>
+	 * <li><b>n</b> - negative field value must be marked</li>
+	 * <li><b>N</b> - field accepts <b>null</b> as value</li>
+	 * <li><b>o</b> - field is output only (will be read-only and will not catch focus)</li>
+	 * <li><b>z</b> - zero field value must be marked</li>
+	 * <li><b>z</b> - positive field value must be marked</li>
+	 * <li><b>s</b> - all content of the field must be selected when control gets focus</li>
+	 * <li><b>&lt;</b> - field is left-aligned</li>
+	 * <li><b>&gt;</b> - field is right-aligned</li>
+	 * <li><b>&lt;&gt;</b> - field is adjusted</li>
+	 * <li><b>&gt;&lt;</b> - field is center-aligned</li>
+	 * </ul>
+	 * @param clazz class to build format for. Can't be null
+	 * @param format format string. Can't be null
+	 * @throws NullPointerException any parameters are null
+	 * @throws IllegalArgumentException illegal syntax in the format string
+	 * @see https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
+	 */
 	public FieldFormat(final Class<?> clazz, final String format) throws NullPointerException, IllegalArgumentException {
 		if (clazz == null) {
 			throw new NullPointerException("Clazz to use in format can't be null");
@@ -215,58 +278,116 @@ public class FieldFormat {
 		}
 	}
 	
+	/**
+	 * <p>Get content type associated with the format</p>
+	 * @return content type associated. Can't be null
+	 */
 	public ContentType getContentType() {
 		return contentType;
 	}
 	
+	/**
+	 * <p>Get format length typed</p>
+	 * @return format length typed, or 0 if didn't typed
+	 */
 	public int getLength() {
 		return length;
 	}
 	
+	/**
+	 * <p>Get format fractional typed</p>
+	 * @return format fractional typed, or 0 if didn't typed 
+	 */
 	public int getPrecision() {
 		return frac;
 	}
 	
+	/**
+	 * <p>Get format alignment</p>
+	 * @return format alignment. Can't be null
+	 */
 	public Alignment getAlignment() {
 		return alignment;
 	}
 	
+	/**
+	 * <p>Get format mask</p>
+	 * @return format mask or null if didn't typed
+	 */
 	public String getFormatMask() {
 		return mask;
 	}
 	
+	/**
+	 * <p>Is field mandatory</p>
+	 * @return true if yes
+	 */
 	public boolean isMandatory() {
 		return isMandatory;
 	}
 
+	/**
+	 * <p>Is field output</p>
+	 * @return true if yes
+	 */
 	public boolean isOutput() {
 		return isOutput;
 	}
-	
+
+	/**
+	 * <p>Is field read-only</p>
+	 * @param onCreation true if field is in new or duplicated record, false if field is in existent record
+	 * @return true if yes
+	 */
 	public boolean isReadOnly(boolean onCreation) {
 		return onCreation ? isReadOnlyOnExistent : isReadOnly;
 	}
 	
+	/**
+	 * <p>Is field need highlighting</p>
+	 * @param sign sign to test highlighting for
+	 * @return true if need
+	 */
 	public boolean isHighlighted(int sign) {
 		return sign < 0 ? negativeHighlight : (sign > 0 ? positiveHighlight : zeroHighlight);
 	}
 
+	/**
+	 * <p>Does field select it's content on focus</p> 
+	 * @return true if yes
+	 */
 	public boolean needSelectOnFocus() {
 		return needSelect;
 	}
 	
+	/**
+	 * <p>Is field used in list</p>
+	 * @return true if yes
+	 */
 	public boolean isUsedInList() {
 		return useInList;
 	}
 
+	/**
+	 * <p>Is field used in anchored list</p>
+	 * @return true if yes
+	 */
 	public boolean isAnchored() {
 		return useInListAnchored;
 	}
 
+	/**
+	 * <p>Is field support nulls</p>
+	 * @return true if yes
+	 */
 	public boolean isNullSupported() {
 		return supportNulls;
 	}
 	
+	/**
+	 * <p>Convert format to source format string</p>
+	 * @return format string. Can't be null
+	 */
 	public String toFormatString() {
 		final StringBuilder	sb = new StringBuilder();
 		
@@ -317,6 +438,81 @@ public class FieldFormat {
 		
 		return sb.toString();
 	}
+
+	/**
+	 * <p>Print value to string representation by the given format</p>
+	 * @param value value to print
+	 * @param mode mode to print
+	 * @return String printed. Can't be null
+	 * @throws NullPointerException when any parameter is null
+	 * @throws SyntaxException on syntax errors during print
+	 * @since 0.0.4
+	 */
+	public String print(final Object value, final PrintMode mode) throws NullPointerException, SyntaxException {
+		if (value == null) {
+			throw new NullPointerException("Value to print can't be null"); 
+		}
+		else if (mode == null) {
+			throw new NullPointerException("Print mode can't be null"); 
+		}
+		else {
+			String	result = "";
+			
+			switch (mode) {
+				case CREOLE_TEXT	:
+					break;
+				case HTML_TEXT		:
+					break;
+				case SINGLE_TEXT	:
+					if (value instanceof Number) {
+						if (getFormatMask() != null) {
+							try{result = new MaskFormatter(getFormatMask()).valueToString(value);
+							} catch (ParseException e) {
+								throw new SyntaxException(0,0,"Print format ["+getFormatMask()+"], error: "+e.getLocalizedMessage());
+							}
+						}
+						else if (getPrecision() > 0) {
+							result = String.format("%1$"+getLength()+"."+getPrecision()+"f",value);
+						}
+						else {
+							result = String.format("%1$"+getLength()+"d",value);
+						}
+					}
+					else {
+						result = value.toString();
+					}
+					break;
+				default	:
+					throw new UnsupportedOperationException("Print mode ["+mode+"] is not supported yet");
+			}
+			switch (getAlignment()) {
+				case RightAlignment		:
+					if (result.length() < getLength()) {
+						result = new String(CharUtils.space(getLength()-result.length()))+result; 
+					}
+					break;
+				case CenterAlignment	:
+					if (result.length() < getLength()) {
+						final String	bound = new String(CharUtils.space((getLength()-result.length())/2));
+						
+						return bound+result+bound;
+					}
+					break;
+				case LeftAlignment		:
+				case Ajusted			:
+					if (result.length() < getLength()) {
+						result = result+new String(CharUtils.space(getLength()-result.length())); 
+					}
+					break;
+				case NoMatter			:
+					break;
+				default	:
+					throw new UnsupportedOperationException("Alignment ["+getAlignment()+"] is not supported yet");
+			}
+			return result;
+		}
+	}
+
 	
 	static ContentType defineContentType(final Class<?> clazz, final String mask) {
 		switch (CompilerUtils.defineClassType(clazz)) {
@@ -377,6 +573,7 @@ public class FieldFormat {
 		}
 	}
 
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

@@ -2010,6 +2010,25 @@ public class CharUtils {
 			return new WeakCharSequence(content, from, to);
 		}
 	}
+
+	/**
+	 * <p>Create space-filled char array with the given length</p 
+	 * @param len length of array to create
+	 * @return array created. Can't be null
+	 * @throws IllegalArgumentException if length < 0
+	 * @since 0.0.4
+	 */
+	public static char[] space(final int len) throws IllegalArgumentException {
+		if (len < 0) {
+			throw new IllegalArgumentException("Array length ["+len+"] can't be negative");
+		}
+		else {
+			final char[]	result = new char[len];
+			
+			Arrays.fill(result, ' ');
+			return result;
+		}
+	}
 	
 	/**
 	 * <p>This class describes LEvenstain distance and editor prescription for two strins.</p>

@@ -12,7 +12,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 
-public class ContentMetadataFilter implements ContentMetadataInterface {
+class ContentMetadataFilter implements ContentMetadataInterface {
 	private static final URI[]				EMPTY = new URI[0];
 	
 	private final ContentMetadataInterface	nested;
