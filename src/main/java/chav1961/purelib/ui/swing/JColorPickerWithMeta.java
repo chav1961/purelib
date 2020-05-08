@@ -103,8 +103,10 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 					}
 				}
 			});
-			if (format != null && format.isReadOnly(false)) {
-				callSelect.setEnabled(false);
+			if (format != null) {
+				if (format.isReadOnly(false)) {
+					callSelect.setEnabled(false);
+				}
 			}
 			callSelect.addActionListener((e)->{selectColor();});
 			new ComponentKeepedBorder(0,callSelect).install(this);

@@ -37,12 +37,14 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 public class SQLUtils {
 	public static final int							UNKNOWN_TYPE = 666;
 	static final Map<String,Class<?>>				DEFAULT_CONVERTOR = new HashMap<>();
-		
+
+	private static final char[]						AS_OPTION = "as ".toCharArray();
 	private static final JDBCTypeDescriptor[]		TYPE_DECODER;
 	private static final ConversionDescriptor[]		CONVERSION_PAIRS;
 	private static final char[]						ESCAPES = {'%', '_'};
@@ -174,7 +176,24 @@ public class SQLUtils {
 		}
 	}
 
-	public static RsMetaDataElement prepareMetadataElement(final String name, final String type) throws SyntaxException {
+	/**
+	 * <p>Prepare metadata element by it's name and type. Metadata element type BNF is:</p>
+	 * <code>
+	 * &lt;type&gt; ::= &lt;type_name&gt;['('&lt;length&gt;['.'&lt;fractional&gt;]')'][' as ' {&lt;alias&gt|'"'&lt;alias&gt'"'}<br/>
+	 * </code>
+	 * <ul>
+	 * <li>&lt;type_name&gt - valid SQL name (<b>VARCHAR</b>,<b>INTEGER</b> etc)</li>
+	 * <li>&lt;length&gt - field length, if applicable for the given type</li>
+	 * <li>&lt;fractional&gt - field precision, if applicable for the given type</li>
+	 * <li>&lt;alias&gt - any alias name. If missing, equals to field name</li>
+	 * </ul>
+	 * @param name field name
+	 * @param type field type (see syntax above)
+	 * @return metadata element. Can't be null
+	 * @throws IllegalArgumentException if any parameter is null or empty
+	 * @throws SyntaxException on any syntax errors in the type string
+	 */
+	public static RsMetaDataElement prepareMetadataElement(final String name, String type) throws SyntaxException, IllegalArgumentException {
 		if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Name can't be null or empty"); 
 		}
@@ -182,73 +201,100 @@ public class SQLUtils {
 			throw new IllegalArgumentException("Type can't be null or empty"); 
 		}
 		else {
-			int	location, typeId;
+			final char[]	content = CharUtils.terminateAndConvert2CharArray(type,';');
+			final int		forInt[] = new int[2], forLen, forFrac, forTypeId;
+			final String	forAlias, forUpperCaseType;
+			int				from = CharUtils.skipBlank(content,0,false);
 			
-			if ((location = type.indexOf('(')) == -1) {
-				final String	upperCaseType = type.toUpperCase();
-				
-				typeId = SQLUtils.typeIdByTypeName(upperCaseType);
-				
-				if (typeId == SQLUtils.UNKNOWN_TYPE) {
-					throw new SyntaxException(0,0,"Unknown data type ["+type+"] for field ["+name+"]"); 
+			if (Character.isJavaIdentifierStart(content[from])) {
+				from = CharUtils.skipBlank(content,CharUtils.parseName(content,from,forInt),false);
+				for (int index = forInt[0]; index < forInt[1]; index++) {
+					content[index] = Character.toUpperCase(content[index]);
 				}
-				else if (LENGTH_PRESENTS.contains(typeId)) {
-					throw new SyntaxException(0,0,"Mandatory length is missing for field ["+name+"]"); 
+				forTypeId = SQLUtils.typeIdByTypeName(content,forInt[0],forInt[1]+1);
+				forUpperCaseType = new String(content,forInt[0],forInt[1]-forInt[0]+1);
+				
+				if (content[from] == '(') {
+					from = CharUtils.skipBlank(content,from+1,false);
+					if (content[from] >= '0' && content[from] <= '9') {
+						from = CharUtils.skipBlank(content,CharUtils.parseInt(content,from,forInt,true),false);
+						forLen = forInt[0];
+						if (content[from] == ',') {
+							from = CharUtils.skipBlank(content,from+1,false);
+							if (content[from] >= '0' && content[from] <= '9') {
+								from = CharUtils.skipBlank(content,CharUtils.parseInt(content,from,forInt,true),false);
+								forFrac = forInt[0];
+							}
+							else {
+								throw new SyntaxException(0,from,"Field fractional missing");
+							}
+						}
+						else {
+							forFrac = 0;
+						}
+						if (content[from] == ')') {
+							from = CharUtils.skipBlank(content,from+1,false);
+						}
+						else {
+							throw new SyntaxException(0,from,"Missing ')'");
+						}
+					}
+					else {
+						throw new SyntaxException(0,from,"Field length missing");
+					}
 				}
 				else {
-					return new RsMetaDataElement(name,name,upperCaseType,typeId,0,0);
+					forLen = forFrac = 0;
+				}
+
+				if (CharUtils.compareIgnoreCase(content,from,AS_OPTION)) {
+					from = CharUtils.skipBlank(content,from+AS_OPTION.length,false);
+					
+					try{if (content[from] == '\"') {
+							from = CharUtils.skipBlank(content,CharUtils.parseUnescapedString(content,from+1,'\"',true,forInt),false);
+							forAlias = new String(content,forInt[0],forInt[1]-forInt[0]+1);
+						}
+						else if (Character.isJavaIdentifierStart(content[from])) {
+							from = CharUtils.skipBlank(content,CharUtils.parseName(content,from,forInt),false);
+							forAlias = new String(content,forInt[0],forInt[1]-forInt[0]+1);
+						}
+						else {
+							throw new SyntaxException(0,from,"Alias name missing");
+						}
+					} catch (IllegalArgumentException exc) {
+						throw new SyntaxException(0,from,exc.getLocalizedMessage(),exc);
+					}
+				}
+				else {
+					forAlias = name; 
+				}
+				
+				if (content[from] == ';') {
+					if (forTypeId == SQLUtils.UNKNOWN_TYPE) {
+						throw new SyntaxException(0,0,"Unknown data type ["+type+"] for field ["+name+"]"); 
+					}
+					else if (!LENGTH_PRESENTS.contains(forTypeId) && forLen != 0) {
+						throw new SyntaxException(0,0,"Field type for field ["+name+"] doesn't support explicit length"); 
+					}
+					else if (LENGTH_PRESENTS.contains(forTypeId) && forLen == 0) {
+						throw new SyntaxException(0,0,"Mandatory length is missing for field ["+name+"]"); 
+					}
+					else if (!LENGTH_AND_FRACTIONS_PRESENTS.contains(forTypeId) && forFrac != 0) {
+						throw new SyntaxException(0,0,"Field type for field ["+name+"] doesn't support explicit fractional"); 
+					}
+					else if (forLen  != 0 && forFrac != 0 && forLen <= forFrac+1) {
+						throw new SyntaxException(0,0,"Field length ["+forLen+"] for field ["+name+"] is less than field fractional ["+forFrac+"]") ; 
+					}
+					else {
+						return new RsMetaDataElement(name,name,forUpperCaseType,forAlias,0,forTypeId,forLen,forFrac);
+					}
+				}
+				else {
+					throw new SyntaxException(0,from,"Unparsed tail in the type");
 				}
 			}
 			else {
-				String	tail = type.substring(location+1), extractedType = type.substring(0,location).toUpperCase(); 
-				int		len, frac;
-				
-				if (tail.length() == 0 || tail.charAt(tail.length()-1) != ')') {
-					throw new SyntaxException(0,0,"Missing close bracket in the data type for field ["+name+"]"); 
-				}
-				else {
-					tail = tail.substring(0,tail.length()-1);
-				}
-				
-				typeId = SQLUtils.typeIdByTypeName(extractedType);
-				
-				if (typeId == SQLUtils.UNKNOWN_TYPE) {
-					throw new SyntaxException(0,0,"Unknown data type ["+type+"] for field ["+name+"]"); 
-				}
-				else if (!LENGTH_PRESENTS.contains(typeId)) {
-					throw new SyntaxException(0,0,"Field type for field ["+name+"] doesn't support explicit length"); 
-				}
-				if ((location = tail.indexOf(',')) == -1) {
-					try{len = Integer.valueOf(tail.trim());
-						frac = 0;
-					} catch (NumberFormatException exc) {
-						throw new SyntaxException(0,0,"Illegal number ["+tail.trim()+"] in the length for field ["+name+"]");
-					}
-					if (len == 0) {
-						throw new SyntaxException(0,0,"Explicitly typed length for field ["+name+"] must be greater than 0");
-					}
-				}
-				else {
-					if (!LENGTH_AND_FRACTIONS_PRESENTS.contains(typeId)) {
-						throw new SyntaxException(0,0,"Field type for field ["+name+"] doesn't support explicit fractional"); 
-					}
-					try{final String[] parts = CharUtils.split(tail.trim(),',');
-						len = Integer.valueOf(parts[0].trim());
-						frac =  Integer.valueOf(parts[1].trim());
-					} catch (NumberFormatException exc) {
-						throw new SyntaxException(0,0,"Illegal number(s) ["+tail.trim()+"] in the length and/or fractional for field ["+name+"]");
-					}
-					if (len == 0) {
-						throw new SyntaxException(0,0,"Explicitly typed length for field ["+name+"] must be greater than 0");
-					}
-					else if (frac < 0) {
-						throw new SyntaxException(0,0,"Explicitly typed fractional part for field ["+name+"] can't be negative");
-					}
-					else if (frac >= len) {
-						throw new SyntaxException(0,0,"Explicitly typed fractional part for field ["+name+"] is greater or equals than explicitly typed length");
-					}
-				}
-				return new RsMetaDataElement(name,name,extractedType,typeId,len,frac);
+				throw new SyntaxException(0,from,"Type name missing");
 			}
 		}
 	}
@@ -278,6 +324,22 @@ public class SQLUtils {
 		else {
 			for (JDBCTypeDescriptor item : TYPE_DECODER) {
 				if (item.getTypeName().equalsIgnoreCase(typeName)) {
+					return item.getType();
+				}
+			}
+			return UNKNOWN_TYPE;
+		}
+	}
+
+	public static int typeIdByTypeName(final char[] typeName, final int from, final int to) {
+		if (typeName == null || typeName.length == 0) {
+			throw new IllegalArgumentException("Type name can't be null or empty");
+		}
+		else {
+			for (JDBCTypeDescriptor item : TYPE_DECODER) {
+				final char[]	template = item.getTypeNameChar();
+				
+				if (template.length == to-from && CharUtils.compare(typeName,from,template)) {
 					return item.getType();
 				}
 			}
@@ -388,25 +450,36 @@ public class SQLUtils {
 		throw new ContentException("Conversion from ["+value.getClass().getName()+"] to ["+awaited.getName()+"] is not supported");
 	}
 	
+	private static String toString(final Object obj, final String defaultValue) {
+		if (obj == null) {
+			return defaultValue;
+		}
+		else {
+			final String	s = obj.toString();
+			
+			return s.isEmpty() ? defaultValue : s;
+		}
+	}
+	
 	private static Map<Class<?>,ConversionCall> prepareConversion4String() {
 		final Map<Class<?>,ConversionCall>	toMap = new HashMap<>();
 		
-		toMap.put(Boolean.class,(source)->{return Boolean.valueOf(source.toString());});
-		toMap.put(Byte.class,(source)->{return Byte.valueOf(source.toString());});
-		toMap.put(Short.class,(source)->{return Short.valueOf(source.toString());});
-		toMap.put(Integer.class,(source)->{return Integer.valueOf(source.toString());});
-		toMap.put(Long.class,(source)->{return Long.valueOf(source.toString());});
-		toMap.put(Float.class,(source)->{return Float.valueOf(source.toString());});
-		toMap.put(Double.class,(source)->{return Double.valueOf(source.toString());});
-		toMap.put(BigInteger.class,(source)->{return new BigInteger(source.toString());});
-		toMap.put(BigDecimal.class,(source)->{return new BigDecimal(source.toString());});
+		toMap.put(Boolean.class,(source)->{return Boolean.valueOf(toString(source,"false"));});
+		toMap.put(Byte.class,(source)->{return Byte.valueOf(toString(source,"0"));});
+		toMap.put(Short.class,(source)->{return Short.valueOf(toString(source,"0"));});
+		toMap.put(Integer.class,(source)->{return Integer.valueOf(toString(source,"0"));});
+		toMap.put(Long.class,(source)->{return Long.valueOf(toString(source,"0"));});
+		toMap.put(Float.class,(source)->{return Float.valueOf(toString(source,"0"));});
+		toMap.put(Double.class,(source)->{return Double.valueOf(toString(source,"0"));});
+		toMap.put(BigInteger.class,(source)->{return new BigInteger(toString(source,"0"));});
+		toMap.put(BigDecimal.class,(source)->{return new BigDecimal(toString(source,"0"));});
 		toMap.put(byte[].class,(source)->{return ((String)source).getBytes();});
 		toMap.put(Blob.class,(source)->{return new InMemoryLittleBlob(source.toString().getBytes());});
 		toMap.put(Clob.class,(source)->{return new InMemoryLittleClob(source.toString());});
 		toMap.put(NClob.class,(source)->{return new InMemoryLittleNClob(source.toString());});
-		toMap.put(Date.class,(source)->{return new Date(Long.valueOf((source.toString())));});
-		toMap.put(Time.class,(source)->{return new Time(Long.valueOf((source.toString())));});
-		toMap.put(Timestamp.class,(source)->{return new Timestamp(Long.valueOf((source.toString())));});
+		toMap.put(Date.class,(source)->{return new Date(Long.valueOf(toString(source,"0")));});
+		toMap.put(Time.class,(source)->{return new Time(Long.valueOf(toString(source,"0")));});
+		toMap.put(Timestamp.class,(source)->{return new Timestamp(Long.valueOf(toString(source,"0")));});
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(source.toString().getBytes());});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(source.toString());});
 		toMap.put(URL.class,(source)->{
@@ -1751,10 +1824,12 @@ public class SQLUtils {
 	private static class JDBCTypeDescriptor {
 		final int		type;
 		final String	typeName;
+		final char[]	typeNameChar;
 		
 		JDBCTypeDescriptor(int type, String typeName) {
 			this.type = type;
 			this.typeName = typeName;
+			this.typeNameChar = typeName.toCharArray();
 		}
 
 		private int getType() {
@@ -1765,6 +1840,10 @@ public class SQLUtils {
 			return typeName;
 		}
 
+		private char[] getTypeNameChar() {
+			return typeNameChar;
+		}
+		
 		@Override
 		public String toString() {
 			return "JDBCTypeDescriptor [type=" + type + ", typeName=" + typeName + "]";

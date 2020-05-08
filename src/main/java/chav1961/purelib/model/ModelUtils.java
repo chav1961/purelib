@@ -1,5 +1,6 @@
 package chav1961.purelib.model;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,6 +10,7 @@ import java.io.Reader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.CharGetterAndSetter;
@@ -51,8 +54,9 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * @lastUpdate 0.0.4
  */
 public class ModelUtils {
-	private static final AsmWriter		writer;
-	private static final IOException	initExc;
+	private static final AsmWriter				writer;
+	private static final IOException			initExc;
+	private static final SimpleURLClassLoader	ucl = new SimpleURLClassLoader(new URL[0]);
 	
 	public static final String			JSON_METADATA_VERSION = "version";
 	public static final String			JSON_METADATA_VERSION_ID = "1.0";
@@ -106,6 +110,7 @@ public class ModelUtils {
 			}
 			tempExc = null;
 		} catch (IOException exc) {
+			exc.printStackTrace();
 			temp = null;
 			tempExc = exc;
 		}
@@ -722,23 +727,6 @@ loop:		for(;;) {
 		}
 	}
 	
-	private static ContentNodeMetadata innerClone(final ContentNodeMetadata source) {
-		final MutableContentNodeMetadata	result = new MutableContentNodeMetadata(source.getName(),
-													source.getType(),
-													source.getRelativeUIPath().toString(),
-													source.getLocalizerAssociated(),
-													source.getLabelId(),
-													source.getTooltipId(),
-													source.getHelpId(),
-													source.getFormatAssociated(),
-													source.getApplicationPath(),
-													source.getIcon());
-		for (ContentNodeMetadata item : source) {
-			result.addChild(innerClone(item));
-		}
-		return result;
-	}
-
 	/**
 	 * <p>Compare two nodes item-by item and process callback on changes</p>
 	 * @param left let node to compare
@@ -762,6 +750,107 @@ loop:		for(;;) {
 			return innerCompare(left,right,callback,new HashSet<>(),new HashSet<>());
 		}
 	}	
+
+	/**
+	 * <p>Build temporary class to keep model fields and get access to them by it's names. Class has been built will implements {@linkplain Map} interface.
+	 * All fields in the class will be public</p>
+	 * @param <K> Map key type
+	 * @param <V> Map value type
+	 * @param root root of the content model
+	 * @param classPath class path (as package.package....ClassName)
+	 * @return class built. Call {@linkplain Class#newInstance()} method to create instance of the class.
+	 * @throws ContentException 
+	 */
+	public static <K,V> Class<Map<K,V>> buildMappedClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException {
+		if (root == null) {
+			throw new NullPointerException("Root of the model can't be null");
+		}
+		else if (classPath == null || classPath.isEmpty()) {
+			throw new IllegalArgumentException("Class path can't be null or empty");
+		}
+		else {
+			final int			lastDot = classPath.lastIndexOf('.');
+			final String		packName = lastDot > 0 ? classPath.substring(0,lastDot) : "", className = lastDot > 0 ? classPath.substring(lastDot+1) : classPath;
+			final Set<String>	classesRequired = new HashSet<>();
+			int					fieldCount = 0, count;
+			
+			for (ContentNodeMetadata item : root) {
+				if (!item.getType().isPrimitive()) {
+					classesRequired.add(item.getType().getCanonicalName());
+				}
+				fieldCount++;
+			}
+			
+			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+				try(final AsmWriter			wr = writer.clone(baos)) {
+
+					if (!packName.isEmpty()) {
+						wr.write(" .package "+packName+"\n");
+					}
+					wr.write(" mappedClassIncludes\n");
+					for (String item : classesRequired) {
+						wr.write(" mappedClassTypeRequired name=\""+item+"\"\n");
+					}
+					wr.write(" mappedClassHeader name=\""+className+"\"\n");
+					for (ContentNodeMetadata item : root) {
+						wr.write(" mappedClassFieldDeclaration name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\"\n");
+					}
+					wr.write(" mappedClassBeginStaticInit name=\""+className+"\",size="+fieldCount+"\n");
+					count = 0;
+					for (ContentNodeMetadata item : root) {
+						wr.write(" mappedClassFieldPreparation name=\""+item.getName()+"\",index="+count+"\n");
+						count++;
+					}
+					wr.write(" mappedClassEndStaticInit name=\""+className+"\"\n");
+					wr.write(" mappedClassInit name=\""+className+"\"\n");
+					wr.write(" mappedClassGetKeys name=\""+className+"\"\n");
+					wr.write(" mappedClassBeginGetValues name=\""+className+"\",size="+fieldCount+"\n");
+					count = 0;
+					for (ContentNodeMetadata item : root) {
+						wr.write(" mappedClassGetValuesCollect name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+"\n");
+						count++;
+					}
+					wr.write(" mappedClassEndGetValues name=\""+className+"\"\n");
+					wr.write(" mappedClassBeginSetValue name=\""+className+"\"\n");
+					count = 0;
+					for (ContentNodeMetadata item : root) {
+						wr.write(" mappedClassSetValueSwitch name=\""+item.getName()+"\",index="+count+"\n");
+						count++;
+					}
+					wr.write(" mappedClassSetValueEndSwitch name=\""+className+"\"\n");
+					count = 0;
+					for (ContentNodeMetadata item : root) {
+						wr.write(" mappedClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+"\n");
+						count++;
+					}
+					wr.write(" mappedClassEndSetValue name=\""+className+"\"\n");
+					wr.write(" mappedClassEnd name=\""+className+"\"\n");
+					wr.flush();
+				}
+				return (Class<Map<K, V>>) ucl.createClass(classPath, baos.toByteArray());
+			} catch (IOException e) {
+				throw new ContentException(e.getLocalizedMessage(),e);
+			}
+		}
+	}
+	
+	
+	private static ContentNodeMetadata innerClone(final ContentNodeMetadata source) {
+		final MutableContentNodeMetadata	result = new MutableContentNodeMetadata(source.getName(),
+													source.getType(),
+													source.getRelativeUIPath().toString(),
+													source.getLocalizerAssociated(),
+													source.getLabelId(),
+													source.getTooltipId(),
+													source.getHelpId(),
+													source.getFormatAssociated(),
+													source.getApplicationPath(),
+													source.getIcon());
+		for (ContentNodeMetadata item : source) {
+			result.addChild(innerClone(item));
+		}
+		return result;
+	}
 	
 	private static boolean innerCompare(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelComparisonCallback callback, final Set<DifferenceLocalization> details, final Set<String> rightNames) {
 		if (left != null && right == null) {

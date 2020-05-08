@@ -1,0 +1,427 @@
+; --------------------------------------------------------------------
+
+mappedClassIncludes	.macro
+			.import		chav1961.purelib.model.MappedAdamClass protected
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassTypeRequired	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+			.import		&name
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassHeader	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+&name		.class	public extends chav1961.purelib.model.MappedAdamClass
+internalNames	.field	java.lang.Object[] private static final
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+				
+mappedClassFieldDeclaration	.macro name:str=,classType:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(classType)
+			.error		"mandatory parameter 'classType' is missing"
+		.else
+&name.$name		.field		java.lang.String private static final = "&name"
+&name			.field		&classType public
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedClassBeginStaticInit	.macro name:str=,size:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(size) || size <= 0
+			.error		"mandatory parameter 'size' is missing or it's value <= 0"
+		.else
+&name		.method		void public static
+			.stack		5
+			ldc			&size
+			anewarray	java.lang.Object
+			dup
+			putstatic	internalNames
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedClassFieldPreparation	.macro name:str=,index:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(index) || index < 0
+			.error		"mandatory parameter 'index' is missing or it's value < 0"
+		.else
+			dup
+			ldc			&index
+			getstatic	&name.$name
+			aastore
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedClassEndStaticInit	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+			pop
+			return
+&name		.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassInit	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+&name		.method		void public
+			.stack		2
+			aload_0
+			invokespecial	chav1961.purelib.model.MappedAdamClass.<init>()V
+			return
+&name		.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassGetKeys	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+getKeys		.method		java.lang.Object[] protected 
+			.stack		2
+			getstatic	internalNames
+			areturn
+getKeys		.end
+		.endif
+		.mend
+
+
+; --------------------------------------------------------------------
+
+mappedClassBeginGetValues	.macro name:str=,size:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(size) || size <= 0
+			.error		"mandatory parameter 'size' is missing or it's value <= 0"
+		.else
+getValues	.method		java.lang.Object[] public
+			.stack		5
+			ldc			&size
+			anewarray	java.lang.Object
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassGetValuesCollect	.macro name:str=,classType:str=,index:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif			!exists(classType)
+			.error		"mandatory parameter 'classType' is missing"
+		.elseif		!exists(index) || index < 0
+			.error		"mandatory parameter 'index' is missing or it's value < 0"
+		.else
+			dup
+			ldc			&index
+			aload		this
+			getfield	&name
+		.choise classType
+			.of "byte"
+				invokestatic	java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+			.of "short"	
+				invokestatic	java.lang.Short.valueOf(S)Ljava/lang/Short;
+			.of "int"	
+				invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+			.of "long"	
+				invokestatic	java.lang.Long.valueOf(J)Ljava/lang/Long;
+			.of "float"	
+				invokestatic	java.lang.Float.valueOf(F)Ljava/lang/Float;
+			.of "double"	
+				invokestatic	java.lang.Double.valueOf(D)Ljava/lang/Double;
+			.of "char"	
+				invokestatic	java.lang.Character.valueOf(C)Ljava/lang/Character;
+			.of "boolean"
+				invokestatic	java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+		.endchoise	
+			aastore
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassEndGetValues	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+			areturn
+getValues	.end			
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassBeginSetValue	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+setValue	.method java.lang.Object protected
+index		.parameter int final
+value		.parameter java.lang.Object final
+			.stack	5
+			iload		index
+			tableswitch		
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedClassSetValueSwitch	.macro name:str=,index:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(index) || index < 0
+			.error		"mandatory parameter 'index' is missing or it's value < 0"
+		.else
+				&index,label_&name
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedClassSetValueEndSwitch	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+				.default label_0
+			.end
+label_0:	aconst_null
+			areturn			
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedClassSetValueAssign	.macro name:str=,classType:str=,index:int=
+temp		.local		int		
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif			!exists(classType)
+			.error		"mandatory parameter 'classType' is missing"
+		.elseif			!exists(index)
+			.error		"mandatory parameter 'index' is missing"
+		.else
+temp	.set		uniqueG()
+label_&name:
+		.choise classType
+			.of "byte"
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Number
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+				swap
+				aload		this
+				swap
+				invokevirtual	java.lang.Number.byteValue()B
+				putfield	&name
+				areturn	
+			.of "short"	
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Number
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Short.valueOf(S)Ljava/lang/Short;
+				swap
+				aload			this
+				swap
+				invokevirtual	java.lang.Number.shortValue()S
+				putfield		&name
+				areturn	
+			.of "int"	
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Number
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+				swap
+				aload			this
+				swap
+				invokevirtual	java.lang.Number.intValue()I
+				putfield		&name
+				areturn	
+			.of "long"	
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Number
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Long.valueOf(J)Ljava/lang/Long;
+				swap
+				aload			this
+				swap
+				invokevirtual	java.lang.Number.longValue()J
+				putfield		&name
+				areturn	
+			.of "float"	
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Number
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Float.valueOf(F)Ljava/lang/Float;
+				swap
+				aload			this
+				swap
+				invokevirtual	java.lang.Number.floatValue()F
+				putfield		&name
+				areturn	
+			.of "double"	
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Number
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Double.valueOf(D)Ljava/lang/Double;
+				swap
+				aload			this
+				swap
+				invokevirtual	java.lang.Number.doubleValue()D
+				putfield		&name
+				areturn	
+			.of "char"	
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Character
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Character.valueOf(C)Ljava/lang/Character;
+				swap
+				aload			this
+				swap
+				invokevirtual	java.lang.Character.charValue()C
+				putfield		&name
+				areturn	
+			.of "boolean"
+				aload			value
+				dup
+				ifnonnull		label_&temp
+				ldc				"&name"
+				goto			label_null	
+label_&temp:	checkcast		java.lang.Boolean
+				aload			this
+				getfield		&name
+				invokestatic	java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+				swap
+				aload			this
+				swap
+				invokevirtual	java.lang.Boolean.booleanValue()Z
+				putfield		&name
+				areturn	
+			.otherwise
+				aload			value
+				aload			this
+				getfield		&name
+				swap
+				aload			this
+				swap
+				putfield		&name
+				areturn	
+		.endchoise	
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedClassEndSetValue	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+label_null:		invokestatic	chav1961.purelib.model.MappedAdamClass.throwNullPointerException(Ljava/lang/String;)V
+				areturn				
+setValue	.end		
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedClassEnd	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+&name		.end		
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+	.package	chav1961.purelib.model
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$GetterAndSetter
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter	
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$Instantiator
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected		
+	.import		chav1961.purelib.basic.CharUtils	
+	.import		chav1961.purelib.basic.exceptions.ContentException	
+	.import		chav1961.purelib.streams.char2byte.CompilerUtils	
+	.import		java.lang.InstantiationException
+	.import		sun.reflect.ReflectionFactory	
+	.import		java.lang.reflect.Constructor
+	.import		java.lang.Byte
+	.import		java.lang.Short
+	.import		java.lang.Integer
+	.import		java.lang.Long
+	.import		java.lang.Float
+	.import		java.lang.Double
+	.import		java.lang.Character
+	.import		java.lang.Boolean
+	.import		java.lang.Number
+	
+	
+	
+				

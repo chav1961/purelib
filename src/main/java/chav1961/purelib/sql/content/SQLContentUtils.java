@@ -1,5 +1,7 @@
 package chav1961.purelib.sql.content;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -18,6 +20,8 @@ public class SQLContentUtils {
 	public static final String			OPTION_ENCODING = "encoding";
 	public static final String			OPTION_SEPARATOR = "separator";
 	public static final String			OPTION_FIRST_LINE_ARE_NAMES = "firstlinearenames";
+	public static final String			OPTION_ALLOW_EMPTY_COLUMN = "allowemptycolumn";
+	public static final String			OPTION_LOCALE = "locale";
 	public static final String			OPTION_ROW_TAG = "rowtag";
 	public static final String			OPTION_TABLE_NAME = "tablename";
 	public static final String			OPTION_SCHEMA_NAME = "schemaname";
@@ -33,31 +37,34 @@ public class SQLContentUtils {
 			throw new IllegalArgumentException("Field includes list can't be null or empty");
 		}
 		else { 
-			final List<String>					names = new ArrayList<>();
-			final Hashtable<String,String[]>	parsed = URIUtils.parseQuery(query);
+			try{final List<String>					names = new ArrayList<>();
+				final Hashtable<String, String[]> 	parsed = URIUtils.parseQuery(URLDecoder.decode(query,DEFAULT_OPTION_ENCODING));
 			
-			for (String item : CharUtils.split(query,'&')) {	// To avoid loosing of fields ordering
-				final int	eqPlace;
-				
-				if ((eqPlace = item.indexOf('=')) > 0) {
-					final String	key = item.substring(0,eqPlace).trim(); 
-							
-					if (includes.containsKey(key)) {
-						names.add(key);
+				for (String item : CharUtils.split(query,'&')) {	// To avoid loosing of fields ordering
+					final int	eqPlace;
+					
+					if ((eqPlace = item.indexOf('=')) > 0) {
+						final String	key = item.substring(0,eqPlace).trim(); 
+								
+						if (includes.containsKey(key)) {
+							names.add(key);
+						}
 					}
 				}
-			}
-			
-			if (names.size() == 0) {
-				throw new SyntaxException(0,0,"Query string ["+query+"] doesn't contain any descriptions pointed in includes list ["+includes.keySet()+"]"); 
-			}
-			else {
-				final RsMetaDataElement[]	result = new RsMetaDataElement[names.size()];
 				
-				for (int index = 0; index < result.length; index++) {
-					result[index] = SQLUtils.prepareMetadataElement(names.get(index), parsed.get(names.get(index))[0].trim());
+				if (names.size() == 0) {
+					throw new SyntaxException(0,0,"Query string ["+query+"] doesn't contain any descriptions pointed in includes list ["+includes.keySet()+"]"); 
 				}
-				return result;
+				else {
+					final RsMetaDataElement[]	result = new RsMetaDataElement[names.size()];
+					
+					for (int index = 0; index < result.length; index++) {
+						result[index] = SQLUtils.prepareMetadataElement(names.get(index), parsed.get(names.get(index))[0].trim());
+					}
+					return result;
+				}
+			} catch (UnsupportedEncodingException e) {
+				throw new SyntaxException(0, 0,e.getLocalizedMessage(),e);
 			}
 		}
 	}

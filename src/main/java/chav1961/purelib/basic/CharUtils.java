@@ -852,6 +852,33 @@ public class CharUtils {
 	}
 
 	/**
+	 * <p>Compare char array slice with the given template ignoring case register</p>
+	 * @param source source data contains data to compare
+	 * @param from starting position of the slice to compare 
+	 * @param template template to compare
+	 * @return true if the source slice is equals to template
+	 * @throws IllegalArgumentException if any parsing errors ware detected
+	 * @since 0.0.4 
+	 */
+	public static boolean compareIgnoreCase(final char[] source, final int from, final char[] template) {
+		if (source == null || source.length == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= source.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+source.length); 
+		}
+		else if (template == null) {
+			throw new NullPointerException("Template data can't be null"); 
+		}
+		else if (template.length == 0) {
+			return true;
+		}
+		else {
+			return UnsafedCharUtils.uncheckedCompareIgnoreCase(source,from,template,0,template.length);
+		}
+	}
+	
+	/**
 	 * <p>Compare char array slice with the given part of template</p>
 	 * @param source source data contains data to compare
 	 * @param from starting position of the slice to compare 
@@ -890,6 +917,46 @@ public class CharUtils {
 		}
 	}
 
+	/**
+	 * <p>Compare char array slice with the given part of template</p>
+	 * @param source source data contains data to compare
+	 * @param from starting position of the slice to compare 
+	 * @param template template to compare
+	 * @param templateFrom starting position on the template to compare
+	 * @param templateLen legth of template piece to compare with
+	 * @return true if the source slice is equals to template part
+	 * @throws IllegalArgumentException if any parsing errors ware detected
+	 * @since 0.0.4 
+	 */
+	public static boolean compareIgnoreCase(final char[] source, final int from, final char[] template, final int templateFrom, final int templateLen) {
+		int	len, tempLen;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+source.length); 
+		}
+		else if (template == null) {
+			throw new NullPointerException("Template data can't be null"); 
+		}
+		else if (templateFrom > (tempLen = template.length) || templateFrom < 0) {
+			throw new IllegalArgumentException("From template position ["+templateFrom+"] out of range 0.."+tempLen); 
+		}
+		else if (templateFrom + templateLen < 0 || templateFrom + templateLen > tempLen) {
+			throw new IllegalArgumentException("End template position ["+(templateFrom+templateLen)+"] out of range 0.."+tempLen); 
+		}
+		else if (tempLen == 0) {
+			return true;
+		}
+		else if ((len-from) < tempLen) {
+			return false;
+		}
+		else {
+			return UnsafedCharUtils.uncheckedCompareIgnoreCase(source,from,template,templateFrom,templateLen);
+		}
+	}
+	
 	/**
 	 * <p>This enumeration is used to describe template for extracting content from character array with lexemas.</p>
 	 * @author Alexander Chernomyrdin aka chav1961

@@ -11,10 +11,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.URIUtils;
@@ -27,6 +31,15 @@ import chav1961.purelib.sql.interfaces.ResultSetContentParser;
 
 public class CsvContentParser implements ResultSetContentParser {
 	private static final URI			URI_TEMPLATE = URI.create(ResultSetFactory.RESULTSET_PARSERS_SCHEMA+":csv:/");
+	private static final Set<String>	FILTERED_OPTIONS = new HashSet<>();
+	
+	static {
+		FILTERED_OPTIONS.add(SQLContentUtils.OPTION_ENCODING);
+		FILTERED_OPTIONS.add(SQLContentUtils.OPTION_SEPARATOR);
+		FILTERED_OPTIONS.add(SQLContentUtils.OPTION_FIRST_LINE_ARE_NAMES);
+		FILTERED_OPTIONS.add(SQLContentUtils.OPTION_ALLOW_EMPTY_COLUMN);
+		FILTERED_OPTIONS.add(SQLContentUtils.OPTION_LOCALE);
+	}
 
 	private ResultSetMetaData			metadata;
 	private final AbstractContent		content;
@@ -36,7 +49,7 @@ public class CsvContentParser implements ResultSetContentParser {
 		this.metadata = null;
 	}
 	
-	protected CsvContentParser(final BufferedReader content, final char splitter, final ResultSetMetaData metadata, final int[] moveTo) throws IOException, SyntaxException, SQLException {
+	protected CsvContentParser(final BufferedReader content, final char splitter, final ResultSetMetaData metadata, final boolean allowEmptyColumn, final int[] moveTo) throws IOException, SyntaxException, SQLException {
 		this.content = new StreamContent(new Object[metadata.getColumnCount()],
 			(forData)->{
 				try{final String	line = content.readLine();
@@ -45,9 +58,9 @@ public class CsvContentParser implements ResultSetContentParser {
 						return false;
 					}
 					else {
-						final char[]	lineContent = (line+"\n").toCharArray();
-						
-						try{final Object[]	result = processLineInternal(0,lineContent,0,lineContent.length,splitter,moveTo);
+						final char[]	lineContent = CharUtils.terminateAndConvert2CharArray(line,'\n');
+					
+						try{final Object[]	result = processLineInternal(0,lineContent,0,lineContent.length,splitter,allowEmptyColumn,moveTo);
 						
 							System.arraycopy(result, 0, forData, 0, forData.length);
 						} catch (SyntaxException e) {
@@ -84,7 +97,7 @@ public class CsvContentParser implements ResultSetContentParser {
 		final Hashtable<String, String[]>	result = new Hashtable<>();
 		
 		for (Entry<String, String[]> item : source.entrySet()) {
-			if (!SQLContentUtils.OPTION_ENCODING.equals(item.getKey()) && !SQLContentUtils.OPTION_SEPARATOR.equals(item.getKey()) && !SQLContentUtils.OPTION_FIRST_LINE_ARE_NAMES.equals(item.getKey())) {
+			if (!FILTERED_OPTIONS.contains(item.getKey())) {
 				result.put(item.getKey(),item.getValue());
 			}
 		}
@@ -108,6 +121,7 @@ public class CsvContentParser implements ResultSetContentParser {
 		else {
 			final String	separator = options.getProperty(SQLContentUtils.OPTION_SEPARATOR,String.class,",");
 			final boolean	processNames = options.getProperty(SQLContentUtils.OPTION_FIRST_LINE_ARE_NAMES,boolean.class,"true"); 
+			final boolean	allowEmptyColumns = options.getProperty(SQLContentUtils.OPTION_ALLOW_EMPTY_COLUMN,boolean.class,"false"); 
 			final int[]		moveTo = new int[content.length];
 			
 			if (separator.length() == 0) {
@@ -115,6 +129,7 @@ public class CsvContentParser implements ResultSetContentParser {
 			}
 			final char				splitter = separator.charAt(0);
 
+			Arrays.fill(moveTo,-1);
 			if (!processNames) {
 				for (int index = 0; index < moveTo.length; index++) {
 					moveTo[index] = index;
@@ -134,7 +149,7 @@ public class CsvContentParser implements ResultSetContentParser {
 						throw new IOException("Empty source was detected, but 'processing first line as names' as required!"); 
 					}
 					else {
-						final char[]	lineContent = (line+"\n").toCharArray();
+						final char[]	lineContent = CharUtils.terminateAndConvert2CharArray(line,'\n');
 						
 						try{processFirstLineInternal(0,lineContent,0,lineContent.length,splitter,content,moveTo);
 						} catch (SyntaxException e) {
@@ -144,7 +159,7 @@ public class CsvContentParser implements ResultSetContentParser {
 					}
 				}
 				
-				try{return new CsvContentParser(brdr,splitter,new FakeResultSetMetaData(content,true),moveTo);
+				try{return new CsvContentParser(brdr,splitter,new FakeResultSetMetaData(content,true),allowEmptyColumns,moveTo);
 				} catch (SyntaxException | SQLException e) {
 					throw new IOException(e.getLocalizedMessage(),e);
 				}
@@ -160,7 +175,7 @@ public class CsvContentParser implements ResultSetContentParser {
 															completed[0] = true;
 														}
 														else {
-															values.add(processLineInternal(lineNo,data,from,length,splitter,moveTo));
+															values.add(processLineInternal(lineNo,data,from,length,splitter,allowEmptyColumns,moveTo));
 														}
 													}
 												);
@@ -205,12 +220,12 @@ public class CsvContentParser implements ResultSetContentParser {
 	private static void processFirstLineInternal(final int lineNo, final char[] data, int from, final int length, final char splitter, final RsMetaDataElement[] fields, final int[] moves) throws IOException, SyntaxException {
 		final List<String>	columns = new ArrayList<>();
 		
-		processSingleLine(lineNo,data,from,length,splitter,columns);
-loop:	for (int index = 0, maxIndex = columns.size(); index < maxIndex; index++) {
-			final String	name = columns.get(index);
+		processSingleLine(lineNo,data,from,length,splitter,false,columns);
+loop:	for (int index = 0, maxIndex = fields.length; index < maxIndex; index++) {
+			final String	name = fields[index].getAlias();
 			
-			for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-				if (name.equals(fields[fieldIndex].getName())) {
+			for (int fieldIndex = 0; fieldIndex < columns.size(); fieldIndex++) {
+				if (name.equals(columns.get(fieldIndex))) {
 					moves[index] = fieldIndex;
 					continue loop;
 				}
@@ -219,14 +234,14 @@ loop:	for (int index = 0, maxIndex = columns.size(); index < maxIndex; index++) 
 		}
 	}
 	
-	private static Object[] processLineInternal(final int lineNo, final char[] data, int from, final int length, final char splitter, final int[] moves) throws IOException, SyntaxException {
+	private static Object[] processLineInternal(final int lineNo, final char[] data, int from, final int length, final char splitter, final boolean allowEmptyColumn, final int[] moves) throws IOException, SyntaxException {
 		final List<String>	record = new ArrayList<>();
 		
-		processSingleLine(lineNo,data,from,length,splitter,record);
+		processSingleLine(lineNo,data,from,length,splitter,allowEmptyColumn,record);
 		final Object[]	row = new Object[moves.length];
 		
 		for (int index = 0, maxSize = record.size(); index < moves.length; index++) {
-			if (moves[index] < maxSize) {
+			if (moves[index] < maxSize && moves[index] >= 0) {
 				row[index] = record.get(moves[index]);
 			}
 			else {
@@ -236,7 +251,7 @@ loop:	for (int index = 0, maxIndex = columns.size(); index < maxIndex; index++) 
 		return row;
 	}
 
-	private static void processSingleLine(final int lineNo, final char[] data, int from, final int length, final char splitter, final List<String> result) throws IOException, SyntaxException {
+	private static void processSingleLine(final int lineNo, final char[] data, int from, final int length, final char splitter, final boolean allowEmptyColumn, final List<String> result) throws IOException, SyntaxException {
 		final int	to = from + length, begin = from;
 		
 		from--;
@@ -283,7 +298,12 @@ loop:	for (int index = 0, maxIndex = columns.size(); index < maxIndex; index++) 
 					endName--;
 				}
 				if (endName == startParsing) {
-					throw new SyntaxException(lineNo,endName-begin,"Empty column name in the input stream");
+					if (allowEmptyColumn) {
+						result.add("");
+					}
+					else {
+						throw new SyntaxException(lineNo,endName-begin,"Empty column name in the input stream");
+					}
 				}
 				else {
 					result.add(new String(data,startName,endName-startName+1));

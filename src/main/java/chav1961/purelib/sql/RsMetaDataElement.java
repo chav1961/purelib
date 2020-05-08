@@ -4,16 +4,17 @@ public class RsMetaDataElement implements Comparable<RsMetaDataElement> {
 	private final String	name;
 	private final String	description;
 	private final String	typeName;
+	private final String	alias;
 	private final int		location;
 	private final int		type;
 	private final int		length;
 	private final int		frac;
 
 	public RsMetaDataElement(final String name, final String description, final String typeName, final int type, final int length, final int frac) {
-		this(name,description,typeName,0,type,length,frac);
+		this(name,description,typeName,name,0,type,length,frac);
 	}
 
-	public RsMetaDataElement(final String name, final String description, final String typeName, final int location, final int type, final int length, final int frac) {
+	public RsMetaDataElement(final String name, final String description, final String typeName, final String alias, final int location, final int type, final int length, final int frac) {
 		if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Name can't be null or empty");
 		}
@@ -42,6 +43,7 @@ public class RsMetaDataElement implements Comparable<RsMetaDataElement> {
 			this.name = name;
 			this.description = description;
 			this.typeName = typeName.toUpperCase();
+			this.alias = alias == null || alias.isEmpty() ? name : alias;
 			this.location = location;
 			this.type = type;
 			this.length = length;
@@ -65,6 +67,10 @@ public class RsMetaDataElement implements Comparable<RsMetaDataElement> {
 		return type;
 	}
 
+	public String getAlias() {
+		return alias;
+	}
+	
 	public int getLength() {
 		return length;
 	}
@@ -89,10 +95,12 @@ public class RsMetaDataElement implements Comparable<RsMetaDataElement> {
 			return location - another.location;
 		}
 	}
-	
+
 	@Override
 	public String toString() {
-		return "RsMetaDataElement [name=" + name + ", description=" + description + ", typeName=" + typeName + ", type=" + type + ", length=" + length + ", frac=" + frac + ", location=" + location + "]";
+		return "RsMetaDataElement [name=" + name + ", description=" + description + ", typeName=" + typeName
+				+ ", alias=" + alias + ", location=" + location + ", type=" + type + ", length=" + length + ", frac="
+				+ frac + "]";
 	}
 
 	@Override

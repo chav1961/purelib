@@ -22,6 +22,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -36,7 +37,8 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicBooleanObj = new BooleanOwner();
 		final BooleanGetterAndSetter	booleanGS = (BooleanGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(
 												URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+BooleanOwner.class.getName()+"/value"));
-		
+
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_BOOLEAN,booleanGS.getClassType());
 		Assert.assertFalse(((BooleanOwner)publicBooleanObj).value);
 		Assert.assertFalse(booleanGS.get(publicBooleanObj));
 		booleanGS.set(publicBooleanObj,true);
@@ -72,6 +74,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicBooleanObj = new BooleanOwner();
 		final BooleanGetterAndSetter	booleanGS = (BooleanGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicBooleanObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_BOOLEAN,booleanGS.getClassType());
 		Assert.assertFalse(((BooleanOwner)publicBooleanObj).value);
 		Assert.assertFalse(booleanGS.get(publicBooleanObj));
 		booleanGS.set(publicBooleanObj,true);
@@ -81,6 +84,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticBooleanObj = new StaticBooleanOwner();
 		final BooleanGetterAndSetter	booleanStaticGS = (BooleanGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticBooleanObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_BOOLEAN,booleanStaticGS.getClassType());
 		Assert.assertFalse(StaticBooleanOwner.value);
 		Assert.assertFalse(booleanStaticGS.get(publicStaticBooleanObj));
 		booleanStaticGS.set(publicStaticBooleanObj,true);
@@ -91,6 +95,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicByteObj = new ByteOwner();
 		final ByteGetterAndSetter		byteGS = (ByteGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicByteObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_BYTE,byteGS.getClassType());
 		Assert.assertEquals(((ByteOwner)publicByteObj).value,Byte.MIN_VALUE);
 		Assert.assertEquals(byteGS.get(publicByteObj),Byte.MIN_VALUE);
 		byteGS.set(publicByteObj,Byte.MAX_VALUE);
@@ -100,6 +105,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticByteObj = new StaticByteOwner();
 		final ByteGetterAndSetter		byteStaticGS = (ByteGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticByteObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_BYTE,byteStaticGS.getClassType());
 		Assert.assertEquals(StaticByteOwner.value,Byte.MIN_VALUE);
 		Assert.assertEquals(byteStaticGS.get(publicStaticByteObj),Byte.MIN_VALUE);
 		byteStaticGS.set(publicStaticByteObj,Byte.MAX_VALUE);
@@ -110,6 +116,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicCharObj = new CharOwner();
 		final CharGetterAndSetter		charGS = (CharGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicCharObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_CHAR,charGS.getClassType());
 		Assert.assertEquals(((CharOwner)publicCharObj).value,Character.MIN_VALUE);
 		Assert.assertEquals(charGS.get(publicCharObj),Character.MIN_VALUE);
 		charGS.set(publicCharObj,Character.MAX_VALUE);
@@ -119,6 +126,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticCharObj = new StaticCharOwner();
 		final CharGetterAndSetter		charStaticGS = (CharGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticCharObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_CHAR,charStaticGS.getClassType());
 		Assert.assertEquals(StaticCharOwner.value,Character.MIN_VALUE);
 		Assert.assertEquals(charStaticGS.get(publicStaticCharObj),Character.MIN_VALUE);
 		charStaticGS.set(publicStaticCharObj,Character.MAX_VALUE);
@@ -129,6 +137,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicDoubleObj = new DoubleOwner();
 		final DoubleGetterAndSetter		doubleGS = (DoubleGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicDoubleObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_DOUBLE,doubleGS.getClassType());
 		Assert.assertEquals(((DoubleOwner)publicDoubleObj).value,Double.MIN_VALUE,0.0001);
 		Assert.assertEquals(doubleGS.get(publicDoubleObj),Double.MIN_VALUE,0.0001);
 		doubleGS.set(publicDoubleObj,Double.MAX_VALUE);
@@ -138,6 +147,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticDoubleObj = new StaticDoubleOwner();
 		final DoubleGetterAndSetter		doubleStaticGS = (DoubleGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticDoubleObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_DOUBLE,doubleStaticGS.getClassType());
 		Assert.assertEquals(StaticDoubleOwner.value,Double.MIN_VALUE,0.0001);
 		Assert.assertEquals(doubleStaticGS.get(publicStaticDoubleObj),Double.MIN_VALUE,0.0001);
 		doubleStaticGS.set(publicStaticDoubleObj,Double.MAX_VALUE);
@@ -148,6 +158,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicFloatObj = new FloatOwner();
 		final FloatGetterAndSetter		floatGS = (FloatGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicFloatObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT,floatGS.getClassType());
 		Assert.assertEquals(((FloatOwner)publicFloatObj).value,Float.MIN_VALUE,0.0001);
 		Assert.assertEquals(floatGS.get(publicFloatObj),Float.MIN_VALUE,0.0001);
 		floatGS.set(publicFloatObj,Float.MAX_VALUE);
@@ -157,6 +168,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticFloatObj = new StaticFloatOwner();
 		final FloatGetterAndSetter		floatStaticGS = (FloatGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticFloatObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT,floatStaticGS.getClassType());
 		Assert.assertEquals(StaticFloatOwner.value,Float.MIN_VALUE,0.0001);
 		Assert.assertEquals(floatStaticGS.get(publicStaticFloatObj),Float.MIN_VALUE,0.0001);
 		floatStaticGS.set(publicStaticFloatObj,Float.MAX_VALUE);
@@ -167,6 +179,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicIntObj = new IntOwner();
 		final IntGetterAndSetter		intGS = (IntGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicIntObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,intGS.getClassType());
 		Assert.assertEquals(((IntOwner)publicIntObj).value,Integer.MIN_VALUE);
 		Assert.assertEquals(intGS.get(publicIntObj),Integer.MIN_VALUE);
 		intGS.set(publicIntObj,Integer.MAX_VALUE);
@@ -176,6 +189,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticIntObj = new StaticIntOwner();
 		final IntGetterAndSetter		intStaticGS = (IntGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticIntObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,intStaticGS.getClassType());
 		Assert.assertEquals(StaticIntOwner.value,Integer.MIN_VALUE);
 		Assert.assertEquals(intStaticGS.get(publicStaticIntObj),Integer.MIN_VALUE);
 		intStaticGS.set(publicStaticIntObj,Integer.MAX_VALUE);
@@ -186,6 +200,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicLongObj = new LongOwner();
 		final LongGetterAndSetter		longGS = (LongGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicLongObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_LONG,longGS.getClassType());
 		Assert.assertEquals(((LongOwner)publicLongObj).value,Long.MIN_VALUE);
 		Assert.assertEquals(longGS.get(publicLongObj),Long.MIN_VALUE);
 		longGS.set(publicLongObj,Long.MAX_VALUE);
@@ -195,6 +210,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticLongObj = new StaticLongOwner();
 		final LongGetterAndSetter		longStaticGS = (LongGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticLongObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_LONG,longStaticGS.getClassType());
 		Assert.assertEquals(StaticLongOwner.value,Long.MIN_VALUE);
 		Assert.assertEquals(longStaticGS.get(publicStaticLongObj),Long.MIN_VALUE);
 		longStaticGS.set(publicStaticLongObj,Long.MAX_VALUE);
@@ -205,6 +221,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicShortObj = new ShortOwner();
 		final ShortGetterAndSetter		shortGS = (ShortGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicShortObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_SHORT,shortGS.getClassType());
 		Assert.assertEquals(((ShortOwner)publicShortObj).value,Short.MIN_VALUE);
 		Assert.assertEquals(shortGS.get(publicShortObj),Short.MIN_VALUE);
 		shortGS.set(publicShortObj,Short.MAX_VALUE);
@@ -214,6 +231,7 @@ public class GettersAndSettersFactoryTest {
 		final Object					publicStaticShortObj = new StaticShortOwner();
 		final ShortGetterAndSetter		shortStaticGS = (ShortGetterAndSetter) GettersAndSettersFactory.buildGetterAndSetter(publicStaticShortObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_SHORT,shortStaticGS.getClassType());
 		Assert.assertEquals(StaticShortOwner.value,Short.MIN_VALUE);
 		Assert.assertEquals(shortStaticGS.get(publicStaticShortObj),Short.MIN_VALUE);
 		shortStaticGS.set(publicStaticShortObj,Short.MAX_VALUE);
@@ -227,6 +245,7 @@ public class GettersAndSettersFactoryTest {
 		@SuppressWarnings("unchecked")
 		final ObjectGetterAndSetter<String>	refGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicRefObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE,refGS.getClassType());
 		Assert.assertNull(((ReferencedOwner)publicRefObj).value);
 		Assert.assertNull(refGS.get(publicRefObj));
 		refGS.set(publicRefObj,"test");
@@ -237,6 +256,7 @@ public class GettersAndSettersFactoryTest {
 		@SuppressWarnings("unchecked")
 		final ObjectGetterAndSetter<String>	refStaticGS = (ObjectGetterAndSetter<String>) GettersAndSettersFactory.buildGetterAndSetter(publicStaticRefObj.getClass(),"value");
 
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE,refStaticGS.getClassType());
 		Assert.assertNull(StaticReferencedOwner.value);
 		Assert.assertNull(refStaticGS.get(publicStaticRefObj));
 		refStaticGS.set(publicStaticRefObj,"test");

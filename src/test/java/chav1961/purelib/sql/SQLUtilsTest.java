@@ -443,11 +443,12 @@ public class SQLUtilsTest {
 	
 	@Test
 	public void prepareMetadataTest() throws SyntaxException {
-		final RsMetaDataElement[]	metadata = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE"); 
+		final RsMetaDataElement[]	metadata = SQLUtils.prepareMetadata("CHAR:VARCHAR(100)","NUMBER:NUMERIC(15,2)","DATE:DATE","INT1:INTEGER AS TEXT","INT2:INTEGER As \"TEXT\""); 
 
-		Assert.assertEquals(metadata.length,3);
+		Assert.assertEquals(metadata.length,5);
 		
 		Assert.assertEquals(metadata[0].getName(),"CHAR");
+		Assert.assertEquals(metadata[0].getAlias(),"CHAR");
 		Assert.assertEquals(metadata[0].getDescription(),"CHAR");
 		Assert.assertEquals(metadata[0].getTypeName(),"VARCHAR");
 		Assert.assertEquals(metadata[0].getType(),Types.VARCHAR);
@@ -455,6 +456,7 @@ public class SQLUtilsTest {
 		Assert.assertEquals(metadata[0].getFrac(),0);
 
 		Assert.assertEquals(metadata[1].getName(),"NUMBER");
+		Assert.assertEquals(metadata[1].getAlias(),"NUMBER");
 		Assert.assertEquals(metadata[1].getDescription(),"NUMBER");
 		Assert.assertEquals(metadata[1].getTypeName(),"NUMERIC");
 		Assert.assertEquals(metadata[1].getType(),Types.NUMERIC);
@@ -462,11 +464,20 @@ public class SQLUtilsTest {
 		Assert.assertEquals(metadata[1].getFrac(),2);
 
 		Assert.assertEquals(metadata[2].getName(),"DATE");
+		Assert.assertEquals(metadata[2].getAlias(),"DATE");
 		Assert.assertEquals(metadata[2].getDescription(),"DATE");
 		Assert.assertEquals(metadata[2].getTypeName(),"DATE");
 		Assert.assertEquals(metadata[2].getType(),Types.DATE);
 		Assert.assertEquals(metadata[2].getLength(),0);
 		Assert.assertEquals(metadata[2].getFrac(),0);
+
+		Assert.assertEquals(metadata[3].getName(),"INT1");
+		Assert.assertEquals(metadata[3].getAlias(),"TEXT");
+		Assert.assertEquals(metadata[3].getDescription(),"INT1");
+		Assert.assertEquals(metadata[3].getTypeName(),"INTEGER");
+		Assert.assertEquals(metadata[3].getType(),Types.INTEGER);
+		Assert.assertEquals(metadata[3].getLength(),0);
+		Assert.assertEquals(metadata[3].getFrac(),0);
 		
 		try{SQLUtils.prepareMetadata((String[])null); 
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -527,6 +538,22 @@ public class SQLUtilsTest {
 		}
 		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10,2)"); 
 			Assert.fail("Mandatory exception was not detected (type not allows fractional)");
+		} catch (SyntaxException exc) {
+		}
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10) dust"); 
+			Assert.fail("Mandatory exception was not detected (unparsed tail)");
+		} catch (SyntaxException exc) {
+		}
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10) as"); 
+			Assert.fail("Mandatory exception was not detected (alias is missing)");
+		} catch (SyntaxException exc) {
+		}
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10) as 12"); 
+			Assert.fail("Mandatory exception was not detected (neither name nor quoted string in alias name)");
+		} catch (SyntaxException exc) {
+		}
+		try{SQLUtils.prepareMetadata("NAME:VARCHAR(10) as \"12"); 
+			Assert.fail("Mandatory exception was not detected (unquoted sting int the alias)");
 		} catch (SyntaxException exc) {
 		}
 	}

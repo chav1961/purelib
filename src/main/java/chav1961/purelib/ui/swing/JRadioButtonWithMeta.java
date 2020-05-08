@@ -89,6 +89,12 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 				}
 			});
 			
+			if (metadata.getFormatAssociated() != null) {
+				if (metadata.getFormatAssociated().isReadOnly(false)) {
+					setEnabled(false);
+				}
+			}
+			
 			setName(name);
 			fillLocalizedStrings();
 		}

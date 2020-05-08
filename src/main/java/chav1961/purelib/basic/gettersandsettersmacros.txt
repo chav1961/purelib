@@ -17,6 +17,11 @@ buildPrimitiveStaticBoolean 	.macro	className:str=,ownerClass:str=,fieldName:str
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BOOLEAN
+				ireturn
+getClassType	.end
 get			.method		boolean	public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -54,6 +59,11 @@ buildPrimitiveInstanceBoolean 	.macro	className:str=,ownerClass:str=,fieldName:s
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BOOLEAN
+				ireturn
+getClassType	.end
 get			.method		boolean	public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -95,6 +105,11 @@ buildPrimitiveStaticByte 	.macro	className:str=,ownerClass:str=,fieldName:str=,v
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BYTE
+				ireturn
+getClassType	.end
 get			.method		byte	public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -132,6 +147,11 @@ buildPrimitiveInstanceByte 	.macro	className:str=,ownerClass:str=,fieldName:str=
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BYTE
+				ireturn
+getClassType	.end
 get			.method		byte public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -173,6 +193,11 @@ buildPrimitiveStaticChar 	.macro	className:str=,ownerClass:str=,fieldName:str=,v
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_CHAR
+				ireturn
+getClassType	.end
 get			.method		char public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -210,6 +235,11 @@ buildPrimitiveInstanceChar 	.macro	className:str=,ownerClass:str=,fieldName:str=
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_CHAR
+				ireturn
+getClassType	.end
 get			.method		char public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -251,6 +281,11 @@ buildPrimitiveStaticDouble 	.macro	className:str=,ownerClass:str=,fieldName:str=
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_DOUBLE
+				ireturn
+getClassType	.end
 get			.method		double public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -288,6 +323,11 @@ buildPrimitiveInstanceDouble 	.macro	className:str=,ownerClass:str=,fieldName:st
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_DOUBLE
+				ireturn
+getClassType	.end
 get			.method		double public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -329,6 +369,11 @@ buildPrimitiveStaticFloat 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_FLOAT
+				ireturn
+getClassType	.end
 get			.method		float public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -366,6 +411,11 @@ buildPrimitiveInstanceFloat 	.macro	className:str=,ownerClass:str=,fieldName:str
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_FLOAT
+				ireturn
+getClassType	.end
 get			.method		float public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -407,6 +457,11 @@ buildPrimitiveStaticInt 	.macro	className:str=,ownerClass:str=,fieldName:str=,va
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_INT
+				ireturn
+getClassType	.end
 get			.method		int public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -444,6 +499,11 @@ buildPrimitiveInstanceInt 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_INT
+				ireturn
+getClassType	.end
 get			.method		int public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -485,6 +545,11 @@ buildPrimitiveStaticLong 	.macro	className:str=,ownerClass:str=,fieldName:str=,v
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_LONG
+				ireturn
+getClassType	.end
 get			.method		long public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -522,6 +587,11 @@ buildPrimitiveInstanceLong 	.macro	className:str=,ownerClass:str=,fieldName:str=
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_LONG
+				ireturn
+getClassType	.end
 get			.method		long public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -563,6 +633,11 @@ buildPrimitiveStaticShort 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_SHORT
+				ireturn
+getClassType	.end
 get			.method		short public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -600,6 +675,11 @@ buildPrimitiveInstanceShort 	.macro	className:str=,ownerClass:str=,fieldName:str
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_SHORT
+				ireturn
+getClassType	.end
 get			.method		short public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -623,9 +703,6 @@ set			.end
 		.mend
 
 
-
-
-
 ; --------------------------------------------------------------------
 
 buildPrimitiveStaticRef 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
@@ -645,6 +722,11 @@ buildPrimitiveStaticRef 	.macro	className:str=,ownerClass:str=,fieldName:str=,va
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_REFERENCE
+				ireturn
+getClassType	.end
 get			.method		java.lang.Object public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -683,6 +765,11 @@ buildPrimitiveInstanceRef 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 			invokespecial	chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter.<init>()V
 			return
 &className	.end
+getClassType	.method int public
+				.stack		1
+				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_REFERENCE
+				ireturn
+getClassType	.end
 get			.method		java.lang.Object public throws chav1961.purelib.basic.exceptions.ContentException
 instance	.parameter	java.lang.Object final
 			.stack		5
@@ -774,6 +861,7 @@ newInstance			.end
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected		
 	.import		chav1961.purelib.basic.CharUtils	
 	.import		chav1961.purelib.basic.exceptions.ContentException	
+	.import		chav1961.purelib.streams.char2byte.CompilerUtils	
 	.import		java.lang.InstantiationException
 	.import		sun.reflect.ReflectionFactory	
 	.import		java.lang.reflect.Constructor

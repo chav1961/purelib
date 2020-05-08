@@ -1253,7 +1253,7 @@ class LineParser implements LineByLineProcessorCallback {
 									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb.toString(),new NameDescriptor(checkType)));
 								}
 								else {
-									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]-places[0],new NameDescriptor(checkType)));
+									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]+1,new NameDescriptor(checkType)));
 								}
 							}							
 							break;
@@ -1932,12 +1932,18 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processValueByteIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
+		final int	fromContent = start; 
 		short		displ[] = shortArray;
 		
 		start = processValueShortIndexCommand(data,start,displ);
 
 		if (displ[0] < 0 || displ[0] > 2*Byte.MAX_VALUE) {
-			throw new ContentException("Calculated value ["+displ[0]+"] is too long for byte index");
+			if (desc.operation == staticCommandTree.seekName("ldc")) {	// ldc can be replaced with ldc_w 
+				processValueShortIndexCommand(staticCommandTree.getCargo(staticCommandTree.seekName("ldc_w")),data,fromContent);
+			}
+			else {
+				throw new ContentException("Calculated value ["+displ[0]+"] is too long for byte index");
+			}
 		}
 		else {
 			putCommand((byte)desc.operation,(byte)(displ[0] & 0xFF));
@@ -2249,7 +2255,7 @@ class LineParser implements LineByLineProcessorCallback {
 		if (explicitValue) {
 			start = calculateValue(data,start,EvalState.additional,forValue);
 			if (start < end && data[start] == ',') {
-				start = InternalUtils.skipBlank(data, calculateBranchAddress(data,start+1,forLabel));
+				start = InternalUtils.skipBlank(data, calculateBranchAddress(data,UnsafedCharUtils.uncheckedSkipBlank(data,start+1,true),forLabel));
 			}
 			else {
 				throw new ContentException("Missing comma in branch list");
@@ -2674,6 +2680,9 @@ class LineParser implements LineByLineProcessorCallback {
 						start = dd.processList(data,start,cdr,desc);
 					}
 				}
+			}
+			else {
+				break;
 			}
 		}
 		

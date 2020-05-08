@@ -8,15 +8,16 @@ import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.FocusTraversalPolicy;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionListener;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,13 +41,11 @@ import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
-import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.FormMonitor;
@@ -65,12 +64,12 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * <li>field label<li>      
  * <li>field to input content<li>
  * </ul>
- * <p>Fields of the class to show must be annotated with {@linkplain LocaleResource} annotations. These annotations are source for the field labels and field tooltips 
- * in the form built. Form can also contains a set of buttons to process actions on it. These buttons are not represents as fields in the class to show, but as 
- * {@linkplain Action} annotation before class description. Any user actions on the form showing fire {@linkplain FormManager#onField(Object, Object, String, Object)} or
- * {@linkplain FormManager#onAction(Object, Object, String, Object)} calls on the {@linkplain FormManager} interface. Yo simplify code, it's recommended that class to show
+ * <p>If number of fields in the form is too long, you can split form to a set of two-column pairs (named <i>bars</b>). Fields of the class to show must be annotated at least with {@linkplain LocaleResource} annotations. These annotations are source for the field labels and field tooltips 
+ * in the form to build. Form can also contains a set of buttons to process actions on it. These buttons are not represents as fields in the class to show, but as 
+ * {@linkplain Action} annotation before class description. Any user actions on the form fire {@linkplain FormManager#onField(Object, Object, String, Object)} or
+ * {@linkplain FormManager#onAction(Object, Object, String, Object)} calls on the {@linkplain FormManager} interface. To simplify code, it's recommended that class to show
  * also implements {@linkplain FormManager} interface itself.</p>
- * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and so on). You must close this form yourself</p> 
+ * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and similar). You must close this form yourself, if required</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  * @lastUpdate 0.0.4
@@ -98,18 +97,72 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
 	private boolean							closed = false;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 */
 	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, instance, formMgr, 1);
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @param columns number of bars in the form
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 */
 	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final T instance, final FormManager<Object,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, null, instance, formMgr, columns, false);
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param leftIcon icon will be shown on the left of the form built
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 */
 	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, leftIcon, instance, formMgr, 1, false);
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param logger logger to get diagnostics while form is built. Defaults use current logger of the {@linkplain PureLibSettings} class. 
+	 * @param leftIcon icon will be shown on the left of the form built
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @param columns number of bars in the form
+	 * @param tooltipsOnFocus true if tooltips require in the state string when field gets focus
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 */
 	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (mdi == null) {
 			throw new NullPointerException("Metadata interface can't be null");
@@ -138,7 +191,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			this.formManager = formMgr;
 			childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
 			
-			try(final LoggerFacade	trans = logger.transaction(this.getClass().getSimpleName())) {
+			try(final LoggerFacade		trans = logger.transaction(this.getClass().getSimpleName())) {
+				final List<JComponent>	ordinalFocused = new ArrayList<>(), outputFocused = new ArrayList<>();
 				
 				this.localizer = localizer.push(mdi.getRoot().getLocalizerAssociated());
 				
@@ -161,6 +215,12 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 							modifiableLabelIds.add(metadata.getLabelId());
 						}
 						accessors.put(metadata.getUIPath(),gas);
+						if (metadata.getFormatAssociated().isOutput()) {
+							outputFocused.add(fieldComponent);
+						}
+						else {
+							ordinalFocused.add(fieldComponent);
+						}
 					}
 					
 			 		@Override
@@ -178,6 +238,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						});
 						
 						buttonPanel.add(button);							
+						ordinalFocused.add(button);
 					}
 				});
 				
@@ -193,6 +254,10 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 									}
 								};
 
+				if (!outputFocused.isEmpty()) {
+					setFocusTraversalPolicy(new ABFFocusTraversalPolicy(ordinalFocused, outputFocused));
+					setFocusCycleRoot(true);
+				}
 
 				setLayout(totalLayout);
 				childPanel.validate(); 
@@ -553,5 +618,61 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		if (!result[0]) {
 			throw new IllegalArgumentException("Application path ["+appPath+"] of the button to use as 'OK'/'Cancel' not found enywhere");  
 		}
+	}
+
+	private static class ABFFocusTraversalPolicy extends FocusTraversalPolicy {
+		private final JComponent[]	content;
+		private final int			ordinalBound;
+		
+		ABFFocusTraversalPolicy(final List<JComponent> ordinal, final List<JComponent> output) {
+			this.content = new JComponent[ordinal.size()+output.size()];
+			this.ordinalBound = ordinal.size()-1;
+			for (int index = 0, maxIndex = ordinal.size(); index < maxIndex; index++) {
+				content[index] = ordinal.get(index);
+			}
+			for (int index = 0, displ = ordinal.size(), maxIndex = output.size(); index < maxIndex; index++) {
+				content[index+displ] = output.get(index);
+			}
+		}
+		
+	    public Component getComponentAfter(Container focusCycleRoot, Component aComponent) {
+	    	for (int index = 0, maxIndex = content.length; index < maxIndex; index++) {
+	    		if (content[index] == aComponent) {
+	    			if (index == ordinalBound || index == maxIndex-1) {
+	    				break;
+	    			}
+	    			else {
+	    				return content[index+1];
+	    			}
+	    		}
+	    	}
+	    	return getFirstComponent(focusCycleRoot);
+	    }
+
+	    public Component getComponentBefore(Container focusCycleRoot, Component aComponent) {
+	    	for (int index = 0, maxIndex = content.length; index < maxIndex; index++) {
+	    		if (content[index] == aComponent) {
+	    			if (index == 0) {
+	    				break;
+	    			}
+	    			else {
+	    				return content[index-1];
+	    			}
+	    		}
+	    	}
+	    	return getLastComponent(focusCycleRoot);
+	    }
+
+	    public Component getDefaultComponent(Container focusCycleRoot) {
+	        return content[0];
+	    }
+
+	    public Component getLastComponent(Container focusCycleRoot) {
+	        return content[ordinalBound];
+	    }
+
+	    public Component getFirstComponent(Container focusCycleRoot) {
+	        return content[0];
+	    }
 	}
 }

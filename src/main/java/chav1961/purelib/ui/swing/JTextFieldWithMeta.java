@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.AWTEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.net.URI;
@@ -109,8 +110,8 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				case RightAlignment	: setAlignmentX(JTextField.RIGHT_ALIGNMENT); break;
 				default: break;
 			}
-			if (format.isReadOnly(false)) {
-				setEditable(false);
+			if (format.isOutput()) {
+				setFocusable(false);
 			}
 			if (format.getLength() != 0) {
 				setColumns(format.getLength());

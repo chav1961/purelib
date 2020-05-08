@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.XSDCollection;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -54,9 +56,10 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 
 
 /**
- * <p>THis class is a factory for most model sources. It can load models from external sources or build models by exsitent entities.</p>  
+ * <p>THis class is a factory for most model sources. It can load models from external sources or build models by existent entities.</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.4
  */
 public class ContentModelFactory {
 	private static final String			NAMESPACE_PREFIX = "app";
@@ -95,7 +98,6 @@ public class ContentModelFactory {
 	 * @throws LocalizationException on any localization exceptions
 	 * @throws ContentException on any format errors 
 	 */
-	
 	public static ContentMetadataInterface forAnnotatedClass(final Class<?> clazz) throws NullPointerException, IllegalArgumentException, LocalizationException, ContentException {
 		if (clazz == null) {
 			throw new NullPointerException("Clazz to build model for can't be null"); 
@@ -123,7 +125,7 @@ public class ContentModelFactory {
 															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName())
 															, null);
 				
-				collectFields(clazz,fields);
+				collectFields(clazz,fields,true);
 				if (fields.size() == 0) {
 					throw new IllegalArgumentException("Class ["+clazz+"] doesn't contain any fields annotated with @LocaleResource or @Format");
 				}
@@ -156,7 +158,7 @@ public class ContentModelFactory {
 					
 					final List<Method>		methods = new ArrayList<>();
 					
-					collectMethods(clazz,methods);
+					collectMethods(clazz,methods,true);
 					if (methods.size() > 0) {
 						for (Method m : methods) {
 							if (m.isAnnotationPresent(MultiAction.class) || m.isAnnotationPresent(Action.class)) {
@@ -170,6 +172,68 @@ public class ContentModelFactory {
 					root.setOwner(result);
 					return result;
 				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Build model for ordinal class. Differ to {@linkplain #forAnnotatedClass(Class)} method, this model is reduced and contains field descriptors only.
+	 * Localizer for the given model will be associated to PureLib localizer, all labels in the model will be replaced with model names.</p> 
+	 * @param clazz class to build model for
+	 * @return model built. Can't be null
+	 * @throws NullPointerException class to build model for is null
+	 * @throws IllegalArgumentException come mandatory annotations are missing in the class
+	 * @throws LocalizationException on any localization exceptions
+	 * @throws ContentException on any format errors 
+	 * @since 0.0.4
+	 */
+	public static ContentMetadataInterface forOrdinalClass(final Class<?> clazz) throws NullPointerException, IllegalArgumentException, LocalizationException, ContentException {
+		if (clazz == null) {
+			throw new NullPointerException("Clazz to build model for can't be null"); 
+		}
+		else {
+			final URI				localizerResource = PureLibLocalizer.LOCALIZER_SCHEME_URI;
+			final List<Field>		fields = new ArrayList<>();
+			
+			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("class"
+														, clazz
+														, clazz.getCanonicalName()
+														, localizerResource
+														, clazz.getSimpleName()
+														, null 
+														, null
+														, null
+														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName())
+														, null);
+			
+			collectFields(clazz,fields,false);
+			if (fields.size() == 0) {
+				throw new IllegalArgumentException("Class ["+clazz+"] doesn't contain any fields annotated with @LocaleResource or @Format");
+			}
+			else {
+				for (Field f : fields) {
+					final Class<?>			type = f.getType();
+					final LocaleResource	fieldLocaleResource = f.getAnnotation(LocaleResource.class);
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(f.getName()
+																	, type
+																	, f.getName()+"/"+type.getCanonicalName()
+																	, null
+																	, fieldLocaleResource == null ? f.getName() : fieldLocaleResource.value()
+																	, fieldLocaleResource == null ? null : fieldLocaleResource.tooltip() 
+																	, fieldLocaleResource == null ? null : fieldLocaleResource.help()
+																	, f.isAnnotationPresent(Format.class) 
+																			? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
+																			: null
+																	, buildClassFieldApplicationURI(clazz,f)
+																	, null
+																);
+					root.addChild(metadata);
+					metadata.setParent(root);
+				}
+				final SimpleContentMetadata	result = new SimpleContentMetadata(root); 
+				
+				root.setOwner(result);
+				return result;
 			}
 		}
 	}
@@ -368,6 +432,61 @@ public class ContentModelFactory {
 		}
 	}
 
+	public static ContentMetadataInterface forQueryContentDescription(final ResultSetMetaData rsmd) throws NullPointerException, PreparationException, ContentException {
+		if (rsmd == null) {
+			throw new NullPointerException("Result set description can't be null");
+		}
+		else {
+			String	schemaAndTable = "";
+			
+			try{schemaAndTable = rsmd.getSchemaName(1)+"."+rsmd.getTableName(1); 
+				
+				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("table"
+														, TableContainer.class
+														, schemaAndTable
+														, null
+														, schemaAndTable
+														, schemaAndTable+".tt" 
+														, schemaAndTable+".help"
+														, null
+														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_TABLE+":/"+schemaAndTable)
+														, null);
+				final Map<String,Class<?>>			fieldTypes = new HashMap<>();
+				
+				boolean		found = false;
+			
+				for (int columnIndex = 1; columnIndex <= rsmd.getColumnCount(); columnIndex++) {
+					final Class<?>			type = SQLUtils.classByTypeId(rsmd.getColumnType(columnIndex));
+					final String			fieldName = rsmd.getColumnName(columnIndex);
+					final String			description = rsmd.getColumnLabel(columnIndex);
+					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(fieldName
+																	, type
+																	, fieldName
+																	, null
+																	, description == null ? schemaAndTable+"."+fieldName : description
+																	, description == null ? schemaAndTable+"."+fieldName+".tt" : description+".tt" 
+																	, description == null ? schemaAndTable+"."+fieldName+".help" : description+".help"
+																	, new FieldFormat(type,buildColumnFormat(rsmd,columnIndex))
+																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+schemaAndTable+"/"+fieldName
+																			+"?seq="+columnIndex+"&type="+rsmd.getColumnTypeName(columnIndex))
+																	, null
+																);
+					root.addChild(metadata);
+					metadata.setParent(root);
+					fieldTypes.put(fieldName,type);
+					found = true;
+				}
+				
+				final SimpleContentMetadata result = new SimpleContentMetadata(root);
+				
+				root.setOwner(result);
+				return result;
+			} catch (SQLException e) {
+				throw new ContentException(e.getLocalizedMessage());
+			}
+		}
+	}
+	
 	public static <T> ContentMetadataInterface forSPIServiceTree(final Class<T> spiService) throws NullPointerException, PreparationException, ContentException {
 		if (spiService == null) {
 			throw new NullPointerException("SPI service can't be null"); 
@@ -683,18 +802,18 @@ public class ContentModelFactory {
 		return attr == null ? null : attr.getValue();
 	}
 
-	private static void collectFields(final Class<?> clazz, final List<Field> fields) {
+	private static void collectFields(final Class<?> clazz, final List<Field> fields, final boolean annotatedOnly) {
 		if (clazz != null) {
 			for (Field f : clazz.getDeclaredFields()) {
-				if (f.isAnnotationPresent(LocaleResource.class) || f.isAnnotationPresent(Format.class)) {
+				if (!annotatedOnly || f.isAnnotationPresent(LocaleResource.class) || f.isAnnotationPresent(Format.class)) {
 					fields.add(f);
 				}
 			}
-			collectFields(clazz.getSuperclass(),fields);
+			collectFields(clazz.getSuperclass(),fields,annotatedOnly);
 		}		
 	}
 
-	private static void collectMethods(final Class<?> clazz, final List<Method> methods) {
+	private static void collectMethods(final Class<?> clazz, final List<Method> methods, final boolean annotatedOnly) {
 		if (clazz != null) {
 			for (Method m : clazz.getDeclaredMethods()) {
 				if (m.isAnnotationPresent(Action.class)) {
@@ -708,8 +827,11 @@ public class ContentModelFactory {
 						methods.add(m);
 					}
 				}
+				else if (!annotatedOnly) {
+					methods.add(m);
+				}
 			}
-			collectMethods(clazz.getSuperclass(),methods);
+			collectMethods(clazz.getSuperclass(),methods,annotatedOnly);
 		}		
 	}
 	
@@ -810,6 +932,34 @@ public class ContentModelFactory {
 		return sb.toString();
 	}
 
+	private static String buildColumnFormat(final ResultSetMetaData rsmd,final int columnIndex) throws SQLException {
+		final StringBuilder	sb = new StringBuilder();
+		
+		if (rsmd.getScale(columnIndex) != 0) {
+			if (rsmd.getPrecision(columnIndex) == 0) {
+				sb.append("18.").append(rsmd.getScale(columnIndex));
+			}
+			else {
+				sb.append(rsmd.getPrecision(columnIndex)).append('.').append(rsmd.getScale(columnIndex));
+			}
+		}
+		else {
+			if (rsmd.getPrecision(columnIndex) == 0) {
+				sb.append("30");
+			}
+			else if (rsmd.getPrecision(columnIndex) > 50) {
+				sb.append("30");
+			}
+			else {
+				sb.append(rsmd.getPrecision(columnIndex));
+			}
+		}
+		if (rsmd.isNullable(columnIndex) == ResultSetMetaData.columnNoNulls) {
+			sb.append("m");
+		}
+		return sb.toString();
+	}
+	
 	private static ContentNodeMetadata buildSPIPluginMenuSubtree(final ContentNodeMetadata root, final String path) {
 		if (path.isEmpty()) {
 			return root;

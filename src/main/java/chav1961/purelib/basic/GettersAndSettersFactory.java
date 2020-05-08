@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -64,7 +65,7 @@ import chav1961.purelib.streams.char2byte.CompilerUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public class GettersAndSettersFactory {
@@ -117,8 +118,10 @@ public class GettersAndSettersFactory {
 	 * this interface, so all of them can be casted to it</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.4
 	 */
-	public interface GetterAndSetter {		
+	public interface GetterAndSetter {
+		int getClassType();
 	}
 
 	/**
@@ -585,8 +588,28 @@ public class GettersAndSettersFactory {
 	 * @since 0.0.3
 	 */
 	public static <T> Instantiator<T> buildInstantiator(final Class<T> clazz) throws ContentException, IllegalArgumentException, NullPointerException, IllegalStateException {
+		return buildInstantiator(clazz,(m)->{});
+	}
+	
+	/**
+	 * <p>Build instantiator of the class.</p>
+	 * @param <T> class to instantiate
+	 * @param clazz managed class to build instantiator to
+	 * @param assigner module assigner for correct working in Java 1.9 and later
+	 * @return instantiator for managed class
+	 * @throws ContentException on any building errors
+	 * @throws IllegalArgumentException field name is null, empty or is missing in the class
+	 * @throws NullPointerException awaited class is null
+	 * @throws IllegalArgumentException awaited class is not valid
+	 * @throws IllegalStateException awaited class is not public and sun.misc.Unsafe is not available
+	 * @since 0.0.4
+	 */
+	public static <T> Instantiator<T> buildInstantiator(final Class<T> clazz, final ModuleAccessor assigner) throws ContentException, IllegalArgumentException, NullPointerException, IllegalStateException {
 		if (clazz == null) {
 			throw new NullPointerException("Class to build instantitor for can't be null"); 
+		}
+		else if (assigner == null) {
+			throw new NullPointerException("Module assigner can't be null"); 
 		}
 		else if (clazz.isPrimitive() || clazz.isArray()) {
 			throw new IllegalArgumentException("Class to build instantitor for can't be primitive or array"); 
@@ -594,7 +617,7 @@ public class GettersAndSettersFactory {
 		else if (Modifier.isPublic(clazz.getModifiers())) {
 			try{final String 	className = clazz.getSimpleName()+"$instantiator";
 				
-				return buildCode(writer,clazz,className);
+				return buildCode(writer,clazz,className,assigner);
 			} catch (IOException exc) {
 				throw new ContentException(exc.getLocalizedMessage(),exc);
 			}
@@ -797,6 +820,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_BOOLEAN;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_BYTE		:
 					return new ByteGetterAndSetter() {
@@ -814,6 +842,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_BYTE;
 						}
 					};
 				case CompilerUtils.CLASSTYPE_CHAR		:
@@ -833,6 +866,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_CHAR;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					return new DoubleGetterAndSetter() {
@@ -850,6 +888,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_DOUBLE;
 						}
 					};
 				case CompilerUtils.CLASSTYPE_FLOAT		:
@@ -869,6 +912,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_FLOAT;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_INT		:
 					return new IntGetterAndSetter() {
@@ -886,6 +934,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_INT;
 						}
 					};
 				case CompilerUtils.CLASSTYPE_LONG		:
@@ -905,6 +958,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_LONG;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_SHORT		:
 					return new ShortGetterAndSetter() {
@@ -922,6 +980,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_SHORT;
 						}
 					};
 				default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
@@ -955,6 +1018,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_BOOLEAN;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_BYTE		:
 					return new ByteGetterAndSetter() {
@@ -972,6 +1040,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_BYTE;
 						}
 					};
 				case CompilerUtils.CLASSTYPE_CHAR		:
@@ -991,6 +1064,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_CHAR;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_DOUBLE		:
 					return new DoubleGetterAndSetter() {
@@ -1008,6 +1086,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_DOUBLE;
 						}
 					};
 				case CompilerUtils.CLASSTYPE_FLOAT		:
@@ -1027,6 +1110,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_FLOAT;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_INT		:
 					return new IntGetterAndSetter() {
@@ -1044,6 +1132,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_INT;
 						}
 					};
 				case CompilerUtils.CLASSTYPE_LONG		:
@@ -1063,6 +1156,11 @@ public class GettersAndSettersFactory {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
 						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_LONG;
+						}
 					};
 				case CompilerUtils.CLASSTYPE_SHORT		:
 					return new ShortGetterAndSetter() {
@@ -1080,6 +1178,11 @@ public class GettersAndSettersFactory {
 							} catch (Throwable e) {
 								throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] type ["+fType+"]: "+e.getLocalizedMessage(),e);
 							}
+						}
+
+						@Override
+						public int getClassType() {
+							return CompilerUtils.CLASSTYPE_SHORT;
 						}
 					};
 				default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
@@ -1143,7 +1246,6 @@ public class GettersAndSettersFactory {
 			final MethodHandle	setter = MethodHandles.lookup().unreflectSetter(f);
 
 			return new ObjectGetterAndSetter<T>() {
-
 				@Override
 				public T get(final Object instance) throws ContentException {
 					try{return fType.cast(getter.invoke());
@@ -1159,6 +1261,11 @@ public class GettersAndSettersFactory {
 						throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] in the class ["+fType+"]: "+e.getLocalizedMessage(),e);
 					}
 				}
+
+				@Override
+				public int getClassType() {
+					return CompilerUtils.CLASSTYPE_REFERENCE;
+				}
 			};
 		} catch (IllegalAccessException e) {
 			throw new IllegalArgumentException(e.getLocalizedMessage(),e); 
@@ -1172,7 +1279,6 @@ public class GettersAndSettersFactory {
 			final MethodHandle	setter = MethodHandles.lookup().unreflectSetter(f);
 	
 			return new ObjectGetterAndSetter<T>() {
-	
 				@Override
 				public T get(final Object instance) throws ContentException {
 					try{return fType.cast(getter.invoke(instance));
@@ -1187,6 +1293,11 @@ public class GettersAndSettersFactory {
 					} catch (Throwable e) {
 						throw new ContentException("Exception getting modification access to the field ["+f.getName()+"] in the class ["+fType+"]: "+e.getLocalizedMessage(),e);
 					}
+				}
+
+				@Override
+				public int getClassType() {
+					return CompilerUtils.CLASSTYPE_REFERENCE;
 				}
 			};
 		} catch (IllegalAccessException e) {
@@ -1238,7 +1349,7 @@ public class GettersAndSettersFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Instantiator<T> buildCode(final AsmWriter writer, final Class<T> owner, final String className) throws IOException {
+	private static <T> Instantiator<T> buildCode(final AsmWriter writer, final Class<T> owner, final String className,final ModuleAccessor assigner) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			try(final AsmWriter			wr = writer.clone(baos)) {
 				
@@ -1256,6 +1367,7 @@ public class GettersAndSettersFactory {
 			} catch (Exception exc) {
 				inst = (Class<Instantiator<T>>) internalLoader.loadClass(className);
 			}
+			assigner.allowUnnamedModuleAccess(internalLoader.getUnnamedModule());
 			return inst.getConstructor().newInstance();
 		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | SecurityException | InvocationTargetException | NoSuchMethodException e) {
 			e.printStackTrace();

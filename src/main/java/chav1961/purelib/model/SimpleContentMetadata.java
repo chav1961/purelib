@@ -91,14 +91,12 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 
 	@Override
 	public void mount(final URI uiPath, final ContentMetadataInterface model) {
-		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
 	@Override
-	public ContentMetadataInterface unmount(final URI uiPath) {
-		// TODO Auto-generated method stub
-		return null;
+	public ContentMetadataInterface[] unmount(final URI uiPath) {
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
 	@Override

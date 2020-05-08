@@ -239,7 +239,7 @@ class ContentMetadataFilter implements ContentMetadataInterface {
 	}
 
 	@Override
-	public ContentMetadataInterface unmount(final URI uiPath) {
+	public ContentMetadataInterface[] unmount(final URI uiPath) {
 		if (uiPath == null) {
 			throw new NullPointerException("UI path to unmount can't be null");
 		}

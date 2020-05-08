@@ -105,9 +105,11 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 					}
 				}
 			});
-			if (metadata.getFormatAssociated() != null && metadata.getFormatAssociated().isReadOnly(false)) {
-				callSelectF.setEnabled(false);
-				callSelectB.setEnabled(false);
+			if (metadata.getFormatAssociated() != null) {
+				if (metadata.getFormatAssociated().isReadOnly(false)) {
+					callSelectF.setEnabled(false);
+					callSelectB.setEnabled(false);
+				}
 			}
 			callSelectF.addActionListener((e)->{selectColorF();});
 			callSelectB.addActionListener((e)->{selectColorB();});

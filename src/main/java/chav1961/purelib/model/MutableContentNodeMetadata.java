@@ -143,6 +143,16 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata, Cloneabl
 	public int getChildrenCount() {
 		return children.size();
 	}
+	
+	@Override
+	public ContentNodeMetadata getChild(final int index) {
+		if (index < 0 || index >= children.size()) {
+			throw new IllegalArgumentException("Child index ["+index+"] out of range 0.."+(children.size()-1)); 
+		}
+		else {
+			return children.get(index);
+		}
+	}
 
 	@Override
 	public ContentMetadataInterface getOwner() {

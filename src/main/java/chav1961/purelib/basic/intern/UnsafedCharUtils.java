@@ -308,7 +308,7 @@ public class UnsafedCharUtils {
 						index = uncheckedParseHexLong(source, index+2, result, checkOverflow);
 						break;
 					default :
-						index = uncheckedParseOctalLong(source, index+1, result, checkOverflow);
+						index = uncheckedParseOctalLong(source, index, result, checkOverflow);
 						break;
 				}
 			}
@@ -1509,6 +1509,20 @@ loop:			for (index = from; index < len; index++) {
 		}
 	}
 
+	public static boolean uncheckedCompareIgnoreCase(final char[] source, final int from, final char[] template, final int templateFrom, final int templateLen) {
+		if (source.length - from < templateLen) {
+			return false;
+		}
+		else {
+			for (int index = 0; index < templateLen; index++) {
+				if (source[from+index] != template[templateFrom+index] && Character.toUpperCase(source[from+index]) != Character.toUpperCase(template[templateFrom+index])) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+	
 	public static char[] uncheckedSubstitute(final String key, final char[] value, int from, final int length, final CharSubstitutionSource source, final int substDepth) throws NullPointerException, IllegalArgumentException {
 		if (substDepth >= CharUtils.MAX_SUBST_DEPTH) {
 			throw new IllegalArgumentException("Too deep substitution was detected (more than "+CharUtils.MAX_SUBST_DEPTH+") for key ["+key+"]=["+new String(value,from,length-from)+"]. Possibly you have a resursion in the substitution way!"); 

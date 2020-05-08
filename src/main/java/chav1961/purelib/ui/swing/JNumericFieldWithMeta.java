@@ -1,8 +1,11 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.AWTEvent;
 import java.awt.Font;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Arrays;

@@ -88,6 +88,12 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 				}
 			});
 			
+			if (metadata.getFormatAssociated() != null) {
+				if (metadata.getFormatAssociated().isReadOnly(false)) {
+					setEnabled(false);
+				}
+			}
+			
 			setName(name);
 			fillLocalizedStrings();
 		}
