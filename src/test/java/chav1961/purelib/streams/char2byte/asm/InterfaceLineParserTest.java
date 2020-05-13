@@ -16,7 +16,7 @@ public class InterfaceLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
 					 		 " 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -31,7 +31,7 @@ public class InterfaceLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
 							 " 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -50,7 +50,7 @@ public class InterfaceLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
 							 " 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -68,7 +68,7 @@ public class InterfaceLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"		.import java.lang.AutoCloseable\n"
@@ -86,7 +86,7 @@ public class InterfaceLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
 							 " 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -106,7 +106,7 @@ public class InterfaceLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
 							 " 		.package "+this.getClass().getPackage().getName()+"\n"

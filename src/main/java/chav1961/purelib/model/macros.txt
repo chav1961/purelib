@@ -358,6 +358,7 @@ label_&temp:	checkcast		java.lang.Boolean
 				areturn	
 			.otherwise
 				aload			value
+				checkcast		&classType
 				aload			this
 				getfield		&name
 				swap
@@ -371,12 +372,14 @@ label_&temp:	checkcast		java.lang.Boolean
 				
 ; --------------------------------------------------------------------
 
-mappedClassEndSetValue	.macro name:str=
+mappedClassEndSetValue	.macro name:str=,needNullLabel:bool=true
 		.if			!exists(name)
 			.error		"mandatory parameter 'name' is missing"
 		.else
+			.if 	needNullLabel
 label_null:		invokestatic	chav1961.purelib.model.MappedAdamClass.throwNullPointerException(Ljava/lang/String;)V
-				areturn				
+				areturn
+			.endif				
 setValue	.end		
 		.endif
 		.mend

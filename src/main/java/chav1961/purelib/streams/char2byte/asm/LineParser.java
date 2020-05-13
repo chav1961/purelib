@@ -431,6 +431,7 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private final ClassDescriptionRepo					cdr;
 	private final SyntaxTreeInterface<Macros>			macros;
+	private final ClassLoader							owner;
 	private final MacroClassLoader						loader;
 	private final ClassContainer						cc;
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
@@ -462,7 +463,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private boolean 									needStackMapRecord = false;
 	private short										stackSize4CurrentMethod = 0;
 	
-	LineParser(final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
+	LineParser(final ClassLoader owner, final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
+		this.owner = owner;
 		this.cc = cc;
 		this.cdr = cdr;
 		this.macros = macros;
@@ -477,7 +479,8 @@ class LineParser implements LineByLineProcessorCallback {
 		this.thisId = tree.placeOrChangeName(THIS,0,THIS.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 	}
 
-	LineParser(final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader, final Writer diagnostics) throws IOException, ContentException {
+	LineParser(final ClassLoader owner, final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader, final Writer diagnostics) throws IOException, ContentException {
+		this.owner = owner;
 		this.cc = cc;
 		this.cdr = cdr;
 		this.macros = macros;
@@ -1555,17 +1558,28 @@ class LineParser implements LineByLineProcessorCallback {
 		try{final int	possibleProtected = InternalUtils.skipBlank(data,endName);
 			
 			if (UnsafedCharUtils.uncheckedCompare(data,possibleProtected,PROTECTED_KEYWORD,0,PROTECTED_KEYWORD.length)) {
-				cdr.addDescription(loader != null ? Class.forName(className,true,loader) : Class.forName(className),true);
+				cdr.addDescription(importClass(className,loader,owner),true);
 				start = possibleProtected + PROTECTED_KEYWORD.length;
 			}
 			else {
-				cdr.addDescription(loader != null ? Class.forName(className,true,loader) : Class.forName(className),false);
+				cdr.addDescription(importClass(className,loader,owner),false);
 				start = endName;
 			}
 			skip2line(data,start);
 		} catch (ClassNotFoundException e) {
 			throw new ContentException("Class description ["+className+"] is unknown in the actual class loader. Test the class name you want to import and/or make it aacessible for the class loader",e);
 		}				
+	}
+	
+	private static Class<?> importClass(final String className, final ClassLoader... loaders) throws ClassNotFoundException {
+		for (ClassLoader item : loaders) {
+			if (item != null) {
+				try{return item.loadClass(className);
+				} catch (ClassNotFoundException e) {
+				}
+			}
+		}
+		return Class.forName(className); 
 	}
 
 	private void processIncludeDir(final char[] data, int start, final int end) throws ContentException {

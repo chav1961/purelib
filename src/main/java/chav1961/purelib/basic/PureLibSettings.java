@@ -201,6 +201,12 @@ public final class PureLibSettings {
 	 * @since 0.0.4
 	 */
 	public static final MonitoringManager	MONITORING_MANAGER = new MonitoringManager();
+
+	/**
+	 * <p>Common class loader for all on-the-fly classes.</p>
+	 * @since 0.0.4
+	 */
+	public static SimpleURLClassLoader		INTERNAL_LOADER = new SimpleURLClassLoader(new URL[0]);
 	
 	/**
 	 * <p>This interface describes well-known factories in the Pure Library. All the factories are accessible via standard Java SPI service</p>

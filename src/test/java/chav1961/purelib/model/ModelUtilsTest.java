@@ -254,9 +254,9 @@ public class ModelUtilsTest {
 		final ContentMetadataInterface		mdi = ContentModelFactory.forAnnotatedClass(TestClass.class);
 		final Class<Map<Object, Object>>	clazz = ModelUtils.buildMappedClassByModel(mdi.getRoot(),this.getClass().getPackageName()+".Test");
 		final Map<Object,Object>			inst = clazz.getConstructor().newInstance();
-		final Set<String>					awaitedKeys = Set.of("testByte","testShort","testInt","testLong","testFloat","testDouble","testChar","testBoolean"); 
+		final Set<String>					awaitedKeys = Set.of("testByte","testShort","testInt","testLong","testFloat","testDouble","testChar","testBoolean","testString"); 
 		
-		Assert.assertEquals(8,inst.size());
+		Assert.assertEquals(9,inst.size());
 		Assert.assertEquals(awaitedKeys,inst.keySet());
 		Assert.assertTrue(inst.containsKey("testByte"));
 		Assert.assertFalse(inst.containsKey("unknown"));
@@ -366,6 +366,14 @@ public class ModelUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 		try {inst.put("testBoolean", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// Referenced (String) type test
+		Assert.assertNull(((Boolean)inst.put("testString","test")));
+		Assert.assertEquals("test",inst.get("testString"));
+		try {inst.put("testString", new Object());
 			Assert.fail("Mandatory exception was not detected (illegal class type)");
 		} catch (ClassCastException exc) {
 		}

@@ -18,6 +18,7 @@ import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	public static final AtomicInteger	AI = new AtomicInteger(1);
 	
+	private final ClassLoader			owner;
 	private final OutputStream			os;
 	private final Writer				diagnostics;
 	private final ClassContainer		cc = new ClassContainer();
@@ -28,40 +29,43 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	private final boolean				wasCloned;
 	private boolean						wasDump = false;
 	
-	public Asm(final OutputStream os) throws IOException {
+	public Asm(final ClassLoader owner, final OutputStream os) throws IOException {
+		this.owner = owner;
 		this.wasCloned = false;
 		this.os = os;
 		this.diagnostics = null;
 		this.macros = new AndOrTree<>();	
 		try{this.cdr = new ClassDescriptionRepo();
 			this.asmLoader = createLoader();
-			this.lp = new LineParser(cc,cdr,macros,asmLoader);
+			this.lp = new LineParser(owner,cc,cdr,macros,asmLoader);
 		} catch (ContentException e) {
 			throw new IOException(e.getMessage(),e);
 		}
 	}
 
-	public Asm(final OutputStream os, final Writer diagnostics) throws IOException {
+	public Asm(final ClassLoader owner, final OutputStream os, final Writer diagnostics) throws IOException {
+		this.owner = owner;
 		this.wasCloned = false;
 		this.os = os;
 		this.diagnostics = diagnostics;
 		this.macros = new AndOrTree<>();	
 		try{this.cdr = new ClassDescriptionRepo(diagnostics);
 			this.asmLoader = createLoader();
-			this.lp = new LineParser(cc,cdr,macros,asmLoader,diagnostics);
+			this.lp = new LineParser(owner,cc,cdr,macros,asmLoader,diagnostics);
 		} catch (ContentException e) {
 			throw new IOException(e.getMessage(),e);
 		}
 	}
 	
-	public Asm(final Asm asm, final OutputStream os) throws IOException {
+	public Asm(final ClassLoader owner, final Asm asm, final OutputStream os) throws IOException {
+		this.owner = owner;
 		this.wasCloned = true;
 		this.os = os;
 		this.diagnostics = asm.diagnostics;
 		this.cdr = asm.cdr;
 		this.asmLoader = asm.asmLoader;
 		this.macros = asm.macros;	
-		try{this.lp = diagnostics != null ? new LineParser(cc,cdr,macros,asmLoader,diagnostics) : new LineParser(cc,cdr,macros,asmLoader);
+		try{this.lp = diagnostics != null ? new LineParser(owner,cc,cdr,macros,asmLoader,diagnostics) : new LineParser(owner,cc,cdr,macros,asmLoader);
 		} catch (ContentException e) {
 			throw new IOException(e.getMessage(),e);
 		}
@@ -120,5 +124,4 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	private static MacroClassLoader createLoader() {
 		return new MacroClassLoader(Thread.currentThread().getContextClassLoader()); 
 	}
-
 }

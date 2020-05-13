@@ -210,7 +210,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		if (getNodeMetadata().getTooltipId() != null) {
+		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
 			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
 		}
 	}

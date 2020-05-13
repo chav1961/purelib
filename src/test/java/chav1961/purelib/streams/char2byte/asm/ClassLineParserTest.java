@@ -27,7 +27,7 @@ public class ClassLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -41,7 +41,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public private\n"
@@ -51,7 +51,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public protected\n"
@@ -61,7 +61,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class abstract final\n"
@@ -71,7 +71,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"
@@ -83,7 +83,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"
@@ -99,7 +99,7 @@ public class ClassLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public extends java.lang.Throwable final\n"
@@ -113,7 +113,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public extends java.lang.String final\n"
@@ -130,7 +130,7 @@ public class ClassLineParserTest {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"		.import java.lang.AutoCloseable\n"
@@ -147,7 +147,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"		.import unknown\n"
@@ -158,7 +158,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract extends java.lang.Throwable implements Unknown\n"
@@ -168,7 +168,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,null,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract extends java.lang.Throwable implements java.lang.String\n"
@@ -185,7 +185,7 @@ public class ClassLineParserTest {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -207,7 +207,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -218,7 +218,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public final synthetic\n"
@@ -236,7 +236,7 @@ public class ClassLineParserTest {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -253,7 +253,7 @@ public class ClassLineParserTest {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"
@@ -265,7 +265,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -277,7 +277,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -289,7 +289,7 @@ public class ClassLineParserTest {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public abstract\n"
@@ -308,7 +308,7 @@ public class ClassLineParserTest {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
 							+"Test 	.class public\n"

@@ -230,7 +230,9 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
+			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		}
 	}
 	
 	private void selectColorF() {

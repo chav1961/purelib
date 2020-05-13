@@ -79,6 +79,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	private final Localizer			localizer;
+	private final boolean			supportTooltips;
 	private final LoggerFacade		delegate = new InternalLoggerFacade();
 	private final LoggerFacade		dump;
 	private final List<Message>		history = new ArrayList<>();
@@ -106,14 +107,27 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	 * @throws NullPointerException when localizer is null
 	 */
 	public JStateString(final Localizer localizer) throws NullPointerException {
+		this(localizer,false);
+	}
+	
+	/**
+	 * <p>Create ordinal state string with no history and no logging</p>
+	 * @param localizer localizer to use in messages and progress indicators
+	 * @param supportTooltips type tooltips in the state string
+	 * @throws NullPointerException when localizer is null
+	 * @since 0.0.4
+	 */
+	public JStateString(final Localizer localizer, final boolean supportTooltips) throws NullPointerException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
 		else {
 			this.localizer = localizer;
+			this.supportTooltips = supportTooltips;
 			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = 0;
 			this.dump = null;
+			setAutomaticClearTime(Severity.tooltip,3,TimeUnit.SECONDS);
 			prepareControls();
 			fillLocalizedStrings();
 		}
@@ -127,6 +141,19 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	 * @throws IllegalArgumentException when history depth is less than zero
 	 */
 	public JStateString(final Localizer localizer, final int historyDepth) throws NullPointerException, IllegalArgumentException {
+		this(localizer,historyDepth,false);
+	}
+
+	/**
+	 * <p>Create state string with history of the given depth and no logging</p>
+	 * @param localizer localizer to use in messages and progress indicators
+	 * @param historyDepth depth of the history. Must be positive
+	 * @param supportTooltips type tooltips in the state string
+	 * @throws NullPointerException when localizer is null
+	 * @throws IllegalArgumentException when history depth is less than zero
+	 * @since 0.0.4
+	 */
+	public JStateString(final Localizer localizer, final int historyDepth, final boolean supportTooltips) throws NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -135,6 +162,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else {
 			this.localizer = localizer;
+			this.supportTooltips = supportTooltips;
 			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = historyDepth;
 			this.dump = null;
@@ -158,6 +186,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else {
 			this.localizer = localizer;
+			this.supportTooltips = false;
 			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = 0;
 			this.dump = dumpedTo;
@@ -186,6 +215,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else {
 			this.localizer = localizer;
+			this.supportTooltips = false;
 			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = historyDepth;
 			this.dump = dumpedTo;
@@ -670,10 +700,12 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 			final Message	message = new Message(level, throwable, text, EMPTY_LIST);
 			
-			synchronized (history) {
-				history.add(0,message);
-				while (history.size() > maxCapacity + 1) {
-					history.remove(history.size()-1);
+			if (level != Severity.tooltip) {
+				synchronized (history) {
+					history.add(0,message);
+					while (history.size() > maxCapacity + 1) {
+						history.remove(history.size()-1);
+					}
 				}
 			}
 			if (dump != null) {
@@ -697,6 +729,11 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 					break;
 				case warning:
 					state.setText("<html><body><font color='blue'>"+text+"</font></body></html>");
+					break;
+				case tooltip:
+					if (supportTooltips) {
+						state.setText("<html><body><font color='black'>"+text+"</font></body></html>");
+					}
 					break;
 				default:
 					break;

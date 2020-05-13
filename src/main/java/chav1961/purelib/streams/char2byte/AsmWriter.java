@@ -97,11 +97,11 @@ public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
 													}
 												}
 										);
+	private final ClassLoader			owner;
 	private final Asm					asm;
 	private final boolean				cloned;
 	private boolean						built = false;
 
-	
 	/**
 	 * <p>Create assembly writer instance</p>
 	 * @param os output stream to write content to
@@ -109,12 +109,28 @@ public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
 	 * @throws IOException on any I/O errors
 	 */
 	public AsmWriter(final OutputStream os) throws NullPointerException, IOException {
-		if (os == null) {
+		this(AsmWriter.class.getClassLoader(),os);
+	}	
+	
+	/**
+	 * <p>Create assembly writer instance</p>
+	 * @param owner owner of the writer code. All .import directives will be processed from it's content
+	 * @param os output stream to write content to
+	 * @throws NullPointerException when output stream is null
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.4
+	 */
+	public AsmWriter(final ClassLoader owner, final OutputStream os) throws NullPointerException, IOException {
+		if (owner == null) {
+			throw new NullPointerException("Class lloader owner can't be null"); 
+		}
+		else if (os == null) {
 			throw new NullPointerException("Output stream can't be null"); 
 		}
 		else {
-			this.os = os;
-			this.asm = new Asm(os);
+			this.owner = owner;
+			this.os = os;			
+			this.asm = new Asm(owner,os);
 			this.cloned = false;
 		}
 	}
@@ -122,33 +138,46 @@ public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
 	/**
 	 * <p>Create assembly writer instance</p>
 	 * @param os output stream to write content to
-	 * @param diagnostics dusgnostic stream to send errors to
+	 * @param diagnostics diagnostic stream to send errors to
 	 * @throws NullPointerException when any parameters are null
 	 * @throws IOException on any I/O errors
 	 */
 	public AsmWriter(final OutputStream os, final Writer diagnostics) throws NullPointerException, IOException {
-		if (os == null) {
+		this(AsmWriter.class.getClassLoader(),os,diagnostics);
+	}
+	
+	/**
+	 * <p>Create assembly writer instance</p>
+	 * @param owner owner of the writer code. All .import directives will be processed from it's content
+	 * @param os output stream to write content to
+	 * @param diagnostics diagnostic stream to send errors to
+	 * @throws NullPointerException when any parameters are null
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.4
+	 */
+	public AsmWriter(final ClassLoader owner, final OutputStream os, final Writer diagnostics) throws NullPointerException, IOException {
+		if (owner == null) {
+			throw new NullPointerException("Class lloader owner can't be null"); 
+		}
+		else if (os == null) {
 			throw new NullPointerException("Output stream can't be null"); 
 		}
 		else if (diagnostics == null) {
 			throw new NullPointerException("DIagnostics stream can't be null"); 
 		}
 		else {
+			this.owner = owner;
 			this.os = os;
-			this.asm = new Asm(os,diagnostics);
+			this.asm = new Asm(owner,os,diagnostics);
 			this.cloned = false;
 		}
 	}
 	
-	private AsmWriter(final Asm asm, final OutputStream os) throws NullPointerException, IOException {
-		if (os == null) {
-			throw new NullPointerException("Output stream can't be null"); 
-		}
-		else {
-			this.os = os;
-			this.asm = asm;
-			this.cloned = true;
-		}
+	private AsmWriter(final ClassLoader owner, final Asm asm, final OutputStream os) throws NullPointerException, IOException {
+		this.owner = owner == null ? this.getClass().getClassLoader() : owner;
+		this.os = os;
+		this.asm = asm;
+		this.cloned = true;
 	}
 
 	/**
@@ -161,11 +190,28 @@ public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
 	 * @since 0.0.2
 	 */
 	public AsmWriter clone(final OutputStream os) throws NullPointerException, IllegalStateException, IOException {
+		return clone(this.getClass().getClassLoader(),os);
+	}
+	
+	/**
+	 * <p>Clone writer with all imports and macros were defined earlier. Uses to reduce time and resources for new instances of the {@linkplain AsmWriter}</p>
+	 * @param owner owner of the writer code. All .import directives will be processed from it's content
+	 * @param os output stream to write content to
+	 * @return new writer instance
+	 * @throws NullPointerException when output stream is null
+	 * @throws IllegalStateException when output stream is null
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.4
+	 */
+	public AsmWriter clone(final ClassLoader owner, final OutputStream os) throws NullPointerException, IllegalStateException, IOException {
 		if (cloned) {
 			throw new IllegalStateException("Can't clone stream already cloned");
 		}
+		else if (os == null) {
+			throw new NullPointerException("Output stream can't be null"); 
+		}
 		else {
-			return new AsmWriter(new Asm(asm,os),os);
+			return new AsmWriter(owner,new Asm(owner,asm,os),os);
 		}
 	}
 

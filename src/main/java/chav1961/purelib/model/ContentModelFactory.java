@@ -122,7 +122,7 @@ public class ContentModelFactory {
 															, localeResource.tooltip() 
 															, localeResource.help()
 															, null
-															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName())
+															, ModelUtils.buildUriByClass(clazz)
 															, null);
 				
 				collectFields(clazz,fields,true);
@@ -203,7 +203,7 @@ public class ContentModelFactory {
 														, null 
 														, null
 														, null
-														, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName())
+														, ModelUtils.buildUriByClass(clazz)
 														, null);
 			
 			collectFields(clazz,fields,false);
@@ -321,7 +321,7 @@ public class ContentModelFactory {
 																	, clazzTooltip
 																	, clazzHelp
 																	, null
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName())
+																	, ModelUtils.buildUriByClass(clazz)
 																	, null);
 
 							appendFields(docRoot,clazz,rootClass);

@@ -257,7 +257,9 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 	private void fillLocalizedStrings() throws LocalizationException {
 		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
+			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		}
 		repaint();
 	}
 

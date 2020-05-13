@@ -21,6 +21,8 @@ public class TestClass {
 	public char testChar = 10;
 	@Format("m")
 	public boolean testBoolean = true;
+	@Format("m")
+	public String testString = null;
 	
 	public void testMethod() {
 	}

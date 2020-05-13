@@ -209,7 +209,9 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 	private void fillLocalizedStrings() throws LocalizationException {
 		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
-		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
+			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		}
 	}
 	
 	private void callLoad(final JComponentMonitor monitor) {

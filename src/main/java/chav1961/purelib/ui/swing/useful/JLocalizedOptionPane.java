@@ -20,12 +20,21 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 
 	private final Localizer	localizer;
 	private final Icon[]	icons;
+	private final boolean	ignoreLocalizationErrros;
 
 	public JLocalizedOptionPane(final Localizer localizer) {
-		this(localizer,selectIcons());
+		this(localizer,selectIcons(),false);
 	}
 
+	public JLocalizedOptionPane(final Localizer localizer, final boolean ignoreLocalizationErrros) {
+		this(localizer,selectIcons(),ignoreLocalizationErrros);
+	}
+	
 	public JLocalizedOptionPane(final Localizer localizer, final Icon[] iconSet) {
+		this(localizer,iconSet,false);
+	}
+	
+	public JLocalizedOptionPane(final Localizer localizer, final Icon[] iconSet, final boolean ignoreLocalizationErrros) {
 		if (localizer== null) {
 			throw new NullPointerException("Loclaizer can't be null");
 		}
@@ -35,6 +44,7 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 		else {
 			this.localizer = localizer;
 			this.icons = iconSet;
+			this.ignoreLocalizationErrros = ignoreLocalizationErrros;
 		}
 	}
 	
@@ -44,13 +54,13 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 	}
 
 	public void message(final Component parent, final Object content, final String title, final int type) throws LocalizationException {
-		JOptionPane.showMessageDialog(parent,localizeObject(content,localizer),localizer.getValue(title),type,extractIcon(icons,type));
+		JOptionPane.showMessageDialog(parent,localizeObject(content,localizer),fromLocalizer(title),type,extractIcon(icons,type));
 	}
 
 	public int confirm(final Component parent, final Object content, final String title, final int type, final int options) throws LocalizationException {
 		final Object[]	buttons = buildButtons(options,localizer);
 		
-		return JOptionPane.showOptionDialog(parent,localizeObject(content,localizer),localizer.getValue(title), options, type, extractIcon(icons,type), buttons, buttons[0]);
+		return JOptionPane.showOptionDialog(parent,localizeObject(content,localizer),fromLocalizer(title), options, type, extractIcon(icons,type), buttons, buttons[0]);
 	}
 
 	private static Icon[] selectIcons() {
@@ -60,7 +70,7 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 						  ,(Icon)UIManager.get("OptionPane.informationIcon")};
 	}
 	
-	private static Object localizeObject(final Object source, final Localizer localizer) throws LocalizationException {
+	private Object localizeObject(final Object source, final Localizer localizer) throws LocalizationException {
 		if (source == null) {
 			return null;
 		}
@@ -68,7 +78,7 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 			return ((LocalizedFormatter)source).toString(localizer);
 		}
 		else if (source instanceof String) {
-			return localizer.getValue((String)source);
+			return fromLocalizer((String)source);
 		}
 		else if (source instanceof LocaleChangeListener) {
 			((LocaleChangeListener)source).localeChanged(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
@@ -79,6 +89,18 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 		}
 	}
 
+	private String fromLocalizer(final String source) throws LocalizationException {
+		try{return localizer.getValue(source);
+		} catch (LocalizationException exc) {
+			if (ignoreLocalizationErrros) {
+				return source;
+			}
+			else {
+				throw exc;
+			}
+		}
+	}
+	
 	private static Icon extractIcon(final Icon[] icons, final int options) {
 		switch (options) {
 			case JOptionPane.ERROR_MESSAGE		: return icons[0];

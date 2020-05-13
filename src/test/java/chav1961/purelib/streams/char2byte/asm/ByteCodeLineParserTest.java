@@ -43,7 +43,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -68,7 +68,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -92,7 +92,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -112,7 +112,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -139,7 +139,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -162,7 +162,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -185,7 +185,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -208,7 +208,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -231,7 +231,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -254,7 +254,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -277,7 +277,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -296,7 +296,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -322,7 +322,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -343,7 +343,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -367,7 +367,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -388,7 +388,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -406,7 +406,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -434,7 +434,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -462,7 +462,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -482,7 +482,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -502,7 +502,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -522,7 +522,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -542,7 +542,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -562,7 +562,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -578,7 +578,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -594,7 +594,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		} catch (IOException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -617,7 +617,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -642,7 +642,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -677,7 +677,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -713,7 +713,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -747,7 +747,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -779,7 +779,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -826,7 +826,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -909,7 +909,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -943,7 +943,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -983,7 +983,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -1023,7 +1023,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -1057,7 +1057,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -1092,7 +1092,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"
@@ -1129,7 +1129,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer();) {
-			final LineParser		lp = new LineParser(cc,cdr,macros,null);
+			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
 							" 			.package "+this.getClass().getPackage().getName()+"\n"

@@ -447,7 +447,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						final JButton		button = (JButton) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{button.setText(getLocalizerAssociated().getValue(node.getLabelId()));
-							button.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId()));
+							if (node.getTooltipId() != null && !node.getTooltipId().trim().isEmpty()) {
+								button.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId().trim()));
+							}
 						} catch (LocalizationException exc) {
 							logger.message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 						}
@@ -457,7 +459,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						final JComponent	field = (JComponent) SwingUtils.findComponentByName(this,node.getUIPath().toString());
 		
 						try{label.setText(getLocalizerAssociated().getValue(node.getLabelId()));
-							field.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId()));
+							if (node.getTooltipId() != null && !node.getTooltipId().trim().isEmpty()) {
+								field.setToolTipText(getLocalizerAssociated().getValue(node.getTooltipId().trim()));
+							}
 							if (field instanceof LocaleChangeListener) {
 								((LocaleChangeListener)field).localeChanged(oldLocale, newLocale);
 							}
@@ -542,6 +546,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS)) {
 							try{dlg.setTitle(localizer.getValue(node.getLabelId()));
 							} catch (LocalizationException exc) {
+								dlg.setTitle(node.getLabelId());
 								form.formManager.getLogger().message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 							}
 						}

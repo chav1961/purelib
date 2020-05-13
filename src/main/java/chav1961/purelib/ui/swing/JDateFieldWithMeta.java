@@ -227,7 +227,9 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
-		setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
+			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
+		}
 	}
 
 	private void closeDropDown() {

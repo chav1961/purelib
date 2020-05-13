@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
@@ -39,6 +40,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
@@ -56,7 +58,6 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 public class ModelUtils {
 	private static final AsmWriter				writer;
 	private static final IOException			initExc;
-	private static final SimpleURLClassLoader	ucl = new SimpleURLClassLoader(new URL[0]);
 	
 	public static final String			JSON_METADATA_VERSION = "version";
 	public static final String			JSON_METADATA_VERSION_ID = "1.0";
@@ -147,6 +148,15 @@ public class ModelUtils {
 			return sb.toString();
 		}
 	}
+
+	public static URI buildUriByClass(final Class<?> clazz) throws IllegalArgumentException, NullPointerException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to build URI for can't be null");
+		}
+		else {
+			return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_CLASS+":/"+clazz.getName());
+		}
+	}	
 	
 	public static URI buildUriByClassAndField(final Class<?> clazz, final String fieldName) throws IllegalArgumentException, NullPointerException {
 		if (clazz == null) {
@@ -772,11 +782,15 @@ loop:		for(;;) {
 			final int			lastDot = classPath.lastIndexOf('.');
 			final String		packName = lastDot > 0 ? classPath.substring(0,lastDot) : "", className = lastDot > 0 ? classPath.substring(lastDot+1) : classPath;
 			final Set<String>	classesRequired = new HashSet<>();
+			boolean				primitivesPresent = false;
 			int					fieldCount = 0, count;
 			
 			for (ContentNodeMetadata item : root) {
 				if (!item.getType().isPrimitive()) {
 					classesRequired.add(item.getType().getCanonicalName());
+				}
+				else {
+					primitivesPresent = true;
 				}
 				fieldCount++;
 			}
@@ -823,17 +837,35 @@ loop:		for(;;) {
 						wr.write(" mappedClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+"\n");
 						count++;
 					}
-					wr.write(" mappedClassEndSetValue name=\""+className+"\"\n");
+					wr.write(" mappedClassEndSetValue name=\""+className+"\",needNullLabel="+primitivesPresent+"\n");
 					wr.write(" mappedClassEnd name=\""+className+"\"\n");
 					wr.flush();
 				}
-				return (Class<Map<K, V>>) ucl.createClass(classPath, baos.toByteArray());
+				return (Class<Map<K, V>>) PureLibSettings.INTERNAL_LOADER.createClass(classPath, baos.toByteArray());
 			} catch (IOException e) {
 				throw new ContentException(e.getLocalizedMessage(),e);
 			}
 		}
 	}
 	
+	public static void placeChildrenIntoRoot(final MutableContentNodeMetadata root, final ContentNodeMetadata... children) {
+		int		index;
+		
+		if (root == null) {
+			throw new NullPointerException("Root node can't be null");
+		}
+		else if (children == null) {
+			throw new NullPointerException("Children list can't be null");
+		}
+		else if ((index = Utils.checkArrayContent4Nulls(children)) >= 0) {
+			throw new NullPointerException("Null element in the children at index ["+index+"]");
+		}
+		else {
+			for (ContentNodeMetadata item : children) {
+				root.addChild(item);
+			}
+		}
+	}
 	
 	private static ContentNodeMetadata innerClone(final ContentNodeMetadata source) {
 		final MutableContentNodeMetadata	result = new MutableContentNodeMetadata(source.getName(),
