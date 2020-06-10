@@ -52,7 +52,7 @@ public class FormManagedUtils {
 							}
 							else if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {
 								final JLabel			label = new JLabel();
-								final FieldFormat		ff = node.getFormatAssociated();
+								final FieldFormat		ff = node.getFormatAssociated() != null ? node.getFormatAssociated() : new FieldFormat(node.getType());
 								final JComponent 		field = SwingUtils.prepareRenderer(node, currentLocalizer, ff.getContentType(), monitor);
 								final GetterAndSetter	gas = GettersAndSettersFactory.buildGetterAndSetter(instanceClass,node.getName());
 							

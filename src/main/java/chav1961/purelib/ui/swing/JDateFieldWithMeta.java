@@ -69,9 +69,9 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			this.localizer = localizer;
 
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
-			final FieldFormat	format = metadata.getFormatAssociated();
+			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			
-			setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(prepareDateFormat(getNodeMetadata().getFormatAssociated(),localizer.currentLocale().getLocale()))));
+			setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(prepareDateFormat(format,localizer.currentLocale().getLocale()))));
 			
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
@@ -165,9 +165,10 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-		final Object			value = getValue();
+		final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
+		final Object		value = getValue();
 
-		setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(prepareDateFormat(getNodeMetadata().getFormatAssociated(),newLocale))));
+		setFormatterFactory(new DefaultFormatterFactory(new DateFormatter(prepareDateFormat(format,newLocale))));
 		setValue(value);
 		fillLocalizedStrings();
 	}

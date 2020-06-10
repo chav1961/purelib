@@ -65,7 +65,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			this.contentClass = metadata.getType();
 			
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
-			final FieldFormat	format = metadata.getFormatAssociated();
+			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {

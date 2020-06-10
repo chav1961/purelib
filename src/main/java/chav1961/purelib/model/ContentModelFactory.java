@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -544,7 +545,18 @@ public class ContentModelFactory {
 	}
 	
 	static URI buildClassFieldApplicationURI(final Class<?> clazz, final Field f) {
-		return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName());
+		if (Modifier.isPublic(f.getModifiers())) {
+			return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName());
+		}
+		else if (Modifier.isProtected(f.getModifiers())) {
+			return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName()+"?visibility=protected");
+		}
+		else if (Modifier.isPrivate(f.getModifiers())) {
+			return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName()+"?visibility=private");
+		}
+		else {
+			return URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+clazz.getName()+"/"+f.getName()+"?visibility=package");
+		}
 	}
 
 	static URI buildClassMethodApplicationURI(final Class<?> clazz, final String action) {

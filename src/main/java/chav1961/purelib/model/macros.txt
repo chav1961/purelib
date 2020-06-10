@@ -1,4 +1,11 @@
 ; --------------------------------------------------------------------
+;	
+;	Set of macros for ModelUtils.buildMappedClassByModel method
+;
+; --------------------------------------------------------------------
+
+
+; --------------------------------------------------------------------
 
 mappedClassIncludes	.macro
 			.import		chav1961.purelib.model.MappedAdamClass protected
@@ -396,7 +403,710 @@ mappedClassEnd	.macro name:str=
 
 ; --------------------------------------------------------------------
 
+
+; --------------------------------------------------------------------
+;	
+;	Set of macros for ModelUtils.buildMappedWrapperClassByModel method
+;
+; --------------------------------------------------------------------
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassIncludes	.macro nestedClass:str=
+		.if			!exists(nestedClass)
+			.error		"mandatory parameter 'nestedClass' is missing"
+		.else
+			.import		chav1961.purelib.model.MappedAdamClass protected
+			.import		&nestedClass protected
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassTypeRequired	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+			.import		&name
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassHeader	.macro name:str=,nestedClass:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(nestedClass)
+			.error		"mandatory parameter 'nestedClass' is missing"
+		.else
+&name		.class	public extends chav1961.purelib.model.MappedAdamClass implements chav1961.purelib.basic.interfaces.ModuleExporter
+internalNames	.field	java.lang.Object[] private static final
+internalModules	.field  java.lang.Module[] private static final
+nested			.field	&nestedClass private final
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+				
+mappedWrapperClassFieldDeclaration	.macro name:str=,classType:str=,byGetterAndSetter:bool=false
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(classType)
+			.error		"mandatory parameter 'classType' is missing"
+		.else
+&name.$name		.field		java.lang.String private static final = "&name"
+			.if (byGetterAndSetter)
+				.choise classType
+					.of 	"byte"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter private static final
+					.of 	"short"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter private static final
+					.of 	"int"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter private static final
+					.of 	"long"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter private static final
+					.of 	"float"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter private static final
+					.of 	"double"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter private static final
+					.of 	"char"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter private static final
+					.of 	"boolean"
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter private static final
+					.otherwise
+&name.$getter			.field		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter private static final
+				.endchoise
+			.endif
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedWrapperClassBeginStaticInit	.macro name:str=,size:int=,moduleSize:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(size) || size <= 0
+			.error		"mandatory parameter 'size' is missing or it's value <= 0"
+		.elseif		!exists(moduleSize) || moduleSize <= 0
+			.error		"mandatory parameter 'moduleSize' is missing or it's value <= 0"
+		.else
+&name		.method		void public static
+			.stack		5
+			ldc			&size
+			anewarray	java.lang.Object
+			dup
+			putstatic	internalNames
+			ldc			&moduleSize
+			anewarray	java.lang.Module
+			putstatic	internalModules
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedWrapperClassFieldPreparation	.macro name:str=,classType:str=,index:int=,nestedClass:str=,moduleIndex:int=0,byGetterAndSetter:bool=false
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(classType)
+			.error		"mandatory parameter 'classType' is missing"
+		.elseif		!exists(index) || index < 0
+			.error		"mandatory parameter 'index' is missing or it's value < 0"
+		.elseif		!exists(nestedClass)
+			.error		"mandatory parameter 'nestedClass' is missing"
+		.elseif		moduleIndex < 0
+			.error		"parameter 'moduleIndex' < 0"
+		.else
+			dup
+			ldc			&index
+			getstatic	&name.$name
+			aastore
+			.if (byGetterAndSetter)
+				ldc				&nestedClass..class
+				ldc				"&name"
+				invokestatic	chav1961.purelib.basic.GettersAndSettersFactory.buildGetterAndSetter(Ljava/lang/Class;Ljava/lang/String;)Lchav1961/purelib/basic/GettersAndSettersFactory$GetterAndSetter;
+				.choise classType
+					.of 	"byte"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter
+					.of 	"short"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter
+					.of 	"int"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter
+					.of 	"long"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter
+					.of 	"float"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter
+					.of 	"double"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter
+					.of 	"char"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter
+					.of 	"boolean"
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter
+					.otherwise
+						checkcast		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter
+				.endchoise
+				dup
+				putstatic		&name.$getter
+				invokevirtual	java.lang.Object.getClass()Ljava/lang/Class;
+				invokevirtual	java.lang.Class.getClassLoader()Ljava/lang/ClassLoader;
+				invokevirtual	java.lang.ClassLoader.getUnnamedModule()Ljava/lang/Module;
+				getstatic		internalModules
+				swap
+				ldc				&moduleIndex
+				swap
+				aastore
+			.endif
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedWrapperClassEndStaticInit	.macro name:str=,className:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.else
+			pop
+			getstatic		internalModules
+			dup
+			arraylength
+			ldc				1
+			isub
+			ldc				&className..class
+			invokevirtual	java.lang.Class.getClassLoader()Ljava/lang/ClassLoader;
+			invokevirtual	java.lang.ClassLoader.getUnnamedModule()Ljava/lang/Module;
+			aastore
+			return
+&name		.end
+		.endif
+getUnnamedModules	.method java.lang.Module[] public
+			.stack		2
+			getstatic	internalModules
+			areturn
+getUnnamedModules	.end		
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassInit	.macro name:str=,nestedClass:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif			!exists(nestedClass)
+			.error		"mandatory parameter 'nestedClass' is missing"
+		.else
+&name		.method		void public
+nested		.parameter  &nestedClass final
+			.stack		optimistic
+			aload		this
+			invokespecial	chav1961.purelib.model.MappedAdamClass.<init>()V
+			aload		this
+			aload		nested
+			dup
+			ifnull		errNull
+			putfield	nested
+			return
+errNull:	ldc			"'nested' parameter can't be null!"
+			invokestatic	chav1961.purelib.model.MappedAdamClass.throwNullPointerException(Ljava/lang/String;)V
+			return			
+&name		.end
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassGetKeys	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+getKeys		.method		java.lang.Object[] protected 
+			.stack		2
+			getstatic	internalNames
+			areturn
+getKeys		.end
+		.endif
+		.mend
+
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassBeginGetValues	.macro name:str=,size:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(size) || size <= 0
+			.error		"mandatory parameter 'size' is missing or it's value <= 0"
+		.else
+getValues	.method		java.lang.Object[] public
+			.stack		5
+			ldc			&size
+			anewarray	java.lang.Object
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassGetValuesCollect	.macro name:str=,classType:str=,index:int=,nestedClass:str=,byGetterAndSetter:bool=false
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif			!exists(classType)
+			.error		"mandatory parameter 'classType' is missing"
+		.elseif		!exists(index) || index < 0
+			.error		"mandatory parameter 'index' is missing or it's value < 0"
+		.elseif			!exists(nestedClass)
+			.error		"mandatory parameter 'nestedClass' is missing"
+		.else
+			dup
+			ldc			&index
+			aload		this
+			getfield	nested
+			
+			.if (byGetterAndSetter)
+				getstatic	&name.$getter
+				swap
+				.choise classType
+					.of "byte"
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter.get(Ljava/lang/Object;)B
+						invokestatic	java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+					.of "short"	
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter.get(Ljava/lang/Object;)S
+						invokestatic	java.lang.Short.valueOf(S)Ljava/lang/Short;
+					.of "int"	
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter.get(Ljava/lang/Object;)I
+						invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+					.of "long"	
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter.get(Ljava/lang/Object;)J
+						invokestatic	java.lang.Long.valueOf(J)Ljava/lang/Long;
+					.of "float"	
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter.get(Ljava/lang/Object;)F
+						invokestatic	java.lang.Float.valueOf(F)Ljava/lang/Float;
+					.of "double"	
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter.get(Ljava/lang/Object;)D
+						invokestatic	java.lang.Double.valueOf(D)Ljava/lang/Double;
+					.of "char"	
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter.get(Ljava/lang/Object;)C
+						invokestatic	java.lang.Character.valueOf(C)Ljava/lang/Character;
+					.of "boolean"
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter.get(Ljava/lang/Object;)Z
+						invokestatic	java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+					.otherwise
+						invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter.get(Ljava/lang/Object;)Ljava/lang/Object;
+				.endchoise	
+			.else
+				getfield	&nestedClass..&name
+				.choise classType
+					.of "byte"
+						invokestatic	java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+					.of "short"	
+						invokestatic	java.lang.Short.valueOf(S)Ljava/lang/Short;
+					.of "int"	
+						invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+					.of "long"	
+						invokestatic	java.lang.Long.valueOf(J)Ljava/lang/Long;
+					.of "float"	
+						invokestatic	java.lang.Float.valueOf(F)Ljava/lang/Float;
+					.of "double"	
+						invokestatic	java.lang.Double.valueOf(D)Ljava/lang/Double;
+					.of "char"	
+						invokestatic	java.lang.Character.valueOf(C)Ljava/lang/Character;
+					.of "boolean"
+						invokestatic	java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+				.endchoise
+			.endif	
+			aastore
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassEndGetValues	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+			areturn
+getValues	.end			
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassBeginSetValue	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+setValue	.method 	java.lang.Object protected
+index		.parameter 	int final
+value		.parameter 	java.lang.Object final
+			.stack	5
+result		.var		java.lang.Object
+			iload		index
+			tableswitch		
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+mappedWrapperClassSetValueSwitch	.macro name:str=,index:int=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif		!exists(index) || index < 0
+			.error		"mandatory parameter 'index' is missing or it's value < 0"
+		.else
+				&index,label_&name
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedWrapperClassSetValueEndSwitch	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+				.default label_0
+			.end
+label_0:	aconst_null
+			areturn			
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedWrapperClassSetValueAssign	.macro name:str=,classType:str=,index:int=,nestedClass:str=,byGetterAndSetter:bool=false
+temp		.local		int		
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.elseif			!exists(classType)
+			.error		"mandatory parameter 'classType' is missing"
+		.elseif			!exists(index) || index < 0
+			.error		"mandatory parameter 'index' is missing or it's value < 0"
+		.elseif			!exists(nestedClass)
+			.error		"mandatory parameter 'nestedClass' is missing"
+		.else
+temp	.set		uniqueG()
+
+label_&name:
+		.if (byGetterAndSetter)
+			getstatic	&name.$getter
+			aload		this
+			getfield	nested
+			
+			.choise classType
+				.of "byte"
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter.get(Ljava/lang/Object;)B
+					invokestatic	java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.byteValue()B
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter.set(Ljava/lang/Object;B)V
+				.of "short"	
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter.get(Ljava/lang/Object;)S
+					invokestatic	java.lang.Short.valueOf(S)Ljava/lang/Short;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.shortValue()S
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter.set(Ljava/lang/Object;S)V
+				.of "int"	
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter.get(Ljava/lang/Object;)I
+					invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.intValue()I
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$IntGetterAndSetter.set(Ljava/lang/Object;I)V
+				.of "long"	
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter.get(Ljava/lang/Object;)J
+					invokestatic	java.lang.Long.valueOf(J)Ljava/lang/Long;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.longValue()J
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$LongGetterAndSetter.set(Ljava/lang/Object;J)V
+				.of "float"	
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter.get(Ljava/lang/Object;)F
+					invokestatic	java.lang.Float.valueOf(F)Ljava/lang/Float;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.floatValue()F
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$FloatGetterAndSetter.set(Ljava/lang/Object;F)V
+				.of "double"	
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter.get(Ljava/lang/Object;)D
+					invokestatic	java.lang.Double.valueOf(D)Ljava/lang/Double;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.doubleValue()D
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$DoubleGetterAndSetter.set(Ljava/lang/Object;D)V
+				.of "char"	
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter.get(Ljava/lang/Object;)C
+					invokestatic	java.lang.Character.valueOf(C)Ljava/lang/Character;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Character
+					invokevirtual	java.lang.Character.charValue()C
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$CharGetterAndSetter.set(Ljava/lang/Object;C)V
+				.of "boolean"
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter.get(Ljava/lang/Object;)Z
+					invokestatic	java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					dup
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		checkcast		java.lang.Boolean
+					invokevirtual	java.lang.Boolean.booleanValue()Z
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter.set(Ljava/lang/Object;Z)V
+				.otherwise
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter.get(Ljava/lang/Object;)Ljava/lang/Object;
+					astore			result
+					getstatic		&name.$getter
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		&classType
+					invokevirtual	chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter.set(Ljava/lang/Object;Ljava/lang/Object;)V
+			.endchoise
+			
+			aload	result
+			areturn
+		.else
+			.choise classType
+				.of "byte"
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.byteValue()B
+					putfield		&nestedClass..&name
+				.of "short"	
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Short.valueOf(S)Ljava/lang/Short;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.shortValue()S
+					putfield		&nestedClass..&name
+				.of "int"	
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.intValue()I
+					putfield		&nestedClass..&name
+				.of "long"	
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Long.valueOf(J)Ljava/lang/Long;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.longValue()J
+					putfield		&nestedClass..&name
+				.of "float"	
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Float.valueOf(F)Ljava/lang/Float;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.floatValue()F
+					putfield		&nestedClass..&name
+				.of "double"	
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Double.valueOf(D)Ljava/lang/Double;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Number
+					invokevirtual	java.lang.Number.doubleValue()D
+					putfield		&nestedClass..&name
+				.of "char"	
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Character.valueOf(C)Ljava/lang/Character;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Character
+					invokevirtual	java.lang.Character.charValue()C
+					putfield		&nestedClass..&name
+				.of "boolean"
+					aload			value
+					ifnonnull		label_&temp
+					ldc				"&name"
+					goto			label_null	
+label_&temp:		aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					invokestatic	java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		java.lang.Boolean
+					invokevirtual	java.lang.Boolean.booleanValue()Z
+					putfield		&nestedClass..&name
+				.otherwise
+					aload			this
+					getfield		nested
+					getfield		&nestedClass..&name
+					astore			result
+					aload			this
+					getfield		nested
+					aload			value
+					checkcast		&classType
+					putfield		&nestedClass..&name
+			.endchoise
+				
+			aload	result
+			areturn
+		.endif
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+
+mappedWrapperClassEndSetValue	.macro name:str=,needNullLabel:bool=true
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+			.if 	needNullLabel
+label_null:		invokestatic	chav1961.purelib.model.MappedAdamClass.throwNullPointerException(Ljava/lang/String;)V
+				aconst_null
+				areturn
+			.endif				
+setValue	.end		
+		.endif
+		.mend
+				
+; --------------------------------------------------------------------
+
+mappedWrapperClassEnd	.macro name:str=
+		.if			!exists(name)
+			.error		"mandatory parameter 'name' is missing"
+		.else
+&name		.end		
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+
+
+
+
+
+
+
 	.package	chav1961.purelib.model
+	.import		chav1961.purelib.basic.GettersAndSettersFactory
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$GetterAndSetter
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter	
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$ByteGetterAndSetter	
@@ -408,12 +1118,12 @@ mappedClassEnd	.macro name:str=
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$ShortGetterAndSetter	
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$Instantiator
-	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected		
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected
+	.import		chav1961.purelib.basic.interfaces.ModuleExporter		
 	.import		chav1961.purelib.basic.CharUtils	
 	.import		chav1961.purelib.basic.exceptions.ContentException	
 	.import		chav1961.purelib.streams.char2byte.CompilerUtils	
 	.import		java.lang.InstantiationException
-	.import		sun.reflect.ReflectionFactory	
 	.import		java.lang.reflect.Constructor
 	.import		java.lang.Byte
 	.import		java.lang.Short
@@ -424,6 +1134,8 @@ mappedClassEnd	.macro name:str=
 	.import		java.lang.Character
 	.import		java.lang.Boolean
 	.import		java.lang.Number
+	.import		java.lang.ClassLoader
+	.import		java.lang.Module
 	
 	
 	

@@ -396,10 +396,15 @@ public class CompilerUtils {
 				case CLASSTYPE_REFERENCE	:
 					final StringBuilder	sb = new StringBuilder("L");
 					
-					for (String item : CharUtils.split(clazz.getPackage().getName(),'.')) {
+					for (String item : CharUtils.split(clazz.getPackageName(),'.')) {
 						sb.append(item).append('/');
 					}
-					return sb.append(clazz.getSimpleName()).append(';').toString();
+					if (clazz.getName().contains("$")) {
+						return sb.append(clazz.getName().substring(clazz.getName().lastIndexOf('.')+1)).append(';').toString();
+					}
+					else {
+						return sb.append(clazz.getSimpleName()).append(';').toString();
+					}
 				case CLASSTYPE_BYTE		: return "B";
 				case CLASSTYPE_SHORT	: return "S";
 				case CLASSTYPE_CHAR		: return "C";	

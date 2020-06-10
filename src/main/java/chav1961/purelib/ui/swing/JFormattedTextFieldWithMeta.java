@@ -58,7 +58,7 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			this.metadata = metadata;
 			
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
-			final FieldFormat	format = metadata.getFormatAssociated();
+			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			
 			try{this.formatter = new MaskFormatter(format.getFormatMask());
 				setFormatterFactory(new DefaultFormatterFactory(formatter));

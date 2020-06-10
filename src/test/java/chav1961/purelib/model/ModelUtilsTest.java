@@ -15,11 +15,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
@@ -252,7 +254,7 @@ public class ModelUtilsTest {
 	@Test
 	public void buildMappedClassByModelTest() throws LocalizationException, ContentException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		final ContentMetadataInterface		mdi = ContentModelFactory.forAnnotatedClass(TestClass.class);
-		final Class<Map<Object, Object>>	clazz = ModelUtils.buildMappedClassByModel(mdi.getRoot(),this.getClass().getPackageName()+".Test");
+		final Class<Map<Object, Object>>	clazz = ModelUtils.buildMappedClassByModel(mdi.getRoot(),this.getClass().getPackageName()+".TestOrdinal");
 		final Map<Object,Object>			inst = clazz.getConstructor().newInstance();
 		final Set<String>					awaitedKeys = Set.of("testByte","testShort","testInt","testLong","testFloat","testDouble","testChar","testBoolean","testString"); 
 		
@@ -371,8 +373,293 @@ public class ModelUtilsTest {
 		}
 
 		// Referenced (String) type test
-		Assert.assertNull(((Boolean)inst.put("testString","test")));
+		Assert.assertNull(((String)inst.put("testString","test")));
 		Assert.assertEquals("test",inst.get("testString"));
+		try {inst.put("testString", new Object());
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+	}
+
+	@Test
+	public void buildMappedWrapperClassByModelTest() throws LocalizationException, ContentException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		final ContentMetadataInterface		mdi = ContentModelFactory.forAnnotatedClass(TestClass.class);
+		final TestClass						tc = new TestClass();
+		final Class<Map<Object, Object>>	clazz = ModelUtils.buildMappedWrapperClassByModel(mdi.getRoot(),this.getClass().getPackageName()+".TestWrapped");
+		final Map<Object,Object>			inst = clazz.getConstructor(TestClass.class).newInstance(tc);
+		final Set<String>					awaitedKeys = Set.of("testByte","testShort","testInt","testLong","testFloat","testDouble","testChar","testBoolean","testString"); 
+		
+		Assert.assertEquals(9,inst.size());
+		Assert.assertEquals(awaitedKeys,inst.keySet());
+		Assert.assertTrue(inst.containsKey("testByte"));
+		Assert.assertFalse(inst.containsKey("unknown"));
+		
+		for (Entry<Object, Object> item : inst.entrySet()) {
+			Assert.assertTrue(awaitedKeys.contains(item.getKey()));
+		}
+		
+		try{inst.put("newKey","test");
+			Assert.fail("Mandatory exception was not detected (attempt to create new key)");
+		} catch (UnsupportedOperationException exc) {
+		}
+		try{inst.clear();
+			Assert.fail("Mandatory exception was not detected (attempt to clear keys)");
+		} catch (UnsupportedOperationException exc) {
+		}
+		
+		// byte primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testByte", 100)).byteValue());
+		Assert.assertEquals(100,((Number)inst.get("testByte")).byteValue());
+		Assert.assertEquals(100,tc.testByte);
+		try {inst.put("testByte", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testByte", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// short primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testShort", 100)).shortValue());
+		Assert.assertEquals(100,((Number)inst.get("testShort")).shortValue());
+		Assert.assertEquals(100,tc.testShort);
+		try {inst.put("testShort", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testShort", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// int primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testInt", 100)).intValue());
+		Assert.assertEquals(100,((Number)inst.get("testInt")).intValue());
+		Assert.assertEquals(100,tc.testInt);
+		try {inst.put("testInt", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testInt", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// long primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testLong", 100)).longValue());
+		Assert.assertEquals(100,((Number)inst.get("testLong")).longValue());
+		Assert.assertEquals(100,tc.testLong);
+		try {inst.put("testLong", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testLong", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// float primitive type test
+		Assert.assertEquals(10.0f,((Number)inst.put("testFloat", 100.0f)).floatValue(),0.0001f);
+		Assert.assertEquals(100.0f,((Number)inst.get("testFloat")).floatValue(),0.0001f);
+		Assert.assertEquals(100.0f,tc.testFloat,0.0001f);
+		try {inst.put("testFloat", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testFloat", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// double primitive type test
+		Assert.assertEquals(10.0,((Number)inst.put("testDouble", 100.0)).doubleValue(),0.0001);
+		Assert.assertEquals(100.0,((Number)inst.get("testDouble")).doubleValue(),0.0001);
+		Assert.assertEquals(100.0,tc.testDouble,0.0001);
+		try {inst.put("testDouble", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testDouble", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// char primitive type test
+		Assert.assertEquals('\012',((Character)inst.put("testChar", ' ')).charValue());
+		Assert.assertEquals(' ',((Character)inst.get("testChar")).charValue());
+		Assert.assertEquals(' ',tc.testChar);
+		try {inst.put("testChar", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testChar", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// boolean primitive type test
+		Assert.assertEquals(true,((Boolean)inst.put("testBoolean",true)).booleanValue());
+		Assert.assertEquals(true,((Boolean)inst.get("testBoolean")).booleanValue());
+		Assert.assertEquals(true,tc.testBoolean);
+		try {inst.put("testBoolean", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testBoolean", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// Referenced (String) type test
+		Assert.assertNull(((String)inst.put("testString","test")));
+		Assert.assertEquals("test",inst.get("testString"));
+		Assert.assertEquals("test",tc.testString);
+		try {inst.put("testString", new Object());
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+	}
+
+	@Test
+	public void buildMappedWrapperClassByModelNonPublicTest() throws LocalizationException, ContentException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		final ContentMetadataInterface		mdi = ContentModelFactory.forAnnotatedClass(TestPrivateClass.class);
+		final TestPrivateClass				tc = new TestPrivateClass();
+		final Class<Map<Object, Object>>	clazz = ModelUtils.buildMappedWrapperClassByModel(mdi.getRoot(),this.getClass().getPackageName()+".TestPrivateWrapped");
+		final Map<Object,Object>			inst = clazz.getConstructor(TestPrivateClass.class).newInstance(tc);
+		final Set<String>					awaitedKeys = Set.of("testByte","testShort","testInt","testLong","testFloat","testDouble","testChar","testBoolean","testString"); 
+		
+		Assert.assertEquals(9,inst.size());
+		Assert.assertEquals(awaitedKeys,inst.keySet());
+		Assert.assertTrue(inst.containsKey("testByte"));
+		Assert.assertFalse(inst.containsKey("unknown"));
+		
+		for (Entry<Object, Object> item : inst.entrySet()) {
+			Assert.assertTrue(awaitedKeys.contains(item.getKey()));
+		}
+		
+		try{inst.put("newKey","test");
+			Assert.fail("Mandatory exception was not detected (attempt to create new key)");
+		} catch (UnsupportedOperationException exc) {
+		}
+		try{inst.clear();
+			Assert.fail("Mandatory exception was not detected (attempt to clear keys)");
+		} catch (UnsupportedOperationException exc) {
+		}
+		
+		// Use settings for java 1.9
+		for( Module m : ((ModuleExporter)inst).getUnnamedModules()) {
+			this.getClass().getModule().addExports(this.getClass().getPackageName(),m);
+		}
+		
+		// byte primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testByte", 100)).byteValue());
+		Assert.assertEquals(100,((Number)inst.get("testByte")).byteValue());
+		Assert.assertEquals(100,tc.testByte);
+		try {inst.put("testByte", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testByte", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// short primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testShort", 100)).shortValue());
+		Assert.assertEquals(100,((Number)inst.get("testShort")).shortValue());
+		Assert.assertEquals(100,tc.testShort);
+		try {inst.put("testShort", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testShort", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// int primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testInt", 100)).intValue());
+		Assert.assertEquals(100,((Number)inst.get("testInt")).intValue());
+		Assert.assertEquals(100,tc.testInt);
+		try {inst.put("testInt", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testInt", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// long primitive type test
+		Assert.assertEquals(10,((Number)inst.put("testLong", 100)).longValue());
+		Assert.assertEquals(100,((Number)inst.get("testLong")).longValue());
+		Assert.assertEquals(100,tc.testLong);
+		try {inst.put("testLong", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testLong", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// float primitive type test
+		Assert.assertEquals(10.0f,((Number)inst.put("testFloat", 100.0f)).floatValue(),0.0001f);
+		Assert.assertEquals(100.0f,((Number)inst.get("testFloat")).floatValue(),0.0001f);
+		Assert.assertEquals(100.0f,tc.testFloat,0.0001f);
+		try {inst.put("testFloat", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testFloat", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// double primitive type test
+		Assert.assertEquals(10.0,((Number)inst.put("testDouble", 100.0)).doubleValue(),0.0001);
+		Assert.assertEquals(100.0,((Number)inst.get("testDouble")).doubleValue(),0.0001);
+		Assert.assertEquals(100.0,tc.testDouble,0.0001);
+		try {inst.put("testDouble", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testDouble", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// char primitive type test
+		Assert.assertEquals('\012',((Character)inst.put("testChar", ' ')).charValue());
+		Assert.assertEquals(' ',((Character)inst.get("testChar")).charValue());
+		Assert.assertEquals(' ',tc.testChar);
+		try {inst.put("testChar", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testChar", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// boolean primitive type test
+		Assert.assertEquals(true,((Boolean)inst.put("testBoolean",true)).booleanValue());
+		Assert.assertEquals(true,((Boolean)inst.get("testBoolean")).booleanValue());
+		Assert.assertEquals(true,tc.testBoolean);
+		try {inst.put("testBoolean", null);
+			Assert.fail("Mandatory exception was not detected (null argument for primitive type)");
+		} catch (NullPointerException exc) {
+		}
+		try {inst.put("testBoolean", "test");
+			Assert.fail("Mandatory exception was not detected (illegal class type)");
+		} catch (ClassCastException exc) {
+		}
+
+		// Referenced (String) type test
+		Assert.assertNull(((String)inst.put("testString","test")));
+		Assert.assertEquals("test",inst.get("testString"));
+		Assert.assertEquals("test",tc.testString);
 		try {inst.put("testString", new Object());
 			Assert.fail("Mandatory exception was not detected (illegal class type)");
 		} catch (ClassCastException exc) {

@@ -46,6 +46,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.FormMonitor;
@@ -203,6 +204,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					
 					@Override
 					public void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, boolean isModifiable) throws ContentException {
+						final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
+						
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
 						childPanel.add(fieldComponent,LabelledLayout.CONTENT_AREA);
 						if (!firstFocused) {
@@ -211,11 +214,11 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						}
 						trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",metadata.getUIPath(),metadata.getClass().getCanonicalName());
 						labelIds.add(metadata.getLabelId());
-						if (!metadata.getFormatAssociated().isReadOnly(false) && !metadata.getFormatAssociated().isReadOnly(true)) {
+						if (!format.isReadOnly(false) && !format.isReadOnly(true)) {
 							modifiableLabelIds.add(metadata.getLabelId());
 						}
 						accessors.put(metadata.getUIPath(),gas);
-						if (metadata.getFormatAssociated().isOutput()) {
+						if (format.isOutput()) {
 							outputFocused.add(fieldComponent);
 						}
 						else {

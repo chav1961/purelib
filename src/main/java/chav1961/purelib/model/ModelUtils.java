@@ -24,6 +24,7 @@ import java.util.Set;
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.CharGetterAndSetter;
@@ -37,6 +38,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
@@ -769,7 +771,8 @@ loop:		for(;;) {
 	 * @param root root of the content model
 	 * @param classPath class path (as package.package....ClassName)
 	 * @return class built. Call {@linkplain Class#newInstance()} method to create instance of the class.
-	 * @throws ContentException 
+	 * @throws ContentException
+	 * @since 0.0.4 
 	 */
 	public static <K,V> Class<Map<K,V>> buildMappedClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException {
 		if (root == null) {
@@ -847,6 +850,118 @@ loop:		for(;;) {
 			}
 		}
 	}
+
+	/**
+	 * <p>Build Map-styled wrapper to any class by it's model. Wrapper allows to get access to instance fields 
+	 * thru {@linkplain Map} interface instead of reflective calls. Public and non-public fields are supported. Wrapper class returned also
+	 * implements {@linkplain ModuleExporter} interface, which can be used to allow access for it's unnamed modules in Java 1.9 and higher</p>
+	 * @param <K> Map key type
+	 * @param <V> Map value type
+	 * @param classPath class path (as package.package....ClassName)
+	 * @return class built. Call {@linkplain Class#newInstance(Object wrappee)} method to create instance of the wrapper class.
+	 * @throws ContentException
+	 * @since 0.0.4
+	 */
+	public static <K,V> Class<Map<K,V>> buildMappedWrapperClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException {
+		if (root == null) {
+			throw new NullPointerException("Root of the model can't be null");
+		}
+		else if (classPath == null || classPath.isEmpty()) {
+			throw new IllegalArgumentException("Class path can't be null or empty");
+		}
+		else {
+			final int			lastDot = classPath.lastIndexOf('.');
+			final String		packName = lastDot > 0 ? classPath.substring(0,lastDot) : "", className = lastDot > 0 ? classPath.substring(lastDot+1) : classPath;
+			final Set<String>	classesRequired = new HashSet<>();
+			boolean				primitivesPresent = false;
+			int					fieldCount = 0, moduleCount = 1, count, nonPublicCount;
+			
+			for (ContentNodeMetadata item : root) {
+				if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+					moduleCount++;
+				}
+				if (!item.getType().isPrimitive()) {
+					classesRequired.add(item.getType().getCanonicalName());
+				}
+				else {
+					primitivesPresent = true;
+				}
+				fieldCount++;
+			}
+			
+			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+				try(final AsmWriter			wr = writer.clone(baos)) {
+
+					if (!packName.isEmpty()) {
+						wr.write(" .package "+packName+"\n");
+					}
+					wr.write(" mappedWrapperClassIncludes nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
+					for (String item : classesRequired) {
+						wr.write(" mappedWrapperClassTypeRequired name=\""+item+"\"\n");
+					}
+					wr.write(" mappedWrapperClassHeader name=\""+className+"\",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
+					for (ContentNodeMetadata item : root) {
+						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+							wr.write(" mappedWrapperClassFieldDeclaration name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+						}
+						else {
+							wr.write(" mappedWrapperClassFieldDeclaration name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\"\n");
+						}
+					}
+					wr.write(" mappedWrapperClassBeginStaticInit name=\""+className+"\",size="+fieldCount+",moduleSize="+moduleCount+"\n");
+					count = nonPublicCount = 0;
+					for (ContentNodeMetadata item : root) {
+						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+							wr.write(" mappedWrapperClassFieldPreparation name=\""+item.getName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",moduleIndex="+nonPublicCount+",classType=\""+item.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+							nonPublicCount++;
+						}
+						else {
+							wr.write(" mappedWrapperClassFieldPreparation name=\""+item.getName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",classType=\""+item.getType().getCanonicalName()+"\"\n");
+						}
+						count++;
+					}
+					wr.write(" mappedWrapperClassEndStaticInit name=\""+className+"\",className=\""+classPath+"\"\n");
+					wr.write(" mappedWrapperClassInit name=\""+className+"\",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
+					wr.write(" mappedWrapperClassGetKeys name=\""+className+"\"\n");
+					wr.write(" mappedWrapperClassBeginGetValues name=\""+className+"\",size="+fieldCount+"\n");
+					count = 0;
+					for (ContentNodeMetadata item : root) {
+						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+							wr.write(" mappedWrapperClassGetValuesCollect name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+						}
+						else {
+							wr.write(" mappedWrapperClassGetValuesCollect name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
+						}
+						count++;
+					}
+					wr.write(" mappedWrapperClassEndGetValues name=\""+className+"\"\n");
+					wr.write(" mappedWrapperClassBeginSetValue name=\""+className+"\"\n");
+					count = 0;
+					for (ContentNodeMetadata item : root) {
+						wr.write(" mappedWrapperClassSetValueSwitch name=\""+item.getName()+"\",index="+count+"\n");
+						count++;
+					}
+					wr.write(" mappedWrapperClassSetValueEndSwitch name=\""+className+"\"\n");
+					count = 0;
+					for (ContentNodeMetadata item : root) {
+						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+							wr.write(" mappedWrapperClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+						}
+						else {
+							wr.write(" mappedWrapperClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
+						}
+						count++;
+					}
+					wr.write(" mappedWrapperClassEndSetValue name=\""+className+"\",needNullLabel="+primitivesPresent+"\n");
+					wr.write(" mappedWrapperClassEnd name=\""+className+"\"\n");
+					wr.flush();
+				}
+				return (Class<Map<K, V>>) PureLibSettings.INTERNAL_LOADER.createClass(classPath, baos.toByteArray());
+			} catch (IOException e) {
+				throw new ContentException(e.getLocalizedMessage(),e);
+			}
+		}
+	}	
 	
 	public static void placeChildrenIntoRoot(final MutableContentNodeMetadata root, final ContentNodeMetadata... children) {
 		int		index;

@@ -125,7 +125,7 @@ public class ContentModelFactoryTest {
 			Assert.assertEquals("testSet1",item.getName());
 			Assert.assertEquals(URI.create("./testSet1/float"),item.getRelativeUIPath());
 			Assert.assertEquals(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1/float"),item.getUIPath());
-			Assert.assertEquals(URI.create("app:field:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1"),item.getApplicationPath());
+			Assert.assertEquals(URI.create("app:field:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1?visibility=private"),item.getApplicationPath());
 			Assert.assertEquals(URI.create("i18n:prop:chav1961/purelib/i18n/i18n"),cmi.getRoot().getLocalizerAssociated());
 			Assert.assertEquals(0,item.getChildrenCount());
 			Assert.assertNotNull(item.getFormatAssociated());
@@ -187,7 +187,7 @@ public class ContentModelFactoryTest {
 		Assert.assertEquals("testSet1",item.getName());
 		Assert.assertEquals(URI.create("./testSet1/float"),item.getRelativeUIPath());
 		Assert.assertEquals(URI.create("ui:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1/float"),item.getUIPath());
-		Assert.assertEquals(URI.create("app:field:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1"),item.getApplicationPath());
+		Assert.assertEquals(URI.create("app:field:/"+AnnotatedForTest.class.getCanonicalName()+"/testSet1?visibility=private"),item.getApplicationPath());
 		Assert.assertEquals(URI.create("i18n:prop:chav1961/purelib/i18n/localization"),cmi.getRoot().getLocalizerAssociated());
 		Assert.assertEquals(0,item.getChildrenCount());
 		Assert.assertNotNull(item.getFormatAssociated());

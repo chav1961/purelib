@@ -57,7 +57,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			this.clazz = (Class<Enum<?>>) metadata.getType();
 			
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
-			final FieldFormat	format = metadata.getFormatAssociated();
+			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			
 			for (Enum<?> item : clazz.getEnumConstants()) {
 				addItem(item);

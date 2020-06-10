@@ -59,11 +59,11 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			
 			final String					name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final Localizer					localizer = LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated());
-			final FieldFormat				format = metadata.getFormatAssociated();
+			final FieldFormat				format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			final InternationalFormatter	formatter = InternalUtils.prepareNumberFormatter(format,localizer.currentLocale().getLocale());
 			final int						columns;
 			
-			if (metadata.getFormatAssociated().getFormatMask() != null) {
+			if (format.getFormatMask() != null) {
 				columns = format.getLength();
 			}
 			else {
@@ -167,9 +167,10 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		final FieldFormat		format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 		final Object			value = getValue();
 		
-		setFormatterFactory(new DefaultFormatterFactory(InternalUtils.prepareNumberFormatter(getNodeMetadata().getFormatAssociated(),newLocale)));
+		setFormatterFactory(new DefaultFormatterFactory(InternalUtils.prepareNumberFormatter(format,newLocale)));
 		setValue(value);
 		fillLocalizedStrings();
 	}
@@ -195,8 +196,10 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			throw new NullPointerException("Value to assign can't be null");
 		}
 		else {
+			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
+			
 			setValue(newValue = SQLUtils.convert(getValueType(),value));
-			prepareFieldColor(newValue,metadata.getFormatAssociated());
+			prepareFieldColor(newValue,format);
 		}
 	}
 
