@@ -58,9 +58,6 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * @lastUpdate 0.0.4
  */
 public class ModelUtils {
-	private static final AsmWriter				writer;
-	private static final IOException			initExc;
-	
 	public static final String			JSON_METADATA_VERSION = "version";
 	public static final String			JSON_METADATA_VERSION_ID = "1.0";
 	public static final String			JSON_METADATA_NAME = "name";
@@ -100,7 +97,11 @@ public class ModelUtils {
 											JSON_METADATA_APPLICATION_PATH,
 											JSON_METADATA_RELATIVE_UI_PATH
 										};
+	private static final URI			FIELD_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/");
 
+	private static final AsmWriter		writer;
+	private static final IOException	initExc;
+	
 	static {
 		AsmWriter	temp;
 		IOException	tempExc;
@@ -877,16 +878,18 @@ loop:		for(;;) {
 			int					fieldCount = 0, moduleCount = 1, count, nonPublicCount;
 			
 			for (ContentNodeMetadata item : root) {
-				if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
-					moduleCount++;
+				if (item.getApplicationPath() != null && URIUtils.canServeURI(item.getApplicationPath(),FIELD_URI)) {
+					if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+						moduleCount++;
+					}
+					if (!item.getType().isPrimitive()) {
+						classesRequired.add(item.getType().getCanonicalName());
+					}
+					else {
+						primitivesPresent = true;
+					}
+					fieldCount++;
 				}
-				if (!item.getType().isPrimitive()) {
-					classesRequired.add(item.getType().getCanonicalName());
-				}
-				else {
-					primitivesPresent = true;
-				}
-				fieldCount++;
 			}
 			
 			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
@@ -901,24 +904,28 @@ loop:		for(;;) {
 					}
 					wr.write(" mappedWrapperClassHeader name=\""+className+"\",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
 					for (ContentNodeMetadata item : root) {
-						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
-							wr.write(" mappedWrapperClassFieldDeclaration name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
-						}
-						else {
-							wr.write(" mappedWrapperClassFieldDeclaration name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\"\n");
+						if (item.getApplicationPath() != null && URIUtils.canServeURI(item.getApplicationPath(),FIELD_URI)) {
+							if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+								wr.write(" mappedWrapperClassFieldDeclaration name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+							}
+							else {
+								wr.write(" mappedWrapperClassFieldDeclaration name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\"\n");
+							}
 						}
 					}
 					wr.write(" mappedWrapperClassBeginStaticInit name=\""+className+"\",size="+fieldCount+",moduleSize="+moduleCount+"\n");
 					count = nonPublicCount = 0;
 					for (ContentNodeMetadata item : root) {
-						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
-							wr.write(" mappedWrapperClassFieldPreparation name=\""+item.getName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",moduleIndex="+nonPublicCount+",classType=\""+item.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
-							nonPublicCount++;
+						if (item.getApplicationPath() != null && URIUtils.canServeURI(item.getApplicationPath(),FIELD_URI)) {
+							if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+								wr.write(" mappedWrapperClassFieldPreparation name=\""+item.getName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",moduleIndex="+nonPublicCount+",classType=\""+item.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+								nonPublicCount++;
+							}
+							else {
+								wr.write(" mappedWrapperClassFieldPreparation name=\""+item.getName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",classType=\""+item.getType().getCanonicalName()+"\"\n");
+							}
+							count++;
 						}
-						else {
-							wr.write(" mappedWrapperClassFieldPreparation name=\""+item.getName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",classType=\""+item.getType().getCanonicalName()+"\"\n");
-						}
-						count++;
 					}
 					wr.write(" mappedWrapperClassEndStaticInit name=\""+className+"\",className=\""+classPath+"\"\n");
 					wr.write(" mappedWrapperClassInit name=\""+className+"\",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
@@ -926,31 +933,37 @@ loop:		for(;;) {
 					wr.write(" mappedWrapperClassBeginGetValues name=\""+className+"\",size="+fieldCount+"\n");
 					count = 0;
 					for (ContentNodeMetadata item : root) {
-						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
-							wr.write(" mappedWrapperClassGetValuesCollect name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+						if (item.getApplicationPath() != null && URIUtils.canServeURI(item.getApplicationPath(),FIELD_URI)) {
+							if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+								wr.write(" mappedWrapperClassGetValuesCollect name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+							}
+							else {
+								wr.write(" mappedWrapperClassGetValuesCollect name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
+							}
+							count++;
 						}
-						else {
-							wr.write(" mappedWrapperClassGetValuesCollect name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
-						}
-						count++;
 					}
 					wr.write(" mappedWrapperClassEndGetValues name=\""+className+"\"\n");
 					wr.write(" mappedWrapperClassBeginSetValue name=\""+className+"\"\n");
 					count = 0;
 					for (ContentNodeMetadata item : root) {
-						wr.write(" mappedWrapperClassSetValueSwitch name=\""+item.getName()+"\",index="+count+"\n");
-						count++;
+						if (item.getApplicationPath() != null && URIUtils.canServeURI(item.getApplicationPath(),FIELD_URI)) {
+							wr.write(" mappedWrapperClassSetValueSwitch name=\""+item.getName()+"\",index="+count+"\n");
+							count++;
+						}
 					}
 					wr.write(" mappedWrapperClassSetValueEndSwitch name=\""+className+"\"\n");
 					count = 0;
 					for (ContentNodeMetadata item : root) {
-						if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
-							wr.write(" mappedWrapperClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+						if (item.getApplicationPath() != null && URIUtils.canServeURI(item.getApplicationPath(),FIELD_URI)) {
+							if (item.getApplicationPath() != null && URIUtils.extractQueryFromURI(item.getApplicationPath()) != null && URIUtils.extractQueryFromURI(item.getApplicationPath()).contains("visibility")) {
+								wr.write(" mappedWrapperClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\",byGetterAndSetter=true\n");
+							}
+							else {
+								wr.write(" mappedWrapperClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
+							}
+							count++;
 						}
-						else {
-							wr.write(" mappedWrapperClassSetValueAssign name=\""+item.getName()+"\",classType=\""+item.getType().getCanonicalName()+"\",index="+count+",nestedClass=\""+root.getType().getCanonicalName()+"\"\n");
-						}
-						count++;
 					}
 					wr.write(" mappedWrapperClassEndSetValue name=\""+className+"\",needNullLabel="+primitivesPresent+"\n");
 					wr.write(" mappedWrapperClassEnd name=\""+className+"\"\n");

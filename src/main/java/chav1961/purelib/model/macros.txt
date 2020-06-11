@@ -1099,12 +1099,6 @@ mappedWrapperClassEnd	.macro name:str=
 ; --------------------------------------------------------------------
 
 
-
-
-
-
-
-
 	.package	chav1961.purelib.model
 	.import		chav1961.purelib.basic.GettersAndSettersFactory
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$GetterAndSetter

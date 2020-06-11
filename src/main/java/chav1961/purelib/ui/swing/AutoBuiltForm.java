@@ -85,6 +85,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private static final URI[]				DUMMY_OK_AND_CANCEL = new URI[0];
 	private static final int				GAP_SIZE = 5; 
 
+	private final T							instance;
 	private final Localizer					localizer;
 	private final LoggerFacade				logger;
 	private final JPanel					childPanel;
@@ -190,6 +191,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			this.mdi = mdi;
 			this.logger = logger;
 			this.formManager = formMgr;
+			this.instance = instance;
 			childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
 			
 			try(final LoggerFacade		trans = logger.transaction(this.getClass().getSimpleName())) {
@@ -332,10 +334,18 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	
 	/**
 	 * <p>Get content model for instance </p>
-	 * @return content model. Can.t be null
+	 * @return content model. Can't be null
 	 */
 	public ContentMetadataInterface getContentModel() {
 		return mdi;
+	}
+
+	/**
+	 * <p>Get instance associated</p>
+	 * @return instance associated. Can't be null
+	 */
+	public T getInstance() {
+		return instance;
 	}
 	
 	/**
