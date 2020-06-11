@@ -13,12 +13,18 @@ I. New features
 	- .varTable - insert LocalVarTable attribute into generating Java class
 	- .source - insert source attribute into generating Java class
 	
-2. Byte code assembler supports generation of <clinit> method and ConstValue attributes for static final fields now.	
+2. Byte code assembler supports generation of <clinit> method and ConstValue attributes for static final fields now. This support implements as 'static' constructor and '= value' assignment for
+static final fields in the class description	
 
 3. New package chav1961.purelib.testing was created. It contains a set of classes and interfaces to use in JUnit and integrated tests:
 	- a set of marker interfaces for JUnit test categories
 	- SwingUnitTest class - a wrapper for java.awt.Robot class to use in Swing UI tests
 	- TestingUtils class to get debugging trace file, test database connection to use for integrated test purposes etc
+
+4. chav1961.purelib.model.ModelUtils class extends with set of methods:
+    - serializeFromJson/deserializeFromJson - to save/load model descriptors into/from json format
+    - buildMappedClassByModel - to build on-the-fly class instance with inner public fields and java.util.Map-styled access to them
+    - buildMappedWrapperClassByModel - to build on-the-fly implementation of java.util.Map to get java.util.Map-styled access to all fields of wrapped instance
 
 II. Refactoring
 
@@ -29,7 +35,7 @@ code was refactored.
 
 3. Performance of the byte code assembler and macro assembler were increased
 
-4. Maven scripts and all tests were radically refactored to support correct UI Swing testing (JUnit test categories were placed)
+4. Maven scripts and all tests were radically refactored to support correct UI Swing testing (JUnit test 'categories' were placed)
 
 5. Method setAutomaticClearTime(...) was added to JStateString for automatical clearing of state string with different message severities 
 
@@ -43,5 +49,5 @@ IV. Bug fix
 
 1. Macro assembler .choise with booleans - fixed
 2. AndOrTree last character in node name had been lost on walking - fixed. 
-3. SubstitutableProperrties didnt't get values from default source after it's changing - fixed. 
+3. SubstitutableProperties didnt't get values from default source after it's changing - fixed. 
 4. Problems with 'root' URL path normalization - fixed.

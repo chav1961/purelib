@@ -27,7 +27,7 @@
 логгеров с применением фильтров
 Пакет basic.annotations
 *1. Дополнить пакет аннотацией @Preliminary
-Пакет basic.growablrearrays
+*Пакет basic.growablrearrays
 *1. Выделить обход дерева в отдельный утилитный класс 
 *2. Написать тесты для новых методов GrowableCharArray
 Пакет cdb
