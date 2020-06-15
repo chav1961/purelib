@@ -2011,7 +2011,7 @@ public class CSSUtils {
 						}
 						else {
 							from++;
-							result.rotate(wasMinus ? -number[0] : number[0]);
+							result.rotate(Math.PI * (wasMinus ? -number[0] : number[0]) / 180);
 						}
 					}
 				}
