@@ -13,7 +13,7 @@ I. New features
 	- .varTable - insert LocalVarTable attribute into generating Java class
 	- .source - insert source attribute into generating Java class
 	
-2. Byte code assembler supports generation of <clinit> method and ConstValue attributes for static final fields now. This support implements as 'static' constructor and '= value' assignment for
+2. Byte code assembler supports generation of '<clinit>' method and 'ConstValue' attributes for static final fields now. This support implements as 'static' constructor and '= value' assignment for
 static final fields in the class description	
 
 3. New package chav1961.purelib.testing was created. It contains a set of classes and interfaces to use in JUnit and integrated tests:
@@ -38,6 +38,8 @@ code was refactored.
 4. Maven scripts and all tests were radically refactored to support correct UI Swing testing (JUnit test 'categories' were placed)
 
 5. Method setAutomaticClearTime(...) was added to JStateString for automatical clearing of state string with different message severities 
+
+6. SupportedLanguages enum has Locale instance associated inside now
 
 III. Incompatibilities
 

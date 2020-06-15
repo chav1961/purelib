@@ -36,6 +36,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.streams.StreamsUtil;
 
 /**
@@ -55,15 +56,6 @@ public abstract class AbstractLocalizer implements Localizer {
 	public static final String		CONTENT_MIME_TARGET = "targetMime";
 	public static final String		CONTENT_ENCODING = "encoding";
 	public static final String		DEFAULT_CONTENT_ENCODING = "UTF-8";
-
-	/**
-	 * <p>This enumerations contains all locales currently supported</p> 
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.3
-	 */
-	public enum SupportedLanguages {
-		en, ru
-	}
 
 	/**
 	 * <p>Yhjis interface is used to enumerate all locales supported</p>
