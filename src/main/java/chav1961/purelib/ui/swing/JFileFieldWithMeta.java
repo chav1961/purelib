@@ -28,6 +28,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.json.FileKeeper;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
@@ -42,7 +43,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	public static final String 			CHOOSER_NAME = "chooser";
 	
-	private static final Class<?>[]		VALID_CLASSES = {File.class, FileSystemInterface.class};
+	private static final Class<?>[]		VALID_CLASSES = {File.class, FileSystemInterface.class, FileKeeper.class};
 	
 	private final ContentNodeMetadata	metadata;
 	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
@@ -158,7 +159,18 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	
 	@Override
 	public String getRawDataFromComponent() {
-		try{return currentValue == null ? null : ((currentValue instanceof File) ? ((File)currentValue).getAbsolutePath() : ((FileSystemInterface)currentValue).getPath());
+		try{if (currentValue == null) {
+				return null;
+			}
+			else if (currentValue instanceof File) {
+				return ((File)currentValue).getAbsolutePath();
+			}
+			else if (currentValue instanceof FileSystemInterface) {
+				return ((FileSystemInterface)currentValue).getPath();
+			}
+			else {
+				return ((FileKeeper)currentValue).getFileURI();
+			}
 		} catch (IOException e) {
 			return null;
 		}
@@ -175,6 +187,9 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			
 		if (getValueType().isAssignableFrom(File.class)) {
 			return newValue = new File(currentText);
+		}
+		else if (getValueType().isAssignableFrom(FileKeeper.class)) {
+			return newValue = new FileKeeper(currentText);
 		}
 		else if (getValueType().isAssignableFrom(FileSystemInterface.class)) {
 			throw new UnsupportedOperationException();
@@ -194,6 +209,11 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			else if ((value instanceof FileSystemInterface) && (standardValidation(((FileSystemInterface)value).getPath())) == null) {
 				setText(((FileSystemInterface)value).getName());
 				setToolTipText(((FileSystemInterface)value).getPath());
+				newValue = value; 
+			}
+			else if ((value instanceof FileKeeper) && (standardValidation(((FileKeeper)value).getFileURI()) == null)) {
+				setText(value.toString());
+				setToolTipText(value.toString());
 				newValue = value; 
 			}
 			else if ((value instanceof String) && (standardValidation((String)value) == null)) {
@@ -306,6 +326,13 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		
 			if (getValueType().isAssignableFrom(File.class)) {
 				final File	result = chooseFile(localizer,(File)currentValue);
+				
+				if (result != null) {
+					assignValueToComponent(result);
+				}
+			}
+			else if (getValueType().isAssignableFrom(FileKeeper.class)) {
+				final File	result = chooseFile(localizer,((FileKeeper)currentValue).toFile());
 				
 				if (result != null) {
 					assignValueToComponent(result);

@@ -348,6 +348,9 @@ public final class PureLibSettings {
 		else if (NAME2COLOR.containsKey(name)) {
 			return NAME2COLOR.get(name);
 		}
+		else  if (name.startsWith("#")) {
+			return new Color(Integer.parseUnsignedInt(name,1,name.length()-1,16));
+		}
 		else {
 			return defaultColor;
 		}

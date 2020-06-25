@@ -15,6 +15,8 @@ import javax.swing.text.MaskFormatter;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.json.ColorKeeper;
+import chav1961.purelib.json.FileKeeper;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.ui.ColorPair;
 
@@ -546,13 +548,13 @@ public class FieldFormat {
 				else if (Boolean.class.isAssignableFrom(clazz)) {
 					return ContentType.BooleanContent;
 				}
-				else if (File.class.isAssignableFrom(clazz) || FileSystemInterface.class.isAssignableFrom(clazz)) {
+				else if (File.class.isAssignableFrom(clazz) || FileSystemInterface.class.isAssignableFrom(clazz) || FileKeeper.class.isAssignableFrom(clazz)) {
 					return ContentType.FileContent;
 				}
 				else if (URI.class.isAssignableFrom(clazz)) {
 					return ContentType.URIContent;
 				}
-				else if (Color.class.isAssignableFrom(clazz)) {
+				else if (Color.class.isAssignableFrom(clazz) || ColorKeeper.class.isAssignableFrom(clazz)) {
 					return ContentType.ColorContent;
 				}
 				else if (ColorPair.class.isAssignableFrom(clazz)) {

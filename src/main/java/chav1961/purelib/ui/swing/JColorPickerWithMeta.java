@@ -24,6 +24,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.json.ColorKeeper;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
@@ -38,7 +39,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	public static final String 			COLOR_NAME = "color";
 	
 	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
-	private static final Class<?>[]		VALID_CLASSES = {Color.class};
+	private static final Class<?>[]		VALID_CLASSES = {Color.class, ColorKeeper.class};
 
 	private final ContentNodeMetadata	metadata;
 	private final Localizer 			localizer;
@@ -130,18 +131,32 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 
 	@Override
 	public Object getValueFromComponent() {
-		return currentValue;
+		if (metadata.getType().isAssignableFrom(ColorKeeper.class)) {
+			return new ColorKeeper(currentValue);
+		}
+		else {
+			return currentValue;
+		}
 	}
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return newValue;
+		if (metadata.getType().isAssignableFrom(ColorKeeper.class)) {
+			return new ColorKeeper(newValue);
+		}
+		else {
+			return newValue;
+		}
 	}
 
 	@Override
 	public void assignValueToComponent(final Object value) {
 		if (value instanceof Color) {
 			newValue = (Color)value;
+			repaint();
+		}
+		else if (value instanceof ColorKeeper) {
+			newValue = ((ColorKeeper)value).toColor();
 			repaint();
 		}
 		else if (value instanceof String) {
@@ -206,7 +221,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	}
 
 	protected Color chooseColor(final Localizer localizer, final Color initialColor, final boolean isForeground) throws HeadlessException, LocalizationException {
-		return Utils.nvl(JColorChooser.showDialog(this,localizer.getValue(TITLE),initialColor),initialColor);
+		return Utils.nvl(JColorChooser.showDialog(this,PureLibSettings.PURELIB_LOCALIZER.getValue(TITLE),initialColor),initialColor);
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {

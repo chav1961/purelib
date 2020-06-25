@@ -99,6 +99,9 @@
 		<key name="titleStandardAvailable">Available</key>
 		<key name="titleStandardSelectionMarkTooltip">Line is selected</key>
 
+<!-- Color selection dialog title  -->
+		<key name="JColorPicketWithMeta.chooser.title">Select color</key>
+
 <!-- File selection dialog localization  -->
 		<key name="JFileSelectionDialog.button.open">Open</key>
 		<key name="JFileSelectionDialog.button.open.tt">Open file selected</key>
@@ -309,6 +312,9 @@
 		<key name="titleStandardSelected">Выбрано</key>
 		<key name="titleStandardAvailable">Доступно</key>
 		<key name="titleStandardSelectionMarkTooltip">Строчка выбрана</key>
+
+<!-- Заголовки диалога выбора цвета  -->
+		<key name="JColorPicketWithMeta.chooser.title">Выбрать цвет</key>
 
 <!-- Заголовки диалога выбора файлов  -->
 		<key name="JFileSelectionDialog.button.open">Открыть</key>
