@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -728,7 +729,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			walk((AbstractFileSystem)fsi,path,to,path.length,collection);
 		}
 		else if (to == path.length) {
-			collection.add(afs.createDataWrapper(URI.create(new String(path,from,to-from))));
+			collection.add(afs.createDataWrapper(URI.create(new String(path,from,to-from).replace(" ","%20"))));
 		}
 		else {
 			int		slash = -1;

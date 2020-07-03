@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -229,7 +231,7 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 		public URI[] list(Pattern pattern) throws IOException {
 			final List<URI>		result = new ArrayList<>();
 			
-            try (DirectoryStream<Path> ds = Files.newDirectoryStream(fs.getPath(wrapper.toString()))) {
+            try (DirectoryStream<Path> ds = Files.newDirectoryStream(fs.getPath(wrapper2String()))) {
                 for (Path path : ds) {
                 	final Path	fileName = path.getFileName();
                 	
@@ -250,39 +252,39 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 
 		@Override
 		public void mkDir() throws IOException {
-            Files.createDirectory(fs.getPath(wrapper.toString()));
+            Files.createDirectory(fs.getPath(wrapper2String()));
 		}
 
 		@Override
 		public void create() throws IOException {
-			Files.newOutputStream(fs.getPath(wrapper.toString()),StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING).close();
+			Files.newOutputStream(fs.getPath(wrapper2String()),StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING).close();
 		}
 
 		@Override
 		public void setName(final String name) throws IOException {
-			final Path	path = fs.getPath(wrapper.toString()), newPath = path.resolveSibling(name);
+			final Path	path = fs.getPath(wrapper2String()), newPath = path.resolveSibling(name);
 			
 			Files.move(path,newPath,StandardCopyOption.REPLACE_EXISTING);
 		}
 
 		@Override
 		public void delete() throws IOException {
-			Files.delete(fs.getPath(wrapper.toString()));
+			Files.delete(fs.getPath(wrapper2String()));
 		}
 
 		@Override
 		public OutputStream getOutputStream(boolean append) throws IOException {
-			return Files.newOutputStream(fs.getPath(wrapper.toString()),StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
+			return Files.newOutputStream(fs.getPath(wrapper2String()),StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
 		}
 
 		@Override
 		public InputStream getInputStream() throws IOException {
-			return Files.newInputStream(fs.getPath(wrapper.toString()),StandardOpenOption.READ);
+			return Files.newInputStream(fs.getPath(wrapper2String()),StandardOpenOption.READ);
 		}
 
 		@Override
 		public Map<String, Object> getAttributes() throws IOException {
-			final Path	path = fs.getPath(wrapper.toString());
+			final Path	path = fs.getPath(wrapper2String());
 			
 			if (Files.exists(path)) {
 				return Utils.mkMap(ATTR_SIZE, Files.size(path)
@@ -306,6 +308,10 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 		}
 
 		@Override public void linkAttributes(Map<String, Object> attributes) throws IOException {}
+		
+		private String wrapper2String() {
+			return wrapper.toString();
+		}
 	}
 
 }

@@ -184,6 +184,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		else if (numberOfBars < 1) {
 			throw new IllegalArgumentException("Bars count must be positive");
 		}
+		else if (mdi.getRoot().getLocalizerAssociated() == null) {
+			throw new IllegalArgumentException("No localizer associated in the metadata model!");
+		}
 		else {
 			final BorderLayout	totalLayout = new BorderLayout(GAP_SIZE, GAP_SIZE);
 			final JPanel		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

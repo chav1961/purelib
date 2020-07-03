@@ -189,7 +189,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * @throws NullPointerException if any parameter is null
 	 */
 	public JFileSelectionDialog(final Localizer localizer) throws LocalizationException {
-		this(localizer,new NullLoggerFacade());
+		this(localizer,PureLibSettings.CURRENT_LOGGER);
 	}
 
 	/**

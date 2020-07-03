@@ -564,7 +564,6 @@ loop:		do {if (cursor.child != null) {
 				item.item.setParent(null);
 			}
 			node.child.clear();
-			node.child = null;
 		}
 		return this;
 	}

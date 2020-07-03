@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -188,7 +187,8 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 		private final URI	wrapper;
 		
 		public FileDataWrapper(final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
-			final String	relative = wrapper.toString().replace(File.pathSeparator,"/"), root = rootPath.toString().replace(File.pathSeparator,"/"); 
+			final String	decodedWrapper = wrapper.toString();
+			final String	relative = decodedWrapper.replace(File.pathSeparator,"/"), root = rootPath.toString().replace(File.pathSeparator,"/"); 
 			
 			if (relative.startsWith("/") && root.endsWith("/")) {
 				this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();

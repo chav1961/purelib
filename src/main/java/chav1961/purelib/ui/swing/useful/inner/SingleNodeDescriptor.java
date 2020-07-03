@@ -1,6 +1,8 @@
 package chav1961.purelib.ui.swing.useful.inner;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -27,46 +29,59 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 	private static final String	DEFAULT_HELP_ID = "<help>";
 	private static final URI	DEFAULT_APPLICATION_URI = URI.create("missing");
 	private static final URI	DEFAULT_ICON_URI = URI.create("missing");
+
+	private static final Map<String,Class<?>>	CORRECT_PRIMITIVES = new HashMap<>();
+	
+	static {
+		CORRECT_PRIMITIVES.put("byte",byte.class);
+		CORRECT_PRIMITIVES.put("short",short.class);
+		CORRECT_PRIMITIVES.put("char",char.class);
+		CORRECT_PRIMITIVES.put("int",int.class);
+		CORRECT_PRIMITIVES.put("long",long.class);
+		CORRECT_PRIMITIVES.put("float",float.class);
+		CORRECT_PRIMITIVES.put("double",double.class);
+		CORRECT_PRIMITIVES.put("boolean",boolean.class);
+	}
 	
 	@LocaleResource(value="JContentMetadataEditor.single.fieldName",tooltip="JContentMetadataEditor.single.fieldName.tt")
-	@Format("30m")
+	@Format("30ms")
 	public String		fieldName = "<name>";
 
 	@LocaleResource(value="JContentMetadataEditor.single.fieldType",tooltip="JContentMetadataEditor.single.fieldType.tt")
-	@Format("30m")
+	@Format("30ms")
 	public String		fieldClassName = "<type>";
 	private Class<?>	fieldClass = null;
 
 	@LocaleResource(value="JContentMetadataEditor.single.fieldRelUI",tooltip="JContentMetadataEditor.single.fieldRelUI.tt")
-	@Format("30m")
+	@Format("30ms")
 	public URI			fieldRelativeURI = URI.create("relativeUri");
 
 	@LocaleResource(value="JContentMetadataEditor.single.fieldLocalizer",tooltip="JContentMetadataEditor.single.fieldLocalizer.tt")
-	@Format("30")
+	@Format("30s")
 	public URI			fieldLocalizerURI = DEFAULT_LOCALIZER;
 	
 	@LocaleResource(value="JContentMetadataEditor.single.labelId",tooltip="JContentMetadataEditor.single.labelId.tt")
-	@Format("30m")
+	@Format("30ms")
 	public String		labelId = "<label>";
 	
 	@LocaleResource(value="JContentMetadataEditor.single.tooltipId",tooltip="JContentMetadataEditor.single.tooltipId.tt")
-	@Format("30")
+	@Format("30s")
 	public String		tooltipId = DEFAULT_TOOLTIP_ID;
 
 	@LocaleResource(value="JContentMetadataEditor.single.helpId",tooltip="JContentMetadataEditor.single.helpId.tt")
-	@Format("30")
+	@Format("30s")
 	public String		helpId = DEFAULT_HELP_ID;
 
 	@LocaleResource(value="JContentMetadataEditor.single.fieldFormat",tooltip="JContentMetadataEditor.single.fieldFormat.tt")
-	@Format("30m")
+	@Format("30ms")
 	public String		fieldFormat = "<format>";
 
 	@LocaleResource(value="JContentMetadataEditor.single.fieldApplicationUri",tooltip="JContentMetadataEditor.single.fieldApplicationUri.tt")
-	@Format("30")
+	@Format("30s")
 	public URI			fieldApplicationURI = DEFAULT_APPLICATION_URI;
 
 	@LocaleResource(value="JContentMetadataEditor.single.iconUri",tooltip="JContentMetadataEditor.single.iconUri.tt")
-	@Format("30")
+	@Format("30s")
 	public URI			fieldIconURI = DEFAULT_ICON_URI;
 	
 	private final LoggerFacade	logger;
@@ -113,7 +128,18 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 					return RefreshMode.REJECT;
 				}
 				else {
-					return RefreshMode.DEFAULT;
+					final String	oldName = oldValue == null ? "\uFFFF" : oldValue.toString();
+					boolean			needRefreshFields = false;
+					
+					if (fieldRelativeURI.toString().endsWith(oldName)) {
+						fieldRelativeURI = URI.create(fieldRelativeURI.toString().replace(oldName,fieldName));
+						needRefreshFields = true;
+					}
+					if (fieldApplicationURI.toString().endsWith(oldName)) {
+						fieldApplicationURI = URI.create(fieldApplicationURI.toString().replace(oldName,fieldName));
+						needRefreshFields = true;
+					}
+					return needRefreshFields ? RefreshMode.RECORD_ONLY : RefreshMode.DEFAULT;
 				}
 			case "fieldClassName" 			:
 				if (fieldClassName.trim().isEmpty()) {
@@ -121,11 +147,19 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 					return RefreshMode.REJECT;
 				}
 				else {
-					try{fieldClass = Class.forName(fieldClassName.trim());
+					final String	correctClassName = fieldClassName.trim(); 
+					
+					if (CORRECT_PRIMITIVES.containsKey(correctClassName)) {
+						fieldClass = CORRECT_PRIMITIVES.get(correctClassName);
 						return RefreshMode.DEFAULT;
-					} catch (ClassNotFoundException exc) {
-						getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_CLASS_NOT_FOUND,fieldClassName.trim());
-						return RefreshMode.REJECT;
+					}
+					else {
+						try{fieldClass = Class.forName(correctClassName);
+							return RefreshMode.DEFAULT;
+						} catch (ClassNotFoundException exc) {
+							getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_CLASS_NOT_FOUND,fieldClassName.trim());
+							return RefreshMode.REJECT;
+						}
 					}
 				}
 			case "fieldRelativeURI" 	:
