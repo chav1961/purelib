@@ -63,10 +63,18 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	private int					maxNameLength = 0;
 	private long				actualId, amount = 0;
 
+	/**
+	 * <p>COnstructor of the class.</p>
+	 */
 	public AndOrTree() {
 		this(1,RANGE_STEP);
 	}
 	
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param initialId initial value for automatically generated node ids
+	 * @param step step for automatically generated node ids
+	 */
 	public AndOrTree(final long initialId, final long step) {
 		if (initialId <= 0) {
 			throw new IllegalArgumentException("'initialId' ["+initialId+"] need be positive");

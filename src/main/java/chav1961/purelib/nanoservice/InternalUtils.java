@@ -68,12 +68,12 @@ import com.sun.net.httpserver.Headers;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.MimeType;
-import chav1961.purelib.basic.MimetypesFileTypeMap;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.intern.MimetypesFileTypeMap;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.json.JsonSerializer;
 import chav1961.purelib.streams.JsonStaxParser;

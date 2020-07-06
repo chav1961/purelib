@@ -21,7 +21,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * <li>get {@linkplain InputStream} from the instance and load input content from temporary file</li>
  * <li>close instance</li>
  * </ul>
- * <p>This class is maximized to speed on little files (keeps content in RAM) and maximized memory on large files (uses ZLib compression).
+ * <p>This class is maximized to speed on little files (keeps content in RAM) and minimized memory on large files (uses ZLib compression).
  * Switching from RAM usage and file system usage makes automatically during filling process. To prevent uncontrolled expansion of the RAM
  * used, a maximal limit of the RAM buffer is used.</p>
  * <p>This class implements {@linkplain Closeable} interface and can be user in the <b>try-with-resource</b> statements.</p> 

@@ -26,6 +26,11 @@ static final fields in the class description
     - buildMappedClassByModel - to build on-the-fly class instance with inner public fields and java.util.Map-styled access to them
     - buildMappedWrapperClassByModel - to build on-the-fly implementation of java.util.Map to get java.util.Map-styled access to all fields of wrapped instance
 
+5. chav1961.purelib.i.swing.useful package got new classes:
+	- class DnDManager - to support drag&drop operations with conjunction data model
+	- class JContentMetadataEditor - to support editing content metadata nodes
+	- class JPaginator - to support page-styled document browsing 
+
 II. Refactoring
 
 1. All special URLs implementation in the Pure library were successfully migrated to Java 9 SPI support. The new package chav1961.purelib.net and it's sub-packages were created to keep new 

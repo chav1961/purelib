@@ -11,7 +11,7 @@ import java.net.URLStreamHandlerFactory;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 /**
- * <p>This class is a replacement to early existed class ClassLoaderWrapper, because Java 9 doesn't allow to support it's fuctionality.</p>
+ * <p>This class is a replacement to early existed class ClassLoaderWrapper, because Java 9 doesn't allow to support it's functionality.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4

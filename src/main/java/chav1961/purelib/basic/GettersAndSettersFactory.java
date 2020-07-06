@@ -13,19 +13,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
-//import sun.misc.Unsafe;
 
 /**
  * <p>This class contains a factory method to build getters and setters for primitive and referenced items in the class and/or it's instance. All the 
@@ -51,13 +48,12 @@ import chav1961.purelib.streams.char2byte.CompilerUtils;
  * </ul>
  * <p>According to configuration parameters and field properties, getters and setters can be implemented as:</p>
  * <ul>
- * <li>wrapper to the {@linkplain sun.misc.Unsafe} functionality</li>
  * <li>hard-coded on-the-fly built inner class (use {@linkplain AsmWriter}) functionality</li>
  * <li>wrapper to the {@linkplain MethodHandle} functionality</li>
  * </ul>
- * <p>The first variant is implemented if and only if {@linkplain PureLibSettings#ALLOW_UNSAFE} flag in the Pure Library configuration 
- * is set to <b>true</b> and application has access to {@linkplain sun.misc.Unsafe} instance. The second one is implemented for the public
- * fields only. All other cases produce the third variant.</p> 
+ * <p>The first one is implemented for the public fields only. Other cases produce the second variant.</p>
+ * <p>Since Java 1.9, {@linkplain PureLibSettings#ALLOW_UNSAFE} flag in the Pure Library configuration is deprecated, so any references to
+ * sun.misc.Unsafe class in this class are invalid now.</p>
  * 
  * @see sun.misc.Unsafe
  * @see chav1961.purelib.basic.PureLibSettings

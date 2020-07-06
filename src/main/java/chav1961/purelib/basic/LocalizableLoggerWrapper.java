@@ -6,10 +6,23 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
+/**
+ * <p>This class is a localizable implementation of {@linkplain LoggerFacade} interface. This class is used as a wrapper to any other {@linkplain LoggerFacade}
+ * instance. It has a {@linkplain Localizer associated with it, and always tries to transalate all format strings in the messages with the localizer.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ * @lastUpdate 0.0.4
+ */
 public class LocalizableLoggerWrapper implements LoggerFacade {
 	private final Localizer		localizer;
 	private final LoggerFacade	nested;
-	
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer associated with the logger
+	 * @param nested nested logger to print messages to
+	 * @throws NullPointerException when any parameter is null
+	 */
 	public LocalizableLoggerWrapper(final Localizer localizer, final LoggerFacade nested) throws NullPointerException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 

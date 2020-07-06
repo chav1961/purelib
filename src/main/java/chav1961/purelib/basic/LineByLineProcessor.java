@@ -18,7 +18,7 @@ import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
  * <p>The main idea of this class is to reduce data moving when character stream is parsing. <i>Line</i> is any character sequence, terminated with '\n' char. Source data for this class is a lot of of character arrays 
  * are passing to the {@link LineByLineProcessor#write(char[],int,int) write} method of the class. This class parse every character array, find all the lines in them, and sequentially send all the lines found to the callback 
  * for longer processing. If some line is located in more than one input piece of data, this class builds the line from all pieces and also send in to the callback. It's the only case when the class uses any data moving. 
- * In all other cases this class passes the source data directly to the callback.</p>
+ * In all other cases this class passes the source data directly to the callback. It's strongly recommended to use this class since Java 1.9, because string operations performance was sensitively reduced in it</p>
  * 
  * <p>Class logic guarantees, that all the lines are passing to the callback will be terminated with '\n' char, including the same last line in the source data. Char '\r' also can presents in the callback data as option</p>
  * <p>This class implements {@link java.io.Closeable Closeable} interface, so it can be used in the <b>try-with-resource</b> statements.</p>

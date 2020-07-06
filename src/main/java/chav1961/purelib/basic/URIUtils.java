@@ -19,7 +19,7 @@ import java.util.Hashtable;
  * 
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.3
+ * @since 0.0.2
  */
 public class URIUtils {
 	/**
@@ -135,7 +135,6 @@ public class URIUtils {
 	 * @param uri uri to test
 	 * @return true if the given uri contains nested URI
 	 * @throws NullPointerException if uri is null
-	 * @since 0.0.2
 	 */
 	public static boolean containsNestedURI(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -164,7 +163,6 @@ public class URIUtils {
 	 * @return URI extracted or null if no nested URI inside the given uri instance
 	 * @throws NullPointerException if uri is null
 	 * @see #containsNestedURI(URI)
-	 * @since 0.0.2
 	 */
 	public static URI extractNestedURI(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -198,7 +196,6 @@ public class URIUtils {
 	 * @return path extracted or null if no nested URI inside the given uri instance
 	 * @throws NullPointerException if uri is null
 	 * @see #containsNestedURI(URI)
-	 * @since 0.0.2
 	 */
 	public static URI extractPathInNestedURI(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -234,7 +231,6 @@ public class URIUtils {
 	 * @throws NullPointerException if uri is null
 	 * @throws IllegalArgumentException if relative path is null or empty
 	 * @see https://tools.ietf.org/html/rfc3986
-	 * @since 0.0.3
 	 * @lastUpdate 0.0.4
 	 */
 	public static URI appendRelativePath2URI(final URI uri, final String relativePath) throws NullPointerException, IllegalArgumentException {
@@ -285,7 +281,6 @@ public class URIUtils {
 	 * @return uri with query removed. If query is missing, returns source uri
 	 * @throws NullPointerException if uri is null
 	 * @see https://tools.ietf.org/html/rfc3986
-	 * @since 0.0.3
 	 */
 	public static URI removeQueryFromURI(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -315,7 +310,6 @@ public class URIUtils {
 	 * @param uri uri to extract query from
 	 * @return query extracted or null if missing
 	 * @throws NullPointerException when URI is null
-	 * @since 0.0.3
 	 */
 	public static String extractQueryFromURI(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -339,7 +333,6 @@ public class URIUtils {
 	 * @param uri uri to test
 	 * @param scheme scheme to detect
 	 * @return true if the given scheme presents at any depth, otherwise false
-	 * @since 0.0.3
 	 */
 	public static boolean hasSubScheme(final URI uri, final String scheme) {
 		if (uri == null) {
@@ -404,14 +397,12 @@ public class URIUtils {
 		}
 	}
 	
-	
 	/**
 	 * <p>Parse query string from uri</p>
 	 * @param uri uri to parse query string
 	 * @return key/value pair from parsed query. Can be empty but not null
 	 * @throws NullPointerException when uri is null
 	 * @throws link IllegalArgumentException when query contains syntax errors
-	 * @since 0.0.3
 	 */
 	public static Hashtable<String,String[]> parseQuery(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -435,7 +426,6 @@ public class URIUtils {
 	 * @return key/value pair from parsed query. Can be empty but not null
 	 * @throws NullPointerException when uri is null
 	 * @throws link IllegalArgumentException when query contains syntax errors
-	 * @since 0.0.3
 	 */
 	public static Hashtable<String,String[]> parseQuery(final String query) throws NullPointerException, IllegalArgumentException {
 		if (query == null) {
@@ -477,7 +467,6 @@ public class URIUtils {
 	 * @return 'self' URI built
 	 * @throws NullPointerException when content is null
 	 * @see chav1961.purelib.new.self.Handler
-	 * @since 0.0.3
 	 */
 	public static URI convert2selfURI(final byte[] content) throws NullPointerException {
 		if (content == null) {
@@ -496,7 +485,6 @@ public class URIUtils {
 	 * @throws NullPointerException when content is null
 	 * @throws IllegalArgumentException when encoding is null, empty or unknown
 	 * @see chav1961.purelib.new.self.Handler
-	 * @since 0.0.3
 	 */
 	public static URI convert2selfURI(final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {
 		if (content == null) {

@@ -1,4 +1,6 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.intern;
+
+import chav1961.purelib.basic.PureLibSettings;
 
 public class MimetypesFileTypeMap {
 	public String getContentType(final String fileName) throws IllegalArgumentException {

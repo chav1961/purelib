@@ -17,17 +17,100 @@ import javax.swing.SwingUtilities;
 
 import chav1961.purelib.ui.swing.SwingUtils;
 
-
+/**
+ * <p>This class is a Drag&Drop manager, that unifies drag&drop operations inside one swing container. It implements {@linkplain AutoCloseable} 
+ * interface and can be used in the <b>try-with-resource</b> operators. The constructor of the class passes container to support drag&drop
+ * and callback interface {@linkplain DnDInterface} to process drag&drop events. Details about lifecycle of drag&drop are described in the
+ * {@linkplain DnDInterface}. Using this class allow you to avoid adding listeners to all of the container content.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see DnDInterface
+ * @since 0.0.4
+ */
 public class DnDManager implements AutoCloseable {
+	/**
+	 * <p>This anumerations describes current Drag&drop mode in the swing container.</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 */
 	public enum DnDMode {
 		NONE, COPY, MOVE, LINK
 	}
 	
+	/**
+	 * <p>This interface is a set of callbacks to support drag&drop operations in conjunction with {@linkplain DnDManager} class.
+	 * The lifecycle of the callbacks is:</p>
+	 * <ul>
+	 * <li>{@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} calls at the beginning of the drag operation. If it returns non-null value,
+	 * dral operation starts. Calls only once for each dedicated drag&drop operation</li>
+	 * <li>{@linkplain #canReceive(DnDMode, Component, int, int, Component, int, int, Class)} calls on every mouse moving during drag&drop.</li>
+	 * <li>{@linkplain #track(DnDMode, Component, int, int, Component, int, int)} calls on every mouse moving during drag&drop.</li>
+	 * <li>{@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} calls at the end of the drag operation, but before {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method call. Calls only once for each dedicated drag&drop operation</li>
+	 * <li>{@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} the same last call at the lifecycle. Calls only once for each dedicated drag&drop operation</li>
+	 * </ul>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 */
 	public interface DnDInterface {
-		Class<?> getSourceClass(final DnDMode currentMode, final Component component, final int x, final int y);
-		Object getSource(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo);
+		/**
+		 * <p>Get source content class. This method returns type of the content, located at requested point.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param component current component. Can't be null
+		 * @param x current x-coordinate related to upper-left corner of the component
+		 * @param y current y-coordinate related to upper-left corner of the component
+		 * @return content type to drag. Null cancels drag operation
+		 */
+		Class<?> getSourceContentClass(final DnDMode currentMode, final Component component, final int x, final int y);
+		
+		/**
+		 * <p>Get source content to pass it to {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param from source component. Can't be null
+		 * @param xFrom x-coordinate related to upper-left corner of the source component
+		 * @param yFrom y-coordinate related to upper-left corner of the source component
+		 * @param to target component. Can't be null
+		 * @param xTo x-coordinate related to upper-left corner of the target component
+		 * @param yTo y-coordinate related to upper-left corner of the target component
+		 * @return content to drag&drop. Null cancels drop operation
+		 */
+		Object getSourceContent(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo);
+		
+		/**
+		 * <p>Test the control can receive dragged data.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param from source component. Can't be null
+		 * @param xFrom x-coordinate related to upper-left corner of the source component
+		 * @param yFrom y-coordinate related to upper-left corner of the source component
+		 * @param to target component. Can't be null
+		 * @param xTo x-coordinate related to upper-left corner of the target component
+		 * @param yTo y-coordinate related to upper-left corner of the target component
+		 * @param contentClass class of the content dragged. Can't be null
+		 * @return true if the content can be dropped to the given target control
+		 */
 		boolean canReceive(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo, final Class<?> contentClass);
+		
+		/**
+		 * <p>Track drag&drop operation. Can be used for visualization purposes.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param from source component. Can't be null
+		 * @param xFromAbsolute staring x-coordinate related to upper-left corner of the screen
+		 * @param yFromAbsolute staring y-coordinate related to upper-left corner of the screen
+		 * @param to target component. Can't be null
+		 * @param xToAbsolute current x-coordinate related to upper-left corner of the screen
+		 * @param yToAbsolute current y-coordinate related to upper-left corner of the screen
+		 */
 		void track(final DnDMode currentMode, final Component from, final int xFromAbsolute, final int yFromAbsolute, final Component to, final int xToAbsolute, final int yToAbsolute);
+		
+		/**
+		 * <p>Complete drop operation.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param from source component. Can't be null
+		 * @param xFrom x-coordinate related to upper-left corner of the source component
+		 * @param yFrom y-coordinate related to upper-left corner of the source component
+		 * @param to target component. Can't be null
+		 * @param xTo x-coordinate related to upper-left corner of the target component
+		 * @param yTo y-coordinate related to upper-left corner of the target component
+		 * @param content content returned by {@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} method
+		 */
 		void complete(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo, final Object content);
 	}
 
@@ -60,7 +143,13 @@ public class DnDManager implements AutoCloseable {
 	private int							lastX = Integer.MAX_VALUE, lastY = Integer.MAX_VALUE;
 	private MouseAction					lastAction = MouseAction.UNKNOWN;
 	
-	public DnDManager(final Container container, final DnDInterface dndInterface) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param container container to manage drag&drip inside. Can't be null
+	 * @param dndInterface callback interface to support drag&drop lifecycle. Can't be null 
+	 * @throws NullPointerException if any parameter is null
+	 */
+	public DnDManager(final Container container, final DnDInterface dndInterface) throws NullPointerException {
 		if (container == null) {
 			throw new NullPointerException("Container can't be null");
 		}
@@ -91,7 +180,13 @@ public class DnDManager implements AutoCloseable {
 		componentRemoved(this.owner);
 	}
 	
-	public DnDMode selectDnDMode(final DnDMode mode) {
+	/**
+	 * <p>Select current Drag&drop mode inside the container.</p>
+	 * @param mode mode to select. Can't be null 
+	 * @return previous drag&drop mode. Can't be null
+	 * @throws NullPointerException if any parameter is null
+	 */
+	public DnDMode selectDnDMode(final DnDMode mode) throws NullPointerException {
 		if (mode == null) {
 			throw new NullPointerException("Mode to set can't be null");
 		}
@@ -103,6 +198,10 @@ public class DnDManager implements AutoCloseable {
 		}
 	}
 	
+	/**
+	 * <p>Get current drag&drop mode</p>
+	 * @return current drag&drop mode. Can't be null
+	 */
 	public DnDMode currentDnDMode() {
 		return currentDnDMode;
 	}
@@ -173,7 +272,7 @@ public class DnDManager implements AutoCloseable {
 						draggedDndMode = currentDnDMode;
 						cursorWasSet = false;
 						validTarget = false;
-						allowDrag = (class2Process = dndInterface.getSourceClass(draggedDndMode,lastComponent,lastX,lastY)) != null;
+						allowDrag = (class2Process = dndInterface.getSourceContentClass(draggedDndMode,lastComponent,lastX,lastY)) != null;
 					}
 					break;
 				case RELEASED		:
@@ -187,7 +286,7 @@ public class DnDManager implements AutoCloseable {
 								
 								SwingUtilities.convertPointFromScreen(enteredPoint,enteredComponent);
 								if (dndInterface.canReceive(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.x,enteredComponent,enteredPoint.x,enteredPoint.y,class2Process)) {
-									final Object 	src = dndInterface.getSource(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y);
+									final Object 	src = dndInterface.getSourceContent(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y);
 
 									if (src != null) {
 										dndInterface.complete(draggedDndMode,sourceComponent,sourcePoint.x,sourcePoint.y,enteredComponent,enteredPoint.x,enteredPoint.y,src);

@@ -251,6 +251,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @since 0.0.2 
 	 * @lastUpdate 0.0.4 
 	 */
+	@SuppressWarnings("unchecked")
 	public T append(final Reader rdr) throws NullPointerException, IOException {
 		if (rdr == null) {
 			throw new NullPointerException("Reader can't be null"); 
@@ -276,6 +277,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public T append(final CharSequence csq, final int start, final int end) throws IOException {
 		if (csq == null) {
