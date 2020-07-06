@@ -18,7 +18,7 @@ public class MimeType {
 	private static final String				X_PREFIX_UPPERCASE = "X-";
 	private static final String				APPLICATION_PRIMARY_TYPE = "application";
 	private static final String				ASTERISK_SUBTYPE = "*";
-	private static final char[]				AVAILABLE_EXTRA_CHARS = "-".toCharArray();
+	private static final char[]				AVAILABLE_EXTRA_CHARS = "-+".toCharArray();
 	
 	static {
 		String	value;			// To reduce amount of repeatable strings in the primary type 
@@ -30,6 +30,7 @@ public class MimeType {
 		value = APPLICATION_PRIMARY_TYPE; 	AVAILABLE_TYPE.put(value,value);
 		value = "multipart"; 				AVAILABLE_TYPE.put(value,value);
 		value = "message"; 					AVAILABLE_TYPE.put(value,value);
+		value = "*"; 						AVAILABLE_TYPE.put(value,value);
 	}
 	
 	private final String		primaryType, subType;
@@ -84,13 +85,17 @@ public class MimeType {
 			content[content.length-1] = '\n';
  
 			try {
-				from = CharUtils.parseNameExtended(content,CharUtils.skipBlank(content,from,true),bounds,AVAILABLE_EXTRA_CHARS);
-				if (bounds[0] == bounds[1]) {
-					throw new MimeTypeParseException("Missing primary type name");
+				from = CharUtils.skipBlank(content,from,true);
+				if (content[from] == '*') {
+					bounds[0] = bounds[1] = from++;
 				}
 				else {
-					this.primaryType = checkPrimaryType(new String(content,bounds[0],bounds[1]-bounds[0]+1));
+					from = CharUtils.parseNameExtended(content,from,bounds,AVAILABLE_EXTRA_CHARS);
+					if (bounds[0] == bounds[1]) {
+						throw new MimeTypeParseException("Missing primary type name");
+					}
 				}
+				this.primaryType = checkPrimaryType(new String(content,bounds[0],bounds[1]-bounds[0]+1));
 	
 				if (content[from = CharUtils.skipBlank(content,from,true)] != '/') {
 					throw new MimeTypeParseException("Missing '/' in the MIME description");
@@ -148,7 +153,7 @@ public class MimeType {
 					this.attr = props;
 				}
 			} catch (IllegalArgumentException exc) {
-				throw new MimeTypeParseException(exc.getLocalizedMessage());
+				throw new MimeTypeParseException(exc.getLocalizedMessage()+", parsing MIME is ["+mime+"]");
 			}
 		}
 	}
@@ -200,7 +205,7 @@ public class MimeType {
 	
 	private static String checkPrimaryType(final String primaryType) throws MimeTypeParseException {
 		String	availablePrimary = AVAILABLE_TYPE.get(primaryType);
-		
+
 		if (availablePrimary != null) {
 			return availablePrimary;	// Reduce amount of repeatable strings
 		}

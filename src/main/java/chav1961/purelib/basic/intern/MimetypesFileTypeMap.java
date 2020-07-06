@@ -19,6 +19,9 @@ public class MimetypesFileTypeMap {
 		else if (fileName.endsWith(".txt")) {
 			return PureLibSettings.MIME_PLAIN_TEXT.toString();
 		}
+		else if (fileName.endsWith(".html")) {
+			return PureLibSettings.MIME_HTML_TEXT.toString();
+		}
 		else {
 			return PureLibSettings.MIME_OCTET_STREAM.toString();
 		}

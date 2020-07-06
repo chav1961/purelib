@@ -110,6 +110,12 @@ public final class PureLibSettings {
 	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
 	 */
 	public static final String		PRINT_EXPANDED_MACROS = "purelib.settings.macros.printExpanded";
+
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p> 
+	 */
+	public static final String		HTTP_SERVER_PORT = "purelib.settings.help.port";
+	
 	
 	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for plain text</p>
