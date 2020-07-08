@@ -6,7 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
@@ -15,8 +15,9 @@ public class JUnitExecutorTest {
 	final PrintStream	ps = TestingUtils.err();
 	
 	@Test
-	public void basicTest() throws InterruptedException, FlowException {
+	public void basicTest() throws InterruptedException, DebuggingException {
 		final JUnitExecutor<String,String>	ex = new JUnitExecutor<>();
+		
 		final Thread	t = new Thread(()->{
 							ps.println("Child started");
 							for (;;) {
@@ -43,7 +44,7 @@ public class JUnitExecutorTest {
 		
 		try{ex.call("throw");
 			Assert.fail("Mandatory exception was not detected (Throwable throws)");
-		} catch (FlowException exc) {
+		} catch (DebuggingException exc) {
 		}
 		
 		t.interrupt();
@@ -52,7 +53,7 @@ public class JUnitExecutorTest {
 		ps.println("Waiting up to 20 sec...");
 		try{ex.call("lower");
 			Assert.fail("Mandatory exception was not detected (Thread is dead)");
-		} catch (FlowException exc) {
+		} catch (DebuggingException exc) {
 		}
 		
 		try{ex.call(null);

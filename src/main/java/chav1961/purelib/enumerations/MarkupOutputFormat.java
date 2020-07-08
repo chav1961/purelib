@@ -16,19 +16,23 @@ public enum MarkupOutputFormat {
 	/**
 	 * <p>Simple text without any markup signs for the given markup language content</p>
 	 */
-	TEXT, 
+	TEXT,
+	
 	/**
 	 * <p>RAW XML for the given markup language content</p>
 	 */
-	XML, 
+	XML,
+	
 	/**
 	 * <p>textual representation of the given markup language content</p>
 	 */
-	XML2TEXT, 
+	XML2TEXT,
+	
 	/**
 	 * <p>HTML format for the given markup language content</p>
 	 */
 	XML2HTML, 
+	
 	/**
 	 * <p>XML format to use with <a href="https://xmlgraphics.apache.org/fop/">Apache FOP</a></p>
 	 * 

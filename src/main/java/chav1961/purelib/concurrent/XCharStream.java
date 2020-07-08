@@ -2,6 +2,8 @@ package chav1961.purelib.concurrent;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.concurrent.Exchanger;
@@ -10,14 +12,26 @@ import java.util.concurrent.TimeoutException;
 
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 
+/**
+ * <p>This class is used to support I/O channel between two threads. It's functionality is similar to {@linkplain PipedReader}/{@linkplain PipedWriter} pair.
+ * This class implements {@linkplain Closeable} interface and can be used in the <b>try-with-resource</b> statements.</p>
+ * <p>This class is not reusable</p>
+ * @see XStream
+ * @see XByteStream
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class XCharStream implements Closeable {
 	private static final int			EXCHANGE_TIMEOUT_SECONDS = 1;
 	
 	private final Object				sync = new Object();
-	private final Exchanger<GrowableCharArray>	ex = new Exchanger<>();
+	private final Exchanger<GrowableCharArray<?>>	ex = new Exchanger<>();
 	private volatile Thread				sender = null, receiver = null;
 	private volatile boolean			senderClosed = false, receiverClosed = false;
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public XCharStream() {
 	}
 
@@ -29,6 +43,11 @@ public class XCharStream implements Closeable {
 		}		
 	}
 	
+	/**
+	 * <p>Create receiving corner of the channel. Must be called only once</p> 
+	 * @return receiving corner of the channel. Can't be null. Must be closed by application
+	 * @throws IOException on any I/O errors
+	 */
 	public Reader createReader() throws IOException {
 		synchronized(sync) {
 			if (receiver != null) {
@@ -44,6 +63,11 @@ public class XCharStream implements Closeable {
 		}
 	}
 
+	/**
+	 * <p>Create transmitting corner of the channel. Must be called only once</p> 
+	 * @return transmitting corner of the channel. Can't be null. Must be closed by application
+	 * @throws IOException on any I/O errors
+	 */
 	public Writer createWriter() throws IOException {
 		synchronized(sync) {
 			if (sender != null) {
@@ -60,14 +84,14 @@ public class XCharStream implements Closeable {
 	}
 	
 	private class InternalReader extends Reader {
-		private GrowableCharArray	gca = null;
-		private int					cursor = 0;
+		private GrowableCharArray<?>	gca = null;
+		private int						cursor = 0;
 		
 		@Override
 		public int read(char[] cbuf, int off, int len) throws IOException {
 			if (gca == null || cursor >= gca.length()) {
 				for (;;) {
-					try{final GrowableCharArray	gcaNew = ex.exchange(gca,EXCHANGE_TIMEOUT_SECONDS,TimeUnit.SECONDS);
+					try{final GrowableCharArray<?>	gcaNew = ex.exchange(gca,EXCHANGE_TIMEOUT_SECONDS,TimeUnit.SECONDS);
 					
 						gca = gcaNew;
 						cursor = 0;
@@ -105,17 +129,19 @@ public class XCharStream implements Closeable {
 	}
 	
 	private class InternalWriter extends Writer {
-		private GrowableCharArray	gca = new GrowableCharArray(false);
+		@SuppressWarnings("rawtypes")
+		private GrowableCharArray<?>	gca = new GrowableCharArray(false);
 
 		@Override
 		public void write(char[] cbuf, int off, int len) throws IOException {
 			gca.append(cbuf,off,off+len);
 		}
 
+		@SuppressWarnings("rawtypes")
 		@Override
 		public void flush() throws IOException {
 			for (;;) {
-				try{final GrowableCharArray	gcaOld = ex.exchange(gca,EXCHANGE_TIMEOUT_SECONDS,TimeUnit.SECONDS);
+				try{final GrowableCharArray<?>	gcaOld = ex.exchange(gca,EXCHANGE_TIMEOUT_SECONDS,TimeUnit.SECONDS);
 
 					if (gcaOld == null) {
 						gca = new GrowableCharArray(false);

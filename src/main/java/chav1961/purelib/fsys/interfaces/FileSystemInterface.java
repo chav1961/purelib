@@ -65,7 +65,7 @@ import chav1961.purelib.basic.interfaces.SpiService;
  * <p>All other attributes are optional and depend of the file system type. They can be read by {@link #getAttributes() getAttributes()} method and can be changed by 
  * {@link #setAttributes(java.util.Map) setAttributes(Map)} method. You also can make the same operations during read/write data from/to the file</p>
  * 
- *  <p>The most of all the methods return a IFileSystemInterface as a result. This result is a <b>'this'</b> reference (except {@link #unmount() unmount()} method), so you can use the interface in the 
+ *  <p>The most of all the methods return a {@linkplain FileSystemInterface} as a result. This result is a <b>'this'</b> reference (except {@link #unmount() unmount()} method), so you can use the interface in the 
  *  chained calls (for example <code>myFileSystem.open("something").create().write()</code>).</p> 
  * 
  * @author Alexander Chernomyrdin aka chav1961

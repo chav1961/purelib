@@ -1049,6 +1049,9 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 				else if (item == '?') {
 					result.append('.');
 				}
+				else if (item == '.') {
+					result.append('\\').append('.');
+				}
 				else {
 					result.append('\\').append(item);
 				}

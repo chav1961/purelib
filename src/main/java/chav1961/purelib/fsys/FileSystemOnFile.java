@@ -253,7 +253,6 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 		@Override
 		public Map<String, Object> getAttributes() throws IOException {
 			final File	temp = new File(wrapper.getSchemeSpecificPart());
-			System.err.println("Path="+temp.getAbsolutePath());
 			return Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
 		}
 

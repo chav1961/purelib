@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
@@ -53,7 +53,7 @@ public class XCharStreamTest {
 	}
 
 	@Test
-	public void lifeCycleTest() throws IOException, FlowException, InterruptedException {
+	public void lifeCycleTest() throws IOException, DebuggingException, InterruptedException {
 		try(final XCharStream	xcs = new XCharStream()) {
 			final JUnitExecutor<String,String>	t1Ex = new JUnitExecutor<>(); 
 			final Thread		t1 = new Thread(()->{

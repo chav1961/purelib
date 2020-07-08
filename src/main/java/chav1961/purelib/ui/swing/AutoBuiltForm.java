@@ -10,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.FocusTraversalPolicy;
 import java.awt.Frame;
+import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.net.URI;
@@ -49,6 +50,7 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.FormMonitor;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
@@ -553,8 +555,25 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			final boolean[]			result = new boolean[] {false};
 			final ActionListener 	okListener = (e)->{result[0] = true; dlg.setVisible(false);}; 
 			final ActionListener 	cancelListener = (e)->{result[0] = false; dlg.setVisible(false);}; 
-			
-			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,(e)->okListener.actionPerformed(e),DEFAULT_OK_BUTTON_NAME);
+
+			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,(e)->{
+				final Component		comp = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+
+				if ((comp instanceof NodeMetadataOwner) && (comp instanceof JComponentInterface)) {
+					final ContentNodeMetadata	node = ((NodeMetadataOwner)comp).getNodeMetadata(); 
+							
+					try{if (form.process(MonitorEvent.Validation,node,(JComponentInterface)comp)) {
+							form.process(MonitorEvent.Saving,node,(JComponentInterface)comp);
+						}
+						else {
+							return;
+						}
+					} catch (ContentException exc) {
+						form.formManager.getLogger().message(Severity.error,exc,"Error storing last control value for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
+					}
+				}
+				okListener.actionPerformed(e);
+			},DEFAULT_OK_BUTTON_NAME);
 			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,(e)->cancelListener.actionPerformed(e),DEFAULT_CANCEL_BUTTON_NAME);
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {

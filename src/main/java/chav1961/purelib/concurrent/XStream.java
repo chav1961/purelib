@@ -42,6 +42,8 @@ import java.util.concurrent.TimeoutException;
  * </code>   
  * <p>Note, that writer part of the class automatically flushes when the '\n' char is appeared in the output stream.</p>
  *
+ * @see XByteStream
+ * @see XCharStream
  * @see chav1961.purelib.concurrent JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2

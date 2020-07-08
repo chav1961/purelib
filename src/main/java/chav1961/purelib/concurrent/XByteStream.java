@@ -4,12 +4,22 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 
+/**
+ * <p>This class is used to support I/O channel between two threads. It's functionality is similar to {@linkplain PipedInputStream}/{@linkplain PipedOutputStream} pair.
+ * This class implements {@linkplain Closeable} interface and can be used in the <b>try-with-resource</b> statements.</p>
+ * <p>This class is not reusable</p>
+ * @see XStream
+ * @see XCharStream
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class XByteStream implements Closeable {
 	private static final int			EXCHANGE_TIMEOUT_SECONDS = 1;
 	
@@ -17,7 +27,10 @@ public class XByteStream implements Closeable {
 	private final Exchanger<GrowableByteArray>	ex = new Exchanger<>();
 	private volatile Thread				sender = null, receiver = null;
 	private volatile boolean			senderClosed = false, receiverClosed = false;
-	
+
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public XByteStream() {
 	}
 
@@ -29,10 +42,15 @@ public class XByteStream implements Closeable {
 		}		
 	}
 	
+	/**
+	 * <p>Create receiving corner of the channel. Must be called only once</p> 
+	 * @return receiving corner of the channel. Can't be null. Must be closed by application
+	 * @throws IOException on any I/O errors
+	 */
 	public InputStream createInputStream() throws IOException {
 		synchronized(sync) {
 			if (receiver != null) {
-				throw new IOException("Attempt to call createReader twice");
+				throw new IOException("Attempt to call createInputStream twice");
 			}
 			else if (sender != null && sender == Thread.currentThread()) {
 				throw new IOException("Attempt to get reader and writer with the same thread!");
@@ -44,6 +62,11 @@ public class XByteStream implements Closeable {
 		}
 	}
 
+	/**
+	 * <p>Create transmitting corner of the channel. Must be called only once</p> 
+	 * @return transmitting corner of the channel. Can't be null. Must be closed by application
+	 * @throws IOException on any I/O errors
+	 */
 	public OutputStream createOutputStream() throws IOException {
 		synchronized(sync) {
 			if (sender != null) {
