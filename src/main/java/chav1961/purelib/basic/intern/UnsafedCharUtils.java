@@ -1091,7 +1091,7 @@ public class UnsafedCharUtils {
 			
 			result[0] = from;
 			for (index = from; index < len; index++) {
-				if (!Character.isJavaIdentifierPart(source[index])) {
+				if (source[index] == 0 || !Character.isJavaIdentifierPart(source[index])) {
 					break;
 				}
 			}

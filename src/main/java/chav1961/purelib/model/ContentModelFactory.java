@@ -72,6 +72,7 @@ public class ContentModelFactory {
 	private static final String			XML_TAG_APP_SUBMENU = NAMESPACE_PREFIX+":submenu";
 	private static final String			XML_TAG_APP_ITEM = NAMESPACE_PREFIX+":item";	
 	private static final String			XML_TAG_APP_SEPARATOR = NAMESPACE_PREFIX+":separator";
+	private static final String			XML_TAG_APP_PLACEHOLDER = NAMESPACE_PREFIX+":placeholder";
 	private static final String			XML_TAG_APP_BUILTIN_SUBMENU = NAMESPACE_PREFIX+":builtinSubmenu";
 	private static final String			XML_TAG_APP_KEYSET = NAMESPACE_PREFIX+":keyset";
 	private static final String			XML_TAG_APP_KEY = NAMESPACE_PREFIX+":key";	
@@ -731,6 +732,9 @@ public class ContentModelFactory {
 						, null
 						, null);
 				break;
+			case XML_TAG_APP_PLACEHOLDER	:
+				child = null;
+				break;
 			case XML_TAG_APP_BUILTIN_SUBMENU	:
 				final String	builtinName = getAttribute(document,XML_ATTR_NAME);
 				final String	builtinCaption = getAttribute(document,XML_ATTR_CAPTION);
@@ -799,13 +803,15 @@ public class ContentModelFactory {
 			default :
 				throw new UnsupportedOperationException("Tag ["+document.getTagName()+"] is not supported yet"); 
 		}
-		for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
-			if (((NodeList)document).item(index) instanceof Element) {
-				buildSubtree((Element) ((NodeList)document).item(index),child);
+		if (child != null) {
+			for (int index = 0, maxIndex = ((NodeList)document).getLength(); index < maxIndex; index++) {
+				if (((NodeList)document).item(index) instanceof Element) {
+					buildSubtree((Element) ((NodeList)document).item(index),child);
+				}
 			}
-		}
-		node.addChild(child);
+			node.addChild(child);
 			child.setParent(node);
+		}
 	}
 
 	private static String getAttribute(final Element document, final String attribute) {

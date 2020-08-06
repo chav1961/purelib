@@ -2096,6 +2096,33 @@ public class CharUtils {
 			return result;
 		}
 	}
+
+	/**
+	 * <p>Calculate number of given characters in the string sequence</p>
+	 * @param seq sequence to calculate characters in
+	 * @param symbol character to seek
+	 * @return number of characters found. Can't bbe negative
+	 * @throws NullPointerException when sequence is null
+	 * @since 0.0.4
+	 */
+	public static int howManyChars(final CharSequence seq, final char symbol) throws NullPointerException {
+		if (seq == null) {
+			throw new NullPointerException("Char sequence to test nober of char can't be null");
+		}
+		else if (seq.length() == 0) {
+			return 0;
+		}
+		else {
+			int		count = 0;
+			
+			for (int index = 0, maxIndex = seq.length(); index < maxIndex; index++) {
+				if (seq.charAt(index) == symbol) {
+					count++;
+				}
+			}
+			return count;
+		}
+	}
 	
 	/**
 	 * <p>This class describes LEvenstain distance and editor prescription for two strins.</p>

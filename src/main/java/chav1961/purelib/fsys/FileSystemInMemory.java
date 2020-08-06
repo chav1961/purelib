@@ -11,9 +11,11 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
@@ -44,7 +46,8 @@ import chav1961.purelib.i18n.PureLibLocalizer;
 
 
 public class FileSystemInMemory extends AbstractFileSystem implements FileSystemInterfaceDescriptor {
-	private static final URI	SERVE = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":memory:/");
+	public static final URI		SERVE = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":memory:/");
+	
 	private static final String	DESCRIPTION = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemInMemory.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_DESCRIPTION_SUFFIX;
 	private static final String	VENDOR = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemInMemory.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_VENDOR_SUFFIX;
 	private static final String	LICENSE = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemInMemory.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_SUFFIX;
@@ -78,7 +81,7 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 		this.cloned = false;
 	}
 	
-	private FileSystemInMemory(final FileSystemInMemory another) {
+	protected FileSystemInMemory(final FileSystemInMemory another) {
 		super(another);
 		this.content = another.content;
 		this.another = another;
@@ -223,19 +226,28 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 
 		@Override
 		public URI[] list(final Pattern pattern) throws IOException {
-			final List<URI>	result = new ArrayList<>();
+			final Set<URI>	result = new HashSet<>();
 			final int		startPathLen = wrapper.length();
 			
 			for(Entry<String, MemoryDesc> item : content.entrySet()) {
 				final String	uri = item.getKey();
 				
-				if (uri.length() > startPathLen && uri.startsWith(wrapper) && pattern.matcher(uri.substring(startPathLen)).matches()) {
-					result.add(URI.create(uri.endsWith("/") ? uri.substring(startPathLen+1,uri.length()-1) : uri.substring(startPathLen+1,uri.length())));
+//				if (uri.length() > startPathLen && uri.startsWith(wrapper) && pattern.matcher(uri.substring(startPathLen)).matches()) {
+				if (uri.length() > startPathLen && uri.startsWith(wrapper)) {
+					String		curPath = uri.substring(startPathLen+1);
+					int			trimIndex = curPath.indexOf('/');
+					
+					if (trimIndex > 0 ) {
+						curPath = curPath.substring(0,trimIndex); 
+					}
+					if (pattern.matcher(curPath).matches()) {
+						result.add(URI.create(curPath));
+//						result.add(URI.create(uri.endsWith("/") ? uri.substring(startPathLen,uri.length()-1) : uri.substring(startPathLen,uri.length())));
+					}
 				}
 			}
 			
 			final URI[]			returned = result.toArray(new URI[result.size()]);
-			result.clear();
 			return returned;
 		}
 

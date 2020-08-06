@@ -52,6 +52,7 @@
 			<xs:element name="builtinSubmenu" type="app:BuiltinSubmenu" />
 			<xs:element name="item" type="app:Item" />
 			<xs:element name="separator" type="app:Separator" />
+			<xs:element name="placeholder" type="app:Placeholder" />
 		</xs:choice>
 		<xs:attribute name="name" type="xs:string" use="optional" />
 		<xs:attribute name="caption" type="xs:string" use="required" />
@@ -77,6 +78,8 @@
 	</xs:complexType>
 
 	<xs:complexType name="Separator" />
+
+	<xs:complexType name="Placeholder" />
 	
 <!-- Key set descriptor: references to hot keys --> 
 	<xs:complexType name="KeySet">

@@ -70,7 +70,7 @@ import chav1961.purelib.basic.interfaces.SpiService;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 public interface FileSystemInterface extends Cloneable, Closeable, SpiService<FileSystemInterface> {
@@ -502,4 +502,21 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @throws IOException if any exceptions was thrown
 	 */
 	DataWrapperInterface createDataWrapper(final URI actualPath) throws IOException;
+
+	/**
+	 * <p>Get absolute URI for the current location inside file system. URI will be a concatenation of the absolute URI and path of current location point</p> 
+	 * @return absolute URI. Can't be null
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.4
+	 */
+	URI getAbsoluteURI()  throws IOException;
+	
+	/**
+	 * <p>Is the file system identical to another file system and does it points to the same location in it.</p>
+	 * @param another another system to compare
+	 * @return true if file systems are identical and points to the same location now
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.4
+	 */
+	boolean isTheSame(FileSystemInterface another) throws IOException;
 }

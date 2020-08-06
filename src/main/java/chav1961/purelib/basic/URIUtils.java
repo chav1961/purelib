@@ -238,7 +238,7 @@ public class URIUtils {
 			throw new NullPointerException("Uri to append path to can't be null");
 		}
 		else if (relativePath == null || relativePath.isEmpty()) {
-			throw new IllegalArgumentException("Uri to append path to can't be null");
+			throw new IllegalArgumentException("Relative path Uri can't be null or empty");
 		}
 		else {
 			final StringBuilder	sb = new StringBuilder();
@@ -502,7 +502,13 @@ public class URIUtils {
 		}
 	}
 	
-	public static URI deepNormalize(final URI source) {
+	/**
+	 * <p>Normalize paths in the URL</p>
+	 * @param source source URL to normalize
+	 * @return url normalized. Can't be null
+	 * @throws NullPointerException
+	 */
+	public static URI deepNormalize(final URI source) throws NullPointerException {
 		if (source == null) {
 			throw new NullPointerException("Content for URI can't be null");
 		}

@@ -5,7 +5,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ JsonSaxHandlerFactoryTest.class, JsonSerializerTest.class })
+@SuiteClasses({ JsonNodeAndUtilsTest.class, JsonSaxHandlerFactoryTest.class, JsonSerializerTest.class })
+
 public class AllTests {
 
 }

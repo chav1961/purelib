@@ -19,7 +19,7 @@ package chav1961.purelib.cdb;
  */
 
 @SuppressWarnings("rawtypes")
-public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode> {
+public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode> implements Cloneable {
 	public int		row, col;
 	public Type		type;
 	public long		value;
@@ -69,6 +69,14 @@ public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode> {
 					item.parent = (Clazz)this;
 				}
 			}
+		}
+	}
+	
+	@Override
+	public Object clone() {
+		try{return super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
 		}
 	}
 	

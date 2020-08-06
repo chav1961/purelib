@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -686,8 +687,34 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	}
 
 	@Override
+	public URI getAbsoluteURI() throws IOException {
+		final String	path = currentPath.getPath();
+		
+		if (path == null || path.isEmpty()) {
+			return URIUtils.deepNormalize(rootPath);
+		}
+		else {
+			return URIUtils.deepNormalize(URIUtils.appendRelativePath2URI(rootPath,path));
+		}
+	}
+	
+	@Override
+	public boolean isTheSame(final FileSystemInterface another) throws IOException {
+		if (another == null) {
+			throw new NullPointerException("Another file system can't be null");
+		}
+		else {
+			return getAbsoluteURI().equals(another.getAbsoluteURI());
+		}
+	}
+	
+	@Override
 	public String toString() {
-		return "FileSystemFS [currentPath=" + currentPath + ", appendMode=" + appendMode + "]";
+		try{
+			return "FileSystemFS [currentPath=" + currentPath + ", appendMode=" + appendMode + ", absoluteURI=" + getAbsoluteURI() + "]";
+		} catch (IOException e) {
+			return "FileSystemFS [currentPath=" + currentPath + ", appendMode=" + appendMode + ", absoluteURI=<failed>]";
+		}
 	}
 	
 	protected void purgeCurrentDataWrapper() {

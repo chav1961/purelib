@@ -22,12 +22,34 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.concurrent.LightWeightListenerList;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.json.JsonNode;
+import chav1961.purelib.json.JsonUtils;
+import chav1961.purelib.json.interfaces.JsonNodeType;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
+
+/**
+ * <p>This class is a mutable collection of key/value pairs for different languages. Resource for this class is any valid URL reference,
+ * containing valid JSON. JSON format is:</p>
+ * <code>
+ * [<br/>
+ * { "lang" : "<lang_id>,<br/>
+ *   "keys" : [<br/>
+ *   	{"key" : "<key_name>", "value" : "key_value"}, ...<br/>
+ *   ]<br/>
+ * }, ...<br/>
+ * ]<br/>
+ * </code>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ */
 public class MutableJsonLocalizer extends AbstractLocalizer {
 	private static final String			SUBSCHEME = "json";
 	private static final URI			SERVE = URI.create(Localizer.LOCALIZER_SCHEME+":"+SUBSCHEME+":/");
@@ -44,12 +66,19 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 	private final URI					resourceAddress;
 	private final Map<String,KeyCollection>	keys = new HashMap<>();
 	private final boolean				isReadOnly;
+	private final JsonNode				root;
 	private KeyCollection				currentCollection;
 	private String						localizerURI = "unknown:/";
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @throws LocalizationException inherited from parent
+	 * @throws NullPointerException inherited from parent
+	 */
 	public MutableJsonLocalizer() throws LocalizationException, NullPointerException {
 		this.resourceAddress = null;
 		this.isReadOnly = true;
+		this.root = new JsonNode(JsonNodeType.JsonObject);
 	}
 
 	protected MutableJsonLocalizer(final URI resourceAddress) throws LocalizationException, NullPointerException {
@@ -74,10 +103,10 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 					
 						try(final InputStream	is = url.openStream()) {
 							if (is == null) {
-								throw new ContentException("XML localizer error: URL ["+url+"] is not exists or it's content not acsessible"); 
+								throw new ContentException("JSON localizer error: URL ["+url+"] is not exists or it's content not acsessible"); 
 							}
 							else {
-								loadJson(is,trans);
+								this.root = loadJson(is,trans);
 							}
 						}
 					} catch (ContentException | IOException e) {
@@ -90,7 +119,8 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 					
 					if (resource.exists() && resource.isFile()) {
 						try(final InputStream	is = new FileInputStream(resourceAddress.getPath())) {
-							loadJson(is,trans);
+							
+							this.root = loadJson(is,trans);
 						} catch (ContentException | IOException e) {
 							throw new LocalizationException(e.getLocalizedMessage(),e);
 						}
@@ -104,7 +134,7 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 									throw new ContentException("XML localizer error: URL ["+possibleLocalResource+"] is not exists or it's content not acsessible"); 
 								}
 								else {
-									loadJson(is,trans);
+									this.root = loadJson(is,trans);
 								}
 							} catch (ContentException | IOException e) {
 								throw new LocalizationException(e.getLocalizedMessage(),e);
@@ -150,9 +180,6 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 	public String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException {
 		if (key == null || key.isEmpty()) {
 			throw new IllegalArgumentException("Key to get value for can't be null or empty"); 
-		}
-		else if (currentCollection.containsKey(key)) {
-			return currentCollection.getValue(key);
 		}
 		else if (currentCollection.containsHelp(key)) {
 			return "uri("+currentCollection.getHelpURI(key)+")";
@@ -201,52 +228,14 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 		}
 	}
 
-	private void loadJson(final InputStream is, final LoggerFacade trans) throws ContentException {
-		// TODO Auto-generated method stub
-		try{final Reader			rdr = new InputStreamReader(is);
-			final JsonStaxParser	parser = new JsonStaxParser(rdr);
+	private static JsonNode loadJson(final InputStream is, final LoggerFacade trans) throws SyntaxException, IOException {
+		try(final Reader			rdr = new InputStreamReader(is);
+			final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
 			
-			for (JsonStaxParserLexType item : parser) {
-				switch (item) {
-					case BOOLEAN_VALUE:
-						break;
-					case END_ARRAY:
-						break;
-					case END_OBJECT:
-						break;
-					case ERROR:
-						break;
-					case INTEGER_VALUE:
-						break;
-					case LIST_SPLITTER:
-						break;
-					case NAME:
-						break;
-					case NAME_SPLITTER:
-						break;
-					case NULL_VALUE:
-						break;
-					case REAL_VALUE:
-						break;
-					case START_ARRAY:
-						break;
-					case START_OBJECT:
-						break;
-					case STRING_VALUE:
-						break;
-					default:
-						break;
-				}
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return JsonUtils.loadJsonTree(parser);
 		}
 	}
-	
-	private void storeJson(final LoggerFacade trans, final OutputStream os) throws ContentException {
-		
-	}
+
 	
 	private class InnerTableModel implements LocalizerTableModel {
 		private final LightWeightListenerList<TableModelListener>	listeners = new LightWeightListenerList<>(TableModelListener.class);

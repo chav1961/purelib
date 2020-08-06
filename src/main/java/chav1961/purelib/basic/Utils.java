@@ -847,7 +847,10 @@ loop:					for (T item : collector.getReferences(ReferenceType.CHILDREN,node)) {
 									throw new IllegalArgumentException("Returned continue mode ["+rcChildren+"] is not supported for walking down");
 							}
 						}
-					case STOP: case SKIP_CHILDREN:
+					case STOP: 
+						break;
+					case SKIP_CHILDREN:
+						rcEnter = ContinueMode.CONTINUE;
 						break;
 					default:
 						throw new IllegalArgumentException("Returned continue mode ["+rcEnter+"] is not supported for walking down");
