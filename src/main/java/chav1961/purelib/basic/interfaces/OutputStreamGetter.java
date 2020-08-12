@@ -13,6 +13,7 @@ public interface OutputStreamGetter {
 	/**
 	 * <p>Get entity content to load</p>
 	 * @return content stream. Can't be null
+	 * @throws IOException on any I/O errors
 	 */
 	OutputStream getContent() throws IOException;
 }

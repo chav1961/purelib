@@ -7,6 +7,7 @@ import java.net.URI;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -36,6 +37,7 @@ import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public class CreoleWriter extends Writer {
@@ -70,7 +72,9 @@ public class CreoleWriter extends Writer {
 	private final ListManipulationStack	lms = new ListManipulationStack();
 	private final Writer				nested;
 	private final CreoleOutputWriter	writer;
+	private final GrowableCharArray<?>	gca = new GrowableCharArray<GrowableCharArray<?>>(false);
 	private boolean						needParse = true, skipTheFirst = false, wasParagraph = false;
+	private long						nonCreoleDisplacement = -1;
 
 	public CreoleWriter(final Writer nested) throws IOException {
 		this(nested,MarkupOutputFormat.XML2HTML);
@@ -96,15 +100,7 @@ public class CreoleWriter extends Writer {
 		}
 		else {
 			this.nested = nested;
-			this.writer = (CreoleOutputWriter) CreoleOutputWriterFactory.getInstance(format, nested);
-//			switch (format) {
-//				case XML 		: writer = new CreoleXMLOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)epilogue); break;
-//				case XML2TEXT	: writer = new CreoleTextOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)epilogue); break;
-//				case XML2HTML	: writer = new CreoleHTMLOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)epilogue); break;
-//				case XML2PDF	: writer = new CreoleFOPOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)epilogue); break;
-//				case PARSEDCSV	: writer = new CreoleHighlighterWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)epilogue); break;
-//				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
-//			}
+			this.writer = (CreoleOutputWriter) CreoleOutputWriterFactory.getInstance(format, nested, prologue, epilogue);
 			try{automat(0,0,0,CreoleTerminals.TERM_SOD,0);
 			} catch (SyntaxException exc) {
 				throw new IOException(exc.getLocalizedMessage(),exc); 
@@ -241,7 +237,7 @@ public class CreoleWriter extends Writer {
 									automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_OL_START,index);
 								}							
 							}
-							else if (lms.size() < count) {
+							else if (lms.size() > count) {
 								for (int index = lms.size(); index > count; index--) {
 									switch (lms.pop()) {
 										case TYPE_UL :
@@ -286,20 +282,27 @@ public class CreoleWriter extends Writer {
 								wasCaption = true;
 							}
 							else {
+								if (!wasParagraph) {
+									automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_P_START,0);
+									wasParagraph = true;
+								}
 								escape = false;
 							}
 						}
 						else {
-							internalWrite(displacement,lineNo,from-begin,data,start,from,false);
+							if (!wasParagraph) {
+								automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_P_START,0);
+								wasParagraph = true;
+							}
 							automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_SOL,0);
 						}
 						break;
 					case '-' :
 						count = 0;
+						start = from;
 						while (from < to && data[from] == '-') {
 							from++;	count++;
 						}
-						start = from;
 						if (count >= 4) {
 							if (!escape) {
 								if (wasParagraph) {
@@ -317,8 +320,10 @@ public class CreoleWriter extends Writer {
 									};
 								}							
 								automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_HL,count);
+								start = from;
 							}
 							else {
+								from = start;
 								escape = false;
 							}
 						}
@@ -352,7 +357,8 @@ public class CreoleWriter extends Writer {
 							}
 						}
 						else {
-							boolean theLast = true;
+							final int	forEscape = from;
+							boolean 	theLast = true;
 							
 							for (@SuppressWarnings("unused") int index = from + 1; from < to; index++) {	// The same last table divider
 								if (data[from] > ' ') {
@@ -379,6 +385,7 @@ public class CreoleWriter extends Writer {
 								start = ++from;
 							}
 							else {
+								from = forEscape;
 								escape = false;
 							}
 						}
@@ -414,6 +421,7 @@ loop:		for (;from < to; from++) {
 								internalWrite(displacement,lineNo,from-begin,data,start,from,false);
 								start = from + 2;
 								automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_BOLD,2);
+								from++;
 							}
 							else {
 								escape = false;
@@ -462,6 +470,7 @@ loop:		for (;from < to; from++) {
 									internalWrite(displacement,lineNo,from-begin,data,start,from,false);
 									start = from + 2;
 									automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_ITALIC,2);
+									from++;
 								}
 								else {
 									escape = false;
@@ -481,7 +490,7 @@ loop:		for (;from < to; from++) {
 								}
 								from++;
 							}
-							if (data[from] == '|') {
+							if (from < to - 1 && data[from] == '|') {
 								endLink = from;
 								startCaption = from + 1;
 								while (from <  to - 1 && !(data[from] == ']' && data[from + 1] == ']')) {
@@ -513,8 +522,8 @@ loop:		for (;from < to; from++) {
 							if (!escape) {
 								internalWrite(displacement,lineNo,from-begin,data,start,from-count,false);
 								automat(displacement,lineNo,from-begin-count,CreoleTerminals.TERM_H_END,(((long)count) << 32) | (count-1));
-								start = from;
 								wasCaption = false;
+								start = from;
 							}
 							else {
 								escape = false;
@@ -559,6 +568,7 @@ loop:		for (;from < to; from++) {
 									return;
 								}
 								else {
+									from += 3;
 									escape = false;
 								}
 							}
@@ -569,7 +579,7 @@ loop:		for (;from < to; from++) {
 								while (from < to && data[from] != '|' && data[from] != '}') {
 									from++;
 								}
-								if (data[from] == '|') {
+								if (from < to && data[from] == '|') {
 									endLink = from;
 									startCaption = from + 1;
 									while (from < to - 1 && !(data[from] == '}' && data[from + 1] == '}')) {
@@ -606,27 +616,28 @@ loop:		for (;from < to; from++) {
 						}
 						break;
 					case '\r' :
-						internalWrite(displacement,lineNo,from-begin,data,escape ? start - 1 : start,from,false);
-						if (wasCaption) {
-							automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_H_END,(captionCount-1));
-							wasCaption = false;
-						}
-						automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_EOL,1);
-						internalWrite(displacement,lineNo,from-begin,CRLF,false);
 						break loop;
 					case '\n' :
-						internalWrite(displacement,lineNo,from-begin,data,escape ? start - 1 : start,from,false);
-						if (wasCaption) {
-							automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_H_END,(captionCount-1));
-							wasCaption = false;
-						}
-						automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_EOL,1);
-						internalWrite(displacement,lineNo,from-begin,LF,false);
 						break loop;
 					default :
 						break;
 				}
 			}
+			int		fromPos = escape ? start - 1 : start, toPos = from;  
+			
+			while (toPos > begin && (data[toPos-1] == '\r' || data[toPos-1] == '\n')) {
+				toPos--;
+			}
+			if (toPos > fromPos) {
+				internalWrite(displacement,lineNo,from-begin,data,fromPos,toPos,false);
+			}
+			
+			if (wasCaption) {
+				automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_H_END,(captionCount-1));
+				wasCaption = false;
+			}
+			automat(displacement,lineNo,from-begin,CreoleTerminals.TERM_EOL,1);
+			internalWrite(displacement,lineNo,from-begin,data[from] == '\r' ? CRLF : LF,false);
 		}
 		else {
 			final int	temp = from;
@@ -641,14 +652,21 @@ loop:		for (;from < to; from++) {
 			}
 			if (from < to - 2 && data[from] == '}' && data[from + 1] == '}' && data[from + 2] == '}') {
 				internalProcessLine(displacement+(temp-begin),lineNo,data,temp,from-temp);
+				internalWriteNonCreole(nonCreoleDisplacement,lineNo,from-begin,gca.extract(),0,gca.length()-1,true);
+				nonCreoleDisplacement = -1;
+				gca.length(0);
 				from += 3;
+				
 				needParse = true;
 				start = from;
 				skipTheFirst = true;
 				internalProcessLine(displacement+(from-begin),lineNo,data,from,to-from);
 			}
 			else {
-				internalWriteNonCreole(displacement,lineNo,from-begin,data,temp,to,true);
+				if (nonCreoleDisplacement < 0) {
+					nonCreoleDisplacement = displacement;
+				}
+				gca.append(data,temp,to).append('\n');
 			}
 		}
 	}

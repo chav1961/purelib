@@ -7,16 +7,16 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
  * called after calling appropriative {@linkplain FormManager} methods. To exclude implementation dependencies, all methods of this interface make
  * control by returning implementation-independent commands. Syntax of these commands is:</p>
  * <ul>
- * </li><b>disable</b> &lt;fieldName&gt;,...</li>
- * </li><b>enable</b> &lt;fieldName&gt;,...</li>
- * </li><b>immutable</b> &lt;fieldName&gt;,...</li>
- * </li><b>mutable</b> &lt;fieldName&gt;,...</li>
- * </li><b>invisible</b> &lt;fieldName&gt;,...</li>
- * </li><b>visible</b> &lt;fieldName&gt;,...</li>
- * </li><b>nonfocusable</b> &lt;fieldName&gt;,...</li>
- * </li><b>focusable</b> &lt;fieldName&gt;,...</li>
+ * <li><b>disable</b> &lt;fieldName&gt;,...</li>
+ * <li><b>enable</b> &lt;fieldName&gt;,...</li>
+ * <li><b>immutable</b> &lt;fieldName&gt;,...</li>
+ * <li><b>mutable</b> &lt;fieldName&gt;,...</li>
+ * <li><b>invisible</b> &lt;fieldName&gt;,...</li>
+ * <li><b>visible</b> &lt;fieldName&gt;,...</li>
+ * <li><b>nonfocusable</b> &lt;fieldName&gt;,...</li>
+ * <li><b>focusable</b> &lt;fieldName&gt;,...</li>
  * </ul>
- * </p>One or more commands in returned string must be separated with semicolon (;). Unparsed commands in the string are ignored without any notices, unknown fields throws exceptions<p>  
+ * <p>One or more commands in returned string must be separated with semicolon (;). Unparsed commands in the string are ignored without any notices, unknown fields throws exceptions</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
  */

@@ -341,7 +341,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	
 	/**
 	 * <p>Remove all localizers from the current hierarchy level and pop it</p>
-	 * @param newLocalizer localizer to pop.
+	 * @param oldLocalizer localizer to pop.
 	 * @return parent localizer
 	 * @throws LocalizationException when any localization problems were detected
 	 * @since 0.0.4   

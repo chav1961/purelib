@@ -1,7 +1,6 @@
 package chav1961.purelib.streams.char2char.intern;
 
 
-import java.io.Closeable;
 import java.io.IOException;
 
 import chav1961.purelib.basic.FSM;
@@ -37,6 +36,8 @@ public abstract class CreoleOutputWriter implements CreoleMarkUpOutputWriter<Lon
 								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST,CreoleTerminals.TERM_LI,CreoleSectionState.PRINT_LIST_ITEM,CreoleSectionActions.LI_OPEN),
 								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST,CreoleTerminals.TERM_P_START,CreoleSectionState.PRINT_PARAGRAPH,CreoleSectionActions.P_OPEN),
 								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST,CreoleTerminals.TERM_H_START,CreoleSectionState.PRINT_CAPTION,CreoleSectionActions.H_OPEN),
+								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST,CreoleTerminals.TERM_TH,CreoleSectionState.PRINT_TABLE_HEADER,CreoleSectionActions.TABLE_OPEN,CreoleSectionActions.THEAD_OPEN,CreoleSectionActions.TR_OPEN,CreoleSectionActions.TH_OPEN),
+								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST,CreoleTerminals.TERM_HL,CreoleSectionState.ORDINAL,CreoleSectionActions.HR),
 								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST_ITEM,CreoleTerminals.TERM_UL_START,CreoleSectionState.PRINT_LIST,CreoleSectionActions.LI_CLOSE,CreoleSectionActions.UL_OPEN),
 								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST_ITEM,CreoleTerminals.TERM_UL_END,CreoleSectionState.PRINT_LIST,CreoleSectionActions.LI_CLOSE,CreoleSectionActions.UL_CLOSE),
 								new FSM.FSMLine<>(CreoleSectionState.PRINT_LIST_ITEM,CreoleTerminals.TERM_OL_START,CreoleSectionState.PRINT_LIST,CreoleSectionActions.LI_CLOSE,CreoleSectionActions.OL_OPEN),
@@ -135,6 +136,6 @@ public abstract class CreoleOutputWriter implements CreoleMarkUpOutputWriter<Lon
 	}
 
 	public void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
-		write(displacement,content,0,content.length,keepNewLines);
+		write(displacement,content,from,to,keepNewLines);
 	}		
 }

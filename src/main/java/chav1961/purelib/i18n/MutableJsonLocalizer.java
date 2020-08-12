@@ -39,13 +39,13 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * <p>This class is a mutable collection of key/value pairs for different languages. Resource for this class is any valid URL reference,
  * containing valid JSON. JSON format is:</p>
  * <code>
- * [<br/>
- * { "lang" : "<lang_id>,<br/>
- *   "keys" : [<br/>
- *   	{"key" : "<key_name>", "value" : "key_value"}, ...<br/>
- *   ]<br/>
- * }, ...<br/>
- * ]<br/>
+ * [<br>
+ * { "lang" : "&lt;lang_id&gt;,<br>
+ *   "keys" : [<br>
+ *   	{"key" : "&lt;key_name&gt;", "value" : "key_value"}, ...<br>
+ *   ]<br>
+ * }, ...<br>
+ * ]<br>
  * </code>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4

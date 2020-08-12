@@ -10,6 +10,7 @@ package chav1961.purelib.ui.swing.interfaces;
 public interface AcceptAndCancelCallback<T> {
 	/**
 	 * <p>Process pressing button</p>
+	 * @param owner owner of the button
 	 * @param accept true if the 'accept' button was pressed, false otherwise
 	 */
 	void process(T owner, boolean accept);

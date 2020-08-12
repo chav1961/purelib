@@ -772,7 +772,7 @@ loop:		for(;;) {
 	 * @param root root of the content model
 	 * @param classPath class path (as package.package....ClassName)
 	 * @return class built. Call {@linkplain Class#newInstance()} method to create instance of the class.
-	 * @throws ContentException
+	 * @throws ContentException on any errors when building class
 	 * @since 0.0.4 
 	 */
 	public static <K,V> Class<Map<K,V>> buildMappedClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException {
@@ -858,12 +858,15 @@ loop:		for(;;) {
 	 * implements {@linkplain ModuleExporter} interface, which can be used to allow access for it's unnamed modules in Java 1.9 and higher</p>
 	 * @param <K> Map key type
 	 * @param <V> Map value type
+	 * @param root root of the model tree
 	 * @param classPath class path (as package.package....ClassName)
 	 * @return class built. Call {@linkplain Class#newInstance(Object wrappee)} method to create instance of the wrapper class.
-	 * @throws ContentException
+	 * @throws ContentException on any errors when building mapped class
+	 * @throws NullPointerException when root is null
+	 * @throws IllegalArgumentException when classpath string is null or empty
 	 * @since 0.0.4
 	 */
-	public static <K,V> Class<Map<K,V>> buildMappedWrapperClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException {
+	public static <K,V> Class<Map<K,V>> buildMappedWrapperClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException, NullPointerException, IllegalArgumentException {
 		if (root == null) {
 			throw new NullPointerException("Root of the model can't be null");
 		}

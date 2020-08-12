@@ -472,10 +472,10 @@ public class JsonNodeAndUtilsTest {
 		Assert.assertEquals(4,count[0]);
 		
 		count[0] = 0;
-		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/*",(mode,node,path)->{count[0]++;
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[]",(mode,node,path)->{count[0]++;
 			return ContinueMode.CONTINUE;}
 		));
-		Assert.assertEquals(4,count[0]);
+		Assert.assertEquals(2,count[0]);
 
 		count[0] = 0;
 		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/**",(mode,node,path)->{count[0]++;
@@ -501,7 +501,7 @@ public class JsonNodeAndUtilsTest {
 		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/*",(mode,node,path)->{count[0]++;
 			return ContinueMode.CONTINUE;}
 		));
-		Assert.assertEquals(4,count[0]);
+		Assert.assertEquals(2,count[0]);
 
 		count[0] = 0;
 		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/**",(mode,node,path)->{count[0]++;
@@ -1017,6 +1017,15 @@ public class JsonNodeAndUtilsTest {
 		Assert.assertEquals(2*1,countAndSum[0]);
 		Assert.assertEquals(2*300,countAndSum[1]);
 
+		countAndSum[0] = countAndSum[1] = 0;
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[]#$ = 300 && $ is int",(mode,node,path)->{
+			countAndSum[0]++;
+			countAndSum[1] += node.getLongValue();
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*1,countAndSum[0]);
+		Assert.assertEquals(2*300,countAndSum[1]);
+		
 		// Arithmetic: unary
 		countAndSum[0] = countAndSum[1] = 0;
 		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[]#-$ + 500= 100",(mode,node,path)->{
@@ -1108,7 +1117,7 @@ public class JsonNodeAndUtilsTest {
 		// Arithmetic: terms
 		countAndSum[0] = countAndSum[1] = 0;
 		items.clear();
-		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/z#$ > 100",(mode,node,path)->{
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/z#$ > 100 && $ is real",(mode,node,path)->{
 			countAndSum[0]++;
 			items.add(node.getDoubleValue());
 			return ContinueMode.CONTINUE;}
@@ -1118,7 +1127,7 @@ public class JsonNodeAndUtilsTest {
 		
 		countAndSum[0] = countAndSum[1] = 0;
 		items.clear();
-		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/t#$ = \"test\"",(mode,node,path)->{
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/t#$ = \"test\" && $ is str",(mode,node,path)->{
 			countAndSum[0]++;
 			items.add(node.getStringValue());
 			return ContinueMode.CONTINUE;}
@@ -1128,7 +1137,7 @@ public class JsonNodeAndUtilsTest {
 
 		countAndSum[0] = countAndSum[1] = 0;
 		items.clear();
-		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/flag#$",(mode,node,path)->{
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/flag#$ && $ is bool",(mode,node,path)->{
 			countAndSum[0]++;
 			items.add(node.getBooleanValue());
 			return ContinueMode.CONTINUE;}
@@ -1168,7 +1177,7 @@ public class JsonNodeAndUtilsTest {
 		
 		countAndSum[0] = countAndSum[1] = 0;
 		items.clear();
-		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/zero#$ = null",(mode,node,path)->{
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/zero#$ = null && $ is null",(mode,node,path)->{
 			countAndSum[0]++;
 			items.add(node.getType() == JsonNodeType.JsonNull);
 			return ContinueMode.CONTINUE;}
@@ -1277,6 +1286,154 @@ public class JsonNodeAndUtilsTest {
 		));
 		Assert.assertEquals(2,countAndSum[0]);
 		Assert.assertEquals(Arrays.asList(100L,100L),items);
+	}	
+
+	@Test
+	public void complexFilterTest() throws IOException, ContentException {
+		JsonNode			root;
+		final int			countAndSum[] = {0,0};
+		final List<Object>	items = new ArrayList<>();
+
+		// Object items
+		root = loadJson("[100,"+
+						"{\"x\":100,\"y\":200,\"z\":300.0,\"t\":\"test\",\"flag\":true,\"zero\":null"+
+						",\"inner\":["+
+							"{\"xx\":1},{\"yy\":[10,20]}]}"+
+						",200]");
+		
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[]:100..200",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getLongValue());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*2,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(100L,100L,200L,200L),items);
+
+		
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[1]/inner/[1]/yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+		
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[1]/inner/[]/yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[1]/inner//yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[1]/*//yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[1]///yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/[]///yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("////yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/**/yy",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/**/yy#./ = '[10,20]'",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/**/yy/[has i = 0]",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getLongValue());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*1,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(10L,10L),items);
+
+		countAndSum[0] = countAndSum[1] = 0;
+		items.clear();
+		JsonUtils.walkDownJson(root,JsonUtils.filterOf("/**/yy#./ is arr",(mode,node,path)->{
+			countAndSum[0]++;
+			items.add(node.getType());
+			return ContinueMode.CONTINUE;}
+		));
+		Assert.assertEquals(2*3,countAndSum[0]);
+		Assert.assertEquals(Arrays.asList(JsonNodeType.JsonArray,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonInteger,JsonNodeType.JsonArray),items);
+		
+		try{JsonUtils.filterOf(null,(mode,node,path)->ContinueMode.CONTINUE);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.filterOf("",(mode,node,path)->ContinueMode.CONTINUE);
+			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.filterOf("/**/yy/[has i = 0]",null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
 	}	
 	
 	private JsonNode loadJson(final String content) throws IOException, SyntaxException {

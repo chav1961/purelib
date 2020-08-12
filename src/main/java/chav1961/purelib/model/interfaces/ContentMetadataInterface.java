@@ -14,7 +14,7 @@ import chav1961.purelib.model.FieldFormat;
  * <li>{@linkplain #byUIPath(URI)} - find unique node in the model tree by it's full IU path</li>
  * <li>{@linkplain #byApplicationPath(URI)} - find all nodes in the model tree with application paths associated</li>
  * <li>{@linkplain #mount(URI, ContentMetadataInterface)} - mount another container under any node (except root) in the tree model.</li>
- * <li>{@linkplain #umount(URI)} - unmount all nodes mound earlier.</li>
+ * <li>{@linkplain #unmount(URI)} - unmount all nodes mound earlier.</li>
  * </ul>
  * <p>Mount operation allows you build total model from pieces of many other models</p>
  * @author Alexander Chernomyrdin aka chav1961
@@ -171,7 +171,7 @@ public interface ContentMetadataInterface {
 	/**
 	 * <p>Find node by it's unique UI path</p> 
 	 * @param uiPath UI path of the node. UI path scheme can be {@literal #UI_SCHEME} only
-	 * @return
+	 * @return node found or null 
 	 * @see ContentNodeMetadata#getUIPath()
 	 */
 	ContentNodeMetadata byUIPath(URI uiPath);

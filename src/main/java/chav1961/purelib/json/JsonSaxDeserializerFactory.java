@@ -73,7 +73,7 @@ import chav1961.purelib.streams.interfaces.JsonSaxHandler;
  * 
  * <p><b>Pay attentiton</b>, that you can call {@link JsonSaxParser#parse(String)} or any other similar method more than once, but all sequential
  * calls will <b>refill</b> the same first deserialized instance was created in the first call. It allow you reduce memory requirements for the 
- * new deserialized instances. To avoid this functionality, always call {@link JsonSaxDeserializerFactory#use(Object) JsonSaxDeserializer.use(null)} before
+ * new deserialized instances. To avoid this functionality, always call JsonSaxDeserializer.use(null) before
  * next parsing. You can also use this call to fill the <i>predefined</i> class instance with the deserialized data. Also pay attention, that 
  * on building {@link JsonSaxHandler} class with the <b>publicOnly</b> flag, it makes by reflection, but it's runtime not uses reflection, but 
  * on-the-fly built class to create new instances and set it's fields. It radically increases parsing speed, but strongly check visibility of the

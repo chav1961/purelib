@@ -288,7 +288,7 @@ public class CompilerUtils {
 		/**
 		 * <p>Process method</p>
 		 * @param clazz method owner descriptor
-		 * @param field method descriptor
+		 * @param method method descriptor
 		 */
 		void process(final Class<?> clazz, final Method method);
 	}
@@ -329,9 +329,9 @@ public class CompilerUtils {
 		/**
 		 * <p>Process constructor</p>
 		 * @param clazz constructor owner descriptor
-		 * @param field constructor descriptor
+		 * @param constructor constructor descriptor
 		 */
-		void process(final Class<?> clazz, final Constructor<?> method);
+		void process(final Class<?> clazz, final Constructor<?> constructor);
 	}
 	
 	/**

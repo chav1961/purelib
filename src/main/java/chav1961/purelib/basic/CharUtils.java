@@ -21,13 +21,13 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * <p>The class supports:</p>
  * <ul>
  * <li>parsing of <a href="#numerical">numerical data</a> (integer, long, float, double) to convert it to their native representation and reversal converting to character arrays</li>
- * <li><a href="#numerical">escaping and un-escaping</a> character array and string content (frequently used on XML, JSON, CSV format processing)</li>
+ * <li><a href="#escaping">escaping and un-escaping</a> character array and string content (frequently used on XML, JSON, CSV format processing)</li>
  * <li>support <a href="#enums">Java enum and field</a> representation parsing</li>
  * <li>support <a href="#substitutions">substitutions</a> in the character and string content</li>
  * <li>a set of <a href="#useful">useful</a> methods for the char content processing</li>
  * </ul> 
  * 
- * <h2><a name="numerical">Parsing and printing numerical content</a></h2>
+ * <h2><a id="numerical">Parsing and printing numerical content</a></h2>
  * 
  * <p>Methods for parsing numerical content are:</p>
  * <ul>
@@ -58,14 +58,14 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * array to required size</p>
  * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors, and {@linkplain PrintingException} on printing.</p>
  *
- * <h2><a name="escaping">Escaping and un-escaping content</a></h2>
+ * <h2><a id="escaping">Escaping and un-escaping content</a></h2>
  * 
  * <p>Methods to escaping and un-escaping are used to convert internal representation of chars, char arrays and strings to it's external representation form
  * (for example, to use inside JSON double-quoted values). Methods to escape are:</p>
  * <ul>
- * <li>{@linkplain CharUtils#symbolNeedsEscaping(char, boolean)}, {@linkplain #isSymbolPrintable(char)} and {@linkplain #howManyEscapedCharsOccupies(char)} - methods to check weather symbol
+ * <li>{@linkplain CharUtils#symbolNeedsEscaping(char, boolean)}, {@linkplain #isSymbolPrintable(char)} and {@linkplain #howManyEscapedCharsOccupies(char, boolean)} - methods to check weather symbol
  * requires escaping for external representation and how many chars it's external representation occupies</li>
- * <li>{@linkplain #parseEscapedChar(char[], int, char[])}, {@linkplain #parseString(char[], int, char, StringBuilder)} and {@linkplain #parseStringExtended(char[], int, char, StringBuilder)} - 
+ * <li>{@linkplain #parseEscapedChar(char[], int, char[])}, {@linkplain #parseStringExtended(char[], int, char, Appendable)} and {@linkplain #parseStringExtended(char[], int, char, Appendable)} - 
  * methods to parse escaped representation of the char content to it's native form</li>
  * <li>{@linkplain #printEscapedChar(char[], int, char, boolean, boolean)}, {@linkplain #printEscapedCharArray(char[], int, char[], boolean, boolean)}, {@linkplain #printEscapedCharArray(char[], int, char[], int, int, boolean, boolean)} 
  * and {@linkplain #printEscapedString(char[], int, String, boolean, boolean)} - methods to convert internal representation of character or string content to it's external escaped form</li>
@@ -74,7 +74,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * <p>The class {@linkplain CharUtils} also contains {@linkplain #parseUnescapedString(char[], int, char, boolean, int[])} method to parse ordinal string content.</p>
  * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors, and {@linkplain PrintingException} on printing.</p>
  *  
- * <h2><a name="escaping">Java enum and fields processing</a></h2>
+ * <h2><a id="enums">Java enum and fields processing</a></h2>
  * 
  * <p>Enum and fields processing can be used to parse and print enumeration values and field names in the char content. Methods to parse and print enumerations and fields are:</p>
  * <ul>
@@ -83,7 +83,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * </ul>
  * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors.</p>
  *  
- * <h2><a name="substitutions">Substitutions support</a></h2>
+ * <h2><a id="substitutions">Substitutions support</a></h2>
  * 
  * <p>Substitutions is a well-known mechanism for automatic replacement of <b>keys</b> in the character/string content with their current <b>values</b>. Keys in the {@linkplain CharUtils} class are any 
  * sequences in the string content similar "...${key}...". To make substitution for it, one of the substitution interfaces can be used. The complete list of substitution interfaces in the class is:</p>
@@ -100,7 +100,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * </ul>
  * <p>All the methods can throw {@linkplain SyntaxException} on parsing errors.</p>
  *  
- * <h2><a name="useful">Useful methods</a></h2>
+ * <h2><a id="useful">Useful methods</a></h2>
  * 
  * <p>Useful methods are:</p>
  * <ul>

@@ -230,8 +230,8 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		
 		sas = new SimpleAttributeSet();
 		
-		StyleConstants.setForeground(sas, Color.WHITE);
-		StyleConstants.setBackground(sas, Color.BLACK);
+		StyleConstants.setForeground(sas, Color.BLACK);
+		StyleConstants.setBackground(sas, new Color(192,255,255));
 		characterStyles.put(CreoleLexema.NonCreoleContent,sas);
 	}
 	

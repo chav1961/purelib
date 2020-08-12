@@ -8,7 +8,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
  * <p>This class is a localizable implementation of {@linkplain LoggerFacade} interface. This class is used as a wrapper to any other {@linkplain LoggerFacade}
- * instance. It has a {@linkplain Localizer associated with it, and always tries to transalate all format strings in the messages with the localizer.</p>
+ * instance. It has a {@linkplain Localizer} associated with it, and always tries to transalate all format strings in the messages with the localizer.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  * @lastUpdate 0.0.4

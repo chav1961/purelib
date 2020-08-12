@@ -19,7 +19,7 @@ public interface ORMMapper<T> {
 	 * <p>Fill class instance content with the result set values</p>
 	 * @param content class instance to fill data with
 	 * @param rs content source to fill class instance
-	 * @throws SQLException
+	 * @throws SQLException on any database errors
 	 */
 	void fromRecord(T content, ResultSet rs) throws SQLException;
 	
@@ -27,7 +27,7 @@ public interface ORMMapper<T> {
 	 * <p>Bound {@linkplain PreparedStatement} with class instance content</p>
 	 * @param content content source to bound {@linkplain PreparedStatement} 
 	 * @param ps prepared statement to bound
-	 * @throws SQLException
+	 * @throws SQLException on any database errors
 	 */
 	void toRecord(T content, PreparedStatement ps) throws SQLException;
 }

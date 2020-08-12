@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
 
+import javax.xml.stream.XMLEventWriter;
+
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
@@ -15,20 +17,37 @@ public class CreoleOutputWriterFactory {
 			throw new NullPointerException("Markup output format can't be null");
 		}
 		else {
+			return getInstance(format,nested,getPrologue(format),getEpilogue(format));
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <Wr,T> CreoleMarkUpOutputWriter<Long> getInstance(final MarkupOutputFormat format, final Writer nested, final PrologueEpilogueMaster<Wr,T> prologue, final PrologueEpilogueMaster<Wr,T> epilogue) throws NullPointerException, IOException {
+		if (format == null) {
+			throw new NullPointerException("Markup output format can't be null");
+		}
+		else if (prologue == null) {
+			throw new NullPointerException("Prologue master  can't be null");
+		}
+		else if (epilogue == null) {
+			throw new NullPointerException("Epilogue master  can't be null");
+		}
+		else {
 			CreoleMarkUpOutputWriter<Long> writer;
 			
 			switch (format) {
-				case XML 		: writer = new CreoleXMLOutputWriter(nested,getPrologue(format),getEpilogue(format)); break;
-				case XML2TEXT	: writer = new CreoleTextOutputWriter(nested,getPrologue(format),getEpilogue(format)); break;
-				case XML2HTML	: writer = new CreoleHTMLOutputWriter(nested,getPrologue(format),getEpilogue(format)); break;
-				case XML2PDF	: writer = new CreoleFOPOutputWriter(nested,getPrologue(format),getEpilogue(format)); break;
-				case PARSEDCSV	: writer = new CreoleHighlighterWriter(nested,getPrologue(format),getEpilogue(format)); break;
+				case XML 		: writer = new CreoleXMLOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleXMLOutputWriter>)epilogue); break;
+				case XML2TEXT	: writer = new CreoleTextOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleTextOutputWriter>)epilogue); break;
+				case XML2HTML	: writer = new CreoleHTMLOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)epilogue); break;
+				case XML2PDF	: writer = new CreoleFOPOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)epilogue); break;
+				case PARSEDCSV	: writer = new CreoleHighlighterWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)epilogue); break;
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
 			return writer;
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MarkupOutputFormat format) throws NullPointerException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -45,6 +64,7 @@ public class CreoleOutputWriterFactory {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format) throws NullPointerException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -61,6 +81,7 @@ public class CreoleOutputWriterFactory {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -77,6 +98,7 @@ public class CreoleOutputWriterFactory {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");

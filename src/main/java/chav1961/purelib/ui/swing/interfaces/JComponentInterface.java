@@ -34,6 +34,7 @@ public interface JComponentInterface {
 	/**
 	 * <p>Assing new value to component</p>
 	 * @param value value to assign
+	 * @throws ContentException when new value is incompatible with the given control
 	 */
 	void assignValueToComponent(Object value) throws ContentException;
 	

@@ -18,7 +18,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /**
  * <p>This class is  handler to support "self" schema URL. Format of self URL is:</p>
- * <code><b>self:/#</b>&lt;base64Content&gt;[?encoding=<encoding>]</code>
+ * <code><b>self:/#</b>&lt;base64Content&gt;[?encoding=&lt;encoding&gt;]</code>
  * <ul>
  * <li>base64Content - content that will be returned as byte stream on {@linkplain URL#openStream()} operation</li>
  * <li>encoding - content encoding for character data. This parameter can be accessed by {@linkplain URLConnection#getContentEncoding()} method</li>

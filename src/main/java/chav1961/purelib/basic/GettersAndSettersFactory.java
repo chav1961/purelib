@@ -52,7 +52,7 @@ import chav1961.purelib.streams.char2byte.CompilerUtils;
  * <li>wrapper to the {@linkplain MethodHandle} functionality</li>
  * </ul>
  * <p>The first one is implemented for the public fields only. Other cases produce the second variant.</p>
- * <p>Since Java 1.9, {@linkplain PureLibSettings#ALLOW_UNSAFE} flag in the Pure Library configuration is deprecated, so any references to
+ * <p>Since Java 1.9, PureLibSettings.ALLOW_UNSAFE flag in the Pure Library configuration is deprecated, so any references to
  * sun.misc.Unsafe class in this class are invalid now.</p>
  * 
  * @see sun.misc.Unsafe
@@ -448,6 +448,7 @@ public class GettersAndSettersFactory {
 	 * @param <T> instance to build getter and setter for
 	 * @param awaited class containing field to get access to
 	 * @param fieldName field name to get access to
+	 * @param assigner module assigner to allow cross-module access in Java 1.9 and higher
 	 * @return getter and setter built
 	 * @throws ContentException on any building errors
 	 * @throws IllegalArgumentException field name is null, empty or is missing in the class

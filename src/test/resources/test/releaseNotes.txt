@@ -26,10 +26,18 @@ static final fields in the class description
     - buildMappedClassByModel - to build on-the-fly class instance with inner public fields and java.util.Map-styled access to them
     - buildMappedWrapperClassByModel - to build on-the-fly implementation of java.util.Map to get java.util.Map-styled access to all fields of wrapped instance
 
-5. chav1961.purelib.i.swing.useful package got new classes:
+5. chav1961.purelib.ui.swing.useful package got new classes:
 	- class DnDManager - to support drag&drop operations with conjunction data model
 	- class JContentMetadataEditor - to support editing content metadata nodes
 	- class JPaginator - to support page-styled document browsing 
+
+6. New package chav1961.purelib.swing.useful.svg was created. It contains restricted implementation of SVG format painter for Swing.
+
+7. chav1961.purelib.json package got new classes:
+
+	- class JsonNode - node of JSON tree (similar to DOM XML)
+	- class JsonUtils - to support converting JSON tree to and from textual representation and walk JSON tree. It also supports filtering for walking procedure similar to XPath XML
+	- class JsonRPCFactory - to support generation of the client stub and server callback for JSON-serialized content
 
 II. Refactoring
 
@@ -58,3 +66,4 @@ IV. Bug fix
 2. AndOrTree last character in node name had been lost on walking - fixed. 
 3. SubstitutableProperties didnt't get values from default source after it's changing - fixed. 
 4. Problems with 'root' URL path normalization - fixed.
+5. Problem with CreoleWriter - interference with escaping chars - fixed 

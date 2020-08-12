@@ -67,7 +67,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * <li>field label<li>      
  * <li>field to input content<li>
  * </ul>
- * <p>If number of fields in the form is too long, you can split form to a set of two-column pairs (named <i>bars</b>). Fields of the class to show must be annotated at least with {@linkplain LocaleResource} annotations. These annotations are source for the field labels and field tooltips 
+ * <p>If number of fields in the form is too long, you can split form to a set of two-column pairs (named <i>bars</i>). Fields of the class to show must be annotated at least with {@linkplain LocaleResource} annotations. These annotations are source for the field labels and field tooltips 
  * in the form to build. Form can also contains a set of buttons to process actions on it. These buttons are not represents as fields in the class to show, but as 
  * {@linkplain Action} annotation before class description. Any user actions on the form fire {@linkplain FormManager#onField(Object, Object, String, Object)} or
  * {@linkplain FormManager#onAction(Object, Object, String, Object)} calls on the {@linkplain FormManager} interface. To simplify code, it's recommended that class to show
@@ -159,7 +159,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @param leftIcon icon will be shown on the left of the form built
 	 * @param instance instance to show
 	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
-	 * @param columns number of bars in the form
+	 * @param numberOfBars number of bars in the form
 	 * @param tooltipsOnFocus true if tooltips require in the state string when field gets focus
 	 * @throws NullPointerException any arguments are null
 	 * @throws IllegalArgumentException any errors in arguments

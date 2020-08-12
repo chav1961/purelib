@@ -2,6 +2,7 @@ package chav1961.purelib.basic.growablearrays;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.exceptions.PrintingException;

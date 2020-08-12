@@ -263,53 +263,57 @@ public class JsonUtils {
 	
 	/**
 	 * <p>Build callback filter for JSON tree. It's functionality is similar to XPath in the XML DOM tree</p>
-	 * <p>Syntax of the 'XPath' expression in BNF is typed below. Character sequences inside apostrophes treated <b>as-is</b>
-	 * (for example, ':' is treated as colon typed):</p>
+	 * <p>Syntax of the 'XPath' expression in BNF is typed below. Character sequences inside apostrophes are treated <b>as-is</b> (for example, ':' is treated as colon typed):</p>
 	 * <ul>
-	 * <li><b>'/'</b> - start from the root node, also hierarchy splitter</li>
-	 * <li><b>'./'</b> - start from the current node</li>
-	 * <li><b>'../'</b> - start from the parent node</li>
-	 * <li><b><nodeSelector></b> - node selector. Consists of <b><nodeTemplate>[':'<valueTemplate>]['#'<filter>]</b></li>
+	 * <li><b>'/'&lt;nodeSelector&gt;</b> - reference to the root node</li>
+	 * <li><b>'./'&lt;nodeSelector&gt;</b> - reference to the current node</li>
+	 * <li><b>'../'&lt;nodeSelector&gt;</b> - reference to the parent node</li>
 	 * </ul>
-	 * <p>Node template can be:</p>
+	 * <p><b>&lt;nodeSelector&gt;</b> consists of <b>&lt;nodeTemplate&gt;[':'&lt;valueTemplate&gt;]['#'&lt;filter&gt;]</b></p>
+	 * <p>Current and parent node references in the 'XPath' can be used multiple time, but only in the beginning of the 'XPath'. Node template can be:</p>
 	 * <ul>
-	 * <li><b>*</b> - any node </li>
-	 * <li><b>**</b> - any node chain</li>
-	 * <li><b><name></b> - any named node with the given name. Name can contain wildcards '*' and '?'</li>
-	 * <li><b>[]</b> - any array node</li>
-	 * <li><b>[<indexExpr>]</b> - any array node with the given index selected. Index can contains index expression (see below)</li>
+	 * <li><b>/</b> - any node </li>
+	 * <li><b>/*</b> - any object node</li>
+	 * <li><b>/[]</b> - any array node</li>
+	 * <li><b>/**</b> - any node chain</li>
+	 * <li><b>/&lt;name></b> - any object node with the given name. Name can contain wildcards '*' and '?'</li>
+	 * <li><b>/[&lt;indexExpr&gt;]</b> - any array node with the given index selected. Index can contains index expression (see below)</li>
 	 * </ul>
 	 * <p>Value template can be:</p>
 	 * <ul>
-	 * <li><b><valueTemplate></b>::=<rangeItem>','... - list of ranges</li>
-	 * <li><b><rangeItem></b>::=<value>['..']<value> - range of values (similar to BETWEEN / AND in the SQL language)</li>
-	 * <li><b><value></b>::={<int>|<real>|<boolean>|<null>|<string>} - value in the JSON-styled notation</li>
+	 * <li><b>&lt;valueTemplate&gt;</b>::=&lt;rangeItem&gt;','... - list of ranges</li>
+	 * <li><b>&lt;rangeItem&gt;</b>::=&lt;value&gt;['..']&lt;value&gt; - range of values (similar to BETWEEN / AND in the SQL language)</li>
+	 * <li><b>&lt;value&gt;</b>::={&lt;int&gt;|&lt;real&gt;|&lt;boolean&gt;|&lt;null&gt;|&lt;string&gt;} - value in the JSON-styled notation</li>
 	 * </ul>
 	 * <p>Syntax of the index expression is:</p>
 	 * <ul>
-	 * <li><indexExpr>::={<list>|'has('<condition>')'}</li>
-	 * <li><list>::=<range>[','<range>...]</li>
-	 * <li><range>::=<expr>['..'<expr>]/li>
-	 * <li><expr>::=<term>{'+'|'-'|'*'|'/'|'%'}<term>...</li>
-	 * <li><term>::={'i'|<value>|'('<expr>')'}</li>
-	 * <li><condition>::=<andCondition>['||'<andCondition>...]</li>
-	 * <li><andCondition>::=<notCondition>['&&'<notCondition>...]</li>
-	 * <li><notCondition>::=[~]<comparison></li>
-	 * <li><comparison>::={<expr>{'>'|'>='|'<'|'<='|'=='|'!='}<expr>|<expr>'in'<list>}</li>
+	 * <li><b>&lt;indexExpr&gt;</b>::={&lt;list&gt;|'has' &lt;condition&gt;}</li>
+	 * <li><b>&lt;list&gt;</b>::=&lt;range&gt;[','&lt;range&gt;...]</li>
+	 * <li><b>&lt;range&gt;</b>::=&lt;expr&gt;['..'&lt;expr&gt;]</li>
+	 * <li><b>&lt;condition&gt;</b>::=&lt;andCondition&gt;['||'&lt;andCondition&gt;...]</li>
+	 * <li><b>&lt;andCondition&gt;</b>::=&lt;notCondition&gt;['&&'&lt;notCondition&gt;...]</li>
+	 * <li><b>&lt;notCondition&gt;</b>::=[~]&lt;comparison&gt;</li>
+	 * <li><b>&lt;comparison></b>::={&lt;expr&gt;{'&gt;'|'&gt;='|'&lt;'|'&lt;='|'=='|'&lt;&gt;'}&lt;expr&gt;|&lt;expr&gt;'in'&lt;list&gt;|&lt;expr&gt;'is'{'int'|'real'|'str'|'bool'|'null'|'arr'|'obj'}}</li>
+	 * <li><b>&lt;expr&gt;</b>::=&lt;term&gt;{'+'|'-'|'*'|'/'|'%'}&lt;term&gt;...</li>
+	 * <li><b>&lt;term&gt;</b>::={'i'|&lt;value&gt;|'('&lt;expr&gt;')'}</li>
 	 * </ul>
-	 * <p>Variable 'i' always is treated as index of the current element and can be used in the condition index expressions only</p>
+	 * <p>Variable <b>'i'</b> always is treated as index of the current element and can be used in the condition index expressions only.
+	 * Priority of the logical and arithmetical operators in the expression is traditional.</p>
 	 * <p>Syntax of the 'filter' expression is:</p>
 	 * <ul>
-	 * <li><filter>::=<expr>{'&&'|'||'}<expr>...</li>
-	 * <li><expr>::=[~]<term></li>
-	 * <li><term>::={<xpath>|'('<filter>')'}</li>
+	 * <li>&lt;filter&gt;::=&lt;expr&gt;{'&&'|'||'}&lt;expr&gt;...</li>
+	 * <li>&lt;expr&gt;::=[~]&lt;term&gt;</li>
+	 * <li>&lt;term&gt;::={&lt;xpath&gt; [&lt;comparison&gt;] |'('&lt;filter&gt;')'}</li>
 	 * </ul>
+	 * <p>XPath in the filter without any comparison operators treated as 'check existance', otherwise compared with the given right part of comparison operator. Right part of '=' and '<>' comparisons for the
+	 * 'XPath' can contain JSON in the form of '&lt;JSON_content&gt', for example "../ = '{"name":"var1","value":[10,20]}'".</p>
 	 * <p>Examples of the syntax are:</p>
 	 * <ul>
-	 * <li>"/ ** / [0..2] " - all node arrays with indices 0, 1, and 2</li>
-	 * <li>"/ ** / [0..2] / **" - all children of the node arrays with indices 0, 1, and 2</li>
-	 * <li>"/ ** / [has(i%2 == 0)] " - all node arrays with even indices</li>
-	 * <li>"/ ** / name #has(../key:10 && ../type:"type1") " - all node with 'name' name in the structure with 'key' field = 10 and 'type' field = "type1"</li>
+	 * <li><b>/ ** / [0..2] </b> - all node arrays with indices 0, 1, and 2</li>
+	 * <li><b>/ ** / [0..2] / **</b> - all children of the node arrays with indices 0, 1, and 2</li>
+	 * <li><b>/ ** / [has(i%2 == 0)] </b> - all node arrays with even indices</li>
+	 * <li><b>/ ** / name #../key:10 && ../type:"type1" </b> - all node with 'name' name in the structure with 'key' field = 10 and 'type' field = "type1"</li>
+	 * <li><b>/ ** / name #../ = '{"name":"test","type":"20"}'</b> - all node with 'name', where parent of node is exactly equals for JSON '{"name":"test","type":"20"}'</li>
 	 * </ul>
 	 * <p>Filter built is not reentrant and doesn't be used recursively, but it is reusable and doesn't need re-creation for subsequential calls</p>
 	 * @param expression expression to filter content
@@ -318,6 +322,7 @@ public class JsonUtils {
 	 * @throws IllegalArgumentException expression is null or empty
 	 * @throws NullPointerException nested callback is null
 	 * @throws SyntaxException any syntax errors in the expression
+	 * @see JsonUtils#walkDownJson(JsonNode, JsonTreeWalkerCallback)
 	 */
 	public static JsonTreeWalkerCallback filterOf(final String expression, final JsonTreeWalkerCallback nested) throws IllegalArgumentException, NullPointerException, SyntaxException {
 		if (expression == null || expression.isEmpty()) {
@@ -565,7 +570,7 @@ objLoop:		while (parser.hasNext()) {
 
 	enum TemplateType {
 		ROOT, PARENT, CURRENT, 
-		ANY_NODE, ANY_STRUCTURED_NODE, ANY_ARRAY, ANY_STRUCTURE, ANY_CHAIN,
+		ANY_NODE, ANY_ARRAY, ANY_STRUCTURE, ANY_CHAIN,
 		ANY_INDEX, ANY_NAME,
 		SELECTED_INDEX, SELECTED_NAME,
 		VALUE_FILTER, COND_FILTER;
@@ -587,7 +592,7 @@ objLoop:		while (parser.hasNext()) {
 		ADD,
 		RANGE,
 		LIST,
-		CMP_EQ, CMP_NE, CMP_LT, CMP_LE, CMP_GT, CMP_GE, CMP_IN,
+		CMP_EQ, CMP_NE, CMP_LT, CMP_LE, CMP_GT, CMP_GE, CMP_IN, CMP_IS,
 		NOT,
 		AND,
 		OR,
@@ -620,31 +625,35 @@ objLoop:		while (parser.hasNext()) {
 		final LexemaType	type;
 		final long			longVal;
 		final String		stringVal;
+		final boolean		splitted;
 		
-		public Lexema(int pos, LexemaType type) {
+		public Lexema(final int pos, final boolean splitted, final LexemaType type) {
 			this.pos = pos;
 			this.type = type;
 			this.longVal = 0;
 			this.stringVal = null;
+			this.splitted = splitted;
 		}
 
-		public Lexema(int pos, LexemaType type, final long value) {
+		public Lexema(final int pos, final boolean splitted, final LexemaType type, final long value) {
 			this.pos = pos;
 			this.type = type;
 			this.longVal = value;
 			this.stringVal = null;
+			this.splitted = splitted;
 		}
 
-		public Lexema(int pos, LexemaType type, final String value) {
+		public Lexema(final int pos, final boolean splitted, final LexemaType type, final String value) {
 			this.pos = pos;
 			this.type = type;
 			this.longVal = 0;
 			this.stringVal = value;
+			this.splitted = splitted;
 		}
 
 		@Override
 		public String toString() {
-			return "Lexema [pos=" + pos + ", type=" + type + ", longVal=" + longVal + ", stringVal=" + stringVal + "]";
+			return "Lexema [pos=" + pos + ", type=" + type + ", longVal=" + longVal + ", stringVal=" + stringVal + ", splitted=" + splitted + "]";
 		}
 	}
 
@@ -702,75 +711,78 @@ objLoop:		while (parser.hasNext()) {
 		int					from  = 0, len = source.length;
 		
 loop:	for (;from < len;) {
+			boolean			splitted = false;
+			
 			while (from < len && source[from] <= ' ' && source[from] != '\0') {
+				splitted = true;
 				from++;
 			}
 			switch (source[from]) {
 				case '\0'	:
 					break loop;
 				case '[' 	:
-					result.add(new Lexema(from++,LexemaType.OPENB));
+					result.add(new Lexema(from++,splitted,LexemaType.OPENB));
 					break;
 				case ']' 	:
-					result.add(new Lexema(from++,LexemaType.CLOSEB));
+					result.add(new Lexema(from++,splitted,LexemaType.CLOSEB));
 					break;
 				case '(' 	:
-					result.add(new Lexema(from++,LexemaType.OPEN));
+					result.add(new Lexema(from++,splitted,LexemaType.OPEN));
 					break;
 				case ')' 	:
-					result.add(new Lexema(from++,LexemaType.CLOSE));
+					result.add(new Lexema(from++,splitted,LexemaType.CLOSE));
 					break;
 				case ':' 	:
-					result.add(new Lexema(from++,LexemaType.COLON));
+					result.add(new Lexema(from++,splitted,LexemaType.COLON));
 					break;
 				case '#' 	:
-					result.add(new Lexema(from++,LexemaType.NUMBER));
+					result.add(new Lexema(from++,splitted,LexemaType.NUMBER));
 					break;
 				case '~' 	:
-					result.add(new Lexema(from++,LexemaType.NOT_OP));
+					result.add(new Lexema(from++,splitted,LexemaType.NOT_OP));
 					break;
 				case '$' 	:
-					result.add(new Lexema(from++,LexemaType.CURRENT_VALUE));
+					result.add(new Lexema(from++,splitted,LexemaType.CURRENT_VALUE));
 					break;
 				case ',' 	:
-					result.add(new Lexema(from++,LexemaType.LIST));
+					result.add(new Lexema(from++,splitted,LexemaType.LIST));
 					break;
 				case '/' 	:
-					result.add(new Lexema(from++,LexemaType.DIV_OP));
+					result.add(new Lexema(from++,splitted,LexemaType.DIV_OP));
 					break;
 				case '%' 	:
-					result.add(new Lexema(from++,LexemaType.REM_OP));
+					result.add(new Lexema(from++,splitted,LexemaType.REM_OP));
 					break;
 				case '+' 	:
-					result.add(new Lexema(from++,LexemaType.ADD_OP));
+					result.add(new Lexema(from++,splitted,LexemaType.ADD_OP));
 					break;
 				case '-' 	:
-					result.add(new Lexema(from++,LexemaType.SUB_OP));
+					result.add(new Lexema(from++,splitted,LexemaType.SUB_OP));
 					break;
 				case '=' 	:
 					if (source[from+1] == '=') {	// '=' OR '==' - equals
-						result.add(new Lexema(from,LexemaType.CMP_EQ_OP));
+						result.add(new Lexema(from,splitted,LexemaType.CMP_EQ_OP));
 						from += 2;
 					}
 					else {
-						result.add(new Lexema(from++,LexemaType.CMP_EQ_OP));
+						result.add(new Lexema(from++,splitted,LexemaType.CMP_EQ_OP));
 					}
 					break;
 				case '?' 	:
-					result.add(new Lexema(from++,LexemaType.QUESTIONMARK));
+					result.add(new Lexema(from++,splitted,LexemaType.QUESTIONMARK));
 					break;
 				case '*' 	:
 					if (source[from+1] == '*') {
-						result.add(new Lexema(from,LexemaType.DOUBLEASTERISK));
+						result.add(new Lexema(from,splitted,LexemaType.DOUBLEASTERISK));
 						from += 2;
 					}
 					else {
-						result.add(new Lexema(from++,LexemaType.MUL_OP));
+						result.add(new Lexema(from++,splitted,LexemaType.MUL_OP));
 					}
 					break;
 				case '|' 	:
 					if (source[from+1] == '|') {
-						result.add(new Lexema(from,LexemaType.OR_OP));
+						result.add(new Lexema(from,splitted,LexemaType.OR_OP));
 						from += 2;
 					}
 					else {
@@ -779,7 +791,7 @@ loop:	for (;from < len;) {
 					break;
 				case '&' 	:
 					if (source[from+1] == '&') {
-						result.add(new Lexema(from,LexemaType.AND_OP));
+						result.add(new Lexema(from,splitted,LexemaType.AND_OP));
 						from += 2;
 					}
 					else {
@@ -789,44 +801,44 @@ loop:	for (;from < len;) {
 				case '.' 	:
 					if (source[from+1] == '.') {
 						if (source[from+2] == '/') {
-							result.add(new Lexema(from,LexemaType.PARENTSLASH));
+							result.add(new Lexema(from,splitted,LexemaType.PARENTSLASH));
 							from += 3;
 						}
 						else {
-							result.add(new Lexema(from,LexemaType.RANGE));
+							result.add(new Lexema(from,splitted,LexemaType.RANGE));
 							from += 2;
 						}
 					}
 					else {
 						if (source[from+1] == '/') {
-							result.add(new Lexema(from,LexemaType.CURRENTSLASH));
+							result.add(new Lexema(from,splitted,LexemaType.CURRENTSLASH));
 							from += 2;
 						}
 						else {
-							result.add(new Lexema(from++,LexemaType.DOT));
+							result.add(new Lexema(from++,splitted,LexemaType.DOT));
 						}
 					}
 					break;
 				case '>' 	:
 					if (source[from+1] == '=') {
-						result.add(new Lexema(from,LexemaType.CMP_GE_OP));
+						result.add(new Lexema(from,splitted,LexemaType.CMP_GE_OP));
 						from += 2;
 					}
 					else {
-						result.add(new Lexema(from++,LexemaType.CMP_GT_OP));
+						result.add(new Lexema(from++,splitted,LexemaType.CMP_GT_OP));
 					}
 					break;
 				case '<' 	:
 					if (source[from+1] == '=') {
-						result.add(new Lexema(from,LexemaType.CMP_LE_OP));
+						result.add(new Lexema(from,splitted,LexemaType.CMP_LE_OP));
 						from += 2;
 					}
 					else if (source[from+1] == '>') {
-						result.add(new Lexema(from,LexemaType.CMP_NE_OP));
+						result.add(new Lexema(from,splitted,LexemaType.CMP_NE_OP));
 						from += 2;
 					}
 					else {
-						result.add(new Lexema(from++,LexemaType.CMP_LT_OP));
+						result.add(new Lexema(from++,splitted,LexemaType.CMP_LT_OP));
 					}
 					break;
 				case '0' : case '1'	: case '2' : case '3' : case '4' : case '5'	: case '6' : case '7' : case '8' : case '9' :
@@ -835,10 +847,10 @@ loop:	for (;from < len;) {
 					try{from = CharUtils.parseLong(source,from,forLong,true);
 						if (source[from] == '.' && source[from+1] != '.' || source[from] == 'e' || source[from] == 'E') {	// because of '..' range lexema!
 							from = CharUtils.parseDouble(source,startNumber,forDouble,true);
-							result.add(new Lexema(startNumber,LexemaType.DOUBLE,Double.doubleToLongBits(forDouble[0])));
+							result.add(new Lexema(startNumber,splitted,LexemaType.DOUBLE,Double.doubleToLongBits(forDouble[0])));
 						}
 						else {
-							result.add(new Lexema(startNumber,LexemaType.INTEGER,forLong[0]));
+							result.add(new Lexema(startNumber,splitted,LexemaType.INTEGER,forLong[0]));
 						}
 					} catch (IllegalArgumentException exc) {
 						throw new SyntaxException(0,startNumber,exc.getLocalizedMessage());
@@ -849,7 +861,7 @@ loop:	for (;from < len;) {
 					
 					try{sb.setLength(0);
 						from = CharUtils.parseString(source,from+1,'\"',sb);
-						result.add(new Lexema(startString,LexemaType.STRING,sb.toString()));
+						result.add(new Lexema(startString,splitted,LexemaType.STRING,sb.toString()));
 					} catch (IllegalArgumentException exc) {
 						throw new SyntaxException(0,startString,exc.getLocalizedMessage());
 					}
@@ -859,7 +871,7 @@ loop:	for (;from < len;) {
 					
 					try{sb.setLength(0);
 						from = CharUtils.parseString(source,from+1,'\'',sb);
-						result.add(new Lexema(startJson,LexemaType.JSON,sb.toString()));
+						result.add(new Lexema(startJson,splitted,LexemaType.JSON,sb.toString()));
 					} catch (IllegalArgumentException exc) {
 						throw new SyntaxException(0,startJson,exc.getLocalizedMessage());
 					}
@@ -869,7 +881,7 @@ loop:	for (;from < len;) {
 						final int	startName = from;
 						
 						try{from = CharUtils.parseName(source,from,forName);
-							result.add(new Lexema(startName,LexemaType.NAME,new String(source,forName[0],forName[1]-forName[0]+1)));
+							result.add(new Lexema(startName,splitted,LexemaType.NAME,new String(source,forName[0],forName[1]-forName[0]+1)));
 						} catch (IllegalArgumentException exc) {
 							throw new SyntaxException(0,startName,exc.getLocalizedMessage());
 						}
@@ -880,64 +892,53 @@ loop:	for (;from < len;) {
 					}
 			}
 		}
-		result.add(new Lexema(from,LexemaType.EOF));
+		result.add(new Lexema(from,false,LexemaType.EOF));
 		return from;
 	}
 
 	static int buildJsonPath(final Lexema[] source, int from, final SyntaxTree node) throws SyntaxException {
 		final List<SyntaxTree> 	list = new ArrayList<>();
-		boolean					wasRoot = false, wasPath = false;
+		boolean					wasParentOrCurrent = false;
 		SyntaxTree				temp, expr;
+	
+loop:	for(int maxFrom = source.length; from < maxFrom; from++) {
+			switch (source[from].type) {
+				case DIV_OP 		:
+					temp = (SyntaxTree) node.clone();						
+					temp.col = source[from].pos;
+					temp.type = Command.TEMPLATE_ITEM;
+					temp.cargo = TemplateType.ROOT;
+					list.add(temp);
+					break loop; 
+				case PARENTSLASH 	:
+					temp = (SyntaxTree) node.clone();						
+					temp.col = source[from].pos;
+					temp.type = Command.TEMPLATE_ITEM;
+					temp.cargo = TemplateType.PARENT;
+					list.add(temp);
+					wasParentOrCurrent = true;
+					break;
+				case CURRENTSLASH	:
+					temp = (SyntaxTree) node.clone();						
+					temp.col = source[from].pos;
+					temp.type = Command.TEMPLATE_ITEM;
+					temp.cargo = TemplateType.CURRENT;
+					list.add(temp);
+					wasParentOrCurrent = true;
+					break;
+				default :
+					break loop; 
+			}
+		}
 		
 		do {boolean		wereTemplateItem = false; 
 			
-			while (source[from].type == LexemaType.DIV_OP || source[from].type == LexemaType.PARENTSLASH || source[from].type == LexemaType.CURRENTSLASH) {
-				wereTemplateItem = true;
-				switch (source[from].type) {
-					case DIV_OP 		:
-						if (!wasRoot) {
-							wasRoot = true;
-							temp = (SyntaxTree) node.clone();						
-							temp.col = source[from].pos;
-							temp.type = Command.TEMPLATE_ITEM;
-							temp.cargo = TemplateType.ROOT;
-							list.add(temp);
-						}
-						else {
-							wasPath = true;
-							temp = (SyntaxTree) node.clone();						
-							temp.col = source[from].pos;
-							temp.type = Command.TEMPLATE_ITEM;
-							temp.cargo = TemplateType.ANY_STRUCTURED_NODE;
-							list.add(temp);
-						}
-						break;
-					case PARENTSLASH 	:
-						if (!wasPath) {
-							temp = (SyntaxTree) node.clone();						
-							temp.col = source[from].pos;
-							temp.type = Command.TEMPLATE_ITEM;
-							temp.cargo = TemplateType.PARENT;
-							list.add(temp);
-						}
-						else {
-							throw new SyntaxException(0,source[from].pos,"Parent node reference can be used in the beginning of trmplate only");
-						}
-						break;
-					case CURRENTSLASH	:
-						if (!wasPath) {
-							temp = (SyntaxTree) node.clone();						
-							temp.col = source[from].pos;
-							temp.type = Command.TEMPLATE_ITEM;
-							temp.cargo = TemplateType.CURRENT;
-							list.add(temp);
-						}
-						else {
-							throw new SyntaxException(0,source[from].pos,"Current node reference can be used in the beginning of trmplate only");
-						}
-						break;
-					default:
+div_loop:	while (source[from].type == LexemaType.DIV_OP || wasParentOrCurrent) {
+				if (wasParentOrCurrent) {
+					from--;
 				}
+				wasParentOrCurrent = false;
+				wereTemplateItem = true;
 				
 				switch (source[++from].type) {
 					case DOUBLEASTERISK	:
@@ -948,29 +949,18 @@ loop:	for (;from < len;) {
 						list.add(temp);
 						from++;
 						break;
-					case MUL_OP	:
-						if (source[from+1].type != LexemaType.NAME && source[from+1].type != LexemaType.QUESTIONMARK && source[from+1].type != LexemaType.INTEGER) {
-							temp = (SyntaxTree) node.clone();						
-							temp.col = source[from].pos;
-							temp.type = Command.TEMPLATE_ITEM;
-							temp.cargo = TemplateType.ANY_NODE;
-							list.add(temp);
-							from++;
-							break;
+					case NAME :
+						if (source[from].splitted) {
+							break div_loop;
 						}
-					case NAME : case QUESTIONMARK :
+					case MUL_OP	: case QUESTIONMARK :
 						final StringBuilder	sbName = new StringBuilder();
 						
-						if (list.get(list.size()-1).cargo == TemplateType.ANY_STRUCTURED_NODE) {
-							list.get(list.size()-1).cargo = TemplateType.ANY_STRUCTURE;
-						}
-						else {
-							temp = (SyntaxTree) node.clone();						
-							temp.col = source[from].pos;
-							temp.type = Command.TEMPLATE_ITEM;
-							temp.cargo = TemplateType.ANY_STRUCTURE;
-							list.add(temp);
-						}
+						temp = (SyntaxTree) node.clone();						
+						temp.col = source[from].pos;
+						temp.type = Command.TEMPLATE_ITEM;
+						temp.cargo = TemplateType.ANY_STRUCTURE;
+						list.add(temp);
 						
 						while (source[from].type == LexemaType.NAME || source[from].type == LexemaType.MUL_OP || source[from].type == LexemaType.QUESTIONMARK) {
 							switch (source[from].type) {
@@ -987,7 +977,12 @@ loop:	for (;from < len;) {
 									}
 									break;
 								case NAME			: 
-									sbName.append(source[from].stringVal);	
+									if (!source[from].splitted) {
+										sbName.append(source[from].stringVal);
+									}
+									else {	// Two sequential names - second is NOT a template part
+										break div_loop;
+									}
 									break;
 								default	:
 							}
@@ -1001,16 +996,11 @@ loop:	for (;from < len;) {
 						list.add(temp);
 						break;
 					case OPENB	:
-						if (list.get(list.size()-1).cargo == TemplateType.ANY_STRUCTURED_NODE) {
-							list.get(list.size()-1).cargo = TemplateType.ANY_ARRAY;
-						}
-						else {
-							temp = (SyntaxTree) node.clone();						
-							temp.col = source[from].pos;
-							temp.type = Command.TEMPLATE_ITEM;
-							temp.cargo = TemplateType.ANY_ARRAY;
-							list.add(temp);
-						}
+						temp = (SyntaxTree) node.clone();						
+						temp.col = source[from].pos;
+						temp.type = Command.TEMPLATE_ITEM;
+						temp.cargo = TemplateType.ANY_ARRAY;
+						list.add(temp);
 						
 						if (source[from+1].type == LexemaType.CLOSEB) {
 							temp = (SyntaxTree) node.clone();						
@@ -1038,6 +1028,11 @@ loop:	for (;from < len;) {
 						}
 						break;
 					default:
+						temp = (SyntaxTree) node.clone();						
+						temp.col = source[from].pos;
+						temp.type = Command.TEMPLATE_ITEM;
+						temp.cargo = TemplateType.ANY_NODE;
+						list.add(temp);
 						break;
 				}
 			}
@@ -1298,10 +1293,7 @@ loop:	for (;from < len;) {
 								_from++;
 							}
 							else {
-								_result.col = _source[_from].pos;
-								_result.type = Command.NAMED_NODE;
-								_result.cargo = _source[_from].stringVal;
-								_from++;
+								throw new SyntaxException(0,_source[_from].pos,"Illegal name: only [true], [false] and [null] are available here");
 							}
 							break;
 						case INTEGER	:
@@ -1487,8 +1479,49 @@ loop:	for (;from < len;) {
 									}
 									,right);
 						}
+						else if ("is".equals(source[from].stringVal) ) {
+							if (source[from+1].type == LexemaType.NAME) {
+								final SyntaxTree	left = (SyntaxTree) result.clone();
+								final JsonNodeType	type;
+								
+								switch (source[from+1].stringVal) {
+									case "arr"	:
+										type = JsonNodeType.JsonArray;
+										break;
+									case "obj" 	:
+										type = JsonNodeType.JsonObject;
+										break;
+									case "int" 	:
+										type = JsonNodeType.JsonInteger;
+										break;
+									case "real" :
+										type = JsonNodeType.JsonReal;
+										break;
+									case "bool" :
+										type = JsonNodeType.JsonBoolean;
+										break;
+									case "str" 	:
+										type = JsonNodeType.JsonString;
+										break;
+									case "null" :
+										type = JsonNodeType.JsonNull;
+										break;
+									default : 
+										throw new SyntaxException(0,source[from].pos,"Illegal right operand in 'is' clause - type name unsupported. Only 'arr', 'obj', 'int', 'real', 'bool', 'str', 'null' are available"); 
+								}
+								
+								result.col = source[from].pos; 
+								result.type = Command.CMP_IS;
+								result.cargo = type;
+								result.children = new SyntaxTree[] {left};
+								from += 2;
+							}
+							else {
+								throw new SyntaxException(0,source[from].pos,"Illegal right operand in 'is' clause - type name awaited"); 
+							}
+						}
 						else {
-							throw new SyntaxException(0,source[from].pos,"Illegal operator, 'in' awaited"); 
+							throw new SyntaxException(0,source[from].pos,"Illegal operator, 'in' or 'is' awaited"); 
 						}
 						break;
 					default :
@@ -1841,6 +1874,49 @@ loop:	for (;from < len;) {
 							break;
 					}
 					
+					resetStack(innerStack, topStack);
+					innerStack.add(compared);
+					return true;
+				}
+				else {
+					resetStack(innerStack, topStack);
+					return false;
+				}
+			case CMP_IS			:
+				if (isExpressionTrue(node.children[0],stack,path,fromPath,innerStack)) {
+					Object			left = innerStack.remove(innerStack.size()-1);
+					final boolean	compared;
+					
+					if (left instanceof JsonNode[]) {
+						left = ((JsonNode[])left)[0];
+					}
+					if (left instanceof JsonNode) {
+						compared = ((JsonNode)left).getType() == (JsonNodeType)node.cargo;
+					}
+					else {
+						switch ((JsonNodeType)node.cargo) {
+							case JsonArray : case JsonObject :
+								compared = false;
+								break;
+							case JsonBoolean	:
+								compared = left instanceof Boolean;
+								break;
+							case JsonInteger	:
+								compared = left instanceof Long;
+								break;
+							case JsonNull		:
+								compared = left == NULL_MARKER;
+								break;
+							case JsonReal		:
+								compared = left instanceof Double;
+								break;
+							case JsonString		:
+								compared = left instanceof String;
+								break;
+							default:
+								throw new UnsupportedOperationException("Json node type ["+node.cargo+"] is not supported yet");
+						}
+					}
 					resetStack(innerStack, topStack);
 					innerStack.add(compared);
 					return true;
@@ -2207,20 +2283,13 @@ loop:				for (pathIndex = 0, maxPathIndex = node.children.length; pathIndex < ma
 		}
 		else {
 			switch ((TemplateType)template[fromTemplate].cargo) {
-				case ANY_STRUCTURED_NODE	:
-					if (((JsonNode)stack[fromPath]).getType() == JsonNodeType.JsonArray || ((JsonNode)stack[fromPath]).getType() == JsonNodeType.JsonObject) {
-						return compareTemplate(stack,path,fromPath+1,template,fromTemplate+1);
-					}
-					else {
-						return ComparisonType.FALSE;
-					}
 				case ANY_CHAIN				:
-					for (int index = fromPath, maxIndex = stack.length; index < maxIndex; index++) {
-						if ((result = compareTemplate(stack,path,fromPath+index,template,fromTemplate+1)) != ComparisonType.FALSE) {
+					for (int index = fromPath, maxIndex = stack.length; index < maxIndex; index++) {	// Recursive test
+						if ((result = compareTemplate(stack,path,index,template,fromTemplate+1)) == ComparisonType.TRUE) {
 							return result;
 						}
 					}
-					return ComparisonType.FALSE;
+					return ComparisonType.POSSIBLY_TRUE;
 				case ANY_STRUCTURE			:
 					if (((JsonNode)stack[fromPath]).getType() == JsonNodeType.JsonObject) {
 						return compareTemplate(stack,path,fromPath+1,template,fromTemplate+1);
@@ -2236,7 +2305,7 @@ loop:				for (pathIndex = 0, maxPathIndex = node.children.length; pathIndex < ma
 							return compareTemplate(stack,path,fromPath,template,fromTemplate+1);
 						}
 						else {
-							return compareTemplate(stack,path,fromPath+1,template,fromTemplate+1);
+							return compareTemplate(stack,path,fromPath,template,fromTemplate+1);
 						}
 					}
 					else {

@@ -69,7 +69,7 @@ import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
  * </ul>  
  * <p>Differ to {@linkplain JFileChooser}, this class is a child of the {@linkplain JPanel} and can be embedded into any Swing forms
  * as the part of them. To use it as ordinal dialog window, call it's static methods {@linkplain JFileSelectionDialog#select(Dialog, Localizer, FileSystemInterface, int, FilterCallback...)} and 
- * {@linkplain JFileSelectionDialog#select(Window, Localizer, FileSystemInterface, int, FilterCallback...)}.</p>
+ * {@linkplain JFileSelectionDialog#select(Frame, Localizer, FileSystemInterface, int, FilterCallback...)}.</p>
  * <p>This class is not thread-safe</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @see JFileChooser

@@ -503,10 +503,10 @@ public class URIUtils {
 	}
 	
 	/**
-	 * <p>Normalize paths in the URL</p>
-	 * @param source source URL to normalize
-	 * @return url normalized. Can't be null
-	 * @throws NullPointerException
+	 * <p>Normalize paths in the URI</p>
+	 * @param source source URI to normalize
+	 * @return uri normalized. Can't be null
+	 * @throws NullPointerException when source URI is null
 	 */
 	public static URI deepNormalize(final URI source) throws NullPointerException {
 		if (source == null) {

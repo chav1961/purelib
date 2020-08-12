@@ -246,6 +246,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	/**
 	 * <p>Append array content from the Reader</p>
 	 * @param rdr reader to append content from
+	 * @return self
 	 * @throws NullPointerException if the reader is null
 	 * @throws IOException on any I/O errors
 	 * @since 0.0.2 

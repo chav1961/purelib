@@ -56,11 +56,14 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	private static final char[]		IMG_START = "<img src=\"".toCharArray();
 	private static final char[]		IMG_END = "\">".toCharArray();
 	private static final char[]		IMG_CLOSE = "</img>".toCharArray();
+	private static final char[]		CODE_OPEN = "<code>".toCharArray();
+	private static final char[]		CODE_CLOSE = "</code>".toCharArray();
 
 	private static final char[]		ESC_LT = "&lt;".toCharArray();
 	private static final char[]		ESC_GT = "&gt;".toCharArray();
 	private static final char[]		ESC_AMP = "&amp;".toCharArray();
 	private static final char[]		ESC_QUOT = "&quot;".toCharArray();
+	private static final char[]		ESC_BR = "<br>".toCharArray();
 	
 	private final Writer			nested;
 	private final StringBuilder		internalAnchor = new StringBuilder();
@@ -86,13 +89,20 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 			internalAnchor.append(content,from,to-from);
 		}
 	}
+	
+	@Override
+	public void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
+		internalWrite(displacement,CODE_OPEN);
+		writeEscaped(displacement,content,from,to,keepNewLines);
+		internalWrite(displacement,CODE_CLOSE);
+	}		
 
 	@Override
 	public void writeEscaped(long displacement, char[] content, int from, int to, boolean keepNewLines) throws IOException, SyntaxException {
 		boolean	has2escape = false;
 		
 		for (int index = from; index < to; index++) {
-			if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"') {
+			if (content[index] == '<' || content[index] == '>' || content[index] == '&' || content[index] == '\"' || content[index] == '\n' && keepNewLines) {
 				has2escape = true;
 				break;
 			}
@@ -108,6 +118,11 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 						case '>'	: internalWrite(displacement+start-from,ESC_GT); break;
 						case '&'	: internalWrite(displacement+start-from,ESC_AMP); break;
 						case '\"'	: internalWrite(displacement+start-from,ESC_QUOT); break;
+						case '\n'	: 
+							if (keepNewLines) {
+								internalWrite(displacement+start-from,ESC_BR);
+							}
+							break;
 					}
 					start = index + 1;
 				}
@@ -248,7 +263,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 		return new PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>(){
 			@Override
 			public boolean writeContent(Writer writer, CreoleHTMLOutputWriter instance) throws IOException {
-				writer.write("<html><head></head><body>");
+				writer.write("<!DOCTYPE html>\n<html>\n<head>\n</head>\n<body>");
 				return false;
 			}
 		};
@@ -258,7 +273,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 		return new PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>(){
 			@Override
 			public boolean writeContent(Writer writer, CreoleHTMLOutputWriter instance) throws IOException {
-				writer.write("</body></html>");
+				writer.write("</body>\n</html>\n");
 				return false;
 			}
 		};

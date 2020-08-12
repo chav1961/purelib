@@ -18,9 +18,9 @@ import javax.swing.SwingUtilities;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
- * <p>This class is a Drag&Drop manager, that unifies drag&drop operations inside one swing container. It implements {@linkplain AutoCloseable} 
- * interface and can be used in the <b>try-with-resource</b> operators. The constructor of the class passes container to support drag&drop
- * and callback interface {@linkplain DnDInterface} to process drag&drop events. Details about lifecycle of drag&drop are described in the
+ * <p>This class is a Drag&amp;Drop manager, that unifies drag&amp;drop operations inside one swing container. It implements {@linkplain AutoCloseable} 
+ * interface and can be used in the <b>try-with-resource</b> operators. The constructor of the class passes container to support drag&amp;drop
+ * and callback interface {@linkplain DnDInterface} to process drag&amp;drop events. Details about lifecycle of drag&amp;drop are described in the
  * {@linkplain DnDInterface}. Using this class allow you to avoid adding listeners to all of the container content.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @see DnDInterface
@@ -28,7 +28,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  */
 public class DnDManager implements AutoCloseable {
 	/**
-	 * <p>This anumerations describes current Drag&drop mode in the swing container.</p> 
+	 * <p>This anumerations describes current Drag&amp;drop mode in the swing container.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.4
 	 */
@@ -37,15 +37,15 @@ public class DnDManager implements AutoCloseable {
 	}
 	
 	/**
-	 * <p>This interface is a set of callbacks to support drag&drop operations in conjunction with {@linkplain DnDManager} class.
+	 * <p>This interface is a set of callbacks to support drag&amp;drop operations in conjunction with {@linkplain DnDManager} class.
 	 * The lifecycle of the callbacks is:</p>
 	 * <ul>
 	 * <li>{@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} calls at the beginning of the drag operation. If it returns non-null value,
-	 * dral operation starts. Calls only once for each dedicated drag&drop operation</li>
-	 * <li>{@linkplain #canReceive(DnDMode, Component, int, int, Component, int, int, Class)} calls on every mouse moving during drag&drop.</li>
-	 * <li>{@linkplain #track(DnDMode, Component, int, int, Component, int, int)} calls on every mouse moving during drag&drop.</li>
-	 * <li>{@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} calls at the end of the drag operation, but before {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method call. Calls only once for each dedicated drag&drop operation</li>
-	 * <li>{@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} the same last call at the lifecycle. Calls only once for each dedicated drag&drop operation</li>
+	 * drag operation starts. Calls only once for each dedicated drag&amp;drop operation</li>
+	 * <li>{@linkplain #canReceive(DnDMode, Component, int, int, Component, int, int, Class)} calls on every mouse moving during drag&amp;drop.</li>
+	 * <li>{@linkplain #track(DnDMode, Component, int, int, Component, int, int)} calls on every mouse moving during drag&amp;drop.</li>
+	 * <li>{@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} calls at the end of the drag operation, but before {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method call. Calls only once for each dedicated drag&amp;drop operation</li>
+	 * <li>{@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} the same last call at the lifecycle. Calls only once for each dedicated drag&amp;drop operation</li>
 	 * </ul>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.4

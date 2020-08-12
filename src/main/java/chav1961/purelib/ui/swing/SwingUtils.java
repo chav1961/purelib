@@ -238,7 +238,7 @@ loop:			for (Component comp : children(node)) {
 	 * <p>Make iterable for all children of the given component</p>
 	 * @param component component to make children iterable for
 	 * @return iterable for children. Can be empty but not null
-	 * @throws NullPointerException
+	 * @throws NullPointerException when argument is null
 	 */
 	public static Iterable<Component> children(final Component component) throws NullPointerException {
 		if (component == null) {
@@ -354,6 +354,7 @@ loop:			for (Component comp : children(node)) {
 	/**
 	 * <p>Prepare renderer for the given meta data and field format</p>
 	 * @param metadata meta data to prepare renderer for
+	 * @param localizer localizer for the given control
 	 * @param content field content format
 	 * @param monitor field monitor
 	 * @return component prepared
