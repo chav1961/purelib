@@ -10,19 +10,35 @@ package chav1961.purelib.basic.exceptions;
 public class FlowException extends PureLibException {
 	private static final long serialVersionUID = -4178612026736414604L;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public FlowException() {
 		super();
 	}
 
-	public FlowException(String message, Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 * @param cause exception cause
+	 */
+	public FlowException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
-	public FlowException(String message) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 */
+	public FlowException(final String message) {
 		super(message);
 	}
 
-	public FlowException(Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param cause exception cause
+	 */
+	public FlowException(final Throwable cause) {
 		super(cause);
 	}
 }

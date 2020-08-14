@@ -1,6 +1,5 @@
 package chav1961.purelib.basic;
 
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,17 +9,13 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
-import java.util.Map.Entry;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -32,13 +27,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
 public class ScriptEngineTest {
 	@Test
-	public void basicFactoryTest() throws MimeTypeParseException {
-		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
+	public void basicFactoryTest() throws MimeParseException {
+		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 		
 		Assert.assertEquals("name",factory.getEngineName());
 		Assert.assertEquals("name",factory.getParameter(ScriptEngine.ENGINE));
@@ -52,11 +48,11 @@ public class ScriptEngineTest {
 		Assert.assertEquals("2.0",factory.getParameter(ScriptEngine.LANGUAGE_VERSION));
 		Assert.assertEquals(Arrays.asList("lang1","lang2"),factory.getNames());
 		
-		try{new PseudoScriptEngineFactory(null,"1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
+		try{new PseudoScriptEngineFactory(null,"1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new PseudoScriptEngineFactory("","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
+		try{new PseudoScriptEngineFactory("","1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -70,29 +66,29 @@ public class ScriptEngineTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),null,"2.0",Arrays.asList("lang1","lang2"));
+		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),null,"2.0",Arrays.asList("lang1","lang2"));
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"","2.0",Arrays.asList("lang1","lang2"));
+		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"","2.0",Arrays.asList("lang1","lang2"));
 			Assert.fail("Mandatory exception was not detected (empty 3-rd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang",null,Arrays.asList("lang1","lang2"));
+		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang",null,Arrays.asList("lang1","lang2"));
 			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","",Arrays.asList("lang1","lang2"));
+		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang","",Arrays.asList("lang1","lang2"));
 			Assert.fail("Mandatory exception was not detected (empty 4-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",null);
+		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",null);
 			Assert.fail("Mandatory exception was not detected (null 5-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList());
+		try{new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",Arrays.asList());
 			Assert.fail("Mandatory exception was not detected (empty 5-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -112,8 +108,8 @@ public class ScriptEngineTest {
 	}
 
 	@Test
-	public void basicEngineTest() throws MimeTypeParseException {
-		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
+	public void basicEngineTest() throws MimeParseException {
+		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 		final ScriptEngine			engine = factory.getScriptEngine();
 		final Bindings				b1 = engine.createBindings(), b2 = engine.createBindings(); 
 				
@@ -270,8 +266,8 @@ public class ScriptEngineTest {
 	}
 
 //	@Test
-	public void evalEngineTest() throws MimeTypeParseException, ScriptException, IOException {
-		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
+	public void evalEngineTest() throws MimeParseException, ScriptException, IOException {
+		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 		final ScriptEngine			engine = factory.getScriptEngine();
 		final String				script = ScriptExec.class.getCanonicalName(); 
 		
@@ -317,8 +313,8 @@ public class ScriptEngineTest {
 	}
 
 //	@Test
-	public void specificEngineTest() throws MimeTypeParseException, ScriptException, IOException {
-		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(new MimeType("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
+	public void specificEngineTest() throws MimeParseException, ScriptException, IOException {
+		final ScriptEngineFactory	factory = new PseudoScriptEngineFactory("name","1.0",Arrays.asList(toMime("text/plain")),"lang","2.0",Arrays.asList("lang1","lang2"));
 		final PseudoScriptEngine	engine = (PseudoScriptEngine)factory.getScriptEngine();
 		final Class<?>				cl  = ScriptExec.class;
 		final Manifest				mf = new Manifest();
@@ -341,6 +337,10 @@ public class ScriptEngineTest {
 			engine.download(URIUtils.convert2selfURI(baos.toByteArray()));
 			Assert.assertEquals(1,engine.getFileSystem().list().length);
 		}		
+	}
+	
+	private static MimeType toMime(final String mime) throws MimeParseException {
+		return MimeType.parseMimeList(mime)[0];
 	}
 } 
 

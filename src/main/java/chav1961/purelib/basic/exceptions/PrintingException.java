@@ -10,18 +10,34 @@ package chav1961.purelib.basic.exceptions;
 public class PrintingException extends ContentException {
 	private static final long serialVersionUID = 6747558191548783494L;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public PrintingException() {
 		super();
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 */
 	public PrintingException(final String message) {
 		super(message);
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param cause exception cause
+	 */
 	public PrintingException(final Throwable t) {
 		super(t);
 	}
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 * @param cause exception cause
+	 */
 	public PrintingException(final String message, final Throwable t) {
 		super(message,t);
 	}

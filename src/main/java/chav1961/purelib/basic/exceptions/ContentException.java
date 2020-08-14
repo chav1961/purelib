@@ -11,18 +11,34 @@ package chav1961.purelib.basic.exceptions;
 public class ContentException extends PureLibException {
 	private static final long serialVersionUID = -2374543706560983123L;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public ContentException() {
 	}
 
-	public ContentException(String message) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 */
+	public ContentException(final String message) {
 		super(message);
 	}
 
-	public ContentException(Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param cause exception cause
+	 */
+	public ContentException(final Throwable cause) {
 		super(cause);
 	}
 
-	public ContentException(String message, Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 * @param cause exception cause
+	 */
+	public ContentException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 }

@@ -3,7 +3,6 @@ package chav1961.purelib.nanoservice;
 import java.awt.datatransfer.MimeTypeParseException;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,7 +19,6 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.security.KeyStore;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -69,8 +67,10 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
@@ -491,8 +491,9 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 									}
 								}
 							}
-						} catch (MimeTypeParseException e) {
-							throw new IOException(e.getLocalizedMessage(),e); 
+						} catch (MimeParseException | RuntimeException exc) {
+							PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
+							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
 					else {
@@ -519,7 +520,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 											, os);
 							}
 							
-							if (rc >= 200 && rc <= 299) {
+							if (rc >= 100 && rc <= 399) {
 								try(final InputStream	is = pair.getInputStream()) {
 									call.getResponseHeaders().set(HEAD_CONTENT_LENGTH,String.valueOf(pair.getSizeUsed()));
 									call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,outputStreamType);
@@ -753,7 +754,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			getEnvironment().fail(call,HttpURLConnection.HTTP_UNAVAILABLE,"Service paused by operator");
 		}
 	}
-	
+
 	protected NanoServiceEnvironment getEnvironment() {
 		return environment;
 	}
@@ -935,17 +936,18 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			if (desc != null) {
 				try{final String	fromMimeString = call.getRequestHeaders().getFirst(HEAD_CONTENT_TYPE),
 									toMimeString = call.getRequestHeaders().getFirst(HEAD_ACCEPT);
-					final MimeType	fromMime = fromMimeString != null ? new MimeType(fromMimeString) : PureLibSettings.MIME_OCTET_STREAM,
-									toMime = toMimeString != null ? new MimeType(toMimeString) : PureLibSettings.MIME_OCTET_STREAM;
+					final MimeType	fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM,
+									toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
 					
 					for (MethodDescriptor item : desc.methods) {
 						if (item.isAppicable(qType,charPath,prefixLen,fromMime,toMime)) {
 							return item.caller;
 						}
 					}
-				} catch (MimeTypeParseException e) {
+					return null;
+				} catch (MimeParseException e) {
+					return null;
 				}
-				return null;
 			}
 			else {
 				return null;
@@ -971,13 +973,12 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			try{for (Method m : annotatedMethods) {
 					final Path				path = m.getAnnotation(Path.class);
 					final MimeType[]		source = InternalUtils.buildMime(collectSourceMimeType(m));
-					MimeType[] target;
-						target = InternalUtils.buildMime(collectTargetMimeType(m));
+					final MimeType[] 		target = InternalUtils.buildMime(collectTargetMimeType(m));
 					final MethodExecutor	caller = buildMethodExecutor(instance, m, path.value(), path.type(), source, target);
 		
 					collection.add(new MethodDescriptor(path.value(),path.type(),source,target,caller));
 				}
-			} catch (MimeTypeParseException e) {
+			} catch (MimeParseException e) {
 				throw new IOException(e.getLocalizedMessage(),e);
 			}
 			
@@ -1049,26 +1050,30 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 		
 		final MethodExecutor[]	collection = new MethodExecutor[QueryType.values().length];
+		MethodExecutor			lastMethod;
 		
 		for (int index = 0; index < type.length; index++) {
 			switch (type[index]) {
 				case GET	:
-					collection[type[index].ordinal()] = buildGetMethodExecutor(instance, m, value, source, target);
+					collection[type[index].ordinal()] = lastMethod = buildGetMethodExecutor(instance, m, value, source, target);
 					break;
 				case POST	:
-					collection[type[index].ordinal()] = buildPostMethodExecutor(instance, m, value, source, target);
+					collection[type[index].ordinal()] = lastMethod = buildPostMethodExecutor(instance, m, value, source, target);
 					break;
 				case PUT	:
-					collection[type[index].ordinal()] = buildPutMethodExecutor(instance, m, value, source, target);
+					collection[type[index].ordinal()] = lastMethod = buildPutMethodExecutor(instance, m, value, source, target);
 					break;
 				case DELETE	:
-					collection[type[index].ordinal()] = buildDeleteMethodExecutor(instance, m, value, source, target);
+					collection[type[index].ordinal()] = lastMethod = buildDeleteMethodExecutor(instance, m, value, source, target);
 					break;
 				case HEAD	:
-					collection[type[index].ordinal()] = buildGetMethodExecutor(instance, m, value, source, target);
+					collection[type[index].ordinal()] = lastMethod = buildGetMethodExecutor(instance, m, value, source, target);
 					break;
 				default :
 					throw new UnsupportedOperationException("Query type ["+type[index]+"] is not implemented yet");
+			}
+			if (instance instanceof ModuleAccessor) {
+				((ModuleAccessor)instance).allowUnnamedModuleAccess(lastMethod.getClass().getModule());
 			}
 		}
 		
@@ -1128,8 +1133,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					result.append(buildToConvertor(item.getType(),defineParameterIndex(item.getAnnotation(ToHeader.class).value(),responseHeaderNames)));
 				}
 				else if (item.isAnnotationPresent(ToBody.class)) {
-					try{result.append(buildToBodyParameterText(item.getType(),new MimeType(item.getAnnotation(ToBody.class).mimeType())));
-					} catch (MimeTypeParseException exc) {
+					try{result.append(buildToBodyParameterText(item.getType(),MimeType.parseMimeList(item.getAnnotation(ToBody.class).mimeType())[0]));
+					} catch (MimeParseException exc) {
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
@@ -1189,16 +1194,16 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					result.append(buildToConvertor(item.getType(),defineParameterIndex(item.getAnnotation(ToHeader.class).value(),responseHeaderNames)));
 				}
 				else if (item.isAnnotationPresent(ToBody.class)) {
-					try{result.append(buildToBodyParameterText(item.getType(),new MimeType(item.getAnnotation(ToBody.class).mimeType())));
-					} catch (MimeTypeParseException exc) {
+					try{result.append(buildToBodyParameterText(item.getType(),MimeType.parseMimeList(item.getAnnotation(ToBody.class).mimeType())[0]));
+					} catch (MimeParseException exc) {
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
 					}		
 				}
 				else if (item.isAnnotationPresent(FromBody.class)) {
-					try{result.append(buildFromBodyParameterText(item.getType(),new MimeType(item.getAnnotation(FromBody.class).mimeType())));
-					} catch (MimeTypeParseException exc) {
+					try{result.append(buildFromBodyParameterText(item.getType(),MimeType.parseMimeList(item.getAnnotation(FromBody.class).mimeType())[0]));
+					} catch (MimeParseException exc) {
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
@@ -1255,16 +1260,16 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					result.append(buildToConvertor(item.getType(),defineParameterIndex(item.getAnnotation(ToHeader.class).value(),responseHeaderNames)));
 				}
 				else if (item.isAnnotationPresent(ToBody.class)) {
-					try{result.append(buildToBodyParameterText(item.getType(),new MimeType(item.getAnnotation(ToBody.class).mimeType())));
-					} catch (MimeTypeParseException exc) {
+					try{result.append(buildToBodyParameterText(item.getType(),MimeType.parseMimeList(item.getAnnotation(ToBody.class).mimeType())[0]));
+					} catch (MimeParseException exc) {
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
 					}		
 				}
 				else if (item.isAnnotationPresent(FromBody.class)) {
-					try{result.append(buildFromBodyParameterText(item.getType(),new MimeType(item.getAnnotation(FromBody.class).mimeType())));
-					} catch (MimeTypeParseException exc) {
+					try{result.append(buildFromBodyParameterText(item.getType(),MimeType.parseMimeList(item.getAnnotation(FromBody.class).mimeType())[0]));
+					} catch (MimeParseException exc) {
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
@@ -1321,8 +1326,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					result.append(buildToConvertor(item.getType(),defineParameterIndex(item.getAnnotation(ToHeader.class).value(),responseHeaderNames)));
 				}
 				else if (item.isAnnotationPresent(ToBody.class)) {
-					try{result.append(buildToBodyParameterText(item.getType(),new MimeType(item.getAnnotation(ToBody.class).mimeType())));
-					} catch (MimeTypeParseException exc) {
+					try{result.append(buildToBodyParameterText(item.getType(),MimeType.parseMimeList(item.getAnnotation(ToBody.class).mimeType())[0]));
+					} catch (MimeParseException exc) {
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
@@ -1989,7 +1994,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 					}
 				}
-			} catch (MimeTypeParseException e) {
+			} catch (MimeParseException e) {
 				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
@@ -2342,7 +2347,7 @@ loop:		for (; index < maxIndex && from < maxFrom; index++) {
 					wr.flush();
 				}
 				return HttpURLConnection.HTTP_OK;
-			} catch (MimeTypeParseException e) {
+			} catch (MimeParseException e) {
 				return HttpURLConnection.HTTP_INTERNAL_ERROR;
 			}
 		}

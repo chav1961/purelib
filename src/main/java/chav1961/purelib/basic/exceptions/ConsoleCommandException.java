@@ -11,19 +11,35 @@ package chav1961.purelib.basic.exceptions;
 public class ConsoleCommandException extends ContentException {
 	private static final long serialVersionUID = 8876250986756751250L;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public ConsoleCommandException() {
 		super();
 	}
 
-	public ConsoleCommandException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 * @param cause exception cause
+	 */
+	public ConsoleCommandException(final String message, final Throwable cause) {
+		super(message, cause);
 	}
 
-	public ConsoleCommandException(String arg0) {
-		super(arg0);
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 */
+	public ConsoleCommandException(final String message) {
+		super(message);
 	}
 
-	public ConsoleCommandException(Throwable arg0) {
-		super(arg0);
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param cause exception cause
+	 */
+	public ConsoleCommandException(final Throwable cause) {
+		super(cause);
 	}
 }

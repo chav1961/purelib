@@ -8,6 +8,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.interfaces.BasicScriptEngineController;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
@@ -26,6 +27,7 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public class AsmScriptEngineFactory extends AbstractScriptEngineFactory {
@@ -34,7 +36,7 @@ public class AsmScriptEngineFactory extends AbstractScriptEngineFactory {
 	public static final String		LANG_NAME = "JavaByteCodeAssembler";
 	public static final String		LANG_VERSION = PureLibSettings.CURRENT_VERSION;
 	
-	public AsmScriptEngineFactory() throws MimeTypeParseException {
+	public AsmScriptEngineFactory() throws MimeParseException {
 		super(ENGINE_FULL_NAME,ENGINE_VERSION,Arrays.asList(new MimeType("text","plain")),LANG_NAME,LANG_VERSION,Arrays.asList("javaasm","jasm"));
 	}
 

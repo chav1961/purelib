@@ -1,8 +1,8 @@
 package chav1961.purelib.basic;
 
+
 import java.awt.Color;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.SpiService;
@@ -516,7 +517,7 @@ public final class PureLibSettings {
 
 	private static MimeType buildMime(final String type, final String subtype) {
 		try{return new MimeType(type,subtype);
-		} catch (MimeTypeParseException e) {
+		} catch (MimeParseException e) {
 			return new MimeType();
 		}
 	}

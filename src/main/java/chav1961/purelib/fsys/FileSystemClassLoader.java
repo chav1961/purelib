@@ -1,21 +1,29 @@
-
 package chav1961.purelib.fsys;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
+/**
+ * <p>This class is a class loader, based on {@linkplain FileSystemInterface} file system.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class FileSystemClassLoader extends ClassLoader {
 	private final FileSystemInterface	fsi;
 	
-	public FileSystemClassLoader(final ClassLoader parent, final FileSystemInterface fsi) {
+	/**
+	 * <p>Constructor if the class</p>
+	 * @param parent parent class loader
+	 * @param fsi file system to find class and resources
+	 * @throws NullPointerException when the file system is null
+	 */
+	public FileSystemClassLoader(final ClassLoader parent, final FileSystemInterface fsi) throws NullPointerException {
         super(parent);
         if (fsi == null) {
         	throw new NullPointerException("File system interface ref can't be null"); 

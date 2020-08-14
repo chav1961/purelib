@@ -28,19 +28,35 @@ package chav1961.purelib.basic.exceptions;
 public class PreparationException extends RuntimeException {
 	private static final long serialVersionUID = -1189827491666686473L;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public PreparationException() {
 		super();
 	}
 
-	public PreparationException(String message, Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 * @param cause exception cause
+	 */
+	public PreparationException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
-	public PreparationException(String message) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 */
+	public PreparationException(final String message) {
 		super(message);
 	}
 
-	public PreparationException(Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param cause exception cause
+	 */
+	public PreparationException(final Throwable cause) {
 		super(cause);
 	}
 }

@@ -10,18 +10,34 @@ package chav1961.purelib.basic.exceptions;
 public class CommandLineParametersException extends ContentException {
 	private static final long serialVersionUID = -1146095723752754080L;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public CommandLineParametersException() {
 	}
 
-	public CommandLineParametersException(String arg0) {
-		super(arg0);
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 */
+	public CommandLineParametersException(final String message) {
+		super(message);
 	}
 
-	public CommandLineParametersException(Throwable arg0) {
-		super(arg0);
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param cause exception cause
+	 */
+	public CommandLineParametersException(final Throwable cause) {
+		super(cause);
 	}
 
-	public CommandLineParametersException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 * @param cause exception cause
+	 */
+	public CommandLineParametersException(final String message, final Throwable cause) {
+		super(message, cause);
 	}
 }

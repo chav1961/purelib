@@ -72,6 +72,7 @@ import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.MimetypesFileTypeMap;
@@ -125,7 +126,7 @@ public class InternalUtils {
 		}
 	}
 	
-	public static MimeType[] buildMime(final String... source) throws java.awt.datatransfer.MimeTypeParseException {
+	public static MimeType[] buildMime(final String... source) throws MimeParseException {
 		if (source == null) {
 			throw new NullPointerException("Source MIME list can't be null");
 		}
@@ -166,10 +167,10 @@ public class InternalUtils {
 						currentMime = currentMime.substring(0,semicolon); 
 					}
 					if ("*".equals(currentMime.trim())) {
-						result[counter++] = new MimeType(currentMime+"/*");
+						result[counter++] = new MimeType(currentMime,"*");
 					}
 					else {
-						result[counter++] = new MimeType(currentMime);
+						result[counter++] = MimeType.parseMimeList(currentMime)[0];
 					}
 					start = pos + 1;
 				}
@@ -178,7 +179,7 @@ public class InternalUtils {
 				if ((semicolon = currentMime.indexOf(';')) >= 0) {
 					currentMime = currentMime.substring(0,semicolon); 
 				}
-				result[counter++] = new MimeType(currentMime);
+				result[counter++] = MimeType.parseMimeList(currentMime)[0];
 			}
 			return result;
 		}
@@ -194,12 +195,15 @@ public class InternalUtils {
 		else if (fileName.endsWith(".css")) {
 			return new MimeType[]{PureLibSettings.MIME_CSS_TEXT};
 		}
+		else if (fileName.endsWith(".html")) {
+			return new MimeType[]{PureLibSettings.MIME_HTML_TEXT};
+		}
 		else if (fileName.contains("favicon.ico")) {
 			return new MimeType[]{PureLibSettings.MIME_FAVICON};
 		}
 		else {
-			try{return new MimeType[]{new MimeType(typeMap.getContentType(fileName))};
-			} catch (MimeTypeParseException e) {
+			try{return MimeType.parseMimeList(typeMap.getContentType(fileName));
+			} catch (MimeParseException e) {
 				return new MimeType[]{PureLibSettings.MIME_OCTET_STREAM};
 			}
 		}

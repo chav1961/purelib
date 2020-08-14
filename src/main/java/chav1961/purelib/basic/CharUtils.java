@@ -781,7 +781,7 @@ public class CharUtils {
 			throw new NullPointerException("Source string can't be null");
 		}
 		else if (from < 0 || from >= source.length) {
-			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(source.length-1));
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+source.length);
 		}
 		else {
 			return UnsafedCharUtils.uncheckedSkipBlank(source,from,stopOnEOL);

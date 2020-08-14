@@ -16,22 +16,43 @@ public class SyntaxException extends ContentException {
 	
 	private final long	lineNo, pos;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param lineNo line inside content where problem was detected
+	 * @param pos position inside content where problem was detected
+	 * @param message problem description
+	 * @param t exception cause
+	 */
 	public SyntaxException(final long lineNo, final long pos, final String message, final Throwable t) {
 		super("Line "+lineNo+", pos "+pos+": "+message,t);
 		this.lineNo = lineNo;
 		this.pos = pos;
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param lineNo line inside content where problem was detected
+	 * @param pos position inside content where problem was detected
+	 * @param message problem description
+	 */
 	public SyntaxException(final long lineNo, final long pos, final String message) {
 		super("Line "+lineNo+", pos "+pos+": "+message);
 		this.lineNo = lineNo;
 		this.pos = pos;
 	}
-	
+
+	/**
+	 * <p>Get row (line) where problem was detected</p>
+	 * @return zero-based line where problem was detected. Is't strongly recommended to use 0 for single-line content 
+	 */
 	public long getRow() {
 		return lineNo;
 	}
 	
+	/**
+	 * <p>Get position (column) where problem was detected</p>
+	 * @return zero-based column where problem was detected
+	 */
 	public long getCol() {
 		return pos;
 	}

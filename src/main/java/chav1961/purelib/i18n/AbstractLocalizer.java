@@ -1,7 +1,6 @@
 package chav1961.purelib.i18n;
 
 
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -33,6 +32,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -249,8 +249,8 @@ public abstract class AbstractLocalizer implements Localizer {
 					
 					if (uriRef.getQuery() != null) {
 						try{final Hashtable<String,String[]>	mimes = URIUtils.parseQuery(uriRef.getQuery());
-							final MimeType		fromMime = mimes.containsKey(CONTENT_MIME) ? PureLibSettings.MIME_PLAIN_TEXT : new MimeType(mimes.get(CONTENT_MIME_SOURCE)[0]);
-							final MimeType 		toMime = mimes.containsKey(CONTENT_MIME) ? new MimeType(mimes.get(CONTENT_MIME)[0]) : new MimeType(mimes.get(CONTENT_MIME_TARGET)[0]);
+							final MimeType		fromMime = mimes.containsKey(CONTENT_MIME) ? PureLibSettings.MIME_PLAIN_TEXT : MimeType.parseMimeList(mimes.get(CONTENT_MIME_SOURCE)[0])[0];
+							final MimeType 		toMime = mimes.containsKey(CONTENT_MIME) ? MimeType.parseMimeList((mimes.get(CONTENT_MIME)[0]))[0] : MimeType.parseMimeList((mimes.get(CONTENT_MIME_TARGET)[0]))[0];
 						
 							try(final StringWriter	wr = new StringWriter();
 								final Writer		nested = StreamsUtil.getStreamClassForOutput(wr, fromMime, toMime)) {
@@ -261,7 +261,7 @@ public abstract class AbstractLocalizer implements Localizer {
 							} catch (IOException exc) {
 								return temp; 
 							}
-						} catch (MimeTypeParseException exc) {
+						} catch (MimeParseException exc) {
 							return temp; 
 						}
 					}

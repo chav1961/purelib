@@ -1,7 +1,6 @@
 package chav1961.purelib.nanoservice;
 
 
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.IOException;
 
 import org.junit.Assert;
@@ -10,6 +9,7 @@ import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.nanoservice.InternalUtils;
 import chav1961.purelib.testing.OrdinalTestCategory;
@@ -17,12 +17,12 @@ import chav1961.purelib.testing.OrdinalTestCategory;
 @Category(OrdinalTestCategory.class)
 public class InternalUtilsTest {
 	@Test
-	public void mimesTest() throws MimeTypeParseException, IOException {
+	public void mimesTest() throws MimeParseException, IOException {
 		Assert.assertTrue(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_PLAIN_TEXT));
-		Assert.assertTrue(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,new MimeType("text/plain")));
+		Assert.assertTrue(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,MimeType.parseMimeList("text/plain")[0]));
 		
 		Assert.assertFalse(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_JSON_TEXT));
-		Assert.assertFalse(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,new MimeType("application/json")));
+		Assert.assertFalse(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,MimeType.parseMimeList("application/json")[0]));
 		
 		try{InternalUtils.mimesAreCompatible((MimeType)null,PureLibSettings.MIME_PLAIN_TEXT);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -110,7 +110,7 @@ public class InternalUtilsTest {
 	}
 
 	@Test
-	public void primitiveAndStringBuildersTest() throws MimeTypeParseException, IOException, SyntaxException {
+	public void primitiveAndStringBuildersTest() throws MimeParseException, IOException, SyntaxException {
 		Assert.assertTrue(InternalUtils.buildBoolean("true".toCharArray()));
 		Assert.assertFalse(InternalUtils.buildBoolean("false".toCharArray()));
 		

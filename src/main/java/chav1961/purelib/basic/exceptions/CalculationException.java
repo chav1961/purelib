@@ -10,19 +10,35 @@ package chav1961.purelib.basic.exceptions;
 public class CalculationException extends PureLibException {
 	private static final long serialVersionUID = 497057975715289865L;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 */
 	public CalculationException() {
 		super();
 	}
 
-	public CalculationException(String message, Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 * @param cause exception cause
+	 */
+	public CalculationException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
-	public CalculationException(String message) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param message exception message
+	 */
+	public CalculationException(final String message) {
 		super(message);
 	}
 
-	public CalculationException(Throwable cause) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param cause exception cause
+	 */
+	public CalculationException(final Throwable cause) {
 		super(cause);
 	}
 }
