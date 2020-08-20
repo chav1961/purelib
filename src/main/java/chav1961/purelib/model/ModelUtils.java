@@ -1016,7 +1016,10 @@ loop:		for(;;) {
 	}
 	
 	private static boolean innerCompare(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelComparisonCallback callback, final Set<DifferenceLocalization> details, final Set<String> rightNames) {
-		if (left != null && right == null) {
+		if (left == null && right == null) {
+			return false; 
+		}
+		else if (left != null && right == null) {
 			details.clear();
 			return callback.difference(left,right,DifferenceType.DELETED,details) == ContinueMode.CONTINUE; 
 		}
@@ -1026,7 +1029,7 @@ loop:		for(;;) {
 		}
 		else if (left.getName().equals(right.getName())) {
 			details.clear();
-			if (!(left.getType().isAssignableFrom(right.getType()) || left.getType().isAssignableFrom(right.getType()))) {
+			if (!(left.getType().isAssignableFrom(right.getType()) || right.getType().isAssignableFrom(left.getType()))) {
 				details.add(DifferenceLocalization.IN_TYPE);
 			}
 			if (!left.getRelativeUIPath().equals(right.getRelativeUIPath())) {

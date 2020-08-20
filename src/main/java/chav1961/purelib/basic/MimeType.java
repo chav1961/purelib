@@ -143,7 +143,7 @@ public class MimeType {
 	 * <MIME_item>::={<MIME_type>|'*'}'/'{<MIME_subtype>|'*'}[,<MIME_Item>]<br>
 	 * <MIME_properties>::=';'<key>=["]<value>["]...<br>
 	 * </p>
-	 * <p>For example <code>text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,* / *;q=0.8<code></p>
+	 * <p>For example <code>text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,* / *;q=0.8</code></p>
 	 * @param mimeList char array contains MIME to parse
 	 * @param from from position to parse MIME
 	 * @param to to position to parse MIME
@@ -331,7 +331,7 @@ public class MimeType {
 
 	@Override
 	public String toString() {
-		return primaryType + "/" + subType+ (attr != null ? ", attr="+attr : "");
+		return primaryType + "/" + subType+ (attr != null && !attr.isEmpty() ? "; attr="+attr : "");
 	}
 	
 	private static String checkPrimaryType(final char[] primaryType, final int from, final int to) throws MimeParseException {

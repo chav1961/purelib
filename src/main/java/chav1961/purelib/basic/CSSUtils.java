@@ -1195,7 +1195,7 @@ public class CSSUtils {
 			throw new IllegalArgumentException("Color content can't be null or empty array");
 		}
 		else {
-			final Object[]	values = new Object[4];
+//			final Object[]	values = new Object[4];
 			int				from = 0;
 			
 			if (content[0] == '#') {

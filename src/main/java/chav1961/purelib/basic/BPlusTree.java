@@ -177,9 +177,8 @@ loop:		for (;;) {
 				node = accessor.getContent(node.getIdForKey(key));
 			}
 			if (node != null) {
-				final V	result = node.getValue(key);
+				final V	result = node.delete(key);
 				
-				node.delete(key);
 				if (node.canCompact()) {
 					node.join();
 				}

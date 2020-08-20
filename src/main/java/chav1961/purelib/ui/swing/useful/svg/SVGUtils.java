@@ -53,7 +53,7 @@ class SVGUtils {
 			if (pointCount == 0) {
 				throw new SyntaxException(0,0,"No any numbers in source string ["+source+"]");
 			}
-			else if (pointCount % 2 == 1) {
+			else if ((pointCount & 0x01) == 1) {
 				throw new SyntaxException(0,0,"Odd amount of numbers in the source string ["+source+"]");
 			}
 			else {

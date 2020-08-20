@@ -285,8 +285,8 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 				props = new Hashtable<>();
 			}
 			
-			width = props.contains(WIDTH) ? Integer.valueOf(props.get(WIDTH)[0]) : DEFAULT_WIDTH;
-			height = props.contains(HEIGHT) ? Integer.valueOf(props.get(HEIGHT)[0]) : DEFAULT_HEIGHT;
+			width = props.containsKey(WIDTH) ? Integer.valueOf(props.get(WIDTH)[0]) : DEFAULT_WIDTH;
+			height = props.containsKey(HEIGHT) ? Integer.valueOf(props.get(HEIGHT)[0]) : DEFAULT_HEIGHT;
 			start = nl + 1;
 			
 			while ((end = markupDescriptor.indexOf("\n>>",start)) >= 0) {
@@ -557,7 +557,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		}
 		
 		boolean containsProperty(final String key) {
-			return props.contains(key);
+			return props.containsKey(key);
 		}
 	}
 

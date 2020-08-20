@@ -13,6 +13,7 @@ import java.util.function.LongUnaryOperator;
 import java.util.function.Predicate;
 
 class ListenableRef<T> {
+	private final Object		awaitSync = new Object();
 	private final AtomicInteger	awaitCounter = new AtomicInteger(0);
 	private volatile T			currentValue;
 	private volatile ReentrantReadWriteLock	rwLock = new ReentrantReadWriteLock();
@@ -48,8 +49,8 @@ class ListenableRef<T> {
 			
 			currentValue = op.apply(result);
 			if (awaitCounter.get() == 0) {
-				synchronized(awaitCounter) {
-					awaitCounter.notifyAll();
+				synchronized(awaitSync) {
+					awaitSync.notifyAll();
 				}
 			}
 			return result;
@@ -113,12 +114,12 @@ class ListenableRef<T> {
 			return;
 		}
 		else {
-			synchronized(awaitCounter) {
+			synchronized(awaitSync) {
 				lock.unlock();
 				
 				do {final long	startMillis = System.currentTimeMillis();
 					
-					awaitCounter.wait(timeout,0);
+					awaitSync.wait(timeout,0);
 					if (timeout - (System.currentTimeMillis() - startMillis) < 0) {
 						throw new TimeoutException();
 					}

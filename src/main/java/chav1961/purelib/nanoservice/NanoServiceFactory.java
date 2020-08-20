@@ -428,7 +428,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	public void handle(final HttpExchange call) throws IOException {
 		final String	remoteHost = call.getRemoteAddress().getHostName();
 		
-		if (localhostOnly && !"localhost".equals(remoteHost) && !"view-localhost".equals(remoteHost)  && !"0:0:0:0:0:0:0:1".equals(remoteHost)) {
+		if (localhostOnly && !"localhost".equals(remoteHost) && !"127.0.0.1".equals(remoteHost) && !"view-localhost".equals(remoteHost)  && !"0:0:0:0:0:0:0:1".equals(remoteHost)) {
 			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+remoteHost+"], only localhost addresses are currently supported");
 		}
 		else if (!paused) {

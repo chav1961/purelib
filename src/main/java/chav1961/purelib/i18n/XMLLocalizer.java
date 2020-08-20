@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -23,8 +24,22 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
+/**
+ * <p>This class is a wrapper to standard Java {@linkplain ResourceBundle} class. This class is an Java SPI service and available thru 
+ * {@linkplain LocalizerFactory}. URI scheme-specific part for it must be:</p>
+ * <code>{@value #SUBSCHEME}:/valid_path_to_xml_content</code>
+ * <p>XML format for the localizer is validating by XSD scheme XMLLocalizerContext.xsd (see {@linkplain XSDCollection#XMLLocalizerContent}). 
+ * Example of using XML format see localization files inside the Pure library (/chav1961/purelib/i18n/localization.xml)</p>
+ *   
+ * @see Localizer
+ * @see chav1961.purelib.fsys
+ * @see chav1961.purelib.i18n JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class XMLLocalizer extends AbstractLocalizer {
 	private static final String			SUBSCHEME = "xml";
 	private static final URI			SERVE = URI.create(Localizer.LOCALIZER_SCHEME+":"+SUBSCHEME+":/");

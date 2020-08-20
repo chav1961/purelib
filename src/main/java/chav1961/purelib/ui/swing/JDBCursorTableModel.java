@@ -29,7 +29,7 @@ public class JDBCursorTableModel extends DefaultTableModel {
 			this.rs = rs;
 			this.readOnly = readOnly;
 			
-			final Set<String>	modelNames = new HashSet<>(), cursorNames = new HashSet<>();
+//			final Set<String>	modelNames = new HashSet<>(), cursorNames = new HashSet<>();
 		}
 	}
 

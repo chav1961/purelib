@@ -372,7 +372,10 @@ public class BitCharSet implements Cloneable {
 	
 	@Override
 	public BitCharSet clone() {
-		return new BitCharSet(this); 
+		try{return (BitCharSet)super.clone();
+		} catch (CloneNotSupportedException e) {
+			return new BitCharSet(this);
+		} 
 	}
 	
 	@Override

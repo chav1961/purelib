@@ -29,8 +29,8 @@ public class PrintingException extends ContentException {
 	 * <p>Constructor of the class</p>
 	 * @param cause exception cause
 	 */
-	public PrintingException(final Throwable t) {
-		super(t);
+	public PrintingException(final Throwable cause) {
+		super(cause);
 	}
 	
 	/**
@@ -38,7 +38,7 @@ public class PrintingException extends ContentException {
 	 * @param message exception message
 	 * @param cause exception cause
 	 */
-	public PrintingException(final String message, final Throwable t) {
-		super(message,t);
+	public PrintingException(final String message, final Throwable cause) {
+		super(message,cause);
 	}
 }

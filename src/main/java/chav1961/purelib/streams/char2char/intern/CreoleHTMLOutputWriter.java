@@ -54,10 +54,10 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	private static final char[]		A_END = "\">".toCharArray();
 	private static final char[]		A_CLOSE = "</a>".toCharArray();
 	private static final char[]		IMG_START = "<img src=\"".toCharArray();
+	private static final char[]		IMG_MIDDLE = "\" alt=\"".toCharArray();
 	private static final char[]		IMG_END = "\">".toCharArray();
-	private static final char[]		IMG_CLOSE = "</img>".toCharArray();
-	private static final char[]		CODE_OPEN = "<code>".toCharArray();
-	private static final char[]		CODE_CLOSE = "</code>".toCharArray();
+	private static final char[]		CODE_OPEN = "<pre><code>".toCharArray();
+	private static final char[]		CODE_CLOSE = "</code></pre>".toCharArray();
 
 	private static final char[]		ESC_LT = "&lt;".toCharArray();
 	private static final char[]		ESC_GT = "&gt;".toCharArray();
@@ -202,9 +202,9 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
 		internalWrite(displacement,IMG_START);
 		write(displacement,data,startLink,endLink,false);
-		internalWrite(displacement,IMG_END);
+		internalWrite(displacement,IMG_MIDDLE);
 		write(displacement,data,startCaption,endCaption,false);
-		internalWrite(displacement,IMG_CLOSE);
+		internalWrite(displacement,IMG_END);
 	}
 
 	@Override

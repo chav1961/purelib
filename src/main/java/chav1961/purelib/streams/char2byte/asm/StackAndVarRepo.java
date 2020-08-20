@@ -843,7 +843,7 @@ class StackAndVarRepo {
 			if (this == obj) return true;
 			if (obj == null) return false;
 			if (getClass() != obj.getClass()) return false;
-			StackSnapshot other = (StackSnapshot) obj;
+			VarSnapshot other = (VarSnapshot) obj;
 			if (!Arrays.equals(content, other.content)) return false;
 			return true;
 		}

@@ -32,8 +32,9 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @deprecated
  */
-
+@Deprecated(since="Java 1.9")
 public class PropertiesLocalizer extends AbstractLocalizer {
 	private static final String		SUBSCHEME = "prop";
 	private static final URI		SERVE = URI.create(Localizer.LOCALIZER_SCHEME+":"+SUBSCHEME+":/");

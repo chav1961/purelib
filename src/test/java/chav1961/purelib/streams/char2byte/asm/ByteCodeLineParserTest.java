@@ -12,7 +12,6 @@ import org.junit.experimental.categories.Category;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.asm.ClassContainer;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
