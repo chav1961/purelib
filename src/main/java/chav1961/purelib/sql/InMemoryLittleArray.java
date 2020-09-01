@@ -3,6 +3,7 @@ package chav1961.purelib.sql;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -10,12 +11,28 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 
-public class InMemoryLitteArray implements Array {
+/**
+ * <p>This class implements in-memory {@linkplain Array} to use in the SQL.</p>
+ * <p>This class is not thread-safe.</p>
+ * 
+ * @see chav1961.purelib.sql
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.2
+ */
+public class InMemoryLittleArray implements Array {
 	private final int		contentType;
 	private final Object[]	content;
 	private final Class<?>	returnedClass, wrappedClass;
-	
-	public InMemoryLitteArray(final int contentType, final Object... content) throws SQLException {
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param contentType array content type (see {@linkplain Types})
+	 * @param content array content
+	 * @throws SQLException in any SQL errors
+	 * @throws NullPointerException when content is null
+	 * @throws IllegalArgumentException when content type is unknown
+	 */
+	public InMemoryLittleArray(final int contentType, final Object... content) throws SQLException, NullPointerException, IllegalArgumentException {
 		if (SQLUtils.typeNameByTypeId(contentType) == null) {
 			throw new IllegalArgumentException("Unknown content type ["+contentType+"]. Valid type can be any field from java.sql.Types class only"); 
 		}
@@ -161,7 +178,7 @@ public class InMemoryLitteArray implements Array {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
-		InMemoryLitteArray other = (InMemoryLitteArray) obj;
+		InMemoryLittleArray other = (InMemoryLittleArray) obj;
 		if (!Arrays.equals(content, other.content)) return false;
 		if (contentType != other.contentType) return false;
 		return true;

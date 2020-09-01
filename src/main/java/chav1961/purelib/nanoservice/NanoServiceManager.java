@@ -30,7 +30,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.nanoservice.interfaces.NanoService;
 import chav1961.purelib.nanoservice.interfaces.RootPath;
 
-public class NanoServiceManager implements Closeable {
+class NanoServiceManager implements Closeable {
 	public static final String 		NANOSERVICE_DEPLOYMENT_DIR = "nanoserviceDeploymentDir";
 	public static final String 		NANOSERVICE_DEPLOYMENT_CLASSPREFIX = "nanoserviceDeploymentClassPrefix";
 	public static final String 		NANOSERVICE_DEPLOYMENT_PERIOD = "nanoserviceDeploymentPeriod";
@@ -39,15 +39,15 @@ public class NanoServiceManager implements Closeable {
 		deploy, redeploy, undeploy
 	}
 	
-	private final LoggerFacade						facade;
-	private final DataSource 						dataSource;
-	private final NanoService						factory;
-	private final Timer								t = new Timer(true);
-	private final FileSystemInterface 				deploymentRoot;
-	private final String							deplaymentClassPrefix;
-	private final long 								deploymentPeriod;
-	private final Map<String,DeploymentDesc>		deployed = new ConcurrentHashMap<>();
-	private URLClassLoader							currentLoader = new AdvancedURLClassLoader(this.getClass().getClassLoader());
+	private final LoggerFacade					facade;
+	private final DataSource 					dataSource;
+	private final NanoService					factory;
+	private final Timer							t = new Timer(true);
+	private final FileSystemInterface 			deploymentRoot;
+	private final String						deplaymentClassPrefix;
+	private final long 							deploymentPeriod;
+	private final Map<String,DeploymentDesc>	deployed = new ConcurrentHashMap<>();
+	private URLClassLoader						currentLoader = new AdvancedURLClassLoader(this.getClass().getClassLoader());
 	
 	public NanoServiceManager(final LoggerFacade facade, final SubstitutableProperties props, final NanoService factory) throws NullPointerException, IOException, ContentException, SyntaxException {
 		this(facade,props,factory,null);

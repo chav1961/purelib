@@ -10,10 +10,10 @@ import java.sql.SQLException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 
 /**
- * <p>This class implements in-memory Blob to use in the SQL.</p>
+ * <p>This class implements in-memory {@linkplain Blob} to use in the SQL.</p>
  * <p>This class is not thread-safe.</p>
  * 
- * @see chav1961.purelib.sql JUnit tests
+ * @see chav1961.purelib.sql
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  */

@@ -269,6 +269,9 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @param another another filesystem to mount
 	 * @return self
 	 * @throws IOException if any exceptions was thrown
+	 * @see #isMound()
+	 * @see #unmount()
+	 * @see #mound()
 	 */
 	FileSystemInterface mount(FileSystemInterface another) throws IOException;
 	
@@ -276,6 +279,9 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * <p>Unmount another file system from the given point</p>
 	 * @return file system was unmounted from the actual file system cursor location
 	 * @throws IOException if any exceptions was thrown
+	 * @see #isMound()
+	 * @see #mount(FileSystemInterface)
+	 * @see #mound()
 	 */
 	FileSystemInterface unmount() throws IOException;
 
@@ -284,14 +290,20 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @return true if has
 	 * @throws IOException if any exceptions was thrown
 	 * @since 0.0.3
+	 * @see #mount(FileSystemInterface)
+	 * @see #unmount()
+	 * @see #mound()
 	 */
 	boolean isMound() throws IOException;
 
 	/**
-	 * <p>Get file systems mound for the given node</p>
+	 * <p>Get file system mound for the given node</p>
 	 * @return file systems mound or null if none mound on the node
 	 * @throws IOException if any exceptions was thrown
 	 * @since 0.0.3
+	 * @see #mount(FileSystemInterface)
+	 * @see #unmount()
+	 * @see #isMound()
 	 */
 	FileSystemInterface mound() throws IOException;
 	
@@ -302,8 +314,10 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @return self
 	 * @throws IOException if any exceptions was thrown
 	 * @since 0.0.3
+	 * @see #unjoin()
+	 * @see #isJoined()
+	 * @see #joinedList()
 	 */
-	
 	FileSystemInterface join(FileSystemInterface another) throws IOException;
 
 	/**
@@ -312,6 +326,9 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @return all the queue of file system joined
 	 * @throws IOException if any exceptions was thrown
 	 * @since 0.0.3
+	 * @see #join(FileSystemInterface)
+	 * @see #isJoined()
+	 * @see #joinedList()
 	 */
 	FileSystemInterface unjoin() throws IOException;
 
@@ -320,6 +337,9 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @return true if has. Calling this method on any children of the current directory with joins always returns false   
 	 * @throws IOException if any exceptions was thrown
 	 * @since 0.0.3
+	 * @see #join(FileSystemInterface)
+	 * @see #unjoin()
+	 * @see #joinedList()
 	 */
 	boolean isJoined() throws IOException;
 
@@ -327,6 +347,9 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * <p>Get list of joined file systems from the current directory</p>
 	 * @return list (stack) of joined file systems. Can be empty but not null 
 	 * @throws IOException if any exceptions was thrown
+	 * @see #join(FileSystemInterface)
+	 * @see #unjoin()
+	 * @see #isJoined()
 	 */
 	FileSystemInterface[] joinedList() throws IOException;
 	

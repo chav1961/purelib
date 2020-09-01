@@ -17,12 +17,28 @@ import javax.xml.transform.stream.StreamSource;
 
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 
+/**
+ * <p>This class implements in-memory {@linkplain SQLXML} to use in the SQL.</p>
+ * <p>This class is not thread-safe.</p>
+ * 
+ * @see chav1961.purelib.sql
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.2
+ */
 public class InMemoryLittleSQLXML implements SQLXML {
-	private final GrowableCharArray	gca = new GrowableCharArray(true); 		
+	private final GrowableCharArray<?>	gca = new GrowableCharArray<>(true); 		
 
+	/**
+	 * <p>COnstructor of the class</p>
+	 */
 	public InMemoryLittleSQLXML(){
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param content XML content to keep
+	 * @throws SQLException on any SQL errrors
+	 */
 	public InMemoryLittleSQLXML(final String content) throws SQLException {
 		if (content == null) {
 			throw new NullPointerException("Content can't be null");
@@ -110,10 +126,10 @@ public class InMemoryLittleSQLXML implements SQLXML {
 	}
 
 	private static class DirectOutputStream extends OutputStream {
-		private int					displacement;
-		private GrowableCharArray	content;
+		private int						displacement;
+		private GrowableCharArray<?>	content;
 		
-		private DirectOutputStream(final GrowableCharArray gca, final int displacement) {
+		private DirectOutputStream(final GrowableCharArray<?> gca, final int displacement) {
 			this.content = gca;
 			this.displacement = displacement;
 		}
@@ -136,10 +152,10 @@ public class InMemoryLittleSQLXML implements SQLXML {
 	}
 	
 	private static class DirectWriter extends Writer {
-		private int					displacement;
-		private GrowableCharArray	content;
+		private int						displacement;
+		private GrowableCharArray<?>	content;
 		
-		private DirectWriter(final GrowableCharArray gca, final int displacement) {
+		private DirectWriter(final GrowableCharArray<?> gca, final int displacement) {
 			this.content = gca;
 			this.displacement = displacement;
 		}

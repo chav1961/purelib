@@ -690,7 +690,36 @@ loop:		for(;;) {
 							throw new IOException(new SyntaxException(parser.row(),parser.col(),"Serialized content version ["+JSON_METADATA_VERSION+"]- some mandatory fields are missing: "+mandatories));
 						}
 						
-						try{pairs.replace(JSON_METADATA_TYPE,loader.loadClass(pairs.get(JSON_METADATA_TYPE).toString()));
+						final String	type = pairs.get(JSON_METADATA_TYPE).toString();
+						
+						try{switch (type) {
+								case "byte" :
+									pairs.replace(JSON_METADATA_TYPE,byte.class);
+									break;
+								case "char" :
+									pairs.replace(JSON_METADATA_TYPE,char.class);
+									break;
+								case "double" :
+									pairs.replace(JSON_METADATA_TYPE,double.class);
+									break;
+								case "float" :
+									pairs.replace(JSON_METADATA_TYPE,float.class);
+									break;
+								case "int" :
+									pairs.replace(JSON_METADATA_TYPE,int.class);
+									break;
+								case "long" :
+									pairs.replace(JSON_METADATA_TYPE,long.class);
+									break;
+								case "short" :
+									pairs.replace(JSON_METADATA_TYPE,short.class);
+									break;
+								case "boolean" :
+									pairs.replace(JSON_METADATA_TYPE,boolean.class);
+									break;
+								default :
+									pairs.replace(JSON_METADATA_TYPE,loader.loadClass(type));
+							}
 						} catch (ClassNotFoundException e) {
 							throw new IOException(new SyntaxException(parser.row(),parser.col(),"Serialized content version ["+JSON_METADATA_VERSION+"], field ["+JSON_METADATA_TYPE+"]: class ["+pairs.get(JSON_METADATA_TYPE)+"] not found in the class loader passed"));
 						}
@@ -776,11 +805,31 @@ loop:		for(;;) {
 	 * @since 0.0.4 
 	 */
 	public static <K,V> Class<Map<K,V>> buildMappedClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException {
+		return buildMappedClassByModel(root,classPath,PureLibSettings.INTERNAL_LOADER);
+	}
+
+	/**
+	 * <p>Build temporary class to keep model fields and get access to them by it's names. Class has been built will implements {@linkplain Map} interface.
+	 * All fields in the class will be public</p>
+	 * @param <K> Map key type
+	 * @param <V> Map value type
+	 * @param root root of the content model
+	 * @param classPath class path (as package.package....ClassName)
+	 * @param loader loader to define class in
+	 * @return class built. Call {@linkplain Class#newInstance()} method to create instance of the class.
+	 * @throws ContentException on any errors when building class
+	 * @throws NullPointerException when root is null
+	 * @throws IllegalArgumentException when classpath string is null or empty
+	 */
+	public static <K,V> Class<Map<K,V>> buildMappedClassByModel(final ContentNodeMetadata root, final String classPath, final SimpleURLClassLoader loader) throws ContentException, NullPointerException, IllegalArgumentException {
 		if (root == null) {
 			throw new NullPointerException("Root of the model can't be null");
 		}
 		else if (classPath == null || classPath.isEmpty()) {
 			throw new IllegalArgumentException("Class path can't be null or empty");
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Loader can't be null");
 		}
 		else {
 			final int			lastDot = classPath.lastIndexOf('.');
@@ -845,7 +894,7 @@ loop:		for(;;) {
 					wr.write(" mappedClassEnd name=\""+className+"\"\n");
 					wr.flush();
 				}
-				return (Class<Map<K, V>>) PureLibSettings.INTERNAL_LOADER.createClass(classPath, baos.toByteArray());
+				return (Class<Map<K, V>>) loader.createClass(classPath, baos.toByteArray());
 			} catch (IOException e) {
 				throw new ContentException(e.getLocalizedMessage(),e);
 			}
@@ -867,11 +916,33 @@ loop:		for(;;) {
 	 * @since 0.0.4
 	 */
 	public static <K,V> Class<Map<K,V>> buildMappedWrapperClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException, NullPointerException, IllegalArgumentException {
+		return buildMappedWrapperClassByModel(root, classPath, PureLibSettings.INTERNAL_LOADER); 
+	}
+
+	/**
+	 * <p>Build Map-styled wrapper to any class by it's model. Wrapper allows to get access to instance fields 
+	 * thru {@linkplain Map} interface instead of reflective calls. Public and non-public fields are supported. Wrapper class returned also
+	 * implements {@linkplain ModuleExporter} interface, which can be used to allow access for it's unnamed modules in Java 1.9 and higher</p>
+	 * @param <K> Map key type
+	 * @param <V> Map value type
+	 * @param root root of the model tree
+	 * @param classPath class path (as package.package....ClassName)
+	 * @param loader loader to define class in
+	 * @return class built. Call {@linkplain Class#newInstance(Object wrappee)} method to create instance of the wrapper class.
+	 * @throws ContentException on any errors when building mapped class
+	 * @throws NullPointerException when root or loader is null
+	 * @throws IllegalArgumentException when classpath string is null or empty
+	 * @since 0.0.4
+	 */
+	public static <K,V> Class<Map<K,V>> buildMappedWrapperClassByModel(final ContentNodeMetadata root, final String classPath, final SimpleURLClassLoader loader) throws ContentException, NullPointerException, IllegalArgumentException {
 		if (root == null) {
 			throw new NullPointerException("Root of the model can't be null");
 		}
 		else if (classPath == null || classPath.isEmpty()) {
 			throw new IllegalArgumentException("Class path can't be null or empty");
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Loader can't be null");
 		}
 		else {
 			final int			lastDot = classPath.lastIndexOf('.');
@@ -972,7 +1043,7 @@ loop:		for(;;) {
 					wr.write(" mappedWrapperClassEnd name=\""+className+"\"\n");
 					wr.flush();
 				}
-				return (Class<Map<K, V>>) PureLibSettings.INTERNAL_LOADER.createClass(classPath, baos.toByteArray());
+				return (Class<Map<K, V>>) loader.createClass(classPath, baos.toByteArray());
 			} catch (IOException e) {
 				throw new ContentException(e.getLocalizedMessage(),e);
 			}

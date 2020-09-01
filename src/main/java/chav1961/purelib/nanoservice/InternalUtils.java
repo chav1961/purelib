@@ -1,7 +1,6 @@
 package chav1961.purelib.nanoservice;
 
 
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
@@ -69,7 +68,6 @@ import com.sun.net.httpserver.Headers;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.MimeParseException;

@@ -160,8 +160,9 @@ public class NanoServiceManagerTest {
 			}
 
 			@Override
-			public void undeploy(String path) {
+			public Object undeploy(String path) {
 				pseudoDeploy.remove(path);
+				return null;
 			}
 		};
 		
@@ -198,8 +199,9 @@ public class NanoServiceManagerTest {
 			}
 
 			@Override
-			public void undeploy(String path) {
+			public Object undeploy(String path) {
 				pseudoDeploy.remove(path);
+				return null;
 			}
 		};
 		

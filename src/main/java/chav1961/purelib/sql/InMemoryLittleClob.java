@@ -13,15 +13,15 @@ import java.sql.SQLException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 
 /**
- * <p>This class implements in-memory Clob to use in the SQL.</p>
+ * <p>This class implements in-memory {@linkplain Clob} to use in the SQL.</p>
  * <p>This class is not thread-safe.</p>
  * 
- * @see chav1961.purelib.sql JUnit tests
+ * @see chav1961.purelib.sql
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  */
 public class InMemoryLittleClob implements Clob {
-	protected final GrowableCharArray	gca = new GrowableCharArray(true); 
+	protected final GrowableCharArray<?>	gca = new GrowableCharArray<>(true); 
 
 	/**
 	 * <p>Create empty Clob</p>
@@ -235,10 +235,10 @@ next:			for (int index = (int)(start-1), maxIndex = (int) length()-pattern.lengt
 	}
 
 	private static class DirectOutputStream extends OutputStream {
-		private int					displacement;
-		private GrowableCharArray	content;
+		private int						displacement;
+		private GrowableCharArray<?>	content;
 		
-		private DirectOutputStream(final GrowableCharArray gca, final int displacement) {
+		private DirectOutputStream(final GrowableCharArray<?> gca, final int displacement) {
 			this.content = gca;
 			this.displacement = displacement;
 		}
@@ -256,10 +256,10 @@ next:			for (int index = (int)(start-1), maxIndex = (int) length()-pattern.lengt
 	}
 	
 	private static class DirectWriter extends Writer {
-		private int					displacement;
-		private GrowableCharArray	content;
+		private int						displacement;
+		private GrowableCharArray<?>	content;
 		
-		private DirectWriter(final GrowableCharArray gca, final int displacement) {
+		private DirectWriter(final GrowableCharArray<?> gca, final int displacement) {
 			this.content = gca;
 			this.displacement = displacement;
 		}

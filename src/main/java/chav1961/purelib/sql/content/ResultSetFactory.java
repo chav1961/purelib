@@ -16,6 +16,11 @@ import chav1961.purelib.sql.AbstractReadOnlyResultSet;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
 
+/**
+ * 
+ * @author chav1961
+ *
+ */
 public class ResultSetFactory {
 	public static final String			RESULTSET_PARSERS_SCHEMA = "rsps";
 	

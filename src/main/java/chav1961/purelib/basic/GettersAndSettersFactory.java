@@ -456,11 +456,34 @@ public class GettersAndSettersFactory {
 	 * @since 0.0.4
 	 */
 	public static <T> GetterAndSetter buildGetterAndSetter(final Class<T> awaited, final String fieldName, final ModuleAccessor assigner) throws ContentException, IllegalArgumentException, NullPointerException {
+		return buildGetterAndSetter(awaited, fieldName, assigner, PureLibSettings.INTERNAL_LOADER);
+	}
+	
+	/**
+	 * <p>Build getter and setter for the given field in the class or instance.</p>
+	 * @param <T> instance to build getter and setter for
+	 * @param awaited class containing field to get access to
+	 * @param fieldName field name to get access to
+	 * @param assigner module assigner to allow cross-module access in Java 1.9 and higher
+	 * @param loader loader to create on-the-fly class in
+	 * @return getter and setter built
+	 * @throws ContentException on any building errors
+	 * @throws IllegalArgumentException field name is null, empty or is missing in the class
+	 * @throws NullPointerException awaited class, assigner or loader is null
+	 * @since 0.0.4
+	 */
+	public static <T> GetterAndSetter buildGetterAndSetter(final Class<T> awaited, final String fieldName, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws ContentException, IllegalArgumentException, NullPointerException {
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");
 		}
 		else if (fieldName == null || fieldName.isEmpty()) {
 			throw new NullPointerException("Field name can't be null or empty");
+		}
+		else if (assigner == null) {
+			throw new NullPointerException("Assigner class can't be null");
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Loader class can't be null");
 		}
 		else {
 			synchronized (gettersAndSettersCache) {
@@ -494,10 +517,10 @@ public class GettersAndSettersFactory {
 //						else 
 						if (writer != null) {
 							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildPrimitiveAsmStatic(writer,awaited,f,fType,assigner);
+								gas = buildPrimitiveAsmStatic(writer,awaited,f,fType,assigner,loader);
 							}
 							else {
-								gas = buildPrimitiveAsmInstance(writer,awaited,f,fType,assigner);
+								gas = buildPrimitiveAsmInstance(writer,awaited,f,fType,assigner,loader);
 							}
 						}
 						else {
@@ -521,10 +544,10 @@ public class GettersAndSettersFactory {
 //						else 
 						if (writer != null) {
 							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildReferencedAsmStatic(writer,awaited,f,fType,assigner);
+								gas = buildReferencedAsmStatic(writer,awaited,f,fType,assigner,loader);
 							}
 							else {
-								gas = buildReferencedAsmInstance(writer,awaited,f,fType,assigner);
+								gas = buildReferencedAsmInstance(writer,awaited,f,fType,assigner,loader);
 							}
 						}
 						else {
@@ -617,11 +640,32 @@ public class GettersAndSettersFactory {
 	 * @since 0.0.4
 	 */
 	public static <T> Instantiator<T> buildInstantiator(final Class<T> clazz, final ModuleAccessor assigner) throws ContentException, IllegalArgumentException, NullPointerException, IllegalStateException {
+		return buildInstantiator(clazz,assigner,PureLibSettings.INTERNAL_LOADER);
+	}
+	
+	/**
+	 * <p>Build instantiator of the class.</p>
+	 * @param <T> class to instantiate
+	 * @param clazz managed class to build instantiator to
+	 * @param assigner module assigner for correct working in Java 1.9 and later
+	 * @param loader loader to create on-the-fly class in
+	 * @return instantiator for managed class
+	 * @throws ContentException on any building errors
+	 * @throws IllegalArgumentException field name is null, empty or is missing in the class
+	 * @throws NullPointerException awaited class is null
+	 * @throws IllegalArgumentException awaited class is not valid
+	 * @throws IllegalStateException awaited class is not public and sun.misc.Unsafe is not available
+	 * @since 0.0.4
+	 */
+	public static <T> Instantiator<T> buildInstantiator(final Class<T> clazz, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws ContentException, IllegalArgumentException, NullPointerException, IllegalStateException {
 		if (clazz == null) {
 			throw new NullPointerException("Class to build instantitor for can't be null"); 
 		}
 		else if (assigner == null) {
 			throw new NullPointerException("Module assigner can't be null"); 
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Loader can't be null"); 
 		}
 		else if (clazz.isPrimitive() || clazz.isArray()) {
 			throw new IllegalArgumentException("Class to build instantitor for can't be primitive or array"); 
@@ -629,7 +673,7 @@ public class GettersAndSettersFactory {
 		else if (Modifier.isPublic(clazz.getModifiers())) {
 			try{final String 	className = clazz.getSimpleName()+"$instantiator";
 				
-				return buildCode(writer,clazz,className,assigner);
+				return buildCode(writer,clazz,className,assigner,loader);
 			} catch (IOException exc) {
 				throw new ContentException(exc.getLocalizedMessage(),exc);
 			}
@@ -758,52 +802,52 @@ public class GettersAndSettersFactory {
 //		}
 //	}
 
-	private static GetterAndSetter buildPrimitiveAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner) throws IOException {
+	private static GetterAndSetter buildPrimitiveAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
 		switch (CompilerUtils.defineClassType(fType)) {
 			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_BYTE		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_CHAR		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_DOUBLE		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_FLOAT		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_INT		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_LONG		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_SHORT		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
 		}
 	}
 
-	private static GetterAndSetter buildPrimitiveAsmInstance(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner) throws IOException {
+	private static GetterAndSetter buildPrimitiveAsmInstance(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
 		switch (CompilerUtils.defineClassType(fType)) {
 			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_BYTE		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_CHAR		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_DOUBLE		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_FLOAT		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_INT		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_LONG		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_SHORT		:
-				return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
 		}
 	}
@@ -1237,18 +1281,18 @@ public class GettersAndSettersFactory {
 //		};
 //	}
 
-	private static GetterAndSetter buildReferencedAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner) throws IOException {
+	private static GetterAndSetter buildReferencedAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
-		return buildCode(writer,owner,fType,assigner,className," buildPrimitiveStaticRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+		return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 	}
 
-	private static GetterAndSetter buildReferencedAsmInstance(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner) throws IOException {
+	private static GetterAndSetter buildReferencedAsmInstance(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
-		return buildCode(writer,owner,fType,assigner,className," buildPrimitiveInstanceRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+		return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 	}
 
 	private static <T> GetterAndSetter buildReferencedHandleStatic(final Field f, final Class<T> fType) {
@@ -1318,7 +1362,7 @@ public class GettersAndSettersFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static GetterAndSetter buildCode(final AsmWriter writer, final Class<?> owner, final Class<?> type, final ModuleAccessor assigner, final String className, final String format, final Object... parameters) throws IOException {
+	private static GetterAndSetter buildCode(final AsmWriter writer, final Class<?> owner, final Class<?> type, final ModuleAccessor assigner, final SimpleURLClassLoader loader, final String className, final String format, final Object... parameters) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
 				
@@ -1350,11 +1394,11 @@ public class GettersAndSettersFactory {
 			}
 			Class<GetterAndSetter>	gas;
 				
-			try{gas = (Class<GetterAndSetter>) PureLibSettings.INTERNAL_LOADER.createClass(className,baos.toByteArray());
+			try{gas = (Class<GetterAndSetter>) loader.createClass(className,baos.toByteArray());
 			} catch (Exception exc) {
-				gas = (Class<GetterAndSetter>) PureLibSettings.INTERNAL_LOADER.loadClass(className);
+				gas = (Class<GetterAndSetter>) loader.loadClass(className);
 			}
-			assigner.allowUnnamedModuleAccess(PureLibSettings.INTERNAL_LOADER.getUnnamedModule());
+			assigner.allowUnnamedModuleAccess(loader.getUnnamedModule());
 			return gas.getConstructor().newInstance();
 		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			throw new IllegalArgumentException("Can't build code for access to fields in class ["+className+"] : "+e.getLocalizedMessage(),e);
@@ -1362,7 +1406,7 @@ public class GettersAndSettersFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Instantiator<T> buildCode(final AsmWriter writer, final Class<T> owner, final String className, final ModuleAccessor assigner) throws IOException {
+	private static <T> Instantiator<T> buildCode(final AsmWriter writer, final Class<T> owner, final String className, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
 				
@@ -1376,11 +1420,11 @@ public class GettersAndSettersFactory {
 			}
 			Class<Instantiator<T>>	inst;
 			
-			try{inst = (Class<Instantiator<T>>) PureLibSettings.INTERNAL_LOADER.createClass(className,baos.toByteArray());
+			try{inst = (Class<Instantiator<T>>) loader.createClass(className,baos.toByteArray());
 			} catch (Exception exc) {
-				inst = (Class<Instantiator<T>>) PureLibSettings.INTERNAL_LOADER.loadClass(className);
+				inst = (Class<Instantiator<T>>) loader.loadClass(className);
 			}
-			assigner.allowUnnamedModuleAccess(PureLibSettings.INTERNAL_LOADER.getUnnamedModule());
+			assigner.allowUnnamedModuleAccess(loader.getUnnamedModule());
 			return inst.getConstructor().newInstance();
 		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | SecurityException | InvocationTargetException | NoSuchMethodException e) {
 			e.printStackTrace();

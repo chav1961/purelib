@@ -3,12 +3,38 @@ package chav1961.purelib.cdb;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 
+/**
+ * <p>This utility class contains a set of methods to walk syntax node tree</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see SyntaxNode
+ * @since 0.0.3
+ * @lastUpdate 0.0.4
+ */
 public class SyntaxNodeUtils {
+	private SyntaxNodeUtils() {}
+	
+	/**
+	 * <p>This lambda-styled interface is used as callback for walking operations on syntax node tree</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @see SyntaxNode
+	 * @since 0.0.3
+	 * @param <Type> node type
+	 * @param <Clazz> node class (usually {@linkplain SyntaxNode}
+	 */
 	@FunctionalInterface
 	public interface WalkCallback<Type extends Enum<?>,Clazz extends SyntaxNode<Type,Clazz>> {
 		ContinueMode process(final NodeEnterMode mode, final SyntaxNode<Type,Clazz> node);
 	}
 	
+	/**
+	 * <p>Walk down on syntax node tree</p>
+	 * @param <T> node type
+	 * @param <Clazz> node class type
+	 * @param node current node (usually root node)
+	 * @param callback callback to process nodes
+	 * @return false if walking was stopped, true otherwise
+	 * @see SyntaxNode
+	 */
 	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkDown(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null"); 
@@ -21,6 +47,15 @@ public class SyntaxNodeUtils {
 		}
 	}
 
+	/**
+	 * <p>Walk down on syntax node tree</p>
+	 * @param <T> node type
+	 * @param <Clazz> node class type
+	 * @param node current node (usually any leaf)
+	 * @param callback callback to process nodes
+	 * @return false if walking was stopped, true otherwise
+	 * @see SyntaxNode
+	 */
 	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkUp(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null"); 

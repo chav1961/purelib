@@ -12,13 +12,26 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 
-class ContentMetadataFilter implements ContentMetadataInterface {
+/**
+ * <p>This class is a filter for nested {@linkplain ContentMetadataInterface} model. It can be used to exclude some part of model from searching/walking.</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ * @lastUpdate 0.0.4
+ */
+public class ContentMetadataFilter implements ContentMetadataInterface {
 	private static final URI[]				EMPTY = new URI[0];
 	
 	private final ContentMetadataInterface	nested;
 	private final URI[]						whiteList, blackList;
 	private final Pattern					white, black;
-	
+
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param nested nested model to make filter for
+	 * @param whiteList white list of URI will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()})
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException white list is null, empty or contains nulls inside 
+	 */
 	public ContentMetadataFilter(final ContentMetadataInterface nested, final URI[] whiteList) throws NullPointerException, IllegalArgumentException {
 		if (nested == null) {
 			throw new NullPointerException("Nested metadata can't be null");
@@ -50,6 +63,14 @@ class ContentMetadataFilter implements ContentMetadataInterface {
 		}
 	}
 
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param nested nested model to make filter for
+	 * @param whiteList white list of URI will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()})
+	 * @param blackList black list of URI will be excluded from the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}). Black list priority is higher than white list
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException white or black list is null, empty or contains nulls inside 
+	 */
 	public ContentMetadataFilter(final ContentMetadataInterface nested, final URI[] whiteList, final URI[] blackList) throws NullPointerException, IllegalArgumentException {
 		if (nested == null) {
 			throw new NullPointerException("Nested metadata can't be null");
@@ -95,6 +116,13 @@ class ContentMetadataFilter implements ContentMetadataInterface {
 		}
 	}
 
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param nested nested model to make filter for
+	 * @param whiteListRegExp white list URI regular expression will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}) 
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException white list is null, empty or has syntax errors 
+	 */
 	public ContentMetadataFilter(final ContentMetadataInterface nested, final String whiteListRegExp) throws NullPointerException, IllegalArgumentException {
 		if (nested == null) {
 			throw new NullPointerException("Nested metadata can't be null");
@@ -120,6 +148,14 @@ class ContentMetadataFilter implements ContentMetadataInterface {
 		}		
 	}
 	
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param nested nested model to make filter for
+	 * @param whiteListRegExp white list URI regular expression will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}) 
+	 * @param blackListRegExp white list URI regular expression will be excluded from the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}). Black list regular expression priority is higher than white list
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException white or black list is null, empty or has syntax errors 
+	 */
 	public ContentMetadataFilter(final ContentMetadataInterface nested, final String whiteListRegExp, final String blackListRegExp) throws NullPointerException, IllegalArgumentException {
 		if (nested == null) {
 			throw new NullPointerException("Nested metadata can't be null");
@@ -248,6 +284,11 @@ class ContentMetadataFilter implements ContentMetadataInterface {
 		}
 	}
 
+	/**
+	 * <p>Is given URI allowed for the given filter</p>
+	 * @param path relative URI path to test
+	 * @return true if yes
+	 */
 	boolean isAllowed(final URI path) {
 		if (whiteList.length > 0) {
 			boolean	whiteFound = false;

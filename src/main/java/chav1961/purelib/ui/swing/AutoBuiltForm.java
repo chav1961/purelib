@@ -33,6 +33,7 @@ import javax.swing.JPanel;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -105,6 +106,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * <p>Constructor of the class</p>
 	 * @param mdi metadata for the instance will be showed
 	 * @param localizer localizer associated with the given instance
+	 * @param loader loader to create on-the-fly classes in 
 	 * @param instance instance to show
 	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
 	 * @throws NullPointerException any arguments are null
@@ -113,14 +115,15 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(mdi, localizer, instance, formMgr, 1);
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, loader, instance, formMgr, 1);
 	}
 
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param mdi metadata for the instance will be showed
 	 * @param localizer localizer associated with the given instance
+	 * @param loader loader to create on-the-fly classes in 
 	 * @param instance instance to show
 	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
 	 * @param columns number of bars in the form
@@ -130,14 +133,15 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final T instance, final FormManager<Object,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, null, instance, formMgr, columns, false);
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, null, instance, formMgr, columns, false);
 	}
 
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param mdi metadata for the instance will be showed
 	 * @param localizer localizer associated with the given instance
+	 * @param loader loader to create on-the-fly classes in 
 	 * @param leftIcon icon will be shown on the left of the form built
 	 * @param instance instance to show
 	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
@@ -147,15 +151,16 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
-		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, leftIcon, instance, formMgr, 1, false);
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, leftIcon, instance, formMgr, 1, false);
 	}
 
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param mdi metadata for the instance will be showed
 	 * @param localizer localizer associated with the given instance
-	 * @param logger logger to get diagnostics while form is built. Defaults use current logger of the {@linkplain PureLibSettings} class. 
+	 * @param logger logger to get diagnostics while form is built. Defaults use current logger of the {@linkplain PureLibSettings} class.
+	 * @param loader loader to create on-the-fly classes in 
 	 * @param leftIcon icon will be shown on the left of the form built
 	 * @param instance instance to show
 	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
@@ -167,7 +172,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (mdi == null) {
 			throw new NullPointerException("Metadata interface can't be null");
 		}
@@ -176,6 +181,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		}
 		else if (logger == null) {
 			throw new NullPointerException("Logger can't be null");
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Loader can't be null");
 		}
 		else if (instance == null) {
 			throw new NullPointerException("Instance can't be null");
@@ -250,7 +258,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						buttonPanel.add(button);							
 						ordinalFocused.add(button);
 					}
-				});
+				}, loader);
 				
 				this.monitor = new FormMonitor<T>(localizer,logger,instance,formMgr,accessors,tooltipsOnFocus) {
 									@Override

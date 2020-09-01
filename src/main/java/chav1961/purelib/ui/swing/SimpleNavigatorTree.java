@@ -159,7 +159,7 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 							final TreePath 		curPath = getPathForLocation(e.getX(), e.getY());
 
 							if (curPath != null) {
-								showPopupMenu(curPath,(ContentNodeMetadata)curPath.getLastPathComponent(),e.getX(),e.getY());
+								showPopupMenu(curPath,(ContentNodeMetadata)((DefaultMutableTreeNode)curPath.getLastPathComponent()).getUserObject(),e.getX(),e.getY());
 							}
 							else {
 								showPopupMenu(null,metadata,e.getX(),e.getY());

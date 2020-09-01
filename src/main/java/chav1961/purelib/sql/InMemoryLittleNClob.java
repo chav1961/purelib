@@ -3,10 +3,10 @@ package chav1961.purelib.sql;
 import java.sql.NClob;
 
 /**
- * <p>This class implements in-memory NClob to use in the SQL.</p>
+ * <p>This class implements in-memory {@linkplain NClob} to use in the SQL.</p>
  * <p>This class is not thread-safe.</p>
  * 
- * @see chav1961.purelib.sql JUnit tests
+ * @see chav1961.purelib.sql
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  */

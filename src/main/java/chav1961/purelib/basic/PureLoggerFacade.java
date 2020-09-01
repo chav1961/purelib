@@ -16,10 +16,10 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @lastUpdate 0.0.3
  */
 
-public class PureLogger extends Logger implements LoggerFacade {
+public class PureLoggerFacade extends Logger implements LoggerFacade {
 	private final StandardJRELoggerFacade		stdLogger = new StandardJRELoggerFacade(this);
 
-	public PureLogger(final String name, final String resourceBundleName) {
+	public PureLoggerFacade(final String name, final String resourceBundleName) {
 		super(name, resourceBundleName);
 	}
 

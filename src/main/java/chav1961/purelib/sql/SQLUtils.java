@@ -514,7 +514,7 @@ public class SQLUtils {
 		toMap.put(NClob.class,(source)->{return new InMemoryLittleNClob((Boolean)source ? "true" : "false");});
 		toMap.put(String.class,(source)->{return (Boolean)source ? "true" : "false";});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("BIT"),source instanceof Boolean ? source : Boolean.valueOf((boolean)source));
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("BIT"),source instanceof Boolean ? source : Boolean.valueOf((boolean)source));
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -544,7 +544,7 @@ public class SQLUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Byte)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Byte)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("TINYINT"),((Byte)source).byteValue());
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("TINYINT"),((Byte)source).byteValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -574,7 +574,7 @@ public class SQLUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Short)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Short)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("SMALLINT"),((Short)source).shortValue());
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("SMALLINT"),((Short)source).shortValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -604,7 +604,7 @@ public class SQLUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Integer)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Integer)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("INTEGER"),((Integer)source).intValue());
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("INTEGER"),((Integer)source).intValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -647,7 +647,7 @@ public class SQLUtils {
 		toMap.put(Time.class,(source)->{return new Time(((Long)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Long)source).longValue());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("BIGINT"),((Long)source).longValue());
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("BIGINT"),((Long)source).longValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -681,7 +681,7 @@ public class SQLUtils {
 		});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(String.valueOf(((Float)source).floatValue()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("FLOAT"),((Float)source).floatValue());
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("FLOAT"),((Float)source).floatValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -715,7 +715,7 @@ public class SQLUtils {
 		});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(String.valueOf(((Double)source).doubleValue()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("DOUBLE"),((Double)source).doubleValue());
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("DOUBLE"),((Double)source).doubleValue());
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -803,7 +803,7 @@ public class SQLUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("VARBINARY"),(byte[])source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("VARBINARY"),(byte[])source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -947,7 +947,7 @@ public class SQLUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("BLOB"),(Blob)source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("BLOB"),(Blob)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1050,7 +1050,7 @@ public class SQLUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("CLOB"),(Clob)source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("CLOB"),(Clob)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1153,7 +1153,7 @@ public class SQLUtils {
 			}
 		});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("NCLOB"),(NClob)source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("NCLOB"),(NClob)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1199,7 +1199,7 @@ public class SQLUtils {
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(((BigDecimal)source).toString().getBytes());});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(source.toString());});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("DECIMAL"),(BigDecimal)source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("DECIMAL"),(BigDecimal)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1224,7 +1224,7 @@ public class SQLUtils {
 		});
 		toMap.put(String.class,(source)->{return Long.valueOf((((Date)source).getTime()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("DATE"),(Date)source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("DATE"),(Date)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1248,7 +1248,7 @@ public class SQLUtils {
 		});
 		toMap.put(String.class,(source)->{return Long.valueOf((((Time)source).getTime()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("TIME_WITH_TIMEZONE"),(Time)source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("TIME_WITH_TIMEZONE"),(Time)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}
@@ -1272,7 +1272,7 @@ public class SQLUtils {
 		});
 		toMap.put(String.class,(source)->{return Long.valueOf((((Timestamp)source).getTime()));});
 		toMap.put(Array.class,(source)->{
-			try {return new InMemoryLitteArray(SQLUtils.typeIdByTypeName("TIMESTAMP"),(Timestamp)source);
+			try {return new InMemoryLittleArray(SQLUtils.typeIdByTypeName("TIMESTAMP"),(Timestamp)source);
 			} catch (SQLException e) {
 				throw new ContentException(e);
 			}

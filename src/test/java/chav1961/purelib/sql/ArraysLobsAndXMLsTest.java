@@ -37,7 +37,7 @@ import chav1961.purelib.testing.OrdinalTestCategory;
 public class ArraysLobsAndXMLsTest {
 	@Test
 	public void lifeCycleArrayTest() throws SQLException, IOException {
-		final Array			a = new InMemoryLitteArray(Types.VARCHAR,"123","456","789",null,"123");
+		final Array			a = new InMemoryLittleArray(Types.VARCHAR,"123","456","789",null,"123");
 		
 		Assert.assertEquals(a.getBaseType(),Types.VARCHAR);
 		Assert.assertEquals(a.getBaseTypeName(),"VARCHAR");
@@ -64,11 +64,11 @@ public class ArraysLobsAndXMLsTest {
 		template.add("789");
 		Assert.assertEquals(collection,template);
 
-		try{new InMemoryLitteArray(666,"123","456","789",null,"123");
+		try{new InMemoryLittleArray(666,"123","456","789",null,"123");
 			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new InMemoryLitteArray(Types.VARCHAR,(Object[])null);
+		try{new InMemoryLittleArray(Types.VARCHAR,(Object[])null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
@@ -450,7 +450,7 @@ public class ArraysLobsAndXMLsTest {
 		}
 		try {s.removeAttributes((String)null);
 			Assert.fail("Mandatory exception was not detected (null inside 1-st argument)");
-		} catch (IllegalArgumentException exc) {
+		} catch (NullPointerException exc) {
 		}
 		try {s.removeAttributes("");
 			Assert.fail("Mandatory exception was not detected (null inside 1-st argument)");

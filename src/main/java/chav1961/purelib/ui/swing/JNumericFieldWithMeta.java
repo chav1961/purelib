@@ -83,7 +83,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				@Override
 				public void focusLost(final FocusEvent e) {
 					try{SwingUtilities.invokeLater(()->{
-							if (!getValue().equals(currentValue)) {
+							if (!currentValue.equals(getValue())) {
 								try{monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMeta.this);
 								} catch (ContentException e1) {
 									e1.printStackTrace();

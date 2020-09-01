@@ -78,8 +78,8 @@ module chav1961.purelib {
 	uses chav1961.purelib.sql.interfaces.ResultSetContentParser;
 	provides chav1961.purelib.sql.interfaces.ResultSetContentParser with chav1961.purelib.sql.content.CsvContentParser, chav1961.purelib.sql.content.XMLContentParser, chav1961.purelib.sql.content.JsonContentParser;	
 
-	uses chav1961.purelib.ui.interfaces.UIServerFactory;
-	provides chav1961.purelib.ui.interfaces.UIServerFactory with chav1961.purelib.ui.swing.SwingUIServerFactory;	
+	uses chav1961.purelib.ui.interfaces.UIServer;
+	provides chav1961.purelib.ui.interfaces.UIServer with chav1961.purelib.ui.swing.SwingUIServerImpl;	
 
 	uses java.net.spi.URLStreamHandlerProvider;
 	provides java.net.spi.URLStreamHandlerProvider with chav1961.purelib.net.fsys.FSysHandlerProvider, chav1961.purelib.net.root.RootHandlerProvider, chav1961.purelib.net.self.SelfHandlerProvider;

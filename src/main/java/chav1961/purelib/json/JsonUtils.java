@@ -28,10 +28,10 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 /**
  * <p>This class contains a set of static methods to work with {@linkplain JsonNode} tree. All the methods can be grouped as:</p>
  * <ul>
- * <li>{@linkplain #loadJsonTree(JsonStaxParser)} and {@linkplain #unloadJsonTree(JsonNode, JsonStaxPrinter)} methods to load/unload JSON content into or from {@linkplain JsonNode} tree<li>
- * <li>{@linkplain #walkDownJson(JsonNode, JsonTreeWalkerCallback)} method to walk JSON tree from it's root or any subtree<li>
+ * <li>{@linkplain #loadJsonTree(JsonStaxParser)} and {@linkplain #unloadJsonTree(JsonNode, JsonStaxPrinter)} methods to load/unload JSON content into or from {@linkplain JsonNode} tree</li>
+ * <li>{@linkplain #walkDownJson(JsonNode, JsonTreeWalkerCallback)} method to walk JSON tree from it's root or any subtree</li>
  * </ul>
- * <p>This class also contains a builder to create XPath-styled filter for use in conjunction with {@linkplain #walkDownJson(JsonNode, JsonTreeWalkerCallback)} method to simplify JSON tree walking.
+ * <p>This class also contains a builder to create <i>XPath-styled</i> filter for use in conjunction with {@linkplain #walkDownJson(JsonNode, JsonTreeWalkerCallback)} method to simplify JSON tree walking.
  * Syntax of the filter see {@linkplain #filterOf(String, JsonTreeWalkerCallback)} method description</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4

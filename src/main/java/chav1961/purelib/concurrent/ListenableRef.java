@@ -12,7 +12,12 @@ import java.util.function.LongPredicate;
 import java.util.function.LongUnaryOperator;
 import java.util.function.Predicate;
 
-class ListenableRef<T> {
+/**
+ * <p>This class is a container for keeping reference value and waiting to it's "change event"</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
+public class ListenableRef<T> {
 	private final Object		awaitSync = new Object();
 	private final AtomicInteger	awaitCounter = new AtomicInteger(0);
 	private volatile T			currentValue;

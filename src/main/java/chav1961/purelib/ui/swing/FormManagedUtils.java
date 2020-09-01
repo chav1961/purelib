@@ -8,6 +8,8 @@ import javax.swing.JLabel;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -16,7 +18,6 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
@@ -32,8 +33,12 @@ public class FormManagedUtils {
 		void processActionButton(final ContentNodeMetadata metadata, final JButtonWithMeta button) throws ContentException;
 		void processField(final ContentNodeMetadata metadata, final JLabel fieldLabel, final JComponent fieldComponent, final GetterAndSetter gas, final boolean isModifiable) throws ContentException;
 	}
-	
+
 	public static <T> void parseModel4Form(final LoggerFacade logger, final ContentMetadataInterface mdi, final Localizer localizer, final Class<T> instanceClass, final JComponentMonitor monitor, final FormManagerParserCallback callback) {
+		parseModel4Form(logger, mdi, localizer, instanceClass, monitor, callback, PureLibSettings.INTERNAL_LOADER);
+	}
+	
+	public static <T> void parseModel4Form(final LoggerFacade logger, final ContentMetadataInterface mdi, final Localizer localizer, final Class<T> instanceClass, final JComponentMonitor monitor, final FormManagerParserCallback callback, final SimpleURLClassLoader loader) {
 		try(final LoggerFacade		trans = logger.transaction("parseModel")) {
 			
 			mdi.walkDown((mode,applicationPath,uiPath,node)->{
@@ -54,7 +59,7 @@ public class FormManagedUtils {
 								final JLabel			label = new JLabel();
 								final FieldFormat		ff = node.getFormatAssociated() != null ? node.getFormatAssociated() : new FieldFormat(node.getType());
 								final JComponent 		field = SwingUtils.prepareRenderer(node, currentLocalizer, ff.getContentType(), monitor);
-								final GetterAndSetter	gas = GettersAndSettersFactory.buildGetterAndSetter(instanceClass,node.getName());
+								final GetterAndSetter	gas = GettersAndSettersFactory.buildGetterAndSetter(instanceClass,node.getName(),(list)->{},loader);
 							
 								label.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
 								field.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());

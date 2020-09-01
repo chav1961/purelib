@@ -21,7 +21,7 @@ import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.ui.ColorPair;
 
 /**
- * <p>This class describes format string associated with any model entity.</p>
+ * <p>This class describes format string associated with any model entity. Detailed format description see {@linkplain #FieldFormat(Class, String)}</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  * @lastUpdate 0.0.4
@@ -109,7 +109,7 @@ public class FieldFormat {
 	 * </code>
 	 * <p>Option codes are:</p>
 	 * <ul>
-	 * <li><b>r</b> - field is read-only</li>
+	 * <li><b>r</b> - field is always read-only</li>
 	 * <li><b>R</b> - field is read-only except new and duplicated records</li>
 	 * <li><b>l</b> - field must be appear in the search list and/or table</li>
 	 * <li><b>L</b> - field must be appear in the search list and/or table and must be anchored in it</li>

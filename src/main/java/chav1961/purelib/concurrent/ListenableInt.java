@@ -10,7 +10,12 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.LongPredicate;
 import java.util.function.LongUnaryOperator;
 
-class ListenableInt {
+/**
+ * <p>This class is a container for keeping int value and waiting to it's "change event"</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
+public class ListenableInt {
 	private final Object		awaitSync = new Object();
 	private final AtomicInteger	awaitCounter = new AtomicInteger(0);
 	private volatile int		currentValue;

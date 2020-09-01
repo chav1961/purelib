@@ -1,6 +1,5 @@
 package chav1961.purelib.nanoservice;
 
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,6 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -70,8 +70,8 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -117,63 +117,71 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
  * (see {@linkplain AsmWriter}) and doesn't use reflections on service calls in many cases</p> 
  * <p>This class is not thread-safe.</p>
  * @see com.sun.net.httpserver.HttpServer
- * @see <a href="http://www.wikicreole.org">WikiCreole</a>
+ * @see <a href="http://www.wikicreole.org/">Creole</a>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.4
  */
 
-@SuppressWarnings("restriction")
 public class NanoServiceFactory implements Closeable, NanoService, HttpHandler   {
-	public static final String 		NANOSERVICE_PORT = "nanoservicePort";
-	public static final String 		NANOSERVICE_ROOT = "nanoserviceRoot";
-	public static final String 		NANOSERVICE_LOCALHOST_ONLY = "nanoserviceLocalhostOnly";
-	public static final String 		DEFAULT_NANOSERVICE_LOCALHOST_ONLY = "true";
-	public static final String 		NANOSERVICE_EXECUTOR_POOL_SIZE = "nanoserviceExecutorPoolSize";
-	public static final String 		DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE = "10";
-	public static final String 		NANOSERVICE_DISABLE_LOOPBACK = "nanoserviceDisableLoopback";
-	public static final String 		DEFAULT_NANOSERVICE_DISABLE_LOOPBACK = "true";
-	public static final String 		NANOSERVICE_TEMPORARY_CACHE_SIZE = "nanoserviceTemporaryCacheSize";
-	public static final String 		NANOSERVICE_CREOLE_PROLOGUE_URI = "nanoserviceCreolePrologueURI";
-	public static final String 		NANOSERVICE_CREOLE_EPILOGUE_URI = "nanoserviceCreoleEpilogueURI";
-	public static final String 		NANOSERVICE_USE_SSL = "nanoserviceUseSSL";
-	public static final String 		NANOSERVICE_USE_KEYSTORE = "nanoserviceUseKeyStore";
-	public static final String 		NANOSERVICE_SSL_KEYSTORE = "nanoserviceSSLKeyStore";
-	public static final String 		NANOSERVICE_SSL_KEYSTORE_TYPE = "nanoserviceSSLKeyStoreType";
-	public static final String 		NANOSERVICE_SSL_KEYSTORE_PASSWD = "nanoserviceSSLKeyStorePasswd";
-	public static final String 		NANOSERVICE_USE_TRUSTSTORE = "nanoserviceUseTrustStore";
-	public static final String 		NANOSERVICE_SSL_TRUSTSTORE = "nanoserviceSSLTrustStore";
-	public static final String 		NANOSERVICE_SSL_TRUSTSTORE_TYPE = "nanoserviceSSLTrustStoreType";
-	public static final String 		NANOSERVICE_SSL_TRUSTSTORE_PASSWD = "nanoserviceSSLTrustStorePasswd";
-	public static final String 		NANOSERVICE_SSL_TYPE = "TLS";
-	public static final String 		NANOSERVICE_KEY_TYPE = "SunX509";
+	public static final String 			NANOSERVICE_PORT = "nanoservicePort";
+	public static final String 			NANOSERVICE_ROOT = "nanoserviceRoot";
+	public static final String 			NANOSERVICE_LOCALHOST_ONLY = "nanoserviceLocalhostOnly";
+	public static final String 			DEFAULT_NANOSERVICE_LOCALHOST_ONLY = "true";
+	public static final String 			NANOSERVICE_EXECUTOR_POOL_SIZE = "nanoserviceExecutorPoolSize";
+	public static final String 			DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE = "10";
+	public static final String 			NANOSERVICE_DISABLE_LOOPBACK = "nanoserviceDisableLoopback";
+	public static final String 			DEFAULT_NANOSERVICE_DISABLE_LOOPBACK = "true";
+	public static final String 			NANOSERVICE_TEMPORARY_CACHE_SIZE = "nanoserviceTemporaryCacheSize";
+	public static final String 			NANOSERVICE_CREOLE_PROLOGUE_URI = "nanoserviceCreolePrologueURI";
+	public static final String 			NANOSERVICE_CREOLE_EPILOGUE_URI = "nanoserviceCreoleEpilogueURI";
+	public static final String 			NANOSERVICE_USE_SSL = "nanoserviceUseSSL";
+	public static final String 			NANOSERVICE_USE_KEYSTORE = "nanoserviceUseKeyStore";
+	public static final String 			NANOSERVICE_SSL_KEYSTORE = "nanoserviceSSLKeyStore";
+	public static final String 			NANOSERVICE_SSL_KEYSTORE_TYPE = "nanoserviceSSLKeyStoreType";
+	public static final String 			NANOSERVICE_SSL_KEYSTORE_PASSWD = "nanoserviceSSLKeyStorePasswd";
+	public static final String 			NANOSERVICE_USE_TRUSTSTORE = "nanoserviceUseTrustStore";
+	public static final String 			NANOSERVICE_SSL_TRUSTSTORE = "nanoserviceSSLTrustStore";
+	public static final String 			NANOSERVICE_SSL_TRUSTSTORE_TYPE = "nanoserviceSSLTrustStoreType";
+	public static final String 			NANOSERVICE_SSL_TRUSTSTORE_PASSWD = "nanoserviceSSLTrustStorePasswd";
+	public static final String 			NANOSERVICE_SSL_TYPE = "TLS";
+	public static final String 			NANOSERVICE_KEY_TYPE = "SunX509";
 
-	public static final String 		SYSTEM_SSL_KEYSTORE = "javax.net.ssl.keyStore";
-	public static final String 		SYSTEM_SSL_KEYSTORE_TYPE = "javax.net.ssl.keyStoreType";
-	public static final String 		DEFAULT_SYSTEM_SSL_KEYSTORE_TYPE = "JKS";
-	public static final String 		SYSTEM_SSL_KEYSTORE_PASSWD = "javax.net.ssl.keyStorePassword";
-	public static final String 		SYSTEM_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
-	public static final String 		SYSTEM_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
-	public static final String 		DEFAULT_SYSTEM_SSL_TRUSTSTORE_TYPE = "JKS";
-	public static final String 		SYSTEM_SSL_TRUSTSTORE_PASSWD = "javax.net.ssl.trustStorePassword";
+	public static final String 			SYSTEM_SSL_KEYSTORE = "javax.net.ssl.keyStore";
+	public static final String 			SYSTEM_SSL_KEYSTORE_TYPE = "javax.net.ssl.keyStoreType";
+	public static final String 			DEFAULT_SYSTEM_SSL_KEYSTORE_TYPE = "JKS";
+	public static final String 			SYSTEM_SSL_KEYSTORE_PASSWD = "javax.net.ssl.keyStorePassword";
+	public static final String 			SYSTEM_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
+	public static final String 			SYSTEM_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
+	public static final String 			DEFAULT_SYSTEM_SSL_TRUSTSTORE_TYPE = "JKS";
+	public static final String 			SYSTEM_SSL_TRUSTSTORE_PASSWD = "javax.net.ssl.trustStorePassword";
 	
-	public static final String 		HEAD_CONTENT_LENGTH = "Content-Length";
-	public static final String 		HEAD_CONTENT_TYPE = "Content-type";
-	public static final String 		HEAD_CONTENT_ENCODING = "Content-encoding";
-	public static final String 		HEAD_ACCEPT = "Accept"; 	
-	public static final String 		HEAD_ACCEPT_CHARSET = "Accept-charset"; 	
-	public static final String 		HEAD_ACCEPT_ENCODING = "Accept-encoding";
+	public static final String 			HEAD_CONTENT_LENGTH = "Content-Length";
+	public static final String 			HEAD_CONTENT_TYPE = "Content-type";
+	public static final String 			HEAD_CONTENT_ENCODING = "Content-encoding";
+	public static final String 			HEAD_ACCEPT = "Accept"; 	
+	public static final String 			HEAD_ACCEPT_CHARSET = "Accept-charset"; 	
+	public static final String 			HEAD_ACCEPT_ENCODING = "Accept-encoding";
 
-	public static final String 		HEAD_CONTENT_ENCODING_IDENTITY = "identity";
-	public static final String 		HEAD_CONTENT_ENCODING_GZIP = "gzip";
-	public static final String 		HEAD_CONTENT_ENCODING_COMPRESS = "compress";
+	public static final String 			HEAD_CONTENT_ENCODING_IDENTITY = "identity";
+	public static final String 			HEAD_CONTENT_ENCODING_GZIP = "gzip";
+	public static final String 			HEAD_CONTENT_ENCODING_COMPRESS = "compress";
 		
 	public static final List<Class<?>>	EXCLUDE_CLASSES_4_JSON = Collections.unmodifiableList(Arrays.asList(StringBuilder.class,CharacterTarget.class,JsonStaxPrinter.class,Writer.class,OutputStream.class
 																		  ,String.class,CharacterSource.class,JsonStaxParser.class,Reader.class,InputStream.class));
 
-	public static final InputStream	NULL_INPUT = new InputStream(){@Override public int read() throws IOException {return -1;}};
+	public static final InputStream		NULL_INPUT = new InputStream(){@Override public int read() throws IOException {return -1;}};
 
-	private static final MimeType[]	CREOLE_DETECTED = new MimeType[] {PureLibSettings.MIME_CREOLE_TEXT};
-	private static final MimeType[]	HTML_DETECTED = new MimeType[] {PureLibSettings.MIME_HTML_TEXT};
+	private static final MimeType[]		CREOLE_DETECTED = new MimeType[] {PureLibSettings.MIME_CREOLE_TEXT};
+	private static final MimeType[]		HTML_DETECTED = new MimeType[] {PureLibSettings.MIME_HTML_TEXT};
+	private static final Set<String>	LOCALHOST_ALIASES = new HashSet<>(); 
+	
+	static {
+		LOCALHOST_ALIASES.add("localhost");
+		LOCALHOST_ALIASES.add("127.0.0.1");
+		LOCALHOST_ALIASES.add("view-localhost");
+		LOCALHOST_ALIASES.add("0:0:0:0:0:0:0:1");
+	}
 	
 	public interface NanoServiceEnvironment {
 		Connection getConnection() throws SQLException;
@@ -190,6 +198,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	private final FileSystemInterface 				serviceRoot;
 	private final HttpServer						server;
 	private final SyntaxTreeInterface<ClassDescriptor>	deployed = new AndOrTree<>();
+	private final ReentrantReadWriteLock			deployedLocker = new ReentrantReadWriteLock();
 	private final TemplateCache<PathParser>			pathCache = new TemplateCache<>();
 	private final TemplateCache<QueryParser>		queryCache = new TemplateCache<>();
 	private final TemplateCache<RequestHeadParser>	requestHeaderCache = new TemplateCache<>();
@@ -274,7 +283,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						@Override
 						public Connection getConnection() throws SQLException {
 							if (dataSource == null) {
-								throw new IllegalStateException("Data source was not passed to the microservice. Using of the connections are illegal"); 
+								throw new IllegalStateException("Data source was not passed to the nanoservice. Using of the connections are illegal"); 
 							}
 							else {
 								return dataSource.getConnection();
@@ -396,19 +405,25 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	@Override
 	public void close() throws IOException {
 		final List<String>	content = new ArrayList<>();
+		final ReentrantReadWriteLock.WriteLock	lock = deployedLocker.writeLock(); 
 
-		synchronized(deployed) {
-			deployed.walk((name,len,id,cargo)->{content.add(new String(name,0,len)); return true;});
-		}
-		
 		try(final LoggerFacade	lf = facade.transaction("close nano")) {
-			for (String item : content) {
-				lf.message(Severity.info,"Undeploying [%1$s]...",item);
-				try{undeploy(item);
-				} catch (Exception exc) {
-					lf.message(Severity.info,"Error undeploying [%1$s]: %2$s",item,exc.getLocalizedMessage());
+			
+			try{lock.lockInterruptibly();
+				deployed.walk((name,len,id,cargo)->{content.add(new String(name,0,len)); return true;});
+				
+				for (String item : content) {
+					lf.message(Severity.info,"Undeploying [%1$s]...",item);
+					try{undeploy(item);
+					} catch (Exception exc) {
+						lf.message(Severity.info,"Error undeploying [%1$s]: %2$s",item,exc.getLocalizedMessage());
+					}
 				}
-			}
+			} catch (InterruptedException e) {
+				throw new IOException(e);
+			} finally {
+				lock.unlock();
+			}	
 			
 			responseHeaderCache.close();
 			requestHeaderCache.close();
@@ -421,15 +436,15 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				serviceRoot.close();
 			}
 			lf.rollback();
-		}
+		}	
 	}
 
 	@Override
 	public void handle(final HttpExchange call) throws IOException {
 		final String	remoteHost = call.getRemoteAddress().getHostName();
 		
-		if (localhostOnly && !"localhost".equals(remoteHost) && !"127.0.0.1".equals(remoteHost) && !"view-localhost".equals(remoteHost)  && !"0:0:0:0:0:0:0:1".equals(remoteHost)) {
-			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+remoteHost+"], only localhost addresses are currently supported");
+		if (localhostOnly && !LOCALHOST_ALIASES.contains(remoteHost)) {
+			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+remoteHost+"], only localhost addresses are currently available");
 		}
 		else if (!paused) {
 			final char[]			path = call.getRequestURI().getPath().toCharArray();
@@ -769,8 +784,9 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 		else {
 			final ClassDescriptor	desc = parseClass(instance2deploy, instance2deploy.getClass());
-			
-			synchronized(deployed) {
+			final ReentrantReadWriteLock.WriteLock	lock = deployedLocker.writeLock(); 
+
+			try {lock.lockInterruptibly();
 				final long			id = deployed.seekName(path);
 	
 				if (id >= 0) {
@@ -784,17 +800,24 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				else {
 					deployed.placeName(path,desc);
 				}
+			} catch (InterruptedException e) {
+				throw new IOException(e); 
+			} finally {
+				lock.unlock();
 			}
 		}
 	}
 	
 	@Override
-	public void undeploy(final String path) {
-		synchronized(deployed) {
+	public Object undeploy(final String path) throws IOException {
+		final ReentrantReadWriteLock.WriteLock	lock = deployedLocker.writeLock(); 
+		Object	returned = null;
+		
+		try {lock.lockInterruptibly();
 			final long	id = deployed.seekName(path);
 			
 			if (id >= 0) {
-				if (deployed.getCargo(id) != null) {
+				if ((returned = deployed.getCargo(id)) != null) {
 					deployed.setCargo(id,null);
 				}
 				else {
@@ -804,7 +827,12 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			else {
 				throw new IllegalArgumentException("Attempt to undeploy non-deployed path ["+path+"]");
 			}
-		}		
+		} catch (InterruptedException e) {
+			throw new IOException(e); 
+		} finally {
+			lock.unlock();
+		}
+		return returned;
 	}
 
 	@Override
@@ -888,7 +916,10 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			return "/loopback";
 		}
 		else {
-			synchronized (deployed) {
+			final ReentrantReadWriteLock.ReadLock	lock = deployedLocker.readLock();
+			
+			try{lock.lockInterruptibly();
+				
 				final long	id = deployed.seekName(charPath,0,charPath.length);
 				
 				if (id < 0) {
@@ -902,6 +933,11 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				else {
 					return new String(charPath,0,charPath.length);
 				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return null;
+			} finally {
+				lock.unlock();
 			}
 		}
 	}
@@ -915,7 +951,9 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			return new Loopback(call);
 		}
 		else {
-			synchronized (deployed) {
+			final ReentrantReadWriteLock.ReadLock	lock = deployedLocker.readLock();
+			
+			try {lock.lockInterruptibly();
 				final long	id = deployed.seekName(charPath,0,charPath.length);
 				
 				if (id < 0) {
@@ -932,7 +970,13 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					desc = deployed.getCargo(id);
 					prefixLen = (int) id;
 				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return null;
+			} finally {
+				lock.unlock();
 			}
+			
 			if (desc != null) {
 				try{final String	fromMimeString = call.getRequestHeaders().getFirst(HEAD_CONTENT_TYPE),
 									toMimeString = call.getRequestHeaders().getFirst(HEAD_ACCEPT);

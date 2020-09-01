@@ -212,7 +212,7 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 	}
 
 	private AutoBuiltForm<RootDescriptor> buildRoot() throws LocalizationException, ContentException {
-		final AutoBuiltForm<RootDescriptor>	abf = new AutoBuiltForm<>(rdModel,localizer,rd,rd);
+		final AutoBuiltForm<RootDescriptor>	abf = new AutoBuiltForm<>(rdModel,localizer,PureLibSettings.INTERNAL_LOADER,rd,rd);
 	
 		abf.setPreferredSize(new Dimension(200,200));
 		for (Module item : abf.getUnnamedModules()) {
@@ -232,7 +232,7 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 	}
 
 	private AutoBuiltForm<SingleNodeDescriptor> buildSingleNode() throws LocalizationException, ContentException {
-		final AutoBuiltForm<SingleNodeDescriptor>	abf = new AutoBuiltForm<>(sndModel,localizer,snd,snd);
+		final AutoBuiltForm<SingleNodeDescriptor>	abf = new AutoBuiltForm<>(sndModel,localizer,PureLibSettings.INTERNAL_LOADER,snd,snd);
 	
 		abf.setPreferredSize(new Dimension(200,200));
 		for (Module item : abf.getUnnamedModules()) {

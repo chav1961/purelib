@@ -7,7 +7,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.LongPredicate;
 import java.util.function.LongUnaryOperator;
 
-class ListenableLong {
+/**
+ * <p>This class is a container for keeping long value and waiting to it's "change event"</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
+public class ListenableLong {
 	private final Object		awaitSync = new Object();
 	private final AtomicInteger	awaitCounter = new AtomicInteger(0);
 	private volatile long		currentValue;
