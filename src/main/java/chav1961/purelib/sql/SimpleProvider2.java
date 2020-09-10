@@ -18,6 +18,7 @@ import java.util.Set;
 
 import javax.swing.table.TableModel;
 
+import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.CharGetterAndSetter;
@@ -56,11 +57,11 @@ public class SimpleProvider2<Record> implements ORMProvider2<Record> {
 	private final String					contentSQL;
 	private final GetterAndSetter[]			fieldGAS;				
 	private Connection						conn = null;
-	private boolean							modified = false;
+	private boolean							modified = true;
 	private String							filter = null, ordering = null;
 	private long[]							range = null;
 	
-	public SimpleProvider2(final ContentNodeMetadata clazzMeta, final ContentNodeMetadata tableMeta, final boolean useIntersectsOnly) throws NullPointerException {
+	public SimpleProvider2(final ContentNodeMetadata clazzMeta, final ContentNodeMetadata tableMeta, final boolean useIntersectsOnly) throws NullPointerException, ContentException, IllegalArgumentException {
 		if (clazzMeta == null) {
 			throw new NullPointerException("Class metadata to build provider for can't be null");
 		}
@@ -95,16 +96,16 @@ public class SimpleProvider2<Record> implements ORMProvider2<Record> {
 			
 			this.clazzMeta = clazzMeta;
 			this.tableMeta = tableMeta;
-			this.filteredTableMeta = new ContentNodeFilter(tableMeta,(n)->names2Use.contains(n.getName().toUpperCase()));
+			this.filteredTableMeta = useIntersectsOnly ? new ContentNodeFilter(tableMeta,(n)->names2Use.contains(n.getName().toUpperCase())) : tableMeta;
 			this.clazz = (Class<Record>) clazzMeta.getType();
 			this.parent = null;
 			this.insertSQL = SQLUtils.buildInsertOperatorTemplate(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR);
 			this.updateSQL = SQLUtils.buildUpdateOperatorTemplate(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR)+" where "+SQLUtils.buildWhereClause4PrimaryKey(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR);
-			this.deleteSQL = SQLUtils.buildDeleteOperatorTemplate(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR);
+			this.deleteSQL = SQLUtils.buildDeleteOperatorTemplate(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR)+" where "+SQLUtils.buildWhereClause4PrimaryKey(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR);
 			this.selectSQL = SQLUtils.buildSelectOperatorTemplate(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR)+" where "+SQLUtils.buildWhereClause4PrimaryKey(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR);
 			this.contentSizeSQL = "select count(*) from "+BEFORE_CHAR+filteredTableMeta.getName()+AFTER_CHAR;
 			this.contentSQL = SQLUtils.buildSelectOperatorTemplate(filteredTableMeta,BEFORE_CHAR,AFTER_CHAR);
-			this.fieldGAS = buildFieldGettersAndSetters(clazzMeta,tableMeta,names2Use);
+			this.fieldGAS = buildFieldGettersAndSetters(clazzMeta,filteredTableMeta);
 		}
 	}
 
@@ -234,7 +235,7 @@ public class SimpleProvider2<Record> implements ORMProvider2<Record> {
 	}
 
 	@Override
-	public ORMProvider2<Record> content(final Record rec, final ContentIteratorCallback<Record> callback) throws SQLException {
+	public ORMProvider2<Record> content(final Record rec, final boolean keysOnly, final ContentIteratorCallback<Record> callback) throws SQLException {
 		// TODO Auto-generated method stub
 		if (rec == null) {
 			throw new NullPointerException("Record to use as buffer can't be null"); 
@@ -511,8 +512,13 @@ loop:			while (rs.next()) {
 	}
 
 	private PreparedStatement getInsertStmt() {
-		// TODO Auto-generated method stub
-		return null;
+		if (parent != null) {
+			return parent.getInsertStmt();
+		}
+		else {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 	private PreparedStatement getUpdateStmt() {
@@ -659,21 +665,22 @@ loop:			while (rs.next()) {
 		}
 	}
 
-
-	static GetterAndSetter[] buildFieldGettersAndSetters(final ContentNodeMetadata clazzMeta, final ContentNodeMetadata tableMeta, final Set<String> names2Use) {
+	static GetterAndSetter[] buildFieldGettersAndSetters(final ContentNodeMetadata clazzMeta, final ContentNodeMetadata tableMeta) throws ContentException, IllegalArgumentException, NullPointerException {
 		final List<GetterAndSetter>	result = new ArrayList<>();
 		final Class<?>				clazz = clazzMeta.getType();
 		
 		for (ContentNodeMetadata item : tableMeta) {
 			for (ContentNodeMetadata clazzItem : clazzMeta) {
 				if (clazzItem.getName().equalsIgnoreCase(item.getName())) {
-					
+					result.add(GettersAndSettersFactory.buildGetterAndSetter(clazz,clazzItem.getName(),(m)->{
+						for (Module mi : m) {
+							SimpleProvider2.class.getModule().addExports(SimpleProvider2.class.getPackageName(),mi);
+						}
+					}));
 				}
 			}
-			
 		}
-		// TODO Auto-generated method stub
-		return null;
+		return result.toArray(new GetterAndSetter[result.size()]);
 	}
 	
 	private static <Record> Constructor<Record> getDefaultConstructor(final Class<Record> clazz) {

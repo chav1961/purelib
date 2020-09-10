@@ -44,7 +44,10 @@ public interface ORMProvider2<Record> extends AutoCloseable {
 	TableModel getTableModel() throws SQLException;
 	
 	long contentSize() throws SQLException;
-	ORMProvider2<Record> content(Record rec, ContentIteratorCallback<Record> callback) throws SQLException;
+	default ORMProvider2<Record> content(Record rec, ContentIteratorCallback<Record> callback) throws SQLException {
+		return content(rec,true,callback);
+	}
+	ORMProvider2<Record> content(Record rec, boolean keysOnly, ContentIteratorCallback<Record> callback) throws SQLException;
 	ORMProvider2<Record> refresh();
 
 	ORMProvider2<Record> insert(Record record) throws SQLException;
