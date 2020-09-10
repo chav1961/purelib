@@ -33,13 +33,24 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 
+/**
+ * <p>This class is an utility class for SQL syntax and content manipulations. It uses models in many methods.</p>
+ * @see ContentMetadataInterface
+ * @see ContentMetadataInterface.ContentNodeMetadata
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ */
 public class SQLUtils {
 	public static final int							UNKNOWN_TYPE = 666;
 	static final Map<String,Class<?>>				DEFAULT_CONVERTOR = new HashMap<>();
@@ -50,6 +61,9 @@ public class SQLUtils {
 	private static final char[]						ESCAPES = {'%', '_'};
 	private static final Set<Integer>				LENGTH_PRESENTS = new HashSet<>();
 	private static final Set<Integer>				LENGTH_AND_FRACTIONS_PRESENTS = new HashSet<>();
+	
+	private static final URI						TABLE_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":table:/"); 
+	private static final URI						FIELD_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":field:/"); 
 	
 	static {
 		LENGTH_PRESENTS.add(Types.CHAR);
@@ -68,7 +82,6 @@ public class SQLUtils {
 	private interface ConversionCall {
 		Object convert(Object source) throws ContentException;
 	}
-	
 	
 	static {
 		DEFAULT_CONVERTOR.put("ARRAY",Array.class);
@@ -145,13 +158,31 @@ public class SQLUtils {
 		};
 	}
 
+	/**
+	 * <p>Parse metadata description and build descriptor's array. </p>
+	 * @param description list of definitions
+	 * @return definitions parsed
+	 * @throws SyntaxException on any syntax errors
+	 * @throws IllegalArgumentException when description list is null, emptry of contains nulls or empties
+	 */
 	public static RsMetaDataElement[] prepareMetadata(final String... description) throws SyntaxException {
 		return prepareMetadata(':',description);
 	}
 	
-	public static RsMetaDataElement[] prepareMetadata(final char terminal, final String... description) throws SyntaxException {
+	/**
+	 * <p>Parse metadata description and build descriptor's array. </p>
+	 * @param terminal char to split name and type in the definitions
+	 * @param description list of definitions
+	 * @return definitions parsed
+	 * @throws SyntaxException on any syntax errors
+	 * @throws IllegalArgumentException when description list is null, emptry of contains nulls or empties
+	 */
+	public static RsMetaDataElement[] prepareMetadata(final char terminal, final String... description) throws SyntaxException, IllegalArgumentException {
 		if (description == null || description.length == 0) {
-			throw new IllegalArgumentException("Description can't be null or empty array");
+			throw new IllegalArgumentException("Description can't be null or empty array and must not");
+		}
+		else if (Utils.checkArrayContent4Nulls(description,true) >= 0) {
+			throw new IllegalArgumentException("Description contains nulls or empties inside");
 		}
 		else {
 			final RsMetaDataElement		answer[] = new RsMetaDataElement[description.length]; 
@@ -298,26 +329,44 @@ public class SQLUtils {
 			}
 		}
 	}
-	
-	public static String typeNameByTypeId(final int typeId) {
+
+	/**
+	 * <p>Extract type name by type id</p>
+	 * @param typeId type id (see {@linkplain Types})
+	 * @return type name
+	 * @throws IllegalArgumentException when type id is unknown
+	 */
+	public static String typeNameByTypeId(final int typeId) throws IllegalArgumentException {
 		for (JDBCTypeDescriptor item : TYPE_DECODER) {
 			if (item.getType() == typeId) {
 				return item.getTypeName();
 			}
 		}
-		return null;
+		throw new IllegalArgumentException("Type id ["+typeId+"] is unknown");
 	}
 
+	/**
+	 * <p>Extract Java class by type id</p>
+	 * @param typeId type id (see {@linkplain Types})
+	 * @return class found
+	 * @throws IllegalArgumentException when type id is unknown
+	 */
 	public static Class<?> classByTypeId(final int typeId) {
 		for (JDBCTypeDescriptor item : TYPE_DECODER) {
 			if (item.getType() == typeId) {
 				return DEFAULT_CONVERTOR.get(item.getTypeName());
 			}
 		}
-		return null;
+		throw new IllegalArgumentException("Type id ["+typeId+"] is unknown");
 	}
 	
-	public static int typeIdByTypeName(final String typeName) {
+	/**
+	 * <p>Define type id by it's type name</p>
+	 * @param typeName type name to define id for
+	 * @return type id (see {@linkplain Types})
+	 * @throws IllegalArgumentException when type name is null, empty or unknown
+	 */
+	public static int typeIdByTypeName(final String typeName) throws IllegalArgumentException {
 		if (typeName == null || typeName.isEmpty()) {
 			throw new IllegalArgumentException("Type name can't be null or empty");
 		}
@@ -327,11 +376,19 @@ public class SQLUtils {
 					return item.getType();
 				}
 			}
-			return UNKNOWN_TYPE;
+			throw new IllegalArgumentException("Type name ["+typeName+"] is unknown");
 		}
 	}
 
-	public static int typeIdByTypeName(final char[] typeName, final int from, final int to) {
+	/**
+	 * <p>Define type id by it's type name</p>
+	 * @param typeName type name to define id for
+	 * @param from
+	 * @param to
+	 * @return
+	 * @throws IllegalArgumentException when type name is null, empty, unknown or from and to parameters are out of range 
+	 */
+	public static int typeIdByTypeName(final char[] typeName, final int from, final int to) throws IllegalArgumentException {
 		if (typeName == null || typeName.length == 0) {
 			throw new IllegalArgumentException("Type name can't be null or empty");
 		}
@@ -343,11 +400,38 @@ public class SQLUtils {
 					return item.getType();
 				}
 			}
-			return UNKNOWN_TYPE;
+			throw new IllegalArgumentException("Type name ["+new String(typeName,from,to-from)+"] is unknown");
 		}
 	}
+
+	/**
+	 * <p>Extract Java class by sql type name</p> 
+	 * @param sqlType sql type to get class for
+	 * @return class found
+	 * @throws IllegalArgumentException when SQL type is null or empty
+	 */
+	public static Class<?> classBySqlTypeName(final String sqlType) throws IllegalArgumentException {
+		if (sqlType == null || sqlType.isEmpty()) {
+			throw new IllegalArgumentException("SQL type can't be null or empty"); 
+		}
+		else {
+			return DEFAULT_CONVERTOR.get(sqlType);
+		}
+	}
+
 	
-	public static <T> T convert(final int rowIndex, final int columnIndex, final Class<T> awaited, final Object value) throws SQLException {
+	/**
+	 * <p>Convert object value to the value of given type (class)</p>
+	 * @param <T> any type
+	 * @param rowIndex optional row index to use in the exception. Type -1 if not required
+	 * @param columnIndex optional column index to use in the exception. Type -1 if not required
+	 * @param awaited awaited type for converted value
+	 * @param value value to convert
+	 * @return value converted
+	 * @throws SQLException error converting value
+	 * @throws NullPointerException awaited type is null
+	 */
+	public static <T> T convert(final int rowIndex, final int columnIndex, final Class<T> awaited, final Object value) throws SQLException, NullPointerException {
 		try{return convert(awaited,value);
 		} catch (ContentException exc) {
 			exc.printStackTrace();
@@ -355,8 +439,27 @@ public class SQLUtils {
 		}
 	}
 
+	/**
+	 * <p>Can convert content from one typwe to another. This methos is used in conjunction with {@linkplain #convert(Class, Object)} method
+	 * @param fromType source type (see {@linkplain Types}) 
+	 * @param toType target type (see {@linkplain Types})
+	 * @return true if conversion is supported
+	 */
+	public static boolean canConvert(final int fromType, final int toType) {
+		return true;
+	}
+	
+	/**
+	 * <p>Convert object value to the value of given type (class)</p>
+	 * @param <T> any type
+	 * @param awaited awaited type for converted value
+	 * @param value value to convert
+	 * @return value converted
+	 * @throws ContentException error converting value
+	 * @throws NullPointerException awaited type is null
+	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T convert(final Class<T> awaited, final Object value) throws ContentException {
+	public static <T> T convert(final Class<T> awaited, final Object value) throws ContentException, NullPointerException {
 		if (value == null) {
 			switch (CompilerUtils.defineClassType(awaited)) {
 				case CompilerUtils.CLASSTYPE_REFERENCE	:	return null;
@@ -392,16 +495,16 @@ public class SQLUtils {
 		}
 	}
 	
-	public static Class<?> classBySqlTypeName(final String sqlType) {
-		if (sqlType == null || sqlType.isEmpty()) {
-			throw new IllegalArgumentException("SQL type can't be null or empty"); 
-		}
-		else {
-			return DEFAULT_CONVERTOR.get(sqlType);
-		}
-	}
 
-	public static boolean matchLikeStyledTemplate(final String testString, final String template) {
+	/**
+	 * <p>Test string content with SQL-styped regex</p>
+	 * @param testString string to test
+	 * @param template template to test
+	 * @return true if string content matches
+	 * @throws NullPointerException when test string is null
+	 * @throws IllegalArgumentException when template is null or empty
+	 */
+	public static boolean matchLikeStyledTemplate(final String testString, final String template) throws NullPointerException, IllegalArgumentException {
 		if (template == null || template.isEmpty()) {
 			throw new IllegalArgumentException("String template can't be null or empty");
 		}
@@ -409,27 +512,189 @@ public class SQLUtils {
 			throw new NullPointerException("String to test can't be null");
 		}
 		else {
-			return buildPattern4LikeStyledTemplate(template).matcher(testString).matches();
+			return likeClause2Regex(template).matcher(testString).matches();
 		}
 	}
 
-	public static Pattern buildPattern4LikeStyledTemplate(final String template) {
-		return buildPattern4LikeStyledTemplate(template,ESCAPES);
+	/**
+	 * <p>Convert SQL like clause to Java regex</p> 
+	 * @param template template to convert
+	 * @return pattern prepared
+	 * @throws IllegalArgumentException when template is null or empty
+	 */
+	public static Pattern likeClause2Regex(final String template) throws IllegalArgumentException {
+		return likeClause2Regex(template,ESCAPES);
 	}
-	
-	public static Pattern buildPattern4LikeStyledTemplate(final String template, final char[] escaping) {
+
+	/**
+	 * <p>Convert SQL like clause to Java regex</p> 
+	 * @param template template to convert
+	 * @param escaping escaping for '*' and '_' wildcards
+	 * @return pattern prepared
+	 * @throws IllegalArgumentException when template is null or empty or when escapingis null or doesn't contain two chars
+	 */
+	public static Pattern likeClause2Regex(final String template, final char[] escaping) throws IllegalArgumentException {
 		if (template == null || template.isEmpty()) {
 			throw new IllegalArgumentException("String template can't be null or empty");
+		}
+		else if (escaping == null || escaping.length != 2) {
+			throw new IllegalArgumentException("Escapion arrya can't be null and must contain exactly 2 chars");
 		}
 		else {
 			return null;
 		}
 	}
 	
-	public static boolean canConvert(final int fromType, final int toType) {
-		return true;
+
+	/**
+	 * <p>Build select operator template by model.</p>
+	 * @param metadata model to build select operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "select &lt;field list&gt; from &lt;table&gt;"  
+	 * @throws NullPointerException when metadata is null
+	 * @throws IllegalArgumentException when metadata doesn't contain table or field definitions
+	 */
+	public static String buildSelectOperatorTemplate(final ContentNodeMetadata metadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(metadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			String 				prefix = "select ";
+			
+			for (ContentNodeMetadata item : metadata) {
+				if (URIUtils.canServeURI(metadata.getApplicationPath(),FIELD_URI)) {
+					sb.append(prefix).append(item.getName());
+					prefix = ",";
+				}
+			}
+			return sb.append(" from ").append(metadata.getName()).toString();
+		}
+	}
+	
+	/**
+	 * <p>Build insert operator template by model.</p>
+	 * @param metadata model to build insert operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "insert into &lt;table&gt; (&lt;field list&gt;) values(?,?,?,.....)"  
+	 * @throws NullPointerException when metadata is null
+	 * @throws IllegalArgumentException when metadata doesn't contain table or field definitions
+	 */
+	public static String buildInsertOperatorTemplate(final ContentNodeMetadata metadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(metadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder("insert into ").append(metadata.getName());
+			String 				prefix = "(";
+			
+			for (ContentNodeMetadata item : metadata) {
+				if (URIUtils.canServeURI(metadata.getApplicationPath(),FIELD_URI)) {
+					sb.append(prefix).append(item.getName());
+					prefix = ",";
+				}
+			}
+			prefix = ") values (";
+			for (ContentNodeMetadata item : metadata) {
+				if (URIUtils.canServeURI(metadata.getApplicationPath(),FIELD_URI)) {
+					sb.append(prefix).append(item.getName());
+					prefix = ",";
+				}
+			}
+			return sb.append(")").toString();
+		}
 	}
 
+	/**
+	 * <p>Build update operator template by model.</p>
+	 * @param metadata model to build update operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "update &lt;table&gt; set &lt;field&gt;=&lt;value&gt;,..."  
+	 * @throws NullPointerException when metadata is null
+	 * @throws IllegalArgumentException when metadata doesn't contain table or field definitions
+	 */
+	public static String buildUpdateOperatorTemplate(final ContentNodeMetadata metadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(metadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder("update ").append(metadata.getName());
+			String 				prefix = " set ";
+			
+			for (ContentNodeMetadata item : metadata) {
+				if (URIUtils.canServeURI(metadata.getApplicationPath(),FIELD_URI)) {
+					sb.append(prefix).append(item.getName()).append(" = ?");
+					prefix = ",";
+				}
+			}
+			return sb.toString();
+		}
+	}
+
+	/**
+	 * <p>Build delete operator template by model.</p>
+	 * @param metadata model to build delete operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "delete from &lt;table&gt;"  
+	 * @throws NullPointerException when metadata is null
+	 * @throws IllegalArgumentException when metadata doesn't contain table or field definitions
+	 */
+	public static String buildDeleteOperatorTemplate(final ContentNodeMetadata metadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(metadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			return "delete from "+before+metadata.getName()+after;
+		}
+	}
+	
+	
+	/**
+	 * <p>Build where clause for primary keys</p>
+	 * @param metadata model to build update operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "&lt;primary_key_1&gt; = ? and ..."
+	 * @throws NullPointerException when metadata is null
+	 * @throws IllegalArgumentException when metadata doesn't contain table or field definitions
+	 */
+	public static String buildWhereClause4PrimaryKey(final ContentNodeMetadata metadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(metadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder("update ").append(metadata.getName());
+			String 				prefix = " set ";
+			
+			for (ContentNodeMetadata item : metadata) {
+				if (URIUtils.canServeURI(metadata.getApplicationPath(),FIELD_URI)) {
+					sb.append(prefix).append(item.getName()).append(" = ?");
+					prefix = ",";
+				}
+			}
+			return sb.toString();
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	private static <T> T convertInternal(final Class<T> awaited, final Object value) throws ContentException {
 		final Class<?>	sourceClass = value.getClass();
@@ -1997,4 +2262,5 @@ public class SQLUtils {
 			return true;
 		}
 	}
+
 }

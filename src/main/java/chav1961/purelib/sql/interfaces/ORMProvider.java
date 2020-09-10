@@ -2,6 +2,9 @@ package chav1961.purelib.sql.interfaces;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
+
+import javax.swing.table.TableModel;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -19,6 +22,13 @@ public interface ORMProvider<Record> extends AutoCloseable {
 	ContentNodeMetadata[] getContentMetadata();
 	<T> T getValue(ContentNodeMetadata metadata, Record record) throws ContentException;
 	<T> void setValue(ContentNodeMetadata metadata, Record record, T value) throws ContentException;
+	default Map<String,Object> getRecordMap() throws ContentException {
+		return null;
+	}
+	
+	default TableModel getTableModel() {
+		return null;
+	}
 	
 	long contentSize() throws SQLException;
 	long contentSize(String filter) throws SQLException;

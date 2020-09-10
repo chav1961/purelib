@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.char2char;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -11,9 +12,7 @@ import java.util.Map;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
@@ -66,8 +65,9 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.4
  */
-public class PreprocessingReader extends Reader {
+public class PreprocessingReader extends AbstractPreprocessingReader {
 	/**
 	 * <p>Map key for value 'Ignore case of preprocessor commands'. It's value can be <b>true</b> or <b>false</b> only</p>
 	 */
@@ -103,61 +103,6 @@ public class PreprocessingReader extends Reader {
 	 */
 	public static final String				COMMENT_SEQUENCE = "__commentSequence__";
 
-	/**
-	 * <p>This functional interface describes callback to process include statements for {@link PreprocessingReader} class</p>
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.2
-	 */
-	@FunctionalInterface
-	public interface IncludeCallback {
-		/**
-		 * <p>Get reader to take data included</p>
-		 * @param streamRef URI of the stream.
-		 * @return reader to take content from
-		 * @throws IOException any I/O exceptions to get access to the given URI
-		 */
-		Reader getIncludeStream(final URI streamRef) throws IOException;
-	}
-
-	/**
-	 * <p>This interface describes callback to process #error and #warning message for {@link PreprocessingReader} class</p> 
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.2
-	 */
-	public interface ErrorProcessingCallback {
-		/**
-		 * <p>Process #error message</p>
-		 * @param line source zero-based line of the source content.
-		 * @param sourceStream URI of included stream or null otherwise
-		 * @param message message content to process. Can't be null. All defined preprocessor variables will be substituted in the message content
-		 * @throws SyntaxException any syntax exceptions was detected in the message string
-		 */
-		void processError(final int line, final String sourceStream, final String message) throws SyntaxException;
-		
-		/**
-		 * <p>Process #warning message</p>
-		 * @param line source zero-based line of the source content.
-		 * @param sourceStream URI of included stream or null otherwise
-		 * @param message message content to process. Can't be null. All defined preprocessor variables will be substituted in the message content
-		 * @throws SyntaxException any syntax exceptions was detected in the message string
-		 */
-		void processWarning(final int line, final String sourceStream, final String message) throws SyntaxException;
-	}
-	
-	/**
-	 * <p>This enumeration describes method to process content need be excluded from the input stream for {@link PreprocessingReader} class</p>:
-	 * <ul>
-	 * <li>{@linkplain #EXCLUDE} - exclude this content from the input stream</li>
-	 * <li>{@linkplain #SINGLE_LINE_COMMENTED} - retain this content in the input stream with inline comment prefixed for each line to exclude</li>
-	 * <li>{@linkplain #MULTILINE_COMMENTED} - retain this content in the input stream with multi-line comment around all block to exclude</li>
-	 * </ul>
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.2
-	 */
-	public enum HidingMethod {
-		EXCLUDE, SINGLE_LINE_COMMENTED, MULTILINE_COMMENTED
-	}
-	
 	private enum CommandType {
 		CMD_UNKNOWN, CMD_IF, CMD_ELSEIF, CMD_ELSE, CMD_ENDIF, CMD_DEFINE, CMD_UNDEF, CMD_ERROR, CMD_WARNING, CMD_INCLUDE
 	}
@@ -170,18 +115,18 @@ public class PreprocessingReader extends Reader {
 		CMP_EQ, CMP_NE, CMP_LT, CMP_LE, CMP_GT, CMP_GE 
 	}
 	
+	protected static final int			DEFAULT_BUFFER_SIZE = 8192;
+	protected static final HidingMethod	DEFAULT_HIDING_METHOD = HidingMethod.EXCLUDE;
+	protected static final boolean		DEFAULT_IGNORE_CASE = false;
+	protected static final boolean		DEFAULT_INLINE_SUBSTITUTION = false;
+	protected static final boolean		DEFAULT_RECURSIVE_SUBSTITUTION = false;
+
+	protected static final int			MAX_DEPTH = 63;
+	protected static final long			ENABLED_OUTPUT_MASK = 0xFFFFFFFFFFFFFFFFL;
+	protected static final char[]			NL = {'\n'};
+
 	private static SyntaxTreeInterface<CommandType>	COMMANDS = new AndOrTree<>();
 	private static final Map<Class<?>,Class<?>>	WRAPPERS = new HashMap<>();
-	
-	private static final int				DEFAULT_BUFFER_SIZE = 8192;
-	private static final HidingMethod		DEFAULT_HIDING_METHOD = HidingMethod.EXCLUDE;
-	private static final boolean			DEFAULT_IGNORE_CASE = false;
-	private static final boolean			DEFAULT_INLINE_SUBSTITUTION = false;
-	private static final boolean			DEFAULT_RECURSIVE_SUBSTITUTION = false;
-
-	private static final int				MAX_DEPTH = 63;
-	private static final long				ENABLED_OUTPUT_MASK = 0xFFFFFFFFFFFFFFFFL;
-	private static final char[]				NL = {'\n'};
 	
 	static {
 		COMMANDS.placeName("#if",CommandType.CMD_IF);
@@ -204,29 +149,8 @@ public class PreprocessingReader extends Reader {
 		WRAPPERS.put(short.class,Short.class);
 	}
 	
-	private volatile Reader					nestedReader;
-	private final Map<String,Object>		varsAndOptions;
-	private final int						bufferSize;
-	private final HidingMethod				hidingMethod;
-	private final char[]					inlineComment, startMultilineComment, endMultilineComment;
-	private final boolean					ignoreCase;
-	private final boolean					inlineSubstitution;
-	private final boolean					recursiveSubstitution;
-	private final ErrorProcessingCallback	errCallback;
-	private final IncludeCallback			includeCallback;	
-	private final SyntaxTreeInterface<char[]>	definitions = new AndOrTree<>();
-	private final LineByLineProcessor		lblp = new LineByLineProcessor(new LineByLineProcessorCallback() {
-													@Override
-													public void processLine(final long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-														internalProcessLine(displacement,lineNo,data,from,length);
-													}
-												}
-											); 
-
 	private volatile PreprocessingReader	delegate = null;
 	private volatile URI					delegateURI = null;
-	private char[]							sourceBuffer, targetBuffer; 
-	private int								targetDispl = 0, targetSize = 0;
 	private long							outputMask = ENABLED_OUTPUT_MASK, skipMask = ENABLED_OUTPUT_MASK;
 	private int								currentDepth = -1;
 	private boolean							closed = false, insideMultiline = false;
@@ -271,141 +195,9 @@ public class PreprocessingReader extends Reader {
 	}
 	
 	protected PreprocessingReader(final URI nestedReaderURI, final Reader nestedReader, final Map<String,Object> varsAndOptions, final IncludeCallback includeCallback) {
-		if (nestedReader == null) {
-			throw new NullPointerException("Nested reader can't be null"); 
-		}
-		else if (varsAndOptions == null) {
-			throw new NullPointerException("Vars and options ref can't be null"); 
-		}
-		else if (includeCallback == null) {
-			throw new NullPointerException("Include callback can't be null"); 
-		}
-		else {
-			this.nestedReader = nestedReader;
-			this.delegateURI = nestedReaderURI;
-			this.varsAndOptions = varsAndOptions;
-			this.bufferSize = getOption(BUFFER_SIZE,int.class,DEFAULT_BUFFER_SIZE);
-			this.hidingMethod = getOption(HIDING_METHOD,HidingMethod.class,DEFAULT_HIDING_METHOD);
-			this.ignoreCase = getOption(IGNORE_CASE,boolean.class,DEFAULT_IGNORE_CASE);
-			this.inlineSubstitution = getOption(INLINE_SUBSTITUTION,boolean.class,DEFAULT_INLINE_SUBSTITUTION);
-			this.recursiveSubstitution = getOption(RECURSIVE_SUBSTITUTION,boolean.class,DEFAULT_RECURSIVE_SUBSTITUTION);
-			this.errCallback = getOption(ERROR_PROCESSING_CALLBACK,ErrorProcessingCallback.class,new ErrorProcessingCallback(){
-										@Override
-										public void processError(final int line, final String sourceStream, final String message) throws SyntaxException {
-											throw new SyntaxException(line,0,message);
-										}
-						
-										@Override
-										public void processWarning(final int line, final String sourceStream, final String message) throws SyntaxException {
-										}
-									}
-								);
-			this.includeCallback = includeCallback;
-			this.sourceBuffer = new char[this.bufferSize];
-			this.targetBuffer = new char[this.bufferSize];
-			
-			char[]			forInline = new char[0], forStartAndEnd[] = new char[][]{new char[0],new char[0]};  
-			for (String item : getOption(COMMENT_SEQUENCE,String.class,"").split("\\n")) {
-				final int	content = item.indexOf('\t');
-					
-				if (content == -1) {
-					forInline = item.toCharArray();
-				}
-				else {
-					forStartAndEnd[0] = item.substring(0,content).toCharArray();
-					forStartAndEnd[1] = item.substring(content+1).toCharArray();
-				}
-			}
-			this.inlineComment = forInline;
-			this.startMultilineComment = forStartAndEnd[0];
-			this.endMultilineComment = forStartAndEnd[1];
-
-			switch (this.hidingMethod) {
-				case EXCLUDE				:
-					break;
-				case SINGLE_LINE_COMMENTED	:
-					if (this.inlineComment.length == 0) {
-						throw new IllegalArgumentException("Hiding method ["+this.hidingMethod+"] requires explicit definition of the inline comment sequence. Use the ["+COMMENT_SEQUENCE+"] key to define it!"); 
-					}
-					break;
-				case MULTILINE_COMMENTED	:
-					if (this.startMultilineComment.length == 0 || this.endMultilineComment.length == 0) {
-						throw new IllegalArgumentException("Hiding method ["+this.hidingMethod+"] requires explicit definition of the miltiline comment sequence. Use the ["+COMMENT_SEQUENCE+"] key to define it!"); 
-					}
-					break;
-				default : throw new UnsupportedOperationException("Hiding method ["+this.hidingMethod+"] is not supported yet");
-			}
-		}
+		super(nestedReaderURI, nestedReader, varsAndOptions, includeCallback);
 	}
 
-	@Override
-	public int read(char[] cbuf, int off, int len) throws IOException {
-		if (cbuf == null) {
-			throw new NullPointerException("Buffer to store data can't be null"); 
-		}
-		else if (off < 0 || off > cbuf.length) {
-			throw new IllegalArgumentException("Offset ["+off+"] out of range 0.."+(cbuf.length-1));
-		}
-		else if (off+len < 0 || off+len > cbuf.length) {
-			throw new IllegalArgumentException("Offset + length ["+(off+len)+"] out of range 0.."+(cbuf.length-1));
-		}
-		else if (closed) {
-			throw new IllegalStateException("Attempt to read data from closed stream");
-		}
-		else if (delegate != null) {	// Process #include statement
-			final int	readed = delegate.read(cbuf,off,len); 
-			
-			if (readed <= 0) {
-				popDelegate();
-				return read(cbuf,off,len);
-			}
-			else {
-				return readed; 
-			}
-		}
-		else {
-			if (targetDispl == targetSize) {
-				final int	read;
-				
-				if ((read = nestedReader.read(sourceBuffer)) > 0) {
-					try{lblp.write(sourceBuffer,0,read);
-					} catch (SyntaxException e) {
-						throw new IOException(e.getMessage(),e);
-					}
-				}
-				else {
-					lblp.close();
-					if (targetDispl == targetSize) {	// Process the same last string in the lblp!
-						return -1;
-					}
-				}
-			}
-			if (len < targetSize-targetDispl) {
-				System.arraycopy(targetBuffer,targetDispl,cbuf,off,len);
-				targetDispl += len;
-				return len;
-			}
-			else {
-				final int	realLen = targetSize-targetDispl;
-				
-				System.arraycopy(targetBuffer,targetDispl,cbuf,off,realLen);
-				targetDispl = targetSize;
-				return realLen;
-			}
-		}
-	}
-
-	@Override
-	public void close() throws IOException {
-		closed = true;
-		if (delegate != null) {
-			popDelegate();
-		}
-		lblp.close();
-		sourceBuffer = null;
-		targetBuffer = null;
-	}
-	
 	protected void internalProcessLine(final long displacement, final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
 		final int	to = from + length;
 		
@@ -417,7 +209,7 @@ public class PreprocessingReader extends Reader {
 			}
 			end = from;
 
-			from = skipBlank(data,from,to);
+			from = CharUtils.skipBlank(data,from,true);
 			switch (getCommandType(data,start,end)) {
 				case CMD_IF			: 
 					if (currentDepth >= MAX_DEPTH) {
@@ -453,7 +245,7 @@ public class PreprocessingReader extends Reader {
 						currentDepth--;
 					}
 					if (insideMultiline) {
-						putContent(endMultilineComment);
+						putContent(getEndMultilineComment());
 						putContent(NL);
 						insideMultiline = false;
 					}
@@ -474,29 +266,29 @@ public class PreprocessingReader extends Reader {
 					processInclude(lineNo,data,from,to); 
 					break;
 				default : 
-					errCallback.processError(lineNo,delegateURI != null ? delegateURI.toString() : "","Unknown preprocessor command ["+new String(data,from,to-from)+"].");
+					getErrorProcessingCallback().processError(lineNo,delegateURI != null ? delegateURI.toString() : "","Unknown preprocessor command ["+new String(data,from,to-from)+"].");
 			}
 		}
 		else if (outputMask != ENABLED_OUTPUT_MASK) {
-			switch (hidingMethod) {
+			switch (getHidingMethod()) {
 				case EXCLUDE				:
 					break;
 				case SINGLE_LINE_COMMENTED	:
-					putContent(inlineComment);
+					putContent(getInlineComment());
 					putContent(data,from,length);
 					break;
 				case MULTILINE_COMMENTED	:
 					if (!insideMultiline) {
 						insideMultiline = true;
-						putContent(startMultilineComment);
+						putContent(getStartMultilineComment());
 					}
 					putContent(data,from,length);
 					break;
-				default : throw new UnsupportedOperationException("Hiding method ["+hidingMethod+"] is not supported yet");
+				default : throw new UnsupportedOperationException("Hiding method ["+getHidingMethod()+"] is not supported yet");
 			}
 		}
 		else {
-			if (inlineSubstitution) {
+			if (isInlineSubstitution()) {
 				substitute(data, from, length);
 			}
 			else {
@@ -505,10 +297,10 @@ public class PreprocessingReader extends Reader {
 		}
 	}
 
-	protected CommandType getCommandType(final char[] data, final int start, final int end) {
+	private CommandType getCommandType(final char[] data, final int start, final int end) {
 		final long	id;
 		
-		if (ignoreCase) {
+		if (isIgnoreCase()) {
 			final char[]	command = new char[end-start];
 			
 			for (int index = 0; index < command.length; index++) {
@@ -528,32 +320,7 @@ public class PreprocessingReader extends Reader {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	protected <T> T getOption(final String optionName, final Class<T> returnedType, final T defaultValue) {
-		if (optionName == null || optionName.isEmpty()) {
-			throw new IllegalArgumentException("Option name can't be null or empty"); 
-		}
-		else if (returnedType == null) {
-			throw new NullPointerException("Returned type can't be null"); 
-		}
-		else if (!varsAndOptions.containsKey(optionName)) {
-			return defaultValue;
-		}
-		else {
-			final Object	returned = varsAndOptions.get(optionName);
-		
-			if (returned == null) {
-				return defaultValue;
-			}
-			else if (!returnedType.isAssignableFrom(returned.getClass()) && !(WRAPPERS.containsKey(returnedType) && WRAPPERS.get(returnedType).isAssignableFrom(returned.getClass()))) {
-				throw new IllegalArgumentException("Uncompatible types for ["+optionName+"] option: awaited is ["+returnedType+"] awaited, but current is ["+returned.getClass()+"]"); 
-			}
-			else {
-				return (T)returned;
-			}
-		}
-	}
-
+	@Override
 	protected void substitute(final char[] data, final int from, final int length) {	// This method is used to reduce stringbuilder operations
 		int		end;
 		
@@ -563,7 +330,7 @@ public class PreprocessingReader extends Reader {
 				while (end < to && Character.isJavaIdentifierPart(data[end])) {
 					end++;
 				}
-				if (definitions.seekName(data,index,end) >= 0) {
+				if (getDefinitions().seekName(data,index,end) >= 0) {
 					final StringBuilder	sb = new StringBuilder();
 					
 					putContent(data,from,index-from);
@@ -579,6 +346,7 @@ public class PreprocessingReader extends Reader {
 		putContent(data,from,length);
 	}
 
+	@Override
 	protected void substitute(final StringBuilder sb, final int from) {
 		for (int index = from, maxIndex = sb.length(); index < maxIndex; index++) {
 			if (Character.isJavaIdentifierStart(sb.charAt(index))) {
@@ -587,14 +355,14 @@ public class PreprocessingReader extends Reader {
 				for (to = index+1; to < maxIndex && Character.isJavaIdentifierPart(sb.charAt(to)); to++) {
 				}
 
-				final long	id = definitions.seekName(sb.substring(index,to));
+				final long	id = getDefinitions().seekName(sb.substring(index,to));
 				
 				if (id >= 0) {
-					final char[]	value = definitions.getCargo(id);
+					final char[]	value = getDefinitions().getCargo(id);
 					final int		delta = value.length - (to - index);
 					
 					sb.delete(index,to).insert(index,value);
-					if (!recursiveSubstitution) {
+					if (!isRecursiveSubstitution()) {
 						index += delta;
 					}
 					maxIndex = sb.length();
@@ -606,30 +374,15 @@ public class PreprocessingReader extends Reader {
 		}
 	}
 
-	protected void putContent(final char[] data) {
-		putContent(data,0,data.length);
-	}
-	
-	protected void putContent(final char[] data, final int from, final int length) {
-		if (targetSize + length >= targetBuffer.length) {
-			final char[]	newTarget = new char[2 * targetBuffer.length];
-			
-			System.arraycopy(targetBuffer,0,newTarget,0,targetSize);
-			targetBuffer = newTarget;
-		}
-		System.arraycopy(data,from,targetBuffer,targetSize,length);
-		targetSize += length;
-	}
-
-	protected long extractTail(final char[] data, int from, final int to) {
+	private long extractTail(final char[] data, int from, final int to) {
 		int		startValue = from, endValue = to - 1;
 		
 		startValue = from;
-		if (inlineComment.length != 0) {
+		if (getInlineComment().length != 0) {
 loop:		while (from < to) {		// Seek available inline comment in the definition string 
-				if (data[from] == inlineComment[0]) {
-					for (int index = 1, maxIndex = inlineComment.length; index < maxIndex; index++) {
-						if (data[from+index] != inlineComment[index]) {
+				if (data[from] == getInlineComment()[0]) {
+					for (int index = 1, maxIndex = getInlineComment().length; index < maxIndex; index++) {
+						if (data[from+index] != getInlineComment()[index]) {
 							from++;
 							continue loop;
 						}
@@ -648,17 +401,17 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		return (((long)startValue) << 32) | endValue;
 	}
 
-	protected boolean calculate(final int lineNo, final ExprLevel level, final char[] data, int[] current, final int to) throws SyntaxException {
+	private boolean calculate(final int lineNo, final ExprLevel level, final char[] data, int[] current, final int to) throws SyntaxException {
 		boolean		result;
 		
-		current[0] = skipBlank(data,current[0],to);
+		current[0] = CharUtils.skipBlank(data,current[0],true);
 		switch (level) {
 			case EL_OR 	:
 				if (calculate(lineNo,ExprLevel.EL_AND,data,current,to)) {
 					return true;
 				}
 				else {
-					current[0] = skipBlank(data,current[0],to);
+					current[0] = CharUtils.skipBlank(data,current[0],true);
 					if (data[current[0]] == '|' && data[current[0]+1] == '|') {
 						current[0] += 2;
 						return calculate(lineNo,ExprLevel.EL_OR,data,current,to);
@@ -672,7 +425,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 					return false;
 				}
 				else {
-					current[0] = skipBlank(data,current[0],to);
+					current[0] = CharUtils.skipBlank(data,current[0],true);
 					if (data[current[0]] == '&' && data[current[0]+1] == '&') {
 						current[0] += 2;
 						return calculate(lineNo,ExprLevel.EL_AND,data,current,to);
@@ -692,7 +445,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 			case EL_CMP	:
 				switch (data[current[0]]) {
 					case '('	:
-						current[0] = skipBlank(data,current[0]+1,to);
+						current[0] = CharUtils.skipBlank(data,current[0]+1,true);
 						result = calculate(lineNo,ExprLevel.EL_OR,data,current,to);
 						if (data[current[0]] == ')') {
 							current[0]++;
@@ -702,7 +455,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 						}
 						break;
 					case '?'	:
-						current[0] = skipBlank(data,current[0]+1,to);
+						current[0] = CharUtils.skipBlank(data,current[0]+1,true);
 						result = extractValue(lineNo,data,current,to) != null;
 						break;
 					default :
@@ -710,7 +463,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 							final char[]			left = extractValue(lineNo,data,current,to);
 							final ComparisonType	oper;
 							
-							current[0] = skipBlank(data,current[0],to);
+							current[0] = CharUtils.skipBlank(data,current[0],true);
 							switch (data[current[0]]) {
 								case '=' :
 									if (data[current[0]+1] == '=') {
@@ -752,7 +505,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 									break;
 								default  : throw new SyntaxException(lineNo,current[0],"Unknown comparison operator");
 							}
-							current[0] = skipBlank(data,current[0],to);
+							current[0] = CharUtils.skipBlank(data,current[0],true);
 
 							int			location[] = new int[2];
 							long		mul = 1, val[] = new long[1];
@@ -768,7 +521,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 								case '-' :
 									mul = -1;
 									current[0]++;
-									current[0] = skipBlank(data,current[0],to);
+									current[0] = CharUtils.skipBlank(data,current[0],true);
 								case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 									current[0] = CharUtils.parseLongExtended(data,current[0],val,false);
 									result = compare(left,oper,val[0] * mul);
@@ -826,13 +579,6 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		}
 	}
 
-	private int skipBlank(final char[] data, int from, final int to) {
-		while(from < to && data[from] <= ' ') {
-			from++;
-		}
-		return from;
-	}
-	
 	private char[] extractValue(final int lineNo, final char[] data, final int[] current, final int to) throws SyntaxException {
 		final int[]		location = new int[2];
 		
@@ -842,10 +588,10 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 			throw new SyntaxException(lineNo,0,"Name is missing in the expression");
 		}
 		else {
-			final long		id = definitions.seekName(data,location[0],location[1]+1);
+			final long		id = getDefinitions().seekName(data,location[0],location[1]+1);
 			
 			if (id >= 0) {
-				return definitions.getCargo(id);
+				return getDefinitions().getCargo(id);
 			}
 			else {
 				return null;
@@ -860,7 +606,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		if (current[0] < to) {
 			final long		tail = extractTail(data,current[0],to);
 			
-			if (data[(int) (tail >> 32)] > ' ' && !(inlineComment.length > 0 && UnsafedCharUtils.uncheckedCompare(data,(int) (tail >> 32),inlineComment,0,inlineComment.length))) {
+			if (data[(int) (tail >> 32)] > ' ' && !(getInlineComment().length > 0 && UnsafedCharUtils.uncheckedCompare(data,(int) (tail >> 32),getInlineComment(),0,getInlineComment().length))) {
 				throw new SyntaxException(lineNo,0,"garbage in the tail of expression"); 
 			}
 		}
@@ -871,18 +617,18 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		int		location[] = new int[2];
 
 		from = UnsafedCharUtils.uncheckedParseName(data,from,location);
-		from = skipBlank(data,from,to);
+		from = CharUtils.skipBlank(data,from,true);
 		
-		final long		valueLocation = extractTail(data,from,to), id = definitions.seekName(data,location[0],location[1]+1);
+		final long		valueLocation = extractTail(data,from,to), id = getDefinitions().seekName(data,location[0],location[1]+1);
 		final int		startValue = (int) (valueLocation >> 32), endValue = (int) (valueLocation & 0xFFFFFFFF); 
 		final char[]	cargo = new char[endValue-startValue+1];
 
 		System.arraycopy(data,startValue,cargo,0,cargo.length);
 		if (id >= 0) {
-			definitions.setCargo(id,cargo);
+			getDefinitions().setCargo(id,cargo);
 		}
 		else {
-			definitions.placeName(data,location[0],location[1]+1,cargo);
+			getDefinitions().placeName(data,location[0],location[1]+1,cargo);
 		}
 	}
 	
@@ -890,10 +636,10 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		int		location[] = new int[2];
 
 		UnsafedCharUtils.uncheckedParseName(data,from,location);
-		final long	id = definitions.seekName(data,location[0],location[1]+1);
+		final long	id = getDefinitions().seekName(data,location[0],location[1]+1);
 		
 		if (id >= 0) {
-			definitions.removeName(id);
+			getDefinitions().removeName(id);
 		}
 	}
 
@@ -901,14 +647,14 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		final long		valueLocation = extractTail(data,from,to);
 		final int		startValue = (int) (valueLocation >> 32), endValue = (int) (valueLocation & 0xFFFFFFFF); 
 		
-		errCallback.processError(lineNo,delegateURI != null ? delegateURI.toString() : "",new String(data,startValue,endValue-startValue+1));
+		getErrorProcessingCallback().processError(lineNo,delegateURI != null ? delegateURI.toString() : "",new String(data,startValue,endValue-startValue+1));
 	}
 
 	private void processWarning(final int lineNo, final char[] data, int from, final int to) throws SyntaxException {
 		final long		valueLocation = extractTail(data,from,to);
 		final int		startValue = (int) (valueLocation >> 32), endValue = (int) (valueLocation & 0xFFFFFFFF); 
 		
-		errCallback.processWarning(lineNo,delegateURI != null ? delegateURI.toString() : "",new String(data,startValue,endValue-startValue+1));
+		getErrorProcessingCallback().processWarning(lineNo,delegateURI != null ? delegateURI.toString() : "",new String(data,startValue,endValue-startValue+1));
 	}
 
 	private void processInclude(final int lineNo, final char[] data, int from, final int to) throws IOException, SyntaxException {
@@ -928,23 +674,14 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 		}
 		
 		try{final URI		includeURI = URI.create(new String(data,location[0],location[1]-location[0]+1));
-			pushReader(includeURI,includeCallback.getIncludeStream(includeURI));
+			pushReader(includeURI,getIncludeCallback().getIncludeStream(includeURI));
 		} catch (IllegalArgumentException exc) {
 			throw new IOException("I/O error: "+exc.getLocalizedMessage()); 
 		}
 	}
 
-	private void pushReader(final URI includeURI, final Reader includeStream) throws IOException, SyntaxException {
-		lblp.pushProcessing();
-		delegate = new PreprocessingReader(includeURI,includeStream,varsAndOptions,includeCallback);
-	}
-	
-	private void popDelegate() throws IOException {
-		delegate.close();
-		delegate = null;
-		try{lblp.popProcessing();
-		} catch (SyntaxException exc) {
-			throw new IOException(exc.getMessage(),exc);
-		}
+	@Override
+	protected AbstractPreprocessingReader newDelegate(final URI nestedReaderURI, final Reader nestedReader, final Map<String, Object> varsAndOptions, final IncludeCallback includeCallback) throws IOException, SyntaxException {
+		return new PreprocessingReader(nestedReaderURI, nestedReader, varsAndOptions, includeCallback);
 	}
 }

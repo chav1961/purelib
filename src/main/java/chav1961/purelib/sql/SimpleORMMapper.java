@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
@@ -22,6 +23,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.IntGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -32,17 +34,24 @@ public class SimpleORMMapper<T> implements ORMMapper<T> {
 	
 	private final Pair[]	pairs;
 	private final Class<T>	clazz;
-	
+
 	public SimpleORMMapper(final ContentNodeMetadata record, final ContentNodeMetadata resultSet) throws ContentException, IllegalArgumentException, NullPointerException {
-		this(record,resultSet,(m)->{});
+		this(record,resultSet,PureLibSettings.INTERNAL_LOADER,(m)->{});
 	}
 	
-	public SimpleORMMapper(final ContentNodeMetadata record, final ContentNodeMetadata resultSet, final ModuleAccessor accessor) throws ContentException, IllegalArgumentException, NullPointerException {
+	public SimpleORMMapper(final ContentNodeMetadata record, final ContentNodeMetadata resultSet, final SimpleURLClassLoader loader) throws ContentException, IllegalArgumentException, NullPointerException {
+		this(record,resultSet,loader,(m)->{});
+	}
+	
+	public SimpleORMMapper(final ContentNodeMetadata record, final ContentNodeMetadata resultSet, final SimpleURLClassLoader loader, final ModuleAccessor accessor) throws ContentException, IllegalArgumentException, NullPointerException {
 		if (record == null) {
 			throw new NullPointerException("Record metadata can't be null");
 		}
 		else if (resultSet == null) {
 			throw new NullPointerException("Result set metadata can't be null");
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Class laoder can't be null");
 		}
 		else if (accessor == null) {
 			throw new NullPointerException("Module accessor can't be null");
@@ -65,7 +74,7 @@ public class SimpleORMMapper<T> implements ORMMapper<T> {
 			else {
 				for (ContentNodeMetadata item : record) {
 					if (left.contains(item.getName())) {
-						content.add(new Pair(item.getName(),GettersAndSettersFactory.buildGetterAndSetter(record.getType(),item.getName()),CompilerUtils.defineClassType(item.getType()),item.getType()));
+						content.add(new Pair(item.getName(),GettersAndSettersFactory.buildGetterAndSetter(record.getType(),item.getName(),(m)->{},loader),CompilerUtils.defineClassType(item.getType()),item.getType()));
 					}
 				}
 				this.pairs = content.toArray(new Pair[content.size()]);

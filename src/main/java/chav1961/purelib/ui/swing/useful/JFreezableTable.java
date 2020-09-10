@@ -31,13 +31,14 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
 public class JFreezableTable extends JTable {
 	private static final long 			serialVersionUID = 5593084316211899679L;
 
+	protected final TableModelListener	listener = (e)->processTableChange(e);
+	
 	private volatile TableModel			model = null;
 	private volatile boolean			leftBarExists = false;
 	private volatile boolean			transferFocus = true;
 	private volatile JTable				leftBar = null;
 	
 	private final String[]				columns2Freeze;
-	private final TableModelListener	listener = (e)->processTableChange(e);
 	private final ListSelectionListener	rightLSL = (e) -> {
 											for(int index : getSelectionModel().getSelectedIndices()) {
 												leftBar.getSelectionModel().setSelectionInterval(index,index);
@@ -147,7 +148,11 @@ loop:			for (String item : columns2freeze) {
 		}
 	}
 	
-	private boolean leftBarExists() {
+	protected JTable getLeftBar() {
+		return leftBar;
+	}
+	
+	protected boolean leftBarExists() {
 		return leftBarExists;
 	}
 

@@ -134,8 +134,8 @@ public class GettersAndSettersFactory {
 		Class<T> getType();
 		
 		/**
-		 * <p>Allocate memory for the given class without calling any constructors</p>
-		 * @return memory instance allocated
+		 * <p>Create class instance without calling any constructors</p>
+		 * @return instance created
 		 * @throws InstantiationException when instantiation failed
 		 */
 		T newInstance() throws InstantiationException;

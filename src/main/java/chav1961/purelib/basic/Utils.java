@@ -1089,6 +1089,18 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @since 0.0.3
 	 */
 	public static int checkArrayContent4Nulls(final Object array) throws NullPointerException, IllegalArgumentException {
+		return checkArrayContent4Nulls(array,false);
+	}
+	
+	/**
+	 * <p>Check array content for nulls</p>
+	 * @param array referenced type array to check 
+	 * @return index of the same first null in the array, otherwise -1
+	 * @throws NullPointerException when object to test is null
+	 * @throws IllegalArgumentException when object to test is not a referenced array
+	 * @since 0.0.4
+	 */
+	public static int checkArrayContent4Nulls(final Object array, final boolean checkStrings4Empty) throws NullPointerException, IllegalArgumentException {
 		if (array == null) {
 			throw new NullPointerException("Array object to check can't be null"); 
 		}
@@ -1099,15 +1111,17 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			throw new IllegalArgumentException("Array of primitive types can't be checked by this method"); 
 		}
 		else {
+			final boolean	checkEmpties = checkStrings4Empty && String.class.isAssignableFrom(array.getClass().getComponentType()); 
+			
 			for (int index = 0, maxIndex = Array.getLength(array); index < maxIndex; index++) {
-				if (Array.get(array,index) == null) {
+				if (Array.get(array,index) == null || checkEmpties && ((String)Array.get(array,index)).isEmpty()) {
 					return index;
 				}
 			}
 			return -1;
 		}
 	}
-
+	
 	/**
 	 * <p>Check file existence in the given path</p>
 	 * @param path2check path list to seek file in

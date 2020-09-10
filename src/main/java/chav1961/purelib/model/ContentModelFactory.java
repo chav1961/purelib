@@ -376,22 +376,38 @@ public class ContentModelFactory {
 													, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_TABLE+":/"+schemaAndTable)
 													, null);
 			final Map<String,Class<?>>			fieldTypes = new HashMap<>();
+			final Map<String,Integer>			primaryKeys = new HashMap<>();
+			
+			try(final ResultSet	rs = dbDescription.getPrimaryKeys(catalog, schema, table)) {
+				while (rs.next()) {
+					primaryKeys.put(rs.getString("COLUMN_NAME"),rs.getInt("KEY_SEQ"));
+				}				
+			} catch (SQLException e) {
+				throw new ContentException(e.getLocalizedMessage());
+			}
 			
 			boolean		found = false;
 			try(final ResultSet	rs = dbDescription.getColumns(catalog, schema, table, "%")) {
 				while (rs.next()) {
-					final Class<?>			type = SQLUtils.classByTypeId(rs.getInt("DATA_TYPE"));
-					final String			fieldName = rs.getString("COLUMN_NAME");
+					final Class<?>	type = SQLUtils.classByTypeId(rs.getInt("DATA_TYPE"));
+					final String	fieldName = rs.getString("COLUMN_NAME");
+					final String	label = schemaAndTable+"."+fieldName;
+					String			appUri = ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+schemaAndTable+"/"+fieldName
+											+"?seq="+rs.getString("ORDINAL_POSITION")+"&type="+rs.getString("DATA_TYPE");
+
+					if (primaryKeys.containsKey(fieldName)) {
+						appUri += "&pkSeq="+primaryKeys.get(fieldName);
+					}
+					
 					final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(fieldName
 																	, type
 																	, fieldName
 																	, null
-																	, rs.getString("REMARKS") == null ? schemaAndTable+"."+fieldName : rs.getString("REMARKS")
-																	, rs.getString("REMARKS") == null ? schemaAndTable+"."+fieldName+".tt" : rs.getString("REMARKS")+".tt" 
-																	, rs.getString("REMARKS") == null ? schemaAndTable+"."+fieldName+".help" : rs.getString("REMARKS")+".help"
+																	, rs.getString("REMARKS") == null ? label : rs.getString("REMARKS")
+																	, rs.getString("REMARKS") == null ? label+".tt" : rs.getString("REMARKS")+".tt" 
+																	, rs.getString("REMARKS") == null ? label+".help" : rs.getString("REMARKS")+".help"
 																	, new FieldFormat(type,buildColumnFormat(rs))
-																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+schemaAndTable+"/"+fieldName
-																			+"?seq="+rs.getString("ORDINAL_POSITION")+"&type="+rs.getString("DATA_TYPE"))
+																	, URI.create(appUri)
 																	, null
 																);
 					root.addChild(metadata);
