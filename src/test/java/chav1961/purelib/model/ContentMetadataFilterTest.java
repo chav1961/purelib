@@ -3,6 +3,7 @@ package chav1961.purelib.model;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,11 +50,11 @@ public class ContentMetadataFilterTest {
 		try(final InputStream				is = ContentMetadataFilterTest.class.getResourceAsStream("modelTest1.xml")) {
 			final ContentMetadataInterface	nested = ContentModelFactory.forXmlDescription(is);
 
-			try{new ContentMetadataFilter(null, "*");
+			try{new ContentMetadataFilter(null, Pattern.compile(".*"));
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
-			try{new ContentMetadataFilter(null, "*", "*");
+			try{new ContentMetadataFilter(null, Pattern.compile(".*"), Pattern.compile(".*"));
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
@@ -66,12 +67,8 @@ public class ContentMetadataFilterTest {
 			} catch (NullPointerException exc) {
 			}
 	
-			try{new ContentMetadataFilter(nested, (String)null);
+			try{new ContentMetadataFilter(nested, (Pattern)null);
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-			} catch (IllegalArgumentException exc) {
-			}
-			try{new ContentMetadataFilter(nested, "");
-				Assert.fail("Mandatory exception was not detected (empty 2-nd argument)");
 			} catch (IllegalArgumentException exc) {
 			}
 			try{new ContentMetadataFilter(nested, (URI[])null);
@@ -87,12 +84,8 @@ public class ContentMetadataFilterTest {
 			} catch (IllegalArgumentException exc) {
 			}
 	
-			try{new ContentMetadataFilter(nested, "*", (String)null);
+			try{new ContentMetadataFilter(nested, Pattern.compile(".*"), (Pattern)null);
 				Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
-			} catch (IllegalArgumentException exc) {
-			}
-			try{new ContentMetadataFilter(nested, "*", "");
-				Assert.fail("Mandatory exception was not detected (empty 3-rd argument)");
 			} catch (IllegalArgumentException exc) {
 			}
 			try{new ContentMetadataFilter(nested, new URI[]{URI.create("unknown")}, (URI[])null);

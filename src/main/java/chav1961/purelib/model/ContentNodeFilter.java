@@ -9,17 +9,73 @@ import chav1961.purelib.model.interfaces.BlackAndWhiteListCallback;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
+/**
+ * <p>This class implements filter for {@linkplain ContentNodeMetadata} tree. </p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ */
 public class ContentNodeFilter implements ContentNodeMetadata {
 	private final ContentNodeMetadata		nested;
 	private final BlackAndWhiteListCallback	whiteListCallback; 
 	private final BlackAndWhiteListCallback	blackListCallback;
-	private final List<ContentNodeMetadata>	children = new ArrayList<>();
+	private final boolean 					mutable;
+	private final boolean 					inherited;
+	private final List<ContentNodeMetadata>	children;
+
+	/**
+	 * <p>Constructor if the class</p>
+	 * @param nested nested metadata tree
+	 * @param whiteListCallback callback to test nodes. 'True' nodes will be visible thru the filter
+	 * @throws NullPointerException when any parameter is null 
+	 */
+	public ContentNodeFilter(final ContentNodeMetadata nested, final BlackAndWhiteListCallback whiteListCallback) throws NullPointerException {
+		this(nested,false,whiteListCallback,(n)->true,false);
+	}
 	
-	public ContentNodeFilter(final ContentNodeMetadata nested, final BlackAndWhiteListCallback whiteListCallback) {
-		this(nested,whiteListCallback,(n)->false);
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param nested nested metadata tree
+	 * @param whiteListCallback callback to test nodes. 'True' nodes will be visible thru the filter
+	 * @param inherited true means that all children will have this filter too
+	 * @throws NullPointerException when any parameter is null 
+	 */
+	public ContentNodeFilter(final ContentNodeMetadata nested, final BlackAndWhiteListCallback whiteListCallback, final boolean inherited) throws NullPointerException {
+		this(nested,false,whiteListCallback,(n)->false,inherited);
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param nested nested metadata tree
+	 * @param whiteListCallback callback to test nodes. 'True' nodes will be visible thru the filter
+	 * @param blackListCallback callback to test nodes. 'True' nodes will be excluded from visible nodes
+	 * @throws NullPointerException when any parameter is null 
+	 */
 	public ContentNodeFilter(final ContentNodeMetadata nested, final BlackAndWhiteListCallback whiteListCallback, final BlackAndWhiteListCallback blackListCallback) throws NullPointerException {
+		this(nested,false,whiteListCallback,blackListCallback,false);
+	}
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param nested nested metadata tree
+	 * @param whiteListCallback callback to test nodes. 'True' nodes will be visible thru the filter
+	 * @param blackListCallback callback to test nodes. 'True' nodes will be excluded from visible nodes
+	 * @param inherited true means that all children will have this filter too
+	 * @throws NullPointerException when any parameter is null 
+	 */
+	public ContentNodeFilter(final ContentNodeMetadata nested, final BlackAndWhiteListCallback whiteListCallback, final BlackAndWhiteListCallback blackListCallback, final boolean inherited) throws NullPointerException {
+		this(nested,false,whiteListCallback,blackListCallback,inherited);
+	}
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param nested nested metadata tree
+	 * @param mutable true means that metadata tree content can be changed after setting filter
+	 * @param whiteListCallback callback to test nodes. 'True' nodes will be visible thru the filter
+	 * @param blackListCallback callback to test nodes. 'True' nodes will be excluded from visible nodes
+	 * @param inherited true means that all children will have this filter too
+	 * @throws NullPointerException when any parameter is null 
+	 */
+	public ContentNodeFilter(final ContentNodeMetadata nested, final boolean mutable, final BlackAndWhiteListCallback whiteListCallback, final BlackAndWhiteListCallback blackListCallback, final boolean inherited) throws NullPointerException {
 		if (nested == null) {
 			throw new NullPointerException("Nested node can't be null");
 		}
@@ -33,20 +89,30 @@ public class ContentNodeFilter implements ContentNodeMetadata {
 			this.nested = nested;
 			this.whiteListCallback = whiteListCallback;
 			this.blackListCallback = blackListCallback;
+			this.mutable = mutable;
+			this.inherited = inherited;
 			
-			for (ContentNodeMetadata item : nested) {
-				if (whiteListCallback.accept(item)) {
-					if (!blackListCallback.accept(item)) {
-						children.add(item);
-					}
-				}
+			if (!mutable) {
+				children = new ArrayList<>();
+				buildContent(nested,children);
+			}
+			else {
+				children = null;
 			}
 		}
 	}
 	
 	@Override
 	public Iterator<ContentNodeMetadata> iterator() {
-		return children.iterator();
+		if (!mutable) {
+			return children.iterator();
+		}
+		else {
+			final List<ContentNodeMetadata>	result = new ArrayList<>();
+			
+			buildContent(nested,result);
+			return result.iterator();
+		}
 	}
 
 	@Override
@@ -116,12 +182,28 @@ public class ContentNodeFilter implements ContentNodeMetadata {
 
 	@Override
 	public int getChildrenCount() {
-		return children.size();
+		if (!mutable) {
+			return children.size();
+		}
+		else {
+			final List<ContentNodeMetadata>	result = new ArrayList<>();
+			
+			buildContent(nested,result);
+			return result.size();
+		}
 	}
 
 	@Override
 	public ContentNodeMetadata getChild(final int index) {
-		return children.get(index);
+		if (!mutable) {
+			return children.get(index);
+		}
+		else {
+			final List<ContentNodeMetadata>	result = new ArrayList<>();
+			
+			buildContent(nested,result);
+			return result.get(index);
+		}
 	}
 
 	@Override
@@ -129,4 +211,18 @@ public class ContentNodeFilter implements ContentNodeMetadata {
 		return nested.getOwner();
 	}
 
+	private void buildContent(final ContentNodeMetadata metadata, final List<ContentNodeMetadata> forContent) {
+		for (ContentNodeMetadata item : nested) {
+			if (whiteListCallback.accept(item)) {
+				if (!blackListCallback.accept(item)) {
+					if (inherited) {
+						forContent.add(new ContentNodeFilter(metadata,mutable,whiteListCallback,blackListCallback,inherited));
+					}
+					else {
+						forContent.add(item);
+					}
+				}
+			}
+		}
+	}
 }
