@@ -164,12 +164,18 @@ public abstract class AbstractLocalizer implements Localizer {
 			throw new IllegalArgumentException("Key to check can't be null or empty");
 		}
 		else {
-			for (String item : availableKeys()) {
-				if (item.equals(key)) {
-					return true;
-				}
+			try {
+				return walkUp((current,depth)->{
+					for (String item : current.localKeys()) {
+						if (item.equals(key)) {
+							return ContinueMode.STOP;
+						}
+					}
+					return ContinueMode.CONTINUE;
+				}) == ContinueMode.STOP;
+			} catch (LocalizationException | NullPointerException e1) {
+				return false;
 			}
-			return false;
 		}
 	}
 
