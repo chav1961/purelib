@@ -1,0 +1,30 @@
+1. Business-process
+1.1. Business-process wizard knowledge base
+1.2. Business-process workflow knowledge base
+2. Algorithms
+2.1. Algorithms knowledge base
+2.2. Algorithms bus (microservices)
+2.3. Algorithms adapters
+3. Configuration templates
+3.1. Configuration knowledge base
+3.2. Configuration wizards
+3.3. Configuration stack
+4. Versioning and deployment
+4.1. Versioning server and client
+4.2. Difference calculator
+4.3. Deployment wizard
+4.4. Deployment life cycle support
+4.5. Central configuration snapshot (creation/export/import)
+5. Testing
+5.1. Testing scenarios
+5.2. Testing knowledge base
+6. Grants
+6.1. Grant knowledge system
+6.2. Grant debugger and calculator system
+
+Content
+1. Basic set - business-logic only
+2. Command-line set - command line interface to basic set
+3. Swing set - Swing interface to basic set
+4. Embedded WEB set - Simple WEB embeddable interface to basic set
+5. Simple demo
