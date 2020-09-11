@@ -18,6 +18,8 @@ import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Date;
 import java.sql.NClob;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLXML;
@@ -692,6 +694,35 @@ public class SQLUtils {
 				}
 			}
 			return sb.toString();
+		}
+	}
+
+	/**
+	 * <p>Get names of all columns in the given result set</p>
+	 * @param rs result set to get column names from
+	 * @param upperCase make all the names upper case
+	 * @return set of names. Can't be null
+	 * @throws SQLException on any SQL errors
+	 * @throws NullPointerException when result set is null
+	 * @since 0.0.4
+	 */
+	public static Set<String> getResutSetColumnNames(final ResultSet rs, final boolean upperCase) throws SQLException, NullPointerException {
+		if (rs == null) {
+			throw new NullPointerException("Result set can't be null");
+		}
+		else {
+			final Set<String>		result = new HashSet<>();
+			final ResultSetMetaData	rsmd = rs.getMetaData();
+			
+			for (int index = 1, maxIndex = rsmd.getColumnCount(); index <= maxIndex; index++) {
+				if (upperCase) {
+					result.add(rsmd.getColumnName(index).toUpperCase());
+				}
+				else {
+					result.add(rsmd.getColumnName(index));
+				}
+			}
+			return result;
 		}
 	}
 	

@@ -40,7 +40,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.sql.interfaces.ORMProvider2;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
 
-public class SimpleProvider2<Record> implements ORMProvider2<Record> {
+public class SimpleTableProvider<Record> implements ORMProvider2<Record> {
 	private static final char				BEFORE_CHAR = '\"';	
 	private static final char				AFTER_CHAR = '\"';	
 	
@@ -48,7 +48,7 @@ public class SimpleProvider2<Record> implements ORMProvider2<Record> {
 	private final ContentNodeMetadata		clazzMeta, tableMeta;
 	private final ContentNodeMetadata		filteredTableMeta;
 	private final Class<Record>				clazz;
-	private final SimpleProvider2<Record>	parent;
+	private final SimpleTableProvider<Record>	parent;
 	private final String					insertSQL;
 	private final String					updateSQL;
 	private final String					deleteSQL;
@@ -61,7 +61,7 @@ public class SimpleProvider2<Record> implements ORMProvider2<Record> {
 	private String							filter = null, ordering = null;
 	private long[]							range = null;
 	
-	public SimpleProvider2(final ContentNodeMetadata clazzMeta, final ContentNodeMetadata tableMeta, final boolean useIntersectsOnly) throws NullPointerException, ContentException, IllegalArgumentException {
+	public SimpleTableProvider(final ContentNodeMetadata clazzMeta, final ContentNodeMetadata tableMeta, final boolean useIntersectsOnly) throws NullPointerException, ContentException, IllegalArgumentException {
 		if (clazzMeta == null) {
 			throw new NullPointerException("Class metadata to build provider for can't be null");
 		}
@@ -109,7 +109,7 @@ public class SimpleProvider2<Record> implements ORMProvider2<Record> {
 		}
 	}
 
-	private SimpleProvider2(final SimpleProvider2<Record> parent) {
+	private SimpleTableProvider(final SimpleTableProvider<Record> parent) {
 		this.clazzMeta = null;
 		this.tableMeta = null;
 		this.filteredTableMeta = null;
@@ -191,7 +191,7 @@ public class SimpleProvider2<Record> implements ORMProvider2<Record> {
 
 	@Override
 	public ORMProvider2<Record> push() {
-		return new SimpleProvider2<Record>(this);
+		return new SimpleTableProvider<Record>(this);
 	}
 
 	@Override
@@ -674,7 +674,7 @@ loop:			while (rs.next()) {
 				if (clazzItem.getName().equalsIgnoreCase(item.getName())) {
 					result.add(GettersAndSettersFactory.buildGetterAndSetter(clazz,clazzItem.getName(),(m)->{
 						for (Module mi : m) {
-							SimpleProvider2.class.getModule().addExports(SimpleProvider2.class.getPackageName(),mi);
+							SimpleTableProvider.class.getModule().addExports(SimpleTableProvider.class.getPackageName(),mi);
 						}
 					}));
 				}
