@@ -27,9 +27,11 @@ import java.sql.Struct;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -666,6 +668,86 @@ public class SQLUtils {
 		}
 	}
 	
+	/**
+	 * <p>Build create operator template by model</p>
+	 * @param metadata model to build create operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "create table &lt;table&gt; (&lt;field&gt;,...)"
+	 * @throws NullPointerException when metadata is null
+	 * @throws IllegalArgumentException when metadata doesn't contain table or field definitions
+	 */
+	public static String buildCreateOperatorTemplate(final ContentNodeMetadata metadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(metadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			char				prefix = '(';
+			
+			sb.append("create table ").append(before).append(metadata.getName()).append(after);
+			for (ContentNodeMetadata item : metadata) {
+				if (URIUtils.canServeURI(item.getApplicationPath(),FIELD_URI)) {
+					sb.append(prefix).append(before).append(item.getName()).append(after).append(' ');
+					prefix = ',';
+				}
+			}
+			return sb.append(')').toString();
+		}
+	}
+
+	/**
+	 * <p>Build alter operator template by two model differences</p>
+	 * @param oldMetadata old model to build alter operator for
+	 * @param newMetadata new model to build alter operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "alter table &lt;table&gt; &lt;changes&gt;..."
+	 * @throws NullPointerException when any metadata is null
+	 * @throws IllegalArgumentException when any metadata doesn't contain table or field definitions
+	 */
+	public static String buildAlterOperatorTemplate(final ContentNodeMetadata oldMetadata, final ContentNodeMetadata newMetadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (oldMetadata == null) {
+			throw new NullPointerException("Old metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(oldMetadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of old content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else if (newMetadata == null) {
+			throw new NullPointerException("New metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(newMetadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of new content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			// TODO:
+			return null;
+		}
+	}
+
+	/**
+	 * <p>Build drop operator template by two model differences</p>
+	 * @param metadata model to build drop operator for
+	 * @param before escaping char for beginning of the name
+	 * @param after escaping char for end of the name
+	 * @return "drop table &lt;table&gt; cascade"
+	 * @throws NullPointerException when any metadata is null
+	 * @throws IllegalArgumentException when any metadata doesn't contain table or field definitions
+	 */
+	public static String buildDropOperatorTemplate(final ContentNodeMetadata metadata, final char before, final char after) throws NullPointerException, IllegalArgumentException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (!URIUtils.canServeURI(metadata.getApplicationPath(),TABLE_URI)) {
+			throw new IllegalArgumentException("Root of content metadata must have ["+TABLE_URI+"] application URI scheme/subscheme");
+		}
+		else {
+			return "drop table "+before+metadata.getName()+after+" cascade";
+		}
+	}
 	
 	/**
 	 * <p>Build where clause for primary keys</p>

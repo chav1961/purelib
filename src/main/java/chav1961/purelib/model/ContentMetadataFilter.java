@@ -2,10 +2,8 @@ package chav1961.purelib.model;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -68,57 +66,6 @@ public class ContentMetadataFilter implements ContentMetadataInterface {
 			this.blackListCallback = blackListCallback;
 		}
 	}	
-	
-	/**
-	 * <p>Constructor of the class.</p>
-	 * @param nested nested model to make filter for
-	 * @param whiteList white list of URI will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()})
-	 * @throws NullPointerException any arguments are null
-	 * @throws IllegalArgumentException white list is null, empty or contains nulls inside
-	 * @deprecated  
-	 */
-	@Deprecated(since="0.0.5",forRemoval=true)
-	public ContentMetadataFilter(final ContentMetadataInterface nested, final URI[] whiteList) throws NullPointerException, IllegalArgumentException {
-		this(nested,(n)->testURI(n,whiteList));
-	}
-
-	/**
-	 * <p>Constructor of the class.</p>
-	 * @param nested nested model to make filter for
-	 * @param whiteList white list of URI will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()})
-	 * @param blackList black list of URI will be excluded from the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}). Black list priority is higher than white list
-	 * @throws NullPointerException any arguments are null
-	 * @throws IllegalArgumentException white or black list is null, empty or contains nulls inside 
-	 */
-	@Deprecated(since="0.0.5",forRemoval=true)
-	public ContentMetadataFilter(final ContentMetadataInterface nested, final URI[] whiteList, final URI[] blackList) throws NullPointerException, IllegalArgumentException {
-		this(nested,(n)->testURI(n,whiteList),(n)->testURI(n,blackList));
-	}
-
-	/**
-	 * <p>Constructor of the class.</p>
-	 * @param nested nested model to make filter for
-	 * @param whiteListRegExp white list URI regular expression will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}) 
-	 * @throws NullPointerException any arguments are null
-	 * @throws IllegalArgumentException white list is null, empty or has syntax errors 
-	 */
-	@Deprecated(since="0.0.5",forRemoval=true)
-	public ContentMetadataFilter(final ContentMetadataInterface nested, final Pattern whiteListRegExp) throws NullPointerException, IllegalArgumentException {
-		this(nested,(n)->testPattern(n,whiteListRegExp));
-	}
-	
-	/**
-	 * <p>Constructor of the class.</p>
-	 * @param nested nested model to make filter for
-	 * @param whiteListRegExp white list URI regular expression will be retained in the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}) 
-	 * @param blackListRegExp white list URI regular expression will be excluded from the nested model (see {@linkplain ContentNodeMetadata#getRelativeUIPath()}). Black list regular expression priority is higher than white list
-	 * @throws NullPointerException any arguments are null
-	 * @throws IllegalArgumentException white or black list is null, empty or has syntax errors 
-	 */
-	@Deprecated(since="0.0.5",forRemoval=true)
-	public ContentMetadataFilter(final ContentMetadataInterface nested, final Pattern whiteListRegExp, final Pattern blackListRegExp) throws NullPointerException, IllegalArgumentException {
-		this(nested,(n)->testPattern(n,whiteListRegExp),(n)->testPattern(n,blackListRegExp));
-	} 
 	
 	@Override
 	public ContentNodeMetadata getRoot() {
