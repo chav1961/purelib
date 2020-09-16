@@ -192,6 +192,7 @@ public class LineByLineProcessor implements Closeable {
 				throw new IOException(e);
 			}
 		}
+		callback.terminateProcessing();
 	}
 	
 	private void processFromBuilder() throws IOException, SyntaxException {

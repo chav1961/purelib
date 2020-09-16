@@ -6,7 +6,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 /**
  * <p>This interface describes char source to use in the different parsers.</p>
  * @see chav1961.purelib.streams.charsource
- * @author chav1961
+ * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  * @lastUpdate 0.0.2
  *

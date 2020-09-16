@@ -11,7 +11,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 
 @FunctionalInterface
@@ -27,4 +27,12 @@ public interface LineByLineProcessorCallback {
 	 * @throws SyntaxException is any syntax errors were detected
 	 */
 	void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException;
+	
+	/**
+	 * <p>Ends processing content.</p>
+	 * @since 0.0.4
+	 */
+	default void terminateProcessing() {
+		
+	}
 }
