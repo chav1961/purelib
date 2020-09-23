@@ -42,7 +42,7 @@ import chav1961.purelib.streams.JsonSaxParser;
  * @since 0.0.1
  */
 
-public interface JsonSaxHandler {
+public interface JsonSaxHandler extends SaxHandler {
 	/**
 	 * <p>This event is fired on the start of the document</p>
 	 * @throws ContentException if any content problems was detected

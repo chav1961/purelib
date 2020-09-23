@@ -2,7 +2,7 @@ package chav1961.purelib.streams.interfaces;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 
-public interface CsvSaxHandler {
+public interface CsvSaxHandler extends SaxHandler {
 	void startDoc() throws ContentException; 
 	void endDoc() throws ContentException; 
 	void startCaption() throws ContentException; 

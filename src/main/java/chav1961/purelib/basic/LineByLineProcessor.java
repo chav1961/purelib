@@ -56,7 +56,10 @@ public class LineByLineProcessor implements Closeable {
 	
 	@Override
 	public void close() throws IOException {
-		closeWriting();
+		try{closeWriting();
+		} catch (SyntaxException e) {
+			throw new IOException(e.getLocalizedMessage(),e);
+		}
 	}
 	
 	/**
@@ -182,7 +185,7 @@ public class LineByLineProcessor implements Closeable {
 		}
 	}
 
-	private void closeWriting() throws IOException {
+	private void closeWriting() throws IOException, SyntaxException {
 		if (gca.length() > 0) {
 			if (gca.charAt(gca.length()-1) != '\n') {
 				gca.append('\n');

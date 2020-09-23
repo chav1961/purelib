@@ -243,7 +243,7 @@ public class SQLUtils {
 			
 			if (Character.isJavaIdentifierStart(content[from])) {
 				from = CharUtils.skipBlank(content,CharUtils.parseName(content,from,forInt),false);
-				for (int index = forInt[0]; index < forInt[1]; index++) {
+				for (int index = forInt[0]; index <= forInt[1]; index++) {
 					content[index] = Character.toUpperCase(content[index]);
 				}
 				forTypeId = SQLUtils.typeIdByTypeName(content,forInt[0],forInt[1]+1);
@@ -971,6 +971,7 @@ public class SQLUtils {
 		toMap.put(Float.class,(source)->{return Float.valueOf(((Integer)source).floatValue());});
 		toMap.put(Double.class,(source)->{return Double.valueOf(((Integer)source).doubleValue());});
 		toMap.put(BigInteger.class,(source)->{return BigInteger.valueOf(((Integer)source).longValue());});
+		toMap.put(BigDecimal.class,(source)->{return new BigDecimal(((Integer)source).longValue());});
 		toMap.put(byte[].class,(source)->{return new byte[]{(byte)(((Integer)source).intValue() >> 24), (byte)(((Integer)source).intValue() >> 16), (byte)(((Integer)source).intValue() >> 8), (byte)(((Integer)source).intValue() >> 0)};});
 		toMap.put(InputStream.class,(source)->{return new ByteArrayInputStreamWithEquals(new byte[]{(byte)(((Integer)source).intValue() >> 24), (byte)(((Integer)source).intValue() >> 16), (byte)(((Integer)source).intValue() >> 8), (byte)(((Integer)source).intValue() >> 0)});});
 		toMap.put(Reader.class,(source)->{return new StringReaderWithEquals(String.valueOf(((Integer)source).intValue()));});

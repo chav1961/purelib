@@ -1,1 +1,0 @@
-moduleSearchIndex = [{"l":"chav1961.purelib"}]

@@ -462,7 +462,7 @@ public class FieldFormat {
 			
 			switch (mode) {
 				case CREOLE_TEXT	:
-					break;
+					return "{{{"+print(value,PrintMode.SINGLE_TEXT)+"}}}";
 				case HTML_TEXT		:
 					break;
 				case SINGLE_TEXT	:
@@ -477,7 +477,12 @@ public class FieldFormat {
 							result = String.format("%1$"+getLength()+"."+getPrecision()+"f",value);
 						}
 						else {
-							result = String.format("%1$"+getLength()+"d",value);
+							if ((value instanceof BigDecimal) || (value instanceof Double) || (value instanceof Float)) {
+								result = String.format("%1$"+getLength()+".0f",value);
+							}
+							else {
+								result = String.format("%1$"+getLength()+"d",value);
+							}
 						}
 					}
 					else {
@@ -507,6 +512,11 @@ public class FieldFormat {
 					}
 					break;
 				case NoMatter			:
+					if (getLength() >= 0) {
+						if (result.length() > getLength()) {
+							result = result.substring(0,getLength());
+						}
+					}
 					break;
 				default	:
 					throw new UnsupportedOperationException("Alignment ["+getAlignment()+"] is not supported yet");

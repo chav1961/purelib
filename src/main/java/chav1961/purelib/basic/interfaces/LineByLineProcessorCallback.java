@@ -32,7 +32,7 @@ public interface LineByLineProcessorCallback {
 	 * <p>Ends processing content.</p>
 	 * @since 0.0.4
 	 */
-	default void terminateProcessing() {
+	default void terminateProcessing()  throws IOException, SyntaxException {
 		
 	}
 }
