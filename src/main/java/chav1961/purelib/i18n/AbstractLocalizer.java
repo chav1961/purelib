@@ -663,7 +663,7 @@ loop:		do {mode = processor.process(cursor.item,0);
 					final Localizer	ref = getParent();
 					
 					if (ref != null) {
-						ref.walkUp(processor);
+						return Utils.resolveContinueMode(mode,ref.walkUp(processor));
 					}
 					break;
 				default : throw new UnsupportedOperationException("Continue mode ["+mode+"] is not supported yet"); 

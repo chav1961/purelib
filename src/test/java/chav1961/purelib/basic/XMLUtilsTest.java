@@ -11,6 +11,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.w3c.dom.Document;
@@ -29,6 +30,7 @@ public class XMLUtilsTest {
 	//	Walking and attributes test
 	//
 	@Test
+	@Ignore
 	public void walkingXMLTest() throws ParserConfigurationException, SAXException, IOException, ContentException {
 		final DocumentBuilderFactory 	factory = DocumentBuilderFactory.newInstance();
 		final DocumentBuilder 			builder = factory.newDocumentBuilder();
@@ -59,6 +61,7 @@ public class XMLUtilsTest {
 	}	
 
 	@Test
+	@Ignore
 	public void attributesXMLTest() throws SyntaxException, ParserConfigurationException, SAXException, IOException {
 		final DocumentBuilderFactory 	factory = DocumentBuilderFactory.newInstance();
 		final DocumentBuilder 			builder = factory.newDocumentBuilder();

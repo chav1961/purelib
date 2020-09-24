@@ -311,7 +311,7 @@ public class PreprocessingReaderTest {
 				sb.append(line).append('\n');
 			}
 		}
-		Assert.assertEquals(sb.toString(),ERROR_AND_WARN_RESULT);
+		Assert.assertEquals(ERROR_AND_WARN_RESULT.trim(),sb.toString().trim());
 	}
 
 	@Test

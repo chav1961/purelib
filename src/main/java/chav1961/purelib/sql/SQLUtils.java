@@ -346,7 +346,7 @@ public class SQLUtils {
 				return item.getTypeName();
 			}
 		}
-		throw new IllegalArgumentException("Type id ["+typeId+"] is unknown");
+		return null;
 	}
 
 	/**
@@ -368,7 +368,7 @@ public class SQLUtils {
 	 * <p>Define type id by it's type name</p>
 	 * @param typeName type name to define id for
 	 * @return type id (see {@linkplain Types})
-	 * @throws IllegalArgumentException when type name is null, empty or unknown
+	 * @throws IllegalArgumentException when type name is null or empty
 	 */
 	public static int typeIdByTypeName(final String typeName) throws IllegalArgumentException {
 		if (typeName == null || typeName.isEmpty()) {
@@ -380,17 +380,17 @@ public class SQLUtils {
 					return item.getType();
 				}
 			}
-			throw new IllegalArgumentException("Type name ["+typeName+"] is unknown");
+			return UNKNOWN_TYPE;
 		}
 	}
 
 	/**
 	 * <p>Define type id by it's type name</p>
 	 * @param typeName type name to define id for
-	 * @param from
-	 * @param to
-	 * @return
-	 * @throws IllegalArgumentException when type name is null, empty, unknown or from and to parameters are out of range 
+	 * @param from starting char in the type name
+	 * @param to ending char in the type name
+	 * @return type id (see {@linkplain Types})
+	 * @throws IllegalArgumentException when type name is null, empty or from and to parameters are out of range 
 	 */
 	public static int typeIdByTypeName(final char[] typeName, final int from, final int to) throws IllegalArgumentException {
 		if (typeName == null || typeName.length == 0) {
@@ -404,7 +404,7 @@ public class SQLUtils {
 					return item.getType();
 				}
 			}
-			throw new IllegalArgumentException("Type name ["+new String(typeName,from,to-from)+"] is unknown");
+			return UNKNOWN_TYPE;
 		}
 	}
 
