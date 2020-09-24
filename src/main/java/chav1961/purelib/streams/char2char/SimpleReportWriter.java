@@ -42,6 +42,8 @@ import chav1961.purelib.sql.SQLUtils;
  * <group_expression>::={'sum'|'count'|'avg'|'min'|'max'}'('<ordinal_expression>')'
  */
 public class SimpleReportWriter extends Writer {
+	private static final char[]	CRLF = System.lineSeparator().toCharArray();
+	
 	private enum Option {
 		FirstPage("firstPage",false),
 		LastPage("lastPage",false),
@@ -481,8 +483,9 @@ loop:		do {
 			while (data[from] != '\n' && data[from] != '\r' && data[from] != '&') {
 				from++;
 			}
-			desc.appendText(data,start,from-1);
+			desc.appendText(data,start,from);
 			start = from;
+			
 			if (data[from] == '&') {
 				final SyntaxNode<SyntaxNodeOperation,SyntaxNode<?,?>>	root = new SyntaxNode<>(lineNo,0,SyntaxNodeOperation.ROOT,0,null);
 				FieldFormat	ff;
@@ -546,8 +549,9 @@ loop:		do {
 			}
 		}
 		if (from > start) {
-			desc.appendText(data,start,from-1);
+			desc.appendText(data,start,from);
 		}
+		desc.appendText(CRLF,0,CRLF.length);
 	}
 
 	static int buildExpression(final int lineNo, final char[] data, int from, final SyntaxNode<SyntaxNodeOperation, SyntaxNode<?, ?>> node) throws SyntaxException {

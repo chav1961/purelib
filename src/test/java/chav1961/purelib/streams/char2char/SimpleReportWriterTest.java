@@ -44,7 +44,15 @@ public class SimpleReportWriterTest {
 
 			swr.write(rs);
 			swr.flush();
-			System.err.println("content="+wr.toString());
+			
+			Assert.assertEquals("--- zd ---\n" + 
+			"--- ds a ---\n" + 
+			"--- ds a ---\n" + 
+			"--- tot          6 ---\n" + 
+			"--- ds b ---\n" + 
+			"--- ds b ---\n" + 
+			"--- tot         22 ---\n" + 
+			"--- kd ---\n",wr.toString().replace("\r", ""));
 		}
 	}
 
