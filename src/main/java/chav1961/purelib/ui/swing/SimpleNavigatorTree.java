@@ -1,7 +1,5 @@
 package chav1961.purelib.ui.swing;
 
-
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.MouseInfo;
