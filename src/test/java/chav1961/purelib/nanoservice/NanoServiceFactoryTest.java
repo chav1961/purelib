@@ -1,7 +1,6 @@
 package chav1961.purelib.nanoservice;
 
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,10 +8,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.zip.GZIPInputStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -47,39 +43,36 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.nanoservice.NanoServiceFactory.MethodDescriptor;
 import chav1961.purelib.nanoservice.NanoServiceFactory.PathParser;
 import chav1961.purelib.nanoservice.NanoServiceFactory.QueryParser;
 import chav1961.purelib.nanoservice.NanoServiceFactory.RequestHeadParser;
-import chav1961.purelib.nanoservice.NanoServiceFactory.ResponseHeadSetter;
 import chav1961.purelib.nanoservice.interfaces.MethodExecutor;
 import chav1961.purelib.nanoservice.interfaces.QueryType;
-import chav1961.purelib.streams.byte2byte.ZLibInputStream;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @SuppressWarnings("restriction")
 @Category(OrdinalTestCategory.class)
 public class NanoServiceFactoryTest {
-	private static final String			LOOPBACK_RESPONSE = 
-											"<html>\n"+
-											"<head></head>\n"+
-											"<body>\n"+
-											"<h3>Loopback info:<h3>\n"+
-											"<p>Request method = GET</p>\n"+
-											"<p>Path = /loopback, fragment = <missing></p>\n"+
-											"<p>Query string = <missing></p>\n"+
-											"<p>Request headers:</p>\n"+
-											"<table>\n"+
-											"<tr><th>Header key</th><th>Value</th></tr>\n"+
-											"<tr><td>Accept</td><td>[text/html]</td></tr>\n"+
-											"</table>\n"+
-											"<p>Response headers:</p>\n"+
-											"<table>\n"+
-											"<tr><th>Header key</th><th>Value</th></tr>\n"+
-											"<tr><td>Content-type</td><td>[text/html]</td></tr>\n"+
-											"</table>\n"+
-											"</body>\n"+
+	private static final String			LOOPBACK_RESPONSE =
+											"<html>\n" + 
+											"<head></head>\n" + 
+											"<body>\n" + 
+											"<h3>Loopback info:<h3>\n" + 
+											"<p>Request method = GET</p>\n" + 
+											"<p>Path = , fragment = ???</p>\n" + 
+											"<p>Query string = </p>\n" + 
+											"<p>Request headers:</p>\n" + 
+											"<table>\n" + 
+											"<tr><th>Header key</th><th>Value</th></tr>\n" + 
+											"<tr><td>Accept</td><td>[text/html]</td></tr>\n" + 
+											"</table>\n" + 
+											"<p>Response headers:</p>\n" + 
+											"<table>\n" + 
+											"<tr><th>Header key</th><th>Value</th></tr>\n" + 
+											"<tr><td>Content-type</td><td>[text/html]</td></tr>\n" + 
+											"</table>\n" + 
+											"</body>\n" + 
 											"</html>";
 	private static final TestProbe[]	TO_BODY_SET = new TestProbe[]{
 											// ---------- text/plain
@@ -264,7 +257,7 @@ public class NanoServiceFactoryTest {
 	public void methodDescriptorTest() throws IOException {
 		final MethodExecutor	executor = new MethodExecutor() {
 									@Override
-									public int execute(final QueryType type, final char[] path, final char[] query, final Headers requestHeaders, final Headers responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
+									public int execute(final QueryType type, final char[] path, final char[] query, final Map<String,List<String>> requestHeaders, final Map<String,List<String>> responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
 										return 0;
 									}
 								};

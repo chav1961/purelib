@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -124,6 +125,7 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
  */
 
 public class NanoServiceFactory implements Closeable, NanoService, HttpHandler   {
+	public static final String 			NANOSERVICE_USE_BUILTIN_SERVER = "nanoserviceUseBuiltinServer";
 	public static final String 			NANOSERVICE_PORT = "nanoservicePort";
 	public static final String 			NANOSERVICE_ROOT = "nanoserviceRoot";
 	public static final String 			NANOSERVICE_LOCALHOST_ONLY = "nanoserviceLocalhostOnly";
@@ -186,8 +188,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	public interface NanoServiceEnvironment {
 		Connection getConnection() throws SQLException;
 		LoggerFacade getLogger();
-		void fail(HttpExchange handler, int rc, String format, Object... parameters) throws IOException;
-		void success(HttpExchange handler, int rc) throws IOException;
+		void fail(int rc, String format, Object... parameters) throws IOException;
+		void success(int rc) throws IOException;
 	}
 
 	static final String 			MACROS_CONTENT = "macros.txt";
@@ -203,7 +205,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	private final TemplateCache<QueryParser>		queryCache = new TemplateCache<>();
 	private final TemplateCache<RequestHeadParser>	requestHeaderCache = new TemplateCache<>();
 	private final TemplateCache<ResponseHeadSetter>	responseHeaderCache = new TemplateCache<>();
-	private final NanoServiceEnvironment			environment;
 	private final boolean							disableLoopback;
 	private final boolean							localhostOnly;
 	private final TemporaryStore					tempStore;
@@ -213,6 +214,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	@SuppressWarnings("rawtypes")
 	private final PrologueEpilogueMaster			prologue, epilogue;
 	private final int								executorPoolSize;
+	private final boolean							useBuiltiServer;
 
 	private volatile ExecutorService				executorPool;
 	private volatile boolean						started = false, paused = false;
@@ -231,13 +233,16 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		else {
 			this.facade = facade;
 			this.dataSource = dataSource;
+			this.useBuiltiServer = props.getProperty(NANOSERVICE_USE_BUILTIN_SERVER,boolean.class,"true");
 			
 			try(final LoggerFacade	check = facade.transaction("Microservice init")) {
 				boolean wereErrors = false;
 
-				if (!props.containsKey(NANOSERVICE_PORT)) {
-					wereErrors = true;
-					check.message(Severity.error, "Mandatory parameter [%1$s] is missing in the configuration",NANOSERVICE_PORT);
+				if (useBuiltiServer) {
+					if (!props.containsKey(NANOSERVICE_PORT)) {
+						wereErrors = true;
+						check.message(Severity.error, "Mandatory parameter [%1$s] is missing in the configuration",NANOSERVICE_PORT);
+					}
 				}
 				
 				if (!props.containsKey(NANOSERVICE_ROOT)) {
@@ -264,54 +269,54 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				}
 				
 				if (!wereErrors) {
-					this.environment = new NanoServiceEnvironment() {
-						@Override
-						public void success(final HttpExchange handler, final int rc) throws IOException {
-							if (handler == null) {
-								throw new NullPointerException("Exchange handler can't be null");
-							}
-							else {
-								handler.sendResponseHeaders(rc,0);
-							}
-						}
-						
-						@Override
-						public LoggerFacade getLogger() {
-							return facade;
-						}
-						
-						@Override
-						public Connection getConnection() throws SQLException {
-							if (dataSource == null) {
-								throw new IllegalStateException("Data source was not passed to the nanoservice. Using of the connections are illegal"); 
-							}
-							else {
-								return dataSource.getConnection();
-							}
-						}
-						
-						@Override
-						public void fail(final HttpExchange handler, final int rc, final String format, final Object... parameters) throws IOException {
-							if (handler == null) {
-								throw new NullPointerException("Exchange handler can't be null");
-							}
-							else if (format == null) {
-								throw new NullPointerException("Format string can't be null");
-							}
-							else {
-								final byte[] 	answer = (parameters == null || parameters.length == 0 ? format : String.format(format,parameters)).getBytes("UTF-8");
-								
-								handler.getResponseHeaders().add(HEAD_CONTENT_TYPE,PureLibSettings.MIME_PLAIN_TEXT.toString());
-								handler.getResponseHeaders().add(HEAD_CONTENT_LENGTH,String.valueOf(answer.length));
-								handler.getResponseHeaders().add(HEAD_CONTENT_ENCODING,HEAD_CONTENT_ENCODING_IDENTITY);
-								handler.sendResponseHeaders(rc,0);
-								try(final OutputStream	os = handler.getResponseBody()) {
-									os.write(answer);
-									os.flush();
-								}
-							}
-						}
-					};					
+//					this.environment = new NanoServiceEnvironment() {
+//						@Override
+//						public void success(final HttpExchange handler, final int rc) throws IOException {
+//							if (handler == null) {
+//								throw new NullPointerException("Exchange handler can't be null");
+//							}
+//							else {
+//								handler.sendResponseHeaders(rc,0);
+//							}
+//						}
+//						
+//						@Override
+//						public LoggerFacade getLogger() {
+//							return facade;
+//						}
+//						
+//						@Override
+//						public Connection getConnection() throws SQLException {
+//							if (dataSource == null) {
+//								throw new IllegalStateException("Data source was not passed to the nanoservice. Using of the connections are illegal"); 
+//							}
+//							else {
+//								return dataSource.getConnection();
+//							}
+//						}
+//						
+//						@Override
+//						public void fail(final HttpExchange handler, final int rc, final String format, final Object... parameters) throws IOException {
+//							if (handler == null) {
+//								throw new NullPointerException("Exchange handler can't be null");
+//							}
+//							else if (format == null) {
+//								throw new NullPointerException("Format string can't be null");
+//							}
+//							else {
+//								final byte[] 	answer = (parameters == null || parameters.length == 0 ? format : String.format(format,parameters)).getBytes("UTF-8");
+//								
+//								handler.getResponseHeaders().add(HEAD_CONTENT_TYPE,PureLibSettings.MIME_PLAIN_TEXT.toString());
+//								handler.getResponseHeaders().add(HEAD_CONTENT_LENGTH,String.valueOf(answer.length));
+//								handler.getResponseHeaders().add(HEAD_CONTENT_ENCODING,HEAD_CONTENT_ENCODING_IDENTITY);
+//								handler.sendResponseHeaders(rc,0);
+//								try(final OutputStream	os = handler.getResponseBody()) {
+//									os.write(answer);
+//									os.flush();
+//								}
+//							}
+//						}
+//					};					
 					this.disableLoopback = props.getProperty(NANOSERVICE_DISABLE_LOOPBACK,boolean.class,DEFAULT_NANOSERVICE_DISABLE_LOOPBACK);
 					this.localhostOnly = props.getProperty(NANOSERVICE_LOCALHOST_ONLY,boolean.class,DEFAULT_NANOSERVICE_LOCALHOST_ONLY);
 					this.tempStore = new TemporaryStore(props.getProperty(NANOSERVICE_TEMPORARY_CACHE_SIZE,int.class,""+TemporaryStore.DEFAULT_BUFFER_SIZE));
@@ -324,13 +329,18 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						Utils.copyStream(rdr,writer);
 					}
 					
-					if (props.getProperty(NANOSERVICE_USE_SSL,boolean.class,"false")) {
-						server = createHttpsServer(props);
+					if (useBuiltiServer) {
+						if (props.getProperty(NANOSERVICE_USE_SSL,boolean.class,"false")) {
+							server = createHttpsServer(props);
+						}
+						else {
+							server = HttpServer.create(new InetSocketAddress(props.getProperty(NANOSERVICE_PORT,int.class)),0);
+						}
+						server.createContext("/",this);
 					}
 					else {
-						server = HttpServer.create(new InetSocketAddress(props.getProperty(NANOSERVICE_PORT,int.class)),0);
+						server = null;
 					}
-					server.createContext("/",this);
 					check.rollback();
 				}
 				else {
@@ -346,8 +356,10 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			throw new IllegalStateException("Attempt to start server already started"); 
 		}
 		else {
-			server.setExecutor(this.executorPool = Executors.newFixedThreadPool(executorPoolSize));
-			server.start();
+			if (useBuiltiServer) {
+				server.setExecutor(this.executorPool = Executors.newFixedThreadPool(executorPoolSize));
+				server.start();
+			}
 			paused = false;
 			started = true;
 		}
@@ -395,8 +407,10 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			throw new IllegalStateException("Attempt to stop server already stopped"); 
 		}
 		else {
-			server.stop(0);
-			executorPool.shutdownNow();
+			if (useBuiltiServer) {
+				server.stop(0);
+				executorPool.shutdownNow();
+			}
 			paused = false;
 			started = false;
 		}
@@ -441,45 +455,51 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 
 	@Override
 	public void handle(final HttpExchange call) throws IOException {
-		final String	remoteHost = call.getRemoteAddress().getHostName();
+		final NanoServiceEnvironment	nse = new SimpleHttpServerEnvironment(call,facade);
+		final QueryType 				type;
+		
+		try{type = QueryType.valueOf(call.getRequestMethod());
+		} catch (IllegalArgumentException exc) {
+			nse.fail(HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is not supported yet",call.getRequestMethod());
+			return;
+		}
+		
+		handle(nse,call.getRemoteAddress(),type,call.getRequestURI(),call.getRequestHeaders(),call.getRequestBody(),call.getResponseHeaders(),call.getResponseBody());
+	}
+	
+	public void handle(final NanoServiceEnvironment env,final InetSocketAddress remoteAddress, final QueryType queryType, final URI requestUri, final Map<String,List<String>> requestHeaders, final InputStream requestBody, final Map<String,List<String>> responseHeaders, final OutputStream responseBody) throws IOException {
+		final String	remoteHost = remoteAddress.getHostName();
 		
 		if (localhostOnly && !LOCALHOST_ALIASES.contains(remoteHost)) {
-			getEnvironment().fail(call,HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+remoteHost+"], only localhost addresses are currently available");
+			env.fail(HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+remoteHost+"], only localhost addresses are currently available");
 		}
 		else if (!paused) {
-			final char[]			path = call.getRequestURI().getPath().toCharArray();
-			final String			pluginRoot = seekPluginRoot(path, call);
+			final char[]			path = requestUri.getPath().toCharArray();
+			final String			pluginRoot = seekPluginRoot(path, queryType);
 			final MethodExecutor	me;
-			final QueryType 		type;
-			
-			try{type = QueryType.valueOf(call.getRequestMethod());
-			} catch (IllegalArgumentException exc) {
-				getEnvironment().fail(call,HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is not supported yet",call.getRequestMethod());
-				return;
-			}
 
-			switch(type) {
+			switch(queryType) {
 				case GET	:
-					if (pluginRoot == null || (me = seekPlugin(path, call)) == null) {
+					if (pluginRoot == null || (me = seekPlugin(path, queryType, requestHeaders)) == null) {
 						try(final FileSystemInterface	fsi  = serviceRoot.clone().open(new String(path))) {
 							
 							if (!fsi.exists() || !fsi.isFile()) {
-								getEnvironment().fail(call,HttpURLConnection.HTTP_NOT_FOUND,"Sorry, but resource [%1$s] not exists",fsi.getPath());
+								env.fail(HttpURLConnection.HTTP_NOT_FOUND,"Sorry, but resource [%1$s] not exists",fsi.getPath());
 							}
 							else {
 								final MimeType[]			detected = InternalUtils.defineMimeByExtension(fsi.getName());
-								final String				streamType = defineStreamType(call.getRequestHeaders().get(HEAD_ACCEPT_ENCODING));  
+								final String				streamType = defineStreamType(requestHeaders.get(HEAD_ACCEPT_ENCODING));  
 	
-								call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,streamType);
-								if (call.getRequestHeaders().containsKey(HEAD_ACCEPT)) {
-									final List<String>		accepts = call.getRequestHeaders().get(HEAD_ACCEPT);
+								responseHeaders.put(HEAD_CONTENT_ENCODING,Arrays.asList(streamType));
+								if (requestHeaders.containsKey(HEAD_ACCEPT)) {
+									final List<String>		accepts = requestHeaders.get(HEAD_ACCEPT);
 									final MimeType[]		awaited = InternalUtils.buildMime(accepts.toArray(new String[accepts.size()])); 
 
 									if (Arrays.deepEquals(detected,CREOLE_DETECTED) && InternalUtils.mimesIntersect(HTML_DETECTED,awaited)) {
-										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,HTML_DETECTED[0].toString()+"; charset=UTF8");
-										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
+										responseHeaders.put(HEAD_CONTENT_TYPE,Arrays.asList(HTML_DETECTED[0].toString()+"; charset=UTF8"));
+										env.success(HttpURLConnection.HTTP_OK);
 										
-										try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType);
+										try(final OutputStream	os = getOutputStream(responseBody,streamType);
 											final Writer		wr = new OutputStreamWriter(os,"UTF-8");
 											final CreoleWriter	cre = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML,prologue,epilogue)) {
 											
@@ -487,20 +507,20 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 										}
 									}
 									else if (InternalUtils.mimesIntersect(detected,awaited)) {
-										call.getResponseHeaders().set(HEAD_CONTENT_TYPE,detected[0].toString());
-										getEnvironment().success(call,HttpURLConnection.HTTP_OK);
-										try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType)) {
+										responseHeaders.put(HEAD_CONTENT_TYPE,Arrays.asList(detected[0].toString()));
+										env.success(HttpURLConnection.HTTP_OK);
+										try(final OutputStream	os = getOutputStream(responseBody,streamType)) {
 											
 											fsi.copy(os);
 										}
 									}
 									else {
-										getEnvironment().fail(call,HttpURLConnection.HTTP_UNSUPPORTED_TYPE,"URI [%1$s]: Target content %2$s is not compatible with awaited [%3$s]",new String(path),Arrays.toString(detected),call.getRequestHeaders().getFirst(HEAD_ACCEPT));
+										env.fail(HttpURLConnection.HTTP_UNSUPPORTED_TYPE,"URI [%1$s]: Target content %2$s is not compatible with awaited [%3$s]",new String(path),Arrays.toString(detected),requestHeaders.get(HEAD_ACCEPT).get(0));
 									}
 								}
 								else {
-									getEnvironment().success(call,HttpURLConnection.HTTP_OK);
-									try(final OutputStream	os = getOutputStream(call.getResponseBody(),streamType)) {
+									env.success(HttpURLConnection.HTTP_OK);
+									try(final OutputStream	os = getOutputStream(responseBody,streamType)) {
 										
 										fsi.copy(os);
 									}
@@ -508,213 +528,205 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 							}
 						} catch (MimeParseException | RuntimeException exc) {
 							PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
-							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
+							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
 					else {
-						final String		inputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_CONTENT_ENCODING));  
-						final String		outputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_ACCEPT_ENCODING));
-						final List<String>	inputContent = call.getRequestHeaders().get(HEAD_CONTENT_TYPE); 
-						final List<String>	outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
+						final String		inputStreamType = defineStreamType(requestHeaders.get(HEAD_CONTENT_ENCODING));  
+						final String		outputStreamType = defineStreamType(requestHeaders.get(HEAD_ACCEPT_ENCODING));
+						final List<String>	inputContent = requestHeaders.get(HEAD_CONTENT_TYPE); 
+						final List<String>	outputContent = requestHeaders.get(HEAD_ACCEPT); 
 						
 						try(final InputOutputPair	pair = tempStore.allocate()){
 							int 	rc = 200;
 							
 							try(final OutputStream	os = pair.getOutputStream()) {
-								final String 						query = URIUtils.extractQueryFromURI(call.getRequestURI());
+								final String 						query = URIUtils.extractQueryFromURI(requestUri);
 								final Hashtable<String,String[]>	queryParsed = URIUtils.parseQuery(query == null ? "" : query);
-								final URI							callPath = call.getRequestURI();
-								final String						pathTail = callPath.getPath().replace(pluginRoot,"");
+								final String						pathTail = requestUri.getPath().replace(pluginRoot,"");
 										
 								rc = me.execute(QueryType.GET
 											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
-											, callPath.getQuery() != null ? callPath.getQuery().toCharArray() : null
-											, call.getRequestHeaders()
-											, call.getResponseHeaders()
+											, query != null ? query.toCharArray() : null
+											, requestHeaders
+											, responseHeaders
 											, null
 											, os);
 							}
 							
 							if (rc >= 100 && rc <= 399) {
 								try(final InputStream	is = pair.getInputStream()) {
-									call.getResponseHeaders().set(HEAD_CONTENT_LENGTH,String.valueOf(pair.getSizeUsed()));
-									call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,outputStreamType);
-									getEnvironment().success(call,rc);
+									responseHeaders.put(HEAD_CONTENT_LENGTH,Arrays.asList(String.valueOf(pair.getSizeUsed())));
+									responseHeaders.put(HEAD_CONTENT_ENCODING,Arrays.asList(outputStreamType));
+									env.success(rc);
 									
-									try(final OutputStream 	os = getOutputStream(call.getResponseBody(),outputStreamType)) {
+									try(final OutputStream 	os = getOutputStream(responseBody,outputStreamType)) {
 										Utils.copyStream(is, os);
 									}
 								}
 							}
 							else {
-								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
+								env.fail(rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
+							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
 					break;
 				case POST	:
-					if (pluginRoot == null || (me = seekPlugin(path, call)) == null) {
-						getEnvironment().fail(call,HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is incompatible with the static content",type);
+					if (pluginRoot == null || (me = seekPlugin(path, queryType, requestHeaders)) == null) {
+						env.fail(HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is incompatible with the static content",queryType);
 					}
 					else {
-						final String				inputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_CONTENT_ENCODING));  
-						final String				outputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_ACCEPT_ENCODING));
-						final List<String>			inputContent = call.getRequestHeaders().get(HEAD_CONTENT_TYPE); 
-						final List<String>			outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
-						
-						
-						try(final InputOutputPair	pair = tempStore.allocate()){
-							int 	rc = 200;
-							
-							try(final InputStream	is = call.getRequestBody();
-								final OutputStream	os = pair.getOutputStream()) {
-								final URI			callPath = call.getRequestURI();
-								final String		pathTail = callPath.getPath().replace(pluginRoot,"");
-										
-								rc = me.execute(QueryType.POST
-											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
-											, null
-											, call.getRequestHeaders()
-											, call.getResponseHeaders()
-											, is
-											, os);
-							}
-							
-							if (rc >= 200 && rc <= 299) {
-								try(final InputStream	is = pair.getInputStream()) {
-									call.getResponseHeaders().set(HEAD_CONTENT_LENGTH,String.valueOf(pair.getSizeUsed()));
-									call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,outputStreamType);
-									getEnvironment().success(call,rc);
-									
-									try(final OutputStream 	os = getOutputStream(call.getResponseBody(),outputStreamType)) {
-										Utils.copyStream(is, os);
-									}
-								}
-							}
-							else {
-								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
-							}
-						} catch (Throwable exc) {
-							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
-						}
-					}
-					break;
-				case PUT	:
-					if (pluginRoot == null || (me = seekPlugin(path, call)) == null) {
-						getEnvironment().fail(call,HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is incompatible with the static content",type);
-					}
-					else {
-						final String				inputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_CONTENT_ENCODING));  
-						final String				outputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_ACCEPT_ENCODING));
-						final List<String>			inputContent = call.getRequestHeaders().get(HEAD_CONTENT_TYPE); 
-						final List<String>			outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
-						
-						try(final InputOutputPair	pair = tempStore.allocate()){
-							int 	rc = 200;
-							
-							try(final InputStream	is = call.getRequestBody();
-								final OutputStream	os = pair.getOutputStream()) {
-								final URI			callPath = call.getRequestURI();
-								final String		pathTail = callPath.getPath().replace(pluginRoot,"");
-										
-								rc = me.execute(QueryType.PUT
-											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
-											, null
-											, call.getRequestHeaders()
-											, call.getResponseHeaders()
-											, is
-											, os);
-							}
-							
-							if (rc >= 200 && rc <= 299) {
-								try(final InputStream	is = pair.getInputStream()) {
-									call.getResponseHeaders().set(HEAD_CONTENT_LENGTH,String.valueOf(pair.getSizeUsed()));
-									call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,outputStreamType);
-									getEnvironment().success(call,rc);
-									
-									try(final OutputStream 	os = getOutputStream(call.getResponseBody(),outputStreamType)) {
-										Utils.copyStream(is, os);
-									}
-								}
-							}
-							else {
-								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
-							}
-						} catch (Throwable exc) {
-							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
-						}
-					}
-					break;
-				case DELETE	:
-					if (pluginRoot == null || (me = seekPlugin(path, call)) == null) {
-						getEnvironment().fail(call,HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is incompatible with the static content",type);
-					}
-					else {
-						final String				inputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_CONTENT_ENCODING));  
-						final String				outputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_ACCEPT_ENCODING));
-						final List<String>			inputContent = call.getRequestHeaders().get(HEAD_CONTENT_TYPE); 
-						final List<String>			outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
+						final String				inputStreamType = defineStreamType(requestHeaders.get(HEAD_CONTENT_ENCODING));  
+						final String				outputStreamType = defineStreamType(requestHeaders.get(HEAD_ACCEPT_ENCODING));
+						final List<String>			inputContent = requestHeaders.get(HEAD_CONTENT_TYPE); 
+						final List<String>			outputContent = requestHeaders.get(HEAD_ACCEPT); 
 						
 						
 						try(final InputOutputPair	pair = tempStore.allocate()){
 							int 	rc = 200;
 							
 							try(final OutputStream	os = pair.getOutputStream()) {
-								final URI			callPath = call.getRequestURI();
-								final String		pathTail = callPath.getPath().replace(pluginRoot,"");
+								final String		pathTail = requestUri.getPath().replace(pluginRoot,"");
+										
+								rc = me.execute(QueryType.POST
+											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
+											, null
+											, requestHeaders
+											, responseHeaders
+											, requestBody
+											, os);
+							}
+							
+							if (rc >= 200 && rc <= 299) {
+								try(final InputStream	is = pair.getInputStream()) {
+									responseHeaders.put(HEAD_CONTENT_LENGTH,Arrays.asList(String.valueOf(pair.getSizeUsed())));
+									responseHeaders.put(HEAD_CONTENT_ENCODING,Arrays.asList(outputStreamType));
+									env.success(rc);
+									
+									try(final OutputStream 	os = getOutputStream(responseBody,outputStreamType)) {
+										Utils.copyStream(is, os);
+									}
+								}
+							}
+							else {
+								env.fail(rc,"Unsuccessful processing your request");
+							}
+						} catch (Throwable exc) {
+							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
+						}
+					}
+					break;
+				case PUT	:
+					if (pluginRoot == null || (me = seekPlugin(path, queryType, requestHeaders)) == null) {
+						env.fail(HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is incompatible with the static content",queryType);
+					}
+					else {
+						final String				inputStreamType = defineStreamType(requestHeaders.get(HEAD_CONTENT_ENCODING));  
+						final String				outputStreamType = defineStreamType(requestHeaders.get(HEAD_ACCEPT_ENCODING));
+						final List<String>			inputContent = requestHeaders.get(HEAD_CONTENT_TYPE); 
+						final List<String>			outputContent = requestHeaders.get(HEAD_ACCEPT); 
+						
+						try(final InputOutputPair	pair = tempStore.allocate()){
+							int 	rc = 200;
+							
+							try(final OutputStream	os = pair.getOutputStream()) {
+								final String		pathTail = requestUri.getPath().replace(pluginRoot,"");
+										
+								rc = me.execute(QueryType.PUT
+											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
+											, null
+											, requestHeaders
+											, responseHeaders
+											, requestBody
+											, os);
+							}
+							
+							if (rc >= 200 && rc <= 299) {
+								try(final InputStream	is = pair.getInputStream()) {
+									responseHeaders.put(HEAD_CONTENT_LENGTH,Arrays.asList(String.valueOf(pair.getSizeUsed())));
+									responseHeaders.put(HEAD_CONTENT_ENCODING,Arrays.asList(outputStreamType));
+									env.success(rc);
+									
+									try(final OutputStream 	os = getOutputStream(responseBody,outputStreamType)) {
+										Utils.copyStream(is, os);
+									}
+								}
+							}
+							else {
+								env.fail(rc,"Unsuccessful processing your request");
+							}
+						} catch (Throwable exc) {
+							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
+						}
+					}
+					break;
+				case DELETE	:
+					if (pluginRoot == null || (me = seekPlugin(path, queryType, requestHeaders)) == null) {
+						env.fail(HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is incompatible with the static content",queryType);
+					}
+					else {
+						final String				inputStreamType = defineStreamType(requestHeaders.get(HEAD_CONTENT_ENCODING));  
+						final String				outputStreamType = defineStreamType(requestHeaders.get(HEAD_ACCEPT_ENCODING));
+						final List<String>			inputContent = requestHeaders.get(HEAD_CONTENT_TYPE); 
+						final List<String>			outputContent = requestHeaders.get(HEAD_ACCEPT); 
+						
+						try(final InputOutputPair	pair = tempStore.allocate()){
+							int 	rc = 200;
+							
+							try(final OutputStream	os = pair.getOutputStream()) {
+								final String		pathTail = requestUri.getPath().replace(pluginRoot,"");
 										
 								rc = me.execute(QueryType.DELETE
 											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
 											, null
-											, call.getRequestHeaders()
-											, call.getResponseHeaders()
+											, requestHeaders
+											, responseHeaders
 											, null
 											, os);
 							}
 							
 							if (rc >= 200 && rc <= 299) {
 								try(final InputStream	is = pair.getInputStream()) {
-									call.getResponseHeaders().set(HEAD_CONTENT_LENGTH,String.valueOf(pair.getSizeUsed()));
-									call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,outputStreamType);
-									getEnvironment().success(call,rc);
+									responseHeaders.put(HEAD_CONTENT_LENGTH,Arrays.asList(String.valueOf(pair.getSizeUsed())));
+									responseHeaders.put(HEAD_CONTENT_ENCODING,Arrays.asList(outputStreamType));
+									env.success(rc);
 									
-									try(final OutputStream 	os = getOutputStream(call.getResponseBody(),outputStreamType)) {
+									try(final OutputStream 	os = getOutputStream(responseBody,outputStreamType)) {
 										Utils.copyStream(is, os);
 									}
 								}
 							}
 							else {
-								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
+								env.fail(rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
+							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
 					break;
 				case HEAD	:
-					if (pluginRoot == null || (me = seekPlugin(path, call)) == null) {
-						getEnvironment().fail(call,HttpURLConnection.HTTP_UNSUPPORTED_TYPE,"Target content [%1$s] is not compatible with awaited [%2$s]",HEAD_CONTENT_TYPE,call.getRequestHeaders().getFirst(HEAD_ACCEPT));
+					if (pluginRoot == null || (me = seekPlugin(path, queryType, requestHeaders)) == null) {
+						env.fail(HttpURLConnection.HTTP_UNSUPPORTED_TYPE,"Target content [%1$s] is not compatible with awaited [%2$s]",HEAD_CONTENT_TYPE,requestHeaders.get(HEAD_ACCEPT).get(0));
 					}
 					else {
-						final String				inputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_CONTENT_ENCODING));  
-						final String				outputStreamType = defineStreamType(call.getRequestHeaders().get(HEAD_ACCEPT_ENCODING));
-						final List<String>			inputContent = call.getRequestHeaders().get(HEAD_CONTENT_TYPE); 
-						final List<String>			outputContent = call.getRequestHeaders().get(HEAD_ACCEPT); 
+						final String				inputStreamType = defineStreamType(requestHeaders.get(HEAD_CONTENT_ENCODING));  
+						final String				outputStreamType = defineStreamType(requestHeaders.get(HEAD_ACCEPT_ENCODING));
+						final List<String>			inputContent = requestHeaders.get(HEAD_CONTENT_TYPE); 
+						final List<String>			outputContent = requestHeaders.get(HEAD_ACCEPT); 
 						
-						try{final String						query = URIUtils.extractQueryFromURI(call.getRequestURI());
+						try{final String						query = URIUtils.extractQueryFromURI(requestUri);
 							final Hashtable<String,String[]>	queryParsed = URIUtils.parseQuery(query == null ? "" : query);
-							final URI							callPath = call.getRequestURI();
-							final String						pathTail = callPath.getPath().replace(pluginRoot,"");
+							final String						pathTail = requestUri.getPath().replace(pluginRoot,"");
 							int 	rc = 200;
 							long	length[] = new long[]{0};
 									
 							rc = me.execute(QueryType.HEAD
 										, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
-										, callPath.getQuery() != null ? callPath.getQuery().toCharArray() : null
-										, call.getRequestHeaders()
-										, call.getResponseHeaders()
+										, query != null ? query.toCharArray() : null
+										, requestHeaders
+										, responseHeaders
 										, null
 										, new OutputStream() {
 											@Override
@@ -724,20 +736,20 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 										});
 							
 							if (rc >= 200 && rc <= 299) {
-								call.getResponseHeaders().set(HEAD_CONTENT_LENGTH,String.valueOf(length[0]));
-								call.getResponseHeaders().set(HEAD_CONTENT_ENCODING,outputStreamType);
-								getEnvironment().success(call,rc);
+								responseHeaders.put(HEAD_CONTENT_LENGTH,Arrays.asList(String.valueOf(length[0])));
+								responseHeaders.put(HEAD_CONTENT_ENCODING,Arrays.asList(outputStreamType));
+								env.success(rc);
 							}
 							else {
-								getEnvironment().fail(call,rc,"Unsuccessful processing your request");
+								env.fail(rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
-							getEnvironment().fail(call,HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
+							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
 					break;
 				default		:
-					getEnvironment().fail(call,HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is not supported yet",type);
+					env.fail(HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is not supported yet",queryType);
 			}
 			
 //			if (call instanceof HttpsExchange) {
@@ -766,12 +778,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 //			}
 		}
 		else {
-			getEnvironment().fail(call,HttpURLConnection.HTTP_UNAVAILABLE,"Service paused by operator");
+			env.fail(HttpURLConnection.HTTP_UNAVAILABLE,"Service paused by operator");
 		}
-	}
-
-	protected NanoServiceEnvironment getEnvironment() {
-		return environment;
 	}
 
 	@Override
@@ -907,8 +915,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 
-	private String seekPluginRoot(final char[] charPath, final HttpExchange call) {
-		final QueryType			qType = QueryType.valueOf(call.getRequestMethod());
+	private String seekPluginRoot(final char[] charPath, final QueryType qType) {
 		final ClassDescriptor	desc;
 		final int				prefixLen;
 
@@ -942,13 +949,12 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 
-	private MethodExecutor seekPlugin(final char[] charPath, final HttpExchange call) {
-		final QueryType			qType = QueryType.valueOf(call.getRequestMethod());
+	private MethodExecutor seekPlugin(final char[] charPath, final QueryType qType, final Map<String,List<String>> requestHeaders) {
 		final ClassDescriptor	desc;
 		final int				prefixLen;
 
 		if (!disableLoopback && UnsafedCharUtils.uncheckedCompare(charPath,0,LOOPBACK_TEXT,0,LOOPBACK_TEXT.length)) {
-			return new Loopback(call);
+			return new Loopback();
 		}
 		else {
 			final ReentrantReadWriteLock.ReadLock	lock = deployedLocker.readLock();
@@ -978,8 +984,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			}
 			
 			if (desc != null) {
-				try{final String	fromMimeString = call.getRequestHeaders().getFirst(HEAD_CONTENT_TYPE),
-									toMimeString = call.getRequestHeaders().getFirst(HEAD_ACCEPT);
+				try{final String	fromMimeString = requestHeaders.get(HEAD_CONTENT_TYPE).get(0),
+									toMimeString = requestHeaders.get(HEAD_ACCEPT).get(0);
 					final MimeType	fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM,
 									toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
 					
@@ -1127,7 +1133,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		else {
 			return new MethodExecutor(){
 				@Override
-				public int execute(final QueryType type, final char[] path, final char[] query, final Headers requestHeaders, final Headers responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
+				public int execute(final QueryType type, final char[] path, final char[] query, final Map<String, List<String>> requestHeaders, final Map<String, List<String>> responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
 					if (type == null) {
 						throw new NullPointerException("Query type to process can't be null");
 					}
@@ -2358,17 +2364,14 @@ loop:		for (; index < maxIndex && from < maxFrom; index++) {
 	}
 
 	private static class Loopback implements MethodExecutor {
-		private final HttpExchange 	call;
-		
-		Loopback(final HttpExchange call) {
-			this.call = call;
+		Loopback() {
 		}
 
 		@Override
-		public int execute(QueryType type, char[] path, char[] query, Headers requestHeaders, Headers responseHeaders, InputStream is, OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
+		public int execute(final QueryType type, final char[] path, final char[] query, final Map<String, List<String>> requestHeaders, final Map<String,List<String>> responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException { 
 			try{final StringBuilder sbRequest = new StringBuilder(), sbResponse = new StringBuilder();  
 			
-				responseHeaders.add(HEAD_CONTENT_TYPE, new MimeType("text", "html").toString());
+				responseHeaders.put(HEAD_CONTENT_TYPE, Arrays.asList(new MimeType("text", "html").toString()));
 				requestHeaders.forEach((key,value)->{sbRequest.append("<tr><td>").append(key).append("</td><td>").append(value).append("</td></tr>");});
 				responseHeaders.forEach((key,value)->{sbResponse.append("<tr><td>").append(key).append("</td><td>").append(value).append("</td></tr>");});
 			
@@ -2377,10 +2380,10 @@ loop:		for (; index < maxIndex && from < maxFrom; index++) {
 					wr.write(CharUtils.substitute("loopback.template",Utils.fromResource(this.getClass().getResource("loopback.template")), 
 							(key)->{
 								switch (key) {
-									case "method"		: return call.getRequestMethod(); 
-									case "path"			: return call.getRequestURI().getPath();
-									case "fragment"		: return call.getRequestURI().getFragment() == null ? "<missing>" : call.getRequestURI().getFragment();
-									case "query"		: return call.getRequestURI().getQuery() == null ? "<missing>" : call.getRequestURI().getQuery();
+									case "method"		: return type.toString(); 
+									case "path"			: return new String(path);
+									case "fragment"		: return "???";
+									case "query"		: return query == null ? "" : new String(query);
 									case "inHeader"		: return sbRequest.toString();
 									case "outHeader"	: return sbResponse.toString();
 									default 			: return key;
@@ -2396,4 +2399,80 @@ loop:		for (; index < maxIndex && from < maxFrom; index++) {
 			}
 		}
 	}
+
+	private static class SimpleHttpServerEnvironment implements NanoServiceEnvironment {
+		private final HttpExchange 	handler;
+		private final LoggerFacade	facade;
+		private final DataSource	dataSource;
+		
+		SimpleHttpServerEnvironment(final HttpExchange handler, final LoggerFacade facade) {
+			if (handler == null) {
+				throw new NullPointerException("Exchange handler can't be null");
+			}
+			else if (facade == null) {
+				throw new NullPointerException("Logger facade can't be null");
+			}
+			else {
+				this.handler = handler;
+				this.facade = facade;
+				this.dataSource = null;
+			}
+		}
+
+		SimpleHttpServerEnvironment(final HttpExchange handler, final LoggerFacade facade, final DataSource dataSource) {
+			if (handler == null) {
+				throw new NullPointerException("Exchange handler can't be null");
+			}
+			else if (facade == null) {
+				throw new NullPointerException("Logger facade can't be null");
+			}
+			else if (dataSource == null) {
+				throw new NullPointerException("Datasource can't be null");
+			}
+			else {
+				this.handler = handler;
+				this.facade = facade;
+				this.dataSource = dataSource;
+			}
+		}
+		
+		@Override
+		public void success(final int rc) throws IOException {
+			handler.sendResponseHeaders(rc,0);
+		}
+		
+		@Override
+		public LoggerFacade getLogger() {
+			return facade;
+		}
+		
+		@Override
+		public Connection getConnection() throws SQLException {
+			if (dataSource == null) {
+				throw new IllegalStateException("Data source was not passed to the nanoservice. Using of the connections are illegal"); 
+			}
+			else {
+				return dataSource.getConnection();
+			}
+		}
+		
+		@Override
+		public void fail(final int rc, final String format, final Object... parameters) throws IOException {
+			if (format == null) {
+				throw new NullPointerException("Format string can't be null");
+			}
+			else {
+				final byte[] 	answer = (parameters == null || parameters.length == 0 ? format : String.format(format,parameters)).getBytes("UTF-8");
+				
+				handler.getResponseHeaders().add(HEAD_CONTENT_TYPE,PureLibSettings.MIME_PLAIN_TEXT.toString());
+				handler.getResponseHeaders().add(HEAD_CONTENT_LENGTH,String.valueOf(answer.length));
+				handler.getResponseHeaders().add(HEAD_CONTENT_ENCODING,HEAD_CONTENT_ENCODING_IDENTITY);
+				handler.sendResponseHeaders(rc,0);
+				try(final OutputStream	os = handler.getResponseBody()) {
+					os.write(answer);
+					os.flush();
+				}
+			}
+		}
+	};					
 }

@@ -3,8 +3,8 @@ package chav1961.purelib.nanoservice.interfaces;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import com.sun.net.httpserver.*;
+import java.util.List;
+import java.util.Map;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -36,5 +36,5 @@ public interface MethodExecutor {
 	 * @throws FlowException on any flow errors
 	 * @throws EnvironmentException in any environment errors
 	 */
-	int execute(QueryType type, char[] path, char[] query, Headers requestHeaders, Headers responseHeaders, InputStream is, OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException;
+	int execute(QueryType type, char[] path, char[] query, Map<String,List<String>> requestHeaders, Map<String,List<String>> responseHeaders, InputStream is, OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException;
 }
