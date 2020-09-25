@@ -68,6 +68,7 @@ public class ContentModelFactory {
 
 	private static final String			XML_TAG_APP_ROOT = NAMESPACE_PREFIX+":root";
 	private static final String			XML_TAG_APP_I18N = NAMESPACE_PREFIX+":i18n";
+	private static final String			XML_TAG_APP_TITLE = NAMESPACE_PREFIX+":title";
 	private static final String			XML_TAG_APP_MENU = NAMESPACE_PREFIX+":menu";
 	private static final String			XML_TAG_APP_SUBMENU = NAMESPACE_PREFIX+":submenu";
 	private static final String			XML_TAG_APP_ITEM = NAMESPACE_PREFIX+":item";	
@@ -287,6 +288,9 @@ public class ContentModelFactory {
 				docRoot.normalize();
 				
 				final String				localizerResource = (String)xpath.compile("//"+XML_TAG_APP_I18N+"/@location").evaluate(doc,XPathConstants.STRING);
+				final String				titleResource = (String)xpath.compile("//"+XML_TAG_APP_TITLE+"/@title").evaluate(doc,XPathConstants.STRING);
+				final String				tooltipResource = (String)xpath.compile("//"+XML_TAG_APP_TITLE+"/@tooltip").evaluate(doc,XPathConstants.STRING);
+				final String				helpResource = (String)xpath.compile("//"+XML_TAG_APP_TITLE+"/@help").evaluate(doc,XPathConstants.STRING);
 				final SimpleContentMetadata result;
 				
 				switch (doc.getDocumentElement().getTagName()) {
@@ -295,9 +299,9 @@ public class ContentModelFactory {
 																, Document.class
 																, "model"
 																, URI.create(localizerResource)
-																, "root"
-																, null 
-																, null
+																, titleResource == null ? "root" : titleResource  
+																, tooltipResource
+																, helpResource
 																, null
 																, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/")
 																, null);

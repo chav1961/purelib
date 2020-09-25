@@ -7,6 +7,7 @@
 		<xs:complexType>
 			<xs:choice minOccurs="1" maxOccurs="unbounded">
 				<xs:element name="i18n" type="app:I18n" minOccurs="1" maxOccurs="1" />
+				<xs:element name="title" type="app:Title" minOccurs="0" maxOccurs="1" />
 				<xs:element name="menu" type="app:Menu" minOccurs="1" maxOccurs="unbounded" />
 				<xs:element name="keyset" type="app:KeySet" minOccurs="1" maxOccurs="unbounded" />
 			</xs:choice>
@@ -27,6 +28,13 @@
 			<xs:attribute name="help" type="xs:string" use="optional" />
 		</xs:complexType>
 	</xs:element>
+
+<!-- Title descriptor: references to application-wide localizer resource--> 
+	<xs:complexType name="Title">
+		<xs:attribute name="title" type="xs:string" use="required" />
+		<xs:attribute name="tooltip" type="xs:string" use="optional" />
+		<xs:attribute name="help" type="xs:string" use="optional" />
+	</xs:complexType>
 
 
 <!-- Localization descriptor: references to application-wide localizer resource--> 

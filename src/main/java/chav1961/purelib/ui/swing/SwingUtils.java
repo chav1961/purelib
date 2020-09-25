@@ -1258,7 +1258,7 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
-	private static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
+	static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	menu = new JMenuWithMeta(node);
 			
@@ -1273,7 +1273,7 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
-	private static void toMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) throws NullPointerException, IllegalArgumentException{
+	static void toMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	menu = new JMenuWithMeta(node);
 			
@@ -1321,7 +1321,7 @@ loop:			for (Component comp : children(node)) {
 		}				
 	}
 
-	private static void toMenuEntity(final ContentNodeMetadata node, final JMenu menu) throws NullPointerException, IllegalArgumentException{
+	static void toMenuEntity(final ContentNodeMetadata node, final JMenu menu) throws NullPointerException, IllegalArgumentException{
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			final JMenu	submenu = new JMenuWithMeta(node);
 			
@@ -1392,12 +1392,12 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
-	private static class JMenuBarWithMeta extends JMenuBar implements NodeMetadataOwner, LocaleChangeListener {
+	static class JMenuBarWithMeta extends JMenuBar implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = 2873312186080690483L;
 		
 		private final ContentNodeMetadata	metadata;
 		
-		private JMenuBarWithMeta(final ContentNodeMetadata metadata) {
+		protected JMenuBarWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
 			this.setName(metadata.getName());
 			try{fillLocalizedStrings();
