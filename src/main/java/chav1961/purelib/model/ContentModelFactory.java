@@ -138,7 +138,7 @@ public class ContentModelFactory {
 						final LocaleResource	fieldLocaleResource = f.getAnnotation(LocaleResource.class);
 						final MutableContentNodeMetadata	metadata = new MutableContentNodeMetadata(f.getName()
 																		, type
-																		, f.getName()+"/"+type.getCanonicalName()
+																		, f.getName()+"/"+escapeBrackets(type.getCanonicalName())
 																		, null
 																		, fieldLocaleResource == null ? "?" : fieldLocaleResource.value()
 																		, fieldLocaleResource == null ? null : fieldLocaleResource.tooltip() 
@@ -299,7 +299,7 @@ public class ContentModelFactory {
 																, Document.class
 																, "model"
 																, URI.create(localizerResource)
-																, titleResource == null ? "root" : titleResource  
+																, titleResource == null || titleResource.isEmpty() ? "root" : titleResource  
 																, tooltipResource
 																, helpResource
 																, null
@@ -1026,6 +1026,15 @@ public class ContentModelFactory {
 			child.setParent(root);
 			
 			return buildSPIPluginMenuSubtree(root,path);
+		}
+	}
+
+	private static String escapeBrackets(final String canonicalName) {
+		if (canonicalName.indexOf('[') < 0) {
+			return canonicalName;
+		}
+		else {
+			return canonicalName.replace("[","%5B").replace("]","%5D");
 		}
 	}
 

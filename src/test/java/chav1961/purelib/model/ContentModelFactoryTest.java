@@ -49,8 +49,8 @@ public class ContentModelFactoryTest {
 			Assert.assertEquals(cmi,cmi.getRoot().getOwner());
 			Assert.assertNull(cmi.getRoot().getParent());
 			Assert.assertEquals("root",cmi.getRoot().getLabelId());
-			Assert.assertNull(cmi.getRoot().getTooltipId());
-			Assert.assertNull(cmi.getRoot().getHelpId());
+			Assert.assertEquals("",cmi.getRoot().getTooltipId());
+			Assert.assertEquals("",cmi.getRoot().getHelpId());
 			 
 			final ContentNodeMetadata	menu = cmi.byUIPath(URI.create("ui:/model/navigation.top.mainMenu"));
 			

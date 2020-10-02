@@ -23,6 +23,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.InputStreamGetter;
 import chav1961.purelib.basic.interfaces.OutputStreamGetter;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -46,6 +47,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
+ * @lastUpdate 0.0.4
  */
 public class JFileContentManipulator implements Closeable, LocaleChangeListener {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
@@ -81,6 +83,40 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		void saveLRU(List<String> lru) throws IOException;
 	}	
 	
+	/**
+	 * <p>This interface describes listener for content changes</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 */
+	@FunctionalInterface
+	public interface FileContentChangeListener {
+		void actionPerformed(FileContentChangedEvent event);
+	}
+
+	/**
+	 * <p>This enumeradion describes type of content change in the {@linkplain JFileContentManipulator}</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 */
+	public enum FileContentChangeType {
+		NEW_FILE_CREATED, 
+		FILE_LOADED, 
+		FILE_STORED, 
+		FILE_STORED_AS, 
+		MODIFICATION_FLAG_SET, 
+		MODIFICATION_FLAG_CLEAR
+	}
+	
+	/**
+	 * <p>This interface describes changes in the listener content</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 */
+	public interface FileContentChangedEvent {
+		FileContentChangeType getChangeType();
+		JFileContentManipulator getOwner();
+	}
+	
 	private static final ProgressIndicator	DUMMY = new ProgressIndicator() {
 												@Override public void start(String caption) {}
 												@Override public void start(String caption, long total) {}
@@ -88,12 +124,14 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 												@Override public void end() {}
 											};
 
+	private final LightWeightListenerList<FileContentChangeListener>	listeners = new LightWeightListenerList<>(FileContentChangeListener.class);
 	private final FileSystemInterface	fsi;
 	private final Localizer				localizer;
 	private final InputStreamGetter		getterIn;
 	private final OutputStreamGetter	getterOut;
 	private final LRUPersistence		persistence;
 	private final List<String>			lru = new ArrayList<>();
+	
 	private boolean		wasChanged = false;
 	private String		currentName = "", currentDir = "";
 	
@@ -237,6 +275,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				os.flush();
 				clearModificationFlag();
 				currentName = "";
+				fireEvent(FileContentChangeType.NEW_FILE_CREATED);
 				return true;
 			}
 		}
@@ -290,6 +329,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 							clearModificationFlag();
 							currentName = item;
 							currentDir = current.open("../").getPath();
+							fireEvent(FileContentChangeType.FILE_LOADED);
 							return true;
 						}
 					} finally {
@@ -329,7 +369,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 			throw new IllegalArgumentException("File name can't be null or empty"); 
 		}
 		else if (!lru.contains(file)) {
-			throw new IllegalArgumentException("File to open [] not found in the 'last used' list. Use getLastUsed() to get valid names"); 
+			throw new IllegalArgumentException("File to open ["+file+"] not found in the 'last used' list. Use getLastUsed() to get valid names"); 
 		}
 		else if (progress == null) {
 			throw new NullPointerException("Progress indicator can't be null");
@@ -351,6 +391,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 							clearModificationFlag();
 							currentName = current.getPath();
 							currentDir = current.open("../").getPath();
+							fireEvent(FileContentChangeType.FILE_LOADED);
 							return true;
 						}
 					} finally {
@@ -403,6 +444,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		
 						Utils.copyStream(is, os, progress);
 						clearModificationFlag();
+						fireEvent(FileContentChangeType.FILE_STORED);
 						return true;
 					}
 				} catch (LocalizationException | IllegalArgumentException e) {
@@ -448,6 +490,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 						clearModificationFlag();
 						currentName = item;
 						currentDir = current.open("../").getPath();
+						fireEvent(FileContentChangeType.FILE_STORED_AS);
 						return true;
 					}
 				} finally {
@@ -487,6 +530,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public void setModificationFlag() {
 		wasChanged = true;
+		fireEvent(FileContentChangeType.MODIFICATION_FLAG_SET);
 	}
 
 	/**
@@ -494,6 +538,15 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public void clearModificationFlag() {
 		wasChanged = false;
+		fireEvent(FileContentChangeType.MODIFICATION_FLAG_CLEAR);
+	}
+	
+	/**
+	 * <p>Test the file was changed</p>
+	 * @return true if yes
+	 */
+	public boolean wasChanged() {
+		return wasChanged; 
 	}
 
 	/**
@@ -504,6 +557,36 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		return lru;
 	}
 
+	/**
+	 * <p>Add listener for change content events</p>
+	 * @param l listener to add
+	 * @throws NullPointerException when listener to add is null
+	 * @since 0.0.4
+	 */
+	public void addFileContentChangeListener(final FileContentChangeListener l) throws NullPointerException {
+		if (l == null) {
+			throw new NullPointerException("Listener to add can't be null"); 
+		}
+		else {
+			listeners.addListener(l);
+		}
+	}
+	
+	/**
+	 * <p>Remove listener for change content events</p>
+	 * @param l listener to remove
+	 * @throws NullPointerException when listener to remove is null
+	 * @since 0.0.4
+	 */
+	public void removeFileContentChangeListener(final FileContentChangeListener l) throws NullPointerException {
+		if (l == null) {
+			throw new NullPointerException("Listener to remove can't be null"); 
+		}
+		else {
+			listeners.removeListener(l);
+		}
+	}
+	
 	static InputStreamGetter buildInputStreamGetter(final JTextComponent component) {
 		if (component == null) {
 			throw new NullPointerException("Text component can't be null"); 
@@ -552,5 +635,13 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		if (lru.size() > LRU_LIMIT) {
 			lru.remove(lru.size()-1);
 		}
+	}
+	
+	private void fireEvent(final FileContentChangeType type) {
+		final FileContentChangedEvent	event = new FileContentChangedEvent() {
+											@Override public FileContentChangeType getChangeType() {return type;}
+											@Override public JFileContentManipulator getOwner() {return JFileContentManipulator.this;}
+										}; 
+		listeners.fireEvent((l)->l.actionPerformed(event));
 	}
 }

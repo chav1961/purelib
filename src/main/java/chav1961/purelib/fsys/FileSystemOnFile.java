@@ -73,7 +73,17 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 			throw new IllegalArgumentException("Root path ["+rootPath+"] not contains 'file:' as scheme");
 		}
 		else {
-			this.rootPath = rootPath.normalize();
+			if (rootPath.getAuthority() != null) {
+				if (".".equals(rootPath.getAuthority())) {
+					this.rootPath = URI.create(rootPath.getPath());
+				}
+				else {
+					this.rootPath = rootPath.normalize();
+				}
+			}
+			else {
+				this.rootPath = rootPath.normalize();
+			}
 		}
 	}
 

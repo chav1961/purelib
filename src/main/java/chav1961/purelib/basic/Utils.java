@@ -3,6 +3,7 @@ package chav1961.purelib.basic;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -315,6 +316,28 @@ public class Utils {
 				}
 			}
 			return result;
+		}
+	}
+	
+	/**
+	 * <p>Build a Properties instance from the configuration file content</p>
+	 * @param content configuration file</p>
+	 * @return properties built
+	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException when content file is null 
+	 * @since 0.0.4
+	 */
+	public static SubstitutableProperties mkProps(final File content) throws IOException, NullPointerException {
+		if (content == null) {
+			throw new NullPointerException("properties content file can't be null");
+		}
+		else {
+			final SubstitutableProperties		props = new SubstitutableProperties();
+			
+			try(final InputStream	is = new FileInputStream(content)) {
+				props.load(is);
+			}
+			return props;
 		}
 	}
 	

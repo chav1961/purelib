@@ -81,6 +81,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
 
 public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter {
 	private static final long 				serialVersionUID = 4920624779261769348L;
+	private static final Module[]			EMPTY_MODULES = new Module[0];
 	
 	public static final String				DEFAULT_OK_BUTTON_NAME = "ask.accept";
 	public static final String				DEFAULT_CANCEL_BUTTON_NAME = "ask.cancel";
@@ -317,7 +318,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		for (Entry<URI, GetterAndSetter> item : accessors.entrySet()) {
 			return new Module[] {item.getValue().getClass().getClassLoader().getUnnamedModule()};
 		}
-		return null;
+		return EMPTY_MODULES;
 	}
 
 	@Override

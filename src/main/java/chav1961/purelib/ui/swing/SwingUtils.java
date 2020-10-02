@@ -409,6 +409,9 @@ loop:			for (Component comp : children(node)) {
 				case ColorPairContent	:
 					result = new JColorPairPickerWithMeta(metadata,localizer,monitor);
 					break;
+				case PasswordContent	:
+					result = new JPasswordFieldWithMeta(metadata,monitor);
+					break;
 				case Unclassified	:
 				case ArrayContent	:
 				case NestedContent	:
