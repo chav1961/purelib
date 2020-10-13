@@ -176,23 +176,33 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Null or empty value is not applicable for the color pair";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
 		}
-		else if (!(value.startsWith("{") && value.endsWith("}") && value.contains(","))) {
-			return "Illegal color pair format ["+value+"]. Valid format is '{foreground,background}'";
-		}
-		else if (value.replace(",","").length() < value.length() - 1) {
-			return "More than two colors in the string";
+		else if (val instanceof String) {
+			final String	value = val.toString();
+			
+			if (value == null || value.isEmpty()) {
+				return "Null or empty value is not applicable for the color pair";
+			}
+			else if (!(value.startsWith("{") && value.endsWith("}") && value.contains(","))) {
+				return "Illegal color pair format ["+value+"]. Valid format is '{foreground,background}'";
+			}
+			else if (value.replace(",","").length() < value.length() - 1) {
+				return "More than two colors in the string";
+			}
+			else {
+				for (String item : value.substring(1,value.length()-2).split("\\,")) {
+					if (PureLibSettings.colorByName(item.trim(),null) == null) {
+						return "Unknown color name ["+item.trim()+"] in the value string";
+					}
+				}
+				return null;
+			}
 		}
 		else {
-			for (String item : value.substring(1,value.length()-2).split("\\,")) {
-				if (PureLibSettings.colorByName(item.trim(),null) == null) {
-					return "Unknown color name ["+item.trim()+"] in the value string";
-				}
-			}
-			return null;
+			return "Illegal value type to validate";
 		}
 	}
 

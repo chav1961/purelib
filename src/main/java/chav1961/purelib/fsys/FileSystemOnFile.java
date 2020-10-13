@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -49,14 +51,17 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 	private static final String	LICENSE_CONTENT = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_CONTENT_SUFFIX;
 	private static final String	HELP = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_HELP_SUFFIX;
 	private static final Icon	ICON = new ImageIcon(FileSystemOnFile.class.getResource("fileIcon.png"));
+	private static final URI	ROOT_URI = URI.create("file:/");
 	
 	private	final URI					rootPath;
+	private final boolean				multiRoot;
 
 	/**
 	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
 	 */
 	public FileSystemOnFile(){
 		rootPath = null;
+		multiRoot = false;
 	}
 	
 	/**
@@ -73,6 +78,15 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 			throw new IllegalArgumentException("Root path ["+rootPath+"] not contains 'file:' as scheme");
 		}
 		else {
+			final File[]	roots = File.listRoots();
+			
+			if (roots.length > 1) {
+				multiRoot = true;
+			}
+			else {
+				multiRoot = roots[0].getPath().replace('\\','/').endsWith(":/");
+			}
+					
 			if (rootPath.getAuthority() != null) {
 				if (".".equals(rootPath.getAuthority())) {
 					this.rootPath = URI.create(rootPath.getPath());
@@ -90,6 +104,7 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 	private FileSystemOnFile(final FileSystemOnFile another) {
 		super(another);
 		this.rootPath = another.rootPath;
+		this.multiRoot = another.multiRoot;
 	}
 
 	@Override
@@ -117,7 +132,7 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 
 	@Override
 	public DataWrapperInterface createDataWrapper(final URI actualPath) throws IOException {
-		return new FileDataWrapper(actualPath,rootPath);
+		return new FileDataWrapper(multiRoot,actualPath,rootPath);
 	}
 
 	@Override
@@ -194,88 +209,151 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 	}
 	
 	private static class FileDataWrapper implements DataWrapperInterface {
-		private final URI	wrapper;
+		private final boolean	atRoot;
+		private final boolean	atRootItem;
+		private final URI		wrapper;
 		
-		public FileDataWrapper(final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
-			final String	decodedWrapper = wrapper.toString();
+		public FileDataWrapper(final boolean multiRoot, final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
+			final String	decodedWrapper = wrapper.isAbsolute() ? wrapper.getRawSchemeSpecificPart() : wrapper.toString();
 			final String	relative = decodedWrapper.replace(File.pathSeparator,"/"), root = rootPath.toString().replace(File.pathSeparator,"/"); 
-			
-			if (relative.startsWith("/") && root.endsWith("/")) {
+
+			if (ROOT_URI.equals(rootPath) && multiRoot) {
+				if (decodedWrapper.isEmpty() || "/".equals(decodedWrapper)) {
+					this.wrapper = rootPath;
+					this.atRoot = true;
+					this.atRootItem = false;
+				}
+				else if (decodedWrapper.endsWith(":/")) {
+					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)).normalize(); 
+					this.atRoot = false;
+					this.atRootItem = true;
+				}
+				else if (decodedWrapper.endsWith(":")) {
+					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)+'/').normalize(); 
+					this.atRoot = false;
+					this.atRootItem = true;
+				}
+				else {
+					if (relative.startsWith("/") && root.endsWith("/")) {
+						this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
+						this.atRoot = false;
+						this.atRootItem = false;
+					}
+					else {
+						this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+						this.atRoot = false;
+						this.atRootItem = false;
+					}
+				}
+			}
+			else if (relative.startsWith("/") && root.endsWith("/")) {
 				this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
+				this.atRoot = false;
+				this.atRootItem = false;
 			}
 			else {
 				this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+				this.atRoot = false;
+				this.atRootItem = false;
 			}
 		}
 
 		@Override
 		public OutputStream getOutputStream(boolean append) throws IOException {
-			return new FileOutputStream(new File(wrapper.getSchemeSpecificPart()),append);
+			return new FileOutputStream(getFile(),append);
 		}
 
 		@Override
 		public InputStream getInputStream() throws IOException {
-			return new FileInputStream(new File(wrapper.getSchemeSpecificPart()));
+			return new FileInputStream(getFile());
 		}
 
 		@Override
 		public URI[] list(final Pattern pattern) throws IOException {
-			final List<URI>		result = new ArrayList<>();
-			
-			new File(wrapper.getSchemeSpecificPart()).listFiles(new FileFilter(){
-					@Override
-					public boolean accept(final File pathname) {
-						if (pattern.matcher(pathname.getName()).matches()) {
-							final String uri = wrapper.relativize(pathname.toURI()).toString();
-							
-							result.add(URI.create(uri.endsWith("/") ? uri.substring(0,uri.length()-1) : uri));
-						}
-						return false;
-					}
+			if (atRoot) {
+				final File[]	roots = File.listRoots();
+				final URI[]		returned = new URI[roots.length];
+				
+				for (int index = 0; index < returned.length; index++) {
+					returned[index] = roots[index].toURI();
 				}
-			);
-			
-			final URI[]			returned = result.toArray(new URI[result.size()]);
-			result.clear();
-			return returned;
+				return returned;
+			}
+			else {
+				final List<URI>		result = new ArrayList<>();
+				
+				getFile().listFiles(new FileFilter(){
+						@Override
+						public boolean accept(final File pathname) {
+							if (pattern.matcher(pathname.getName()).matches()) {
+								final String uri = wrapper.relativize(pathname.toURI()).toString();
+								
+								result.add(URI.create(uri.endsWith("/") ? uri.substring(0,uri.length()-1) : uri));
+							}
+							return false;
+						}
+					}
+				);
+				
+				final URI[]			returned = result.toArray(new URI[result.size()]);
+				result.clear();
+				return returned;
+			}
 		}
 
 		@Override
 		public void mkDir() throws IOException {
-			if (!new File(wrapper).mkdirs()) {
+			if (!getFile().mkdirs()) {
 				throw new IOException("Directory ["+wrapper+"] was not created");
 			}
 		}
 
 		@Override
 		public void create() throws IOException {
-			try(final OutputStream os = new FileOutputStream(new File(wrapper.getSchemeSpecificPart()))) {
+			try(final OutputStream os = new FileOutputStream(getFile())) {
 			}
 		}
 
 		@Override
 		public void delete() throws IOException {
-			if (!new File(wrapper).delete()) {
+			if (!getFile().delete()) {
 				throw new IOException("Directory/file ["+wrapper+"] was not deleted");
 			}
 		}
 
 		@Override
 		public Map<String, Object> getAttributes() throws IOException {
-			final File	temp = new File(wrapper.getSchemeSpecificPart());
+			final Map<String, Object>	result;
 			
-			return Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
+			if (atRoot) {
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, new Date(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+			}
+			else if (atRootItem) {
+				final File	temp = getFile();
+				
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, new Date(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+			}
+			else {
+				final File	temp = getFile();
+				
+				result = Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
+			}
+			return result;
 		}
 
 		@Override public void linkAttributes(Map<String, Object> attributes) throws IOException {}
 		
 		@Override
 		public void setName(final String name) throws IOException {
-			final File	oldFile = new File(wrapper), newFile = new File(oldFile.getParent(),name);
+			final File	oldFile = getFile(), newFile = new File(oldFile.getParent(),name);
 			
 			if (!oldFile.renameTo(newFile)) {
 				throw new IOException("Directory/file ["+wrapper+"] was not renamed");
 			}
-		}		
+		}
+		
+		private File getFile() {
+			return new File(wrapper.getSchemeSpecificPart());
+		}
 	}
 }

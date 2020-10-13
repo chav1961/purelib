@@ -49,7 +49,7 @@ public interface JComponentInterface {
 	 * @param value String representation of the content to validate
 	 * @return null on success, otherwise error description 
 	 */
-	String standardValidation(String value);
+	String standardValidation(Object value);
 	
 	/**
 	 * <p>Mark content as valid/invalid</p>

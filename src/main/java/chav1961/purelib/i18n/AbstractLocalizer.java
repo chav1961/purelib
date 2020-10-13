@@ -599,6 +599,11 @@ loop:		do {if (cursor.child != null) {
 	}
 	
 	@Override
+	public boolean isInParentChain(final Localizer toTest) {
+		return isInParentChain(toTest,this);
+	}
+	
+	@Override
 	public Localizer addLocaleChangeListener(final LocaleChangeListener listener) throws NullPointerException {
 		if (listener == null) {
 			throw new NullPointerException("Listener to add can't be null");
@@ -730,6 +735,7 @@ sw:				for(;;) {
 		synchronized(listeners) {
 			listeners.clear();
 			if (getParent() != null) {
+				System.err.println("Close localizer: "+getLocalizerId());
 				getParent().pop(this);
 			}
 		}

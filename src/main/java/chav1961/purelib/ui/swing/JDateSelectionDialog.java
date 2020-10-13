@@ -8,6 +8,10 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,6 +30,8 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -53,8 +59,9 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 public class JDateSelectionDialog extends JComponent implements LocaleChangeListener, JComponentInterface, NodeMetadataOwner {
 	private static final long 			serialVersionUID = -7942828154790537910L;
-    private static final int 			DIALOG_WIDTH = 400;
-    private static final int 			DIALOG_HEIGHT = 220;
+    private static final int 			DIALOG_WIDTH = 250;
+    private static final int 			DIALOG_HEIGHT = 200;
+    private static final int 			CELL_SIZE = 25;
 
 	private static final String			YEAR_LABEL = "JDateSelectionDialog.yearLabel";
 	private static final String			YEAR_TOOLTIP = "JDateSelectionDialog.year.tooltip";
@@ -120,7 +127,7 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 	            final Calendar 	cal = getCalendar();
 	            
                 cal.set(Calendar.YEAR, ((Integer) yearSpin.getValue()).intValue());
-	            newValue = cal;
+	            storeNewValue(cal);
 	            refreshView();
 			});
             yearAndMonth.add(yearSpin);
@@ -133,7 +140,7 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 	            final Calendar 	cal = getCalendar();
 	            
                 cal.set(Calendar.MONTH, ((Integer) monthSpin.getValue()).intValue() - 1);
-	            newValue = cal;
+	            storeNewValue(cal);
 	            refreshView();
 			});
             yearAndMonth.add(monthSpin);
@@ -147,20 +154,37 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
     			
     			label.setForeground(days.weekends[column] ? Color.RED : Color.BLACK);
     			label.setBorder(new LineBorder(Color.BLACK));
+    			label.setOpaque(true);
             	return label;
             });
             daysTable.getTableHeader().setReorderingAllowed(false);
             daysTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            daysTable.setColumnSelectionAllowed(true);
+            daysTable.setRowSelectionAllowed(false);
+            daysTable.setColumnSelectionAllowed(false);
+            daysTable.setCellSelectionEnabled(true);
+            daysTable.setRowHeight(CELL_SIZE);
             for (int index = 0, maxIndex = daysTable.getColumnCount(); index < maxIndex; index++) {
             	final TableColumn col = daysTable.getColumnModel().getColumn(index);
-            	col.setWidth(30);
-            	col.setMinWidth(30);
-            	col.setPreferredWidth(30);
-            	col.setMaxWidth(30);
+            	col.setWidth(CELL_SIZE);
+            	col.setMinWidth(CELL_SIZE);
+            	col.setPreferredWidth(CELL_SIZE);
+            	col.setMaxWidth(CELL_SIZE);
             	col.setResizable(false);
             }
-
+            daysTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+				@Override
+				public void valueChanged(ListSelectionEvent e) {
+					final int		colIndex = daysTable.getSelectedColumn(), rowIndex = daysTable.getSelectedRow();
+					final Calendar	cal = getCalendar();
+					final Object	day = daysTable.getModel().getValueAt(rowIndex, colIndex);
+						
+					if ((day instanceof String) && !((String)day).isEmpty()) {
+		                cal.set(Calendar.DAY_OF_MONTH, Integer.valueOf(day.toString()));
+			            storeNewValue(cal);
+					}
+				}
+			});
+            
             add(yearAndMonth, BorderLayout.NORTH);
             add(dayScroll, BorderLayout.CENTER);
 
@@ -254,16 +278,26 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Null or empty value is not applicable for the date";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
+		}
+		else if (val instanceof String) {
+			final String	 value = val.toString();
+			
+			if (value == null || value.isEmpty()) {
+				return "Null or empty value is not applicable for the date";
+			}
+			else {
+				try{formatter.stringToValue(value.trim());
+					return null;
+				} catch (ParseException e) {
+					return e.getLocalizedMessage();
+				}
+			}
 		}
 		else {
-			try{formatter.stringToValue(value.trim());
-				return null;
-			} catch (ParseException e) {
-				return e.getLocalizedMessage();
-			}
+			return "Illegal value type to validate";
 		}
 	}
 
@@ -275,6 +309,10 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 	@Override
 	public boolean isInvalid() {
 		return invalid;
+	}
+	
+	protected void storeNewValue(final Object value) {
+		newValue = value;
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
@@ -394,11 +432,13 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 		@Override
 		public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, int column) {
 			final JLabel	label = new JLabel(value == null ? "" : value.toString());
-			
+
 			label.setForeground(weekends[column] ? Color.RED : Color.BLACK);
 			if (hasFocus) {
 				label.setBorder(new LineBorder(Color.BLUE));
 			}
+			label.setOpaque(true);
+			label.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
 			return label;
 		}
 	}

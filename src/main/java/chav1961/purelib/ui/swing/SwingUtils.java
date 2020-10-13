@@ -1395,6 +1395,22 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	static boolean inAllowedClasses(final Object val, final Class<?>... classes) {
+		if (val == null) {
+			return false;
+		}
+		else {
+			final Class<?>	clazz = val.getClass();
+			
+			for (Class<?> cl : classes) {
+				if (cl.isAssignableFrom(clazz)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+	
 	static class JMenuBarWithMeta extends JMenuBar implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = 2873312186080690483L;
 		

@@ -203,4 +203,10 @@ public class RemoteServerLocalizer implements Localizer {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public boolean isInParentChain(Localizer test) throws LocalizationException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

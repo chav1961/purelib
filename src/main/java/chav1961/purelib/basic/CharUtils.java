@@ -4,6 +4,7 @@ package chav1961.purelib.basic;
 import java.awt.Color;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -2098,6 +2099,197 @@ public class CharUtils {
 	}
 
 	/**
+	 * <p>This enumeration describes adjustment type for {@linkplain CharUtils#fillInto(String, int, boolean, FillingAdjstment)} methods
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 */
+	public enum FillingAdjstment {
+		LEFT, RIGHT, CENTER, JUSTIFY
+	}
+	
+	/**
+	 * <p>Build content with the given length and space placements</p>
+	 * @param source source content to fill and place into target
+	 * @param awaitedLen awaited length of placed content
+	 * @param truncExtra truncate extra characters to fill into given length 
+	 * @param adjustment how fill spaces when source content length is less than awaited
+	 * @return content filled. Can be empty but not null
+	 * @throws NullPointerException when any referenced argument is null
+	 * @throws IllegalArgumentException on any errors in parameters
+	 * @see #fillInto(char[], int, int, int, boolean, FillingAdjstment)
+	 * @see #fillInto(char[], int, int, char[], int, int, boolean, FillingAdjstment)
+	 * @since 0.0.4
+	 */
+	public static String fillInto(final String source, final int awaitedLen, final boolean truncExtra, final FillingAdjstment adjustment) throws NullPointerException, IllegalArgumentException {
+		if (source == null) {
+			throw new NullPointerException("Source string can't be null"); 
+		}
+		else if (awaitedLen < 0) {
+			throw new IllegalArgumentException("Awaited length ["+awaitedLen+"] can't be negative"); 
+		}
+		else if (adjustment == null) {
+			throw new NullPointerException("Filling adjustment can't be null"); 
+		}
+		else {
+			return new String(fillInto(source.toCharArray(), 0, source.length(), awaitedLen, truncExtra, adjustment));
+		}
+	}
+	
+	/**
+	 * <p>Build content with the given length and space placements</p>
+	 * @param source source content to fill and place into target
+	 * @param from from position of the source content
+	 * @param to to position of the source content
+	 * @param awaitedLen awaited length of placed content
+	 * @param truncExtra truncate extra characters to fill into given length 
+	 * @param adjustment how fill spaces when source content length is less than awaited
+	 * @return content filled. Can be empty but not null
+	 * @throws NullPointerException when any referenced argument is null
+	 * @throws IllegalArgumentException on any errors in parameters
+	 * @see #fillInto(String, int, boolean, FillingAdjstment)
+	 * @see #fillInto(char[], int, int, char[], int, int, boolean, FillingAdjstment)
+	 * @since 0.0.4
+	 */
+	public static char[] fillInto(final char[] source, final int from, final int to, final int awaitedLen, final boolean truncExtra, final FillingAdjstment adjustment) throws NullPointerException, IllegalArgumentException {
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else if (from < 0 || from > source.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+source.length); 
+		}
+		else if (to < 0 || to > source.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+source.length); 
+		}
+		else if (from > to) {
+			throw new IllegalArgumentException("From position ["+from+"] greater than to position ["+to+"]"); 
+		}
+		else if (awaitedLen < 0) {
+			throw new IllegalArgumentException("Awaited length ["+awaitedLen+"] can't be negative"); 
+		}
+		else if (adjustment == null) {
+			throw new NullPointerException("Filling adjustment can't be null"); 
+		}
+		else {
+			final char[]	result = new char[truncExtra ? awaitedLen : Math.max(awaitedLen, to-from)];
+			
+			fillInto(source, from, to, result, 0, awaitedLen, truncExtra, adjustment);
+			return result;
+		}
+	}
+	
+	/**
+	 * <p>Fill target content with adjusted source content and return target location after filling</p>
+	 * @param source source content to fill and place into target
+	 * @param from from position of the source content
+	 * @param to to position of the source content
+	 * @param target target location to place content into
+	 * @param targetFrom from position of target location
+	 * @param awaitedLen awaited length of placed content
+	 * @param truncExtra truncate extra characters to fill into given length 
+	 * @param adjustment how fill spaces when source content length is less than awaited
+	 * @return target location after placing content into
+	 * @throws NullPointerException when any referenced argument is null
+	 * @throws IllegalArgumentException on any errors in parameters
+	 * @see #fillInto(String, int, boolean, FillingAdjstment)
+	 * @see #fillInto(char[], int, int, int, boolean, FillingAdjstment)
+	 * @since 0.0.4
+	 */
+	public static int fillInto(final char[] source, final int from, final int to, final char[] target, final int targetFrom, final int awaitedLen, final boolean truncExtra, final FillingAdjstment adjustment) throws NullPointerException, IllegalArgumentException {
+		if (source == null) {
+			throw new NullPointerException("Source array can't be null"); 
+		}
+		else if (from < 0 || from > source.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+source.length); 
+		}
+		else if (to < 0 || to > source.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+source.length); 
+		}
+		else if (from > to) {
+			throw new IllegalArgumentException("From position ["+from+"] greater than to position ["+to+"]"); 
+		}
+		else if (target == null) {
+			throw new NullPointerException("Target array can't be null"); 
+		}
+		else if (targetFrom < 0 || targetFrom > target.length) {
+			throw new IllegalArgumentException("Target from position ["+targetFrom+"] out of range 0.."+target.length); 
+		}
+		else if (awaitedLen < 0) {
+			throw new IllegalArgumentException("Awaited length ["+awaitedLen+"] can't be negative"); 
+		}
+		else if (adjustment == null) {
+			throw new NullPointerException("Filling adjustment can't be null"); 
+		}
+		else {
+			final int	targetTo = Math.min(targetFrom + (truncExtra ? awaitedLen : Math.max(awaitedLen, to - from)), target.length);
+			int			sourceFrom = from, sourceTo = to, sourceLen;
+			
+			while (sourceFrom <= to && source[sourceFrom] <= ' ') {
+				sourceFrom++;
+			}
+			while (sourceTo-1 >= from && source[sourceTo-1] <= ' ') {
+				sourceTo--;
+			}
+			sourceLen = sourceTo - sourceFrom;
+			
+			if (sourceFrom == sourceTo) {
+				Arrays.fill(target, targetFrom, targetTo, ' ');
+			}
+			else if (sourceLen >= awaitedLen) {
+				System.arraycopy(source, sourceFrom, target, targetFrom, targetTo - targetFrom);
+			}
+			else {
+				switch (adjustment) {
+					case CENTER		:
+						final int	sourceLeft = (awaitedLen - sourceLen) / 2, sourceRight = awaitedLen - sourceLeft;
+						
+						Arrays.fill(target, targetFrom, targetFrom + sourceLeft, ' ');
+						System.arraycopy(source, sourceFrom, target, targetFrom + sourceLeft, sourceLen);
+						Arrays.fill(target, targetFrom + sourceLeft + sourceLen, targetTo, ' ');
+						break;
+					case JUSTIFY	:
+						int	blankCount = 0;
+						
+						for (int index = sourceFrom; index < sourceTo; index++) {
+							if (source[index] <= ' ') {
+								blankCount++;
+							}
+						}
+						
+						if (blankCount > 0) {
+							final int	extraBlank = (awaitedLen - sourceLen) / blankCount;
+							int			targetPos = targetFrom;
+							
+							for (int index = sourceFrom; index < sourceTo; index++) {
+								if ((target[targetPos++] = source[index]) <= ' ') {
+									for (int extra = 0; extra < extraBlank; extra++) {
+										target[targetPos++] = ' ';
+									}
+								}
+							}
+							for (int extra = targetPos; extra < targetTo; extra++) {
+								target[extra] = ' ';
+							}
+							break;
+						}
+						// break is NOT required here! 
+					case LEFT		:
+						System.arraycopy(source, sourceFrom, target, targetFrom, sourceLen);
+						Arrays.fill(target, targetFrom + sourceLen, targetTo, ' ');
+						break;
+					case RIGHT		:
+						Arrays.fill(target, targetFrom, targetTo - sourceLen, ' ');
+						System.arraycopy(source, sourceFrom, target, targetTo - sourceLen, sourceLen);
+						break;
+					default:
+						throw new UnsupportedOperationException("Adjustment ["+adjustment+"] is not supported yet");
+				}
+			}
+			return targetTo;
+		}
+	}
+		
+	
+	/**
 	 * <p>Calculate number of given characters in the string sequence</p>
 	 * @param seq sequence to calculate characters in
 	 * @param symbol character to seek
@@ -2107,7 +2299,7 @@ public class CharUtils {
 	 */
 	public static int howManyChars(final CharSequence seq, final char symbol) throws NullPointerException {
 		if (seq == null) {
-			throw new NullPointerException("Char sequence to test nober of char can't be null");
+			throw new NullPointerException("Char sequence to test number of char can't be null");
 		}
 		else if (seq.length() == 0) {
 			return 0;

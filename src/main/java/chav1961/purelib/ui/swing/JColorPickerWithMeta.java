@@ -181,15 +181,24 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Null or empty value is not applicable for the color";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
 		}
-		else if (PureLibSettings.colorByName(value.trim(),null) == null) {
-			return "Unknown color name ["+value.trim()+"] in the value string";
+		else if (val instanceof String) {
+			final String 	value = val.toString();
+			if (value == null || value.isEmpty()) {
+				return "Null or empty value is not applicable for the color";
+			}
+			else if (PureLibSettings.colorByName(value.trim(),null) == null) {
+				return "Unknown color name ["+value.trim()+"] in the value string";
+			}
+			else {
+				return null;
+			}
 		}
 		else {
-			return null;
+			return "Illegal value type to validate";
 		}
 	}
 

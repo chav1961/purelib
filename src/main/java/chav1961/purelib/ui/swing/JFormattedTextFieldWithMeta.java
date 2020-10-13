@@ -183,16 +183,22 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null) {
+	public String standardValidation(final Object val) {
+		if (val == null) {
 			return "Null value can't ne assigned to string";
 		}
-		else {
-			try{getFormatter().stringToValue(value.toString());
+		else if (!SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return "Invalid object class ["+val.getClass().getCanonicalName()+"] to assign, valid classes are "+VALID_CLASSES;
+		}
+		else if (val instanceof String) {
+			try{getFormatter().stringToValue(val.toString());
 				return null;
 			} catch (ParseException exc) {
 				return exc.getLocalizedMessage();
 			}
+		}
+		else {
+			return null;
 		}
 	}
 

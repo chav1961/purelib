@@ -370,6 +370,14 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	Localizer setParent(Localizer parent) throws LocalizationException;
 	
 	/**
+	 * <p>Test the localizer is in parent chain</p>
+	 * @param test localizer to test
+	 * @return true if yes
+	 * @throws LocalizationException when any localization problems were detected
+	 */
+	boolean isInParentChain(Localizer test) throws LocalizationException;
+	
+	/**
 	 * <p>Add listener to notify about locale changes. Listener about to remove should clear it's notification lists automatically</p>
 	 * @param listener listener to add
 	 * @return self

@@ -43,6 +43,7 @@ import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -91,6 +92,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 	private final T							instance;
 	private final Localizer					localizer;
+	private final boolean					localizerPushed;
 	private final LoggerFacade				logger;
 	private final JPanel					childPanel;
 	private final JLabel					leftIconLabel;
@@ -210,8 +212,16 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			
 			try(final LoggerFacade		trans = logger.transaction(this.getClass().getSimpleName())) {
 				final List<JComponent>	ordinalFocused = new ArrayList<>(), outputFocused = new ArrayList<>();
+				final Localizer			childLocalizer = LocalizerFactory.getLocalizer(mdi.getRoot().getLocalizerAssociated()); 
 				
-				this.localizer = localizer.push(mdi.getRoot().getLocalizerAssociated());
+				if (!localizer.isInParentChain(childLocalizer)) {
+					this.localizer = localizer.push(childLocalizer);
+					localizerPushed = true;
+				}
+				else {
+					this.localizer = localizer;
+					localizerPushed = false;
+				}
 				
 				buttonPanel.add(messages);
 				
@@ -306,7 +316,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	public void close() {
 		if (!closed){
 			listeners.clear();
-			try{localizer.close();
+			try{if (localizerPushed) {
+					localizer.pop();
+				}
 			} catch (LocalizationException e) {
 			}
 			closed = true;

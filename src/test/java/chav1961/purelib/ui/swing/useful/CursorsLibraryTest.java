@@ -10,6 +10,6 @@ import chav1961.purelib.testing.OrdinalTestCategory;
 public class CursorsLibraryTest {
 	@Test
 	public void test() {
-		Assert.assertNotNull(CursorsLibrary.DRAG_HAND);		
+		Assert.assertNotNull(CursorsAndIconsLibrary.DRAG_HAND);		
 	}
 }

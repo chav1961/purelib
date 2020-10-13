@@ -83,7 +83,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				@Override
 				public void focusLost(final FocusEvent e) {
 					try{SwingUtilities.invokeLater(()->{
-							if (!currentValue.equals(getValue())) {
+							if (currentValue != null && !currentValue.equals(getValue()) || currentValue == null) {
 								try{monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMeta.this);
 								} catch (ContentException e1) {
 									e1.printStackTrace();
@@ -209,16 +209,26 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Value is mandatory and must be filled!";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
+		}
+		else if (val instanceof String) {
+			final String	value = val.toString();
+			
+			if (value == null || value.isEmpty()) {
+				return "Value is mandatory and must be filled!";
+			}
+			else {
+				try{getFormatter().stringToValue(value.toString());
+					return null;
+				} catch (ParseException exc) {
+					return exc.getLocalizedMessage();
+				}
+			}
 		}
 		else {
-			try{getFormatter().stringToValue(value.toString());
-				return null;
-			} catch (ParseException exc) {
-				return exc.getLocalizedMessage();
-			}
+			return "Illegal value type to validate";
 		}
 	}
 

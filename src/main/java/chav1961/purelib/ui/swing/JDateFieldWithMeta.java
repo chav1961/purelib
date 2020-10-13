@@ -1,18 +1,31 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.Dialog.ModalityType;
+import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
@@ -78,7 +91,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 				@Override
 				public void focusLost(final FocusEvent e) {
 					closeDropDown();
-					try{if (!getValue().equals(currentValue)) {
+					try{if (currentValue != null && !getValue().equals(currentValue) || currentValue == null) {
 							monitor.process(MonitorEvent.Saving,metadata,JDateFieldWithMeta.this);
 							currentValue = (Date) getValue();
 						}
@@ -204,16 +217,27 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Null or empty value is not applicable for the date";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
+		}
+		else if (val instanceof String) {
+			final String value = val.toString();
+		
+			if (value == null || value.isEmpty()) {
+				return "Null or empty value is not applicable for the date";
+			}
+			else {
+				closeDropDown();
+				try{getFormatter().stringToValue(value.trim());
+					return null;
+				} catch (ParseException e) {
+					return e.getLocalizedMessage();
+				}
+			}
 		}
 		else {
-			try{getFormatter().stringToValue(value.trim());
-				return null;
-			} catch (ParseException e) {
-				return e.getLocalizedMessage();
-			}
+			return "Illegal value type to validate";
 		}
 	}
 
@@ -241,21 +265,37 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 	}
 	
 	private void selectDate() {
+		requestFocusInWindow();
 		closeDropDown();
 		
-		try{final JDateSelectionDialog	dsd = new JDateSelectionDialog(getNodeMetadata(),localizer,new SimpleComponentMonitor<Date>(currentValue) {
-																		@Override
-																		public void change(final Date value) {
-																			newValue = value;
-																			super.change(value);
-																		}
-																});
+		try{final JComponentMonitor		monitor = new SimpleComponentMonitor<Date>(currentValue) {
+												@Override
+												public void change(final Date value) {
+													super.change(value);
+												}
+										};
+			final JDateSelectionDialog	dsd = new JDateSelectionDialog(getNodeMetadata(),localizer,monitor) {
+											private static final long serialVersionUID = 1L;
+											@Override
+											protected void storeNewValue(final Object value) {
+												super.storeNewValue(value);
+												if (value instanceof Date) {
+													newValue = (Date)value;
+												}
+												else if (value instanceof Calendar) {
+													newValue = new Date(((Calendar)value).getTimeInMillis());
+												}
+												setValue(newValue);
+											}
+										};
 			final Point					callSelectLocation = callSelect.getLocationOnScreen();
 			
 			window = PopupFactory.getSharedInstance().getPopup(this,dsd,callSelectLocation.x+callSelect.getWidth()-dsd.getPreferredSize().width,callSelectLocation.y+callSelect.getHeight());
 			window.show();
+			SwingUtilities.invokeLater(()->dsd.assignValueToComponent(getValueFromComponent()));
 		} catch (LocalizationException  e) {
-//			throw new LocalizationException(e);
+			closeDropDown();
+			e.printStackTrace();
 		}
 	}
 

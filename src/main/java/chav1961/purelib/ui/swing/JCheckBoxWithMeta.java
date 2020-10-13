@@ -153,8 +153,18 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		return "true".equals(value) || "false".equals(value) ? null : "Neither 'true' nor 'false' for checkbox content!";
+	public String standardValidation(final Object value) {
+		if (value == null) {
+			return "Null value for checkbox content";
+		}
+		else if (SwingUtils.inAllowedClasses(value,VALID_CLASSES)) {
+			return null;
+		}
+		else {
+			final String	str = value.toString();
+			
+			return "true".equals(str) || "false".equals(str) ? null : "Neither 'true' nor 'false' for checkbox content!";
+		}
 	}
 
 	@Override

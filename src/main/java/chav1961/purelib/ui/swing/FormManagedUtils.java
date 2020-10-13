@@ -18,6 +18,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
@@ -43,8 +44,14 @@ public class FormManagedUtils {
 			
 			mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
-					if (node.getApplicationPath() != null){
-						try(final Localizer	currentLocalizer = localizer.push(node.getLocalizerAssociated())) {
+					if (node.getApplicationPath() != null) {
+						Localizer	childLocalizer = null;
+						boolean		isInParentChain = false;
+						
+						try{childLocalizer = LocalizerFactory.getLocalizer(node.getLocalizerAssociated());
+							isInParentChain = localizer.isInParentChain(childLocalizer);
+							
+							final Localizer	currentLocalizer = isInParentChain ? childLocalizer : localizer.push(childLocalizer);
 							
 							if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION)) {
 								final JButtonWithMeta		button = new JButtonWithMeta(node,currentLocalizer,monitor);
@@ -69,6 +76,12 @@ public class FormManagedUtils {
 							}
 						} catch (LocalizationException | ContentException exc) {
 							logger.message(Severity.error,exc,"Control [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
+						} finally {
+							if (!isInParentChain && childLocalizer != null) {
+								try{childLocalizer.close();
+								} catch (LocalizationException e) {
+								}
+							}
 						}
 					} 
 				}

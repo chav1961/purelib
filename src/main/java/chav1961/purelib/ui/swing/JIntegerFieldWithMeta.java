@@ -212,16 +212,26 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Null or empty value is not valid for number";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
+		}
+		else if (val instanceof String) {
+			final String	value = val.toString();
+			
+			if (value == null || value.isEmpty()) {
+				return "Null or empty value is not valid for number";
+			}
+			else {
+				try{getFormatter().stringToValue(value.toString());
+					return null;
+				} catch (ParseException exc) {
+					return exc.getLocalizedMessage();
+				}
+			}
 		}
 		else {
-			try{getFormatter().stringToValue(value.toString());
-				return null;
-			} catch (ParseException exc) {
-				return exc.getLocalizedMessage();
-			}
+			return "Illegal value type to validate";
 		}
 	}
 

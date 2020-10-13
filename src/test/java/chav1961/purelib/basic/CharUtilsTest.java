@@ -1279,6 +1279,145 @@ public class CharUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}
+
+	@Test
+	public void fillIntoTest() {
+		final String	sourceString = "test string"; 
+		final char[]	source = sourceString.toCharArray();
+		final char[]	target = new char[15];
+		
+		Arrays.fill(target,'*');
+		Assert.assertEquals(10, CharUtils.fillInto(source,0,0,target,0,10,false,CharUtils.FillingAdjstment.LEFT));
+		Assert.assertArrayEquals("          *****".toCharArray(),target);
+		
+		Arrays.fill(target,'*');
+		Assert.assertEquals(11, CharUtils.fillInto(source,0,source.length,target,0,10,false,CharUtils.FillingAdjstment.LEFT));
+		Assert.assertArrayEquals("test string****".toCharArray(),target);
+		
+		Arrays.fill(target,'*');
+		Assert.assertEquals(10, CharUtils.fillInto(source,0,source.length,target,0,10,true,CharUtils.FillingAdjstment.LEFT));
+		Assert.assertArrayEquals("test strin*****".toCharArray(),target);
+
+		Arrays.fill(target,'*');
+		Assert.assertEquals(12, CharUtils.fillInto(source,0,source.length,target,0,12,false,CharUtils.FillingAdjstment.LEFT));
+		Assert.assertArrayEquals("test string ***".toCharArray(),target);
+		
+		Arrays.fill(target,'*');
+		Assert.assertEquals(12, CharUtils.fillInto(source,0,source.length,target,0,12,false,CharUtils.FillingAdjstment.RIGHT));
+		Assert.assertArrayEquals(" test string***".toCharArray(),target);
+
+		Arrays.fill(target,'*');
+		Assert.assertEquals(13, CharUtils.fillInto(source,0,source.length,target,0,13,false,CharUtils.FillingAdjstment.CENTER));
+		Assert.assertArrayEquals(" test string **".toCharArray(),target);
+
+		Arrays.fill(target,'*');
+		Assert.assertEquals(13, CharUtils.fillInto(source,0,source.length,target,0,13,false,CharUtils.FillingAdjstment.JUSTIFY));
+		Assert.assertArrayEquals("test   string**".toCharArray(),target);
+		
+		try{CharUtils.fillInto(null,0,source.length,target,0,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{CharUtils.fillInto(source,-1,source.length,target,0,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,100,source.length,target,0,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,0,-1,target,0,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,0,100,target,0,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,10,0,target,0,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (2-nd argument greater than 3-dr)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
+		try{CharUtils.fillInto(source,0,source.length,null,0,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{CharUtils.fillInto(source,0,source.length,target,-1,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (5-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,0,source.length,target,100,13,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (5-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
+		try{CharUtils.fillInto(source,0,source.length,target,0,-1,false,CharUtils.FillingAdjstment.JUSTIFY);
+			Assert.fail("Mandatory exception was not detected (negative 6-th)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.fillInto(source,0,source.length,target,0,13,false,null);
+			Assert.fail("Mandatory exception was not detected (null 8-th argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		Assert.assertArrayEquals("test string".toCharArray(), CharUtils.fillInto(source,0,source.length,10,false,CharUtils.FillingAdjstment.LEFT));
+		Assert.assertArrayEquals("test strin".toCharArray(), CharUtils.fillInto(source,0,source.length,10,true,CharUtils.FillingAdjstment.LEFT));
+
+		try{CharUtils.fillInto(null,0,source.length,10,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{CharUtils.fillInto(source,-1,source.length,10,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,100,source.length,10,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,0,-1,10,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.fillInto(source,0,100,10,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.fillInto(source,0,source.length,-1,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.fillInto(source,0,source.length,10,false,null);
+			Assert.fail("Mandatory exception was not detected (null 6-th argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		Assert.assertEquals("test string", CharUtils.fillInto(sourceString,10,false,CharUtils.FillingAdjstment.LEFT));
+		Assert.assertEquals("test strin", CharUtils.fillInto(sourceString,10,true,CharUtils.FillingAdjstment.LEFT));
+	
+		try{CharUtils.fillInto(null,10,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{CharUtils.fillInto(sourceString,-1,false,CharUtils.FillingAdjstment.LEFT);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{CharUtils.fillInto(sourceString,10,false,null);
+			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
+		} catch (NullPointerException exc) {
+		}
+	}
+	
 	
 	private static void innerTest(final CharSequence seq) {
 		Assert.assertEquals(11,seq.length());

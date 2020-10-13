@@ -235,35 +235,45 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Null or empty value can't be assigned to file";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
 		}
-		else if (value.startsWith(FileSystemInterface.FILESYSTEM_URI_SCHEME+':')) {
-			try{final URI	uri = URI.create(value);
-			
-				for (FileSystemInterfaceDescriptor item : FileSystemFactory.getAvailableFileSystems()) {
-					if (item.getInstance().canServe(uri)) {
-						return null;
-					}
-				}
-				throw new IllegalArgumentException("Unknown subscheme or appropriative file system not found");
-			} catch (IllegalArgumentException | IOException | EnvironmentException exc) {
-				return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
+		else if (val instanceof String) {
+			final String	value = val.toString();
+					
+			if (value == null || value.isEmpty()) {
+				return "Null or empty value can't be assigned to file";
 			}
-		}
-		else if (value.startsWith("file:")) {
-			try{final URI	uri = URI.create(value);
-
-				new File(uri);
+			else if (value.startsWith(FileSystemInterface.FILESYSTEM_URI_SCHEME+':')) {
+				try{final URI	uri = URI.create(value);
+				
+					for (FileSystemInterfaceDescriptor item : FileSystemFactory.getAvailableFileSystems()) {
+						if (item.getInstance().canServe(uri)) {
+							return null;
+						}
+					}
+					throw new IllegalArgumentException("Unknown subscheme or appropriative file system not found");
+				} catch (IllegalArgumentException | IOException | EnvironmentException exc) {
+					return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
+				}
+			}
+			else if (value.startsWith("file:")) {
+				try{final URI	uri = URI.create(value);
+	
+					new File(uri);
+					return null;
+				} catch (IllegalArgumentException exc) {
+					return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
+				}
+			}
+			else {
+				new File(value);
 				return null;
-			} catch (IllegalArgumentException exc) {
-				return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
 			}
 		}
 		else {
-			new File(value);
-			return null;
+			return "Illegal value type to validate";
 		}
 	}
 

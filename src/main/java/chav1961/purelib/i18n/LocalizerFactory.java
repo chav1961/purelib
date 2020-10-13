@@ -3,8 +3,11 @@ package chav1961.purelib.i18n;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.AbstractButton;
@@ -31,7 +34,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  */
 
 public final class LocalizerFactory {
-	private static final Map<URI,Localizer>	cache = new ConcurrentHashMap<>();
+	private static final Map<URI,LocalizerCacheItem>	cache = new ConcurrentHashMap<>();
 
 	private LocalizerFactory() {
 	}
@@ -69,21 +72,33 @@ public final class LocalizerFactory {
 			throw new NullPointerException("Localizer URI can't be null"); 
 		}
 		else {
-			Localizer	localizer;
+			Localizer			localizer;
+			LocalizerCacheItem	localizerItem;
 			
-			if ((localizer = cache.get(localizerUri)) != null) {	// Double checked locking!
-				return localizer; 
+			if ((localizerItem = cache.get(localizerUri)) != null) {	// Double checked locking!
+				return localizerItem.localizer; 
 			}
 			else {
 				for (Localizer item : ServiceLoader.load(Localizer.class)) {
 					if (item.canServe(localizerUri)) {
 						synchronized(cache) {
-							if ((localizer = cache.get(localizerUri)) != null) {
-								return localizer; 
+							if ((localizerItem = cache.get(localizerUri)) != null) {
+								return localizerItem.localizer; 
 							}
 							else {
 								try{localizer = item.newInstance(localizerUri);
-									cache.put(localizerUri,localizer);
+									
+									int		localizerHash = 0;
+									for (String key : localizer.localKeys()) {
+										localizerHash += key.hashCode();
+									}
+								
+									for (Entry<URI, LocalizerCacheItem> entry : cache.entrySet()) {
+										if (entry.getValue().localizerHash == localizerHash && deepCompare(entry.getValue().localizer,localizer)) {
+											return entry.getValue().localizer;
+										}
+									}
+									cache.put(localizerUri,localizerItem = new LocalizerCacheItem(localizerUri,localizer,localizerHash));
 									return localizer;
 								} catch (EnvironmentException e) {
 									throw new LocalizationException("Error creating localizer instance for the URI ["+localizerUri+"]: "+e.getLocalizedMessage());
@@ -311,6 +326,35 @@ public final class LocalizerFactory {
 				}
 				cl = cl.getSuperclass();
 			}
+		}
+	}
+
+	private static boolean deepCompare(final Localizer left, final Localizer right) {
+		final Set<String>	leftKeys = new HashSet<>(), rightKeys = new HashSet<>();
+
+		for (String key : left.localKeys()) {
+			leftKeys.add(key);
+		}
+		for (String key : right.localKeys()) {
+			rightKeys.add(key);
+		}
+		return leftKeys.equals(rightKeys);
+	}
+	
+	private static class LocalizerCacheItem {
+		final URI			uri;
+		final Localizer		localizer;
+		final int			localizerHash;
+		
+		public LocalizerCacheItem(URI uri, Localizer localizer, int localizerHash) {
+			this.uri = uri;
+			this.localizer = localizer;
+			this.localizerHash = localizerHash;
+		}
+
+		@Override
+		public String toString() {
+			return "LocalizerCacheItem [uri=" + uri + ", localizerHash=" + localizerHash + "]";
 		}
 	}
 }

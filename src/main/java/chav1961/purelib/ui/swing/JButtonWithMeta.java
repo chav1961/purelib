@@ -109,7 +109,7 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 	}
 
 	@Override
-	public String standardValidation(final String value) {
+	public String standardValidation(final Object value) {
 		return null;
 	}
 

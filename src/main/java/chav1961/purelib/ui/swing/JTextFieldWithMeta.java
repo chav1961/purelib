@@ -163,8 +163,11 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null) {
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
+		}
+		else if (val == null) {
 			return "Null value can't be assigned to this field";
 		}
 		else {

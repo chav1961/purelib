@@ -783,7 +783,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			result.addAll(Arrays.asList(currentPath.toString().split("\\/")));
 		}
 		for (int index = 0; index < newPart.length; index++) {
-			if (!newPart[index].isEmpty() && !".".equals(newPart[index])) {
+			if (!newPart[index].isEmpty() && (!".".equals(newPart[index]) && !(newPart[index].length() > 2 && newPart[index].endsWith(":")))) {
 				if ("..".equals(newPart[index])) {
 					if (result.size() == 0) {
 						throw new IllegalArgumentException("Attempt to jump upper than root: current path is ["+getPath()+"], delta is ["+delta+"]");
@@ -801,11 +801,16 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 				sb.append('/').append(item);
 			}
 		}
-		return URI.create(sb.toString());
+		return URI.create(sb.length() == 0 ? "/" : sb.toString());
 	}
 
 	private FileSystemInterface open(final URI item) {
-		currentPath = item.normalize();
+		if (item.isAbsolute()) {
+			currentPath = URI.create(item.getRawSchemeSpecificPart()).normalize();
+		}
+		else {
+			currentPath = item.normalize();
+		}
 		appendMode = false;
 		return this;
 	}
@@ -820,7 +825,8 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			final AbstractFileSystem	clone = (AbstractFileSystem) clone();
 			
 			for (URI item : getDataWrapper(currentPath).list(mask)) {
-				callback.process(clone.open(item));
+				callback.process(clone.push(build(item.toString())));
+				clone.pop();
 			}
 		}
 		return this;

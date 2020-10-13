@@ -157,7 +157,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 				break;
 			case Validation:
 				final Object	changed = ((JComponentInterface)component).getChangedValueFromComponent(); 
-				final String	error = ((JComponentInterface)component).standardValidation(changed == null ? null : changed.toString());
+				final String	error = ((JComponentInterface)component).standardValidation(changed);
 				
 				if (error != null) {
 					getLogger().message(Severity.error,SwingUtils.prepareHtmlMessage(Severity.error, error));

@@ -228,19 +228,29 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 	}
 
 	@Override
-	public String standardValidation(final String value) {
-		if (value == null || value.isEmpty()) {
-			return "Null or empty value is not valid for enumeration constant";
+	public String standardValidation(final Object val) {
+		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
+			return null;
+		}
+		else if (val instanceof String) {
+			final String	value = val.toString();
+			
+			if (value == null || value.isEmpty()) {
+				return "Null or empty value is not valid for enumeration constant";
+			}
+			else {
+				final String	test = value.trim();
+				
+				for (Enum<?> item : clazz.getEnumConstants()) {
+					if (test.equals(item.name())) {
+						return null;
+					}
+				}
+				return "Unknown value ["+value+"] for enumeration constant";
+			}
 		}
 		else {
-			final String	test = value.trim();
-			
-			for (Enum<?> item : clazz.getEnumConstants()) {
-				if (test.equals(item.name())) {
-					return null;
-				}
-			}
-			return "Unknown value ["+value+"] for enumeration constant";
+			return "Illegal value type to validate";
 		}
 	}
 
