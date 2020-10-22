@@ -283,7 +283,7 @@ public abstract class AbstractLocalizer implements Localizer {
 				}
 			}
 			else {
-				return result;
+				return CharUtils.unescapeStringContent(result);
 			}
 		}
 	}

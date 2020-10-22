@@ -26,7 +26,7 @@ public class Constants {
 	public static final String	MODEL_APPLICATION_SCHEME_NAVIGATOR = "navigator";
 	public static final String	MODEL_APPLICATION_SCHEME_ACTION = "action";
 	public static final String	MODEL_APPLICATION_SCHEME_BUILTIN_ACTION = "builtin";
-	
+	public static final String	MODEL_APPLICATION_SCHEME_REF = "ref";
 	
 	public static final String	MODEL_BUILTIN_LANGUAGE = "builtin.languages";
 	public static final String	MODEL_BUILTIN_LAF = "builtin.lookAndFeel";

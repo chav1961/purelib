@@ -30,6 +30,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
@@ -60,6 +61,7 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
+import chav1961.purelib.ui.swing.useful.JTextTooltipWindow;
 import chav1961.purelib.ui.swing.useful.LabelledLayout;
 
 /**
@@ -234,6 +236,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
 						childPanel.add(fieldComponent,LabelledLayout.CONTENT_AREA);
+						if ((fieldComponent instanceof JTextComponent) && format.hasLocalEditor()) {
+							new JTextTooltipWindow((JTextComponent)fieldComponent, 0, (key,size)->(String[])formMgr.getForEditorContent(instance, null, metadata.getName(), key, size));
+						}
 						if (!firstFocused) {
 							firstFocused = true;
 							fieldComponent.requestFocusInWindow();

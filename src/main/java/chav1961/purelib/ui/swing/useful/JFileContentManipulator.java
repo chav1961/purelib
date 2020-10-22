@@ -104,7 +104,8 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		FILE_STORED, 
 		FILE_STORED_AS, 
 		MODIFICATION_FLAG_SET, 
-		MODIFICATION_FLAG_CLEAR
+		MODIFICATION_FLAG_CLEAR,
+		LRU_LIST_REFRESHED
 	}
 	
 	/**
@@ -345,7 +346,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	}
 
 	/**
-	 * <p>Open file from the LRU list</p>
+	 * <p>Explicitly open file</p>
 	 * @param file file to open
 	 * @return true of file was successfully opened
 	 * @throws IOException on any errors during open
@@ -353,6 +354,62 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 */
 	public boolean openFile(final String file) throws IOException, IllegalArgumentException {
 		return openFile(file,DUMMY);
+	}
+
+	/**
+	 * <p>Explicitly open file</p>
+	 * @param file file to open
+	 * @param progress progress indicator to indicate loading
+	 * @return true of file was successfully opened
+	 * @throws IOException on any errors during open
+	 * @throws NullPointerException when progress indicator is null
+	 * @throws IllegalArgumentException when file name os null or empty
+	 */
+	public boolean openFile(final String file, final ProgressIndicator progress) throws IOException, NullPointerException, IllegalArgumentException {
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("File name can't be null or empty"); 
+		}
+		else if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null");
+		}
+		else {
+			try(final FileSystemInterface	current = fsi.clone().open(file)) {
+				if (!current.exists() || !current.isFile()) {
+					return false;
+				}
+				else {
+					try{progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
+						try(final InputStream			is = current.read();
+							final OutputStream			os = getterOut.getContent()) {
+		
+							Utils.copyStream(is, os, progress);
+							clearModificationFlag();
+							currentName = current.getPath();
+							currentDir = current.open("../").getPath();
+							fireEvent(FileContentChangeType.FILE_LOADED);
+							return true;
+						}
+					} finally {
+						fillLru(currentName,false);
+						progress.end();
+					}
+				}
+			} catch (LocalizationException e) {
+				throw new IOException(e);
+			}
+		}
+	}
+	
+	
+	/**
+	 * <p>Open file from the LRU list</p>
+	 * @param file file to open
+	 * @return true of file was successfully opened
+	 * @throws IOException on any errors during open
+	 * @throws IllegalArgumentException when file name os null or empty
+	 */
+	public boolean openLRUFile(final String file) throws IOException, IllegalArgumentException {
+		return openLRUFile(file,DUMMY);
 	}
 
 	/**
@@ -364,7 +421,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws NullPointerException when progress indicator is null
 	 * @throws IllegalArgumentException when file name os null or empty
 	 */
-	public boolean openFile(final String file, final ProgressIndicator progress) throws IOException, NullPointerException, IllegalArgumentException {
+	public boolean openLRUFile(final String file, final ProgressIndicator progress) throws IOException, NullPointerException, IllegalArgumentException {
 		if (file == null || file.isEmpty()) {
 			throw new IllegalArgumentException("File name can't be null or empty"); 
 		}
@@ -379,6 +436,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				if (!current.exists() || !current.isFile()) {
 					if (new JLocalizedOptionPane(localizer).confirm(null, LRU_MISSING, LRU_MISSING_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 						lru.remove(file);
+						fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 					}
 					return false;
 				}

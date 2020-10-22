@@ -72,6 +72,8 @@ public class ContentModelFactory {
 	private static final String			XML_TAG_APP_MENU = NAMESPACE_PREFIX+":menu";
 	private static final String			XML_TAG_APP_SUBMENU = NAMESPACE_PREFIX+":submenu";
 	private static final String			XML_TAG_APP_ITEM = NAMESPACE_PREFIX+":item";	
+	private static final String			XML_TAG_APP_SUBMENU_REF = NAMESPACE_PREFIX+":submenuref";
+	private static final String			XML_TAG_APP_ITEM_REF = NAMESPACE_PREFIX+":itemref";	
 	private static final String			XML_TAG_APP_SEPARATOR = NAMESPACE_PREFIX+":separator";
 	private static final String			XML_TAG_APP_PLACEHOLDER = NAMESPACE_PREFIX+":placeholder";
 	private static final String			XML_TAG_APP_BUILTIN_SUBMENU = NAMESPACE_PREFIX+":builtinSubmenu";
@@ -80,6 +82,7 @@ public class ContentModelFactory {
 	
 	private static final String			XML_ATTR_ID = "id";
 	private static final String			XML_ATTR_NAME = "name"; 
+	private static final String			XML_ATTR_REF = "ref"; 
 	private static final String			XML_ATTR_TYPE = "type"; 
 	private static final String			XML_ATTR_LABEL = "label";
 	private static final String			XML_ATTR_CAPTION = "caption";
@@ -721,6 +724,21 @@ public class ContentModelFactory {
 						, null
 						, submenuIcon == null || submenuIcon.isEmpty() ? null : URI.create(submenuIcon));
 				break;
+			case XML_TAG_APP_SUBMENU_REF	:
+				final String	submenuRefName = getAttribute(document,XML_ATTR_NAME);
+				final String	submenuRef = getAttribute(document,XML_ATTR_REF);
+				
+				child = new MutableContentNodeMetadata(submenuRefName
+						, String.class
+						, Constants.MODEL_NAVIGATION_NODE_PREFIX+'.'+submenuRefName
+						, null
+						, submenuRef
+						, null 
+						, null
+						, null
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/"+submenuRef)
+						, null);
+				break;
 			case XML_TAG_APP_ITEM		:
 				final String	itemName = getAttribute(document,XML_ATTR_NAME);
 				final String	itemCaption = getAttribute(document,XML_ATTR_CAPTION);
@@ -739,6 +757,21 @@ public class ContentModelFactory {
 						, null
 						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : ""))
 						, itemIcon == null || itemIcon.isEmpty() ? null : URI.create(itemIcon));
+				break;
+			case XML_TAG_APP_ITEM_REF	:
+				final String	itemRefName = getAttribute(document,XML_ATTR_NAME);
+				final String	itemRef = getAttribute(document,XML_ATTR_REF);
+				
+				child = new MutableContentNodeMetadata(itemRefName
+						, String.class
+						, Constants.MODEL_NAVIGATION_LEAF_PREFIX+"."+itemRefName
+						, null
+						, itemRef
+						, null 
+						, null
+						, null
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/"+itemRef)
+						, null);
 				break;
 			case XML_TAG_APP_SEPARATOR	:
 				child = new MutableContentNodeMetadata("_"

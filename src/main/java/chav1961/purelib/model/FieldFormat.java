@@ -86,6 +86,7 @@ public class FieldFormat {
 	private final boolean		useInListAnchored;
 	private final boolean		isOutput;
 	private final boolean		supportNulls;
+	private final boolean		hasLocalEditor;
 	
 	/**
 	 * <p>Constructor of the class. Build default format for the given class</p>
@@ -120,6 +121,7 @@ public class FieldFormat {
 	 * <li><b>z</b> - zero field value must be marked</li>
 	 * <li><b>z</b> - positive field value must be marked</li>
 	 * <li><b>s</b> - all content of the field must be selected when control gets focus</li>
+	 * <li><b>d</b> - field requires local editor if available</li>
 	 * <li><b>&lt;</b> - field is left-aligned</li>
 	 * <li><b>&gt;</b> - field is right-aligned</li>
 	 * <li><b>&lt;&gt;</b> - field is adjusted</li>
@@ -143,7 +145,7 @@ public class FieldFormat {
 			boolean			isMandatory = false, isReadOnly = false, isReadOnlyOnExistent = false, isOutput = false;
 			boolean			negativeHighlight = false, zeroHighlight = false, positiveHighlight = false;
 			boolean			useInList = false, useInListAnchored = false, needSelect = false;
-			boolean			supportNulls = false;
+			boolean			supportNulls = false, hasLocalEditor = false;
 			String			mask = null;
 			Alignment		alignment = Alignment.NoMatter;
 			int				pos = 0, len = 0, frac = 0, value;
@@ -205,6 +207,7 @@ public class FieldFormat {
 					case 'z' : zeroHighlight = true; break;
 					case 'p' : positiveHighlight = true; break;
 					case 's' : needSelect = true; break;
+					case 'd' : hasLocalEditor = true; break;
 					case '<' :
 						if (alignment != Alignment.NoMatter) {
 							throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: alignment appears more than once");
@@ -272,6 +275,7 @@ public class FieldFormat {
 			this.useInList = useInList;
 			this.useInListAnchored = useInListAnchored;
 			this.supportNulls = supportNulls;
+			this.hasLocalEditor = hasLocalEditor;
 			this.alignment = alignment;
 			this.length = len;
 			this.frac = frac;
@@ -384,6 +388,14 @@ public class FieldFormat {
 	 */
 	public boolean isNullSupported() {
 		return supportNulls;
+	}
+
+	/**
+	 * <p>Is field can have local edito</p>
+	 * @return true if yes
+	 */
+	public boolean hasLocalEditor() {
+		return hasLocalEditor;
 	}
 	
 	/**

@@ -14,6 +14,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * </ul>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>, FieldFormManager<Id,Instance>, ActionFormManager<Id,Instance> {
@@ -28,8 +29,21 @@ public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>
 	 * @param inst current record instance 
 	 * @param id primary key of the current record instance
 	 * @param fieldName field name to get manager for
+	 * @param parameters additional parameters
 	 * @return form manager to manipulate or null if missing
-	 * @throws FlowException on any errors or on action cancelling  
+	 * @throws FlowException on any errors or on action canceling  
 	 */
-	default FormManager<?,?> getForEditor(final Instance inst, final Id id, final String fieldName) throws FlowException {return null;} 
+	default FormManager<?,?> getForEditor(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException {return null;} 
+
+	/**
+	 * <p>Get contetn for local editors (for example, drop-down lists)</p>
+	 * @param <T> content type
+	 * @param inst current record instance 
+	 * @param id primary key of the current record instance
+	 * @param fieldName field name to get manager for
+	 * @param parameters additional parameters
+	 * @return content. Can be null
+	 * @throws FlowException on any errors or on action canceling  
+	 */
+	default <T> T getForEditorContent(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException {return null;} 
 }

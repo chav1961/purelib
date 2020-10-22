@@ -38,7 +38,9 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 	private final FileSystemInterface	fsi;
 	private final boolean				insertParent;
 	
-	public JFileList(final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final boolean useMultiselection, final boolean horizontalPlacement) throws IOException {
+	private String						currentLocation;
+	
+	public JFileList(final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final boolean useMultiselection, final boolean horizontalPlacement) throws IOException, NullPointerException {
 		if (logger == null) {
 			throw new NullPointerException("Logger facade can't be null"); 
 		}
@@ -57,11 +59,11 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 				@Override
 				public Component getListCellRendererComponent(final JList<? extends JFileListItemDescriptor> list, final JFileListItemDescriptor value, final int index, final boolean isSelected, final boolean cellHasFocus) {
 					final JLabel	result = new JLabel();
-					final String	val = URI.create(value.path).getRawSchemeSpecificPart();
+					final String	val = URI.create(value.getPath()).getRawSchemeSpecificPart();
 						
-					result.setText(CharUtils.fillInto(URLDecoder.decode(value.name),10,false,CharUtils.FillingAdjstment.LEFT));
-					result.setToolTipText(URLDecoder.decode(value.path));
-					if (value.isDirectory) {
+					result.setText(CharUtils.fillInto(URLDecoder.decode(value.getName()),10,false,CharUtils.FillingAdjstment.LEFT));
+					result.setToolTipText(URLDecoder.decode(value.getPath()));
+					if (value.isDirectory()) {
 						result.setIcon(DIR_ICON);
 						if (isSelected) {
 							result.setOpaque(true);
@@ -98,14 +100,14 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 						if (index >= 0) {
 							String	newLocation = null;
 							
-							try (final FileSystemInterface	fsiNew = fsi.clone().open(getModel().getElementAt(index).path)) {
+							try (final FileSystemInterface	fsiNew = fsi.clone().open(getModel().getElementAt(index).getPath())) {
 								
 								if (fsiNew.isDirectory()) {
 									newLocation = fsiNew.getPath();
 								}
 								else {
 									setSelectedIndex(index);
-									selectAndAccept(getSelectedValue().path);
+									selectAndAccept(getSelectedValue().getPath());
 								}
 							} catch (IOException e1) {
 								logger.message(Severity.error,e1,"Error querying file system node ["+getModel().getElementAt(index)+"]: "+e1.getLocalizedMessage());
@@ -129,15 +131,17 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 					if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 						final JFileListItemDescriptor	value = getSelectedValue();
 						
-						try(final FileSystemInterface	current = fsi.clone().open(value.path)) {
-							if (current.isDirectory()) {
-								open(value.path);
+						if (value != null) {
+							try(final FileSystemInterface	current = fsi.clone().open(value.getPath())) {
+								if (current.isDirectory()) {
+									open(value.getPath());
+								}
+								else {
+									selectAndAccept(value.getPath());
+								}
+							} catch (IOException exc) {
+								logger.message(Severity.error,exc,"Error selection file system node ["+value+"]: "+exc.getLocalizedMessage());
 							}
-							else {
-								selectAndAccept(value.path);
-							}
-						} catch (IOException exc) {
-							logger.message(Severity.error,exc,"Error selection file system node ["+value+"]: "+exc.getLocalizedMessage());
 						}
 					}
 				}
@@ -149,6 +153,23 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 
 	protected abstract void selectAndAccept(final String path);
 
+	public String getCurrentLocation() {
+		return currentLocation;
+	}
+
+	public String getCurrentSelection() {
+		if (getSelectedIndex() >= 0) {
+			return getSelectedValue().getPath();
+		}
+		else {
+			return null;
+		}
+	}
+	
+	public void refresh() throws IOException {
+		open(getCurrentLocation());
+	}
+	
 	private void open(final String newLocation) throws IOException {
 		final DefaultListModel<JFileListItemDescriptor>	model = ((DefaultListModel<JFileListItemDescriptor>)getModel()); 
 		
@@ -172,8 +193,8 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 					files.add(new JFileListItemDescriptor(s.getName(),s.getPath(),false));
 				}
 			});
-			dirs.sort((o1,o2)->o1.name.compareTo(o2.name));
-			files.sort((o1,o2)->o1.name.compareTo(o2.name));
+			dirs.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
+			files.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
 			for (JFileListItemDescriptor item : dirs) {
 				model.addElement(item);
 			}
@@ -181,5 +202,6 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 				model.addElement(item);
 			}
 		}
+		currentLocation = newLocation;
 	}
 }

@@ -256,7 +256,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		}
 		else {
 			final List<String>	result = new ArrayList<>();
-			list(mask,fsys -> result.add(fsys.getPath()));
+			list(mask,fsys -> result.add(fsys.getName()));
 			
 			final String[]		returned = result.toArray(new String[result.size()]);		
 			result.clear();

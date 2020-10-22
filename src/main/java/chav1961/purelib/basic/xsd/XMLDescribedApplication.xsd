@@ -46,8 +46,10 @@
 	<xs:complexType name="Menu">
 		<xs:choice minOccurs="1" maxOccurs="unbounded">
 			<xs:element name="submenu" type="app:Submenu" />
+			<xs:element name="submenuref" type="app:SubmenuRef" />
 			<xs:element name="builtinSubmenu" type="app:BuiltinSubmenu" />
 			<xs:element name="item" type="app:Item" />
+			<xs:element name="itemref" type="app:ItemRef" />
 			<xs:element name="separator" type="app:Separator" />
 		</xs:choice>
 		<xs:attribute name="id" type="xs:string" use="required" />
@@ -68,6 +70,16 @@
 		<xs:attribute name="icon" type="xs:anyURI" use="optional" />
 	</xs:complexType>
 
+	<xs:complexType name="SubmenuRef">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="itemref" type="app:ItemRef" />
+			<xs:element name="separator" type="app:Separator" />
+			<xs:element name="placeholder" type="app:Placeholder" />
+		</xs:choice>
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="ref" type="xs:string" use="required" />
+	</xs:complexType>
+	
 	<xs:complexType name="BuiltinSubmenu">
 		<xs:attribute name="name" type="xs:string" use="required" />
 		<xs:attribute name="caption" type="xs:string" use="required" />
@@ -83,6 +95,11 @@
 		<xs:attribute name="tooltip" type="xs:string" use="required" />
 		<xs:attribute name="group" type="xs:string" use="optional" />
 		<xs:attribute name="icon" type="xs:anyURI" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="ItemRef">
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="ref" type="xs:string" use="required" />
 	</xs:complexType>
 
 	<xs:complexType name="Separator" />
