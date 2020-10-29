@@ -12,7 +12,9 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
@@ -34,6 +36,15 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 	private static final Icon			DIR_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("directory.png"));
 	private static final Icon			FILE_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("file.png"));
 
+	public enum JFileListSelectionType {
+		NONE, 
+		EXACTLY_ONE_DIRECTORY,
+		EXACTLY_ONE_FILE,
+		DIRECTORIES_ONLY,
+		FILES_ONLY,
+		MIX
+	}
+	
 	private final LoggerFacade			logger;
 	private final FileSystemInterface	fsi;
 	private final boolean				insertParent;
@@ -168,6 +179,52 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 	
 	public void refresh() throws IOException {
 		open(getCurrentLocation());
+	}
+
+	public JFileListSelectionType getSelectionType() {
+		final int[]	indices = getSelectedIndices();
+		
+		if (indices == null || indices.length == 0) {
+			return JFileListSelectionType.NONE;
+		}
+		else if (indices.length == 1) {
+			return getModel().getElementAt(indices[0]).isDirectory() ? JFileListSelectionType.EXACTLY_ONE_DIRECTORY : JFileListSelectionType.EXACTLY_ONE_FILE; 
+		}
+		else {
+			boolean	filePresent = false, directoryPresent = false;
+			
+			for (int index : indices) {
+				if (getModel().getElementAt(index).isDirectory()) {
+					directoryPresent = true;
+				}
+				else {
+					filePresent = true;
+				}
+			}
+			if (directoryPresent && filePresent) {
+				return JFileListSelectionType.MIX;
+			}
+			else {
+				return directoryPresent ? JFileListSelectionType.DIRECTORIES_ONLY : JFileListSelectionType.FILES_ONLY;
+			}
+		}
+	}
+
+	public Set<String> getSelectedExtensions() {
+		final Set<String>	result = new HashSet<>();
+		final int[]			indices = getSelectedIndices();
+		
+		if (indices != null) {
+			for (int index : indices) {
+				final String	path = getModel().getElementAt(index).getPath();
+				final String	name = path.endsWith("/") ? path.substring(path.lastIndexOf('/',path.lastIndexOf('/')) + 1) : path.substring(path.lastIndexOf('/') + 1);
+				
+				if (name.contains(".")) {
+					result.add(name.substring(name.lastIndexOf('.')+1));
+				}
+			}
+		}
+		return result;
 	}
 	
 	private void open(final String newLocation) throws IOException {

@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.WrongMethodTypeException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -64,7 +65,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
@@ -85,6 +85,7 @@ import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -1016,7 +1017,7 @@ loop:			for (Component comp : children(node)) {
 					final Method	m = item.getValue();
 					
 					try{m.setAccessible(true);
-						calls.put(item.getKey(),new MethodHandleAndAsync(MethodHandles.lookup().unreflect(m),m.getAnnotation(OnAction.class).async()));
+						calls.put(item.getKey(),new MethodHandleAndAsync(CompilerUtils.buildMethodPath(m)+CompilerUtils.buildMethodSignature(m),MethodHandles.lookup().unreflect(m),m.getAnnotation(OnAction.class).async()));
 					} catch (IllegalAccessException exc) {
 						throw new IllegalArgumentException("Can't get access to annotated method ["+m+"]: "+exc.getLocalizedMessage()); 
 					}
@@ -1049,11 +1050,14 @@ loop:			for (Component comp : children(node)) {
 								t.start();
 							}
 							else {
-								if (!query.isEmpty()) {
-									mha.handle.invoke(entity,query);
-								}
-								else {
-									mha.handle.invoke(entity);
+								try{if (!query.isEmpty()) {
+										mha.handle.invoke(entity,query);
+									}
+									else {
+										mha.handle.invoke(entity);
+									}
+								} catch (WrongMethodTypeException exc) {
+									throw new EnvironmentException("Illegal method signature ["+mha.signature+"] in class ["+entity.getClass()+"]: "+exc.getLocalizedMessage()); 
 								}
 							}
 						} catch (ThreadDeath d) {
@@ -1073,8 +1077,13 @@ loop:			for (Component comp : children(node)) {
 	private static void assignActionListeners(final JComponent root, final ActionListener listener) {
 		walkDownInternal(root,(mode,node)->{
 			if (mode == NodeEnterMode.ENTER) {
-				try{node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node,listener);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				if ((node instanceof NodeMetadataOwner) && ((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath() != null && (URIUtils.canServeURI(((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath(),MODEL_REF_URI))) {
+					return ContinueMode.CONTINUE;
+				}
+				else {
+					try{node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node,listener);
+					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+					}
 				}
 			}
 			return ContinueMode.CONTINUE;
@@ -1257,10 +1266,12 @@ loop:			for (Component comp : children(node)) {
     }
 
 	private static class MethodHandleAndAsync {
+		final String		signature;
 		final MethodHandle	handle;
 		final boolean		async;
 		
-		public MethodHandleAndAsync(MethodHandle handle, boolean async) {
+		public MethodHandleAndAsync(final String signature, MethodHandle handle, boolean async) {
+			this.signature = signature;
 			this.handle = handle;
 			this.async = async;
 		}
@@ -1508,7 +1519,7 @@ loop:			for (Component comp : children(node)) {
 						((JMenuItem)item).setIcon(((JMenuItem)ref).getIcon());
 						((JMenuItem)item).setToolTipText(((JMenuItem)ref).getToolTipText());
 						((JMenuItem)item).setEnabled(((JMenuItem)ref).isEnabled());
-						((JMenuItem)item).setActionCommand(((JMenuItem)ref).getActionCommand());
+						((JMenuItem)item).addActionListener((e)->((JMenuItem)ref).doClick());
 					}
 					else if ((item instanceof JMenu) && (ref instanceof JMenu)) {
 						((JMenu)item).setText(((JMenu)ref).getText());
