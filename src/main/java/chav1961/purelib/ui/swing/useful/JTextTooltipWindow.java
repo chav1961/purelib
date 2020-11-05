@@ -60,7 +60,9 @@ public class JTextTooltipWindow extends JList<String> {
 				
 				@Override
 				public void focusLost(final FocusEvent e) {
-					hideWindow();
+					if (isShown()) {
+						hideWindow();
+					}
 				}
 			});
 			buddy.addKeyListener(new KeyListener() {
@@ -84,7 +86,12 @@ public class JTextTooltipWindow extends JList<String> {
 							break;
 						case KeyEvent.VK_ESCAPE	:
 							hideWindow();
-							SwingUtilities.invokeLater(()->buddy.setText(getSelectedValue()));
+							e.consume();
+							break;
+						case KeyEvent.VK_ENTER	:
+							buddy.setText(getSelectedValue());
+							hideWindow();
+							e.consume();
 							break;
 						case KeyEvent.VK_DOWN	:
 							changeSelection(1);
@@ -97,6 +104,7 @@ public class JTextTooltipWindow extends JList<String> {
 			});
 			buddy.getDocument().addDocumentListener(new DocumentListener() {
 				private boolean	recursiveProtector = false;
+				private String  prevValue = "\uFFFF";
 				
 				@Override public void removeUpdate(DocumentEvent e) {process();}
 				@Override public void insertUpdate(DocumentEvent e) {process();}
@@ -105,7 +113,11 @@ public class JTextTooltipWindow extends JList<String> {
 				private void process() {
 					if (isShown()) {
 						try{recursiveProtector = true;
-							fillWindow(buddy.getText());
+							final String	current = buddy.getText();
+							
+							if (!current.isEmpty() && !current.equals(prevValue)) {
+								fillWindow(prevValue = current);
+							}
 						} finally {
 							recursiveProtector = false;
 						}
@@ -128,11 +140,11 @@ public class JTextTooltipWindow extends JList<String> {
 		
 		if (maxSize == 0) {
 			scroll.setPreferredSize(new Dimension(size.width,10*size.height));
-			popup = PopupFactory.getSharedInstance().getPopup(null,scroll,p.x,p.y+size.height-1);
+			popup = PopupFactory.getSharedInstance().getPopup(buddy,scroll,p.x,p.y+size.height-1);
 		}
 		else {
 			setPreferredSize(new Dimension(size.width,maxSize*size.height));
-			popup = PopupFactory.getSharedInstance().getPopup(null,this,p.x,p.y+size.height-1);
+			popup = PopupFactory.getSharedInstance().getPopup(buddy,this,p.x,p.y+size.height-1);
 		}
 		popup.show();
 	}
@@ -186,19 +198,20 @@ public class JTextTooltipWindow extends JList<String> {
 	
 	private void changeSelection(final int delta) {
 		if (isShown()) {
-			int		index = -1;
+			int		index = getSelectionModel().getMinSelectionIndex();
 			
-			if (getSelectedIndex() < 0) {
-				setSelectedIndex(index = 0);
+			if (index < 0) {
+				index = 0;
 			}
-			if (getSelectedIndex()+delta >= 0 && getSelectedIndex()+delta < getModel().getSize()) {
-				setSelectedIndex(index = getSelectedIndex()+delta);
+			if (index+delta >= 0 && index+delta < getModel().getSize()) {
+				index += delta;
 			}
+			getSelectionModel().setSelectionInterval(index, index);
+			
 			final Rectangle	bounds = getCellBounds(index, index); 
 			
 			if (bounds != null) {
 				scrollRectToVisible(bounds);
-				buddy.setText(getSelectedValue());
 			}
 		}
 	}

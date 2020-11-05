@@ -150,7 +150,13 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	@Override
 	public void assignValueToComponent(final Object value) {
 		if (value == null) {
-			throw new NullPointerException("Value to assign can't be null");
+			if (getNodeMetadata().getFormatAssociated() != null && getNodeMetadata().getFormatAssociated().isNullSupported()) {
+				setText("");
+				newValue = null;
+			}
+			else {
+				throw new NullPointerException("Value to assign can't be null");
+			}
 		}
 		else {
 			setText(newValue = value.toString());
