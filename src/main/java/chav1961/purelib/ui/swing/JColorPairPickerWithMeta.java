@@ -153,16 +153,28 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 		}
 		else if (value instanceof String) {
 			final String	val = (String)value;
-			
-			if (standardValidation(val) == null) {
-				try{newValue = new ColorPair(val);
-					repaint();				
-				} catch (SyntaxException e) {
-					throw new IllegalArgumentException("Illegal string value ["+value+"]: "+e);
-				}
+
+			if (val.isEmpty()) {
+				throw new IllegalArgumentException("empty value is not applicable for the color pair");
+			}
+			else if (!(val.startsWith("{") && val.endsWith("}") && val.contains(","))) {
+				throw new IllegalArgumentException("Illegal color pair format ["+value+"]. Valid format is '{foreground,background}'");
+			}
+			else if (val.replace(",","").length() < val.length() - 1) {
+				throw new IllegalArgumentException("More than two colors in the string");
 			}
 			else {
-				throw new IllegalArgumentException("Illegal string value ["+value+"]: "+standardValidation(val));
+				for (String item : val.substring(1,val.length()-2).split("\\,")) {
+					if (PureLibSettings.colorByName(item.trim(),null) == null) {
+						throw new IllegalArgumentException("Unknown color name ["+item.trim()+"] in the value string");
+					}
+				}
+			}
+			
+			try{newValue = new ColorPair(val);
+				repaint();				
+			} catch (SyntaxException e) {
+				throw new IllegalArgumentException("Illegal string value ["+value+"]: "+e);
 			}
 		}
 		else {
@@ -176,33 +188,17 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	}
 
 	@Override
-	public String standardValidation(final Object val) {
-		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
-		}
-		else if (val instanceof String) {
-			final String	value = val.toString();
-			
-			if (value == null || value.isEmpty()) {
-				return "Null or empty value is not applicable for the color pair";
-			}
-			else if (!(value.startsWith("{") && value.endsWith("}") && value.contains(","))) {
-				return "Illegal color pair format ["+value+"]. Valid format is '{foreground,background}'";
-			}
-			else if (value.replace(",","").length() < value.length() - 1) {
-				return "More than two colors in the string";
+	public String standardValidation(final Object value) {
+		if (value == null) {
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
 			}
 			else {
-				for (String item : value.substring(1,value.length()-2).split("\\,")) {
-					if (PureLibSettings.colorByName(item.trim(),null) == null) {
-						return "Unknown color name ["+item.trim()+"] in the value string";
-					}
-				}
-				return null;
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
 		else {
-			return "Illegal value type to validate";
+			return null;
 		}
 	}
 

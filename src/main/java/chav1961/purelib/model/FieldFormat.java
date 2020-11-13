@@ -264,6 +264,9 @@ public class FieldFormat {
 				}
 				pos++;
 			}
+			if (isMandatory && supportNulls) {
+				throw new IllegalArgumentException("Mutually exclusizve options 'm' and 'N'");
+			}
 			this.isMandatory = isMandatory;
 			this.isOutput = isOutput;
 			this.isReadOnly = isReadOnly;

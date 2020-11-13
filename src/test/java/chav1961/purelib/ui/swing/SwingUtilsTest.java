@@ -482,7 +482,7 @@ public class SwingUtilsTest {
 		final SwingUnitTest			sut = new SwingUnitTest(root);
 		final FormManager<Object,AnnotatedWithOnAction>	mgr = new FormManager<Object,AnnotatedWithOnAction>() {
 										@Override
-										public RefreshMode onField(final AnnotatedWithOnAction inst, final Object id, final String fieldName, final Object oldValue) throws FlowException, LocalizationException {
+										public RefreshMode onField(final AnnotatedWithOnAction inst, final Object id, final String fieldName, final Object oldValue, final boolean beforeCommit) throws FlowException, LocalizationException {
 											return RefreshMode.DEFAULT;
 										}
 							

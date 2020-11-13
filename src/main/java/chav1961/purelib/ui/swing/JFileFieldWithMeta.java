@@ -201,24 +201,53 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public void assignValueToComponent(final Object value) {
-		try{if ((value instanceof File) && (standardValidation(((File)value).getAbsolutePath())) == null) {
+		try{if (value instanceof File) {
 				newValue = value; 
 				setText(((File)value).getName());
 				setToolTipText(((File)value).getAbsolutePath());
 			}
-			else if ((value instanceof FileSystemInterface) && (standardValidation(((FileSystemInterface)value).getPath())) == null) {
+			else if (value instanceof FileSystemInterface) {
 				setText(((FileSystemInterface)value).getName());
 				setToolTipText(((FileSystemInterface)value).getPath());
 				newValue = value; 
 			}
-			else if ((value instanceof FileKeeper) && (standardValidation(((FileKeeper)value).getFileURI()) == null)) {
+			else if (value instanceof FileKeeper) {
 				setText(value.toString());
 				setToolTipText(value.toString());
 				newValue = value; 
 			}
-			else if ((value instanceof String) && (standardValidation((String)value) == null)) {
-				setText(value.toString());
-				setToolTipText(value.toString());
+			else if ((value instanceof String)) {
+				final String	val = value.toString();
+				
+				if (val.isEmpty()) {
+					throw new IllegalArgumentException("Null or empty value can't be assigned to file");
+				}
+				else if (val.startsWith(FileSystemInterface.FILESYSTEM_URI_SCHEME+':')) {
+					try{final URI	uri = URI.create(val);
+						boolean		served = false;
+					
+						for (FileSystemInterfaceDescriptor item : FileSystemFactory.getAvailableFileSystems()) {
+							if (item.getInstance().canServe(uri)) {
+								served = true;
+								break;
+							}
+						}
+						if (!served) {
+							throw new IllegalArgumentException("Unknown subscheme ["+uri+"] or appropriative file system not found");
+						}
+					} catch (IllegalArgumentException | IOException | EnvironmentException exc) {
+						throw new IllegalArgumentException("Invalid uri value ["+value+"]: "+exc.getLocalizedMessage());
+					}
+				}
+				else if (val.startsWith("file:")) {
+					try{new File(URI.create(val));
+					} catch (IllegalArgumentException exc) {
+						throw new IllegalArgumentException("Invalid uri value ["+value+"]: "+exc.getLocalizedMessage());
+					}
+				}
+				
+				setText(val);
+				setToolTipText(val);
 				newValue = value; 
 			}
 			else {
@@ -236,44 +265,16 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public String standardValidation(final Object val) {
-		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
-		}
-		else if (val instanceof String) {
-			final String	value = val.toString();
-					
-			if (value == null || value.isEmpty()) {
-				return "Null or empty value can't be assigned to file";
-			}
-			else if (value.startsWith(FileSystemInterface.FILESYSTEM_URI_SCHEME+':')) {
-				try{final URI	uri = URI.create(value);
-				
-					for (FileSystemInterfaceDescriptor item : FileSystemFactory.getAvailableFileSystems()) {
-						if (item.getInstance().canServe(uri)) {
-							return null;
-						}
-					}
-					throw new IllegalArgumentException("Unknown subscheme or appropriative file system not found");
-				} catch (IllegalArgumentException | IOException | EnvironmentException exc) {
-					return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
-				}
-			}
-			else if (value.startsWith("file:")) {
-				try{final URI	uri = URI.create(value);
-	
-					new File(uri);
-					return null;
-				} catch (IllegalArgumentException exc) {
-					return "Invalid uri value ["+value+"]: "+exc.getLocalizedMessage();
-				}
+		if (val == null) {
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
 			}
 			else {
-				new File(value);
-				return null;
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
 		else {
-			return "Illegal value type to validate";
+			return null;
 		}
 	}
 

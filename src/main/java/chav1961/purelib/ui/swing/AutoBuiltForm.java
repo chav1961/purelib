@@ -13,6 +13,7 @@ import java.awt.Frame;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -30,14 +31,17 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
@@ -105,6 +109,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
+	private JComponent						firstFocusedComponent;
 	private boolean							closed = false;
 
 	/**
@@ -236,12 +241,13 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
 						childPanel.add(fieldComponent,LabelledLayout.CONTENT_AREA);
-						if ((fieldComponent instanceof JTextComponent) && format.hasLocalEditor()) {
-							new JTextTooltipWindow((JTextComponent)fieldComponent, 0, (key,size)->(String[])formMgr.getForEditorContent(instance, null, metadata.getName(), key, size));
-						}
 						if (!firstFocused) {
 							firstFocused = true;
+							firstFocusedComponent = fieldComponent;
 							fieldComponent.requestFocusInWindow();
+						}
+						if ((fieldComponent instanceof JTextComponent) && format.hasLocalEditor()) {
+							new JTextTooltipWindow((JTextComponent)fieldComponent, 0, (key,size)->(String[])formMgr.getForEditorContent(instance, null, metadata.getName(), key, size));
 						}
 						trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",metadata.getUIPath(),metadata.getClass().getCanonicalName());
 						labelIds.add(metadata.getLabelId());
@@ -276,7 +282,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					}
 				}, loader);
 				
-				this.monitor = new FormMonitor<T>(localizer,logger,instance,formMgr,accessors,tooltipsOnFocus) {
+				this.monitor = new FormMonitor<T>(localizer,formMgr.getLogger(),instance,formMgr,accessors,tooltipsOnFocus) {
 									@Override
 									protected JComponentInterface findComponentByName(final URI uiPath) throws ContentException {
 										return (JComponentInterface)SwingUtils.findComponentByName(AutoBuiltForm.this, uiPath.toString());
@@ -305,10 +311,19 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 
 				add(childPanel,BorderLayout.CENTER);
 				add(buttonPanel,BorderLayout.SOUTH);
+				if (mdi.getRoot().getHelpId() != null) {
+					SwingUtils.assignActionKey(this, SwingUtils.KS_HELP, (e)->{callHelp(localizer,mdi.getRoot().getHelpId());}, "help");
+				}
 				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 				
 				trans.rollback();
 			}
+		}
+	}
+
+	private void callHelp(final Localizer localizer, final String helpId) {
+		try{SwingUtils.showCreoleHelpWindow(this, URIUtils.convert2selfURI(new GrowableCharArray<>(false).append(localizer.getContent(helpId)).extract(),"UTF-8"));
+		} catch (IOException | LocalizationException e) {
 		}
 	}
 
@@ -579,7 +594,12 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		}
 		else {
 			final boolean[]			result = new boolean[] {false};
-			final ActionListener 	okListener = (e)->{result[0] = true; dlg.setVisible(false);}; 
+			final ActionListener 	okListener = (e)->{
+										if (finalValidation(form)) {
+											result[0] = true; 
+											dlg.setVisible(false);
+										};
+									};
 			final ActionListener 	cancelListener = (e)->{result[0] = false; dlg.setVisible(false);}; 
 
 			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,(e)->{
@@ -599,7 +619,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					}
 				}
 				okListener.actionPerformed(e);
-			},DEFAULT_OK_BUTTON_NAME);
+			}, DEFAULT_OK_BUTTON_NAME);
 			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,(e)->cancelListener.actionPerformed(e),DEFAULT_CANCEL_BUTTON_NAME);
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
@@ -641,7 +661,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			dlg.pack();
 			dlg.setLocationRelativeTo(parent);
 
-			try{dlg.setVisible(true);
+			try{SwingUtilities.invokeLater(()->{if (form.firstFocusedComponent != null) {form.firstFocusedComponent.requestFocusInWindow();}});
+				dlg.setVisible(true);
 				return result[0];
 			} finally {
 				dlg.getContentPane().remove(form);
@@ -740,5 +761,21 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	    public Component getFirstComponent(Container focusCycleRoot) {
 	        return content[0];
 	    }
+	}
+	
+	private static boolean finalValidation(final AutoBuiltForm<?> form) {
+		return SwingUtils.walkDown(form, (mode,node)->{
+			if (mode == NodeEnterMode.ENTER && (node instanceof NodeMetadataOwner)) {
+				final ContentNodeMetadata	meta = ((NodeMetadataOwner)node).getNodeMetadata();
+				
+				try{if (!form.process(MonitorEvent.Validation,meta,(JComponentInterface)node)) {
+						return ContinueMode.STOP;
+					}
+				} catch (ContentException e) {
+					return ContinueMode.STOP;
+				}
+			}
+			return ContinueMode.CONTINUE;
+		}) == ContinueMode.CONTINUE;
 	}
 }

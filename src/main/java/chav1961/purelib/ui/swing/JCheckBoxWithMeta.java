@@ -127,19 +127,24 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 	@Override
 	public void assignValueToComponent(final Object value) {
 		if (value == null) {
-			throw new NullPointerException("Value to assign can't be null");
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				setSelected(false);
+			}
+			else {
+				throw new NullPointerException("Value to assign can't be null");
+			}
 		}
 		else if (value instanceof Boolean) {
 			setSelected((Boolean)value);
 		}
 		else if (value instanceof String) {
-			final String	message = standardValidation((String)value); 
+			final String	str = value.toString();
 			
-			if (message == null) {
+			if ("true".equals(str) || "false".equals(str)) {
 				setSelected(Boolean.valueOf((String)value));
 			}
 			else {
-				throw new IllegalArgumentException("String ["+value+"] to assign contains invald value: "+message);
+				throw new IllegalArgumentException("String ["+value+"] to assign contains invald value");
 			}
 		}
 		else {
@@ -155,15 +160,15 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 	@Override
 	public String standardValidation(final Object value) {
 		if (value == null) {
-			return "Null value for checkbox content";
-		}
-		else if (SwingUtils.inAllowedClasses(value,VALID_CLASSES)) {
-			return null;
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
+			}
+			else {
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
+			}
 		}
 		else {
-			final String	str = value.toString();
-			
-			return "true".equals(str) || "false".equals(str) ? null : "Neither 'true' nor 'false' for checkbox content!";
+			return null;
 		}
 	}
 

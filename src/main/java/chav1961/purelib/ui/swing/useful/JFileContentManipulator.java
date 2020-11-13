@@ -217,7 +217,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() throws IOException, UnsupportedOperationException {
 		if (wasChanged) {
 			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 					case  JOptionPane.YES_OPTION :
@@ -225,8 +225,10 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 							clearModificationFlag();
 						}
 						break;
-					case  JOptionPane.NO_OPTION : case  JOptionPane.CANCEL_OPTION :
+					case  JOptionPane.NO_OPTION : 
 						break;
+					case  JOptionPane.CANCEL_OPTION :
+						throw new UnsupportedOperationException("Close rejected");
 				}
 			} catch (LocalizationException e) {
 				throw new IOException(e.getLocalizedMessage(),e);
@@ -272,13 +274,11 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 					throw new IOException(e.getLocalizedMessage(),e);
 				}
 			}
-			try(final OutputStream	os = getterOut.getContent()) {
-				os.flush();
-				clearModificationFlag();
-				currentName = "";
-				fireEvent(FileContentChangeType.NEW_FILE_CREATED);
-				return true;
-			}
+			processNew(progress);
+			clearModificationFlag();
+			currentName = "";
+			fireEvent(FileContentChangeType.NEW_FILE_CREATED);
+			return true;
 		}
 	}
 
@@ -323,16 +323,14 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 					try(final FileSystemInterface	current = fsi.clone().open(item)) {
 						
 						progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
-						try(final InputStream			is = current.read();
-							final OutputStream			os = getterOut.getContent()) {
-		
-							Utils.copyStream(is, os, progress);
-							clearModificationFlag();
-							currentName = item;
-							currentDir = current.open("../").getPath();
-							fireEvent(FileContentChangeType.FILE_LOADED);
-							return true;
+						try(final InputStream			is = current.read()) {
+							processLoad(item, is, progress);
 						}
+						clearModificationFlag();
+						currentName = item;
+						currentDir = current.open("../").getPath();
+						fireEvent(FileContentChangeType.FILE_LOADED);
+						return true;
 					} finally {
 						fillLru(currentName,false);
 						progress.end();
@@ -379,16 +377,14 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				}
 				else {
 					try{progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
-						try(final InputStream			is = current.read();
-							final OutputStream			os = getterOut.getContent()) {
-		
-							Utils.copyStream(is, os, progress);
-							clearModificationFlag();
-							currentName = current.getPath();
-							currentDir = current.open("../").getPath();
-							fireEvent(FileContentChangeType.FILE_LOADED);
-							return true;
+						try(final InputStream			is = current.read()) {
+							processLoad(file, is, progress);
 						}
+						clearModificationFlag();
+						currentName = current.getPath();
+						currentDir = current.open("../").getPath();
+						fireEvent(FileContentChangeType.FILE_LOADED);
+						return true;
 					} finally {
 						fillLru(currentName,false);
 						progress.end();
@@ -442,16 +438,14 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				}
 				else {
 					try{progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
-						try(final InputStream			is = current.read();
-							final OutputStream			os = getterOut.getContent()) {
-		
-							Utils.copyStream(is, os, progress);
-							clearModificationFlag();
-							currentName = current.getPath();
-							currentDir = current.open("../").getPath();
-							fireEvent(FileContentChangeType.FILE_LOADED);
-							return true;
+						try(final InputStream			is = current.read()) {
+							processLoad(file, is, progress);
 						}
+						clearModificationFlag();
+						currentName = current.getPath();
+						currentDir = current.open("../").getPath();
+						fireEvent(FileContentChangeType.FILE_LOADED);
+						return true;
 					} finally {
 						fillLru(currentName,false);
 						progress.end();
@@ -497,14 +491,13 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 						current.create();
 						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
 					}
-					try(final InputStream			is = getterIn.getContent();
-						final OutputStream			os = current.write()) {
-		
-						Utils.copyStream(is, os, progress);
-						clearModificationFlag();
-						fireEvent(FileContentChangeType.FILE_STORED);
-						return true;
+					try(final OutputStream			os = current.write()) {
+						processStore(currentName, os, progress);
 					}
+	
+					clearModificationFlag();
+					fireEvent(FileContentChangeType.FILE_STORED);
+					return true;
 				} catch (LocalizationException | IllegalArgumentException e) {
 					throw new IOException(e);
 				} finally {
@@ -541,16 +534,15 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 						current.create();
 						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
 					}
-					try(final InputStream			is = getterIn.getContent();
-						final OutputStream			os = current.write()) {
-	
-						Utils.copyStream(is, os, progress);
-						clearModificationFlag();
-						currentName = item;
-						currentDir = current.open("../").getPath();
-						fireEvent(FileContentChangeType.FILE_STORED_AS);
-						return true;
+					try(final OutputStream			os = current.write()) {
+						processStore(item, os, progress);
 					}
+	
+					clearModificationFlag();
+					currentName = item;
+					currentDir = current.open("../").getPath();
+					fireEvent(FileContentChangeType.FILE_STORED_AS);
+					return true;
 				} finally {
 					fillLru(currentName,true);
 					progress.end();
@@ -642,6 +634,26 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		}
 		else {
 			listeners.removeListener(l);
+		}
+	}
+
+	protected void processNew(final ProgressIndicator progress) throws IOException {
+		try(final OutputStream	os = getterOut.getContent()) {
+			os.flush();
+		}
+	}
+	
+	protected void processLoad(final String fileName, final InputStream source, final ProgressIndicator progress) throws IOException {
+		try(final OutputStream			os = getterOut.getContent()) {
+
+			Utils.copyStream(source, os, progress);
+		}
+	}
+
+	protected void processStore(final String fileName, final OutputStream target, final ProgressIndicator progress) throws IOException {
+		try(final InputStream			is = getterIn.getContent()) {
+
+			Utils.copyStream(is, target, progress);
 		}
 	}
 	

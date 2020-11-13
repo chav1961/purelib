@@ -15,5 +15,5 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 public @interface Constraint {
 	String value();
 	String messageId() default "";
-	Severity severity() default Severity.error;
+	Severity severity() default Severity.warning;
 }

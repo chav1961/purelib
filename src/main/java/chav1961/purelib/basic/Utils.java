@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Array;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
@@ -1095,8 +1096,9 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		if (query == null) {
 			throw new NullPointerException("Query string can't be null");
 		}
-		else {
-			try{Desktop.getDesktop().browse(query.toURI());
+		else if (Desktop.isDesktopSupported()) {
+			try{
+				Desktop.getDesktop().browse(query.toURI());
 			} catch (URISyntaxException | IOException exc) {
 				PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,exc.getLocalizedMessage());
 			}

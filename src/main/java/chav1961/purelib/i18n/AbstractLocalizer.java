@@ -328,7 +328,7 @@ public abstract class AbstractLocalizer implements Localizer {
 			throw new NullPointerException("Target MIME type can't be null"); 
 		}
 		else {
-			final String	value = getValue(key);
+			final String	value = CharUtils.substitute(key, getValue(key),(s)->PureLibSettings.instance().getProperty(s));
 			
 			if (sourceType.equals(targetType)) {
 				return new StringReader(value);

@@ -120,7 +120,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 	}
 	
 	@Override
-	public RefreshMode onField(final SingleNodeDescriptor inst, final Object id, final String field, final Object oldValue) throws FlowException, LocalizationException {
+	public RefreshMode onField(final SingleNodeDescriptor inst, final Object id, final String field, final Object oldValue, final boolean beforeCommit) throws FlowException, LocalizationException {
 		switch(field) {
 			case "fieldName" 			:
 				if (fieldName.trim().isEmpty()) {

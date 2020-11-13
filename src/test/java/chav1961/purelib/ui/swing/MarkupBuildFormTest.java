@@ -40,7 +40,7 @@ public class MarkupBuildFormTest {
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
 													@Override
-													public RefreshMode onField(PseudoData inst, Object id, String fieldName, Object oldValue) throws FlowException, LocalizationException {
+													public RefreshMode onField(PseudoData inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
 														return RefreshMode.DEFAULT;
 													}
 										
@@ -68,7 +68,7 @@ public class MarkupBuildFormTest {
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
 													@Override
-													public RefreshMode onField(PseudoData inst, Object id, String fieldName, Object oldValue) throws FlowException, LocalizationException {
+													public RefreshMode onField(PseudoData inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
 														return RefreshMode.DEFAULT;
 													}
 										

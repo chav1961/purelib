@@ -204,7 +204,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 
 	@Override
 	public void assignValueToComponent(final Object value) {
-		if ((value instanceof String) && standardValidation((String)value) == null) {
+		if (value instanceof String) {
 			final String	test = value.toString().trim();
 			
 			for (Enum<?> item : clazz.getEnumConstants()) {
@@ -213,6 +213,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					return;
 				}
 			}
+			throw new IllegalArgumentException("Unknonw string value for enum ["+getValueType().getCanonicalName()+"]");
 		}
 		else if ((value instanceof Enum) && getValueType().isAssignableFrom(value.getClass())) {
 			setSelectedItem(newValue = (Enum<?>) value);
@@ -229,28 +230,16 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 
 	@Override
 	public String standardValidation(final Object val) {
-		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
-		}
-		else if (val instanceof String) {
-			final String	value = val.toString();
-			
-			if (value == null || value.isEmpty()) {
-				return "Null or empty value is not valid for enumeration constant";
+		if (val == null) {
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
 			}
 			else {
-				final String	test = value.trim();
-				
-				for (Enum<?> item : clazz.getEnumConstants()) {
-					if (test.equals(item.name())) {
-						return null;
-					}
-				}
-				return "Unknown value ["+value+"] for enumeration constant";
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
 		else {
-			return "Illegal value type to validate";
+			return null;
 		}
 	}
 

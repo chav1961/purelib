@@ -160,15 +160,17 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 			repaint();
 		}
 		else if (value instanceof String) {
-			final String	val = (String)value;
+			final String 	val = value.toString();
 			
-			if (standardValidation(val) == null) {
-				newValue = PureLibSettings.colorByName(value.toString(),Color.black);
-				repaint();				
+			if (val.isEmpty()) {
+				throw new IllegalArgumentException("Null or empty value is not applicable for the color");
 			}
-			else {
-				throw new IllegalArgumentException("Illegal string value ["+value+"]: "+standardValidation(val));
+			else if (PureLibSettings.colorByName(val.trim(),null) == null) {
+				throw new IllegalArgumentException("Unknown color name ["+val.trim()+"] in the value string");
 			}
+			
+			newValue = PureLibSettings.colorByName(value.toString(),Color.black);
+			repaint();				
 		}
 		else {
 			throw new IllegalArgumentException("Value can't be null and must be String or Color instance only");
@@ -182,23 +184,16 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 
 	@Override
 	public String standardValidation(final Object val) {
-		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
-		}
-		else if (val instanceof String) {
-			final String 	value = val.toString();
-			if (value == null || value.isEmpty()) {
-				return "Null or empty value is not applicable for the color";
-			}
-			else if (PureLibSettings.colorByName(value.trim(),null) == null) {
-				return "Unknown color name ["+value.trim()+"] in the value string";
+		if (val == null) {
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
 			}
 			else {
-				return null;
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
 		else {
-			return "Illegal value type to validate";
+			return null;
 		}
 	}
 

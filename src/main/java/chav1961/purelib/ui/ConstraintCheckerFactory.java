@@ -1,6 +1,7 @@
 package chav1961.purelib.ui;
 
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,17 +19,27 @@ import chav1961.purelib.basic.GettersAndSettersFactory.IntGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.SyntaxNode;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.ui.interfaces.Constraint;
 import chav1961.purelib.ui.interfaces.ConstraintChecker;
+import chav1961.purelib.ui.interfaces.MultiConstraint;
 
 public class ConstraintCheckerFactory {
+	private static final String		CHECKER_MANDATORY_MSG = "constraint.checker.mandatory";
+	
 	static final int	PRTY_OR = 8;
 	static final int	PRTY_AND = 7;
 	static final int	PRTY_NOT = 6;
@@ -74,12 +85,18 @@ public class ConstraintCheckerFactory {
 		LT, LE, GT, GE, EQ, NE, 
 	}
 	
-	public static <T> ConstraintChecker<T> buildChecker(final Class<T> instanceClass, final Constraint constraint) throws SyntaxException {
-		if (instanceClass == null) {
+	public static <T> ConstraintChecker<T> buildChecker(final Localizer localizer, final Class<T> instanceClass, final Constraint constraint) throws SyntaxException {
+		if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null");
+		}
+		else if (instanceClass == null) {
 			throw new NullPointerException("Instance class can't be null");
 		}
 		else if (constraint == null) {
 			throw new NullPointerException("Constraint can't be null");
+		}
+		else if (!localizer.containsKey(constraint.messageId())) {
+			throw new IllegalArgumentException("Localizer ["+localizer.getLocalizerId()+"] doesn't contain constraint message id ["+constraint.messageId()+"]");
 		}
 		else {
 			final char[]	expr = (constraint.value()+'\n').toCharArray();
@@ -89,30 +106,92 @@ public class ConstraintCheckerFactory {
 			
 			return new ConstraintChecker<T>() {
 				@Override
-				public Severity getSeverity() {
-					return constraint.severity();
-				}
-				
-				@Override
-				public String getMessageId() {
-					return constraint.messageId();
-				}
-				
-				@Override
-				public String getConstraintExpression() {
-					return constraint.value();
-				}
-				
-				@Override
 				public boolean check(final T instance) throws ContentException {
-					final Object 	result = calculate(instance,node[0]);
+					if (instance == null) {
+						throw new NullPointerException("Instance to check can't be null");
+					}
+					else {
+						final Object 	result = calculate(instance,node[0]);
 						
-					return (result instanceof Boolean) ? ((Boolean)result).booleanValue() : false;
+						return (result instanceof Boolean) ? ((Boolean)result).booleanValue() : false;
+					}
+				}
+
+				@Override
+				public boolean check(T instance, final LoggerFacade logger) throws ContentException {
+					if (instance == null) {
+						throw new NullPointerException("Instance to check can't be null");
+					}
+					else if (logger == null) {
+						throw new NullPointerException("Logger can't be null");
+					}
+					else if (!check(instance)) {
+						try{final String 	message = localizer.getValue(constraint.messageId());
+							
+							logger.message(constraint.severity(),substitute(message,instance)); 
+						} catch (LocalizationException e) {
+							logger.message(Severity.error,e.getLocalizedMessage());
+						}
+						return false;
+					}
+					else {
+						return true;
+					}
+				}
+
+				@Override
+				public boolean check(T instance, ConstraintCheckerCallback<T> callback) throws ContentException {
+					if (instance == null) {
+						throw new NullPointerException("Instance to check can't be null");
+					}
+					else if (callback == null) {
+						throw new NullPointerException("Logger can't be null");
+					}
+					else if (!check(instance)) {
+						return callback.processError(instance, constraint) == ContinueMode.CONTINUE;
+					}
+					else {
+						return true;
+					}
 				}
 			};
 		}
 	}
-	
+
+	public static <T> ConstraintChecker<T> buildChecker(final Localizer localizer, final ContentNodeMetadata metadata, final MultiConstraint list) throws SyntaxException {
+		if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null");
+		}
+		else if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (list == null) {
+			throw new NullPointerException("Multi-constraint list can't be null");
+		}
+		else {
+			final List<ConstraintChecker<?>>	constraints = new ArrayList<>();
+			
+			if (metadata.getFormatAssociated() != null) {
+				final FieldFormat				ff = metadata.getFormatAssociated(); 
+				
+				if (ff.isMandatory()) {
+					constraints.add(buildChecker(localizer, metadata.getType(),
+							new Constraint() {
+								@Override public Class<? extends Annotation> annotationType() {return Constraint.class;}
+								@Override public Severity severity() {return Severity.warning;}
+								@Override public String messageId() {return CHECKER_MANDATORY_MSG;}
+								@Override public String value() {return "mandatory("+metadata.getName()+")";}
+							}
+						)
+					);
+				}
+			}
+			for (Constraint item : list.value()) {
+				constraints.add(buildChecker(localizer, metadata.getType(),item));
+			}
+			return new ListConstraintChecker<T>(constraints.toArray(new ConstraintChecker[constraints.size()]));
+		}
+	}	
 	
 	static int buildTree(final int level, final char[] expr, final int from, final Class<?> instClass, final SyntaxNode<ExprType,?>[] result) throws SyntaxException {
 		int	pos = from;
@@ -527,6 +606,12 @@ public class ConstraintCheckerFactory {
 		}
 	}
 
+	static String substitute(final String message, final Object instance) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 	private static int skipBlank(final char[] expr, int pos) {
 		while (expr[pos] <= ' ' && expr[pos] != '\n') {
 			pos++;
@@ -546,4 +631,66 @@ public class ConstraintCheckerFactory {
 	private static <T> T convert2Class(final Object value, final Class<T> target) throws ContentException {
 		return SQLUtils.convert(target, value);
 	}
+
+
+	private static class ListConstraintChecker<T> implements ConstraintChecker<T> {
+		private final ConstraintChecker<T>[]	list;
+		
+		ListConstraintChecker(ConstraintChecker<T>... constraints) {
+			this.list = constraints;
+		}
+		
+		@Override
+		public boolean check(final T instance) throws ContentException {
+			if (instance == null) {
+				throw new NullPointerException("Instance to check can't be null");
+			}
+			else {
+				for (ConstraintChecker<T> item : list) {
+					if (!item.check(instance)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+
+		@Override
+		public boolean check(final T instance, final LoggerFacade logger) throws ContentException {
+			if (instance == null) {
+				throw new NullPointerException("Instance to check can't be null");
+			}
+			else if (logger == null) {
+				throw new NullPointerException("Logger can't be null");
+			}
+			else {
+				for (ConstraintChecker<T> item : list) {
+					if (!item.check(instance,logger)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+
+		@Override
+		public boolean check(final T instance, final ConstraintCheckerCallback<T> callback) throws ContentException {
+			if (instance == null) {
+				throw new NullPointerException("Instance to check can't be null");
+			}
+			else if (callback == null) {
+				throw new NullPointerException("Checker callback can't be null");
+			}
+			else {
+				for (ConstraintChecker<T> item : list) {
+					if (!item.check(instance,callback)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+	};
+	
+	
 }

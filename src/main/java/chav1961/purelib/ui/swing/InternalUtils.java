@@ -14,9 +14,17 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
 class InternalUtils {
+	static final String		VALIDATION_NULL_VALUE = "purelib.ui.validation.nullvalue";
+	static final String		VALIDATION_MANDATORY = "purelib.ui.validation.mandatory";
+	static final String		VALIDATION_NEITHER_TRUE_NOR_FALSE = "purelib.ui.validation.neithertruenorfalse";
+	
+	
 	interface ComponentListenerCallback {
 		void process();
 	}
@@ -28,6 +36,14 @@ class InternalUtils {
 			}
 		}
 		return false;
+	}
+	
+	static boolean checkNullAvailable(final ContentNodeMetadata metadata) {
+		return metadata.getFormatAssociated() != null && metadata.getFormatAssociated().isNullSupported(); 
+	}
+
+	static boolean checkMandatory(final ContentNodeMetadata metadata) {
+		return metadata.getFormatAssociated() != null && metadata.getFormatAssociated().isMandatory(); 
 	}
 	
 	static void addComponentListener(final JComponent component, final ComponentListenerCallback callback) {
@@ -105,5 +121,12 @@ class InternalUtils {
 			formatter.setAllowsInvalid(false);
 		}
 		return formatter;
+	}
+	
+	static String buildStandardValidationMessage(final ContentNodeMetadata metadata, final String messageId) {
+		try{return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()).getValue(metadata.getLabelId()));
+		} catch (LocalizationException | IllegalArgumentException | NullPointerException e) {
+			return messageId + "(" + metadata.getLabelId() + ")";
+		}
 	}
 }

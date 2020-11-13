@@ -134,7 +134,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 				try{final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
 				
 					ModelUtils.setValueBySetter(instance, SQLUtils.convert(metadata.getType(),((JComponentInterface)component).getChangedValueFromComponent()), accessors.get(metadata.getUIPath()), metadata);
-					switch (formMgr.onField(instance,null,metadata.getName(),oldValue)) {
+					switch (formMgr.onField(instance,null,metadata.getName(),oldValue,false)) {
 						case FIELD_ONLY : case DEFAULT : case NONE :
 							break;
 						case TOTAL : case RECORD_ONLY :

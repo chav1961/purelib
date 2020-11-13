@@ -45,5 +45,5 @@ public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>
 	 * @return content. Can be null
 	 * @throws FlowException on any errors or on action canceling  
 	 */
-	default <T> T getForEditorContent(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException {return null;} 
+	default <T> T[] getForEditorContent(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException {return null;} 
 }

@@ -70,11 +70,23 @@ public class ArgParser {
 	private final Map<String,String[]>	pairs;
 	private final boolean				hasConfigArg;
 
-	protected ArgParser(final ArgDescription... desc) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param desc parameter's list 
+	 * @throws IllegalArgumentException parameter's list is null or empty or contains nulls inside
+	 */
+	protected ArgParser(final ArgDescription... desc) throws IllegalArgumentException {
 		this('-',true,desc);
 	}
 	
-	protected ArgParser(final char keyPrefix, final boolean caseSensitive, final ArgDescription... desc) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param keyPrefix character prefix before key parameters
+	 * @param caseSensitive parameters are case-sensitive
+	 * @param desc parameter's list
+	 * @throws IllegalArgumentException parameter's list is null or empty or contains nulls inside
+	 */
+	protected ArgParser(final char keyPrefix, final boolean caseSensitive, final ArgDescription... desc) throws IllegalArgumentException {
 		if (desc == null || desc.length == 0) {
 			throw new IllegalArgumentException("Argument description list can't be null or empty array");
 		}
@@ -125,10 +137,24 @@ public class ArgParser {
 		this.pairs = Collections.unmodifiableMap(pairs);
 	}
 
+	/**
+	 * <p>Parse parameters and return new instance of {@linkplain ArgParser} to access them</p>
+	 * @param args parameters to parse
+	 * @return new {@linkplain ArgParser} instance to access to the parameters parsed 
+	 * @throws CommandLineParametersException on any parsing errors
+	 */
 	public ArgParser parse(final String... args) throws CommandLineParametersException {
 		return parse(false,false,args);
 	}
 	
+	/**
+	 * <p>Parse parameters and return new instance of {@linkplain ArgParser} to access them</p>
+	 * @param ignoreExtra ignore extra arguments without exceptions
+	 * @param ignoreUnknown ignore unknown arguments without exceptions
+	 * @param args parameters to parse
+	 * @return new {@linkplain ArgParser} instance to access to the parameters parsed 
+	 * @throws CommandLineParametersException on any parsing errors
+	 */
 	public ArgParser parse(final boolean ignoreExtra, final boolean ignoreUnknown, final String... args) throws CommandLineParametersException {
 		if (this.pairs != null) {
 			throw new IllegalStateException("Attempt to call parse(...) on parsed instance. This method can be called on 'parent' instance only");
@@ -143,9 +169,20 @@ public class ArgParser {
 			return new ArgParser(keyPrefix,caseSensitive,desc,hasConfigArg,pairs);
 		}
 	}
-	
+
+	/**
+	 * <p>Get parameter value </p>
+	 * @param <T> awaited type of the parameter
+	 * @param key parameter name
+	 * @param awaited parameter class for instance returned
+	 * @return parameter parsed 
+	 * @throws CommandLineParametersException when parameter is missing
+	 * @throws IllegalStateException attempt to call this method on non-parsed {@linkplain ArgParser} instance (need call {@linkplain #parse(String...) or #parse(boolean, boolean, String...) method before})
+	 * @throws IllegalArgumentException key to get value for is null, empty or unknown
+	 * @throws NullPointerException awaited parameter class is null 
+	 */
 	@SuppressWarnings("unchecked")
-	public <T> T getValue(final String key, final Class<T> awaited) throws CommandLineParametersException {
+	public <T> T getValue(final String key, final Class<T> awaited) throws CommandLineParametersException, IllegalStateException, IllegalArgumentException, NullPointerException {
 		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call getValue(...) on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
@@ -177,12 +214,19 @@ public class ArgParser {
 		}
 	}
 
-	public boolean isTyped(final String key) {
+	/**
+	 * <p>Is parameter typed</p>
+	 * @param key parameter name to test
+	 * @return true if yes
+	 * @throws IllegalStateException attempt to call this method on non-parsed {@linkplain ArgParser} instance (need call {@linkplain #parse(String...) or #parse(boolean, boolean, String...) method before})
+	 * @throws IllegalArgumentException key to test is null or empty
+	 */
+	public boolean isTyped(final String key) throws IllegalStateException, IllegalArgumentException{
 		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call isTyped() on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
 		else if (key == null || key.isEmpty()) {
-			throw new IllegalArgumentException("Key to get value for can't be null or empty");
+			throw new IllegalArgumentException("Key to test can't be null or empty");
 		}
 		else {
 			final String	keyFind = caseSensitive ? key : key.toLowerCase();
@@ -191,7 +235,33 @@ public class ArgParser {
 		}
 	}
 
-	public String getUsage(final String applicationName) {
+	/**
+	 * <p>Are all parameters typed</p>
+	 * @param keys parameters to test
+	 * @return true of all parameters typed
+	 * @since 0.0.4
+	 */
+	public boolean allAreTyped(final String... keys) {
+		if (keys == null || keys.length == 0 || Utils.checkArrayContent4Nulls(keys) > 0) {
+			throw new IllegalArgumentException("Keys to test are null, empty or contain nulls inside");
+		}
+		else {
+			for (String item : keys) {
+				if (!isTyped(item)) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+	
+	/**
+	 * <p>Build "usage" string to print it as short help</p>
+	 * @param applicationName application name to substitute into string
+	 * @return string built
+	 * @throws IllegalArgumentException application string is null or empty
+	 */
+	public String getUsage(final String applicationName) throws IllegalArgumentException {
 		if (applicationName == null || applicationName.isEmpty()) {
 			throw new IllegalArgumentException("Application name can't be null or empty");
 		}

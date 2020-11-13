@@ -650,7 +650,10 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	private String localize(final String source) throws LocalizationException {
-		if (localizer.containsKey(source)) {
+		if (source == null || source.isEmpty()) {
+			return "";
+		}
+		else if (localizer.containsKey(source)) {
 			return localizer.getValue(source);
 		}
 		else {

@@ -26,7 +26,7 @@ public class RootDescriptor implements FormManager<Object,RootDescriptor> {
 
 	
 	@Override
-	public RefreshMode onField(RootDescriptor inst, Object id, String fieldName, Object oldValue) throws FlowException, LocalizationException {
+	public RefreshMode onField(RootDescriptor inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
 		return RefreshMode.DEFAULT;
 	}
 

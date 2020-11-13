@@ -6,11 +6,14 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 import chav1961.purelib.basic.MimeType;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -22,6 +25,7 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.4
  */
 
 public class StreamsUtil {
@@ -157,7 +161,7 @@ loop:		for (JsonStaxParserLexType item : source) {
 	 * @see CreoleWriter
 	 * @since 0.0.4
 	 */
-	public static String loadCreoleContent(final URL source, final MarkupOutputFormat format) throws NullPointerException, IOException {
+	public static String loadCreoleContent(final URI source, final MarkupOutputFormat format) throws NullPointerException, IOException {
 		if (source == null) {
 			throw new NullPointerException("Source URL can't be null");
 		}
@@ -165,8 +169,10 @@ loop:		for (JsonStaxParserLexType item : source) {
 			throw new NullPointerException("Output format can't be null");
 		}
 		else {
-			try(final InputStream	is = source.openStream();
-				final Reader		rdr = new InputStreamReader(is);
+			final Hashtable<String, String[]> 	parameters = URIUtils.parseQuery(source);
+			
+			try(final InputStream	is = source.toURL().openStream();
+				final Reader		rdr = parameters.containsKey("encoding") ? new InputStreamReader(is, parameters.get("encoding")[0]) : new InputStreamReader(is);
 				final Writer		wr = new StringWriter()) {
 				
 				try(final Writer	cwr = new CreoleWriter(wr,format)) {

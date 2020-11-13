@@ -29,6 +29,15 @@
 		<key name="MIT">[[https://en.wikipedia.org/wiki/MIT_License|MIT license]]</key>
 		<key name="NAVIGATION.ROOT">Navigation</key>
 
+<!-- Constraint checker keys  -->
+		<key name="constraint.checker.mandatory">Field [%1$s] is mandatory and can't be empty</key>
+
+<!-- Validation keys  -->
+		<key name="purelib.ui.validation.nullvalue">Field [%1$s] can't be null</key>
+		<key name="purelib.ui.validation.mandatory">Field [%1$s] must be filled</key>
+		<key name="purelib.ui.validation.neithertruenorfalse">Field [%1$s] must be 'true' or 'false'</key>
+
+
 <!-- Well-known keys  -->
 		<key name="wklk.check.nullOrEmptyValue">Null or empty value is not supported for current control</key>
 		<key name="wklk.check.classNotFound">Class [%1$s] you type not found anywhere</key>
@@ -243,6 +252,14 @@
 		<key name="Advanced">...</key>
 		<key name="MIT">[[https://en.wikipedia.org/wiki/MIT_License|лицензия MIT]]</key>
 		<key name="NAVIGATION.ROOT">Навигация</key>
+
+<!-- Ключи проверки органичений -->
+		<key name="constraint.checker.mandatory">Поле [%1$s] обязательное и должно быть заполнено</key>
+
+<!-- ключи валидации -->
+		<key name="purelib.ui.validation.nullvalue">Поле [%1$s] не может отсутствовать</key>
+		<key name="purelib.ui.validation.mandatory">Поле [%1$s] должно быть заполнено</key>
+		<key name="purelib.ui.validation.neithertruenorfalse">Поле [%1$s] должно быть 'true' или 'false'</key>
 
 <!-- Общеизвестные ключи -->
 		<key name="wklk.check.nullOrEmptyValue">Пустое или отсутствующее значение для данного поля недопустимо</key>

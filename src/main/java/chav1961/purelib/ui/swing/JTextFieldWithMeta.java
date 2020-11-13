@@ -1,6 +1,8 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.AWTEvent;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.net.URI;
@@ -32,6 +34,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	private static final long 	serialVersionUID = -7990739033479280548L;
 
 	private static final Class<?>[]		VALID_CLASSES = {String.class, URL.class, URI.class};
+	private static final int			TRIANGLE_WIDTH = 10;
 	
 	private final ContentNodeMetadata	metadata;
 	private String						currentValue, newValue;
@@ -150,13 +153,8 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	@Override
 	public void assignValueToComponent(final Object value) {
 		if (value == null) {
-			if (getNodeMetadata().getFormatAssociated() != null && getNodeMetadata().getFormatAssociated().isNullSupported()) {
-				setText("");
-				newValue = null;
-			}
-			else {
-				throw new NullPointerException("Value to assign can't be null");
-			}
+			setText("");
+			newValue = null;
 		}
 		else {
 			setText(newValue = value.toString());
@@ -170,11 +168,21 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 
 	@Override
 	public String standardValidation(final Object val) {
-		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
+		if (val == null) {
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
+			}
+			else {
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
+			}
 		}
-		else if (val == null) {
-			return "Null value can't be assigned to this field";
+		else if (InternalUtils.checkMandatory(getNodeMetadata())) {
+			if (val.toString().trim().isEmpty()) {
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_MANDATORY);
+			}
+			else {
+				return null;
+			}
 		}
 		else {
 			return null;
@@ -189,6 +197,22 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	@Override
 	public boolean isInvalid() {
 		return invalid;
+	}
+
+	@Override
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		
+		if (getNodeMetadata().getFormatAssociated() != null && getNodeMetadata().getFormatAssociated().hasLocalEditor()) {
+			final Graphics2D	g2d = (Graphics2D)g;
+			final Color			oldColor = g2d.getColor();
+			final int[]			x = new int[] {getWidth(), getWidth(), getWidth() - TRIANGLE_WIDTH};
+			final int[]			y = new int[] {getHeight() - TRIANGLE_WIDTH, getHeight(), getHeight()};
+			
+			g2d.setColor(Color.BLUE);
+			g2d.fillPolygon(x, y, x.length);
+			g2d.setColor(oldColor);
+		}
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {

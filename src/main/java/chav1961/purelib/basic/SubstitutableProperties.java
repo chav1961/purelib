@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -44,13 +46,14 @@ import java.util.Set;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.4
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
 	
 	private static enum Conversions {
 		STRING,	INTWRAPPER, LONGWRAPPER, FLOATWRAPPER, DOUBLEWRAPPER, BOOLEANWRAPPER,
+		BIGINTEGER, BIGDECIMAL,
 		FILE, INPUTSTREAM, URL, URI, COLOR, CHARARRAY
 	}
 
@@ -69,6 +72,8 @@ public class SubstitutableProperties extends Properties {
 								put(Float.class,Conversions.FLOATWRAPPER);
 								put(Double.class,Conversions.DOUBLEWRAPPER);
 								put(Boolean.class,Conversions.BOOLEANWRAPPER);
+								put(BigInteger.class,Conversions.BIGINTEGER);
+								put(BigDecimal.class,Conversions.BIGDECIMAL);
 								put(File.class,Conversions.FILE);
 								put(InputStream.class,Conversions.INPUTSTREAM);
 								put(URL.class,Conversions.URL);
@@ -225,6 +230,10 @@ public class SubstitutableProperties extends Properties {
 						return awaited.cast(Double.valueOf(value));
 					case BOOLEANWRAPPER	:
 						return awaited.cast(Boolean.valueOf(value));
+					case BIGINTEGER		:
+						return awaited.cast(new BigInteger(value));
+					case BIGDECIMAL		:
+						return awaited.cast(new BigDecimal(value));
 					case FILE			:
 						return awaited.cast(new File(value));
 					case INPUTSTREAM	:

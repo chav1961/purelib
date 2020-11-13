@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.URISyntaxException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -64,14 +65,14 @@ public class StreamsUtilTest {
 	}
 	
 	@Test
-	public void loadCreoleContent() throws NullPointerException, IOException {
-		Assert.assertEquals("== Test==\npart\n",StreamsUtil.loadCreoleContent(this.getClass().getResource("creolecontent.cre"),MarkupOutputFormat.XML2TEXT));
+	public void loadCreoleContent() throws NullPointerException, IOException, URISyntaxException {
+		Assert.assertEquals("== Test==\npart\n",StreamsUtil.loadCreoleContent(this.getClass().getResource("creolecontent.cre").toURI(),MarkupOutputFormat.XML2TEXT));
 		
 		try{StreamsUtil.loadCreoleContent(null,MarkupOutputFormat.XML2TEXT);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{StreamsUtil.loadCreoleContent(this.getClass().getResource("creolecontent.cre"),null);
+		try{StreamsUtil.loadCreoleContent(this.getClass().getResource("creolecontent.cre").toURI(),null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}

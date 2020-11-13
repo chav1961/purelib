@@ -34,6 +34,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1150,13 +1151,13 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Window owner can't be null");
 		}
 		else if (helpContent == null) {
-			throw new NullPointerException("Help content refrrence can't be null");
+			throw new NullPointerException("Help content reference can't be null");
 		}
 		else {
 			final PopupFactory		pf = PopupFactory.getSharedInstance();
 			final JEditorPane		pane = new JEditorPane("text/html","");
 			final JScrollPane		scroll = new JScrollPane(pane);
-			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(Math.max(200,ownerSize.width),Math.max(ownerSize.height,300)); 
+			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(Math.max(640,ownerSize.width),Math.max(480,ownerSize.height)); 
 			final Point				point = new Point((ownerSize.width-helpSize.width)/2,(ownerSize.height-helpSize.height)/2);
 			final HyperlinkListener	hll = (e)->{
 										if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -1170,7 +1171,7 @@ loop:			for (Component comp : children(node)) {
 			
 			final Popup				popup = pf.getPopup(owner,scroll,point.x,point.y);
 			
-			pane.setText(StreamsUtil.loadCreoleContent(helpContent.toURL(),MarkupOutputFormat.XML2HTML));
+			pane.setText(StreamsUtil.loadCreoleContent(helpContent,MarkupOutputFormat.XML2HTML));
 			assignActionKey(pane,JPanel.WHEN_IN_FOCUSED_WINDOW,SwingUtils.KS_EXIT,(e)->{
 				popup.hide();
 				pane.removeHyperlinkListener(hll);

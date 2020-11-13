@@ -166,11 +166,21 @@ public class JPasswordFieldWithMeta extends JPasswordField implements NodeMetada
 
 	@Override
 	public String standardValidation(final Object val) {
-		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
-		}
 		if (val == null) {
-			return "Null value can't be assigned to this field";
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
+			}
+			else {
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
+			}
+		}
+		else if (InternalUtils.checkMandatory(getNodeMetadata())) {
+			if (((char[])val).length == 0) {
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_MANDATORY);
+			}
+			else {
+				return null;
+			}
 		}
 		else {
 			return null;

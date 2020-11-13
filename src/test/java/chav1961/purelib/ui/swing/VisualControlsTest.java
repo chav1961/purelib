@@ -166,8 +166,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertEquals(false,butt.getValueFromComponent());
 		Assert.assertEquals(false,butt.getChangedValueFromComponent());
 		Assert.assertEquals(Boolean.class,butt.getValueType());
-		Assert.assertNull(butt.standardValidation("true"));
-		Assert.assertNotNull(butt.standardValidation("invalid"));
 		
 		butt.setInvalid(true);
 		Assert.assertTrue(butt.isInvalid());
@@ -237,12 +235,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		picker.setInvalid(false);
 		Assert.assertFalse(picker.isInvalid());
 
-		Assert.assertNotNull(picker.standardValidation("illegal"));
-		Assert.assertNotNull(picker.standardValidation("a,b,c"));
-		Assert.assertNotNull(picker.standardValidation("unknown"));
-		Assert.assertNotNull(picker.standardValidation("black,unknown"));
-		Assert.assertNull(picker.standardValidation("{ black , white }"));
-		
 		try {new JColorPairPickerWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
@@ -316,9 +308,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		picker.setInvalid(false);
 		Assert.assertFalse(picker.isInvalid());
 
-		Assert.assertNotNull(picker.standardValidation("illegal"));
-		Assert.assertNull(picker.standardValidation(" white "));
-		
 		try {new JColorPickerWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
@@ -393,9 +382,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		date.setInvalid(false);
 		Assert.assertFalse(date.isInvalid());
 
-		Assert.assertNotNull(date.standardValidation("illegal"));
-		Assert.assertNull(date.standardValidation(" "+nullFormatted+" "));
-		
 		try {new JDateFieldWithMeta(null, PureLibSettings.PURELIB_LOCALIZER, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
@@ -461,9 +447,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		date.setInvalid(false);
 		Assert.assertFalse(date.isInvalid());
 
-		Assert.assertNotNull(date.standardValidation("illegal"));
-		Assert.assertNull(date.standardValidation(" CONTINUE "));
-		
 		try {new JEnumFieldWithMeta(null, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
@@ -525,8 +508,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		file.setInvalid(false);
 		Assert.assertFalse(file.isInvalid());
 
-		Assert.assertNotNull(file.standardValidation("file:illegal"));
-		Assert.assertNull(file.standardValidation(" CONTINUE "));
 		
 		try {new JFileFieldWithMeta(null, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -595,9 +576,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		text.setInvalid(false);
 		Assert.assertFalse(text.isInvalid());
 
-		Assert.assertNotNull(text.standardValidation("text:illegal"));
-		Assert.assertNull(text.standardValidation("VALUE"));
-		
 		try {new JFormattedTextFieldWithMeta(null, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
@@ -794,8 +772,6 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertTrue(text.isInvalid());
 		text.setInvalid(false);
 		Assert.assertFalse(text.isInvalid());
-		
-		Assert.assertNull(text.standardValidation("abcde"));
 		
 		try {new JTextFieldWithMeta(null, this);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

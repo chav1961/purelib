@@ -70,7 +70,7 @@ public class JTextTooltipWindow extends JList<String> {
 				
 				@Override
 				public void keyTyped(final KeyEvent e) {
-					if (buddy.getText().length() >= 2 && !isShown()) {
+					if (e.getKeyCode() != KeyEvent.VK_ESCAPE && buddy.getText().length() >= 2 && !isShown()) {
 						showWindow();
 					}
 				}
@@ -85,13 +85,13 @@ public class JTextTooltipWindow extends JList<String> {
 							fillWindow(buddy.getText());
 							break;
 						case KeyEvent.VK_ESCAPE	:
-							hideWindow();
 							e.consume();
+							SwingUtilities.invokeLater(()->hideWindow());
 							break;
 						case KeyEvent.VK_ENTER	:
-							buddy.setText(getSelectedValue());
-							hideWindow();
 							e.consume();
+							buddy.setText(getSelectedValue());
+							SwingUtilities.invokeLater(()->hideWindow());
 							break;
 						case KeyEvent.VK_DOWN	:
 							changeSelection(1);
@@ -111,7 +111,7 @@ public class JTextTooltipWindow extends JList<String> {
 				@Override public void changedUpdate(DocumentEvent e) {process();}
 				
 				private void process() {
-					if (isShown()) {
+					if (isShown() && !recursiveProtector) {
 						try{recursiveProtector = true;
 							final String	current = buddy.getText();
 							

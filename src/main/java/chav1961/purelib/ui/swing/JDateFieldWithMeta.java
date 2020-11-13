@@ -206,6 +206,19 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 		if (value == null) {
 			throw new NullPointerException("Value to assign can't be null");
 		}
+		else if (value instanceof String) {
+			final String val = value.toString();
+		
+			if (val.isEmpty()) {
+				throw new IllegalArgumentException("Empty value is not applicable for the date");
+			}
+			else {
+				try{setValue(getFormatter().stringToValue(val.trim()));
+				} catch (ParseException e) {
+					throw new IllegalArgumentException(e);
+				}
+			}
+		}
 		else {
 			setValue(value);
 		}
@@ -218,26 +231,17 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 
 	@Override
 	public String standardValidation(final Object val) {
-		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
-		}
-		else if (val instanceof String) {
-			final String value = val.toString();
-		
-			if (value == null || value.isEmpty()) {
-				return "Null or empty value is not applicable for the date";
+		closeDropDown();
+		if (val == null) {
+			if (InternalUtils.checkNullAvailable(getNodeMetadata())) {
+				return null;
 			}
 			else {
-				closeDropDown();
-				try{getFormatter().stringToValue(value.trim());
-					return null;
-				} catch (ParseException e) {
-					return e.getLocalizedMessage();
-				}
+				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
 		else {
-			return "Illegal value type to validate";
+			return null;
 		}
 	}
 
