@@ -18,8 +18,11 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -50,6 +53,7 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
+import javax.swing.FocusManager;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -1159,40 +1163,15 @@ loop:			for (Component comp : children(node)) {
 			final JScrollPane		scroll = new JScrollPane(pane);
 			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(Math.max(640,ownerSize.width),Math.max(480,ownerSize.height)); 
 			final Point				point = new Point((ownerSize.width-helpSize.width)/2,(ownerSize.height-helpSize.height)/2);
-			final HyperlinkListener	hll = (e)->{
-										if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-											Utils.startBrowser(e.getURL());
-										}
-									}; 
-			
+
 			pane.setEditable(false);
 			scroll.setPreferredSize(helpSize);
 			SwingUtilities.convertPointToScreen(point,owner);
 			
 			final Popup				popup = pf.getPopup(owner,scroll,point.x,point.y);
+			final PopupListenersSet	set = new PopupListenersSet(owner,pane,popup);
 			
 			pane.setText(StreamsUtil.loadCreoleContent(helpContent,MarkupOutputFormat.XML2HTML));
-			assignActionKey(pane,JPanel.WHEN_IN_FOCUSED_WINDOW,SwingUtils.KS_EXIT,(e)->{
-				popup.hide();
-				pane.removeHyperlinkListener(hll);
-				removeActionKey(pane,JPanel.WHEN_IN_FOCUSED_WINDOW,SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
-			},SwingUtils.ACTION_EXIT);
-			pane.addMouseListener(new MouseListener() {
-				@Override public void mouseReleased(MouseEvent e) {}
-				@Override public void mousePressed(MouseEvent e) {}
-				@Override public void mouseEntered(MouseEvent e) {}
-				@Override public void mouseClicked(MouseEvent e) {}
-				
-				@Override
-				public void mouseExited(MouseEvent e) {
-					popup.hide();
-					pane.removeHyperlinkListener(hll);
-					removeActionKey(pane,JPanel.WHEN_IN_FOCUSED_WINDOW,SwingUtils.KS_EXIT,SwingUtils.ACTION_EXIT);
-					pane.removeMouseListener(this);
-				}
-			});
-			pane.addHyperlinkListener(hll);
-			
 			popup.show();
 		}
 	}
@@ -1806,6 +1785,64 @@ loop:			for (Component comp : children(node)) {
 			for (JComponent item : getActionNodes()) {
 				SwingUtils.refreshLocale(item,oldLocale, newLocale);
 			}
+		}
+	}
+
+	private static class PopupListenersSet implements KeyListener, FocusListener, MouseListener, HyperlinkListener {
+		private final Component		owner;
+		private final JEditorPane	pane;
+		private final Popup			popup;
+		
+		PopupListenersSet(final Component owner, final JEditorPane pane, final Popup popup) {
+			this.owner = owner != null ? owner : FocusManager.getCurrentManager().getFocusOwner();
+			this.pane = pane;
+			this.popup = popup;
+			
+			owner.addKeyListener(this);
+			owner.addFocusListener(this);
+			pane.addMouseListener(this);
+			pane.addHyperlinkListener(this);
+		}
+		
+		@Override
+		public void hyperlinkUpdate(HyperlinkEvent e) {
+			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+				Utils.startBrowser(e.getURL());
+			}
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			close();
+		}
+
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			close();
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+				e.consume();
+				close();
+			}
+		}
+		
+		@Override public void mouseClicked(MouseEvent e) {}
+		@Override public void mousePressed(MouseEvent e) {}
+		@Override public void mouseReleased(MouseEvent e) {}
+		@Override public void mouseEntered(MouseEvent e) {}
+		@Override public void focusGained(FocusEvent e) {}
+		@Override public void keyTyped(KeyEvent e) {}
+		@Override public void keyReleased(KeyEvent e) {}
+
+		private void close() {
+			popup.hide();
+			pane.removeHyperlinkListener(this);
+			owner.removeKeyListener(this);
+			owner.removeFocusListener(this);
 		}
 	}
 }

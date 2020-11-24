@@ -167,6 +167,23 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 					getLogger().message(Severity.tooltip,"");
 					return true;
 				}
+			case FinalValidation :
+				final Object	fvChanged = ((JComponentInterface)component).getChangedValueFromComponent(); 
+				final String	fvError = ((JComponentInterface)component).standardValidation(fvChanged);
+				
+				if (fvError != null) {
+					getLogger().message(Severity.error,SwingUtils.prepareHtmlMessage(Severity.error, fvError));
+					return false;
+				}
+				else {
+					try{if (formMgr.onField(instance,null,metadata.getName(),fvChanged,true) != RefreshMode.REJECT) {
+							return true;
+						}
+					} catch (LocalizationException | FlowException e) {
+						getLogger().message(Severity.error,SwingUtils.prepareHtmlMessage(Severity.error, e.getLocalizedMessage()));
+					}
+					return false;
+				}
 			case Exit :
 				return processExit(metadata,component,parameters);
 			default:

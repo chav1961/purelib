@@ -13,6 +13,7 @@ public interface JComponentMonitor {
 		Rollback,
 		Saving,
 		Action,
+		FinalValidation,
 		Exit
 	}
 	boolean process(MonitorEvent event, ContentNodeMetadata metadata, JComponentInterface component, Object... parameters) throws ContentException;

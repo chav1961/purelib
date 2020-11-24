@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.swing.FocusManager;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -312,7 +313,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				add(childPanel,BorderLayout.CENTER);
 				add(buttonPanel,BorderLayout.SOUTH);
 				if (mdi.getRoot().getHelpId() != null) {
-					SwingUtils.assignActionKey(this, SwingUtils.KS_HELP, (e)->{callHelp(localizer,mdi.getRoot().getHelpId());}, "help");
+					SwingUtils.assignActionKey(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{callHelp(localizer,mdi.getRoot().getHelpId());}, "help");
 				}
 				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 				
@@ -322,7 +323,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	}
 
 	private void callHelp(final Localizer localizer, final String helpId) {
-		try{SwingUtils.showCreoleHelpWindow(this, URIUtils.convert2selfURI(new GrowableCharArray<>(false).append(localizer.getContent(helpId)).extract(),"UTF-8"));
+		try{SwingUtils.showCreoleHelpWindow(FocusManager.getCurrentManager().getFocusOwner(), URIUtils.convert2selfURI(new GrowableCharArray<>(false).append(localizer.getContent(helpId)).extract(),"UTF-8"));
 		} catch (IOException | LocalizationException e) {
 		}
 	}
@@ -768,7 +769,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			if (mode == NodeEnterMode.ENTER && (node instanceof NodeMetadataOwner)) {
 				final ContentNodeMetadata	meta = ((NodeMetadataOwner)node).getNodeMetadata();
 				
-				try{if (!form.process(MonitorEvent.Validation,meta,(JComponentInterface)node)) {
+				try{if (!form.process(MonitorEvent.FinalValidation,meta,(JComponentInterface)node)) {
 						return ContinueMode.STOP;
 					}
 				} catch (ContentException e) {

@@ -131,6 +131,8 @@
 		<key name="JFileSelectionDialog.ask.mkdir.message">Type name for the directory creating</key>  
 		<key name="JFileSelectionDialog.ask.delete.caption">Delete selected items</key>
 		<key name="JFileSelectionDialog.ask.delete.message">Confirm deletion of the %1$s item(s)</key>
+		<key name="JFileSelectionDialog.ask.confirmreplacement.caption">File already exists!</key>
+		<key name="JFileSelectionDialog.ask.confirmreplacement.message">File %1$s already exists\nDo you wish to replace it?</key>
 		<key name="JFileSelectionDialog.ask.alreadyexists.caption">Error!</key>
 		<key name="JFileSelectionDialog.ask.alreadyexists.message">Name typed [%1$s] already exists!</key>
 		<key name="JFileSelectionDialog.caption.open">Open file(s)...</key>
@@ -353,6 +355,8 @@
 		<key name="JFileSelectionDialog.ask.mkdir.message">Задайте имя создаваемой папки</key>  
 		<key name="JFileSelectionDialog.ask.delete.caption">Удалить выбранные элементы</key>
 		<key name="JFileSelectionDialog.ask.delete.message">Подтвердите удаление %1$s элемента(ов)</key>
+		<key name="JFileSelectionDialog.ask.confirmreplacement.caption">Файл уже существует!</key>
+		<key name="JFileSelectionDialog.ask.confirmreplacement.message">Файл %1$s уже существует\nВы хотите заменить его?</key>
 		<key name="JFileSelectionDialog.ask.alreadyexists.caption">Ошибка!</key>
 		<key name="JFileSelectionDialog.ask.alreadyexists.message">Заданное имя [%1$s] уже существует!</key>
 		<key name="JFileSelectionDialog.caption.open">Открыть файл(ы)...</key>

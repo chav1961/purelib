@@ -414,7 +414,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 	
 	@Override
-	public LoggerFacade message(final Severity level, final String format, final Object... parameters) {
+	public synchronized LoggerFacade message(final Severity level, final String format, final Object... parameters) {
 		try{delegate.message(level, localize(format), parameters);
 		} catch (LocalizationException e) {
 			delegate.message(level, format, parameters);
@@ -423,13 +423,13 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	@Override
-	public LoggerFacade message(final Severity level, final LoggerCallbackInterface callback) {
+	public synchronized LoggerFacade message(final Severity level, final LoggerCallbackInterface callback) {
 		delegate.message(level, callback);
 		return this;
 	}
 
 	@Override
-	public LoggerFacade message(final Severity level, final Throwable exception, final String format, final Object... parameters) {
+	public synchronized LoggerFacade message(final Severity level, final Throwable exception, final String format, final Object... parameters) {
 		try{delegate.message(level, exception, localize(format), parameters);
 		} catch (LocalizationException e) {
 			delegate.message(level, exception, format, parameters);		
@@ -438,7 +438,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	@Override
-	public LoggerFacade message(final Severity level, final Throwable exception, final LoggerCallbackInterface callback) {
+	public synchronized LoggerFacade message(final Severity level, final Throwable exception, final LoggerCallbackInterface callback) {
 		delegate.message(level, exception, callback);
 		return this;
 	}

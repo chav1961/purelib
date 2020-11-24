@@ -17,7 +17,7 @@ import chav1961.purelib.basic.URIUtils;
  * <li>pathToResource - absolute path to your resource from the root of your application</li>
  * </ul>
  * @see URLStreamHandler   
- * @see RootHandlerProvider   
+ * @see PlaybackHandlerProvider   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  * @lastUpdate 0.0.4
