@@ -38,13 +38,13 @@ public interface UIController {
 	String afterField(ContentNodeMetadata node, String fieldName, RefreshMode mode);
 	
 	/**
-	 * <p>This method is called after calling {@linkplain FormManager#onRecord(RecordFormManager.Action, Object, Object, Object, Object)} method.</p>
-	 * @param node root metadata for the controlled instance (second or forth parameter in the {@linkplain FormManager#onRecord(RecordFormManager.Action, Object, Object, Object, Object)} call - dependent on action parameter)
-	 * @param action action passed to {@linkplain FormManager#onRecord(RecordFormManager.Action, Object, Object, Object, Object)} call 
-	 * @param mode value returned by {@linkplain FormManager#onRecord(RecordFormManager.Action, Object, Object, Object, Object)} call
+	 * <p>This method is called after calling {@linkplain FormManager#onRecord(RecordFormManager.RecordAction, Object, Object, Object, Object)} method.</p>
+	 * @param node root metadata for the controlled instance (second or forth parameter in the {@linkplain FormManager#onRecord(RecordFormManager.RecordAction, Object, Object, Object, Object)} call - dependent on action parameter)
+	 * @param action action passed to {@linkplain FormManager#onRecord(RecordFormManager.RecordAction, Object, Object, Object, Object)} call 
+	 * @param mode value returned by {@linkplain FormManager#onRecord(RecordFormManager.RecordAction, Object, Object, Object, Object)} call
 	 * @return command string as described in the class description. Can be null
 	 */
-	String afterRecord(ContentNodeMetadata node, RecordFormManager.Action action, RefreshMode mode);
+	String afterRecord(ContentNodeMetadata node, RecordFormManager.RecordAction action, RefreshMode mode);
 	
 	/**
 	 * <p>This method is called after calling {@linkplain FormManager#onAction(Object, Object, String, Object)} method.</p>

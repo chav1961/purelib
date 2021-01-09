@@ -1,4 +1,4 @@
-package chav1961.purelib.net.playback;
+package chav1961.purelib.net.capture;
 
 import java.io.IOException;
 import java.net.URL;
@@ -6,7 +6,7 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 /**
- * <p>This class is  handler to support "playback" schema URL. Format of playback URL is:</p>
+ * <p>This class is  handler to support "capture" schema URL. Format of capture URL is:</p>
  * <code><b>playback://</b>&lt;device&gt;?&lt;parameters&gt;</code>
  * <ul>
  * <li>device - play audio device or one of predefined logical device names</li>
@@ -15,8 +15,7 @@ import java.net.URLStreamHandler;
  * <p>Predefined logical name of the device can be:</p>
  * <ul>
  * <li>audio - any audio device supports playing</li>
- * <li>speaker - any available speaker on your computer</li>
- * <li>headset - any available head set on your computer</li>
+ * <li>microphone - any available speaker on your computer</li>
  * </ul>
  * <p>Parameters can be:</p>
  * <ul>
@@ -33,12 +32,12 @@ import java.net.URLStreamHandler;
  * @since 0.0.4
  */
 public class Handler extends URLStreamHandler {
-	public static final String	PROTOCOL = "playback";
+	public static final String	PROTOCOL = "capture";
 	
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
 		if (PROTOCOL.equals(url.getProtocol())) {
-			return new PlaybackURLConnection(url);
+			return new CaptureURLConnection(url);
 		}
 		else {
 			throw new IOException("Illegal URL ["+url+"]: protocol ["+url.getProtocol()+"] is not supported"); 

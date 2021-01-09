@@ -16,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.net.capture.CaptureHandlerProvider;
 import chav1961.purelib.net.fsys.FSysHandlerProvider;
 import chav1961.purelib.net.playback.PlaybackHandlerProvider;
 import chav1961.purelib.net.root.RootHandlerProvider;
@@ -31,11 +32,12 @@ public class URIsTest {
 		for (URLStreamHandlerProvider item : ServiceLoader.load(URLStreamHandlerProvider.class)) {
 			providers.add((Class<URLStreamHandlerProvider>)item.getClass());
 		}
-		Assert.assertEquals(4,providers.size());
+		Assert.assertEquals(5,providers.size());
 		Assert.assertTrue(providers.contains(FSysHandlerProvider.class));		
 		Assert.assertTrue(providers.contains(RootHandlerProvider.class));		
 		Assert.assertTrue(providers.contains(SelfHandlerProvider.class));		
 		Assert.assertTrue(providers.contains(PlaybackHandlerProvider.class));		
+		Assert.assertTrue(providers.contains(CaptureHandlerProvider.class));		
 	}
 
 	@Test

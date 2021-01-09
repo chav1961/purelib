@@ -85,7 +85,8 @@ module chav1961.purelib {
 
 	uses java.net.spi.URLStreamHandlerProvider;
 	provides java.net.spi.URLStreamHandlerProvider with chav1961.purelib.net.fsys.FSysHandlerProvider, chav1961.purelib.net.root.RootHandlerProvider
-			, chav1961.purelib.net.self.SelfHandlerProvider, chav1961.purelib.net.playback.PlaybackHandlerProvider;
+			, chav1961.purelib.net.self.SelfHandlerProvider, chav1961.purelib.net.playback.PlaybackHandlerProvider
+			, chav1961.purelib.net.capture.CaptureHandlerProvider;
 	
 	uses javax.script.ScriptEngineFactory;
 	provides javax.script.ScriptEngineFactory with chav1961.purelib.basic.AsmScriptEngineFactory;

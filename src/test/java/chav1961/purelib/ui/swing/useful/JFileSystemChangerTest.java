@@ -1,0 +1,21 @@
+package chav1961.purelib.ui.swing.useful;
+
+import java.io.IOException;
+
+import javax.swing.JOptionPane;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.LocalizationException;
+
+public class JFileSystemChangerTest {
+	@Test
+	public void test() throws LocalizationException, ContentException, IOException {
+		final JFileSystemChanger	jfc = new JFileSystemChanger(PureLibSettings.PURELIB_LOCALIZER, (owner,accept)->{});
+		
+		JOptionPane.showMessageDialog(null, jfc);
+	}
+}

@@ -1031,4 +1031,32 @@ loop:	for (int index = 0; index < args.length; index++) {
 			return "ConfigArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
 		}
 	}
+
+	protected static class SwitchArg<T extends Enum<T>> extends EnumArg<T> {
+		private final ArgParser[]	parsers;
+
+		public SwitchArg(final String name, final Class<T> enumType, final boolean isMandatory, final boolean isPositional, final String helpDescriptor, final ArgParser... parsers) {
+			super(name, enumType, isMandatory, isPositional, helpDescriptor);
+			if (parsers == null || parsers.length != enumType.getEnumConstants().length) {
+				throw new IllegalArgumentException("Parser list can't be null and must contain exactly ["+enumType.getEnumConstants().length+"] items");
+			}
+			else {
+				this.parsers = parsers;
+			}
+		}
+
+		public SwitchArg(final String name, final Class<T> enumType, final boolean isPositional, final String helpDescriptor, final T defaultValue, final ArgParser... parsers) {
+			super(name, enumType, isPositional, helpDescriptor, defaultValue);
+			if (parsers == null || parsers.length != enumType.getEnumConstants().length) {
+				throw new IllegalArgumentException("Parser list can't be null and must contain exactly ["+enumType.getEnumConstants().length+"] items");
+			}
+			else {
+				this.parsers = parsers;
+			}
+		}
+
+		public ArgParser[] getParsers() {
+			return parsers;
+		}
+	}
 }

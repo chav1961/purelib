@@ -216,7 +216,8 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			this.logger = logger;
 			this.formManager = formMgr;
 			this.instance = instance;
-			childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
+			this.childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
+			this.childPanel.setName(this.mdi.getRoot().getUIPath().toString());
 			
 			try(final LoggerFacade		trans = logger.transaction(this.getClass().getSimpleName())) {
 				final List<JComponent>	ordinalFocused = new ArrayList<>(), outputFocused = new ArrayList<>();

@@ -13,6 +13,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URL;
 import java.rmi.registry.Registry;
 import java.rmi.server.ExportException;
 import java.util.Arrays;
@@ -180,7 +181,8 @@ public class FileSystemTest {
 		}
 
 		// test file system on file system
-		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
+		final File	f = new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar");
+		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:"+f.toURI()))) {
 			test(fs,false);
 		}
 		
@@ -209,7 +211,8 @@ public class FileSystemTest {
 		}
 
 		// test file system on file system
-		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar"))) {
+		final File	f = new File("./src/test/resources/chav1961/purelib/fsys/fsTestJar/fs.jar");
+		try(final FileSystemInterface	fs = new FileSystemOnFileSystem(URI.create("fsys:jar:"+f.toURI()))) {
 			joinTest(fs,false);
 		}
 		

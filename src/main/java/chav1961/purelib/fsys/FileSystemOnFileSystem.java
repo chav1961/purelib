@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.net.URI;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -88,16 +89,27 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 		FileSystemProvider 		found = null;
 		
         for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
-            if (ref.getScheme().equals(provider.getScheme())) {
+            if (ref.getScheme() != null && ref.getScheme().equals(provider.getScheme())) {
             	found = provider;
+            	break;
             }
         }
         if (found == null) {
         	throw new IllegalArgumentException("File system for scheme ["+ref.getScheme()+"] is not installed"); 
         }
         else {
-			this.fs = found.newFileSystem(Paths.get(ref.getSchemeSpecificPart()),env);
-			this.needClose = true;
+        	FileSystem	fs;
+        	boolean		needClose;
+        	
+        	try{fs = found.getFileSystem(ref);
+        		needClose = false;
+        	} catch (FileSystemNotFoundException exc) {
+        		fs = found.newFileSystem(ref, env);
+        		needClose = true;
+        	}
+        	 
+			this.fs = fs;
+			this.needClose = needClose;
         }
 	}
 	

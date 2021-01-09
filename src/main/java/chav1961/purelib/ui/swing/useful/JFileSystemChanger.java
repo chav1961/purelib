@@ -31,9 +31,11 @@ import javax.swing.event.DocumentListener;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
@@ -43,12 +45,21 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.ui.interfaces.Action;
+import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.Format;
+import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
+import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
+import chav1961.purelib.ui.swing.useful.DnDManager.DnDInterface;
 
+/**
+ * <p>This class implements File system changer window and supports model dialogs with it. </p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ */
 public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final long 		serialVersionUID = 6307351718365525165L;
 	private static final String 	ACCEPT = "JFileSystemChanger.button.accept";
@@ -73,7 +84,17 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private final JList<?>			list;
 	private URI						testUri = null;
 	
-	public JFileSystemChanger(final Localizer localizer, final AcceptAndCancelCallback<JFileSystemChanger> callback) throws IOException, LocalizationException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
+	/**
+	 * <p>COnstructor of the class</p>
+	 * @param localizer localizer to use. Usually {@linkPlain PureLibSettings#PURELIB_LOCALIZER} is enough
+	 * @param callback callback to process "OK" and "Cancel" buttons
+	 * @throws IOException on any I/O errors
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException when any argument is null
+	 * @throws IllegalArgumentException on any arguments error
+	 * @throws ContentException on any file system content errors
+	 */
+	public JFileSystemChanger(final Localizer localizer, final AcceptAndCancelCallback<JFileSystemChanger> callback) throws IOException, LocalizationException, NullPointerException, IllegalArgumentException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
@@ -199,10 +220,28 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		fillLocalizedStrings();
 	}
 	
+	/**
+	 * <p>Ask file system selection</p>
+	 * @param window parent frame 
+	 * @param localizer localizer. Usually {@linkPlain PureLibSettings#PURELIB_LOCALIZER} is enough 
+	 * @return file system URI when selected, null otherwise
+	 * @throws LocalizationException on any localization errors
+	 * @throws ContentException on any content errors
+	 * @throws IOException on any I/O errors
+	 */
 	public static URI ask(final Frame window, final Localizer localizer) throws LocalizationException, SyntaxException, ContentException, IOException {
 		return askInternal(window,new JDialog(window,true), localizer);
 	}
 
+	/**
+	 * <p>Ask file system selection</p>
+	 * @param window parent frame 
+	 * @param localizer localizer. Usually {@linkPlain PureLibSettings#PURELIB_LOCALIZER} is enough 
+	 * @return file system URI when selected, null otherwise
+	 * @throws LocalizationException on any localization errors
+	 * @throws ContentException on any content errors
+	 * @throws IOException on any I/O errors
+	 */
 	public static URI ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, SyntaxException, ContentException, IOException {
 		return askInternal(window,new JDialog(window,true), localizer);
 	}
@@ -228,6 +267,10 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 				dlg.setVisible(false);
 			}
 		}, SwingUtils.ACTION_ACCEPT);
+		SwingUtils.assignActionKey(mgr, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e) -> {
+			result[0] = null;
+			dlg.setVisible(false);
+		}, SwingUtils.ACTION_EXIT);
 		
 		dlg.getContentPane().add(mgr,BorderLayout.CENTER);
 		dlg.pack();
@@ -236,10 +279,6 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		dlg.setVisible(true);
 		dlg.dispose();
 		return result[0];
-	}
-	
-	private void fillURI(final JDialog parent, final URI[] result) {
-		
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
@@ -267,29 +306,46 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 
 	@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:root://chav1961.purelib.ui.swing.useful.JFileSystemChanger/chav1961/purelib/i18n/localization.xml")
 	@LocaleResource(value="JFileSystemChanger.descriptor.caption",tooltip="JFileSystemChanger.descriptor.tooltip")
-	public static class FileSystemDescription {
+	public static class FileSystemDescription implements FormManager<Object, FileSystemDescription> { 
 		@LocaleResource(value="JFileSystemChanger.descriptor.className",tooltip="JFileSystemChanger.descriptor.className.tooltip")
 		@Format("r")
 		String className = "";
+		
 		@LocaleResource(value="JFileSystemChanger.descriptor.version",tooltip="JFileSystemChanger.descriptor.version.tooltip")
 		@Format("r")
 		String version = "";
+		
 		@LocaleResource(value="JFileSystemChanger.descriptor.description",tooltip="JFileSystemChanger.descriptor.description.tooltip")
 		@Format("r")
 		@Action(actionString="showHelp",resource=@LocaleResource(tooltip="JFileSystemChanger.descriptor.help.show.tooltip",value="Advanced"))
 		String descriptionId = "";
+		
 		@LocaleResource(value="JFileSystemChanger.descriptor.vendor",tooltip="JFileSystemChanger.descriptor.vendor.tooltip")
 		@Format("r")
 		String vendorId = "";
+		
 		@LocaleResource(value="JFileSystemChanger.descriptor.license",tooltip="JFileSystemChanger.descriptor.license.tooltip")
 		@Format("r")
 		@Action(actionString="showLicense",resource=@LocaleResource(tooltip="JFileSystemChanger.descriptor.license.show.tooltip",value="Advanced"))
 		String licenseId = "";
+
 		String helpId = "";
+		
 		String licenseContentId = "";
+
 		@LocaleResource(value="JFileSystemChanger.descriptor.uriTemplate",tooltip="JFileSystemChanger.descriptor.uriTemplate.tooltip")
 		@Format("r")
 		@Action(actionString="copyPasteUri",resource=@LocaleResource(tooltip="JFileSystemChanger.descriptor.uriTemplate.copyPaste.tooltip",value="Advanced"))
 		String uriTemplate = "";
+		
+		@Override
+		public RefreshMode onField(FileSystemDescription inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
+			return RefreshMode.DEFAULT;
+		}
+		
+		@Override
+		public LoggerFacade getLogger() {
+			return PureLibSettings.CURRENT_LOGGER;
+		}
 	}
 }

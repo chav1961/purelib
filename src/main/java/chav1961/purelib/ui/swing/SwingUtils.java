@@ -550,6 +550,16 @@ loop:			for (Component comp : children(node)) {
 							,metadata));
 				return true;
 			}
+			else if (metadata.getChildrenCount() > 0) {
+				boolean	put = false;
+				
+				for (ContentNodeMetadata item : metadata) {
+					if (putToScreen(item,content,uiRoot)) {
+						put = true;
+					}
+				}
+				return put;
+			}
 			else {
 				return false;
 			}

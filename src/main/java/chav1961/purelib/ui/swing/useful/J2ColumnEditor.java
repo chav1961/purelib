@@ -94,6 +94,8 @@ public class J2ColumnEditor extends JPanel implements LocaleChangeListener, JCom
 			this.content = content;
 			this.metadata = metadata;
 			this.localizer = LocalizerFactory.getLocalizer(metadata.getRoot().getLocalizerAssociated());
+			
+			setName(metadata.getRoot().getUIPath().toString());
 
 			final List<JButton>	actions = new ArrayList<>();
 			
