@@ -53,14 +53,22 @@
 		</dependency>
 	</dependencies>
 
-	<distributionManagement>
+ 	<distributionManagement>
 		<repository>
 			<id>internal.repo</id>
 			<name>Temporary Staging Repository</name>
 			<url>file://${project.build.directory}/mvn-repo</url>
 		</repository>
 	</distributionManagement>
-   
+<!--	 <distributionManagement>
+	        <repository>
+	            <id>github</id>
+	            <name>Pure Library</name>
+	            <url>https://github.com/chav1961/purelib</url>
+	        </repository>
+	</distributionManagement>
+-->		
+    
 	<build>
 		<finalName>purelib-0.0.4</finalName>
 		<plugins>
@@ -158,25 +166,29 @@
 						</manifest>
 					</archive>
 				</configuration>
-			</plugin>
+            </plugin>
 			<plugin>
-			    <groupId>com.jakewharton</groupId>
-			    <artifactId>github-deploy-maven-plugin</artifactId>
-			    <version>1.0.0</version>
-			    <configuration>
-			        <replaceExisting>true</replaceExisting>
-			        <ignoreTypes>
-			            <ignoreType>java-source</ignoreType>
-			        </ignoreTypes>
-			    </configuration>
-			    <executions>
-			        <execution>
-			            <goals>
-			                <goal>deploy</goal>
-			            </goals>
-			        </execution>
-			    </executions>
-			</plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>${github.maven-plugin}</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.version}</message>
+                    <noJekyll>true</noJekyll>
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
+                    <branch>refs/heads/mvn-repo</branch>
+                    <includes><include>**/*</include></includes>
+                    <repositoryName>purelib</repositoryName>
+                    <repositoryOwner>chav1961</repositoryOwner>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 	</build>
 </project>
