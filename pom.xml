@@ -60,7 +60,7 @@
 			<url>file://${project.build.directory}/mvn-repo</url>
 		</repository>
 	</distributionManagement>
-
+   
 	<build>
 		<finalName>purelib-0.0.4</finalName>
 		<plugins>
