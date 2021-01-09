@@ -4,7 +4,6 @@
 	<artifactId>purelib</artifactId>
 	<version>0.0.4</version>
 	<description>Pure Java library with some useful classes</description>
-	<url>https://github.com/chav1961/purelib</url>
 	<packaging>jar</packaging>
 	<name>purelib</name>
 
@@ -19,8 +18,8 @@
 	<scm>
 		<connection>scm:git:git@github.com:chav1961/purelib.git</connection>
 		<developerConnection>scm:git:git@github.com:chav1961/purelib.git</developerConnection>
-		<url>git@github.com:chav1961/purelib.git</url>
-	  	<tag>purelib-0.0.4</tag>
+		<url>https://github.com/chav1961/purelib/</url>
+	  	<tag>0.0.4</tag>
   	</scm>
 	<issueManagement>
 		<system>GitHub</system>
@@ -54,20 +53,12 @@
 	</dependencies>
 
  	<distributionManagement>
-		<repository>
+ 		<repository>
 			<id>internal.repo</id>
 			<name>Temporary Staging Repository</name>
 			<url>file://${project.build.directory}/mvn-repo</url>
 		</repository>
 	</distributionManagement>
-<!--	 <distributionManagement>
-	        <repository>
-	            <id>github</id>
-	            <name>Pure Library</name>
-	            <url>https://github.com/chav1961/purelib</url>
-	        </repository>
-	</distributionManagement>
--->		
     
 	<build>
 		<finalName>purelib-0.0.4</finalName>
@@ -167,28 +158,10 @@
 					</archive>
 				</configuration>
             </plugin>
-			<plugin>
-                <groupId>com.github.github</groupId>
-                <artifactId>site-maven-plugin</artifactId>
-                <version>${github.maven-plugin}</version>
-                <configuration>
-                    <message>Maven artifacts for ${project.version}</message>
-                    <noJekyll>true</noJekyll>
-                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
-                    <branch>refs/heads/mvn-repo</branch>
-                    <includes><include>**/*</include></includes>
-                    <repositoryName>purelib</repositoryName>
-                    <repositoryOwner>chav1961</repositoryOwner>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>site</goal>
-                        </goals>
-                        <phase>deploy</phase>
-                    </execution>
-                </executions>
-            </plugin>
+ 			<plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.1</version>
+            </plugin>            
 		</plugins>
 	</build>
 </project>
