@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+import chav1961.purelib.basic.interfaces.InputOutputPairInterface;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.fsys.FileSystemOnFile;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -152,8 +153,9 @@ public class TemporaryStore implements Closeable {
 	 * <p>This class is used to support predefined scenario for temporary file usage</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.5
 	 */
-	public class InputOutputPair implements Closeable {
+	public class InputOutputPair implements InputOutputPairInterface {
 		private static final int	STATE_INITIAL = 0;
 		private static final int	STATE_FILLING = 1;
 		private static final int	STATE_FILLED = 2;
@@ -275,6 +277,7 @@ public class TemporaryStore implements Closeable {
 		 * @return input stream to read data from 
 		 * @throws IOException on any I/O errors
 		 */
+		@Override
 		public InputStream getInputStream() throws IOException {
 			if (state != STATE_FILLED) {
 				throw new IllegalStateException("Scenario case fail: getInputStream() must be called exactly after closing output stream got by getOutputStream()"); 
@@ -291,6 +294,7 @@ public class TemporaryStore implements Closeable {
 		 * @return stream to fill data to
 		 * @throws IOException on any I/O errors
 		 */
+		@Override
 		public OutputStream getOutputStream() throws IOException {
 			if (state != STATE_INITIAL) {
 				throw new IllegalStateException("Scenario case fail: getOutputStream() must be called only once and immediately after allocate() calling"); 
