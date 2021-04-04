@@ -1,11 +1,21 @@
 package chav1961.purelib.basic;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.intern.ReducedExceptionWrapper;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
@@ -23,15 +33,33 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public abstract class AbstractLoggerFacade implements LoggerFacade {
+	private static volatile Severity		globalSuppress = Severity.tooltip;
+	
 	private final List<Set<Reducing>>		stack = new ArrayList<Set<Reducing>>();
 	private final Set<StackTraceElement>	repeatables = new HashSet<StackTraceElement>();
 	private final boolean					inTransaction;
 	private final Class<?>					transactionRoot;
 	private final List<TransactionMessage>	messages;
+	
+	static {
+		try{final ObjectName 	objectName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=loggers");
+		    final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
+		    
+		    server.registerMBean(new LoggerManager(), objectName);
+		    Runtime.getRuntime().addShutdownHook(new Thread(()->{
+		    	try{server.unregisterMBean(objectName);
+				} catch (MBeanRegistrationException | InstanceNotFoundException e) {
+				}
+		    }));
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException e) {
+		    throw new PreparationException("Error creating MBean logger manager: "+e.getLocalizedMessage());
+		}
+	}
+	
 	
 	public AbstractLoggerFacade() {
 		this.inTransaction = false;
@@ -140,7 +168,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			throw new NullPointerException("Severity level to test can't be null");
 		}
 		else {
-			return true;
+			return level.ordinal() > globalSuppress.ordinal();
 		}
 	}
 
@@ -355,6 +383,32 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		@Override
 		public String toString() {
 			return "TransactionMessage [level=" + level + ", text=" + text + ", exception=" + exception + "]";
+		}
+	}
+	
+	public interface LoggerManagerMBean {
+		String getGlobalSuppressLevel();
+		void setGlobalSuppressLevel(String level);
+	}
+	
+	private static class LoggerManager implements LoggerManagerMBean {
+		@Override
+		public String getGlobalSuppressLevel() {
+			return globalSuppress.name();
+		}
+
+		@Override
+		public void setGlobalSuppressLevel(final String level) {
+			if (level == null) {
+				throw new NullPointerException("Severity level can't be null");
+			}
+			else {
+				try {
+					globalSuppress = Severity.valueOf(level);
+				} catch (IllegalArgumentException exc) {
+					throw new IllegalArgumentException("Unknown severity level name ["+level+"] to set. Can be "+Arrays.toString(Severity.values())+" only");
+				}
+			}
 		}
 	}
 }

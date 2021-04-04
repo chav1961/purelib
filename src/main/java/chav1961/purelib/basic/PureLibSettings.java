@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -19,10 +20,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.MimeParseException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.SpiService;
@@ -34,6 +44,7 @@ import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.monitoring.MonitoringManager;
+import chav1961.purelib.monitoring.NanoServiceControl;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.content.ResultSetFactory;
 import chav1961.purelib.ui.ColorScheme;
@@ -57,6 +68,11 @@ import chav1961.purelib.ui.swing.SwingUtils;
  */
 
 public final class PureLibSettings {
+	/**
+	 * <p>Pure library MBean entry name</p>
+	 */
+	public static final String		PURELIB_MBEAN = "chav1961.purelib";
+	
 	/**
 	 * <p>This logger is used to print any internal problems in the Pure Library</p>
 	 */
@@ -261,6 +277,7 @@ public final class PureLibSettings {
 	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
 	private static final ColorScheme				DEFAULT_COLOR_SCHEME; 
+	private static final NanoServiceControl			NANOSERVICE_MBEAN;
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static final WellKnownSchema[]			schemasList = {
@@ -283,7 +300,7 @@ public final class PureLibSettings {
 														};
 	private static final AtomicInteger				HELP_CONTEXT_COUNT = new AtomicInteger();
 	private static final Object						HELP_CONTEXT_COUNT_SYNC = new Object();
-	private static volatile NanoServiceFactory		helpServer = null;
+	static volatile NanoServiceFactory		helpServer = null;
 	
 	static {
 		try(final InputStream	is = PureLibSettings.class.getResourceAsStream("/purelib.default.properties")) {
@@ -321,6 +338,22 @@ public final class PureLibSettings {
 			}
 		} catch (IOException exc) {
 			logger.log(Level.WARNING,"Internal color table for the Pure library was not loaded: "+exc.getMessage(),exc);
+		}
+
+		try{final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
+			final ObjectName 	monitoringName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=monitoring");
+			final ObjectName 	httpServerName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=httpServer");
+			final boolean		httpControlRequires = Boolean.valueOf(System.getProperties().getProperty("chav1961.purelib.mbean.http.control","false"));
+	    
+//		     server.registerMBean(MONITORING_MANAGER, monitoringName);
+		    if (httpControlRequires) {
+			    server.registerMBean(NANOSERVICE_MBEAN = new NanoServiceControl(), httpServerName);
+		    }
+		    else {
+		    	NANOSERVICE_MBEAN = null;
+		    }
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException e) {
+		    throw new PreparationException("Error creating MBean monitoring/httpServer manager: "+e.getLocalizedMessage());
 		}
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
@@ -538,6 +571,8 @@ public final class PureLibSettings {
 	}
 
 	private static void stopPureLib() {
+		final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
+				
 		synchronized (HELP_CONTEXT_COUNT_SYNC) {
 			if (helpServer != null) {
 				try{helpServer.stop();
@@ -546,8 +581,23 @@ public final class PureLibSettings {
 				}
 				helpServer = null;
 			}
-			MONITORING_MANAGER.close();
 		}
+		
+		try{final ObjectName 	monitoringName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=monitoring");
+			final ObjectName 	httpServerName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=httpServer");
+			
+	    	try{server.unregisterMBean(monitoringName);
+			} catch (MBeanRegistrationException | InstanceNotFoundException e) {
+			}
+	    	if (NANOSERVICE_MBEAN != null) {
+		    	try{server.unregisterMBean(httpServerName);
+				} catch (MBeanRegistrationException | InstanceNotFoundException e) {
+				}
+	    	}
+		} catch (MalformedObjectNameException e1) {
+		}
+		
+		MONITORING_MANAGER.close();
 	}
 
 	private static class WellKnownSchemaImpl<T> implements WellKnownSchema {

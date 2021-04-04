@@ -37,7 +37,7 @@ public interface LoggerFacade extends Closeable {
 	static final String		LOGGER_INSTANCE_KEY = "loggerInstance";  
 	
 	/**
-	 * <p>This enumeration describes message severity</p>
+	 * <p>This enumeration describes message severity. Order of the enumeration constants is important!</p>
 	 *
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
