@@ -92,7 +92,7 @@ public class ContentModelFactory {
 	private static final String			XML_ATTR_ACTION = "action";
 	private static final String			XML_ATTR_KEYSET = "keyset";
 	private static final String			XML_ATTR_GROUP = "group";	
-	private static final String			XML_ATTR_ICON = "icon";	
+	private static final String			XML_ATTR_ICON = "icon";
 	
 	/**
 	 * <p>Build model for annotated class. Class to build model for must be annotated with {@linkplain LocaleResourceLocation} and {@linkplain LocaleResource} annotations,

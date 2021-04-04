@@ -40,7 +40,7 @@ public class URIsTest {
 		Assert.assertTrue(providers.contains(CaptureHandlerProvider.class));		
 	}
 
-	@Test
+//	@Test
 	public void audioTest() throws IOException, InterruptedException {
 		final URL			url = new URL("playback://speaker");
 		final URLConnection	conn = url.openConnection();
