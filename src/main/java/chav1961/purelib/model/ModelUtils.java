@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.PureLibSettings;
@@ -37,6 +38,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -98,6 +100,8 @@ public class ModelUtils {
 											JSON_METADATA_RELATIVE_UI_PATH
 										};
 	private static final URI			FIELD_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/");
+	private static final ModelManupulationCallback	EQUALITY_PREDICATE = (left,right)->left.getName().equalsIgnoreCase(right.getName());
+	
 
 	private static final AsmWriter		writer;
 	private static final IOException	initExc;
@@ -133,6 +137,14 @@ public class ModelUtils {
 		
 		ContinueMode difference(ContentNodeMetadata left, ContentNodeMetadata right, DifferenceType diffType, Set<DifferenceLocalization> details);
 	}
+
+	@FunctionalInterface
+	public interface ModelManupulationCallback {
+		boolean isEqual(ContentNodeMetadata left, ContentNodeMetadata right);
+		default ContentNodeMetadata clone(ContentNodeMetadata item) {return ModelUtils.clone(item);}
+		default ContentNodeMetadata join(ContentNodeMetadata left, ContentNodeMetadata right) {return ModelUtils.clone(left);}
+	}
+	
 	
 	/**
 	 * <p>Convert model tree to tree text</p>
@@ -453,6 +465,118 @@ public class ModelUtils {
 		}
 		else {
 			return innerClone(source);
+		}
+	}
+	
+	public static ContentNodeMetadata union(final ContentNodeMetadata left, final ContentNodeMetadata right) throws NullPointerException {
+		return union(left,right,EQUALITY_PREDICATE);
+	}
+
+	public static ContentNodeMetadata union(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManupulationCallback equality) throws NullPointerException {
+		if (left == null) {
+			throw new NullPointerException("Left metadata argument can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right metadata argument can't be null");
+		}
+		else if (equality == null) {
+			throw new NullPointerException("Equality predicate can't be null");
+		}
+		else if (!equality.isEqual(left,right)) {
+			final MutableContentNodeMetadata	result =  innerDuplicate(left);
+			final List<ContentNodeMetadata[]>	intersected = new ArrayList<>();
+			
+			for (ContentNodeMetadata leftChild : left) {
+				for (ContentNodeMetadata rightChild : right) {
+					if (equality.isEqual(leftChild, rightChild)) {
+						intersected.add(new ContentNodeMetadata[]{leftChild,rightChild});
+					}
+				}
+			}
+loop1:		for (ContentNodeMetadata leftChild : left) {
+				for (ContentNodeMetadata[] intersectedItem : intersected) {
+					if (leftChild == intersectedItem[0]) {
+						result.addChild(union(intersectedItem[0],intersectedItem[1],equality));
+						continue loop1;
+					}
+				}
+				result.addChild(equality.clone(leftChild));
+			}			
+loop2:		for (ContentNodeMetadata rightChild : right) {
+				for (ContentNodeMetadata[] intersectedItem : intersected) {
+					if (rightChild == intersectedItem[1]) {
+						continue loop2;
+					}
+				}
+				result.addChild(equality.clone(rightChild));
+			}
+			return result;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	public static ContentNodeMetadata intersect(final ContentNodeMetadata left, final ContentNodeMetadata right) throws NullPointerException {
+		return intersect(left,right,EQUALITY_PREDICATE);
+	}
+
+	public static ContentNodeMetadata intersect(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManupulationCallback equality) throws NullPointerException {
+		if (left == null) {
+			throw new NullPointerException("Left metadata argument can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right metadata argument can't be null");
+		}
+		else if (equality == null) {
+			throw new NullPointerException("Equality predicate can't be null");
+		}
+		else if (equality.isEqual(left,right)) {
+			final MutableContentNodeMetadata	result =  innerDuplicate(left);
+			
+			for (ContentNodeMetadata leftChild : left) {
+				for (ContentNodeMetadata rightChild : right) {
+					if (equality.isEqual(leftChild, rightChild)) {
+						result.addChild(intersect(leftChild,rightChild,equality));
+					}
+				}
+			}
+			return result;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	public static ContentNodeMetadata minus(final ContentNodeMetadata left, final ContentNodeMetadata right) throws NullPointerException {
+		return minus(left,right,EQUALITY_PREDICATE);
+	}
+
+	public static ContentNodeMetadata minus(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManupulationCallback equality) throws NullPointerException {
+		if (left == null) {
+			throw new NullPointerException("Left metadata argument can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right metadata argument can't be null");
+		}
+		else if (equality == null) {
+			throw new NullPointerException("Equality predicate can't be null");
+		}
+		else if (equality.isEqual(left,right)) {
+			final MutableContentNodeMetadata	result =  innerDuplicate(left);
+			
+loop:		for (ContentNodeMetadata leftChild : left) {
+				for (ContentNodeMetadata rightChild : right) {
+					if (equality.isEqual(leftChild, rightChild)) {
+						continue loop;
+					}
+				}
+				result.addChild(equality.clone(leftChild));
+			}
+			return result;
+		}
+		else {
+			return null;
 		}
 	}
 	
@@ -1070,20 +1194,30 @@ loop:		for(;;) {
 	}
 	
 	private static ContentNodeMetadata innerClone(final ContentNodeMetadata source) {
-		final MutableContentNodeMetadata	result = new MutableContentNodeMetadata(source.getName(),
-													source.getType(),
-													source.getRelativeUIPath().toString(),
-													source.getLocalizerAssociated(),
-													source.getLabelId(),
-													source.getTooltipId(),
-													source.getHelpId(),
-													source.getFormatAssociated(),
-													source.getApplicationPath(),
-													source.getIcon());
+		final MutableContentNodeMetadata 	result = innerDuplicate(source);
+		
 		for (ContentNodeMetadata item : source) {
 			result.addChild(innerClone(item));
 		}
 		return result;
+	}
+	
+	private static MutableContentNodeMetadata innerDuplicate(final ContentNodeMetadata source) {
+		try{return source instanceof MutableContentNodeMetadata ? (MutableContentNodeMetadata)(((MutableContentNodeMetadata)source).clone()) : 
+				new MutableContentNodeMetadata(source.getName(),
+					source.getType(),
+					source.getRelativeUIPath().toString(),
+					source.getLocalizerAssociated(),
+					source.getLabelId(),
+					source.getTooltipId(),
+					source.getHelpId(),
+					source.getFormatAssociated(),
+					source.getApplicationPath(),
+					source.getIcon()
+				);
+		} catch (CloneNotSupportedException e) {
+			throw new PreparationException(e);
+		}
 	}
 	
 	private static boolean innerCompare(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelComparisonCallback callback, final Set<DifferenceLocalization> details, final Set<String> rightNames) {

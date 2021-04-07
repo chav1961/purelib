@@ -206,6 +206,9 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata, Cloneabl
 		final MutableContentNodeMetadata	clone = (MutableContentNodeMetadata)super.clone();
 
 		clone.children.clear();
+		clone.mounted = false;
+		clone.owner = null;
+		clone.parent = null;
 		for (ContentNodeMetadata item : this) {
 			clone.addChild(((MutableContentNodeMetadata)((MutableContentNodeMetadata)item).clone()));
 		}

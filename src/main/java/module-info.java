@@ -17,6 +17,7 @@ module chav1961.purelib {
 	requires transitive jdk.httpserver;
 	requires java.base;
 	requires jdk.compiler;
+	requires java.naming;
 
 	exports chav1961.purelib.basic; 
 	exports chav1961.purelib.basic.annotations; 

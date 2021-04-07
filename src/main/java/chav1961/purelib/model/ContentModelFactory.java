@@ -1,6 +1,7 @@
 package chav1961.purelib.model;
 
 
+
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -41,6 +43,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.i18n.PureLibLocalizer;
@@ -48,6 +51,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ORMModelMapper;
 import chav1961.purelib.model.interfaces.SPIServiceNavigationMember;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.ui.interfaces.Action;
@@ -567,6 +571,11 @@ public class ContentModelFactory {
 			}
 		}
 	}
+	
+	public static <Key, Data> ORMModelMapper<Key, Data> toORMModelMapper(final ContentNodeMetadata classMeta, final ContentNodeMetadata dbMeta, final OnlineObjectGetter<Connection> connGetter) {
+		return null;
+	}
+	
 	
 	static URI buildClassFieldApplicationURI(final Class<?> clazz, final Field f) {
 		if (Modifier.isPublic(f.getModifiers())) {

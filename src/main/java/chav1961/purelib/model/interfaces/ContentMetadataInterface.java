@@ -155,6 +155,15 @@ public interface ContentMetadataInterface {
 		ContinueMode process(NodeEnterMode mode, URI applicationPath, URI uiPath, ContentNodeMetadata node);
 	}
 	
+	public interface ContentNodeManipulator {
+		boolean isEquals(ContentNodeMetadata left, ContentNodeMetadata right);
+		ContentNodeMetadata clone(ContentNodeMetadata source);
+		ContentNodeMetadata join(ContentNodeMetadata left, ContentNodeMetadata right);
+		ContentNodeMetadata addChildren(ContentNodeMetadata root, ContentNodeMetadata... children);
+		ContentNodeMetadata removeChildren(ContentNodeMetadata root);
+	}
+	
+	
 	/**
 	 * <p>Get root of the model tree</p>
 	 * @return root of the model tree
