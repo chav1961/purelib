@@ -1,5 +1,6 @@
 package chav1961.purelib.monitoring;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.monitoring.interfaces.LoggerFacadeManagerMBean;
 import chav1961.purelib.monitoring.interfaces.MBeanEntity;
 
@@ -19,6 +20,6 @@ public class LoggerFacadeManager implements LoggerFacadeManagerMBean, MBeanEntit
 
 	@Override
 	public String getObjectName() {
-		return MonitoringManager.PURELIB_MBEAN+":type=basic,name=loggerFacades";
+		return PureLibSettings.PURELIB_MBEAN+":type=basic,name=loggerFacades";
 	}
 }

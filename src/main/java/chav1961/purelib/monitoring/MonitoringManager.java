@@ -19,7 +19,6 @@ import chav1961.purelib.monitoring.interfaces.MBeanEntity;
 import chav1961.purelib.monitoring.interfaces.MonitoringManagerMBean;
 
 public class MonitoringManager implements ExecutionControl, MonitoringManagerMBean, MBeanEntity {
-	public static final String			PURELIB_MBEAN = "purelib.mbean";
 	private final LoggerFacadeManager	lfm = new LoggerFacadeManager();
 	private final MBeanServer 			server = ManagementFactory.getPlatformMBeanServer();
 	private final ObjectName			monitoringName;
@@ -109,7 +108,7 @@ public class MonitoringManager implements ExecutionControl, MonitoringManagerMBe
 
 	@Override
 	public String getObjectName() {
-		return PURELIB_MBEAN+":type=basic,name=monitoring";
+		return PureLibSettings.PURELIB_MBEAN+":type=control,name=monitoring";
 	}
 	
 	public LoggerFacadeManager getLoggerFacadeManager() {
