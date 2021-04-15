@@ -107,6 +107,56 @@ public class SubstitutableProperties extends Properties {
         return !super.containsKey(key) ? defaults.containsKey(key) : true;
     }
 
+    /**
+     * <p>Check all the keys presents in the properties</p>
+     * @param keys keys to test. Can't be null
+     * @return true of all the keys are presented in the properties
+     * @throws NullPointerException on null keys list
+     * @throws IllegalArgumentException on null inside keys list
+     * @since 0.0.5
+     */
+    public boolean containsAllKeys(final Object... keys) throws NullPointerException, IllegalArgumentException {
+    	if (keys == null) {
+    		throw new NullPointerException("Key list to check can't be null");
+    	}
+    	else if (Utils.checkArrayContent4Nulls(keys) >= 0) {
+    		throw new IllegalArgumentException("SOme items in the key list are null");
+    	}
+    	else {
+        	for (Object item : keys) {
+        		if (!containsKey(item)) {
+        			return false;
+        		}
+        	}
+        	return true;
+    	}
+    }
+
+    /**
+     * <p>Check any key presents in the properties</p>
+     * @param keys keys to test. Can't be null
+     * @return true of all the keys are presented in the properties
+     * @throws NullPointerException on null keys list
+     * @throws IllegalArgumentException on null inside keys list
+     * @since 0.0.5
+     */
+    public boolean containsAnyKeys(final Object... keys) throws NullPointerException, IllegalArgumentException {
+    	if (keys == null) {
+    		throw new NullPointerException("Key list to check can't be null");
+    	}
+    	else if (Utils.checkArrayContent4Nulls(keys) >= 0) {
+    		throw new IllegalArgumentException("SOme items in the key list are null");
+    	}
+    	else {
+        	for (Object item : keys) {
+        		if (containsKey(item)) {
+        			return true;
+        		}
+        	}
+        	return false;
+    	}
+    }
+    
 	@Override 
 	public String getProperty(final String key) {
 		String	value = super.getProperty(key);
