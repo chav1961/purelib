@@ -1,5 +1,9 @@
 package chav1961.purelib.cdb;
 
+import chav1961.purelib.basic.SimpleURLClassLoader;
+import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.cdb.interfaces.LexProcessor;
+import chav1961.purelib.cdb.interfaces.LexemaInterface;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 
@@ -68,6 +72,15 @@ public class SyntaxNodeUtils {
 		}
 	}
 
+	@FunctionalInterface
+	public interface LexProducer<LexType extends Enum<?>> {
+		LexemaInterface<LexType> newLexema(int row, int col, LexType lexType, char[] content, int from, int to);
+	}
+	
+	public static <LexType extends Enum<?>, LI extends LexemaInterface<LexType>> LexProcessor<LexType,LI> buildLexProcessor(final Class<LexType> clazz, LexProducer<LexType> lexProducer, final SimpleURLClassLoader loader) throws ContentException {
+		return null;
+	}
+	
 	private static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> ContinueMode walkDownInternal(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
 		ContinueMode	rc;
 		
