@@ -84,8 +84,11 @@ public class SubstitutableProperties extends Properties {
 
 	private final Properties	defaults;
 	
+	/**
+	 * <p>Constructor if the class</p>
+	 */
 	public SubstitutableProperties() {
-		this.defaults = new Properties();
+		this(new Properties());
 	}
 	
 	/**
@@ -316,8 +319,11 @@ public class SubstitutableProperties extends Properties {
 		if (containsKey(key)) {
 			return super.getProperty(key);
 		}
-		else {
+		else if (System.getProperties().containsKey(key)) {
 			return System.getProperties().getProperty(key);
+		}
+		else {
+			return System.getenv().get(key);
 		}
 	}
 	
