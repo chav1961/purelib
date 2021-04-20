@@ -55,6 +55,14 @@ uniqueL			.var			int
 				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign([C)V
 {storeBoolean} ---------------
 				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(Z)V
+{storeIntIndex} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(JJ)V
+{storeRealIndex} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(JD)V
+{storeStringIndex} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(J[C)V
+{storeBooleanIndex} ---------------
+				invokeinterface	chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface.assign(JZ)V
 {extractCharConst} ---------------
 				aload_0
 				getfield		chav1961.purelib.streams.char2byte.asm.macro.MacroExecutor.stringResource

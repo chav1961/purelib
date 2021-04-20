@@ -103,6 +103,7 @@ public class MacroCompilerTest {
 	public void longExpressionTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass4",pm.test("MacroTestClass4 .macro parm:int\nvar .local int=100\ntarget .local int\ntarget .set (-var1/3+2)*3%5-1 \n&target\n .mend"),gca,stringRepo);
@@ -138,6 +139,7 @@ public class MacroCompilerTest {
 	public void doubleExpressionTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass5",pm.test("MacroTestClass5 .macro parm:real\nvar .local real=100\ntarget .local real\ntarget .set (-var1/3+2)*3%5-1 \n&target\n .mend"),gca,stringRepo);
@@ -157,6 +159,7 @@ public class MacroCompilerTest {
 	public void concatExpressionTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass6",pm.test("MacroTestClass6 .macro parm:string\nvar .local string=\"test\"\ntarget .local string\ntarget .set var#\"and\"#var \n&target\n .mend"),gca,stringRepo);
@@ -176,6 +179,7 @@ public class MacroCompilerTest {
 	public void ternaryAndCompareTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass7",pm.test("MacroTestClass7 .macro parm:string\nvar .local string=\"test\"\ntarget .local string\ncond .local bool\n"
@@ -200,6 +204,7 @@ public class MacroCompilerTest {
 	public void booleansTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass8",pm.test("MacroTestClass8 .macro parm:string\nvarT .local bool=true\nvarF .local bool=false\ntarget .local bool\n"
@@ -222,6 +227,7 @@ public class MacroCompilerTest {
 	public void merrorTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);;
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass10",pm.test("MacroTestClass10 .macro parm:int\n .error \"123\"\n .mend"),gca,stringRepo);
@@ -243,6 +249,7 @@ public class MacroCompilerTest {
 	public void exitTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);;
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass11",pm.test("MacroTestClass11 .macro parm:int\n .exit\n .mend"),gca,stringRepo);
@@ -261,6 +268,7 @@ public class MacroCompilerTest {
 	public void ifTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);;
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass12",pm.test("MacroTestClass12 .macro parm:int\nvar .local int\n"
@@ -305,6 +313,7 @@ public class MacroCompilerTest {
 	public void choiseTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);;
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass13",pm.test("MacroTestClass13 .macro parm:int\nvarI .local int=10\nvarR .local real=10\nvarS .local string=\"10\"\nvarB .local bool=false\n"
@@ -425,6 +434,7 @@ public class MacroCompilerTest {
 	public void whileTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);;
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass14",pm.test("MacroTestClass14 .macro parm:int\nvar .local int=3\n"
@@ -449,6 +459,7 @@ public class MacroCompilerTest {
 	public void forTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);;
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass15",pm.test("MacroTestClass15 .macro parm:int\nvar .local int\n"
@@ -472,6 +483,7 @@ public class MacroCompilerTest {
 	public void breakAndContinueTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass16",pm.test("MacroTestClass16 .macro parm:int\n"
@@ -508,6 +520,7 @@ public class MacroCompilerTest {
 	public void forAllTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
 		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
 			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
 			try(final PseudoMacros		pm = new PseudoMacros()) {
 			
 				MacroCompiler.compile("MacroTestClass17",pm.test("MacroTestClass17 .macro parm:int\nvar .local str\n"
@@ -523,6 +536,51 @@ public class MacroCompilerTest {
 				
 				inst.exec(pm.getRoot().getDeclarations(),target);
 				Assert.assertEquals(new String(target.extract()),"1\n2\n3\n");
+			}
+		}
+	}
+	
+
+	@Test
+	public void arraysTest() throws IOException, SyntaxException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, CalculationException {
+		if (!alreadyTested) {	// Protection against repeatable tests with the same ClassLaoder
+			final GrowableCharArray<?>	gca = new GrowableCharArray<>(true), target = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+			
+			try(final PseudoMacros		pm = new PseudoMacros()) {
+			
+				MacroCompiler.compile("MacroTestClass18",pm.test("MacroTestClass18 .macro parm:int\nvar .local str[]={\"val1\",\"val2\"}\nind .local int\n"
+						+ "	.for ind = 0 to len(var)-1 step 1\n"
+						+ "&var[ind]\n"
+						+ "	.endfor\n"
+						+ " .mend"),gca,stringRepo);
+				
+				@SuppressWarnings("unchecked")
+				final Class<MacroExecutor>			cl = (Class<MacroExecutor>) checkClass("chav1961.purelib.streams.char2byte.asm.MacroTestClass18",gca);
+				final Constructor<MacroExecutor>	c = cl.getConstructor(char[].class);
+				final MacroExecutor					inst = c.newInstance(stringRepo.extract());
+				
+				inst.exec(pm.getRoot().getDeclarations(),target);
+				Assert.assertEquals(new String(target.extract()),"val1\nval2\n");
+			}
+
+			try(final PseudoMacros		pm1 = new PseudoMacros()) {
+				
+				gca.length(0);
+				target.length(0);
+				stringRepo.length(0);
+				MacroCompiler.compile("MacroTestClass18a",pm1.test("MacroTestClass18a .macro p1:str[]={\"val1\",\"val2\"}"
+									+"\nvar .local str[5]"
+									+"\nvar .setindex 0,\"value1\""
+									+"\n&p1[0] &var[0]"
+									+"\n .mend"),gca,stringRepo);
+				
+				@SuppressWarnings("unchecked")
+				final Class<MacroExecutor>			cl1 = (Class<MacroExecutor>) checkClass("chav1961.purelib.streams.char2byte.asm.MacroTestClass18a",gca);
+				final Constructor<MacroExecutor>	c1 = cl1.getConstructor(char[].class);
+				final MacroExecutor					inst1 = c1.newInstance(stringRepo.extract());
+				
+				inst1.exec(pm1.getRoot().getDeclarations(),target);
+				Assert.assertEquals(new String(target.extract()),"val1 value1\n");
 			}
 		}
 	}

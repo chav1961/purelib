@@ -19,6 +19,10 @@ class ConstantNode extends ExpressionNode {
 	double				doubleValue;
 	char[] 				stringValue;
 	boolean 			booleanValue;
+	long[]				longArrayValue;
+	double[]			doubleArrayValue;
+	char[][]			stringArrayValue;
+	boolean[] 			booleanArrayValue;
 	
 	ConstantNode(final long value) {
 		this.valueType = ExpressionNodeValue.INTEGER;
@@ -26,14 +30,46 @@ class ConstantNode extends ExpressionNode {
 		this.doubleValue = 0;
 		this.stringValue = null;
 		this.booleanValue = false;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
 	}
 
+	ConstantNode(final long... value) {
+		this.valueType = ExpressionNodeValue.INTEGER_ARRAY;
+		this.longValue = 0;
+		this.doubleValue = 0;
+		this.stringValue = null;
+		this.booleanValue = false;
+		this.longArrayValue = value;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
+	}
+	
 	ConstantNode(final double value) {
 		this.valueType = ExpressionNodeValue.REAL; 
 		this.doubleValue = value;
 		this.longValue = 0;
 		this.stringValue = null;
 		this.booleanValue = false;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
+	}
+
+	ConstantNode(final double... value) {
+		this.valueType = ExpressionNodeValue.REAL_ARRAY; 
+		this.doubleValue = 0;
+		this.longValue = 0;
+		this.stringValue = null;
+		this.booleanValue = false;
+		this.longArrayValue = null;
+		this.doubleArrayValue = value;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
 	}
 
 	ConstantNode(final char[] value) {
@@ -42,6 +78,22 @@ class ConstantNode extends ExpressionNode {
 		this.longValue = 0;
 		this.doubleValue = 0;
 		this.booleanValue = false;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
+	}
+	
+	ConstantNode(final char[]... value) {
+		this.valueType = ExpressionNodeValue.STRING_ARRAY; 
+		this.stringValue = null;
+		this.longValue = 0;
+		this.doubleValue = 0;
+		this.booleanValue = false;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = value;
+		this.booleanArrayValue = null;
 	}
 	
 	ConstantNode(final boolean value) {
@@ -50,6 +102,67 @@ class ConstantNode extends ExpressionNode {
 		this.longValue = 0;
 		this.doubleValue = 0;
 		this.stringValue = null;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
+	}
+
+	ConstantNode(final boolean... value) {
+		this.valueType = ExpressionNodeValue.BOOLEAN_ARRAY; 
+		this.booleanValue = false;
+		this.longValue = 0;
+		this.doubleValue = 0;
+		this.stringValue = null;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = value;
+	}
+
+	ConstantNode(final ExpressionNodeValue valueType, final ExpressionNode... values) throws CalculationException {
+		this.valueType = valueType; 
+		this.longValue = 0;
+		this.doubleValue = 0;
+		this.stringValue = null;
+		this.booleanValue = false;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
+		
+		switch (valueType) {
+			case BOOLEAN_ARRAY	:
+				this.booleanArrayValue = new boolean[values.length];
+				
+				for (int index = 0; index < values.length; index++) {
+					this.booleanArrayValue[index] = values[index].getBoolean();
+				}
+				break;
+			case INTEGER_ARRAY	:
+				this.longArrayValue = new long[values.length];
+				
+				for (int index = 0; index < values.length; index++) {
+					this.longArrayValue[index] = values[index].getLong();
+				}
+				break;
+			case REAL_ARRAY		:
+				this.doubleArrayValue = new double[values.length];
+				
+				for (int index = 0; index < values.length; index++) {
+					this.doubleArrayValue[index] = values[index].getDouble();
+				}
+				break;
+			case STRING_ARRAY	:
+				this.stringArrayValue = new char[values.length][];
+				
+				for (int index = 0; index < values.length; index++) {
+					this.stringArrayValue[index] = values[index].getString();
+				}
+				break;
+			default :
+				throw new CalculationException("Illegal value type ["+valueType+"] to assign content");
+		}
 	}
 	
 	@Override public ExpressionNodeType getType() {return ExpressionNodeType.CONSTANT;}
@@ -95,26 +208,111 @@ class ConstantNode extends ExpressionNode {
 		}
 	}
 
-	@Override
-	public String toString() {
-		switch (valueType) {
-			case INTEGER	: return "ConstantNode [valueType=" + valueType + ", " + longValue + "]";
-			case REAL		: return "ConstantNode [valueType=" + valueType + ", " + doubleValue+ "]";
-			case STRING		: return "ConstantNode [valueType=" + valueType + ", " + (stringValue == null ? "null" : '\"' + new String(stringValue) + '\"') + "]";
-			case BOOLEAN	: return "ConstantNode [valueType=" + valueType + ", " + booleanValue + "]";
-			default			: return super.toString();
+	@Override 
+	public long getLong(final long index) throws CalculationException {
+		if (valueType == ExpressionNodeValue.INTEGER_ARRAY) {
+			return longArrayValue[toInt(index)];
+		}
+		else {
+			throw new CalculationException("Attempt to get integer value for ["+valueType+"] constant");
+		}
+	}
+	
+	@Override 
+	public double getDouble(final long index) throws CalculationException {
+		if (valueType == ExpressionNodeValue.REAL_ARRAY) {
+			return doubleArrayValue[toInt(index)];
+		}
+		else {
+			throw new CalculationException("Attempt to get double value for ["+valueType+"] constant");
+		}
+	}
+	
+	@Override 
+	public char[] getString(final long index) throws CalculationException {
+		if (valueType == ExpressionNodeValue.STRING_ARRAY) {
+			return stringArrayValue[toInt(index)];
+		}
+		else {
+			throw new CalculationException("Attempt to get string value for ["+valueType+"] constant");
+		}
+	}
+	
+	@Override 
+	public boolean getBoolean(final long index) throws CalculationException {
+		if (valueType == ExpressionNodeValue.BOOLEAN_ARRAY) {
+			return booleanArrayValue[toInt(index)];
+		}
+		else {
+			throw new CalculationException("Attempt to get boolean value for ["+valueType+"] constant");
 		}
 	}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		switch (valueType) {
+			case BOOLEAN_ARRAY :
+				if (booleanArrayValue != null) {
+					return booleanArrayValue.length; 
+				}
+				else {
+					throw new CalculationException("Attempt to get size of null"); 
+				}
+			case INTEGER_ARRAY:
+				if (longArrayValue != null) {
+					return longArrayValue.length; 
+				}
+				else {
+					throw new CalculationException("Attempt to get size of null"); 
+				}
+			case REAL_ARRAY:
+				if (doubleArrayValue != null) {
+					return doubleArrayValue.length; 
+				}
+				else {
+					throw new CalculationException("Attempt to get size of null"); 
+				}
+			case STRING_ARRAY:
+				if (stringArrayValue != null) {
+					return stringArrayValue.length; 
+				}
+				else {
+					throw new CalculationException("Attempt to get size of null"); 
+				}
+			default:
+				throw new CalculationException("Attempt to get size of non-array or null value"); 
+		}
+	}
+	
+	@Override
+	public String toString() {
+		switch (valueType) {
+			case INTEGER		: return "ConstantNode [valueType=" + valueType + ", " + longValue + "]";
+			case REAL			: return "ConstantNode [valueType=" + valueType + ", " + doubleValue+ "]";
+			case STRING			: return "ConstantNode [valueType=" + valueType + ", " + (stringValue == null ? "null" : '\"' + new String(stringValue) + '\"') + "]";
+			case BOOLEAN		: return "ConstantNode [valueType=" + valueType + ", " + booleanValue + "]";
+			case INTEGER_ARRAY	: return "ConstantNode [valueType=" + valueType + ", " + (doubleArrayValue == null ? "null" : Arrays.toString(longArrayValue)) + "]";
+			case REAL_ARRAY		: return "ConstantNode [valueType=" + valueType + ", " + (doubleArrayValue == null ? "null" : Arrays.toString(doubleArrayValue)) + "]";
+			case STRING_ARRAY	: return "ConstantNode [valueType=" + valueType + ", " + (stringArrayValue == null ? "null" : '\"' + Arrays.toString(toString(stringArrayValue)) + '\"') + "]";
+			case BOOLEAN_ARRAY	: return "ConstantNode [valueType=" + valueType + ", " + (booleanArrayValue == null ? "null" : Arrays.toString(booleanArrayValue)) + "]";
+			default				: return super.toString();
+		}
+	}
+
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + Arrays.hashCode(booleanArrayValue);
 		result = prime * result + (booleanValue ? 1231 : 1237);
+		result = prime * result + Arrays.hashCode(doubleArrayValue);
 		long temp;
 		temp = Double.doubleToLongBits(doubleValue);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + Arrays.hashCode(longArrayValue);
 		result = prime * result + (int) (longValue ^ (longValue >>> 32));
+		result = prime * result + Arrays.deepHashCode(stringArrayValue);
 		result = prime * result + Arrays.hashCode(stringValue);
 		result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
 		return result;
@@ -126,12 +324,65 @@ class ConstantNode extends ExpressionNode {
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		ConstantNode other = (ConstantNode) obj;
+		if (!Arrays.equals(booleanArrayValue, other.booleanArrayValue)) return false;
 		if (booleanValue != other.booleanValue) return false;
+		if (!Arrays.equals(doubleArrayValue, other.doubleArrayValue)) return false;
 		if (Double.doubleToLongBits(doubleValue) != Double.doubleToLongBits(other.doubleValue)) return false;
+		if (!Arrays.equals(longArrayValue, other.longArrayValue)) return false;
 		if (longValue != other.longValue) return false;
+		if (!Arrays.deepEquals(stringArrayValue, other.stringArrayValue)) return false;
 		if (!Arrays.equals(stringValue, other.stringValue)) return false;
 		if (valueType != other.valueType) return false;
 		return true;
+	}
+
+	private int toInt(final long index) throws CalculationException {
+		if (index < 0) {
+			throw new CalculationException("Negative index value ["+index+"] to get array element"); 
+		}
+		else {
+			switch (getValueType()) {
+				case BOOLEAN_ARRAY :
+					if (index >= booleanArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than boolean array size ["+booleanArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case INTEGER_ARRAY :
+					if (index >= longArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than integer array size ["+longArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case REAL_ARRAY :
+					if (index >= doubleArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than real array size ["+doubleArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case STRING_ARRAY :
+					if (index >= stringArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than string array size ["+stringArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				default:
+					throw new CalculationException("Attempt to get array element for type ["+getValueType()+"]"); 
+			}
+		}
+	}
+	
+	private String[] toString(final char[][] content) {
+		final String[]	result = new String[content.length];
+		
+		for (int index = 0; index < result.length; index++) {
+			result[index] = content[index] == null ? "null" : new String(content[index]);
+		}
+		return result;
 	}
 }
 
@@ -146,12 +397,16 @@ abstract class AssignableExpressionNode extends ExpressionNode implements Assign
 		this.sequentialNumber = number;
 	}
 	
-	abstract char[] getName();
+	public abstract char[] getName();
 	public abstract void assign(final ExpressionNode node) throws CalculationException;
 	public abstract void assign(final long value) throws CalculationException;
 	public abstract void assign(final double value) throws CalculationException;
 	public abstract void assign(final char[] value) throws CalculationException;
 	public abstract void assign(final boolean value) throws CalculationException;
+	public abstract void assign(final long index, final long value) throws CalculationException;
+	public abstract void assign(final long index, final double value) throws CalculationException;
+	public abstract void assign(final long index, final char[] value) throws CalculationException;
+	public abstract void assign(final long index, final boolean value) throws CalculationException;
 	public abstract boolean hasValue();
 	
 	@Override public AssignableExpressionNode clone() {return null;}
@@ -168,7 +423,7 @@ class PositionalParameter extends AssignableExpressionNode {
 	}
 
 	@Override
-	char[] getName() {
+	public char[] getName() {
 		return name;
 	}
 	
@@ -240,6 +495,51 @@ class PositionalParameter extends AssignableExpressionNode {
 			((ConstantNode)currentValue).booleanValue = value; 
 		}
 	}
+
+	@Override
+	public void assign(final long index, final long value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.INTEGER_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).longArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final double value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.REAL_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).doubleArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final char[] value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.STRING) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).stringArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final boolean value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.BOOLEAN) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).booleanArrayValue[toInt(index)] = value; 
+		}
+	}
+	
+	@Override 
+	public int getSize() throws CalculationException {
+		return currentValue.getSize();
+	}
 	
 	@Override public ExpressionNodeType getType() {return ExpressionNodeType.POSITIONAL_PARAMETER;}
 	@Override public ExpressionNodeValue getValueType() {return valueType;}
@@ -248,6 +548,12 @@ class PositionalParameter extends AssignableExpressionNode {
 	@Override public char[] getString() throws CalculationException {return currentValue.getString();}
 	@Override public boolean getBoolean() throws CalculationException {return currentValue.getBoolean();}
 	@Override public boolean hasValue() {return currentValue != null;}
+	
+	@Override public long getLong(final long index) throws CalculationException {return currentValue.getLong(index);}
+	@Override public double getDouble(final long index) throws CalculationException {return currentValue.getDouble(index);}
+	@Override public char[] getString(final long index) throws CalculationException {return currentValue.getString(index);}
+	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue.getBoolean(index);}
+	@Override public boolean hasValue(final long index) {return currentValue != null;}
 
 	@Override
 	public String toString() {
@@ -275,6 +581,46 @@ class PositionalParameter extends AssignableExpressionNode {
 		if (!Arrays.equals(name, other.name)) return false;
 		return true;
 	}
+
+	private int toInt(final long index) throws CalculationException {
+		if (index < 0) {
+			throw new CalculationException("Negative index value ["+index+"] to get array element"); 
+		}
+		else {
+			switch (getValueType()) {
+				case BOOLEAN_ARRAY :
+					if (index >= ((ConstantNode)currentValue).booleanArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than boolean array size ["+((ConstantNode)currentValue).booleanArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case INTEGER_ARRAY :
+					if (index >= ((ConstantNode)currentValue).longArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than integer array size ["+((ConstantNode)currentValue).longArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case REAL_ARRAY :
+					if (index >= ((ConstantNode)currentValue).doubleArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than real array size ["+((ConstantNode)currentValue).doubleArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case STRING_ARRAY :
+					if (index >= ((ConstantNode)currentValue).stringArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than string array size ["+((ConstantNode)currentValue).stringArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				default:
+					throw new CalculationException("Attempt to get array element for type ["+getValueType()+"]"); 
+			}
+		}
+	}
 }
 
 class KeyParameter extends AssignableExpressionNode {
@@ -295,7 +641,7 @@ class KeyParameter extends AssignableExpressionNode {
 	
 
 	@Override
-	char[] getName() {
+	public char[] getName() {
 		return name;
 	}
 	
@@ -367,6 +713,51 @@ class KeyParameter extends AssignableExpressionNode {
 			((ConstantNode)currentValue).booleanValue = value; 
 		}
 	}
+
+	@Override
+	public void assign(final long index, final long value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.INTEGER_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).longArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final double value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.REAL_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).doubleArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final char[] value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.STRING) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).stringArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final boolean value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.BOOLEAN) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).booleanArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override 
+	public int getSize() throws CalculationException {
+		return currentValue.getSize();
+	}
 	
 	@Override public ExpressionNodeType getType() {return ExpressionNodeType.KEY_PARAMETER;}
 	@Override public ExpressionNodeValue getValueType() {return valueType;}
@@ -375,6 +766,12 @@ class KeyParameter extends AssignableExpressionNode {
 	@Override public char[] getString() throws CalculationException {return currentValue.getString();}
 	@Override public boolean getBoolean() throws CalculationException {return currentValue.getBoolean();}
 	@Override public boolean hasValue() {return currentValue != null;}
+
+	@Override public long getLong(final long index) throws CalculationException {return currentValue.getLong(index);}
+	@Override public double getDouble(final long index) throws CalculationException {return currentValue.getDouble(index);}
+	@Override public char[] getString(final long index) throws CalculationException {return currentValue.getString(index);}
+	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue.getBoolean(index);}
+	@Override public boolean hasValue(final long index) {return currentValue != null;}
 
 	@Override
 	public String toString() {
@@ -406,13 +803,53 @@ class KeyParameter extends AssignableExpressionNode {
 		if (!Arrays.equals(name, other.name)) return false;
 		return true;
 	}
+
+	private int toInt(final long index) throws CalculationException {
+		if (index < 0) {
+			throw new CalculationException("Negative index value ["+index+"] to get array element"); 
+		}
+		else {
+			switch (getValueType()) {
+				case BOOLEAN_ARRAY :
+					if (index >= ((ConstantNode)currentValue).booleanArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than boolean array size ["+((ConstantNode)currentValue).booleanArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case INTEGER_ARRAY :
+					if (index >= ((ConstantNode)currentValue).longArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than integer array size ["+((ConstantNode)currentValue).longArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case REAL_ARRAY :
+					if (index >= ((ConstantNode)currentValue).doubleArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than real array size ["+((ConstantNode)currentValue).doubleArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case STRING_ARRAY :
+					if (index >= ((ConstantNode)currentValue).stringArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than string array size ["+((ConstantNode)currentValue).stringArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				default:
+					throw new CalculationException("Attempt to get array element for type ["+getValueType()+"]"); 
+			}
+		}
+	}
 }
 
 class LocalVariable extends AssignableExpressionNode {
-	private final char[]			name;
+	private final char[]				name;
 	private final ExpressionNodeValue	valueType;
-	private final ExpressionNode	initialValue;
-	private ExpressionNode			currentValue;
+	private final ExpressionNode		initialValue;
+	private ExpressionNode				currentValue;
 	
 	LocalVariable(final char[] name, final ExpressionNodeValue valueType) {
 		this(name,valueType,null);
@@ -423,10 +860,9 @@ class LocalVariable extends AssignableExpressionNode {
 		this.valueType = valueType;
 		this.initialValue = this.currentValue = initialValue;
 	}
-	
 
 	@Override
-	char[] getName() {
+	public char[] getName() {
 		return name;
 	}
 	
@@ -498,6 +934,51 @@ class LocalVariable extends AssignableExpressionNode {
 			((ConstantNode)currentValue).booleanValue = value; 
 		}
 	}
+
+	@Override
+	public void assign(final long index, final long value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.INTEGER_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).longArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final double value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.REAL_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).doubleArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final char[] value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.STRING_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).stringArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override
+	public void assign(final long index, final boolean value) throws CalculationException {
+		if (currentValue == null || valueType != ExpressionNodeValue.BOOLEAN_ARRAY) {
+			throw new CalculationException("Local variable ["+new String(getName())+"]: value to assign can't be casted to ["+valueType+"]");
+		}
+		else {
+			((ConstantNode)currentValue).booleanArrayValue[toInt(index)] = value; 
+		}
+	}
+
+	@Override 
+	public int getSize() throws CalculationException {
+		return currentValue.getSize();
+	}
 	
 	@Override public ExpressionNodeType getType() {return ExpressionNodeType.LOCAL_VARIABLE;}
 	@Override public ExpressionNodeValue getValueType() {return valueType;}
@@ -507,6 +988,12 @@ class LocalVariable extends AssignableExpressionNode {
 	@Override public boolean getBoolean() throws CalculationException {return currentValue.getBoolean();}
 	@Override public boolean hasValue() {return currentValue != null;}
 
+	@Override public long getLong(final long index) throws CalculationException {return currentValue.getLong(index);}
+	@Override public double getDouble(final long index) throws CalculationException {return currentValue.getDouble(index);}
+	@Override public char[] getString(final long index) throws CalculationException {return currentValue.getString(index);}
+	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue.getBoolean(index);}
+	@Override public boolean hasValue(final long index) {return currentValue != null;}
+	
 	@Override
 	public String toString() {
 		return "LocalVariable [name=" + Arrays.toString(name) + ", initialValue=" + initialValue + ", currentValue=" + currentValue + "]";
@@ -537,6 +1024,46 @@ class LocalVariable extends AssignableExpressionNode {
 		if (!Arrays.equals(name, other.name)) return false;
 		return true;
 	}
+
+	private int toInt(final long index) throws CalculationException {
+		if (index < 0) {
+			throw new CalculationException("Negative index value ["+index+"] to get array element"); 
+		}
+		else {
+			switch (getValueType()) {
+				case BOOLEAN_ARRAY :
+					if (index >= ((ConstantNode)currentValue).booleanArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than boolean array size ["+((ConstantNode)currentValue).booleanArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case INTEGER_ARRAY :
+					if (index >= ((ConstantNode)currentValue).longArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than integer array size ["+((ConstantNode)currentValue).longArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case REAL_ARRAY :
+					if (index >= ((ConstantNode)currentValue).doubleArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than real array size ["+((ConstantNode)currentValue).doubleArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				case STRING_ARRAY :
+					if (index >= ((ConstantNode)currentValue).stringArrayValue.length) {
+						throw new CalculationException("Index value ["+index+"] is greater than string array size ["+((ConstantNode)currentValue).stringArrayValue.length+"] to get array element"); 
+					}
+					else {
+						return (int)index;
+					}
+				default:
+					throw new CalculationException("Attempt to get array element for type ["+getValueType()+"]"); 
+			}
+		}
+	}
 }
 
 abstract class OperatorNode extends ExpressionNode {
@@ -566,6 +1093,11 @@ class NotNode extends UnaryOperatorNode {
 		this.nested = new ExpressionNode[]{nested};
 	}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
+	
 	@Override ExpressionNode[] getOperands() {return nested;}
 	@Override public ExpressionNodeValue getValueType() {return ExpressionNodeValue.BOOLEAN;}
 	@Override public long getLong() throws CalculationException {throw new CalculationException("Attempt to get integer value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
@@ -573,6 +1105,11 @@ class NotNode extends UnaryOperatorNode {
 	@Override public char[] getString() throws CalculationException {throw new CalculationException("Attempt to get string value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public boolean getBoolean() throws CalculationException {return !nested[0].getBoolean();}
 
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	
 	@Override
 	public String toString() {
 		return "NotNode [nested=" + Arrays.toString(nested) + "]";
@@ -605,6 +1142,11 @@ class NegNode extends UnaryOperatorNode {
 		this.nested = new ExpressionNode[]{nested};
 	}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
+	
 	@Override ExpressionNode[] getOperands() {return nested;}
 	@Override public ExpressionNodeValue getValueType() {return nested[0].getValueType();}
 	@Override public char[] getString() throws CalculationException {throw new CalculationException("Attempt to get string value for ["+getValueType()+"] operator ");}
@@ -629,6 +1171,11 @@ class NegNode extends UnaryOperatorNode {
 			throw new CalculationException("Attempt to get real value for ["+nested[0].getValueType()+"] operator ");
 		}
 	}
+
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+getValueType()+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -665,6 +1212,101 @@ abstract class BinaryOperatorNode extends OperatorNode {
 	}
 }
 
+class ArrayAccessNode extends BinaryOperatorNode {
+	private final ExpressionNode[]	node;
+
+	ArrayAccessNode(final ExpressionNode left, final ExpressionNode right) {
+		super(ExpressionNodeOperator.ARR_GET);
+		this.node = new ExpressionNode[]{left, right};
+	}
+
+	@Override ExpressionNode[] getOperands() {return node;}
+
+	@Override 
+	public ExpressionNodeValue getValueType() {
+		switch (node[0].getValueType()) {
+			case BOOLEAN_ARRAY	: return ExpressionNodeValue.BOOLEAN; 
+			case INTEGER_ARRAY	: return ExpressionNodeValue.INTEGER;
+			case REAL_ARRAY		: return ExpressionNodeValue.REAL;
+			case STRING_ARRAY	: return ExpressionNodeValue.STRING;
+			default				: return node[0].getValueType();
+		}
+	}
+	
+	@Override
+	public long getLong() throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.INTEGER) {
+			return node[0].getLong();
+		}
+		else {
+			throw new CalculationException("Attempt to get long value for ["+node[0].getValueType()+"] operator ");		
+		}
+	}
+
+	@Override
+	public double getDouble() throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.REAL) {
+			return node[0].getDouble();
+		}
+		else {
+			throw new CalculationException("Attempt to get double value for ["+node[0].getValueType()+"] operator ");		
+		}
+	}
+	
+	@Override
+	public char[] getString() throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.STRING) {
+			return node[0].getString();
+		}
+		else {
+			throw new CalculationException("Attempt to get string value for ["+node[0].getValueType()+"] operator ");		
+		}
+	}
+
+	@Override
+	public boolean getBoolean() throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.BOOLEAN) {
+			return node[0].getBoolean();
+		}
+		else {
+			throw new CalculationException("Attempt to get boolean value for ["+node[0].getValueType()+"] operator ");		
+		}
+	}
+
+	@Override 
+	public int getSize() throws CalculationException {
+		return node[0].getSize();
+	}
+	
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+getValueType()+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
+	
+	@Override
+	public String toString() {
+		return "ArrayAccessNode [node=" + Arrays.toString(node) + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(node);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		ArrayAccessNode other = (ArrayAccessNode) obj;
+		if (!Arrays.equals(node, other.node)) return false;
+		return true;
+	}
+}
+
 class ArithmeticNode extends BinaryOperatorNode {
 	private final ExpressionNode[]	node;
 
@@ -675,6 +1317,11 @@ class ArithmeticNode extends BinaryOperatorNode {
 
 	@Override ExpressionNode[] getOperands() {return node;}
 	@Override public ExpressionNodeValue getValueType() {return node[0].getValueType();}
+
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
 	
 	@Override
 	public long getLong() throws CalculationException {
@@ -712,7 +1359,11 @@ class ArithmeticNode extends BinaryOperatorNode {
 
 	@Override public char[] getString() throws CalculationException {throw new CalculationException("Attempt to get string value for ["+getValueType()+"] operator ");}
 	@Override public boolean getBoolean() throws CalculationException {throw new CalculationException("Attempt to get boolean value for ["+getValueType()+"] operator ");}
-
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+getValueType()+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
+	
 	@Override
 	public String toString() {
 		return "ArithmeticNode [node=" + Arrays.toString(node) + "]";
@@ -746,6 +1397,11 @@ class ComparisonNode extends BinaryOperatorNode {
 		this.node = new ExpressionNode[]{left, right};
 	}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
+	
 	@Override ExpressionNode[] getOperands() {return node;}
 	@Override public ExpressionNodeValue getValueType() {return ExpressionNodeValue.BOOLEAN;}
 	
@@ -803,6 +1459,11 @@ class ComparisonNode extends BinaryOperatorNode {
 			default : throw new UnsupportedOperationException("Operator ["+getOperator()+"] is not supported yet"); 
 		}
 	}
+
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+getValueType()+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
 	
 	private static int compareContent(final char[] left, final char[] right) {
         final int 	len1 = left.length, len2 = right.length, lim = Math.min(len1, len2);
@@ -849,6 +1510,11 @@ class TernaryOperatorNode extends OperatorNode {
 		this.node = new ExpressionNode[]{cond,onTrue,onFalse};
 	}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
+	
 	@Override ExpressionNode[] getOperands() {return node;}
 	@Override public ExpressionNodeValue getValueType() {return node[1].getValueType();}
 
@@ -892,6 +1558,11 @@ class TernaryOperatorNode extends OperatorNode {
 		}
 	}
 
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+getValueType()+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
+	
 	@Override
 	public String toString() {
 		return "TernaryOperatorNode [node=" + Arrays.toString(node) + "]";
@@ -965,6 +1636,11 @@ class OrNode extends OperatorListNode {
 	@Override public double getDouble() throws CalculationException {throw new CalculationException("Attempt to get real value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public char[] getString() throws CalculationException {throw new CalculationException("Attempt to get string value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
+	
 	@Override
 	public boolean getBoolean() throws CalculationException {
 		for (ExpressionNode item : operands) {
@@ -975,6 +1651,11 @@ class OrNode extends OperatorListNode {
 		return false;
 	}
 
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	
 	@Override
 	public String toString() {
 		return "OrNode [getValueType()=" + getValueType() + ", getOperands()=" + Arrays.toString(getOperands()) + ", getType()=" + getType() + ", getOperator()=" + getOperator() + "]";
@@ -990,6 +1671,11 @@ class AndNode extends OperatorListNode {
 	@Override public double getDouble() throws CalculationException {throw new CalculationException("Attempt to get real value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public char[] getString() throws CalculationException {throw new CalculationException("Attempt to get string value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
+	
 	@Override
 	public boolean getBoolean() throws CalculationException {
 		for (ExpressionNode item : operands) {
@@ -1000,6 +1686,11 @@ class AndNode extends OperatorListNode {
 		return true;
 	}
 
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	
 	@Override
 	public String toString() {
 		return "AndNode [getValueType()=" + getValueType() + ", getOperands()=" + Arrays.toString(getOperands()) + ", getType()=" + getType() + ", getOperator()=" + getOperator() + "]";
@@ -1015,6 +1706,11 @@ class CatNode extends OperatorListNode {
 	@Override public double getDouble() throws CalculationException {throw new CalculationException("Attempt to get real value for ["+ExpressionNodeValue.STRING+"] operator ");}
 	@Override public boolean getBoolean() throws CalculationException {throw new CalculationException("Attempt to get boolean value for ["+ExpressionNodeValue.STRING+"] operator ");}
 
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
+	}
+	
 	@Override
 	public char[] getString() throws CalculationException {
 		int		len = 0;
@@ -1035,6 +1731,11 @@ class CatNode extends OperatorListNode {
 		return result;
 	}
 
+	@Override public long getLong(final long index) throws CalculationException {throw new CalculationException("Attempt to get integer array value for ["+ExpressionNodeValue.STRING+"] operator ");}
+	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.STRING+"] operator ");}
+	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.STRING+"] operator ");}
+	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.STRING+"] operator ");}
+	
 	@Override
 	public String toString() {
 		return "CatNode [getValueType()=" + getValueType() + ", getOperands()=" + Arrays.toString(getOperands()) + ", getType()=" + getType() + ", getOperator()=" + getOperator() + "]";
@@ -1062,6 +1763,26 @@ class FuncNode extends OperatorListNode {
 	interface BoolCallback {
 		boolean calculate(ExpressionNode[] list) throws CalculationException;
 	}
+
+	@FunctionalInterface
+	interface IntegerArrayCallback {
+		long[] calculate(ExpressionNode[] list) throws CalculationException;
+	}
+	
+	@FunctionalInterface
+	interface RealArrayCallback {
+		double[] calculate(ExpressionNode[] list) throws CalculationException;
+	}
+	
+	@FunctionalInterface
+	interface StringArrayCallback {
+		char[][] calculate(ExpressionNode[] list) throws CalculationException;
+	}
+	
+	@FunctionalInterface
+	interface BoolArrayCallback {
+		boolean[] calculate(ExpressionNode[] list) throws CalculationException;
+	}
 	
 	private final Object	callback;
 
@@ -1083,6 +1804,11 @@ class FuncNode extends OperatorListNode {
 	FuncNode(ExpressionNodeOperator op, ExpressionNodeValue valueType, BoolCallback callback) {
 		super(op, valueType);
 		this.callback = callback;
+	}
+
+	@Override 
+	public int getSize() throws CalculationException {
+		throw new CalculationException("Attempt to get size of expression");
 	}
 	
 	@Override
@@ -1119,6 +1845,46 @@ class FuncNode extends OperatorListNode {
 	public boolean getBoolean() throws CalculationException {
 		if (getValueType() == ExpressionNodeValue.BOOLEAN) {
 			return ((BoolCallback)callback).calculate(getOperands());
+		}
+		else {
+			throw new CalculationException("Attempt to get bool value for ["+getValueType()+"] type");
+		}
+	}
+	
+	@Override
+	public long getLong(final long index) throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.INTEGER_ARRAY) {
+			return ((IntegerArrayCallback)callback).calculate(getOperands())[(int)index];
+		}
+		else {
+			throw new CalculationException("Attempt to get integer value for ["+getValueType()+"] type");
+		}
+	}
+
+	@Override
+	public double getDouble(final long index) throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.REAL_ARRAY) {
+			return ((RealArrayCallback)callback).calculate(getOperands())[(int)index];
+		}
+		else {
+			throw new CalculationException("Attempt to get real value for ["+getValueType()+"] type");
+		}
+	}
+
+	@Override
+	public char[] getString(final long index) throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.STRING_ARRAY) {
+			return ((StringArrayCallback)callback).calculate(getOperands())[(int)index];
+		}
+		else {
+			throw new CalculationException("Attempt to get string value for ["+getValueType()+"] type");
+		}
+	}
+
+	@Override
+	public boolean getBoolean(final long index) throws CalculationException {
+		if (getValueType() == ExpressionNodeValue.BOOLEAN_ARRAY) {
+			return ((BoolArrayCallback)callback).calculate(getOperands())[(int)index];
 		}
 		else {
 			throw new CalculationException("Attempt to get bool value for ["+getValueType()+"] type");
@@ -1249,6 +2015,27 @@ class FuncExistsNode extends FuncNode {
 
 	FuncExistsNode() {
 		super(ExpressionNodeOperator.F_EXISTS,ExpressionNodeValue.BOOLEAN,callback);
+	}
+}
+
+class FuncLenNode extends FuncNode {
+	private static final IntegerCallback	callback = new IntegerCallback() {
+													@Override
+													public long calculate(final ExpressionNode[] list) throws CalculationException {
+														if (list.length > 0) {
+															switch (list[0].getType()) {
+																case KEY_PARAMETER : case POSITIONAL_PARAMETER : case LOCAL_VARIABLE : return ((AssignableExpressionNode)list[0]).getSize(); 
+																default : return -1L;
+															}
+														}
+														else {
+															return -1L;
+														}
+													}
+												};
+
+	FuncLenNode() {
+		super(ExpressionNodeOperator.F_LEN,ExpressionNodeValue.INTEGER,callback);
 	}
 }
 

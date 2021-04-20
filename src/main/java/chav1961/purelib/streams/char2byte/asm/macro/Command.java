@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.Asm;
@@ -59,24 +61,45 @@ class MacroCommand extends Command implements Cloneable {
 				do {from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from+1),bounds));
 					if (data[from] == ':') {
 						final char[]	name = Arrays.copyOfRange(data,bounds[0],bounds[1]+1);
+						final boolean	isArray;
 						
 						from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,InternalUtils.skipBlank(data,from+1),bounds));
-						if (data[from] == '=') {
-							keyParameters = true;
-							from = InternalUtils.skipBlank(data,from+1);
-							if (data[from] != '\n' && data[from] != ',') {
-								from = InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,this,forValue);
-								addDeclaration(new KeyParameter(name,InternalUtils.defineType(data,bounds),forValue[0]));
+						if (data[from] == '[') {
+							if (from < to - 1 && data[from + 1] == ']') {
+								from += 2;
+								isArray = true;
 							}
 							else {
-								addDeclaration(new KeyParameter(name,InternalUtils.defineType(data,bounds)));
+								throw new SyntaxException(lineNo,from-begin,new String(data,from,to-from)+" "+"Illegal brackets []"); 
+							}
+						}
+						else {
+							isArray = false;
+						}
+						if (data[from] == '=') {
+							final ExpressionNodeValue	valueType = InternalUtils.defineType(data,bounds,isArray);
+							
+							keyParameters = true;
+							from = InternalUtils.skipBlank(data,from+1);
+							
+							if (data[from] != '\n' && data[from] != ',') {
+								if (isArray) {
+									from = InternalUtils.parseExpressionList(InternalUtils.ORDER_OR,lineNo,data,begin,from,this,valueType,forValue);
+								}
+								else {
+									from = InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,this,forValue);
+								}
+								addDeclaration(new KeyParameter(name,valueType,forValue[0]));
+							}
+							else {
+								addDeclaration(new KeyParameter(name,valueType));
 							}
 						}
 						else if (keyParameters) {
 							throw new IllegalArgumentException("Mix of positional and key parameters! All the key parameters must follow all the positional ones"); 
 						}
 						else {
-							addDeclaration(new PositionalParameter(name,InternalUtils.defineType(data,bounds)));
+							addDeclaration(new PositionalParameter(name,InternalUtils.defineType(data,bounds,isArray)));
 						}
 					}
 					else {
@@ -186,6 +209,33 @@ class SetCommand extends Command {
 	SetCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,macro,rightPart);
 		return this;
+	}		
+}
+
+class SetIndexCommand extends Command {
+	final AssignableExpressionNode	leftPart;
+	final ExpressionNode[]			index = new ExpressionNode[1];
+	final ExpressionNode[]			rightPart = new ExpressionNode[1];
+	
+	SetIndexCommand(final AssignableExpressionNode leftPart) {
+		this.leftPart = leftPart;
+	}
+
+	@Override
+	CommandType getType() {
+		return CommandType.SET_INDEX;
+	}
+
+	@Override
+	SetIndexCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
+		from = CharUtils.skipBlank(data,InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,macro,index),false);
+		if (data[from] == ',') {
+			InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,CharUtils.skipBlank(data,from+1,false),macro,rightPart);
+			return this;
+		}
+		else {
+			throw new SyntaxException(lineNo, from-begin, "Missing ','"); 
+		}
 	}		
 }
 
@@ -604,8 +654,23 @@ class SubstitutionCommand extends Command {
 					wereAnyAdditions = true;
 				}
 				from = UnsafedCharUtils.uncheckedParseName(data,from+1,bounds);
+				
+				final ExpressionNode[]	node = new ExpressionNode[1];
+				boolean					wasIndex = false;
+				
 				if (data[from] == '.') {
 					from++;
+				}
+				else if (data[from] == '[') {
+					
+					from = CharUtils.skipBlank(data,InternalUtils.parseExpression(0, lineNo, data, begin, from+1, macro, node),false);
+					if (data[from] == ']') {
+						wasIndex = true;
+						from++;
+					}
+					else {
+						throw new SyntaxException(lineNo,from-begin,"Unpaired brackets [...] in substitutions");  
+					}
 				}
 				startText = from;
 				
@@ -623,6 +688,14 @@ class SubstitutionCommand extends Command {
 							break;
 						case STRING		:
 							subst[0].addOperand(var);
+							wereAnyAdditions = true;
+							break;
+						case INTEGER_ARRAY : case REAL_ARRAY : case BOOLEAN_ARRAY	:
+							subst[0].addOperand(new FuncToStringNode().addOperand(new ArrayAccessNode(var, node[0])));
+							wereAnyAdditions = true;
+							break;
+						case STRING_ARRAY		:
+							subst[0].addOperand(new ArrayAccessNode(var, node[0]));
 							wereAnyAdditions = true;
 							break;
 						default : throw new UnsupportedOperationException("Value type ["+var.getValueType()+"] is ot supportd yet"); 

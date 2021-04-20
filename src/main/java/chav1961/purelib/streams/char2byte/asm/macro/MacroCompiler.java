@@ -36,6 +36,10 @@ public class MacroCompiler {
 	private static final char[]		PART_STORE_REAL = "storeReal".toCharArray();
 	private static final char[]		PART_STORE_STRING = "storeString".toCharArray();
 	private static final char[]		PART_STORE_BOOLEAN = "storeBoolean".toCharArray();
+	private static final char[]		PART_STORE_INT_INDEX = "storeIntIndex".toCharArray();
+	private static final char[]		PART_STORE_REAL_INDEX = "storeRealIndex".toCharArray();
+	private static final char[]		PART_STORE_STRING_INDEX = "storeStringIndex".toCharArray();
+	private static final char[]		PART_STORE_BOOLEAN_INDEX = "storeBooleanIndex".toCharArray();
 	private static final char[]		PART_TERNARY_BEFORE = "ternaryBefore".toCharArray();
 	private static final char[]		PART_TERNARY_FALSE = "ternaryFalse".toCharArray();
 	private static final char[]		PART_TERNARY_AFTER = "ternaryAfter".toCharArray();
@@ -74,6 +78,11 @@ public class MacroCompiler {
 	private static final Method		ENI_GET_DOUBLE;	
 	private static final Method		ENI_GET_STRING;	
 	private static final Method		ENI_GET_BOOLEAN;	
+	private static final Method		ENI_GET_LONG_INDEX;	
+	private static final Method		ENI_GET_DOUBLE_INDEX;	
+	private static final Method		ENI_GET_STRING_INDEX;	
+	private static final Method		ENI_GET_BOOLEAN_INDEX;	
+	private static final Method		ENI_GET_SIZE;
 
 	private static final Method		CU_PARSE_SIGNED_LONG;	
 	private static final Method		CU_PARSE_SIGNED_DOUBLE;	
@@ -89,6 +98,7 @@ public class MacroCompiler {
 			ME_TO_BOOLEAN = macroExecutorClass.getMethod("toBoolean",char[].class); 
 			ME_SPLIT = macroExecutorClass.getMethod("split",char[].class,char[].class);
 			
+			
 			@SuppressWarnings("rawtypes")
 			final Class<GrowableCharArray>		growableCharArrayClass = GrowableCharArray.class; 
 
@@ -100,6 +110,11 @@ public class MacroCompiler {
 			ENI_GET_DOUBLE = expressionNodeInterfaceClass.getMethod("getDouble");
 			ENI_GET_STRING = expressionNodeInterfaceClass.getMethod("getString");
 			ENI_GET_BOOLEAN = expressionNodeInterfaceClass.getMethod("getBoolean");
+			ENI_GET_LONG_INDEX = expressionNodeInterfaceClass.getMethod("getLong",long.class);
+			ENI_GET_DOUBLE_INDEX = expressionNodeInterfaceClass.getMethod("getDouble",long.class);
+			ENI_GET_STRING_INDEX = expressionNodeInterfaceClass.getMethod("getString",long.class);
+			ENI_GET_BOOLEAN_INDEX = expressionNodeInterfaceClass.getMethod("getBoolean",long.class);
+			ENI_GET_SIZE = expressionNodeInterfaceClass.getMethod("getSize");
 			
 			final Class<CharUtils>					charUtilsClass = CharUtils.class;
 			
@@ -136,6 +151,12 @@ public class MacroCompiler {
 					repo.append(writer,PART_PREPARE_WRAPPER,current.put(VAR_INDEX,((SetCommand)command).leftPart.getSequentialNumber()));
 					compileExpression(((SetCommand)command).rightPart[0],storage,repo,current,writer,0,0);
 					storeValue(((SetCommand)command).leftPart,storage,repo,current,writer);
+					break;
+				case SET_INDEX		:
+					repo.append(writer,PART_PREPARE_WRAPPER,current.put(VAR_INDEX,((SetIndexCommand)command).leftPart.getSequentialNumber()));
+					compileExpression(((SetIndexCommand)command).index[0],storage,repo,current,writer,0,0);
+					compileExpression(((SetIndexCommand)command).rightPart[0],storage,repo,current,writer,0,0);
+					storeIndexValue(((SetIndexCommand)command).leftPart,storage,repo,current,writer);
 					break;
 				case IF				:
 					final int	labelBreakIf = storage.uniqueLabel++;
@@ -404,6 +425,16 @@ public class MacroCompiler {
 		}
 	}
 
+	private static void storeIndexValue(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer) throws CalculationException {
+		switch (node.getValueType()) {
+			case INTEGER_ARRAY	: repo.append(writer,PART_STORE_INT_INDEX,callback); break;
+			case REAL_ARRAY		: repo.append(writer,PART_STORE_REAL_INDEX,callback); break;
+			case STRING_ARRAY	: repo.append(writer,PART_STORE_STRING_INDEX,callback); break;
+			case BOOLEAN_ARRAY	: repo.append(writer,PART_STORE_BOOLEAN_INDEX,callback); break;
+			default : throw new UnsupportedOperationException("Data type ["+node.getValueType()+"] is not supported yet");
+		}
+	}
+	
 	static void compileExpression(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer, final int trueLabel, final int falseLabel) throws CalculationException {
 		try(final NameKeeper	current = callback.push()) {
 			switch (node.getType()) {
@@ -611,6 +642,32 @@ public class MacroCompiler {
 									default : throw new UnsupportedOperationException("Data type ["+node.getValueType()+"] is not supported yet");
 								}
 								break;
+							case ARR_GET	:
+								final ExpressionNode	operand = ((OperatorNode)node).getOperands()[0];
+								
+								if (operand.getType() != ExpressionNodeType.LOCAL_VARIABLE && operand.getType() != ExpressionNodeType.KEY_PARAMETER && operand.getType() != ExpressionNodeType.POSITIONAL_PARAMETER ) {
+									throw new CalculationException("Operand of len(...) fucunction can be parameter or variable only");
+								}
+								else {
+									repo.append(writer,PART_VALIDATE_VAR_VALUE,current.put(VAR_INDEX,((AssignableExpressionNode)operand).getSequentialNumber()));
+									compileExpression(((OperatorNode)node).getOperands()[1],storage,repo,callback,writer,trueLabel,falseLabel);
+									switch (node.getValueType()) {
+										case INTEGER	:
+											repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_LONG_INDEX)+"\n");
+											break;
+										case REAL		:
+											repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_DOUBLE_INDEX)+"\n");
+											break;
+										case STRING	: 
+											repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_STRING_INDEX)+"\n");
+											break;
+										case BOOLEAN :
+											repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_BOOLEAN_INDEX)+"\n");
+											break;
+										default : throw new UnsupportedOperationException("Data type ["+node.getValueType()+"] is not supported yet");
+									}
+									break;
+								}
 							case NEG		:
 								compileExpression(((NegNode)node).getOperands()[0],storage,repo,callback,writer,trueLabel,falseLabel);
 								switch (node.getValueType()) {
@@ -728,6 +785,18 @@ public class MacroCompiler {
 									case BOOLEAN	:
 										break;
 									default : throw new UnsupportedOperationException("Data type ["+((FuncToStringNode)node).operands.get(0).getValueType()+"] is not supported yet");
+								}
+								break;
+							case F_LEN 	:
+								final ExpressionNode	operandLen = ((FuncLenNode)node).operands.get(0);
+								
+								if (operandLen.getType() != ExpressionNodeType.LOCAL_VARIABLE && operandLen.getType() != ExpressionNodeType.KEY_PARAMETER && operandLen.getType() != ExpressionNodeType.POSITIONAL_PARAMETER ) {
+									throw new CalculationException("Operand of len(...) fucunction can be parameter or variable only");
+								}
+								else {
+									repo.append(writer,PART_VALIDATE_VAR_VALUE,current.put(VAR_INDEX,((AssignableExpressionNode)operandLen).getSequentialNumber()));
+									repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_SIZE)+"\n");
+									repo.append(writer,"	i2l\n");
 								}
 								break;
 							default : throw new UnsupportedOperationException("Expression operator ["+((OperatorListNode)node).getOperator()+"] is not supported yet");						

@@ -35,6 +35,22 @@ public class ExpressionNodeTest {
 			Assert.fail("Mandatory exception was not detected (type incompatibility)");
 		} catch (CalculationException exc) {			
 		}
+		try{intConst.getLong(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intConst.getDouble(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intConst.getString(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intConst.getBoolean(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
 
 		final ConstantNode	realConst = new ConstantNode(123.0);
 	
@@ -54,6 +70,22 @@ public class ExpressionNodeTest {
 		} catch (CalculationException exc) {			
 		}
 		try{realConst.getBoolean();
+				Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realConst.getLong(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realConst.getDouble(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realConst.getString(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realConst.getBoolean(0);
 			Assert.fail("Mandatory exception was not detected (type incompatibility)");
 		} catch (CalculationException exc) {			
 		}
@@ -79,6 +111,22 @@ public class ExpressionNodeTest {
 			Assert.fail("Mandatory exception was not detected (type incompatibility)");
 		} catch (CalculationException exc) {			
 		}
+		try{stringConst.getLong(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringConst.getDouble(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringConst.getString(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringConst.getBoolean(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
 
 		final ConstantNode	boolConst = new ConstantNode(true);
 		
@@ -98,6 +146,175 @@ public class ExpressionNodeTest {
 		} catch (CalculationException exc) {			
 		}
 		try{boolConst.getString();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{boolConst.getLong(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{boolConst.getDouble(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{boolConst.getString(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{boolConst.getBoolean(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+
+		// ------- ARRAYS: --------------------------------------
+		final ConstantNode	intArrayConst = new ConstantNode(123,456);
+
+		Assert.assertEquals(intArrayConst.getType(),ExpressionNodeType.CONSTANT);
+		Assert.assertEquals(intArrayConst.getValueType(),ExpressionNodeValue.INTEGER_ARRAY);
+		Assert.assertEquals(intArrayConst.getLong(0),123L);
+		Assert.assertEquals(intArrayConst,new ConstantNode(123,456));
+		Assert.assertEquals(intArrayConst.toString(),new ConstantNode(123,456).toString());
+		Assert.assertEquals(intArrayConst.hashCode(),new ConstantNode(123,456).hashCode());
+		
+		try{intArrayConst.getLong();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intArrayConst.getDouble();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intArrayConst.getString();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intArrayConst.getBoolean();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intArrayConst.getDouble(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intArrayConst.getString(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{intArrayConst.getBoolean(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+
+		final ConstantNode	realArrayConst = new ConstantNode(123.0,456.0);
+
+		Assert.assertEquals(realArrayConst.getType(),ExpressionNodeType.CONSTANT);
+		Assert.assertEquals(realArrayConst.getValueType(),ExpressionNodeValue.REAL_ARRAY);
+		Assert.assertEquals(realArrayConst.getDouble(0),123.0,0.001);
+		Assert.assertEquals(realArrayConst,new ConstantNode(123.0,456.0));
+		Assert.assertEquals(realArrayConst.toString(),new ConstantNode(123.0,456.0).toString());
+		Assert.assertEquals(realArrayConst.hashCode(),new ConstantNode(123.0,456.0).hashCode());
+		
+		try{realArrayConst.getLong();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realArrayConst.getDouble();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realArrayConst.getString();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realArrayConst.getBoolean();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realArrayConst.getLong(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realArrayConst.getString(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{realArrayConst.getBoolean(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		
+		final ConstantNode	stringArrayConst = new ConstantNode("123".toCharArray(),"456".toCharArray());
+
+		Assert.assertEquals(stringArrayConst.getType(),ExpressionNodeType.CONSTANT);
+		Assert.assertEquals(stringArrayConst.getValueType(),ExpressionNodeValue.STRING_ARRAY);
+		Assert.assertArrayEquals(stringArrayConst.getString(0),"123".toCharArray());
+		Assert.assertEquals(stringArrayConst,new ConstantNode("123".toCharArray(),"456".toCharArray()));
+		Assert.assertEquals(stringArrayConst.toString(),new ConstantNode("123".toCharArray(),"456".toCharArray()).toString());
+		Assert.assertEquals(stringArrayConst.hashCode(),new ConstantNode("123".toCharArray(),"456".toCharArray()).hashCode());
+		
+		try{stringArrayConst.getLong();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringArrayConst.getDouble();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringArrayConst.getString();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringArrayConst.getBoolean();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringArrayConst.getLong(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringArrayConst.getDouble(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{stringArrayConst.getBoolean(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+
+		final ConstantNode	booleanArrayConst = new ConstantNode(true,false);
+
+		Assert.assertEquals(booleanArrayConst.getType(),ExpressionNodeType.CONSTANT);
+		Assert.assertEquals(booleanArrayConst.getValueType(),ExpressionNodeValue.BOOLEAN_ARRAY);
+		Assert.assertEquals(booleanArrayConst.getBoolean(0),true);
+		Assert.assertEquals(booleanArrayConst,new ConstantNode(true,false));
+		Assert.assertEquals(booleanArrayConst.toString(),new ConstantNode(true,false).toString());
+		Assert.assertEquals(booleanArrayConst.hashCode(),new ConstantNode(true,false).hashCode());
+		
+		try{booleanArrayConst.getLong();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{booleanArrayConst.getDouble();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{booleanArrayConst.getString();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{booleanArrayConst.getBoolean();
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{booleanArrayConst.getLong(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{booleanArrayConst.getDouble(0);
+			Assert.fail("Mandatory exception was not detected (type incompatibility)");
+		} catch (CalculationException exc) {			
+		}
+		try{booleanArrayConst.getString(0);
 			Assert.fail("Mandatory exception was not detected (type incompatibility)");
 		} catch (CalculationException exc) {			
 		}

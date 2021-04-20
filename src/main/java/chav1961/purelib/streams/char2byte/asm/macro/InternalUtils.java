@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
@@ -13,6 +15,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
 
 class InternalUtils {
 	private static final SyntaxTreeInterface<FuncDecription>	FUNCTIONS = new AndOrTree<>();
@@ -24,6 +27,7 @@ class InternalUtils {
 	static final char[]				TYPE_REAL = "real".toCharArray();
 	static final char[]				TYPE_STRING = "str".toCharArray();
 	static final char[]				TYPE_BOOLEAN = "bool".toCharArray();
+	static final char[]				TYPE_ARRAY = "[]".toCharArray();
 
 	static final int				ORDER_TERM = 0;
 	static final int				ORDER_UNARY = 1;
@@ -43,6 +47,7 @@ class InternalUtils {
 	private static final int		FUNC_REAL = 4;
 	private static final int		FUNC_STR = 5;
 	private static final int		FUNC_BOOL = 6;
+	private static final int		FUNC_LEN = 7;
 	
 	static {
 		FUNCTIONS.placeName("uniqueL",FUNC_UNIQUEL,new FuncDecription(ExpressionNodeOperator.F_UL,0,ExpressionNodeValue.INTEGER));
@@ -52,6 +57,7 @@ class InternalUtils {
 		FUNCTIONS.placeName("real",FUNC_REAL,new FuncDecription(ExpressionNodeOperator.F_TO_REAL,1,ExpressionNodeValue.REAL));
 		FUNCTIONS.placeName("str",FUNC_STR,new FuncDecription(ExpressionNodeOperator.F_TO_STR,1,ExpressionNodeValue.STRING));
 		FUNCTIONS.placeName("bool",FUNC_BOOL,new FuncDecription(ExpressionNodeOperator.F_TO_BOOL,1,ExpressionNodeValue.BOOLEAN));
+		FUNCTIONS.placeName("len",FUNC_LEN,new FuncDecription(ExpressionNodeOperator.F_LEN,1,ExpressionNodeValue.INTEGER));
 	}
 	
 
@@ -221,14 +227,64 @@ class InternalUtils {
 						to--;
 					}
 					result[0] = new ConstantNode(Arrays.copyOfRange(data,start,to));
+					return from;
 				}
 				else {
 					throw new IllegalArgumentException("Invalid constant value: neither 'true' nor 'false' was detected");
 				}
+			case '{' :
+				final List<ExpressionNode>	itemList = new ArrayList<>();
+				
+				do {from = skipBlank(data,parseConstant(data, from+1, treatUnknownAsString, result));
+					itemList.add(result[0]);
+				} while (data[from] == ',');
+				
+				if (data[from] == '}') {
+					result[0] = new ConstantNode(itemList.isEmpty() ? ExpressionNodeValue.STRING_ARRAY : ExpressionNodeValue.arrayByType(itemList.get(0).getValueType())
+												, itemList.toArray(new ExpressionNode[itemList.size()]));
+					from++;
+				}
+				else {
+					throw new IllegalArgumentException("Missing '}' in the array list");
+				}
+				return from;
 			default : throw new IllegalArgumentException("Invalid constant value (constant can't be started with ["+data[from]+"])");
 		}
 	}
 
+	static int parseExpressionList(final int order, final int lineNo, final char[] data, final int begin, int from, final MacroCommand macro, final ExpressionNodeValue valueType, final ExpressionNode[] result) throws SyntaxException {
+		final int				pos[] = new int[]{from};
+		final ExpressionNode	node;
+		
+		try{pos[0] = CharUtils.skipBlank(data,pos[0],false);
+			
+			if (data[pos[0]] == '{') {
+				final List<ExpressionNode>	itemList = new ArrayList<>();
+				
+				do {pos[0]++;
+					itemList.add(parseExpression(order,data,pos,macro)); 
+					pos[0] = CharUtils.skipBlank(data,pos[0],false);
+				} while (data[pos[0]] == ',');
+				
+				if (data[pos[0]] == '}') {
+					node = new ConstantNode(valueType,itemList.toArray(new ExpressionNode[itemList.size()])); 
+					pos[0]++;
+				}
+				else {
+					throw new SyntaxException(lineNo,pos[0]-from,"Missing '}'");
+				}
+			}
+			else {
+				node = new ConstantNode(valueType,result); 
+			}
+			result[0] = node;
+			return pos[0];
+		} catch (IllegalArgumentException | CalculationException exc) {
+			exc.printStackTrace();
+			throw new SyntaxException(lineNo,pos[0]-begin,exc.getLocalizedMessage()); 
+		}
+	}
+	
 	static int parseExpression(final int order, final int lineNo, final char[] data, final int begin, final int from, final MacroCommand macro, final ExpressionNode[] result) throws SyntaxException {
 		final int	pos[] = new int[]{from};
 		
@@ -240,18 +296,18 @@ class InternalUtils {
 		}
 	}
 
-	static ExpressionNodeValue defineType(final char[] data, final int[] bounds) {
+	static ExpressionNodeValue defineType(final char[] data, final int[] bounds, final boolean isArray) {
 		if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_INT,0,InternalUtils.TYPE_INT.length)) {
-			return ExpressionNodeValue.INTEGER;
+			return isArray ? ExpressionNodeValue.INTEGER_ARRAY : ExpressionNodeValue.INTEGER;
 		}
 		else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_REAL,0,InternalUtils.TYPE_REAL.length)) {
-			return ExpressionNodeValue.REAL;
+			return isArray ? ExpressionNodeValue.REAL_ARRAY : ExpressionNodeValue.REAL;
 		}
 		else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_STRING,0,InternalUtils.TYPE_STRING.length)) {
-			return ExpressionNodeValue.STRING;
+			return isArray ? ExpressionNodeValue.STRING_ARRAY : ExpressionNodeValue.STRING;
 		}
 		else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],InternalUtils.TYPE_BOOLEAN,0,InternalUtils.TYPE_BOOLEAN.length)) {
-			return ExpressionNodeValue.BOOLEAN;
+			return isArray ? ExpressionNodeValue.BOOLEAN_ARRAY : ExpressionNodeValue.BOOLEAN;
 		}
 		else {
 			throw new IllegalArgumentException("Unknown data type ["+new String(data,bounds[0],bounds[1]-bounds[0]+1)+"]");
@@ -591,7 +647,23 @@ class InternalUtils {
 										final char[] name = item.getName();
 										
 										if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],name,0,name.length)) {
-											return item;
+											if (data[from[0]] == '[') {
+												from[0]++;
+												
+												final ExpressionNode	indexNode = parseExpression(ORDER_OR,data,from,macro);
+												from[0] = skipBlank(data,from[0]);
+												
+												if (data[from[0]] == ']') {
+													from[0]++;
+													return new ArrayAccessNode(item,indexNode);
+												}
+												else {
+													throw new IllegalArgumentException("Missing ']'"); 
+												}
+											}
+											else {
+												return item;
+											}
 										}
 									}
 									throw new IllegalArgumentException("Undeclared name ["+new String(data,bounds[0],bounds[1]-bounds[0]+1)+"]!"); 
@@ -645,6 +717,7 @@ class InternalUtils {
 				case F_TO_REAL	: node = new FuncToRealNode(); break;
 				case F_TO_STR	: node = new FuncToStringNode(); break;
 				case F_TO_BOOL	: node = new FuncToBooleanNode(); break;
+				case F_LEN		: node = new FuncLenNode(); break;
 				default 	: throw new UnsupportedOperationException("Internal error!");
 			}
 			

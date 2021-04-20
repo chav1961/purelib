@@ -145,7 +145,7 @@ class AssemblerTemplateRepo {
 		}
 		else {
 			for (int index = 0, maxIndex = partNames.length; index < maxIndex; index++) {
-				if (UnsafedCharUtils.uncheckedCompare(partName,0,partNames[index].name,0,partNames[index].name.length)) {
+				if (partName.length == partNames[index].name.length && UnsafedCharUtils.uncheckedCompare(partName,0,partNames[index].name,0,partNames[index].name.length)) {
 					if (partNames[index].hasSubstitutions) {
 						final char[]	subst = CharUtils.substitute("",partNames[index].content,0,partNames[index].content.length,callback); 
 						

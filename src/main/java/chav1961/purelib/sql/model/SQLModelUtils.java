@@ -1,20 +1,35 @@
 package chav1961.purelib.sql.model;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.model.interfaces.ORMModelMapper;
+import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
 public class SQLModelUtils {
-	public static <Key,Data> ORMModelMapper<Key, Data> buildORMModelMapper(final ContentNodeMetadata root, final ContentNodeMetadata dbRoot, final char[] nameTerminals, final String classPath, final SimpleURLClassLoader loader) throws ContentException, NullPointerException, IllegalArgumentException {
+	private static final AtomicInteger	AI = new AtomicInteger();
+	private static final AsmWriter		ASM_WRITER;
+
+	static {
+		ASM_WRITER = null;
+	}
+
+	@FunctionalInterface
+	public interface ConnectionGetter {
+		Connection getConnection() throws SQLException;
+	}
+	
+	public static <Key,Data> ORMModelMapper<Key, Data> buildORMModelMapper(final ContentNodeMetadata root, final ContentNodeMetadata dbRoot, final char[] nameTerminals, final ConnectionGetter connGetter, final SimpleURLClassLoader loader) throws ContentException, NullPointerException, IllegalArgumentException {
 		if (root == null) {
 			throw new NullPointerException("Class content node metadata can't be null");
 		}
@@ -24,11 +39,11 @@ public class SQLModelUtils {
 		else if (nameTerminals == null || nameTerminals.length != 2) {
 			throw new IllegalArgumentException("Name terminals can't be empty array and must contain exactly two chars");
 		}
-		else if (classPath == null || classPath.isEmpty()) {
-			throw new IllegalArgumentException("Class path can't be null or empty");
+		else if (connGetter == null) {
+			throw new NullPointerException("Connection getter can't be null");
 		}
 		else if (loader == null) {
-			throw new NullPointerException("Class path can't be null or empty");
+			throw new NullPointerException("Class path can't be null");
 		}
 		else {
 			final Set<String>			classNames = new HashSet<>(), dbNames = new HashSet<>(), primaryKeys = new HashSet<>(), bugs = new HashSet<>();
@@ -55,10 +70,36 @@ public class SQLModelUtils {
 				throw new ContentException("Database ["+dbRoot.getName()+"] model contains primary keys "+bugs+", that have no corresponding fields in the class ["+root.getName()+"] model");
 			}
 			
+			final Class<?>	clazz = root.getType();
+			
 			final String	insert = buildInsertStmt(dbRoot,classNames,primaryKeys,nameTerminals);
 			final String	read = buildReadStmt(dbRoot,classNames,primaryKeys,nameTerminals);
 			final String	update = buildUpdateStmt(dbRoot,classNames,primaryKeys,nameTerminals);
 			final String	delete = buildDeleteStmt(dbRoot,classNames,primaryKeys,nameTerminals);
+			final String	select = buildSelectStmt(dbRoot,classNames,primaryKeys,nameTerminals);
+			
+			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				final AsmWriter				wr = ASM_WRITER.clone(baos)) {
+				final int 					unique = AI.incrementAndGet();
+				final String				className = SQLModelUtils.class.getPackageName()+".ORMMapper"+unique;
+				
+				wr.println(" printImports parentName=\""+clazz.getCanonicalName()+"\"");
+				wr.println(" printClassHeader parentName=\""+clazz.getCanonicalName()+"\",className=\""+className+"\"");
+				wr.println("insertString printStaticString content=\""+insert+"\"");
+				wr.println("readString printStaticString content=\""+read+"\"");
+				wr.println("updateString printStaticString content=\""+update+"\"");
+				wr.println("deleteString printStaticString content=\""+delete+"\"");
+				wr.println("selectString printStaticString content=\""+select+"\"");
+
+				wr.println(" printConstructor className=\""+className+"\"");
+
+				wr.println(" printCreate className=\""+className+"\",");
+				
+				wr.println(" printClassEnd className=\""+className+"\"");				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return null;
 		}
 	}
@@ -96,6 +137,11 @@ public class SQLModelUtils {
 		return null;
 	}
 
+	static String buildSelectStmt(final ContentNodeMetadata root, final Set<String> fields, final Set<String> pimaryKeys, final char[] nameTerminals) throws ContentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	static class ORMModelMapperImpl<Key, Data> implements ORMModelMapper<Key, Data> {
 		private final LightWeightRWLockerWrapper	wrapper = new LightWeightRWLockerWrapper();
 		private final String						insertStmt, readStmt, updateStmt, deleteStmt;

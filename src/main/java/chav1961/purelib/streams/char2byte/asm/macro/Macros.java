@@ -6,6 +6,7 @@ import java.io.Reader;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -61,33 +62,41 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 	private static final int	CMD_MACRO = 0;
 	private static final int	CMD_LOCAL = 1;
 	private static final int	CMD_SET = 2;
-	private static final int	CMD_IF = 3;
-	private static final int	CMD_ELSEIF = 4;
-	private static final int	CMD_ELSE = 5;
-	private static final int	CMD_ENDIF = 6;
-	private static final int	CMD_WHILE = 7;
-	private static final int	CMD_ENDWHILE = 8;
-	private static final int	CMD_FOR = 9;
-	private static final int	CMD_ENDFOR = 10;
-	private static final int	CMD_IN = 11;
-	private static final int	CMD_TO = 12;
-	private static final int	CMD_STEP = 13;
-	private static final int	CMD_FOR_ALL = 14;
-	private static final int	CMD_ENDFOR_ALL = 15;
-	private static final int	CMD_BREAK = 16;
-	private static final int	CMD_CONTINUE = 17;
-	private static final int	CMD_CHOISE = 18;
-	private static final int	CMD_ENDCHOISE = 19;
-	private static final int	CMD_OF = 20;
-	private static final int	CMD_OTHERWISE = 21;
-	private static final int	CMD_ERROR = 22;
-	private static final int	CMD_EXIT = 23;
-	private static final int	CMD_MEND = 24;
+	private static final int	CMD_SET_INDEX = 3;
+	private static final int	CMD_IF = 4;
+	private static final int	CMD_ELSEIF = 5;
+	private static final int	CMD_ELSE = 6;
+	private static final int	CMD_ENDIF = 7;
+	private static final int	CMD_WHILE = 8;
+	private static final int	CMD_ENDWHILE = 9;
+	private static final int	CMD_FOR = 10;
+	private static final int	CMD_ENDFOR = 11;
+	private static final int	CMD_IN = 12;
+	private static final int	CMD_TO = 13;
+	private static final int	CMD_STEP = 14;
+	private static final int	CMD_FOR_ALL = 15;
+	private static final int	CMD_ENDFOR_ALL = 16;
+	private static final int	CMD_BREAK = 17;
+	private static final int	CMD_CONTINUE = 18;
+	private static final int	CMD_CHOISE = 19;
+	private static final int	CMD_ENDCHOISE = 20;
+	private static final int	CMD_OF = 21;
+	private static final int	CMD_OTHERWISE = 22;
+	private static final int	CMD_ERROR = 23;
+	private static final int	CMD_EXIT = 24;
+	private static final int	CMD_MEND = 25;
 	
 	private static final int	FSM_BEFORE_MACRO = 0; 
 	private static final int	FSM_DECLARATIONS = 1; 
 	private static final int	FSM_IN_CODE = 2; 
 	private static final int	FSM_AFTER_MACRO = 3; 
+
+	@FunctionalInterface
+	private interface AssignWithConversion {
+		void assign(AssignableExpressionNode node, ExpressionNode value) throws CalculationException;
+	}
+	
+	private static final AssignWithConversion[][]	CONV_TABLE;
 	
 	static {
 		COMMANDS.placeName(".break",CMD_BREAK,null);
@@ -112,9 +121,84 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 		COMMANDS.placeName(".of",CMD_OF,null);
 		COMMANDS.placeName(".otherwise",CMD_OTHERWISE,null);
 		COMMANDS.placeName(".set",CMD_SET,null);
+		COMMANDS.placeName(".setindex",CMD_SET_INDEX,null);
 		COMMANDS.placeName("step",CMD_STEP,null);
 		COMMANDS.placeName("to",CMD_TO,null);
 		COMMANDS.placeName(".while",CMD_WHILE,null);
+		
+		CONV_TABLE = new AssignWithConversion[ExpressionNodeValue.class.getEnumConstants().length][ExpressionNodeValue.class.getEnumConstants().length];
+		
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> to.assign(from.getBoolean());
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> to.assign(new ConstantNode(Boolean.valueOf(new String(from.getString()))));
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+	
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> to.assign(from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> to.assign(from.getLong());
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> to.assign((long)from.getDouble());
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> to.assign(Long.valueOf(new String(from.getString())).longValue());
+		CONV_TABLE[ExpressionNodeValue.INTEGER.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> to.assign(from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.INTEGER_ARRAY.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+	
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> to.assign((double)from.getLong());
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> to.assign(from.getDouble());
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> to.assign(Double.valueOf(new String(from.getString())).doubleValue());
+		CONV_TABLE[ExpressionNodeValue.REAL.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> to.assign(from);
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.REAL_ARRAY.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> to.assign(Boolean.valueOf(from.getBoolean()).toString().toCharArray());
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> to.assign(Long.valueOf(from.getLong()).toString().toCharArray());
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> to.assign(Double.valueOf(from.getDouble()).toString().toCharArray());;
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> to.assign(from.getString());
+		CONV_TABLE[ExpressionNodeValue.STRING.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.BOOLEAN_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.INTEGER.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.INTEGER_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.REAL.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.REAL_ARRAY.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.STRING.ordinal()] = (to,from) -> throwConvException(to,from);
+		CONV_TABLE[ExpressionNodeValue.STRING_ARRAY.ordinal()][ExpressionNodeValue.STRING_ARRAY.ordinal()] = (to,from) -> to.assign(from);
 	}
 	
 	private Command[]				stack = new Command[16];
@@ -204,22 +288,85 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 								throw new SyntaxException(lineNo,from-begin,".local can't be used inside nested operators!");
 							}
 							else {
-								final int	bounds[] = new int[2];
+								final int		bounds[] = new int[2], number[] = new int[1];
+								final boolean	isArray;
 								
 								from = InternalUtils.skipBlank(data,from);
 								
 								if (Character.isJavaIdentifierStart(data[from])) {
+									final int 	size;
+									
 									from = InternalUtils.skipBlank(data,UnsafedCharUtils.uncheckedParseName(data,from,bounds));
-									if (data[from] == '=') {
-										final ExpressionNode[]			value = new ExpressionNode[1];
-										final AssignableExpressionNode	var = new LocalVariable(name,InternalUtils.defineType(data,bounds));
-										
-										InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from+1,(MacroCommand)stack[0],value);
-										setInitialValue(var,value[0]);
-										((MacroCommand)stack[stackTop]).addDeclaration(var);
+									if (data[from] == '[') {
+										from = InternalUtils.skipBlank(data,from+1);
+										if (data[from] == ']') {
+											from++;
+											isArray = true;
+											size = -1;
+										}
+										else if (data[from] >= '0' && data[from] <= '9') {
+											from = CharUtils.parseInt(data, from, number, true);
+											if (data[from] == ']') {
+												from++;
+												isArray = true;
+												size = number[0];
+											}
+											else {
+												throw new SyntaxException(lineNo,from-begin,"illegal brackets []"); 
+											}
+										}
+										else {
+											throw new SyntaxException(lineNo,from-begin,"illegal brackets []"); 
+										}
 									}
 									else {
-										((MacroCommand)stack[stackTop]).addDeclaration(new LocalVariable(name,InternalUtils.defineType(data,bounds)));
+										isArray = false;
+										size = -1;
+									}
+									from = InternalUtils.skipBlank(data,from);
+									if (data[from] == '=') {
+										final ExpressionNode[]			value = new ExpressionNode[1];
+										final AssignableExpressionNode	var = new LocalVariable(name,InternalUtils.defineType(data,bounds,isArray));
+										
+										if (isArray) {
+											InternalUtils.parseExpressionList(InternalUtils.ORDER_OR,lineNo,data,begin,from+1,(MacroCommand)stack[0],var.getValueType(),value);
+											setInitialValue(var,value[0]);
+										}
+										else {
+											InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from+1,(MacroCommand)stack[0],value);
+											setInitialValue(var,value[0]);
+										}
+										((MacroCommand)stack[stackTop]).addDeclaration(var);
+									}
+									else  if (isArray) {
+										if (size == -1) {
+											throw new SyntaxException(lineNo,from-begin,"Neither array size nor initials for local array variable"); 
+										}
+										else {
+											final ExpressionNodeValue 	valType = InternalUtils.defineType(data,bounds,isArray);
+											final ExpressionNode		value;
+											
+											switch (valType) {
+												case BOOLEAN_ARRAY	:
+													value = new ConstantNode(new boolean[size]);
+													break;
+												case INTEGER_ARRAY	:
+													value = new ConstantNode(new long[size]);
+													break;
+												case REAL_ARRAY		:
+													value = new ConstantNode(new double[size]);
+													break;
+												case STRING_ARRAY	:
+													value = new ConstantNode(new char[size][]);
+													break;
+												default	:
+													throw new UnsupportedOperationException("Value type ["+valType+"] is not supported yet"); 
+											}
+											((MacroCommand)stack[stackTop]).addDeclaration(new LocalVariable(name,valType,value));
+										}
+									}
+									else {
+										((MacroCommand)stack[stackTop]).addDeclaration(new LocalVariable(name,InternalUtils.defineType(data,bounds,isArray)));
 									}
 								}
 								else {
@@ -243,6 +390,25 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 									((MacroCommand)stack[0]).commitDeclarations();
 								}
 								stack[stackTop].append(lineNo,new SetCommand(leftPart).processCommand(lineNo,begin,data,from,to,(MacroCommand)stack[0]));
+							}
+							fsmState = FSM_IN_CODE;
+						}
+						else {
+							throw new SyntaxException(lineNo,from-begin,".set operator outside .macro"); 
+						}
+						break;
+					case CMD_SET_INDEX	:
+						if (fsmState == FSM_DECLARATIONS || fsmState == FSM_IN_CODE) {
+							final AssignableExpressionNode	leftPart;
+							
+							if ((leftPart = ((MacroCommand)stack[0]).seekDeclaration(name)) == null) {
+								throw new SyntaxException(lineNo,from-begin,"Undeclared left name in the .set operator."); 
+							}
+							else {
+								if (fsmState == FSM_DECLARATIONS) {
+									((MacroCommand)stack[0]).commitDeclarations();
+								}
+								stack[stackTop].append(lineNo,new SetIndexCommand(leftPart).processCommand(lineNo,begin,data,from,to,(MacroCommand)stack[0]));
 							}
 							fsmState = FSM_IN_CODE;
 						}
@@ -667,8 +833,8 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 	}
 
 	public Reader processCall(final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
-		final MacroCommand		cmd = parseCall(lineNo,data,from,length);
-		final GrowableCharArray	gca = new GrowableCharArray(false);
+		final MacroCommand			cmd = parseCall(lineNo,data,from,length);
+		final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
 		
 		try{exec.exec(cmd.getDeclarations(),gca);
 		} catch (CalculationException exc) {
@@ -714,8 +880,21 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 								throw new SyntaxException(lineNo,from,"Too many positional parameters in the macro call!");
 							}
 							else {
-								InternalUtils.parseConstant(data,bounds[0],true,val);
-								cmd.getDeclarations()[positional].assign(val[0]);
+								final AssignableExpressionNode	node = cmd.getDeclarations()[positional];
+								
+								from = InternalUtils.parseConstant(data,bounds[0],true,val);
+								
+								if (node.getValueType().isArray()) {
+									if (val[0].getValueType().isArray()) {
+										node.assign(val[0]);
+									}
+									else {
+										node.assign(new ConstantNode(node.getValueType(), val[0]));
+									}
+								}
+								else {
+									node.assign(val[0]);
+								}
 								positional++;
 							}
 						}
@@ -739,7 +918,18 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 						
 						if (key != null && key.getType() == ExpressionNodeType.KEY_PARAMETER) {
 							from = InternalUtils.parseConstant(data,InternalUtils.skipBlank(data,from+1),true,val);
-							setInitialValue(key,val[0]);
+							
+							if (key.getValueType().isArray()) {
+								if (val[0].getValueType().isArray()) {
+									setInitialValue(key,val[0]);
+								}
+								else {
+									setInitialValue(key,new ConstantNode(key.getValueType(), val[0]));
+								}
+							}
+							else {
+								setInitialValue(key,val[0]);
+							}
 						}
 						else {
 							throw new SyntaxException(lineNo,from,"Unknown key parameter ["+new String(keyName)+"]");
@@ -803,45 +993,61 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 	}
 	
 	private void setInitialValue(final AssignableExpressionNode node, final ExpressionNode value) throws CalculationException {
-		switch (node.getValueType()) {
-			case INTEGER	:
-				switch (value.getValueType()) {
-					case INTEGER	: node.assign(value); break;
-					case REAL		: node.assign(new ConstantNode((long)value.getDouble())); break;
-					case STRING		: node.assign(new ConstantNode(Long.valueOf(new String(value.getString())))); break;
-					case BOOLEAN	: throw new CalculationException("Boolean substitution value can't be converted to ["+node.getValueType()+"]");
-					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-				}
-				break;
-			case REAL		:
-				switch (value.getValueType()) {
-					case INTEGER	: node.assign(new ConstantNode((double)value.getLong())); break;
-					case REAL		: node.assign(value); break;
-					case STRING		: node.assign(new ConstantNode(Double.valueOf(new String(value.getString())))); break;
-					case BOOLEAN	: throw new CalculationException("Boolean substitution value can't be converted to ["+node.getValueType()+"]");
-					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-				}
-				break;
-			case STRING		:
-				switch (value.getValueType()) {
-					case INTEGER	: node.assign(new ConstantNode(String.valueOf(value.getLong()).toCharArray())); break;
-					case REAL		: node.assign(new ConstantNode(String.valueOf(value.getDouble()).toCharArray())); break;
-					case STRING		: node.assign(value); break;
-					case BOOLEAN	: node.assign(new ConstantNode(String.valueOf(value.getBoolean()).toCharArray())); break;
-					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-				}
-				break;
-			case BOOLEAN	:
-				switch (value.getValueType()) {
-					case INTEGER	: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
-					case REAL		: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
-					case STRING		: node.assign(new ConstantNode(Boolean.valueOf(new String(value.getString())))); break;
-					case BOOLEAN	: node.assign(value); break;
-					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-				}
-				break;
-			default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-		}
+		CONV_TABLE[node.getValueType().ordinal()][value.getValueType().ordinal()].assign(node, value);
+//		
+//		switch (node.getValueType()) {
+//			case INTEGER	:
+//				switch (value.getValueType()) {
+//					case INTEGER	: node.assign(value); break;
+//					case REAL		: node.assign(new ConstantNode((long)value.getDouble())); break;
+//					case STRING		: node.assign(new ConstantNode(Long.valueOf(new String(value.getString())))); break;
+//					case BOOLEAN	: throw new CalculationException("Boolean substitution value can't be converted to ["+node.getValueType()+"]");
+//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
+//				}
+//				break;
+//			case REAL		:
+//				switch (value.getValueType()) {
+//					case INTEGER	: node.assign(new ConstantNode((double)value.getLong())); break;
+//					case REAL		: node.assign(value); break;
+//					case STRING		: node.assign(new ConstantNode(Double.valueOf(new String(value.getString())))); break;
+//					case BOOLEAN	: throw new CalculationException("Boolean substitution value can't be converted to ["+node.getValueType()+"]");
+//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
+//				}
+//				break;
+//			case STRING		:
+//				switch (value.getValueType()) {
+//					case INTEGER	: node.assign(new ConstantNode(String.valueOf(value.getLong()).toCharArray())); break;
+//					case REAL		: node.assign(new ConstantNode(String.valueOf(value.getDouble()).toCharArray())); break;
+//					case STRING		: node.assign(value); break;
+//					case BOOLEAN	: node.assign(new ConstantNode(String.valueOf(value.getBoolean()).toCharArray())); break;
+//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
+//				}
+//				break;
+//			case BOOLEAN	:
+//				switch (value.getValueType()) {
+//					case INTEGER	: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
+//					case REAL		: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
+//					case STRING		: node.assign(new ConstantNode(Boolean.valueOf(new String(value.getString())))); break;
+//					case BOOLEAN	: node.assign(value); break;
+//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
+//				}
+//				break;
+//			case BOOLEAN_ARRAY	:
+//				switch (value.getValueType()) {
+//					case INTEGER	: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
+//					case REAL		: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
+//					case STRING		: node.assign(new ConstantNode(Boolean.valueOf(new String(value.getString())))); break;
+//					case BOOLEAN	: node.assign(value); break;
+//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
+//				}
+//				break;
+//			default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
+//		}
 	}
+
+	private static void throwConvException(final AssignableExpressionNode to, final ExpressionNode from) throws CalculationException {
+		throw new CalculationException("Illegal convertion from ["+from.getValueType()+"] to ["+to.getValueType()+"]");
+	}
+
 }
 

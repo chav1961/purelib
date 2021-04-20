@@ -157,6 +157,22 @@ public class MacrosTest {
 			errorCall(m,"100,200","Too many positionals",SyntaxException.class,IOException.class);
 			errorCall(m,"100,key1=10,200","mix of the parameters",SyntaxException.class,IOException.class);
 		}
+
+		try(final TestMacros	m = new TestMacros()) {
+			successAwaiting(m,"name .macro var1:int[],key1:int=,key2:boolean=true,key3:str[]={\"init1\"}");
+			successAwaiting(m,"		.exit");
+			successAwaiting(m,"		.mend");
+			
+			
+			successCall(m,"100,key2=false,key1=1");
+			successCall(m,"-10,key1=1");
+			successCall(m,"{10,20},key1=1");
+			successCall(m,"10,key3=\"val1\"");
+			successCall(m,"10,key3={\"val1\",\"val2\"}");
+			errorCall(m,"100,key2=unknown,key1=1","Invalid constant value",SyntaxException.class,IOException.class);
+			errorCall(m,"100,200","Too many positionals",SyntaxException.class,IOException.class);
+			errorCall(m,"100,key1=10,200","mix of the parameters",SyntaxException.class,IOException.class);
+		}
 	}
 	
 	private void successAwaiting(final TestMacros macros, final String content) {

@@ -3,6 +3,7 @@ package chav1961.purelib.streams.char2byte.asm.macro;
 enum CommandType {
 	MACRO,
 	SET,
+	SET_INDEX,
 	IF,
 	IF_CONDITION,
 	ELSE,

@@ -8,6 +8,8 @@ public enum ExpressionNodeOperator {
 	ADD, SUB, 
 	MUL, DIV, MOD,
 	NEG,
+	ARR_GET,
 	F_UG, F_UL, F_EXISTS, 
-	F_TO_INT, F_TO_REAL, F_TO_STR, F_TO_BOOL 
+	F_TO_INT, F_TO_REAL, F_TO_STR, F_TO_BOOL,
+	F_LEN
 }

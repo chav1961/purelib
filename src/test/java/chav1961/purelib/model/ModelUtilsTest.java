@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -382,6 +383,7 @@ public class ModelUtilsTest {
 	}
 
 	@Test
+	@Ignore
 	public void buildMappedWrapperClassByModelTest() throws LocalizationException, ContentException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		final ContentMetadataInterface		mdi = ContentModelFactory.forAnnotatedClass(TestClass.class);
 		final TestClass						tc = new TestClass();

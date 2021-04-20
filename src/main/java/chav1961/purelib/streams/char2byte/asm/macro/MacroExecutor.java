@@ -55,7 +55,7 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 	
 	public static void testInitialized(final AssignableExpressionNodeInterface node) throws CalculationException {
 		if (!node.hasValue()) {
-			throw new CalculationException("Variable/parameter is not initialized. Assign some value to it");
+			throw new CalculationException("Variable/parameter ["+new String(node.getName())+"] is not initialized. Assign some value to it");
 		}
 	}
 
@@ -104,7 +104,7 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 			return result;
 		}
 	}
-	
+
 	public static void throwException(final Throwable exc) throws Throwable {
 		throw exc;
 	}
