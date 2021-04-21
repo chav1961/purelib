@@ -19,7 +19,7 @@ buildPrimitiveStaticBoolean 	.macro	className:str=,ownerClass:str=,fieldName:str
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BOOLEAN
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_BOOLEAN
 				ireturn
 getClassType	.end
 get			.method		boolean	public throws chav1961.purelib.basic.exceptions.ContentException
@@ -61,7 +61,7 @@ buildPrimitiveInstanceBoolean 	.macro	className:str=,ownerClass:str=,fieldName:s
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BOOLEAN
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_BOOLEAN
 				ireturn
 getClassType	.end
 get			.method		boolean	public throws chav1961.purelib.basic.exceptions.ContentException
@@ -107,7 +107,7 @@ buildPrimitiveStaticByte 	.macro	className:str=,ownerClass:str=,fieldName:str=,v
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BYTE
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_BYTE
 				ireturn
 getClassType	.end
 get			.method		byte	public throws chav1961.purelib.basic.exceptions.ContentException
@@ -149,7 +149,7 @@ buildPrimitiveInstanceByte 	.macro	className:str=,ownerClass:str=,fieldName:str=
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_BYTE
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_BYTE
 				ireturn
 getClassType	.end
 get			.method		byte public throws chav1961.purelib.basic.exceptions.ContentException
@@ -195,7 +195,7 @@ buildPrimitiveStaticChar 	.macro	className:str=,ownerClass:str=,fieldName:str=,v
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_CHAR
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_CHAR
 				ireturn
 getClassType	.end
 get			.method		char public throws chav1961.purelib.basic.exceptions.ContentException
@@ -237,7 +237,7 @@ buildPrimitiveInstanceChar 	.macro	className:str=,ownerClass:str=,fieldName:str=
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_CHAR
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_CHAR
 				ireturn
 getClassType	.end
 get			.method		char public throws chav1961.purelib.basic.exceptions.ContentException
@@ -283,7 +283,7 @@ buildPrimitiveStaticDouble 	.macro	className:str=,ownerClass:str=,fieldName:str=
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_DOUBLE
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_DOUBLE
 				ireturn
 getClassType	.end
 get			.method		double public throws chav1961.purelib.basic.exceptions.ContentException
@@ -325,7 +325,7 @@ buildPrimitiveInstanceDouble 	.macro	className:str=,ownerClass:str=,fieldName:st
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_DOUBLE
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_DOUBLE
 				ireturn
 getClassType	.end
 get			.method		double public throws chav1961.purelib.basic.exceptions.ContentException
@@ -371,7 +371,7 @@ buildPrimitiveStaticFloat 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_FLOAT
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_FLOAT
 				ireturn
 getClassType	.end
 get			.method		float public throws chav1961.purelib.basic.exceptions.ContentException
@@ -413,7 +413,7 @@ buildPrimitiveInstanceFloat 	.macro	className:str=,ownerClass:str=,fieldName:str
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_FLOAT
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_FLOAT
 				ireturn
 getClassType	.end
 get			.method		float public throws chav1961.purelib.basic.exceptions.ContentException
@@ -459,7 +459,7 @@ buildPrimitiveStaticInt 	.macro	className:str=,ownerClass:str=,fieldName:str=,va
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_INT
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_INT
 				ireturn
 getClassType	.end
 get			.method		int public throws chav1961.purelib.basic.exceptions.ContentException
@@ -501,7 +501,7 @@ buildPrimitiveInstanceInt 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_INT
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_INT
 				ireturn
 getClassType	.end
 get			.method		int public throws chav1961.purelib.basic.exceptions.ContentException
@@ -547,7 +547,7 @@ buildPrimitiveStaticLong 	.macro	className:str=,ownerClass:str=,fieldName:str=,v
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_LONG
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_LONG
 				ireturn
 getClassType	.end
 get			.method		long public throws chav1961.purelib.basic.exceptions.ContentException
@@ -589,7 +589,7 @@ buildPrimitiveInstanceLong 	.macro	className:str=,ownerClass:str=,fieldName:str=
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_LONG
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_LONG
 				ireturn
 getClassType	.end
 get			.method		long public throws chav1961.purelib.basic.exceptions.ContentException
@@ -635,7 +635,7 @@ buildPrimitiveStaticShort 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_SHORT
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_SHORT
 				ireturn
 getClassType	.end
 get			.method		short public throws chav1961.purelib.basic.exceptions.ContentException
@@ -677,7 +677,7 @@ buildPrimitiveInstanceShort 	.macro	className:str=,ownerClass:str=,fieldName:str
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_SHORT
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_SHORT
 				ireturn
 getClassType	.end
 get			.method		short public throws chav1961.purelib.basic.exceptions.ContentException
@@ -724,7 +724,7 @@ buildPrimitiveStaticRef 	.macro	className:str=,ownerClass:str=,fieldName:str=,va
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_REFERENCE
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_REFERENCE
 				ireturn
 getClassType	.end
 get			.method		java.lang.Object public throws chav1961.purelib.basic.exceptions.ContentException
@@ -767,7 +767,7 @@ buildPrimitiveInstanceRef 	.macro	className:str=,ownerClass:str=,fieldName:str=,
 &className	.end
 getClassType	.method int public
 				.stack		1
-				getstatic	chav1961.purelib.streams.char2byte.CompilerUtils.CLASSTYPE_REFERENCE
+				getstatic	chav1961.purelib.cdb.CompilerUtils.CLASSTYPE_REFERENCE
 				ireturn
 getClassType	.end
 get			.method		java.lang.Object public throws chav1961.purelib.basic.exceptions.ContentException
@@ -861,7 +861,7 @@ newInstance			.end
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected		
 	.import		chav1961.purelib.basic.CharUtils	
 	.import		chav1961.purelib.basic.exceptions.ContentException	
-	.import		chav1961.purelib.streams.char2byte.CompilerUtils	
+	.import		chav1961.purelib.cdb.CompilerUtils	
 	.import		java.lang.InstantiationException
 	.import		sun.reflect.ReflectionFactory	
 	.import		java.lang.reflect.Constructor

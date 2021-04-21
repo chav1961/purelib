@@ -19,13 +19,13 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 	}
 	
 	@Override
-	public abstract void exec(final AssignableExpressionNodeInterface[] memory, final GrowableCharArray target) throws CalculationException;
+	public abstract void exec(final AssignableExpressionNodeInterface[] memory, final GrowableCharArray<?> target) throws CalculationException;
 	
 	public char[] extractString(final int from, final int len) throws CalculationException {
 		return Arrays.copyOfRange(stringResource,from,from+len);
 	}
 	
-	public static boolean exists(final AssignableExpressionNode[] memory, final int variableIndex) throws CalculationException {
+	public static boolean exists(@SuppressWarnings("exports") final AssignableExpressionNode[] memory, final int variableIndex) throws CalculationException {
 		return memory[variableIndex].getValueType() != null;
 	}
 	

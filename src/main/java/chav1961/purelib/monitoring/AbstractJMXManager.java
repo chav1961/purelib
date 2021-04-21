@@ -28,10 +28,10 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.monitoring.interfaces.JMXItem;
 import chav1961.purelib.monitoring.interfaces.MBeanListener;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 class AbstractJMXManager implements DynamicMBean {
 	private final LightWeightListenerList<MBeanListener>	listeners = new LightWeightListenerList<>(MBeanListener.class);

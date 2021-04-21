@@ -54,7 +54,7 @@ public class MacroClassLoader extends URLClassLoader {
     }
     
 	@SuppressWarnings("unchecked")
-	public Class<? extends MacroExecutor> createClass(final String className, final GrowableCharArray asmContent) throws IOException, IllegalArgumentException, NullPointerException {
+	public Class<? extends MacroExecutor> createClass(final String className, final GrowableCharArray<?> asmContent) throws IOException, IllegalArgumentException, NullPointerException {
 		if (className == null || className.isEmpty()) {
 			throw new IllegalArgumentException("Class name can't be null or empty"); 
 		}

@@ -21,11 +21,11 @@ import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.ContentNodeFilter;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.interfaces.ORMProvider3;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 public abstract class SimpleResultSetProvider implements ORMProvider3, ModuleAccessor {
 	private final ResultSet			rs;

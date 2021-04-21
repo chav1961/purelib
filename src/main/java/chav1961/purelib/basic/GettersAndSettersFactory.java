@@ -18,11 +18,11 @@ import java.util.Map;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 /**
  * <p>This class contains a factory method to build getters and setters for primitive and referenced items in the class and/or it's instance. All the 

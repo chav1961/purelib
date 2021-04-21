@@ -13,7 +13,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 
 
 class ClassContainer implements Closeable {

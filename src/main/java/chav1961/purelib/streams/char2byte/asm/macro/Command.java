@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.Asm;
@@ -228,9 +226,9 @@ class SetIndexCommand extends Command {
 
 	@Override
 	SetIndexCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
-		from = CharUtils.skipBlank(data,InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,macro,index),false);
+		from = InternalUtils.skipBlank(data,InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,macro,index));
 		if (data[from] == ',') {
-			InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,CharUtils.skipBlank(data,from+1,false),macro,rightPart);
+			InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,InternalUtils.skipBlank(data,from+1),macro,rightPart);
 			return this;
 		}
 		else {
@@ -656,16 +654,14 @@ class SubstitutionCommand extends Command {
 				from = UnsafedCharUtils.uncheckedParseName(data,from+1,bounds);
 				
 				final ExpressionNode[]	node = new ExpressionNode[1];
-				boolean					wasIndex = false;
 				
 				if (data[from] == '.') {
 					from++;
 				}
 				else if (data[from] == '[') {
 					
-					from = CharUtils.skipBlank(data,InternalUtils.parseExpression(0, lineNo, data, begin, from+1, macro, node),false);
+					from = InternalUtils.skipBlank(data,InternalUtils.parseExpression(0, lineNo, data, begin, from+1, macro, node));
 					if (data[from] == ']') {
-						wasIndex = true;
 						from++;
 					}
 					else {

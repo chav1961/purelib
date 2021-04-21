@@ -33,7 +33,7 @@ import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChanges;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroClassLoader;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCompiler;

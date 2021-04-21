@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -305,7 +304,7 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 											size = -1;
 										}
 										else if (data[from] >= '0' && data[from] <= '9') {
-											from = CharUtils.parseInt(data, from, number, true);
+											from = UnsafedCharUtils.uncheckedParseInt(data, from, number, true);
 											if (data[from] == ']') {
 												from++;
 												isArray = true;
@@ -947,6 +946,7 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 		return cmd;
 	}
 	
+	@SuppressWarnings("exports")
 	public MacroCommand getRoot() {
 		return root;
 	}

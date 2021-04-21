@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 
 class InternalUtils {
 	static final char[]				FALSE = "false".toCharArray();

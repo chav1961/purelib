@@ -16,6 +16,7 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.ResultSet;
@@ -44,9 +45,9 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 /**
  * <p>This class is an utility class for SQL syntax and content manipulations. It uses models in many methods.</p>

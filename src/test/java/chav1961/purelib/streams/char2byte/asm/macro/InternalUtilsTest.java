@@ -21,41 +21,6 @@ public class InternalUtilsTest {
 	public InternalUtilsTest(){}
 
 	@Test
-	public void softSignatures() throws NoSuchMethodException, SecurityException, NoSuchFieldException {
-		final SyntaxTreeInterface<String>	tree = new AndOrTree<String>(1,16);
-		final long					field1 = tree.placeName("java.lang.String",null), field2 = tree.placeName("java.lang.String[]",null), field3 = tree.placeName("int",null);
-		final long					returned =  tree.placeName("void",null);
-		
-		Assert.assertEquals(InternalUtils.buildFieldSignature(tree,field1),"Ljava/lang/String;");
-		Assert.assertEquals(InternalUtils.buildFieldSignature(tree,field2),"[Ljava/lang/String;");
-		Assert.assertEquals(InternalUtils.buildFieldSignature(tree,field3),"I");
-		
-		try{InternalUtils.buildFieldSignature(null,field1);
-			Assert.fail("Mandatory exception was not detected(null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{InternalUtils.buildFieldSignature(tree,-1);
-			Assert.fail("Mandatory exception was not detected(non-existent 2-nd argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
-		Assert.assertEquals(InternalUtils.buildMethodSignature(tree,true,returned,field1,field2,field3),"(Ljava/lang/String;[Ljava/lang/String;I)V");
-		
-		try{InternalUtils.buildMethodSignature(null,true,returned);
-			Assert.fail("Mandatory exception was not detected(null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{InternalUtils.buildMethodSignature(tree,true,-1);
-			Assert.fail("Mandatory exception was not detected(non-existent 2-nd argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{InternalUtils.buildMethodSignature(tree,true,returned,-1);
-			Assert.fail("Mandatory exception was not detected(non-existent var argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-	}
-	
-	@Test
 	public void parseConstantTest() throws CalculationException, SyntaxException {
 		final ExpressionNode[]	result = new ExpressionNode[1];
 		

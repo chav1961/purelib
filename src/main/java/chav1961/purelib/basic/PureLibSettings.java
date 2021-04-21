@@ -532,6 +532,22 @@ public final class PureLibSettings {
 		};
 	}	
 	
+	/**
+	 * <p>Get description about Pure Library</p> 
+	 * @return html-typed description. Can't be null
+	 * @since 0.0.5
+	 */
+	public static String aboutPureLib() {
+		try(final InputStream 	is = PureLibSettings.class.getResourceAsStream("about.html");
+			final Reader		rdr = new InputStreamReader(is)) {
+			
+			return Utils.fromResource(rdr);
+		} catch (IOException e) {
+			return "I/O error reading 'about' information";
+		}
+	}
+	
+	
 	private static Color toRGB(final String rgb) {
 		if (!rgb.isEmpty()) {
 			if (rgb.charAt(0) == '#') {

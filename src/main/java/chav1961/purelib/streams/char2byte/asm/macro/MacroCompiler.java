@@ -12,7 +12,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;

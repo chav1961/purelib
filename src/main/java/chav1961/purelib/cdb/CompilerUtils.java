@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.char2byte;
+package chav1961.purelib.cdb;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.streams.char2byte.AsmWriter;
 
 /**
  * <p>This class contains a lot of useful methods to use in the wide range of compilers. In conjunction with {@linkplain AsmWriter}, 
@@ -74,6 +75,9 @@ public class CompilerUtils {
 	 */
 	public static final int		CLASSTYPE_VOID = 9;	
 
+	
+	
+	
 	/**
 	 * <p>Classify the given class by it's primitive type</p>
 	 * @param clazz class to classify
@@ -277,6 +281,20 @@ public class CompilerUtils {
 			}
 		}
 	}
+
+	/**
+	 * <p>Filtered walk all fields in the class</p>
+	 * @param clazz class or interface to walk fields in
+	 * @param walker callback to process fields
+	 * @param useWildcards field name and types contains wildcards
+	 * @param recursive need walk parents of the class
+	 * @param fieldName field name template
+	 * @param availableTypes available types of the field (any of the list). NUll list means any type 
+	 * @throws NullPointerException on any null parameters
+	 * @since 0.0.5
+	 */
+	public static void walkFieldsExtended(final Class<?> clazz, final FieldWalker walker, final boolean useWildcards, final boolean recursive, final String fieldName, final Class<?>... availableTypes) throws NullPointerException {
+	}	
 	
 	/**
 	 * <p>This interface describes callback for {@linkplain CompilerUtils#walkMethods(Class, MethodWalker)} method</p> 
@@ -318,6 +336,21 @@ public class CompilerUtils {
 			}
 		}
 	}
+
+	/**
+	 * <p>Filtered walk all methods in the class</p>
+	 * @param clazz class or interface to walk method in
+	 * @param walker callback to process method
+	 * @param useWildcards method name and types contain wildcards
+	 * @param recursive need walk parent(s) of the class or interface
+	 * @param retType returned type of the method. Use {@linkplain AnyType} means any type returned when useWildcards == true
+	 * @param methodName method name template
+	 * @param parameters method parameters. Use {@linkplain AnyType} inside means exactly one parameters of any type, use {@linkplain AnyTypeList} inside means any number of parameters of any type when useWildcards == true  
+	 * @throws NullPointerException on any null parameters
+	 * @since 0.0.5
+	 */
+	public static void walkMethodsExtended(final Class<?> clazz, final MethodWalker walker, final boolean useWildcards, final boolean recursive, final Class<?> retType, final String methodName, final Class<?>... parameters) throws NullPointerException {
+	}	
 	
 	/**
 	 * <p>This interface describes callback for {@linkplain CompilerUtils#walkConstructors(Class, ConstructorWalker)} method</p> 
@@ -652,4 +685,8 @@ public class CompilerUtils {
 //	public static String class2FileName(final String clazz) {
 //		
 //	}
+	
+	public static class AnyType {}
+	
+	public static class AnyTypeList {}
 }

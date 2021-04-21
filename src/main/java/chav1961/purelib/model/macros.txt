@@ -1116,7 +1116,7 @@ mappedWrapperClassEnd	.macro name:str=
 	.import		chav1961.purelib.basic.interfaces.ModuleExporter		
 	.import		chav1961.purelib.basic.CharUtils	
 	.import		chav1961.purelib.basic.exceptions.ContentException	
-	.import		chav1961.purelib.streams.char2byte.CompilerUtils	
+	.import		chav1961.purelib.cdb.CompilerUtils	
 	.import		java.lang.InstantiationException
 	.import		java.lang.reflect.Constructor
 	.import		java.lang.Byte

@@ -77,7 +77,6 @@ import chav1961.purelib.cdb.interfaces.ObjectWrapper;
 import chav1961.purelib.cdb.interfaces.StackWrapper;
 import chav1961.purelib.cdb.interfaces.ThreadWrapper;
 import chav1961.purelib.cdb.interfaces.VariableWrapper;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 public class DbgClient {
 	private static final Map<Integer,String>	STATES = new HashMap<>();

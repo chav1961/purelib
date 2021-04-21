@@ -9,7 +9,7 @@ import java.util.Map;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 
 /**
  * <p>This class implements in-memory {@linkplain Array} to use in the SQL.</p>

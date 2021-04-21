@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 
 class StackAndVarRepo {
 	static final int			SPECIAL_TYPE_TOP = -1;

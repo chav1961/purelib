@@ -35,9 +35,9 @@ import javax.script.ScriptException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.BasicScriptEngineController;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.fsys.FileSystemInMemory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
 
 /**
  * <p>This class implements basic functionality for the {@link ScriptEngine} interface. It's functionality is oriented to use with the

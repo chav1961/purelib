@@ -18,7 +18,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.Prescription;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 
 
 class ClassDescriptionRepo {

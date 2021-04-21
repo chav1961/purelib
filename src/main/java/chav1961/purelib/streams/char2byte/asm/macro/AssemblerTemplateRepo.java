@@ -45,9 +45,9 @@ class AssemblerTemplateRepo {
 			try(final Reader				rdr = new InputStreamReader(content);
 				final LineByLineProcessor	lblp = new LineByLineProcessor(
 												new LineByLineProcessorCallback(){
-													final int[]				ranges = new int[2];
-													final GrowableCharArray	content = new GrowableCharArray(true);
-													char[]					name = null; 
+													final int[]					ranges = new int[2];
+													final GrowableCharArray<?>	content = new GrowableCharArray<>(true);
+													char[]						name = null; 
 												
 													@Override
 													public void processLine(final long displacement, final int lineNo, final char[] data, int from, final int length) throws IOException, SyntaxException {
@@ -73,7 +73,7 @@ class AssemblerTemplateRepo {
 												}
 											)) {
 				lblp.write(rdr);
-				lblp.write(THE_END,0,THE_END.length);
+				lblp.write(THE_END,0,THE_END.length);	// empty part to terminate content correctly
 			}
 			int		index = 0;
 			
@@ -83,6 +83,7 @@ class AssemblerTemplateRepo {
 				partNames[index++] = new PartRecord(item.getKey(),item.getValue());
 			}
 			Arrays.sort(partNames);
+			parts.clear();
 		}
 	}
 
@@ -102,7 +103,7 @@ class AssemblerTemplateRepo {
 	 * @throws NullPointerException if any parameters are null
 	 * @throws IllegalArgumentException if any parameters are illegal
 	 */
-	public AssemblerTemplateRepo append(final GrowableCharArray arr, final char[] partName) throws NullPointerException, IllegalArgumentException {
+	public AssemblerTemplateRepo append(final GrowableCharArray<?> arr, final char[] partName) throws NullPointerException, IllegalArgumentException {
 		return append(arr,partName,getNameKeeper());
 	}
 
@@ -115,7 +116,7 @@ class AssemblerTemplateRepo {
 	 * @throws NullPointerException if any parameters are null
 	 * @throws IllegalArgumentException if any parameters are illegal
 	 */
-	public AssemblerTemplateRepo append(final GrowableCharArray arr, final String partName, final CharSubstitutionSource callback) throws NullPointerException, IllegalArgumentException {
+	public AssemblerTemplateRepo append(final GrowableCharArray<?> arr, final String partName, final CharSubstitutionSource callback) throws NullPointerException, IllegalArgumentException {
 		if (partName == null || partName.isEmpty()) {
 			throw new IllegalArgumentException("Part name can't be null or empty"); 
 		}
@@ -133,7 +134,7 @@ class AssemblerTemplateRepo {
 	 * @throws NullPointerException if any parameters are null
 	 * @throws IllegalArgumentException if any parameters are illegal
 	 */
-	public AssemblerTemplateRepo append(final GrowableCharArray arr, final char[] partName, final CharSubstitutionSource callback) throws NullPointerException, IllegalArgumentException {
+	public AssemblerTemplateRepo append(final GrowableCharArray<?> arr, final char[] partName, final CharSubstitutionSource callback) throws NullPointerException, IllegalArgumentException {
 		if (arr == null) {
 			throw new NullPointerException("Char array can't be null"); 
 		}
@@ -170,7 +171,7 @@ class AssemblerTemplateRepo {
 	 * @throws NullPointerException if any parameters are null
 	 * @throws IllegalArgumentException if any parameters are illegal
 	 */
-	public AssemblerTemplateRepo append(final GrowableCharArray arr, final String format, final Object... parameters) throws NullPointerException, IllegalArgumentException {
+	public AssemblerTemplateRepo append(final GrowableCharArray<?> arr, final String format, final Object... parameters) throws NullPointerException, IllegalArgumentException {
 		if (arr == null) {
 			throw new NullPointerException("Char array can't be null"); 
 		}

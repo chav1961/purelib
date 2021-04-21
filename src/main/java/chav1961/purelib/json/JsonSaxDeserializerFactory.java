@@ -32,11 +32,11 @@ import chav1961.purelib.basic.growablearrays.GrowableIntArray;
 import chav1961.purelib.basic.growablearrays.GrowableLongArray;
 import chav1961.purelib.basic.growablearrays.GrowableShortArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.json.intern.BasicDeserializer;
 import chav1961.purelib.json.intern.CreateAndSet;
 import chav1961.purelib.streams.JsonSaxParser;
 import chav1961.purelib.streams.char2byte.AsmWriter;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
 import chav1961.purelib.streams.interfaces.JsonSaxDeserializer;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
 

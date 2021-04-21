@@ -1,9 +1,7 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
+
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,8 +12,6 @@ import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
-import chav1961.purelib.streams.char2byte.CompilerUtils;
-import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
 
 class InternalUtils {
 	private static final SyntaxTreeInterface<FuncDecription>	FUNCTIONS = new AndOrTree<>();
@@ -60,86 +56,6 @@ class InternalUtils {
 		FUNCTIONS.placeName("len",FUNC_LEN,new FuncDecription(ExpressionNodeOperator.F_LEN,1,ExpressionNodeValue.INTEGER));
 	}
 	
-
-	/**
-	 * <p>Build field signature by it's description</p>
-	 * @param tree name tree containing names
-	 * @param item name id in the tree
-	 * @return signature
-	 */
-	static final String buildFieldSignature(final SyntaxTreeInterface<?> tree, final long item) {
-		if (tree == null) {
-			throw new IllegalArgumentException("Names tree can't be null");
-		}
-		else if (!tree.contains(item)) {
-			throw new IllegalArgumentException("Item ["+item+"] is missing in the names tree");
-		}
-		else {
-			return fieldSignature(tree.getName(item));
-		}
-	}
-
-	/**
-	 * <p>Build method signature by description of it's parameters and returned type</p>
-	 * @param tree name tree containing names
-	 * @param retType method returned type id
-	 * @param parameters method parameter type ids
-	 * @return signature
-	 */
-	static final String buildMethodSignature(final SyntaxTreeInterface<?> tree, final boolean staticMethod, final long retType, final long... parameters) {
-		if (tree == null) {
-			throw new IllegalArgumentException("Names tree can't be null");
-		}
-		else if (parameters == null) {
-			throw new IllegalArgumentException("Parameters can't be null");
-		}
-		else if (!tree.contains(retType)) {
-			throw new IllegalArgumentException("Returned type item ["+retType+"] is missing in the names tree");
-		}
-		else {
-			final StringBuilder	sb = new StringBuilder("(");
-			
-			for (int index = staticMethod ? 0 : 1; index < parameters.length; index++) {
-				if (!tree.contains(parameters[index])) {
-					throw new IllegalArgumentException("Parameter["+index+"] = "+parameters[index]+" is missing in the names tree");
-				}
-				else {
-					sb.append(fieldSignature(tree.getName(parameters[index])));
-				}
-			}
-			return sb.append(')').append(fieldSignature(tree.getName(retType))).toString();
-		}
-	}
-	
-	
-	private static String fieldSignature(final String name) {
-		final int	trunc = name.lastIndexOf("[]"); 
-		
-		if (trunc >= 0) {
-			return "["+fieldSignature(name.substring(0,trunc));
-		}
-		else {
-			switch (name) {
-				case "boolean"	: return "Z";
-				case "byte"		: return "B";
-				case "char"		: return "C";
-				case "double"	: return "D";
-				case "float"	: return "F";
-				case "int"		: return "I";
-				case "long"		: return "J";
-				case "short"	: return "S";
-				case "void"		: return "V";
-				default : 
-					if (name.startsWith("[")) {
-						return name.replace('.','/');
-					}
-					else {
-						return "L"+name.replace('.','/')+";";
-					}
-			}
-		}
-	}
-
 	static int skipBlank(final char[] data, int from) {
 		char	symbol;
 		
@@ -256,14 +172,14 @@ class InternalUtils {
 		final int				pos[] = new int[]{from};
 		final ExpressionNode	node;
 		
-		try{pos[0] = CharUtils.skipBlank(data,pos[0],false);
+		try{pos[0] = InternalUtils.skipBlank(data,pos[0]);
 			
 			if (data[pos[0]] == '{') {
 				final List<ExpressionNode>	itemList = new ArrayList<>();
 				
 				do {pos[0]++;
 					itemList.add(parseExpression(order,data,pos,macro)); 
-					pos[0] = CharUtils.skipBlank(data,pos[0],false);
+					pos[0] = InternalUtils.skipBlank(data,pos[0]);
 				} while (data[pos[0]] == ',');
 				
 				if (data[pos[0]] == '}') {
