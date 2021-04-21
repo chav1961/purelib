@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.CharUtils;
@@ -804,6 +805,96 @@ public class CompilerUtils {
 			}
 			return sb.append(buildClassPath(field.getDeclaringClass())).append('.').append(field.getName()).append("\n").toString();
 		}
+	}
+
+	public static void collectTypes(final Set<Class<?>> types, final Field f) throws NullPointerException {
+		if (types == null) {
+			throw new NullPointerException("Set of types can't be null");
+		}
+		else if (f == null) {
+			throw new NullPointerException("Field to collect type from can't be null");
+		}
+		else {
+			types.add(resolveArrayClass(f.getType()));
+		}
+	}
+
+	public static void collectTypes(final Set<Class<?>> types, final Method m) throws NullPointerException {
+		if (types == null) {
+			throw new NullPointerException("Set of types can't be null");
+		}
+		else if (m == null) {
+			throw new NullPointerException("Method to collect type from can't be null");
+		}
+		else {
+			types.add(resolveArrayClass(m.getReturnType()));
+			for (Class<?> item : m.getParameterTypes()) {
+				types.add(resolveArrayClass(item));
+			}
+		}
+	}
+	
+	public static void collectTypes(final Set<Class<?>> types, final Constructor<?> c) throws NullPointerException {
+		if (types == null) {
+			throw new NullPointerException("Set of types can't be null");
+		}
+		else if (c == null) {
+			throw new NullPointerException("Constructor to collect type from can't be null");
+		}
+		else {
+			for (Class<?> item : c.getParameterTypes()) {
+				types.add(resolveArrayClass(item));
+			}
+			for (Class<?> item : c.getExceptionTypes()) {
+				types.add(resolveArrayClass(item));
+			}
+		}
+	}
+	
+	public static void collectTypes(final Set<Class<?>> types, final Class<?> cl) throws NullPointerException {
+		if (types == null) {
+			throw new NullPointerException("Set of types can't be null");
+		}
+		else if (cl == null) {
+			throw new NullPointerException("Class to collect type from can't be null");
+		}
+		else if (cl.isInterface()) {
+			gatherClassTypes(types,cl);
+			if (cl.getSuperclass() != null) {
+				collectTypes(types,cl.getSuperclass());
+			}
+		}
+		else {
+			gatherClassTypes(types,cl);
+			for (Class<?> item : cl.getInterfaces()) {
+				collectTypes(types,item);
+			}
+		}
+	}
+	
+	private static void gatherClassTypes(final Set<Class<?>> types, final Class<?> cl) {
+		for (Field f : cl.getDeclaredFields()) {
+			if (Modifier.isPublic(f.getModifiers()) || Modifier.isProtected(f.getModifiers())) {
+				collectTypes(types,f);
+			}
+		}
+		for (Method m : cl.getDeclaredMethods()) {
+			if (Modifier.isPublic(m.getModifiers()) || Modifier.isProtected(m.getModifiers())) {
+				collectTypes(types,m);
+			}
+		}
+		for (Constructor<?> c : cl.getDeclaredConstructors()) {
+			if (Modifier.isPublic(c.getModifiers()) || Modifier.isProtected(c.getModifiers())) {
+				collectTypes(types,c);
+			}
+		}
+	}
+
+	private static Class<?> resolveArrayClass(Class<?> source) {
+		while (source.isArray()) {
+			source = source.getComponentType();
+		}
+		return source;
 	}
 	
 	/**

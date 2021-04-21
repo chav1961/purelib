@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -1206,5 +1208,65 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 
 	public static <T> T preventRecursiveCall(final Throwable t) throws Throwable {
 		throw t;
+	}
+	
+	@FunctionalInterface
+	public interface DirectProxyExecutor {
+		Object exec(Object[] parameters) throws Exception;
+	}
+	
+	@FunctionalInterface
+	public interface ProxyCallback<T> {
+		Object process(T delegate, Method method, Object[] parameters, DirectProxyExecutor executor) throws Exception;
+	}
+	
+	public static <T> T buildProxy(final Class<T> interf, final T inst, final Set<Method> wrappedMethods, final ProxyCallback<T> callback) throws NullPointerException, IllegalArgumentException, ContentException {
+		if (interf == null) {
+			throw new NullPointerException("Interface class can't be null");
+		}
+		else if (!interf.isInterface()) {
+			throw new IllegalArgumentException("Interface class must describe interface, not class!");
+		}
+		else if (inst == null) {
+			throw new NullPointerException("Object instance can't be null");
+		}
+		else if (wrappedMethods == null) {
+			throw new NullPointerException("Wrapped method list can't be null");
+		}
+		else if (callback == null) {
+			throw new NullPointerException("Proxy callback can't be null");
+		}
+		else if (wrappedMethods.isEmpty()) {
+			return inst;
+		}
+		else {
+			final Set<Method>			fullSet = new HashSet<>();
+			final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
+			
+			CompilerUtils.walkMethods(interf, (cl,m)->fullSet.add(m));
+			final Method[]				methods = fullSet.toArray(new Method[fullSet.size()]);
+			final Set<Class<?>>			classes = new HashSet<>();
+			
+			CompilerUtils.collectTypes(classes, interf);
+//			buildProxyHeader(gca, classes);
+//			buildProxyClassConstructor(gca);
+			for (Method m : methods) {
+				if (wrappedMethods.contains(m)) {
+//					buildWrapperCall(m);
+//					buildWrapperCallback(m);
+				}
+				else {
+//					buildDirectMethodCall(m);
+				}
+			}
+//			buildProxyFooter(gca);
+			
+			final Class<?>				proxyClass = null;
+			try{
+				return interf.cast(proxyClass.getDeclaredConstructor(Method[].class).newInstance((Object)methods));
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException exc) {
+				throw new ContentException("Error instantiation proxy: "+exc.getLocalizedMessage(),exc);
+			}
+		}
 	}
 }
