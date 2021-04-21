@@ -5,8 +5,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
@@ -22,6 +24,7 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.5
  */
 
 public class CompilerUtils {
@@ -289,13 +292,42 @@ public class CompilerUtils {
 	 * @param useWildcards field name and types contains wildcards
 	 * @param recursive need walk parents of the class
 	 * @param fieldName field name template
-	 * @param availableTypes available types of the field (any of the list). NUll list means any type 
+	 * @param availableTypes available types of the field (any of the list). Empty list means any type 
 	 * @throws NullPointerException on any null parameters
+	 * @throws IllegalArgumentException on null or empty fiend name
 	 * @since 0.0.5
 	 */
-	public static void walkFieldsExtended(final Class<?> clazz, final FieldWalker walker, final boolean useWildcards, final boolean recursive, final String fieldName, final Class<?>... availableTypes) throws NullPointerException {
+	public static void walkFields(final Class<?> clazz, final FieldWalker walker, final boolean useWildcards, final boolean recursive, final String fieldName, final Class<?>... availableTypes) throws NullPointerException, IllegalArgumentException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to walk in can't be null");
+		}
+		else if (walker == null) {
+			throw new NullPointerException("Field walker callback can't be null");
+		}
+		else if (fieldName == null || fieldName.isEmpty()) {
+			throw new IllegalArgumentException("Field name can't be null or empty");
+		}
+		else if (availableTypes == null || Utils.checkArrayContent4Nulls(availableTypes) >= 0) {
+			throw new NullPointerException("Available types can't be null or contain nulls inside");
+		}
+		else if (clazz.isInterface()) {
+			if (useWildcards) {
+				walkInterfaceFields(clazz, walker, recursive, Pattern.compile(fieldName), availableTypes);
+			}
+			else {
+				walkInterfaceFields(clazz, walker, recursive, fieldName, availableTypes);
+			}
+		}
+		else {
+			if (useWildcards) {
+				walkClassFields(clazz, walker, recursive, Pattern.compile(fieldName), availableTypes);
+			}
+			else {
+				walkClassFields(clazz, walker, recursive, fieldName, availableTypes);
+			}
+		}
 	}	
-	
+
 	/**
 	 * <p>This interface describes callback for {@linkplain CompilerUtils#walkMethods(Class, MethodWalker)} method</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
@@ -349,7 +381,38 @@ public class CompilerUtils {
 	 * @throws NullPointerException on any null parameters
 	 * @since 0.0.5
 	 */
-	public static void walkMethodsExtended(final Class<?> clazz, final MethodWalker walker, final boolean useWildcards, final boolean recursive, final Class<?> retType, final String methodName, final Class<?>... parameters) throws NullPointerException {
+	public static void walkMethods(final Class<?> clazz, final MethodWalker walker, final boolean useWildcards, final boolean recursive, final Class<?> retType, final String methodName, final Class<?>... parameters) throws NullPointerException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to walk in can't be null");
+		}
+		else if (walker == null) {
+			throw new NullPointerException("Field walker callback can't be null");
+		}
+		else if (retType == null) {
+			throw new NullPointerException("Returned type can't be null. If returned type doesn't mean, type CompilerUtils.AnyType.class instead");
+		}
+		else if (methodName == null || methodName.isEmpty()) {
+			throw new IllegalArgumentException("Method name can't be null or empty");
+		}
+		else if (Utils.checkArrayContent4Nulls(parameters) >= 0) {
+			throw new NullPointerException("Available types can't be null or contain nulls inside");
+		}
+		else if (clazz.isInterface()) {
+			if (useWildcards) {
+				walkInterfaceMethods(clazz, walker, recursive, Pattern.compile(methodName), retType, parameters);
+			}
+			else {
+				walkInterfaceMethods(clazz, walker, recursive, methodName, retType, parameters);
+			}
+		}
+		else {
+			if (useWildcards) {
+				walkClassMethods(clazz, walker, recursive, Pattern.compile(methodName), retType, parameters);
+			}
+			else {
+				walkClassMethods(clazz, walker, recursive, methodName, retType, parameters);
+			}
+		}
 	}	
 	
 	/**
@@ -394,7 +457,7 @@ public class CompilerUtils {
 	}
 	
 	/**
-	 * <p>Build class path in the form &lt;package_path&gt;.&lt;ClassName&gt;
+	 * <p>Build class path in the form &lt;package_path&gt;.&lt;ClassName&gt;</p>
 	 * @param clazz class to build path for
 	 * @return path built
 	 * @throws NullPointerException if class to build path for is null
@@ -414,7 +477,7 @@ public class CompilerUtils {
 	/**
 	 * <p>Build class signature according to JVM specification</p>
 	 * @param clazz class to build signature for
-	 * @return signature built
+	 * @return signature built. Can't be null
 	 * @throws NullPointerException if class to build path for is null
 	 */
 	public static String buildClassSignature(final Class<?> clazz) throws NullPointerException {
@@ -452,6 +515,12 @@ public class CompilerUtils {
 		}
 	}
 
+	/**
+	 * <p>Build field path in the form &lt;package_path&gt;.&lt;ClassName&gt;.&lt;FieldName&gt;</p>
+	 * @param field field to build signature for
+	 * @return path built. Can't be null
+	 * @throws NullPointerException if field to build path for is null
+	 */
 	public static String buildFieldPath(final Field field) throws NullPointerException {
 		if (field == null) {
 			throw new NullPointerException("Field to build path for can't be null"); 
@@ -461,6 +530,12 @@ public class CompilerUtils {
 		}
 	}
 	
+	/**
+	 * <p>Build field signature according to JVM specifications</p>
+	 * @param field field to build signature for
+	 * @return signature built. Can't be null 
+	 * @throws NullPointerException if field to build signature for is null
+	 */
 	public static String buildFieldSignature(final Field field) throws NullPointerException {
 		if (field == null) {
 			throw new NullPointerException("Field to build signature for can't be null"); 
@@ -470,7 +545,13 @@ public class CompilerUtils {
 		}
 	}
 
-	public static String buildMethodPath(final Method method) {
+	/**
+	 * <p>Build method path in the form &lt;package_path&gt;.&lt;ClassName&gt;.&lt;MethodName&gt;</p>
+	 * @param method method to build path for
+	 * @return path built. Can't be null
+	 * @throws NullPointerException if method to build path for is null
+	 */
+	public static String buildMethodPath(final Method method) throws NullPointerException {
 		if (method == null) {
 			throw new NullPointerException("Method to build path for can't be null"); 
 		}
@@ -478,8 +559,14 @@ public class CompilerUtils {
 			return buildClassPath(method.getDeclaringClass())+"."+method.getName();
 		}
 	}
-	
-	public static String buildMethodSignature(final Method method) {
+
+	/**
+	 * <p>Build method signature according to JVM specifications</p>
+	 * @param method method to build signature for
+	 * @return signature built. Can't be null
+	 * @throws NullPointerException if method to build signature for is null
+	 */
+	public static String buildMethodSignature(final Method method) throws NullPointerException {
 		if (method == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -493,7 +580,13 @@ public class CompilerUtils {
 		}
 	}
 
-	public static String buildConstructorPath(final Constructor<?> constructor) {
+	/**
+	 * <p>Build constructor path in the form &lt;package_path&gt;.&lt;ClassName&gt;.&lt;init&gt</p>
+	 * @param constructor constructor to build path for
+	 * @return path built. Can't be null
+	 * @throws NullPointerException if constructor to build path for is null
+	 */
+	public static String buildConstructorPath(final Constructor<?> constructor) throws NullPointerException {
 		if (constructor == null) {
 			throw new NullPointerException("Constructor to build path for can't be null"); 
 		}
@@ -502,7 +595,13 @@ public class CompilerUtils {
 		}
 	}
 	
-	public static String buildConstructorSignature(final Constructor<?> constructor) {
+	/**
+	 * <p>Build constructor signature according to JVM specifications</p>
+	 * @param constructor constructor to build signature for 
+	 * @return signature built. Can't be null
+	 * @throws NullPointerException if constructor to build signature for is null
+	 */
+	public static String buildConstructorSignature(final Constructor<?> constructor) throws NullPointerException {
 		if (constructor == null) {
 			throw new NullPointerException("Constructor to build signature for can't be null"); 
 		}
@@ -516,7 +615,13 @@ public class CompilerUtils {
 		}
 	}
 	
-	public static String buildMethodHeader(final Method method) {
+	/**
+	 * <p>Build method header</p>
+	 * @param method method to build header for
+	 * @return header built. Can't be null
+	 * @throws NullPointerException if method to build header for is null
+	 */
+	public static String buildMethodHeader(final Method method) throws NullPointerException {
 		if (method == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -531,7 +636,15 @@ public class CompilerUtils {
 		}
 	}
 
-	public static String buildMethodHeader(final Method method, final String... parameterNames) {
+	/**
+	 * <p>Build method header</p>
+	 * @param method method to build header for
+	 * @param parameterNames names of method parameters
+	 * @return header built. Can't be null
+	 * @throws NullPointerException on any nulls inside parameters
+	 * @throws IllegalArgumentException on any differences between method parameters and parameter names
+	 */
+	public static String buildMethodHeader(final Method method, final String... parameterNames) throws NullPointerException, IllegalArgumentException {
 		if (method == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -585,7 +698,13 @@ public class CompilerUtils {
 		}
 	}
 
-	public static String buildMethodCall(final Method method) {
+	/**
+	 * <p>Build method call</p>
+	 * @param method method to build call for
+	 * @return method call built. Can't be null
+	 * @throws NullPointerException when method to build call for is null
+	 */
+	public static String buildMethodCall(final Method method) throws NullPointerException {
 		if (method == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -594,7 +713,14 @@ public class CompilerUtils {
 		}
 	}
 
-	public static String buildMethodCall(final Method method, final Class<?> interfaceClass) {
+	/**
+	 * <p>Build interface method call</p>
+	 * @param method method to build call for
+	 * @param interfaceClass interface where the method was described
+	 * @return method call built. Can't be null
+	 * @throws NullPointerException when any parameter is null
+	 */
+	public static String buildMethodCall(final Method method, final Class<?> interfaceClass) throws NullPointerException {
 		if (method == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -615,7 +741,13 @@ public class CompilerUtils {
 		}
 	}
 
-	public static String buildConstructorCall(final Constructor<?> method) {
+	/**
+	 * <p>Build constructor call</p>
+	 * @param method constructor to build call for
+	 * @return constructor call built. Can't be null
+	 * @throws NullPointerException when constructor to build call for is null
+	 */
+	public static String buildConstructorCall(final Constructor<?> method) throws NullPointerException {
 		if (method == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -626,7 +758,13 @@ public class CompilerUtils {
 		}
 	}
 	
-	public static String buildGetter(final Field field) {
+	/**
+	 * <p>Build field getter</p>
+	 * @param field field to build getter for
+	 * @return getter built. Can't be null
+	 * @throws NullPointerException when field to build getter for is null
+	 */
+	public static String buildGetter(final Field field) throws NullPointerException {
 		if (field == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -644,7 +782,13 @@ public class CompilerUtils {
 		}
 	}
 
-	public static String buildSetter(final Field field) {
+	/**
+	 * <p>Build field setter</p>
+	 * @param field field to build setter for
+	 * @return setter built. Can't be null
+	 * @throws NullPointerException when field to build setter for is null
+	 */
+	public static String buildSetter(final Field field) throws NullPointerException {
 		if (field == null) {
 			throw new NullPointerException("Method to build signature for can't be null"); 
 		}
@@ -662,7 +806,13 @@ public class CompilerUtils {
 		}
 	}
 	
-	public static String fileName2Class(final String fileName) {
+	/**
+	 * <p>Convert file name to class name</p>
+	 * @param fileName file name to convert to class name
+	 * @return class name. Can't be null
+	 * @throws IllegalArgumentException when file name is null or empty
+	 */
+	public static String fileName2Class(final String fileName) throws IllegalArgumentException {
 		if (fileName == null || fileName.isEmpty()) {
 			throw new IllegalArgumentException("File name can't be null or empty");
 		}
@@ -682,11 +832,155 @@ public class CompilerUtils {
 		}
 	}
 
-//	public static String class2FileName(final String clazz) {
-//		
-//	}
+	private static void walkInterfaceFields(final Class<?> clazz, final FieldWalker walker, final boolean recursive, final Pattern pattern, final Class<?>[] availableTypes) {
+		for (Field item : clazz.getDeclaredFields()) {
+			if (pattern.matcher(item.getName()).matches() && fieldTypeInList(item.getType(),availableTypes)) {
+				walker.process(clazz,item);
+			}
+		}
+		if (recursive) {
+			for (Class <?>item : clazz.getInterfaces()) {
+				walkInterfaceFields(item, walker, recursive, pattern, availableTypes);
+			}
+		}
+	}
+
+	private static void walkInterfaceFields(final Class<?> clazz, final FieldWalker walker, final boolean recursive, final String fieldName, final Class<?>[] availableTypes) {
+		for (Field item : clazz.getDeclaredFields()) {
+			if (item.getName().equals(fieldName) && fieldTypeInList(item.getType(),availableTypes)) {
+				walker.process(clazz,item);
+			}
+		}
+		if (recursive) {
+			for (Class <?>item : clazz.getInterfaces()) {
+				walkInterfaceFields(item, walker, recursive, fieldName, availableTypes);
+			}
+		}
+	}
 	
-	public static class AnyType {}
+	private static void walkClassFields(final Class<?> clazz, final FieldWalker walker, final boolean recursive, final Pattern pattern, final Class<?>[] availableTypes) {
+		for (Field item : clazz.getDeclaredFields()) {
+			if (pattern.matcher(item.getName()).matches() && fieldTypeInList(item.getType(),availableTypes)) {
+				walker.process(clazz,item);
+			}
+		}
+		if (recursive && clazz.getSuperclass() != null) {
+			walkClassFields(clazz.getSuperclass(), walker, recursive, pattern, availableTypes);
+		}
+	}
+
+	private static void walkClassFields(final Class<?> clazz, final FieldWalker walker, final boolean recursive, final String fieldName, final Class<?>[] availableTypes) {
+		for (Field item : clazz.getDeclaredFields()) {
+			if (item.getName().equals(fieldName) && fieldTypeInList(item.getType(),availableTypes)) {
+				walker.process(clazz,item);
+			}
+		}
+		if (recursive && clazz.getSuperclass() != null) {
+			walkClassFields(clazz.getSuperclass(), walker, recursive, fieldName, availableTypes);
+		}
+	}
+
+	private static boolean fieldTypeInList(final Class<?> type, final Class<?>[] availableTypes) {
+		if (availableTypes.length == 0) {
+			return true;
+		}
+		else {
+			for (Class<?> item : availableTypes) {
+				if (type.equals(item) || item.equals(AnyType.class)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	private static void walkInterfaceMethods(final Class<?> clazz, final MethodWalker walker, final boolean recursive, final Pattern pattern, final Class<?> retType, final Class<?>[] parameters) {
+		for (Method item : clazz.getDeclaredMethods()) {
+			if (pattern.matcher(item.getName()).matches() && methodTypesMatch(item.getParameterTypes(), 0, parameters, 0) && (item.getReturnType().equals(retType) || retType.equals(AnyType.class))) {
+				walker.process(clazz, item);
+			}
+		}
+		if (recursive) {
+			for (Class<?> item : clazz.getInterfaces()) {
+				walkInterfaceMethods(item, walker, recursive, pattern, retType, parameters);
+			}
+		}
+	}
+
+	private static void walkInterfaceMethods(final Class<?> clazz, final MethodWalker walker, final boolean recursive, final String methodName, final Class<?> retType, final Class<?>[] parameters) {
+		for (Method item : clazz.getDeclaredMethods()) {
+			if (item.getName().equals(methodName) && (item.getReturnType().equals(retType) || retType.equals(AnyType.class)) && Arrays.deepEquals(item.getParameterTypes(), parameters)) {
+				walker.process(clazz, item);
+			}
+		}
+		if (recursive) {
+			for (Class<?> item : clazz.getInterfaces()) {
+				walkInterfaceMethods(item, walker, recursive, methodName, retType, parameters);
+			}
+		}
+	}
+
+	private static void walkClassMethods(final Class<?> clazz, final MethodWalker walker, final boolean recursive, final Pattern pattern, final Class<?> retType, final Class<?>[] parameters) {
+		for (Method item : clazz.getDeclaredMethods()) {
+			if (pattern.matcher(item.getName()).matches() && methodTypesMatch(item.getParameterTypes(), 0, parameters, 0) && (item.getReturnType().equals(retType) || retType.equals(AnyType.class))) {
+				walker.process(clazz, item);
+			}
+		}
+		if (recursive && clazz.getSuperclass() != null) {
+			walkClassMethods(clazz.getSuperclass(), walker, recursive, pattern, retType, parameters);
+		}
+	}
+
+	private static void walkClassMethods(final Class<?> clazz, final MethodWalker walker, final boolean recursive, final String methodName, final Class<?> retType, final Class<?>[] parameters) {
+		for (Method item : clazz.getDeclaredMethods()) {
+			if (item.getName().equals(methodName) && (item.getReturnType().equals(retType) || retType.equals(AnyType.class)) && Arrays.deepEquals(item.getParameterTypes(), parameters)) {
+				walker.process(clazz, item);
+			}
+		}
+		if (recursive && clazz.getSuperclass() != null) {
+			walkClassMethods(clazz.getSuperclass(), walker, recursive, methodName, retType, parameters);
+		}
+	}
+
+	private static boolean methodTypesMatch(final Class<?>[] left, final int fromLeft, final Class<?>[] right, final int fromRight) {
+		if (fromLeft < left.length && fromRight < right.length) {
+			if (left[fromLeft].equals(right[fromRight]) || right[fromRight].equals(AnyType.class)) {
+				return methodTypesMatch(left, fromLeft + 1, right, fromRight + 1);
+			}
+			else if (right[fromRight].equals(AnyTypeList.class)) {
+				for (int index = fromLeft + 1; index <= left.length; index++) {	// EXACTLY <=, NOT < !!!
+					if (methodTypesMatch(left, index, right, fromRight + 1)) {
+						return true;
+					}
+				}
+				return false;
+			}
+			else {
+				return false;
+			}
+		}
+		else if (fromLeft >= left.length && fromRight >= right.length) {
+			return true;
+		}
+		else if (fromLeft >= left.length) {
+			return right[fromRight].equals(AnyTypeList.class);
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
+	 * <p>This interface is a marker for any type of parameter</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.5
+	 */
+	public interface AnyType {}
 	
-	public static class AnyTypeList {}
+	/**
+	 * <p>This interface is a marker for a list of any type of parameter</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.5
+	 */
+	public interface AnyTypeList {}
 }
