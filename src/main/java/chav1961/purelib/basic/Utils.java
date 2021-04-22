@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.awt.Desktop;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -8,8 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,9 +24,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.Utils.EverywhereWalkerCollector.ReferenceType;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -31,6 +37,7 @@ import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
 
@@ -95,7 +102,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public class Utils {
@@ -104,7 +111,28 @@ public class Utils {
 												@Override public void start(String caption) {}
 												@Override public boolean processed(long processed) {return true;}
 												@Override public void end() {}
-											}; 
+											};
+	private static final AtomicInteger		AI = new AtomicInteger();
+	private static AsmWriter				writer;
+	
+	static {
+		prepareStatic();
+	}
+
+	private static void prepareStatic() {
+		try{final AsmWriter			tempWriter = new AsmWriter(new ByteArrayOutputStream(),new OutputStreamWriter(System.err));
+		
+			try(final InputStream	is = GettersAndSettersFactory.class.getResourceAsStream("utilsmacros.txt");
+				final Reader		rdr = new InputStreamReader(is)) {
+				
+				Utils.copyStream(rdr,tempWriter);
+			}
+			writer = tempWriter;
+		} catch (NullPointerException | IOException e) {
+			PureLibSettings.CURRENT_LOGGER.message(Severity.error,"Utils class initialization failure: "+e.getLocalizedMessage(), e);
+			throw new PreparationException(e);
+		}
+	}
 	
 	private Utils() {
 	}
@@ -1212,16 +1240,23 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	
 	@FunctionalInterface
 	public interface DirectProxyExecutor {
-		Object exec(Object[] parameters) throws Exception;
+		Object exec(Object owner, Object[] parameters) throws Exception;
 	}
 	
 	@FunctionalInterface
 	public interface ProxyCallback<T> {
 		Object process(T delegate, Method method, Object[] parameters, DirectProxyExecutor executor) throws Exception;
 	}
-	
+
 	public static <T> T buildProxy(final Class<T> interf, final T inst, final Set<Method> wrappedMethods, final ProxyCallback<T> callback) throws NullPointerException, IllegalArgumentException, ContentException {
-		if (interf == null) {
+		return buildProxy(PureLibSettings.INTERNAL_LOADER, interf, inst, wrappedMethods, callback);
+	}
+	
+	public static <T> T buildProxy(final SimpleURLClassLoader loader, final Class<T> interf, final T inst, final Set<Method> wrappedMethods, final ProxyCallback<T> callback) throws NullPointerException, IllegalArgumentException, ContentException {
+		if (loader == null) {
+			throw new NullPointerException("Class loader can't be null");
+		}
+		else if (interf == null) {
 			throw new NullPointerException("Interface class can't be null");
 		}
 		else if (!interf.isInterface()) {
@@ -1246,27 +1281,120 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			CompilerUtils.walkMethods(interf, (cl,m)->fullSet.add(m));
 			final Method[]				methods = fullSet.toArray(new Method[fullSet.size()]);
 			final Set<Class<?>>			classes = new HashSet<>();
+			final Map<Method,Class<DirectProxyExecutor>>	dpeList = new HashMap<>();
+			final String				className = "proxy"+AI.incrementAndGet();
 			
 			CompilerUtils.collectTypes(classes, interf);
-//			buildProxyHeader(gca, classes);
-//			buildProxyClassConstructor(gca);
-			for (Method m : methods) {
-				if (wrappedMethods.contains(m)) {
-//					buildWrapperCall(m);
-//					buildWrapperCallback(m);
-				}
-				else {
-//					buildDirectMethodCall(m);
+			classes.add(ProxyCallback.class);
+			classes.add(MethodHandle.class);
+			classes.add(interf);
+			
+			for (Method item : wrappedMethods) {
+				final Class<DirectProxyExecutor>	clazz = buildDirectProxyExecutor(loader,interf, item);
+				
+				dpeList.put(item,clazz);
+				classes.add(clazz);
+			}
+			
+			gca.append(" printProxyImports\n");
+			for (Class<?> item : classes) {
+				if (!item.isPrimitive() && !item.getCanonicalName().startsWith("java.lang.")) {
+					gca.append(" printProxyImportClass \"").append(item.getName()).append("\"\n");
 				}
 			}
-//			buildProxyFooter(gca);
+			gca.append(" printProxyClass \"").append(className).append("\",\"").append(interf.getCanonicalName()).append("\"\n");
+			for (Method m : methods) {
+				if (wrappedMethods.contains(m)) {
+					gca.append(" printProxyDeclareLink \"").append(m.getName()).append("\",\"").append(m.getReturnType().getCanonicalName()).append("\",").append(buildClassSignaturesList(m.getParameterTypes())).append('\n');
+				}
+			}
+			gca.append(" printProxyConstructor \"").append(className).append("\",\"").append(interf.getCanonicalName()).append("\"\n");
+			for (Method m : methods) {
+				if (wrappedMethods.contains(m)) {
+					gca.append(" printProxyInitLink \"").append(m.getName()).append("\",\"").append(CompilerUtils.buildClassSignature(m.getReturnType())).append("\",")
+							.append(buildClassSignaturesList(m.getParameterTypes())).append('\n');
+				}
+			}
+			gca.append(" printProxyConstructorEnd \"").append(className).append("\"\n");
+			for (Method m : methods) {
+				final String	parmList = buildClassSignaturesList(m.getParameterTypes());
+				
+				gca.append(" printProxyMethod \"").append(m.getName()).append("\",\"").append(m.getReturnType().getCanonicalName()).append("\",").append(parmList).append('\n');
+				if (wrappedMethods.contains(m)) {
+					gca.append(" printProxyWrapperCall \"").append(interf.getCanonicalName()).append("\",\"").append(m.getName()).append("\",\"").append(m.getReturnType().getCanonicalName()).append("\",").append(parmList).append('\n');
+				}
+				else {
+					gca.append(" printProxyDirectMethodCall \"").append(interf.getCanonicalName()).append("\",\"").append(m.getName()).append("\",\"").append(m.getReturnType().getCanonicalName()).append("\",").append(parmList).append('\n');
+				}
+				gca.append(" printProxyMethodEnd \"").append(m.getName()).append("\"\n");
+				if (wrappedMethods.contains(m)) {
+					gca.append(" printProxyCallbackMethod \"").append(m.getName()).append("\",\"").append(m.getReturnType().getCanonicalName()).append("\",").append(parmList).append('\n');
+					gca.append(" printProxyCallbackDirectMethodCall \"").append(interf.getCanonicalName()).append("\",\"").append(m.getName()).append("\",\"").append(m.getReturnType().getCanonicalName()).append("\",").append(parmList).append('\n');
+					gca.append(" printProxyCallbackMethodEnd \"").append(m.getName()).append("\"\n");
+				}
+			}
+			gca.append(" printProxyClassEnd \"").append(className).append("\"\n");
 			
-			final Class<?>				proxyClass = null;
-			try{
+			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+				try(final AsmWriter			wr = writer.clone(loader,baos)) {
+					wr.write(gca.extract());
+					wr.flush();
+				}
+				final Class<?>	proxyClass = loader.createClass(className,baos.toByteArray());
 				return interf.cast(proxyClass.getDeclaredConstructor(Method[].class).newInstance((Object)methods));
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException exc) {
-				throw new ContentException("Error instantiation proxy: "+exc.getLocalizedMessage(),exc);
+			} catch (IOException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw new ContentException(e.getLocalizedMessage(),e); 
 			}
 		}
 	}
+
+	private static Class<DirectProxyExecutor> buildDirectProxyExecutor(final SimpleURLClassLoader loader, Class<?> interf, final Method methodCall) throws ContentException {
+		final Set<Class<?>>			classes = new HashSet<>();
+		final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
+		final String				className = "DirectProxyExecutor$"+methodCall.getName()+"$"+AI.incrementAndGet();
+
+		CompilerUtils.collectTypes(classes, methodCall);
+		classes.add(interf);
+		
+		gca.append(" printDPEImports\n");
+		for (Class<?> item : classes) {
+			if (!item.isPrimitive() && !item.getCanonicalName().startsWith("java.lang.")) {
+				gca.append(" printDPEImportClass \"").append(item.getName()).append("\"\n");
+			}
+		}
+		gca.append(" printDPEClass \"").append(className).append("\",\"").append(interf.getCanonicalName()).append("\"\n");
+		gca.append(" printDPEConstructor \"").append(className).append("\",\"").append(interf.getCanonicalName()).append("\"\n");
+		gca.append(" printDPEDirectMethodCall \"").append(interf.getCanonicalName()).append("\",\"")
+					.append(CompilerUtils.buildMethodPath(methodCall)+CompilerUtils.buildMethodSignature(methodCall))
+					.append("\",\"").append(CompilerUtils.buildClassSignature(methodCall.getReturnType())).append("\",")
+					.append(buildClassSignaturesList(methodCall.getParameterTypes())).append('\n');
+		gca.append(" printDPEClassEnd \"").append(className).append("\"\n");
+		
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final AsmWriter			wr = writer.clone(loader,baos)) {
+				wr.write(gca.extract());
+				wr.flush();
+			}
+			return (Class<DirectProxyExecutor>)loader.createClass(className,baos.toByteArray());
+		} catch (IOException e) {
+			throw new ContentException(e.getLocalizedMessage(),e); 
+		}
+	}
+
+	private static String buildClassSignaturesList(final Class<?>[] list) {
+		if (list.length == 0) {
+			return "{}";
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			char				prefix = '{';
+			
+			for (Class<?> item : list) {
+				sb.append(prefix).append('\"').append(CompilerUtils.buildClassSignature(item)).append('\"');
+				prefix = ',';
+			}
+			return sb.append('}').toString();
+		}
+	}
+	
 }

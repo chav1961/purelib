@@ -807,6 +807,13 @@ public class CompilerUtils {
 		}
 	}
 
+	/**
+	 * <p>Collect all classes used in the given field</p> 
+	 * @param types set of classes to collect into
+	 * @param f field to analyze
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.5 
+	 */
 	public static void collectTypes(final Set<Class<?>> types, final Field f) throws NullPointerException {
 		if (types == null) {
 			throw new NullPointerException("Set of types can't be null");
@@ -819,6 +826,13 @@ public class CompilerUtils {
 		}
 	}
 
+	/**
+	 * <p>Collect all classes used in the given method</p> 
+	 * @param types set of classes to collect into
+	 * @param m method to analyze
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.5 
+	 */
 	public static void collectTypes(final Set<Class<?>> types, final Method m) throws NullPointerException {
 		if (types == null) {
 			throw new NullPointerException("Set of types can't be null");
@@ -833,7 +847,14 @@ public class CompilerUtils {
 			}
 		}
 	}
-	
+
+	/**
+	 * <p>Collect all classes used in the given constructor</p>
+	 * @param types set of classes to collect into
+	 * @param c constructor to analyze
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.5 
+	 */
 	public static void collectTypes(final Set<Class<?>> types, final Constructor<?> c) throws NullPointerException {
 		if (types == null) {
 			throw new NullPointerException("Set of types can't be null");
@@ -850,7 +871,14 @@ public class CompilerUtils {
 			}
 		}
 	}
-	
+
+	/**
+	 * <p>Collect all classes used in the given class</p>
+	 * @param types set of classes to collect into
+	 * @param cl class to analyze
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.5 
+	 */
 	public static void collectTypes(final Set<Class<?>> types, final Class<?> cl) throws NullPointerException {
 		if (types == null) {
 			throw new NullPointerException("Set of types can't be null");

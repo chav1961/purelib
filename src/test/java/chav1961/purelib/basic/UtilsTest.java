@@ -8,8 +8,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -435,4 +438,14 @@ public class UtilsTest {
 			}
 		}
 	}
+	
+//	@Test
+	public void buildProxyTest() throws IOException, ParserConfigurationException, SAXException, ContentException, NoSuchMethodException {
+		final Class<Connection>	connClass = Connection.class;
+		final Set<Method>		methods = new HashSet<>();
+		final Connection		inst = (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {connClass}, (a,b,c)->{return null;});
+		
+		methods.add(connClass.getMethod("createStatement"));
+		Utils.buildProxy(connClass, inst, methods, (a,b,c,d)->{return null;});
+	}	
 }

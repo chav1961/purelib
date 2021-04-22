@@ -998,7 +998,7 @@ class LineParser implements LineByLineProcessorCallback {
 										throw new SyntaxException(lineNo,0,"Valid command outside context. Check that .stack or .begin directive was typed earlier"); 
 									}
 									else {
-										throw new SyntaxException(lineNo,0,"Unparsed line in the input: ["+new String(data,from,len-1)+"] is unknown or illegal for the ["+state+"]"); 
+										throw new SyntaxException(lineNo,0,"Unparsed line in the input: ["+new String(data,from,len-1)+"] is unknown or illegal for the ["+state+"] context"); 
 									}
 								}
 							}
@@ -1008,7 +1008,7 @@ class LineParser implements LineByLineProcessorCallback {
 //			exc.printStackTrace();
 			throw new IOException(exc.getLocalizedMessage(),exc);
 		} catch (ContentException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo,start-from,new String(data,from,len)+exc.getMessage(),exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
 		}

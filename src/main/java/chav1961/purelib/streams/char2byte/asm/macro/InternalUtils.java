@@ -150,6 +150,15 @@ class InternalUtils {
 				}
 			case '{' :
 				final List<ExpressionNode>	itemList = new ArrayList<>();
+				from = skipBlank(data,from+1);
+				
+				if (data[from] == '}') {
+					result[0] = new ConstantNode(ExpressionNodeValue.STRING_ARRAY);
+					return from + 1;
+				}
+				else {
+					from--;
+				}
 				
 				do {from = skipBlank(data,parseConstant(data, from+1, treatUnknownAsString, result));
 					itemList.add(result[0]);

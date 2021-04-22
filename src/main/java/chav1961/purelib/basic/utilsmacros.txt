@@ -1,0 +1,507 @@
+; --------------------------------------------------------------------
+
+printProxyImports .macro
+	.import		java.lang.Object
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyImportClass .macro className:str
+	.if !exists(className)
+		.error		"mandatory parameter 'className' is missing"
+	.else
+		.import &className
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyClass .macro className:str,interfName:str
+	.if !exists(className)
+		.error		"mandatory parameter 'className' is missing"
+	.elseif !exists(interfName)
+		.error		"mandatory parameter 'interfName' is missing"
+	.else
+&className 	.class public extends java.lang.Object implements &interfName
+delegate	.field &interfName private final
+proxy		.field chav1961.purelib.basic.Utils$ProxyCallback
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyDeclareLink .macro methodName:str,retType:str,parmList:str[]
+	.if !exists(methodName)
+		.error		"mandatory parameter 'methodName' is missing"
+	.elseif !exists(retType)
+		.error		"mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error		"mandatory parameter 'parmList' is missing"
+	.else
+&methodName.$handle .field	java.lang.invoke.MethodHandle private final
+&methodName.$method .field	java.lang.reflect.Method private final
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyConstructor .macro className:str,interfName:str
+	.if !exists(className)
+		.error		"mandatory parameter 'className' is missing"
+	.elseif !exists(interfName)
+		.error		"mandatory parameter 'interfName' is missing"
+	.else
+&className .method  void public
+this		.parameter &className final
+delegateP	.parameter &interfName final 
+proxyP		.field chav1961.purelib.basic.Utils$ProxyCallback final
+			.stack	optimistic
+			aload		this
+			invokespecial java.lang.Object.Object()V
+			aload		this
+			aload		delegateP
+			putfield	delegate
+			aload		this
+			aload		proxyP
+			putfield	proxy
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyInitLink .macro methodName:str,retType:str,parmList:str[]
+index	.local int
+	.if !exists(methodName)
+		.error		"mandatory parameter 'methodName' is missing"
+	.elseif !exists(retType)
+		.error		"mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error		"mandatory parameter 'parmList' is missing"
+	.else
+		aload	delegateP
+		invokevirtual java.lang.Object.getClass()Ljava/lang/Class
+		ldc		"&methodName"
+		ldc 	&retType..class
+		.for index = 0 to len(parmList)-1
+			ldc &parmList[index].class
+		.endfor
+		invokestatic	chav1961.purelib.basic.AssemblerRuntime.buildMethodHandle(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/Class;[Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;
+		putfield		&methodName.$handle
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyConstructorEnd .macro className:str
+	.if !exists(className)
+		.error		"mandatory parameter 'className' is missing"
+	.else
+&className	.end	
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyMethod .macro methodName:str,retType:str,parmList:str[]
+index	.local int
+	.if !exists(methodName)
+		.error		"mandatory parameter 'methodName' is missing"
+	.elseif !exists(retType)
+		.error		"mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error		"mandatory parameter 'parmList' is missing"
+	.else
+&methodName 	.method	&retType public
+this			.parameter ??? final
+		.for index = 0 to len(parmList)-1
+p&index			.parameter &parmList[index] final
+		.endfor
+arrlist			.field	java.lang.Object[] final		
+				.stack optimistic
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyDirectMethodCall .macro interfName:str,methodSignature:str,retType:str,parmList:str[]
+index	.local int
+	.if !exists(interfName)
+		.error		"mandatory parameter 'interfName' is missing"
+	.elseif !exists(methodSignature)
+		.error		"mandatory parameter 'methodSignature' is missing"
+	.elseif !exists(retType)
+		.error		"mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error		"mandatory parameter 'parmList' is missing"
+	.else
+				aload		this
+				getfield	delegate
+		.for index = 0 to len(parmList)-1
+			.choise	parmList[index]
+				.of "byte"
+					iload	p&index
+				.of "short"
+					iload	p&index
+				.of "int"
+					iload	p&index
+				.of "long"
+					lload	p&index
+				.of "float"
+					fload	p&index
+				.of "double"
+					dload	p&index
+				.of "char"
+					iload	p&index
+				.of "boolean"
+					iload	p&index
+				.otherwise
+					aload	p&index
+			.endchoise
+		.endfor
+				invokeinterface &methodSignature
+		.choise	retType
+			.of "byte"
+					ireturn
+			.of "short"
+					ireturn
+			.of "int"
+					ireturn
+			.of "long"
+					lreturn
+			.of "float"
+					freturn
+			.of "double"
+					dreturn
+			.of "char"
+					ireturn
+			.of "boolean"
+					ireturn
+			.otherwise
+					areturn
+		.endchoise
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyWrapperCall .macro interfName:str,methodName:str,methodSignature:str,retType:str,parmList:str[]
+index	.local int
+	.if !exists(interfName)
+		.error		"mandatory parameter 'interfName' is missing"
+	.elseif !exists(methodName)
+		.error		"mandatory parameter 'methodName' is missing"
+	.elseif !exists(methodSignature)
+		.error		"mandatory parameter 'methodSignature' is missing"
+	.elseif !exists(retType)
+		.error		"mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error		"mandatory parameter 'parmList' is missing"
+	.else
+				aload		this
+				getfield	proxy
+				aload		this
+				getfield	delegate
+				aload		this
+				getfield	&methodName.$method
+index	.set	len(parmList)				
+				ldc			&index
+				multianewarray java.lang.Object,1
+				dup
+				astore		arraylist
+		.for index = 0 to len(parmList)-1
+				aload		arraylist
+				ldc			&index
+			.choise	parmList[index]
+				.of "byte"
+					iload	p&index
+					invokestatic	java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+				.of "short"
+					iload	p&index
+					invokestatic	java.lang.Short.valueOf(S)Ljava/lang/Short;
+				.of "int"
+					iload	p&index
+					invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+				.of "long"
+					lload	p&index
+					invokestatic	java.lang.Long.valueOf(L)Ljava/lang/Long;
+				.of "float"
+					fload	p&index
+					invokestatic	java.lang.Float.valueOf(F)Ljava/lang/Float;
+				.of "double"
+					dload	p&index
+					invokestatic	java.lang.Double.valueOf(D)Ljava/lang/Double;
+				.of "char"
+					iload	p&index
+					invokestatic	java.lang.Character.valueOf(C)Ljava/lang/Character;
+				.of "boolean"
+					iload	p&index
+					invokestatic	java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+				.otherwise
+					aload	p&index
+			.endchoise
+				aastore
+		.endfor
+				invokeinterface		proxy
+		.choise	retType
+			.of "byte"
+					invokestatic	java.lang.Byte.byteValue()B
+					ireturn
+			.of "short"
+					invokestatic	java.lang.Short.shortValue()S
+					ireturn
+			.of "int"
+					invokestatic	java.lang.Integer.intValue()I
+					ireturn
+			.of "long"
+					invokestatic	java.lang.Long.longValue()J
+					lreturn
+			.of "float"
+					invokestatic	java.lang.Float.floatValue()F
+					freturn
+			.of "double"
+					invokestatic	java.lang.Double.doubleValue()D
+					dreturn
+			.of "char"
+					invokestatic	java.lang.Character.charValue()C
+					ireturn
+			.of "boolean"
+					invokestatic	java.lang.Boolean.boolValue()Z
+					ireturn
+			.otherwise
+					areturn
+		.endchoise
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyMethodEnd .macro methodName:str
+	.if !exists(methodName)
+		.error		"mandatory parameter 'methodName' is missing"
+	.else
+&methodName	.end	
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyCallbackMethod .macro methodName:str,retType:str,parmList:str[]
+index	.var int
+	.if !exists(methodName)
+		.error		"mandatory parameter 'methodName' is missing"
+	.elseif !exists(retType)
+		.error		"mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error		"mandatory parameter 'parmList' is missing"
+	.else
+&methodName.$callback 	.method	&retType private
+this		.parameter ??? final
+delegateP	.parameter ??? final 
+arrayP		.parameter java.lang.Object[] final
+			.stack optimistic
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyCallbackDirectMethodCall .macro interfName:str,methodSignature:str,retType:str,parmList:str[]
+index	.local int
+	.if !exists(interfName)
+		.error		"mandatory parameter 'interfName' is missing"
+	.elseif !exists(methodSignature)
+		.error		"mandatory parameter 'methodSignature' is missing"
+	.elseif !exists(retType)
+		.error		"mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error		"mandatory parameter 'parmList' is missing"
+	.else
+				aload		delegate
+		.for index = 0 to len(parmList)-1
+				aload		arrayP
+				ldc		&index
+				aaload
+			.choise	parmList[index]
+				.of "byte"
+					invokestatic java.lang.Byte.byteValue()B
+				.of "short"
+					invokestatic java.lang.Short.shortValue()S
+				.of "int"
+					invokestatic java.lang.Integer.intValue()I
+				.of "long"
+					invokestatic java.lang.Long.longValue()J
+				.of "float"
+					invokestatic java.lang.Float.floatValue()F
+				.of "double"
+					invokestatic java.lang.Double.doubleValue()D
+				.of "char"
+					invokestatic java.lang.Character.charValue()C
+				.of "boolean"
+					invokestatic java.lang.Boolean.boolValue()Z
+				.otherwise
+			.endchoise
+		.endfor
+				invokeinterface &methodSignature
+		.choise	retType
+			.of "byte"
+					ireturn
+			.of "short"
+					ireturn
+			.of "int"
+					ireturn
+			.of "long"
+					lreturn
+			.of "float"
+					freturn
+			.of "double"
+					dreturn
+			.of "char"
+					ireturn
+			.of "boolean"
+					ireturn
+			.otherwise
+					areturn
+		.endchoise
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyCallbackMethodEnd .macro methodName:str
+	.if !exists(methodName)
+		.error		"mandatory parameter 'methodName' is missing"
+	.else
+&methodName	.end	
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printProxyClassEnd .macro className:str
+	.if !exists(className)
+		.error		"mandatory parameter 'className' is missing"
+	.else
+&className	.end	
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printDPEImports 	.macro
+	.import			java.lang.Object
+	.mend
+
+; --------------------------------------------------------------------
+
+printDPEImportClass .macro className:str
+	.if !exists(className)
+		.error "Mandatory parameter 'className' is missing"
+	.else
+		.import	&className
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+	
+printDPEClass 		.macro className:str,interfName:str
+	.if !exists(className)
+		.error "Mandatory parameter 'className' is missing"
+	.elseif !exists(interfName)
+		.error "Mandatory parameter 'interfName' is missing"
+	.else
+&className	.class	public extends java.lang.Object implements &interfName	
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+
+printDPEConstructor .macro className:str,interfName:str
+	.if !exists(className)
+		.error "Mandatory parameter 'className' is missing"
+	.elseif !exists(interfName)
+		.error "Mandatory parameter 'interfName' is missing"
+	.else
+&className	.method	void public
+		.stack 	1
+		aload	this
+		invokespecial	java.lang.Object.Object()V
+		return
+&className	.end
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+
+printDPEDirectMethodCall	.macro interfName:str,methodSignature:str,retType:str,parmList:str[]
+index	.local	int
+	.if !exists(interfName)
+		.error "Mandatory parameter 'interfName' is missing"
+	.elseif !exists(methodSignature)
+		.error "Mandatory parameter 'methodSignature' is missing"
+	.elseif !exists(retType)
+		.error "Mandatory parameter 'retType' is missing"
+	.elseif !exists(parmList)
+		.error "Mandatory parameter 'parmList' is missing"
+	.else
+exec		.method java.lang.Object public
+delegate	.parameter		&interfName final
+arrayList	.parameter		java.lang.Object[] final
+			.stack 			optimistic
+			aload			delegate
+			.for index = 0 to len(parmList)-1
+				aload	arrayList
+				ldc		&index
+				aaload
+				.choise parmList[index]
+					.of "byte"
+						invokestatic java.lang.Byte.byteValue()B
+					.of "short"
+						invokestatic java.lang.Short.shortValue()S
+					.of "int"
+						invokestatic java.lang.Integer.intValue()I
+					.of "long"
+						invokestatic java.lang.Long.longValue()J
+					.of "float"
+						invokestatic java.lang.Float.floatValue()F
+					.of "double"
+						invokestatic java.lang.Double.doubleValue()D
+					.of "char"
+						invokestatic java.lang.Character.charValue()C
+					.of "boolean"
+						invokestatic java.lang.Boolean.boolValue()Z
+				.endchoise
+			.endfor
+			invokeinterface	&methodSignature
+			.choise	retType
+				.of "byte"
+					invokestatic java.lang.Byte.valueOf(B)Ljava/lang/Byte;
+				.of "short"
+					invokestatic java.lang.Short.valueOf(S)Ljava/lang/Short;
+				.of "int"
+					invokestatic java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+				.of "long"
+					invokestatic java.lang.Long.valueOf(J)Ljava/lang/Long;
+				.of "float"
+					invokestatic java.lang.Float.valueOf(F)Ljava/lang/Float;
+				.of "double"
+					invokestatic java.lang.Double.valueOf(D)Ljava/lang/Double;
+				.of "char"
+					invokestatic java.lang.Character.valueOf(C)Ljava/lang/Character;
+				.of "boolean"
+					invokestatic java.lang.Boolean.valueOf(Z)Ljava/lang/Boolean;
+				.otherwise
+			.endchoise
+			areturn
+exec		.end
+	.endif
+	.mend
+
+; --------------------------------------------------------------------
+
+printDPEClassEnd	.macro	className:str
+	.if !exists(className)
+		.error "Mandatory parameter 'className' is missing"
+	.else
+&className	.end
+	.endif
+	.mend
+	
