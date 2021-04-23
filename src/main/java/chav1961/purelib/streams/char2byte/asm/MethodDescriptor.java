@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -19,6 +20,7 @@ class MethodDescriptor implements Closeable {
 	private static final String					CLASS_INIT_STRING = "<clinit>"; 
 
 	final short									accessFlags;
+	final short									specialFlags;
 	
 	private final List<Long>					parametersList = new ArrayList<>();
 	private final List<StackLevel>				pushStack = new ArrayList<>();
@@ -42,12 +44,13 @@ class MethodDescriptor implements Closeable {
 	private short								signatureDispl;
 	private boolean								parametersEnded = false, needVarsTable = false, needStackMapTable = false;
 	
-	MethodDescriptor(final short majorVersion, final short minorVersion, final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
+	MethodDescriptor(final short majorVersion, final short minorVersion, final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final short specialFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
 		final int	tLen = throwsList.length;
 		
 		this.tree = tree;						
 		this.ccr = ccr;	
 		this.accessFlags = accessFlags;
+		this.specialFlags = specialFlags;
 		this.classId = classId;
 		this.methodId = methodId;
 		this.returnedTypeId = returnTypeId;		
@@ -89,6 +92,26 @@ class MethodDescriptor implements Closeable {
 	
 	boolean isAbstract() {
 		return (accessFlags & Constants.ACC_ABSTRACT) != 0; 
+	}
+	
+	boolean isStatic() {
+		return (accessFlags & Constants.ACC_STATIC) != 0; 
+	}
+
+	boolean isBootstrap() {
+		return (specialFlags & LineParser.SPECIAL_FLAG_BOOTSTRAP) != 0; 
+	}
+	
+	StackLevel getTopStack() {
+		return pushStack.get(0);
+	}
+
+	long[] getParametersList() {
+		return Utils.unwrapArray(parametersList.toArray(new Long[parametersList.size()]));
+	}
+
+	long getReturnedType() {
+		return returnedTypeId;
 	}
 	
 	SyntaxTreeInterface<NameDescriptor> getNameTree(){

@@ -129,11 +129,11 @@ public class ClassContainerTest {
 			cc.getNameTree().placeName("long",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 			cc.getNameTree().placeName("this",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 			cc.setClassName((short) 0x0401,0,cc.getNameTree().placeName("Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethod",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID))).complete();
-			cc.addMethodDescription((short) 0x0401,cc.getNameTree().placeName("voidAbstractMethodWithThrows",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID))).complete();
+			cc.addMethodDescription((short) 0x0401,(short)0,cc.getNameTree().placeName("voidAbstractMethod",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID))).complete();
+			cc.addMethodDescription((short) 0x0401,(short)0,cc.getNameTree().placeName("voidAbstractMethodWithThrows",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID))).complete();
 			
 			long	id;
-			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,id = cc.getNameTree().placeName("voidMethodWithThrows",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,(short)0,id = cc.getNameTree().placeName("voidMethodWithThrows",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("void",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("java.lang.Throwable",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			
 			ps.println(cc.getNameTree().getName(id));
 			desc.getBody().putCommand(0,(byte)0xB1);	// Void method with return command only
@@ -156,7 +156,7 @@ public class ClassContainerTest {
 
 			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName("Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			
-			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,cc.getNameTree().placeName("add",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			final MethodDescriptor	desc = cc.addMethodDescription((short) 0x0009,(short)0,cc.getNameTree().placeName("add",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			desc.addParameterDeclaration((short)0x0000,cc.getNameTree().placeName("x",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			desc.addParameterDeclaration((short)0x0000,cc.getNameTree().placeName("y",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),cc.getNameTree().placeName("int",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			

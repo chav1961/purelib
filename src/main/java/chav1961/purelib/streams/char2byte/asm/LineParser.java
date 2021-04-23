@@ -6,6 +6,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -46,8 +50,15 @@ class LineParser implements LineByLineProcessorCallback {
 	static final char[]								LONG = "long".toCharArray();
 	static final char[]								DOUBLE = "double".toCharArray();
 	static final char[]								THIS = "this".toCharArray();
+	static final char[]								CALLSITE = CallSite.class.getCanonicalName().toCharArray();
+	static final char[]								METHODHANDLE = MethodHandle.class.getCanonicalName().toCharArray();
+	static final char[]								METHODHANDLESLOOKUP = MethodHandles.Lookup.class.getName().toCharArray();
+	static final char[]								STRING = String.class.getName().toCharArray();
+	static final char[]								METHODTYPE = MethodType.class.getCanonicalName().toCharArray();
 	static final char[]								CONSTRUCTOR = "<init>".toCharArray();
 	static final char[]								CLASS_CONSTRUCTOR = "<clinit>".toCharArray();
+
+	static final short								SPECIAL_FLAG_BOOTSTRAP = 0x0001;
 	
 	private static final int						EXPONENT_BASE = 305;
 	private static final double[]					EXPONENTS;
@@ -102,6 +113,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final int						OPTION_NATIVE = 116;
 	private static final int						OPTION_STRICT = 117;
 	private static final int						OPTION_THROWS = 118;
+	private static final int						OPTION_BOOTSTRAP = 119;
 	
 	private static final int						T_BASE = 200;
 	private static final int						T_BOOLEAN = T_BASE+4;
@@ -205,6 +217,7 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticDirective(OPTION_NATIVE,new DirectiveOption(Constants.ACC_NATIVE),Constants.ACC_NATIVE_NAME);
 		placeStaticDirective(OPTION_STRICT,new DirectiveOption(Constants.ACC_STRICT),Constants.ACC_STRICT_NAME);
 		placeStaticDirective(OPTION_THROWS,new DirectiveExceptionsOption(),"throws");
+		placeStaticDirective(OPTION_BOOTSTRAP,new DirectiveSpecialFlag(SPECIAL_FLAG_BOOTSTRAP),"bootstrap");
 
 		placeStaticDirective(T_BOOLEAN,m,"boolean");
 		placeStaticDirective(T_CHAR,m,"char");
@@ -354,7 +367,7 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x68,false,"imul",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x74,false,"ineg",StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0xc1,false,"instanceof",CommandFormat.classShortIndex,StackChanges.popAndPushInt,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0xba,false,"invokedynamic",CommandFormat.restricted,StackChanges.none);
+		placeStaticCommand(0xba,false,"invokedynamic",CommandFormat.callDynamic,StackChanges.none);
 		placeStaticCommand(0xb9,false,"invokeinterface",CommandFormat.callInterface,StackChanges.callAndPush);
 		placeStaticCommand(0xb7,false,"invokespecial",CommandFormat.call,StackChanges.callAndPush);
 		placeStaticCommand(0xb8,false,"invokestatic",CommandFormat.call,StackChanges.callStaticAndPush);
@@ -439,6 +452,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private final EntityDescriptor						forEntity = new EntityDescriptor();
 	private final Writer								diagnostics;
 	private final long									constructorId, classConstructorId, voidId, doubleId, longId, thisId;
+	private final long									callSiteId, methodHandlesLookupId, stringId, methodHandleId, methodTypeId;
 	private final long									longArray[] = new long[2];	// Temporary arrays to use in different calls
 	private final int									intArray[] = new int[2];
 	private final short									shortArray[] = new short[2];
@@ -464,19 +478,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private short										stackSize4CurrentMethod = 0;
 	
 	LineParser(final ClassLoader owner, final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
-		this.owner = owner;
-		this.cc = cc;
-		this.cdr = cdr;
-		this.macros = macros;
-		this.loader = loader;
-		this.tree = cc.getNameTree();
-		this.diagnostics = null;
-		this.constructorId = tree.placeOrChangeName(CONSTRUCTOR,0,CONSTRUCTOR.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
-		this.classConstructorId = tree.placeOrChangeName(CLASS_CONSTRUCTOR,0,CLASS_CONSTRUCTOR.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
-		this.voidId = tree.placeOrChangeName(VOID,0,VOID.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
-		this.doubleId = tree.placeOrChangeName(DOUBLE,0,DOUBLE.length,new NameDescriptor(CompilerUtils.CLASSTYPE_DOUBLE));
-		this.longId = tree.placeOrChangeName(LONG,0,LONG.length,new NameDescriptor(CompilerUtils.CLASSTYPE_LONG));
-		this.thisId = tree.placeOrChangeName(THIS,0,THIS.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+		this(owner,cc,cdr,macros,loader,null);
 	}
 
 	LineParser(final ClassLoader owner, final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader, final Writer diagnostics) throws IOException, ContentException {
@@ -493,6 +495,11 @@ class LineParser implements LineByLineProcessorCallback {
 		this.doubleId = tree.placeOrChangeName(DOUBLE,0,DOUBLE.length,new NameDescriptor(CompilerUtils.CLASSTYPE_DOUBLE));
 		this.longId = tree.placeOrChangeName(LONG,0,LONG.length,new NameDescriptor(CompilerUtils.CLASSTYPE_LONG));
 		this.thisId = tree.placeOrChangeName(THIS,0,THIS.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+		this.callSiteId = tree.placeOrChangeName(CALLSITE,0,CALLSITE.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+		this.methodHandleId = tree.placeOrChangeName(METHODHANDLE,0,METHODHANDLE.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+		this.methodHandlesLookupId = tree.placeOrChangeName(METHODHANDLESLOOKUP,0,METHODHANDLESLOOKUP.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+		this.stringId = tree.placeOrChangeName(STRING,0,STRING.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+		this.methodTypeId = tree.placeOrChangeName(METHODTYPE,0,METHODTYPE.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 	}
 	
 	@Override
@@ -514,8 +521,8 @@ class LineParser implements LineByLineProcessorCallback {
 						throw new ContentException("Duplicate macros ["+macroName+"] in the input stream");
 					}
 					else {
-						final GrowableCharArray	writer = new GrowableCharArray(true), stringRepo = new GrowableCharArray(false);
-						final String			className = this.getClass().getPackage().getName()+'.'+new String(currentMacros.getName()); 
+						final GrowableCharArray<?>	writer = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
+						final String				className = this.getClass().getPackage().getName()+'.'+new String(currentMacros.getName()); 
 						
 						try{MacroCompiler.compile(className,currentMacros.getRoot(),writer,stringRepo);
 							currentMacros.compile(loader.createClass(className,writer).getConstructor(char[].class).newInstance(stringRepo.extract()));
@@ -1417,7 +1424,7 @@ class LineParser implements LineByLineProcessorCallback {
 			final int		retType = CompilerUtils.defineClassType(type);
 			final long		typeId = tree.placeOrChangeName(type.getName(),new NameDescriptor(retType));
 			
-			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"method",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_SYNCHRONIZED,OPTION_BRIDGE,OPTION_VARARGS,OPTION_NATIVE,OPTION_ABSTRACT,OPTION_SYNTHETIC,OPTION_THROWS);
+			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"method",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_SYNCHRONIZED,OPTION_BRIDGE,OPTION_VARARGS,OPTION_NATIVE,OPTION_ABSTRACT,OPTION_SYNTHETIC,OPTION_THROWS,OPTION_BOOTSTRAP);
 			if ((classFlags & Constants.ACC_ABSTRACT) == 0 && (forEntity.options & Constants.ACC_ABSTRACT) != 0) {
 				throw new ContentException("Attempt to add abstract method to the non-abstract class!");
 			}
@@ -1448,10 +1455,10 @@ class LineParser implements LineByLineProcessorCallback {
 					for (int index = 0; index < throwsList.length; index++) {
 						throwsList[index] = tree.placeOrChangeName(forEntity.throwsList.get(index).getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 					}
-					methodDescriptor = cc.addMethodDescription(forEntity.options,methodNameId,typeId,throwsList);
+					methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,methodNameId,typeId,throwsList);
 				}
 				else {
-					methodDescriptor = cc.addMethodDescription(forEntity.options,methodNameId,typeId);
+					methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,methodNameId,typeId);
 				}
 			}
 		}
@@ -1472,10 +1479,10 @@ class LineParser implements LineByLineProcessorCallback {
 			for (int index = 0; index < throwsList.length; index++) {
 				throwsList[index] = tree.placeOrChangeName(forEntity.throwsList.get(index).getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 			}
-			methodDescriptor = cc.addMethodDescription(forEntity.options,id,typeId,throwsList);
+			methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,id,typeId,throwsList);
 		}
 		else {
-			methodDescriptor = cc.addMethodDescription(forEntity.options,id,typeId);
+			methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,id,typeId);
 		}
 		methodNameId = id;
 	}
@@ -1537,6 +1544,26 @@ class LineParser implements LineByLineProcessorCallback {
 				break;
 		}
 		skip2line(data,start);
+		if (methodDescriptor.isBootstrap()) {
+			if (!methodDescriptor.isStatic()) {
+				throw new ContentException("Bootstrap method must be static only!");
+			}
+			else {
+				final long[] 	plist = methodDescriptor.getParametersList();
+				
+				if (plist.length >= 3) {
+					if (!(plist[0] == methodHandlesLookupId && plist[1] == stringId && plist[2] == methodTypeId)) {
+						throw new ContentException("Illegal parameters for bootstrap method. The same first three one must be MethodHandles.Lookup,String and MethodType only!");
+					}
+					else if (methodDescriptor.getReturnedType() != callSiteId) {
+						throw new ContentException("Illegal returned type for bootstrap method. Must be CallSite only!");
+					}
+				}
+				else {
+					throw new ContentException("Bootstrap method must contain at least 3 parameters!");
+				}
+			}
+		}
 	}
 	
 	private void processPackageDir(final char[] data, int start) throws ContentException {
@@ -2246,6 +2273,21 @@ class LineParser implements LineByLineProcessorCallback {
 	}	
 
 	private void processDynamicCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
+		start = InternalUtils.skipBlank(data, CharUtils.parseName(data, InternalUtils.skipBlank(data, start), intArray));
+		final long	bootstrapMethodNameId = cc.getNameTree().seekName(data,intArray[0],intArray[1]);  
+		final int	forResult[] = intArray, forArgsAndSignatures[] = new int[2];
+		
+		if (data[start] == ',') {
+			start = calculateMethodAddressAndSignature(data, InternalUtils.skipBlank(data, start + 1), end, forResult, forArgsAndSignatures);
+			if (forResult[0] <= 0 || forResult[0] > 2*Short.MAX_VALUE) {
+				throw new ContentException("Calculated value ["+forResult[0]+"] is too long for short index");
+			}
+			else {
+			}
+		}
+		else {
+			
+		}
 		throw new ContentException("Don't use invokedynamic connand! Use direct link to the methods you need instead"); 
 	}
 
@@ -2687,6 +2729,9 @@ class LineParser implements LineByLineProcessorCallback {
 					if (dd.getType() == DirectiveType.OPTION) {
 						desc.options |= ((DirectiveOption)dd).getOption();
 					}
+					else if (dd.getType() == DirectiveType.SPECIAL_FLAG) {
+						desc.specialFlags |= ((DirectiveSpecialFlag)dd).getOption();
+					}
 					else if ((dd instanceof DirectiveClassOption) && treatExtendsAsImplements) {
 						start = new DirectiveInterfacesOption().processList(data,start,cdr,desc);
 					}
@@ -2886,6 +2931,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private static class EntityDescriptor {
 		public short			options;
+		public short			specialFlags;
 		@SuppressWarnings("unused")
 		public Class<?>			extendsItem;
 		public List<Class<?>>	implementsList = new ArrayList<>();
@@ -2893,6 +2939,7 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		public void clear() {
 			options = 0;
+			specialFlags = 0;
 			extendsItem = null;
 			implementsList.clear();
 			throwsList.clear();
@@ -2900,7 +2947,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private enum DirectiveType {
-		OPTION, LIST
+		OPTION, LIST, SPECIAL_FLAG
 	}
 	
 	private abstract static class DirectiveDescriptor {
@@ -2938,6 +2985,24 @@ class LineParser implements LineByLineProcessorCallback {
 	private static class DirectiveMarker extends DirectiveDescriptor {
 		public DirectiveMarker() {
 			super(DirectiveType.OPTION);
+		}
+
+		@Override
+		public int processList(char[] data, int from, ClassDescriptionRepo cdr, EntityDescriptor result) throws ContentException {
+			return from;
+		}
+	}
+
+	private static class DirectiveSpecialFlag extends DirectiveDescriptor {
+		private final short		option;
+		
+		public DirectiveSpecialFlag(short option) {
+			super(DirectiveType.SPECIAL_FLAG);
+			this.option = option;
+		}
+
+		public short getOption() {
+			return option;
 		}
 
 		@Override

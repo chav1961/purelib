@@ -107,7 +107,7 @@ class ClassContainer implements Closeable {
 		sourceRef = source;
 	}
 	
-	MethodDescriptor addMethodDescription(final short modifiers, final long methodId, final long typeId, final long... throwsId) throws IOException, ContentException {
+	MethodDescriptor addMethodDescription(final short modifiers, final short specialFlags, final long methodId, final long typeId, final long... throwsId) throws IOException, ContentException {
 		if (joinedClassName == 0) {
 			throw new IllegalStateException("Call to addMethodDescription(...) before setClassName(...)!");
 		}
@@ -118,7 +118,7 @@ class ClassContainer implements Closeable {
 			throw new IllegalStateException("Attempt to add abstract method to non-abstract class!");
 		}
 		else {
-			final MethodDescriptor	md = new MethodDescriptor(currentMajor,currentMinor,getNameTree(),getConstantPool(),modifiers,joinedClassName,methodId,typeId,throwsId);
+			final MethodDescriptor	md = new MethodDescriptor(currentMajor,currentMinor,getNameTree(),getConstantPool(),modifiers,specialFlags,joinedClassName,methodId,typeId,throwsId);
 
 			joinClassName(joinedClassName,methodId);
 			methods.add(md);

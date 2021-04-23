@@ -1,0 +1,59 @@
+Content:
+- Sources (can ping URI)
+-- Servers (name, description, URI)
+--- Variable groups (name, description)
+---- Variable (name, description, type)
+- Checkers
+-- Checker templates (type, parameters, inheritance)
+--- Checker item (type, parameters, inheritance, alarms)
+-- Checker tree (can have folders and subtrees)
+--- Checker item (type, parameters, inheritance, alarms)
+- Navigation
+-- Navigation templates list (name, description, restrictions, can have trees inside)
+--- Navigation item (name, description, restrictions, screen)
+-- Navigation roots list (name, description, restrictions, can have trees inside)
+--- Navigation item (name, description, restrictions, screen)
+- Tabs
+-- Logs (can have folders and subtrees)
+--- Log (name, description, restrictions)
+-- History (can have folders and subtrees)
+--- History item (name, description, restrictions)
+-- Administration
+--- System settings
+--- Security settings
+---- Authentification
+---- Authorization
+---- Secure connection
+---- Encripting/Decripting
+--- Role tree (can have folders and subtrees)
+---- Role item (name, ancestors, inheritance)
+--- User groups tree (can have folders and subtrees)
+---- User group (name, description, restrictions)
+--- User tree (can have folders and subtrees)
+---- User (name, account, description, restrictions)
+--- Policies tree (can have folders and subtrees)
+---- Policy
+--- Stations tree (can have folders and subtrees)
+---- Station
+--- Calendars tree (can have folders and subtrees)
+---- Calendar
+--- Simulator's settings
+--- Life cycle
+---- Application build
+---- Application deployment
+---- Repository management
+---- Refreshing software
+--- References
+---- Documentation
+---- Help
+---- About
+There are three modes:
+- development
+- testing
+- production
+
+Sources are connected via SPI. There is a dedicated plugin to support server polling in all three modes that implements SI interface
+Repository is connected via SPI (by FileSystemInterface interface)
+Database for DA is connected via SPI. There is a dedicated plugin to support database for DA
+Database for HA is connected via SPI. There is a dedicated plugin to support database for HA
+Navigator tree is implemented by FileSystemInterface interface. File system is based on DB connection. Every node is a String path. Content of all the nodes is a serializable item. 

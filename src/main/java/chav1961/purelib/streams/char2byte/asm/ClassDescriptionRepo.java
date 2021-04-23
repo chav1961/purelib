@@ -3,6 +3,11 @@ package chav1961.purelib.streams.char2byte.asm;
 
 
 import java.io.Writer;
+import java.lang.annotation.Annotation;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -28,7 +33,8 @@ class ClassDescriptionRepo {
 	private static final String					KIND_CONSTRUCTOR = "constructor";
 
 	private static final Class<?>[]				PRELOADED_CLASSES = new Class<?>[]{boolean.class,byte.class,char.class,double.class,float.class,int.class,long.class,short.class,void.class,
-													Object.class,String.class,Throwable.class,Class.class
+													Object.class,String.class,Throwable.class,Exception.class,Enum.class,Annotation.class,Class.class,
+													CallSite.class,MethodHandle.class,MethodHandles.Lookup.class,MethodType.class
 												};
 
 	private final SyntaxTreeInterface<char[]>	referenceNames = new AndOrTree<char[]>();
