@@ -1,4 +1,3 @@
 package chav1961.purelib.testing;
 
-public interface UITestCategory {
-}
+public interface UITestCategory {}

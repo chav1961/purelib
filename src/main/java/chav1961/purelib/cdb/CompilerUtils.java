@@ -900,6 +900,49 @@ public class CompilerUtils {
 		}
 	}
 	
+	public static String buildClassNameSignature(final String className) throws IllegalArgumentException {
+		if (className == null || className.isEmpty()) {
+			throw new IllegalArgumentException("Class name to build signature for can't be null");
+		}
+		else if (className.contains("[]")) {
+			return '['+buildClassNameSignature(className.substring(0,className.lastIndexOf("[]")));
+		}
+		else {
+			switch (className) {
+				case "byte" 	: return "B";
+				case "short" 	: return "S";
+				case "int" 		: return "I";
+				case "long" 	: return "J";
+				case "float" 	: return "F";
+				case "double" 	: return "D";
+				case "char" 	: return "C";
+				case "boolean" 	: return "Z";
+				case "void" 	: return "V";
+				default : return "L"+className.replace('.', '/')+';';
+			}
+		}
+	}
+
+	public static String buildParametersSignature(final String[] parameters, final String retType) throws IllegalArgumentException {
+		if (parameters == null || Utils.checkArrayContent4Nulls(parameters) >= 0) {
+			throw new IllegalArgumentException("Parameter list to build signature for is null or contains nulls inside");
+		}
+		else if (retType == null || retType.isEmpty()) {
+			throw new IllegalArgumentException("Returned type to build signature for can't be null");
+		}
+		else if (parameters.length == 0) {
+			return "()"+buildClassNameSignature(retType);
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder('(');
+			
+			for (String item : parameters) {
+				sb.append(buildClassNameSignature(item));
+			}
+			return sb.append(')').append(buildClassNameSignature(retType)).toString();
+		}
+	}
+	
 	private static void gatherClassTypes(final Set<Class<?>> types, final Class<?> cl) {
 		for (Field f : cl.getDeclaredFields()) {
 			if (Modifier.isPublic(f.getModifiers()) || Modifier.isProtected(f.getModifiers())) {

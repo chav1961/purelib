@@ -1,5 +1,3 @@
 package chav1961.purelib.testing;
 
-public interface DatabaseTestCategory {
-
-}
+public interface DatabaseTestCategory {}
