@@ -1057,7 +1057,7 @@ loop:			for (Component comp : children(node)) {
 													} catch (ThreadDeath d) {
 														throw d;
 													} catch (Throwable exc) {
-														logger.message(Severity.error, exc, exc.getLocalizedMessage());
+														logger.message(Severity.error, exc, exc.getLocalizedMessage() == null ? exc.getClass().getSimpleName() : exc.getLocalizedMessage());
 													}
 												});
 								

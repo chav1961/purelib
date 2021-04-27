@@ -74,12 +74,17 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 				
 								@Override
 								public Component getTreeCellRendererComponent(final JTree tree, final Object value, final boolean selected, final boolean expanded, final boolean leaf, final int row, final boolean hasFocus) {
+									final JLabel 					label = (JLabel)super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+									
 									try{final ContentNodeMetadata	item = (ContentNodeMetadata)((DefaultMutableTreeNode)value).getUserObject();
-										final JLabel 				label = item.getIcon() != null ? new JLabel(localizer.getValue(item.getLabelId()),new ImageIcon(item.getIcon().toURL()),JLabel.LEFT) : new JLabel(localizer.getValue(item.getLabelId()),JLabel.LEFT);
+												
+										label.setText(localizer.getValue(item.getLabelId()));
+										if (item.getIcon() != null) {
+											label.setIcon(new ImageIcon(item.getIcon().toURL())); 
+										}
 
 										label.setName(URIUtils.removeQueryFromURI(item.getUIPath()).toString());
 										if (selected || hasFocus) {
-											label.setOpaque(true);
 											label.setForeground(Color.WHITE);
 											label.setBackground(Color.BLUE);
 										}
@@ -91,7 +96,7 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 										}
 										return label;
 									} catch (LocalizationException | MalformedURLException exc) {
-										return new JLabel(exc.getLocalizedMessage());
+										return label;
 									}
 								}
 							});
