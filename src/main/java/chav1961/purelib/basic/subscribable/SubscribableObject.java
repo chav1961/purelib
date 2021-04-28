@@ -7,7 +7,7 @@ package chav1961.purelib.basic.subscribable;
  * @param <T> any referenced type to keep in the container
  */
 @SuppressWarnings("rawtypes")
-public class SubscribableObject<T> extends Subscribable<SubscribableObjectListener>{
+public class SubscribableObject<T> extends RefSubscribable<SubscribableObjectListener>{
 	private final boolean	multithread;
 	private volatile T		value = null;
 

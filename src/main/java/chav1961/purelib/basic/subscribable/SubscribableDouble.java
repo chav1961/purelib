@@ -5,7 +5,7 @@ package chav1961.purelib.basic.subscribable;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */
-public class SubscribableDouble extends Subscribable<SubscribableDoubleListener>{
+public class SubscribableDouble extends PrimitiveSubscribable<SubscribableDoubleListener>{
 	private final boolean	multithread;
 	private volatile double	value = 0;
 

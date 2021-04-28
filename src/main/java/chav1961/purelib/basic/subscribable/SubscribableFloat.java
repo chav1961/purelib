@@ -5,7 +5,7 @@ package chav1961.purelib.basic.subscribable;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */
-public class SubscribableFloat extends Subscribable<SubscribableFloatListener>{
+public class SubscribableFloat extends PrimitiveSubscribable<SubscribableFloatListener>{
 	private final boolean	multithread;
 	private volatile float	value = 0;
 

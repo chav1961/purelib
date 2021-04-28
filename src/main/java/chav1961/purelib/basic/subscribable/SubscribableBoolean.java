@@ -5,7 +5,7 @@ package chav1961.purelib.basic.subscribable;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */
-public class SubscribableBoolean extends Subscribable<SubscribableBooleanListener>{
+public class SubscribableBoolean extends PrimitiveSubscribable<SubscribableBooleanListener>{
 	private final boolean		multithread;
 	private volatile boolean	value = false;
 

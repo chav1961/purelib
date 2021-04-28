@@ -1,11 +1,14 @@
 package chav1961.purelib.ui;
 
 import java.awt.Color;
+import java.io.Serializable;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
-public class ColorPair {
+public class ColorPair implements Serializable {
+	private static final long serialVersionUID = 869188177438346062L;
+	
 	private Color	foreground, background;
 	
 	public ColorPair(final Color foreground, final Color background) {

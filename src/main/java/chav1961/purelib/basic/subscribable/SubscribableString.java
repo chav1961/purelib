@@ -5,7 +5,7 @@ package chav1961.purelib.basic.subscribable;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */
-public class SubscribableString extends Subscribable<SubscribableStringListener>{
+public class SubscribableString extends RefSubscribable<SubscribableStringListener>{
 	private final boolean	multithread;
 	private volatile String	value = null;
 

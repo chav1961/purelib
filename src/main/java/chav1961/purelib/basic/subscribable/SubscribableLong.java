@@ -5,7 +5,7 @@ package chav1961.purelib.basic.subscribable;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */
-public class SubscribableLong extends Subscribable<SubscribableLongListener>{
+public class SubscribableLong extends PrimitiveSubscribable<SubscribableLongListener>{
 	private final boolean	multithread;
 	private volatile long	value = 0;
 
