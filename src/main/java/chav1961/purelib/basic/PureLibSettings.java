@@ -64,7 +64,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public final class PureLibSettings {
@@ -133,6 +133,11 @@ public final class PureLibSettings {
 	 */
 	public static final String		HTTP_SERVER_PORT = "purelib.settings.help.port";
 	
+	
+	/**
+	 * <p>This is a key to "Show tooltip" for debugging purposes ("standard" and "advanced" are available). Default for the given property is <b>standard</b></p>
+	 */
+	public static final String		SWING_TOOLTIP_MODE = "purelib.settings.ui.swing.tooptip.mode";
 	
 	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for plain text</p>
