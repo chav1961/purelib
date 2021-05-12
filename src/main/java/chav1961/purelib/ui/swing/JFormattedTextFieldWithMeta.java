@@ -136,6 +136,7 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			}
 			
 			setName(name);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}		
 	}

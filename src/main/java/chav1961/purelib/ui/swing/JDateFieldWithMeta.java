@@ -167,6 +167,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			setName(name);
 			callSelect.setName(name+'/'+CHOOSER_NAME);
 			fillLocalizedStrings();
+			InternalUtils.registerAdvancedTooptip(this);
 			setValue(this.currentValue);
 		}		
 	}

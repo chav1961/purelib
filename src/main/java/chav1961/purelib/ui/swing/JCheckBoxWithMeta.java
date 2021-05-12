@@ -95,6 +95,7 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 			}
 			
 			setName(name);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}
 	}

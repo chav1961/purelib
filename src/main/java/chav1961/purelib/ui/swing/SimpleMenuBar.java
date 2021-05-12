@@ -48,6 +48,7 @@ public class SimpleMenuBar extends JMenuBarWithMeta {
 				}
 				return ContinueMode.CONTINUE;
 			});
+			InternalUtils.registerAdvancedTooptip(this);
 		}
 	}
 

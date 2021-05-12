@@ -156,6 +156,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			}
 			
 			setName(name);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}		
 	}

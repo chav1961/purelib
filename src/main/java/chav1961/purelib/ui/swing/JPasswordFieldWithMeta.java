@@ -118,6 +118,7 @@ public class JPasswordFieldWithMeta extends JPasswordField implements NodeMetada
 			}
 			
 			setName(name);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}		
 	}

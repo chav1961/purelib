@@ -115,6 +115,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 			
 			setName(name);
 			callSelect.setName(name+'/'+COLOR_NAME);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}
 	}

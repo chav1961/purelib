@@ -121,6 +121,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			}
 			
 			setName(name);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}		
 	}

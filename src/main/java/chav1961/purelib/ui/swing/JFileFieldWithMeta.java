@@ -143,6 +143,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			
 			setName(name);
 			callSelect.setName(name+'/'+CHOOSER_NAME);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}		
 	}

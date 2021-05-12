@@ -316,6 +316,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				if (mdi.getRoot().getHelpId() != null) {
 					SwingUtils.assignActionKey(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{callHelp(localizer,mdi.getRoot().getHelpId());}, "help");
 				}
+				InternalUtils.registerAdvancedTooptip(this);
 				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 				
 				trans.rollback();

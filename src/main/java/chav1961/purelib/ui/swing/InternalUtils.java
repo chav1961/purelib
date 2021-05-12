@@ -3,15 +3,16 @@ package chav1961.purelib.ui.swing;
 
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.TimerTask;
 
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.text.InternationalFormatter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
@@ -28,8 +29,6 @@ class InternalUtils {
 	static final String		VALIDATION_MANDATORY = "purelib.ui.validation.mandatory";
 	static final String		VALIDATION_NEITHER_TRUE_NOR_FALSE = "purelib.ui.validation.neithertruenorfalse";
 
-	private static final PropertyChangeListener	TOOLTIP_LISTENER = (evt)->processTooltipChanges(evt);
-	
 	interface ComponentListenerCallback {
 		void process();
 	}
@@ -137,58 +136,84 @@ class InternalUtils {
 	
 	static <T extends JComponent> void registerAdvancedTooptip(final T instance) {
 		if ("advanced".equals(PureLibSettings.instance().getProperty(PureLibSettings.SWING_TOOLTIP_MODE))) {
-			instance.addPropertyChangeListener(JComponent.TOOL_TIP_TEXT_KEY, TOOLTIP_LISTENER);
-			instance.setToolTipText(instance.getToolTipText());
-		}
-	}
-	
-	static <T extends JComponent> String buildAdvancedTooltip(final T instance, final String tooltip) {
-		if ("advanced".equals(PureLibSettings.instance().getProperty(PureLibSettings.SWING_TOOLTIP_MODE))) {
-			if (tooltip == null || tooltip.isEmpty()) {
-				return buildDebuggingTooptip(instance);
-			}
-			else {
-				return tooltip + "\n" + buildDebuggingTooptip(instance);
-			}
-		}
-		else {
-			return tooltip == null || tooltip.isEmpty() ? null : tooltip;
-		}
-	}
-
-	private static void processTooltipChanges(final PropertyChangeEvent evt) {
-		if (evt.getNewValue() == null) {
-			SwingUtilities.invokeLater(()->{
-				((JComponent)evt.getSource()).setToolTipText("");
+			instance.addMouseListener(new MouseListener() {
+				@Override public void mouseReleased(MouseEvent e) {}
+				@Override public void mousePressed(MouseEvent e) {}
+				@Override public void mouseExited(MouseEvent e) {}
+				@Override public void mouseClicked(MouseEvent e) {}
+				
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					internalShowTooltip(instance,e);
+				}
 			});
 		}
 	}
 
-	private static <T extends JComponent> String buildDebuggingTooptip(final T instance) {
+	private static <T extends JComponent> void internalShowTooltip(final T instance, final MouseEvent e) {
+		final ToolTipManager	mgr = ToolTipManager.sharedInstance();
+		final String			tt = instance.getToolTipText();
+		final MouseEvent		me = new MouseEvent(instance, 0, 0, 0, e.getX(), e.getY(), 0, 0, 0, false, 0);
+		final int				initialDelay = mgr.getInitialDelay();
+		final int				dismissDelay = mgr.getDismissDelay();
+		
+		if (tt == null) {
+			mgr.registerComponent(instance);
+		}
+		mgr.setInitialDelay(PureLibSettings.instance().getProperty(PureLibSettings.SWING_TOOLTIP_MODE,int.class,"1000"));
+		mgr.setDismissDelay(PureLibSettings.instance().getProperty(PureLibSettings.SWING_TOOLTIP_MODE,int.class,"5000"));
+		instance.setToolTipText(buildDebuggingTooltip(instance,tt));
+		mgr.mouseMoved(me);
+		
+		PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(new TimerTask(){
+			@Override
+			public void run() {
+				mgr.setInitialDelay(initialDelay);
+				mgr.setDismissDelay(dismissDelay);
+				if (tt == null) {
+					mgr.unregisterComponent(instance);
+				}
+				else {
+					instance.setToolTipText(tt);
+				}
+			}
+		}, mgr.getDismissDelay());
+	}
+	
+	private static <T extends JComponent> String buildDebuggingTooltip(final T instance, final String tooltip) {
 		if (instance == null) {
-			return null;
+			return "";
 		}
 		else {
 			final Class<T>		clazz = (Class<T>) instance.getClass();
 			final StringBuilder	sb = new StringBuilder();
 			
-			sb.append("at class: ").append(clazz.getCanonicalName());
+			sb.append("<html><body>");
+			sb.append("<h3>Control description:</h3>");
+			sb.append("<p><b>Class :</b> ").append(clazz.getCanonicalName()).append("</p>");
+			if (instance.getName() != null && !instance.getName().isEmpty()) {
+				sb.append("<p><b>UI name :</b> ").append(instance.getName()).append("</p>");
+			}
 			if (clazz.getEnclosingClass() != null) {
-				sb.append("\nowned by: ").append(clazz.getEnclosingClass().getCanonicalName());
+				sb.append("<p><b>Owned by:</b> ").append(clazz.getEnclosingClass().getCanonicalName()).append("</p>");
 			}
 			if (instance.getParent() != null) {
-				sb.append("\nplaced in: ").append(instance.getParent().getClass().getCanonicalName());
+				sb.append("<p><b>Container class:</b> ").append(instance.getParent().getClass().getCanonicalName()).append("</p>");
 			}
 			if (instance instanceof NodeMetadataOwner) {
 				final ContentNodeMetadata	meta = ((NodeMetadataOwner)instance).getNodeMetadata();
 				
 				if (meta != null) {
-					sb.append("\nmodel item associated: ").append(meta.getName()).append("\nmodel APP URI: ").append(meta.getApplicationPath());
-				}
-				else {
-					sb.append("\nno model item associated now");
+					sb.append("<p><b>Model item :</b> ").append(meta.getName()).append("</p>");
+					if (meta.getApplicationPath() != null) {
+						sb.append("<p><b>Model App URI:</b> ").append(meta.getApplicationPath()).append("</p>");
+					}
 				}
 			}
+			if (tooltip != null) {
+				sb.append("<ht>").append("<p>").append(tooltip).append("</p>");
+			}
+			sb.append("</body></html>");
 			return sb.toString();
 		}
 	}

@@ -174,6 +174,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			
 			setName(name);			
 			fillLocalizedStrings();
+			InternalUtils.registerAdvancedTooptip(this);
 		}		
 	}
 

@@ -133,11 +133,20 @@ public final class PureLibSettings {
 	 */
 	public static final String		HTTP_SERVER_PORT = "purelib.settings.help.port";
 	
-	
 	/**
 	 * <p>This is a key to "Show tooltip" for debugging purposes ("standard" and "advanced" are available). Default for the given property is <b>standard</b></p>
 	 */
 	public static final String		SWING_TOOLTIP_MODE = "purelib.settings.ui.swing.tooptip.mode";
+
+	/**
+	 * <p>This is a key to "Show tooltip" initial delay for debugging purposes</p>
+	 */
+	public static final String		SWING_TOOLTIP_MODE_INITIAL_DELAY = "purelib.settings.ui.swing.tooptip.initialDelay";
+
+	/**
+	 * <p>This is a key to "Show tooltip" dismiss delay for debugging purposes</p>
+	 */
+	public static final String		SWING_TOOLTIP_MODE_DISMISS_DELAY = "purelib.settings.ui.swing.tooptip.dismissDelay";
 	
 	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for plain text</p>

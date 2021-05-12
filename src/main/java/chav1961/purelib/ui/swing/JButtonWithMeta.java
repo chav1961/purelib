@@ -70,6 +70,7 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 			
 			setName(name);
 			setActionCommand(URIUtils.removeQueryFromURI(metadata.getApplicationPath()).toString());
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}
 	}

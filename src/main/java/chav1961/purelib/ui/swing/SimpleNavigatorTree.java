@@ -176,6 +176,7 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 			});
 			
 			setName(name);
+			InternalUtils.registerAdvancedTooptip(this);
 		}
 	}
 

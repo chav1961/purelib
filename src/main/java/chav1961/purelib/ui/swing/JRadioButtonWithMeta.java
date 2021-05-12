@@ -96,6 +96,7 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 			}
 			
 			setName(name);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}
 	}

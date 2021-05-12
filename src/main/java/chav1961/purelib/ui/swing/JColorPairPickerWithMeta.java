@@ -118,6 +118,7 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 			setName(name);
 			callSelectF.setName(name+'/'+FOREGROUND_NAME);
 			callSelectB.setName(name+'/'+BACKGROUND_NAME);
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}
 	}
