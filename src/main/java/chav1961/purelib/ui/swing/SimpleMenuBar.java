@@ -1,8 +1,6 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URI;
 
 import javax.swing.JMenuItem;
 

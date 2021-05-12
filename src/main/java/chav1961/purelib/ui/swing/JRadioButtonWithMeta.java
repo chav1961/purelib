@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.InputVerifier;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
 

@@ -15,7 +15,6 @@ import java.awt.event.MouseListener;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Locale;
-import java.util.ServiceLoader;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;

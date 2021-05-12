@@ -38,7 +38,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 	
 	private final ContentNodeMetadata	metadata;
 	private final Class<Enum<?>>		clazz;
-	private Enum<?>						currentValue, newValue;
+	private Enum<?>						currentValue;
 	private boolean						invalid = false;
 	
 	public JEnumFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException {
@@ -62,7 +62,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			for (Enum<?> item : clazz.getEnumConstants()) {
 				addItem(item);
 			}
-			currentValue = newValue = clazz.getEnumConstants()[0];
+			currentValue = clazz.getEnumConstants()[0];
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
@@ -210,14 +210,14 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			
 			for (Enum<?> item : clazz.getEnumConstants()) {
 				if (test.equals(item.name())) {
-					setSelectedItem(newValue = item);
+					setSelectedItem(item);
 					return;
 				}
 			}
 			throw new IllegalArgumentException("Unknonw string value for enum ["+getValueType().getCanonicalName()+"]");
 		}
 		else if ((value instanceof Enum) && getValueType().isAssignableFrom(value.getClass())) {
-			setSelectedItem(newValue = (Enum<?>) value);
+			setSelectedItem((Enum<?>) value);
 		}
 		else {
 			throw new IllegalArgumentException("Value can't be null and value class to assign must be ["+getValueType().getCanonicalName()+"] or String");

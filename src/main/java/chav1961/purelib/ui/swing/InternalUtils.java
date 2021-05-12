@@ -185,6 +185,7 @@ class InternalUtils {
 			return "";
 		}
 		else {
+			@SuppressWarnings("unchecked")
 			final Class<T>		clazz = (Class<T>) instance.getClass();
 			final StringBuilder	sb = new StringBuilder();
 			
