@@ -112,6 +112,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.streams.StreamsUtil;
+import chav1961.purelib.ui.interfaces.ActionFormManager;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
@@ -950,8 +951,9 @@ loop:			for (Component comp : children(node)) {
 	 * @param entity instance to call onAction for
 	 * @param manager form manager to process action on entity
 	 * @since 0.0.4 
+	 * @lastUpdate 0.0.5 
 	 */
-	public static <T> void assignActionListeners(final JComponent root, final T entity, final FormManager<?,T> manager) {
+	public static <T> void assignActionListeners(final JComponent root, final T entity, final ActionFormManager<?,T> manager) {
 		if (root == null) {
 			throw new NullPointerException("Root component can't be null"); 
 		}

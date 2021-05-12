@@ -41,6 +41,12 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 
+/**
+ * <p>This class implements application navigation menu as a tree.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ * @lastUpdate 0.0.5
+ */
 public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, NodeMetadataOwner {
 	private static final long 			serialVersionUID = -978827310276837317L;
 
@@ -288,7 +294,7 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 			if (meta.getRelativeUIPath().toString().contains(Constants.MODEL_NAVIGATION_KEYSET_PREFIX)) {
 				for (ContentNodeMetadata key : item) {
 					SwingUtils.assignActionKey(component,WHEN_FOCUSED,KeyStroke.getKeyStroke(key.getLabelId()),(e)->{
-						component.findAndDoubleClick(URI.create(e.getActionCommand()));
+												component.findAndDoubleClick(URI.create(e.getActionCommand()));
 					},key.getUIPath().toString());
 				}
 			}				
