@@ -467,6 +467,31 @@ public class JsonNode  {
 		}
 	}
 	
+	/**
+	 * <p>Test weather name presents in the node. This method can be used with {@linkplain JsonNodeType#JsonObject} node only</p>  
+	 * @param childName child name to test
+	 * @return true if presents
+	 * @throws IllegalStateException see class description
+	 * @throws IllegalArgumentException node name is null, empty or not exists in the node 
+	 * @since 0.0.5
+	 */
+	public boolean hasName(final String childName) throws IllegalStateException, IllegalArgumentException {
+		if (getType() != JsonNodeType.JsonObject) {
+			throw new IllegalStateException("This method can't be called, when node type is ["+getType()+"]"); 
+		}
+		else if (childName == null || childName.isEmpty()) {
+			throw new IllegalArgumentException("Child name can't be null or empty");
+		}
+		else {
+			for (JsonNode item : children) {
+				if (item.hasName() && childName.equals(item.getName())) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

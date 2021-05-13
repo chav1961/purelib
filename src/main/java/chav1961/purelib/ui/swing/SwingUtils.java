@@ -125,7 +125,7 @@ import chav1961.purelib.ui.swing.useful.LocalizedFormatter;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public abstract class SwingUtils {
@@ -918,12 +918,44 @@ loop:			for (Component comp : children(node)) {
 	}
 
 	/**
+	 * <p>This interface describes callback for preprocessing action command string</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.5
+	 */
+	@FunctionalInterface
+	public interface PreprocessActionStringCallback<Obj,C> {
+		/**
+		 * <p>Preprocess action command</p>
+		 * @param actionCommand action command to process. Can be null
+		 * @param item item associated with action command
+		 * @param meta metadata associated with item. Can be null
+		 * @param cargo cargo associated with item. Can be null
+		 * @return string preprocessed. Can be null
+		 */
+		String process(final String actionCommand, final Obj item, final ContentNodeMetadata meta, final C cargo);
+	}
+	
+	/**
 	 * <p>Prepare action listeners to call methods marked with {@linkplain OnAction} annotation</p>
 	 * @param root root component to assign listeners to
 	 * @param entity object to call it's annotated methods 
+	 * @throws NullPointerException on any parameter is null
 	 */
-	public static void assignActionListeners(final JComponent root, final Object entity) {
-		assignActionListeners(root,entity,(action)->{sayAboutUnknownAction(null,action);});
+	public static void assignActionListeners(final JComponent root, final Object entity) throws NullPointerException {
+		assignActionListeners(root,entity,(action)->{sayAboutUnknownAction(null,action);},(actionCommand,item,meta,cargo)->actionCommand);
+	}
+
+	/**
+	 * <p>Prepare action listeners to call methods marked with {@linkplain OnAction} annotation</p>
+	 * @param <C> cargo type
+	 * @param root root component to assign listeners to. Can't be null
+	 * @param entity object to call it's annotated methods. Can't be null
+	 * @param preprocess callback to preprocess action command. Can't be null 
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.5
+	 */
+	public static <C> void assignActionListeners(final JComponent root, final Object entity, final PreprocessActionStringCallback<?,?> preprocess) throws NullPointerException {
+		assignActionListeners(root,entity,(action)->{sayAboutUnknownAction(null,action);},preprocess);
 	}
 
 	/**
@@ -931,8 +963,24 @@ loop:			for (Component comp : children(node)) {
 	 * @param root root component to assign listeners to
 	 * @param entity object to call it's annotated methods 
 	 * @param onUnknown callback to process missing actions
+	 * @throws NullPointerException on any parameter is null
 	 */
-	public static void assignActionListeners(final JComponent root, final Object entity, final FailedActionListenerCallback onUnknown) {
+	public static void assignActionListeners(final JComponent root, final Object entity, final FailedActionListenerCallback onUnknown) throws NullPointerException {
+		assignActionListeners(root,entity,onUnknown,(actionCommand,item,meta,cargo)->actionCommand);
+	}	
+
+	/**
+	 * <p>Prepare action listeners to call methods marked with {@linkplain OnAction} annotation</p>
+	 * @param <Obj> entity type
+	 * @param <C> cargo type
+	 * @param root root component to assign listeners to. Can't be null
+	 * @param entity object to call it's annotated methods. Can't be null
+	 * @param onUnknown callback to process missing actions. Can't be null
+	 * @param preprocess callback to preprocess action command. Can't be null 
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.5
+	 */
+	public static void assignActionListeners(final JComponent root, final Object entity, final FailedActionListenerCallback onUnknown, final PreprocessActionStringCallback<?,?> preprocess) throws NullPointerException {
 		if (root == null) {
 			throw new NullPointerException("Root component can't be null"); 
 		}
@@ -940,10 +988,10 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Entity class can't be null"); 
 		}
 		else {
-			assignActionListeners(root,buildAnnotatedActionListener(entity, onUnknown));
+			internalAssignActionListeners(root,buildAnnotatedActionListener(entity, onUnknown), preprocess);
 		}
 	}
-	
+
 	/**
 	 * <p>Prepare action listeners to call {@linkplain FormManager#onAction(Object, Object, String, Object)} method</p>
 	 * @param <T> any entity is used for form manager
@@ -954,6 +1002,21 @@ loop:			for (Component comp : children(node)) {
 	 * @lastUpdate 0.0.5 
 	 */
 	public static <T> void assignActionListeners(final JComponent root, final T entity, final ActionFormManager<?,T> manager) {
+		assignActionListeners(root, entity, manager, (actionCommand,item,meta,cargo)->actionCommand);
+	}
+
+	/**
+	 * <p>Prepare action listeners to call {@linkplain FormManager#onAction(Object, Object, String, Object)} method</p>
+	 * @param <T> any entity is used for form manager
+	 * @param <Obj> entity type
+	 * @param <C> cargo type
+	 * @param root component with action sources inside
+	 * @param entity instance to call onAction for
+	 * @param manager form manager to process action on entity
+	 * @param preprocess callback to preprocess action command. Can't be null 
+	 * @since 0.0.5 
+	 */
+	public static <T> void assignActionListeners(final JComponent root, final T entity, final ActionFormManager<?,T> manager, final PreprocessActionStringCallback<?,?> preprocess) {
 		if (root == null) {
 			throw new NullPointerException("Root component can't be null"); 
 		}
@@ -964,11 +1027,11 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Form manager can't be null"); 
 		}
 		else {
-			assignActionListeners(root,(e)->{
+			internalAssignActionListeners(root,(e)->{
 				try{manager.onAction(entity,null,e.getActionCommand(),null);
 				} catch (LocalizationException | FlowException exc) {
 				}
-			});
+			}, preprocess);
 		}
 	}
 
@@ -1091,14 +1154,25 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 	
-	private static void assignActionListeners(final JComponent root, final ActionListener listener) {
+	private static void internalAssignActionListeners(final JComponent root, final ActionListener listener, final PreprocessActionStringCallback preprocess) {
 		walkDownInternal(root,(mode,node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				if ((node instanceof NodeMetadataOwner) && ((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath() != null && (URIUtils.canServeURI(((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath(),MODEL_REF_URI))) {
 					return ContinueMode.CONTINUE;
 				}
 				else {
-					try{node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node,listener);
+					try{node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node,
+							new ActionListener() {
+								@Override
+								public void actionPerformed(final ActionEvent e) {
+									listener.actionPerformed(new ActionEvent(e.getSource(), e.getID(), 
+														preprocess.process(e.getActionCommand(), node
+																, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null, listener
+														), e.getWhen(), e.getModifiers())
+									);
+								}
+							}
+						);
 					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 					}
 				}

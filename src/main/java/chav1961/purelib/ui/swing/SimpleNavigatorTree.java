@@ -84,21 +84,14 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 									try{final ContentNodeMetadata	item = (ContentNodeMetadata)((DefaultMutableTreeNode)value).getUserObject();
 												
 										label.setText(localizer.getValue(item.getLabelId()));
+										if (item.getTooltipId() != null) {
+											label.setToolTipText(localizer.getValue(item.getTooltipId()));
+										}
 										if (item.getIcon() != null) {
 											label.setIcon(new ImageIcon(item.getIcon().toURL())); 
 										}
 
 										label.setName(URIUtils.removeQueryFromURI(item.getUIPath()).toString());
-										if (selected || hasFocus) {
-											label.setForeground(Color.WHITE);
-											label.setBackground(Color.BLUE);
-										}
-										else {
-											label.setForeground(tree.getForeground());
-										}
-										if (hasFocus) {
-											label.setBorder(new LineBorder(Color.RED));
-										}
 										return label;
 									} catch (LocalizationException | MalformedURLException exc) {
 										return label;
@@ -305,7 +298,7 @@ public class SimpleNavigatorTree extends JTree implements LocaleChangeListener, 
 		if (path != null) {
 			final TreeNode 				node = (TreeNode)path.getLastPathComponent();
 			final ContentNodeMetadata	association = (ContentNodeMetadata)((DefaultMutableTreeNode)node).getUserObject();
-			final String				actionCommand = association.getApplicationPath() != null ? association.getApplicationPath().toString() : ""; 
+			final String				actionCommand = association.getApplicationPath() != null ? association.getApplicationPath().getSchemeSpecificPart() : ""; 
 			
 			processAction(new ActionEvent(this,0,actionCommand),actionCommand);
 		}
