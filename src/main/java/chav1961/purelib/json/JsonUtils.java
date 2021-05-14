@@ -1,16 +1,23 @@
 package chav1961.purelib.json;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -71,6 +78,36 @@ public class JsonUtils {
 			}
 		}
 	}
+	
+	/**
+	 * <p>Load JSON tree from {@linkplain URI}</p>
+	 * @param source URI to load tree from
+	 * @return tree loaded
+	 * @throws SyntaxException any syntax errors in the input
+	 * @throws NullPointerException source is null
+	 * @throws MalformedURLException illegal URI format
+	 * @throws IOException any I/O errors
+	 * @since 0.0.5
+	 */
+	public static JsonNode loadJsonTree(final URI source) throws SyntaxException, NullPointerException, MalformedURLException, IOException {
+		if (source == null) {
+			throw new NullPointerException("Source URI can't be null");  
+		}
+		else {
+			final String	query = URIUtils.extractQueryFromURI(source);
+			final URI		input = URIUtils.removeQueryFromURI(source);
+			final Hashtable<String, String[]>	parms = query != null ? URIUtils.parseQuery(query) : null;
+			
+			try(final InputStream		is = input.toURL().openStream();
+				final Reader			rdr = new InputStreamReader(is, parms != null && parms.containsKey("encoding") ? parms.get("encoding")[0] : "UTF-8");
+				final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
+					
+				parser.next();
+				return loadJsonTree(parser);
+			}
+		}
+	}
+	
 
 	/**
 	 * <p>Unload JSON tree into JSON printer.</p>

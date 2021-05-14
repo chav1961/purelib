@@ -68,6 +68,9 @@ import chav1961.purelib.ui.swing.SwingUtils;
  */
 
 public final class PureLibSettings {
+	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
+	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
+
 	/**
 	 * <p>Pure library MBean entry name</p>
 	 */
@@ -288,8 +291,6 @@ public final class PureLibSettings {
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
-	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
-	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
 	private static final ColorScheme				DEFAULT_COLOR_SCHEME; 
 	private static final NanoServiceControl			NANOSERVICE_MBEAN;
 	

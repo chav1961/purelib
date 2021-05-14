@@ -63,7 +63,7 @@ public class Client implements LocaleChangeListener {
 			}
 			
 			if (navRoot != null) {
-				this.nav = new SimpleNavigatorTree(localizer,navRoot) {
+				this.nav = new SimpleNavigatorTree<ContentNodeMetadata>(localizer,navRoot) {
 								private static final long serialVersionUID = 1L;
 								@Override
 								protected void appendNodes(final ContentNodeMetadata submenu, final DefaultMutableTreeNode node) {

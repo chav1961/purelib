@@ -224,6 +224,9 @@
 		<key name="JContentMetadataEditor.root.caption.tt">Edit model description:</key>
 		<key name="JContentMetadataEditor.root.fieldName">Model name:</key>
 		<key name="JContentMetadataEditor.root.fieldName.tt">Name id the model:</key>
+
+<!-- Useful classes localization  -->
+		<key name="JCloseButton.tt">Close window</key>
 		
 	</lang>
 	<lang name="ru">
@@ -448,6 +451,9 @@
 		<key name="JContentMetadataEditor.root.caption.tt">Редактирует описание модели в целом</key>
 		<key name="JContentMetadataEditor.root.fieldName">Имя модели:</key>
 		<key name="JContentMetadataEditor.root.fieldName.tt">Имя модели</key>
+
+<!-- Локализация полезных классов -->
+		<key name="JCloseButton.tt">Закрыть окно</key>
 
 	</lang>
 </localization>

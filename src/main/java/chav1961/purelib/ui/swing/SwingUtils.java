@@ -410,7 +410,12 @@ loop:			for (Component comp : children(node)) {
 					result = new JNumericFieldWithMeta(metadata,monitor);
 					break;
 				case StringContent	:
-					result = new JTextFieldWithMeta(metadata,monitor);
+					if (metadata.getFormatAssociated() != null && metadata.getFormatAssociated().getHeight() > 1) {
+						result = new JTextAreaWithMeta(metadata,monitor);
+					}
+					else {
+						result = new JTextFieldWithMeta(metadata,monitor);
+					}
 					break;
 				case URIContent		:
 					result = new JTextFieldWithMeta(metadata,monitor);

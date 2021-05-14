@@ -365,7 +365,7 @@ public class JsonNodeAndUtilsTest {
 		} catch (SyntaxException exc) {
 		}
 
-		try{JsonUtils.loadJsonTree(null);
+		try{JsonUtils.loadJsonTree((JsonStaxParser)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}

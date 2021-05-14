@@ -1,0 +1,15 @@
+{"name":"root",
+ "label":"root label",
+ "tooltip":"root tt",
+ "content":[
+	{"name":"child 1",
+	 "label":"child label 1",
+	 "tooltip":"child tt 1"
+	}
+	,
+	{"name":"child 2",
+	 "label":"child label 2",
+	 "tooltip":"child tt 2"
+	}
+ ]
+}

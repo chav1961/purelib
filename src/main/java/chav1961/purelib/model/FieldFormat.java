@@ -24,7 +24,7 @@ import chav1961.purelib.ui.ColorPair;
  * <p>This class describes format string associated with any model entity. Detailed format description see {@linkplain #FieldFormat(Class, String)}</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class FieldFormat {
 	/**
@@ -73,6 +73,7 @@ public class FieldFormat {
 	private final ContentType	contentType;
 	private final Alignment		alignment;
 	private final int			length;
+	private final int			height;
 	private final int			frac;
 	private final String		mask;
 	private final boolean		isMandatory;
@@ -102,9 +103,10 @@ public class FieldFormat {
 	 * <code>
 	 * &lt;format&gt; ::= [&lt;mask&gt;]&lt;lengthAndFrac&gt;[&lt;options&gt;]</br>
 	 * &lt;mask&gt; ::= '('&lt;{@linkplain MaskFormatter} mask&gt;')'</br>
-	 * &lt;lengthAndFrac&gt; ::= &lt;length&gt;['.'&lt;frac&gt;]</br>
+	 * &lt;lengthAndFrac&gt; ::= &lt;length&gt;['.'&lt;frac&gt;]['*'&lt;height&gt;]</br>
 	 * &lt;length&gt; ::= &lt;number&gt;</br>
 	 * &lt;frac&gt; ::= &lt;number&gt;</br>
+	 * &lt;height&gt; ::= &lt;number&gt;</br>
 	 * &lt;options&gt; ::= &lt;option&gt;[&lt;options&gt;]</br>
 	 * &lt;option&gt; ::= {'r'|'R'|'l'|'L'|'m'|'n'|'N'|'o'|'z'|'p'|'s'|'&lt;'|'&gt;'|'&lt;&gt;'|'&gt;&lt;'}</br>
 	 * </code>
@@ -119,7 +121,7 @@ public class FieldFormat {
 	 * <li><b>N</b> - field accepts <b>null</b> as value</li>
 	 * <li><b>o</b> - field is output only (will be read-only and will not catch focus)</li>
 	 * <li><b>z</b> - zero field value must be marked</li>
-	 * <li><b>z</b> - positive field value must be marked</li>
+	 * <li><b>p</b> - positive field value must be marked</li>
 	 * <li><b>s</b> - all content of the field must be selected when control gets focus</li>
 	 * <li><b>d</b> - field requires local editor if available</li>
 	 * <li><b>&lt;</b> - field is left-aligned</li>
@@ -148,7 +150,7 @@ public class FieldFormat {
 			boolean			supportNulls = false, hasLocalEditor = false;
 			String			mask = null;
 			Alignment		alignment = Alignment.NoMatter;
-			int				pos = 0, len = 0, frac = 0, value;
+			int				pos = 0, len = 0, frac = 0, height = 1, value;
 			
 			if (data[pos] == '(') {	// Parse format mask
 				int	depth = 0, start = pos, count = 0;
@@ -257,6 +259,14 @@ public class FieldFormat {
 							if (frac > 0 && frac >= len - 1) {
 								throw new IllegalArgumentException("Format ["+new String(data)+"] at pos ["+pos+"]: frac part is too long");
 							}
+							if (data[pos] == '*') {
+								value = 0;
+								pos++;
+								while (data[pos] >= '0' && data[pos] <= '9') {
+									value = 10 * value + data[pos++] - '0';
+								}
+								height = value;
+							}
 						}
 						continue;	// need skip pos++ after switch!
 					default :
@@ -281,6 +291,7 @@ public class FieldFormat {
 			this.hasLocalEditor = hasLocalEditor;
 			this.alignment = alignment;
 			this.length = len;
+			this.height = height;
 			this.frac = frac;
 			this.contentType = defineContentType(clazz,mask);
 			this.mask = mask;
@@ -301,6 +312,15 @@ public class FieldFormat {
 	 */
 	public int getLength() {
 		return length;
+	}
+	
+	/**
+	 * <p>Get format height typed</p>
+	 * @return format height typed, or 1 if didn't typed
+	 * @since 0.0.5
+	 */
+	public int getHeight() {
+		return height;
 	}
 	
 	/**
