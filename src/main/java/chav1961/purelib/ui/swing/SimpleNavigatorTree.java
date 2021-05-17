@@ -254,16 +254,35 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 		else {
 			final TreePath 				curPath = getPathForLocation(event.getX(), event.getY());
 			final TreeNode 				node = (TreeNode)curPath.getLastPathComponent();
-			final ContentNodeMetadata	meta = (ContentNodeMetadata) ((DefaultMutableTreeNode)node).getUserObject();
+			
+			switch (getConentType()) {
+				case FSYS		:
+					return super.getToolTipText(event);
+				case JSON		:
+					final JsonNode	nodeValue = (JsonNode) ((DefaultMutableTreeNode)node).getUserObject();
+					
+					if (nodeValue.hasName(SimpleNavigatorTree.JSON_TOOLTIP)) {
+						try{return extractValue(nodeValue.getChild(SimpleNavigatorTree.JSON_TOOLTIP).getStringValue());
+						} catch (LocalizationException e) {
+							return super.getToolTipText(event);
+						}
+					}
+					else {
+						return super.getToolTipText(event);
+					}
+				case METADATA	:
+					final ContentNodeMetadata	meta = (ContentNodeMetadata) ((DefaultMutableTreeNode)node).getUserObject();
 
-			if (meta.getTooltipId() != null) {
-				try{return localizer.getValue(meta.getTooltipId());
-				} catch (LocalizationException e) {
-					return meta.getTooltipId(); 
-				}
-			}
-			else {
-				return super.getToolTipText(event);
+					if (meta.getTooltipId() != null) {
+						try{return localizer.getValue(meta.getTooltipId());
+						} catch (LocalizationException e) {
+							return meta.getTooltipId(); 
+						}
+					}
+					else {
+						return super.getToolTipText(event);
+					}
+				default	: throw new UnsupportedOperationException("Content type ["+getConentType()+"] is not supported yet");
 			}
 		}
 	}

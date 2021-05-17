@@ -484,7 +484,7 @@ public class JsonNode  {
 		}
 		else {
 			for (JsonNode item : children) {
-				if (item.hasName() && childName.equals(item.getName())) {
+				if (childName.equals(item.getName())) {
 					return true;
 				}
 			}
