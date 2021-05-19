@@ -10,7 +10,9 @@ import javax.management.MBeanInfo;
 import javax.management.ReflectionException;
 
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.monitoring.interfaces.JMXItem;
 
+@JMXItem("librarySettings")
 public class NanoServiceControl extends AbstractJMXManager {
 	public NanoServiceControl() {
 	}
