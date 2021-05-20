@@ -14,7 +14,9 @@ import chav1961.purelib.ui.html.interfaces.HtmlSerializable;
 import chav1961.purelib.ui.html.interfaces.SessionSpecificInstance;
 
 public class SimpleNavigatorTree<Session> implements LocaleChangeListener, SessionSpecificInstance<Session, SimpleNavigatorTree<Session>>, HtmlSerializable {
+	private final Localizer						localizer;
 	private final SimpleNavigatorTree<Session>	parent;
+	private final ContentNodeMetadata 			metadata;
 
 	public SimpleNavigatorTree(final Localizer localizer, final ContentNodeMetadata metadata) throws NullPointerException, IllegalArgumentException, LocalizationException {
 		this(localizer,metadata,false);
@@ -32,12 +34,16 @@ public class SimpleNavigatorTree<Session> implements LocaleChangeListener, Sessi
 		}
 		else {
 			this.parent = null;
+			this.metadata = metadata;
+			this.localizer = localizer;
 			fillLocalizedStrings();
 		}
 	}
 
 	protected SimpleNavigatorTree(final SimpleNavigatorTree<Session> parent) throws NullPointerException, IllegalArgumentException, LocalizationException {
 		this.parent = parent;
+		this.metadata = null;
+		this.localizer = null;
 		fillLocalizedStrings();
 	}	
 	
@@ -64,10 +70,58 @@ public class SimpleNavigatorTree<Session> implements LocaleChangeListener, Sessi
 	@Override
 	public void serialize(final Writer writer) throws IOException {
 		// TODO Auto-generated method stub
-		
+		if (parent != null) {
+			parent.serialize(writer);
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			
+			sb.append("<ul id=\"").append(metadata.getUIPath()).append("\">");
+			for (ContentNodeMetadata item : metadata) {
+				appendContent(sb,item);
+			}
+			sb.append("</ul>");
+			
+			writer.write(sb.toString());
+		}
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		
 	}
+
+	private void appendContent(final StringBuilder sb, final ContentNodeMetadata item) {
+		if (item.getChildrenCount() > 0) {
+			sb.append("<li id=\"").append(item.getUIPath()).append("\" class=\"tooltip\"><span class=\"caret\">").append(getValue(item.getLabelId())).append("</span>");
+			if (item.getIcon() != null) {
+				
+			}
+			if (item.getTooltipId() != null) {
+				sb.append("<span class=\"tooltiptext\">").append(getValue(item.getTooltipId())).append("</span>");
+			}
+			sb.append("<ul class=\"nested\">");
+			for (ContentNodeMetadata child : item) {
+				appendContent(sb,child);
+			}
+			sb.append("</ul></li>");
+		}
+		else {
+			sb.append("<li id=\"").append(item.getUIPath()).append("\" class=\"tooltip\">");
+			if (item.getIcon() != null) {
+				
+			}
+			sb.append("<a href=\"#\">").append(getValue(item.getLabelId())).append("</a></li>");
+			if (item.getTooltipId() != null) {
+				sb.append("<span class=\"tooltiptext\">").append(getValue(item.getTooltipId())).append("</span>");
+			}
+		}
+	}
+
+	private String getValue(final String value) {
+		try{return localizer.getValue(value);
+		} catch (LocalizationException e) {
+			return value;
+		}
+	}
+	
 }
