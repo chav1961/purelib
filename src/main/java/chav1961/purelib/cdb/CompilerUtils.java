@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.CharUtils;
@@ -900,6 +901,13 @@ public class CompilerUtils {
 		}
 	}
 	
+	/**
+	 * <p>Build signature by class name</p>
+	 * @param className canonical class name. Can't be null or empty
+	 * @return class signature. Can't be null or empty
+	 * @throws IllegalArgumentException on any argument errors
+	 * @since 0.0.5
+	 */
 	public static String buildClassNameSignature(final String className) throws IllegalArgumentException {
 		if (className == null || className.isEmpty()) {
 			throw new IllegalArgumentException("Class name to build signature for can't be null");
@@ -923,6 +931,14 @@ public class CompilerUtils {
 		}
 	}
 
+	/**
+	 * <p>Build parameter signature</p>
+	 * @param parameters parameter of the method. Can't be null and can't contain nulls inside
+	 * @param retType returned type of the method. Can't be null
+	 * @return string built. Can't be null
+	 * @throws IllegalArgumentException om any argument exception
+	 * @since 0.0.5
+	 */
 	public static String buildParametersSignature(final String[] parameters, final String retType) throws IllegalArgumentException {
 		if (parameters == null || Utils.checkArrayContent4Nulls(parameters) >= 0) {
 			throw new IllegalArgumentException("Parameter list to build signature for is null or contains nulls inside");
@@ -940,6 +956,61 @@ public class CompilerUtils {
 				sb.append(buildClassNameSignature(item));
 			}
 			return sb.append(')').append(buildClassNameSignature(retType)).toString();
+		}
+	}
+
+	/**
+	 * <p>Convert collection content to string for using in macro parameters</p>
+	 * @param <T> content type
+	 * @param iterable iterable on content. Can't be null
+	 * @param convertor converter lambda. Can't be null
+	 * @return content content built. Can't be null or empty;
+	 * @throws NullPointerException any argument is null
+	 * @since 0.0.5
+	 */
+	public static <T> String content2String(final Iterable<T> iterable, final Function<T,String> convertor) throws NullPointerException {
+		return content2String(iterable, convertor, true);
+	}
+	
+	/**
+	 * <p>Convert collection content to string for using in macro parameters</p>
+	 * @param <T> content type
+	 * @param iterable iterable on content. Can't be null
+	 * @param convertor converter lambda. Can't be null
+	 * @param useQuotes place converted value into quotes
+	 * @return content content built. Can't be null or empty;
+	 * @throws NullPointerException any argument is null
+	 * @since 0.0.5
+	 */
+	public static <T> String content2String(final Iterable<T> iterable, final Function<T,String> convertor, final boolean useQuotes) throws NullPointerException {
+		if (iterable == null) {
+			throw new NullPointerException("Iterable instance can't be null"); 
+		}
+		else if (convertor == null) {
+			throw new NullPointerException("Convertor can't be null"); 
+		}
+		else {
+			final StringBuilder sb = new StringBuilder();
+			char				prefix = '{';
+			
+			if (useQuotes) {
+				for (T item : iterable) {
+					sb.append(prefix).append('\"').append(convertor.apply(item)).append('\"');
+					prefix = ',';
+				}
+			}
+			else {
+				for (T item : iterable) {
+					sb.append(prefix).append(convertor.apply(item));
+					prefix = ',';
+				}
+			}
+			if (prefix == '{') {
+				return "{}";
+			}
+			else {
+				return sb.append('}').toString();
+			}
 		}
 	}
 	

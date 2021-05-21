@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,20 +11,29 @@ import java.io.Reader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.streams.char2byte.AsmWriter;
+import sun.reflect.ReflectionFactory;
 
 /**
  * <p>This class contains a factory method to build getters and setters for primitive and referenced items in the class and/or it's instance. All the 
@@ -61,33 +72,19 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public class GettersAndSettersFactory {
-//	private static sun.misc.Unsafe		unsafe;
 	private static AsmWriter			writer;
-	private static Map<String,Map<String,GetterAndSetter>>	gettersAndSettersCache = new HashMap<>();
+	private static Map<String,Map<String,GetterAndSetter>>	gettersAndSettersCache = new ConcurrentHashMap<>();
+	private static Map<Class<?>,Constructor<?>>				serializerCache = new ConcurrentHashMap<>();
 	
 	static {
 		prepareStatic();
 	}
 
 	private static void prepareStatic() {
-//		if (PureLibSettings.instance().getProperty(PureLibSettings.ALLOW_UNSAFE,boolean.class,"false")) {
-//			try{final Field	f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-//			
-//				f.setAccessible(true);
-//				unsafe = (Unsafe) f.get(null);
-//			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-//				PureLibSettings.logger.log(Level.WARNING,"["+PureLibSettings.ALLOW_UNSAFE+"] property was typed for the Pure Library, but attempt to get access to Unsafe functionality failed: "+e.getMessage()+". This ability will be ignored", e);
-//				unsafe = null;
-//			}
-//		} 
-//		else {
-//			unsafe = null;
-//		}
-		
 		try{final AsmWriter			tempWriter = new AsmWriter(new ByteArrayOutputStream(),new OutputStreamWriter(System.err));
 		
 			try(final InputStream	is = GettersAndSettersFactory.class.getResourceAsStream("gettersandsettersmacros.txt");
@@ -146,6 +143,54 @@ public class GettersAndSettersFactory {
 		 * @return array allocated
 		 */
 		T[] newArray(int size);
+	}
+
+	/**
+	 * <p>This interface can be used to serialize/deserialize class selected.</p>
+	 * @since 0.0.5
+	 * @param <T> class to serialize/deserialize instances
+	 */
+	public interface Serializer<T> {
+		/**
+		 * 
+		 * @param <T> class to create instance for
+		 */
+		@FunctionalInterface
+		public interface InstanceMaker<T> {
+			/**
+			 * <p>Create instance by class</p>
+			 * @param clazz class to create instance for. Can't be null
+			 * @return instance created. Can't be null
+			 */
+			T newInstance(Class<T> clazz) throws ContentException, EnvironmentException;
+		}
+		
+		/**
+		 * <p>Serialize class instance to {@linkplain DataOutputStream}</p>
+		 * @param instance instance to serialize. Can't be null
+		 * @param dos stream to serialize to. Can't be null
+		 * @throws IOException on any I/O errors
+		 */
+		void serialize(T instance, DataOutputStream dos) throws IOException;
+		
+		/**
+		 * <p>Deserialize instance from {@linkplain DataInputStream}</p>
+		 * @param dis stream to deserialize content from. Can't be null
+		 * @param instance instance to deserialize content to. Can't be null
+		 * @throws IOException on any I/O errors
+		 */
+		default void deserialize(DataInputStream dis, T instance) throws IOException {
+			deserialize(dis,instance,(cl)->createClonedInstance(cl));
+		}
+		
+		/**
+		 * <p>Deserialize instance from {@linkplain DataInputStream}</p>
+		 * @param dis stream to deserialize content from. Can't be null
+		 * @param instance instance to deserialize content to. Can't be null
+		 * @param maker maker for inner instances. Can't be null
+		 * @throws IOException on any I/O errors
+		 */
+		void deserialize(DataInputStream dis, T instance, InstanceMaker<T> maker) throws IOException;
 	}
 	
 	/**
@@ -373,6 +418,16 @@ public class GettersAndSettersFactory {
 			return (T[])Array.newInstance(getType(),size);
 		}
 	}
+
+	protected static abstract class SerializerImpl<T> implements Serializer<T> {
+		protected final Class<T> 	clazz;
+		
+		public SerializerImpl(Class<T> clazz) {
+			this.clazz = clazz;
+		}
+
+	}
+	
 	
 	/**
 	 * <p>Build getter and setter by it's application path in model.</p>
@@ -506,15 +561,6 @@ public class GettersAndSettersFactory {
 
 			try{if (Modifier.isPublic(f.getModifiers())) {
 					if (fType.isPrimitive()) {
-//						if (unsafe != null) {
-//							if (Modifier.isStatic(f.getModifiers())) {
-//								gas = buildPrimitiveUnsafeStatic(unsafe,f,fType);
-//							}
-//							else {
-//								gas = buildPrimitiveUnsafeInstance(unsafe,f,fType);
-//							}
-//						}
-//						else 
 						if (writer != null) {
 							if (Modifier.isStatic(f.getModifiers())) {
 								gas = buildPrimitiveAsmStatic(writer,awaited,f,fType,assigner,loader);
@@ -533,15 +579,6 @@ public class GettersAndSettersFactory {
 						}
 					}
 					else {
-//						if (unsafe != null) {
-//							if (Modifier.isStatic(f.getModifiers())) {
-//								gas = buildReferencedUnsafeStatic(unsafe,f,fType);
-//							}
-//							else {
-//								gas = buildReferencedUnsafeInstance(unsafe,f,fType);
-//							}
-//						}
-//						else 
 						if (writer != null) {
 							if (Modifier.isStatic(f.getModifiers())) {
 								gas = buildReferencedAsmStatic(writer,awaited,f,fType,assigner,loader);
@@ -562,41 +599,19 @@ public class GettersAndSettersFactory {
 				}
 				else {
 					if (fType.isPrimitive()) {
-//						if (unsafe != null) {
-//							if (Modifier.isStatic(f.getModifiers())) {
-//								gas = buildPrimitiveUnsafeStatic(unsafe,f,fType);
-//							}
-//							else {
-//								gas = buildPrimitiveUnsafeInstance(unsafe,f,fType);
-//							}
-//						}
-//						else 
-						{
-							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildPrimitiveHandleStatic(f,fType);
-							}
-							else {
-								gas = buildPrimitiveHandleInstance(f,fType);
-							}
+						if (Modifier.isStatic(f.getModifiers())) {
+							gas = buildPrimitiveHandleStatic(f,fType);
+						}
+						else {
+							gas = buildPrimitiveHandleInstance(f,fType);
 						}
 					}
 					else {
-//						if (unsafe != null) {
-//							if (Modifier.isStatic(f.getModifiers())) {
-//								gas = buildReferencedUnsafeStatic(unsafe,f,fType);
-//							}
-//							else {
-//								gas = buildReferencedUnsafeInstance(unsafe,f,fType);
-//							}
-//						}
-//						else 
-						{
-							if (Modifier.isStatic(f.getModifiers())) {
-								gas = buildReferencedHandleStatic(f,fType);
-							}
-							else {
-								gas = buildReferencedHandleInstance(f,fType);
-							}
+						if (Modifier.isStatic(f.getModifiers())) {
+							gas = buildReferencedHandleStatic(f,fType);
+						}
+						else {
+							gas = buildReferencedHandleInstance(f,fType);
 						}
 					}
 				}
@@ -673,23 +688,43 @@ public class GettersAndSettersFactory {
 		else if (Modifier.isPublic(clazz.getModifiers())) {
 			try{final String 	className = clazz.getSimpleName()+"$instantiator";
 				
-				return buildCode(writer,clazz,className,assigner,loader);
+				return buildInstantiatorCode(writer,clazz,className,assigner,loader);
 			} catch (IOException exc) {
 				throw new ContentException(exc.getLocalizedMessage(),exc);
 			}
 		} 
-//		else if (unsafe != null) {
-//			return new InstantiatorImpl<T>(clazz){
-//				@SuppressWarnings("unchecked")
-//				@Override
-//				public T newInstance() throws InstantiationException {
-//					return (T)unsafe.allocateInstance(clazz);
-//				}}; 
-//		}
 		else {
 			throw new IllegalStateException("Class to build instantitor for is not public, but sun.misc.Unsafe functionality is not available to build memory allocation code.");
 		}
 	}
+
+	
+	public static <T> Serializer<T> buildSerializer(final Class<T> clazz, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws ContentException, IllegalArgumentException, NullPointerException, IllegalStateException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to build instantitor for can't be null"); 
+		}
+		else if (assigner == null) {
+			throw new NullPointerException("Module assigner can't be null"); 
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Loader can't be null"); 
+		}
+		else if (clazz.isPrimitive()) {
+			throw new IllegalArgumentException("Class to build instantitor for can't be primitive"); 
+		}
+		else if (Modifier.isPublic(clazz.getModifiers())) {
+			try{final String 	className = clazz.getSimpleName()+"$serializer";
+				
+				return buildSerializerCode(writer,clazz,className,assigner,loader);
+			} catch (IOException exc) {
+				throw new ContentException(exc.getLocalizedMessage(),exc);
+			}
+		} 
+		else {
+			throw new IllegalStateException("Class to build serializer is not public, but sun.misc.Unsafe functionality is not available to build memory allocation code.");
+		}
+	}  
+	
 	
 	private static Field extractFieldInfo(final Class<?> awaited, final Class<?> forError, final String fieldName) {
 		if (awaited != null) {
@@ -704,103 +739,6 @@ public class GettersAndSettersFactory {
 			throw new IllegalArgumentException("Field name ["+fieldName+"] is missing in the class ["+forError+"]");
 		}
 	}
-	
-//	private static GetterAndSetter buildPrimitiveUnsafeStatic(final Unsafe unsafe, final Field f, final Class<?> fType) {
-//		final Class<?>	container = f.getDeclaringClass();
-//		final long		displ = unsafe.staticFieldOffset(f);
-//		
-//		switch (CompilerUtils.defineClassType(fType)) {
-//			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-//				return new BooleanGetterAndSetter() {
-//					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(container,displ);}
-//					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(container,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_BYTE		: 
-//				return new ByteGetterAndSetter() {
-//					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(container,displ);}
-//					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(container,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_CHAR		:
-//				return new CharGetterAndSetter() {
-//					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(container,displ);}
-//					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(container,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_DOUBLE		:
-//				return new DoubleGetterAndSetter() {
-//					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(container,displ);}
-//					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(container,displ,value);}					
-//				};
-//			case CompilerUtils.CLASSTYPE_FLOAT		:
-//				return new FloatGetterAndSetter() {
-//					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(container,displ);}
-//					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(container,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_INT		:
-//				return new IntGetterAndSetter() {
-//					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(container,displ);}
-//					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(container,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_LONG		:
-//				return new LongGetterAndSetter() {
-//					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(container,displ);}
-//					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(container,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_SHORT		:
-//				return new ShortGetterAndSetter() {
-//					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(container,displ);}
-//					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(container,displ,value);}
-//				};
-//			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
-//		}
-//	}
-
-//	private static GetterAndSetter buildPrimitiveUnsafeInstance(final Unsafe unsafe, final Field f, final Class<?> fType) {
-//		final long	displ = unsafe.objectFieldOffset(f);
-//		
-//		switch (CompilerUtils.defineClassType(fType)) {
-//			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-//				return new BooleanGetterAndSetter() {
-//					@Override public boolean get(final Object instance) throws ContentException {return unsafe.getBoolean(instance,displ);}
-//					@Override public void set(final Object instance, final boolean value) throws ContentException {unsafe.putBoolean(instance,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_BYTE		:
-//				return new ByteGetterAndSetter() {
-//					@Override public byte get(final Object instance) throws ContentException {return unsafe.getByte(instance,displ);}
-//					@Override public void set(final Object instance, final byte value) throws ContentException {unsafe.putByte(instance,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_CHAR		:
-//				return new CharGetterAndSetter() {
-//					@Override public char get(final Object instance) throws ContentException {return unsafe.getChar(instance,displ);}
-//					@Override public void set(final Object instance, final char value) throws ContentException {unsafe.putChar(instance,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_DOUBLE		:
-//				return new DoubleGetterAndSetter() {
-//					@Override public double get(final Object instance) throws ContentException {return unsafe.getDouble(instance,displ);}
-//					@Override public void set(final Object instance, final double value) throws ContentException {unsafe.putDouble(instance,displ,value);}					
-//				};
-//			case CompilerUtils.CLASSTYPE_FLOAT		:
-//				return new FloatGetterAndSetter() {
-//					@Override public float get(final Object instance) throws ContentException {return unsafe.getFloat(instance,displ);}
-//					@Override public void set(final Object instance, final float value) throws ContentException {unsafe.putFloat(instance,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_INT		:
-//				return new IntGetterAndSetter() {
-//					@Override public int get(final Object instance) throws ContentException {return unsafe.getInt(instance,displ);}
-//					@Override public void set(final Object instance, final int value) throws ContentException {unsafe.putInt(instance,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_LONG		:
-//				return new LongGetterAndSetter() {
-//					@Override public long get(final Object instance) throws ContentException {return unsafe.getLong(instance,displ);}
-//					@Override public void set(final Object instance, final long value) throws ContentException {unsafe.putLong(instance,displ,value);}
-//				};
-//			case CompilerUtils.CLASSTYPE_SHORT		:
-//				return new ShortGetterAndSetter() {
-//					@Override public short get(final Object instance) throws ContentException {return unsafe.getShort(instance,displ);}
-//					@Override public void set(final Object instance, final short value) throws ContentException {unsafe.putShort(instance,displ,value);}
-//				};
-//			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
-//		}
-//	}
 
 	private static GetterAndSetter buildPrimitiveAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
@@ -808,21 +746,21 @@ public class GettersAndSettersFactory {
 
 		switch (CompilerUtils.defineClassType(fType)) {
 			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_BYTE		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_CHAR		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_DOUBLE		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_FLOAT		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_INT		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_LONG		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_SHORT		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
 		}
 	}
@@ -833,21 +771,21 @@ public class GettersAndSettersFactory {
 
 		switch (CompilerUtils.defineClassType(fType)) {
 			case CompilerUtils.CLASSTYPE_BOOLEAN	:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceBoolean className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_BYTE		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceByte className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_CHAR		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceChar className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_DOUBLE		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceDouble className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_FLOAT		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceFloat className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_INT		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceInt className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_LONG		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceLong className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			case CompilerUtils.CLASSTYPE_SHORT		:
-				return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+				return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceShort className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 			default : throw new UnsupportedOperationException("Primitive type ["+fType+"] is not supported");  
 		}
 	}
@@ -1248,51 +1186,18 @@ public class GettersAndSettersFactory {
 		}
 	}
 	
-//	private static <T> GetterAndSetter buildReferencedUnsafeStatic(final Unsafe unsafe, final Field f, final Class<T> fType) {
-//		final Class<?>	container = f.getDeclaringClass();
-//		final long		displ = unsafe.staticFieldOffset(f);
-//		
-//		return new ObjectGetterAndSetter<T>() {
-//			@Override
-//			public T get(final Object instance) throws ContentException {
-//				return fType.cast(unsafe.getObject(container,displ));
-//			}
-//
-//			@Override
-//			public void set(final Object instance, final T value) throws ContentException {
-//				unsafe.putObject(container,displ,value);
-//			}
-//		};
-//	}
-
-//	private static <T> GetterAndSetter buildReferencedUnsafeInstance(final Unsafe unsafe, final Field f, final Class<T> fType) {
-//		final long	displ = unsafe.objectFieldOffset(f);
-//		
-//		return new ObjectGetterAndSetter<T>() {
-//			@Override
-//			public T get(final Object instance) throws ContentException {
-//				return fType.cast(unsafe.getObject(instance,displ));
-//			}
-//
-//			@Override
-//			public void set(final Object instance, final T value) throws ContentException {
-//				unsafe.putObject(instance,displ,value);
-//			}
-//		};
-//	}
-
 	private static GetterAndSetter buildReferencedAsmStatic(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
-		return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+		return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveStaticRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 	}
 
 	private static GetterAndSetter buildReferencedAsmInstance(final AsmWriter writer, final Class<?> owner, final Field f, final Class<?> fType, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		final String 	className = owner.getSimpleName()+"$"+f.getName();
 		final String	ownerName = owner.getCanonicalName() != null ? owner.getCanonicalName() : owner.getName();  
 
-		return buildCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
+		return buildGetterAndSetterCode(writer,owner,fType,assigner,loader,className," buildPrimitiveInstanceRef className=\"%1$s\",ownerClass=\"%2$s\",fieldName=\"%3$s\",valueClass=\"%4$s\"",className,ownerName,f.getName(),fType.getCanonicalName());
 	}
 
 	private static <T> GetterAndSetter buildReferencedHandleStatic(final Field f, final Class<T> fType) {
@@ -1362,7 +1267,7 @@ public class GettersAndSettersFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static GetterAndSetter buildCode(final AsmWriter writer, final Class<?> owner, final Class<?> type, final ModuleAccessor assigner, final SimpleURLClassLoader loader, final String className, final String format, final Object... parameters) throws IOException {
+	private static GetterAndSetter buildGetterAndSetterCode(final AsmWriter writer, final Class<?> owner, final Class<?> type, final ModuleAccessor assigner, final SimpleURLClassLoader loader, final String className, final String format, final Object... parameters) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
 				
@@ -1406,7 +1311,7 @@ public class GettersAndSettersFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Instantiator<T> buildCode(final AsmWriter writer, final Class<T> owner, final String className, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
+	private static <T> Instantiator<T> buildInstantiatorCode(final AsmWriter writer, final Class<T> owner, final String className, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
 				
@@ -1429,6 +1334,80 @@ public class GettersAndSettersFactory {
 		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | SecurityException | InvocationTargetException | NoSuchMethodException e) {
 			e.printStackTrace();
 			throw new IllegalArgumentException("Can't build code for create instantiator of class ["+className+"] : "+e.getLocalizedMessage(),e);
+		}
+	}
+
+	private static <T> Serializer<T> buildSerializerCode(final AsmWriter writer, final Class<T> owner, final String className, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
+		final Set<Class<?>>	usedClasses = new HashSet<>();
+		final Set<String>	usedClassSignatures = new HashSet<>();
+		final List<Field>	fields = new ArrayList<>();
+		final List<Integer>	fieldIndices = new ArrayList<>();
+		final AtomicInteger	ai = new AtomicInteger();
+		
+		CompilerUtils.collectTypes(usedClasses, owner);
+		CompilerUtils.walkFields(owner, (cl,f)->{
+			Class<?>	fc = f.getType();
+			
+			while (fc.isArray()) {
+				fc = fc.getComponentType();
+			}
+			if (!fc.isPrimitive()) {
+				usedClassSignatures.add(CompilerUtils.buildClassPath(fc));
+			}
+			fields.add(f);
+			fieldIndices.add(ai.incrementAndGet());
+		});
+		
+		for (Class<?> item : usedClasses) {
+			buildSerializerCode(writer, owner, item.getCanonicalName()+"$serializer", assigner, loader);
+		}
+		
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
+				
+				try{wr.importClass(owner);
+					wr.importClass(Serializer.class);
+					wr.importClass(SerializerImpl.class);
+				} catch (ContentException e) {
+				}
+				wr.write(" buildSerializer className=\""+className+"\",managedClass=\""+owner.getCanonicalName()+"\""+
+						",serializers="+CompilerUtils.content2String(usedClassSignatures, (c)->c.toString())+
+						",names="+CompilerUtils.content2String(fields,(c)->CompilerUtils.buildFieldPath(c))+
+						",types="+CompilerUtils.content2String(fields,(c)->CompilerUtils.buildFieldSignature(c))+
+						",indices="+CompilerUtils.content2String(fieldIndices,(c)->String.valueOf(c),false)+
+						"\n");
+				wr.flush();
+			}
+			Class<Serializer<T>>	inst;
+			
+			try{inst = (Class<Serializer<T>>) loader.createClass(className,baos.toByteArray());
+			} catch (Exception exc) {
+				inst = (Class<Serializer<T>>) loader.loadClass(className);
+			}
+			assigner.allowUnnamedModuleAccess(loader.getUnnamedModule());
+			return inst.getConstructor().newInstance();
+		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | SecurityException | InvocationTargetException | NoSuchMethodException e) {
+			e.printStackTrace();
+			throw new IllegalArgumentException("Can't build code for create serializer of class ["+className+"] : "+e.getLocalizedMessage(),e);
+		}
+	}	
+	
+	private static <T> T createClonedInstance(final Class<T> clazz) throws EnvironmentException, ContentException {
+		if (!serializerCache.containsKey(clazz)) {
+			try{final ReflectionFactory	rf = ReflectionFactory.getReflectionFactory();
+				final Constructor<T>	c = clazz.getDeclaredConstructor();
+				
+				c.setAccessible(true);
+				final Constructor<?> constr = rf.newConstructorForSerialization(clazz, c);
+				serializerCache.put(clazz,constr);
+			} catch (NoSuchMethodException e) {
+				throw new EnvironmentException("Class ["+clazz.getCanonicalName()+"] doesn't contain default constructor and can't be used for serialization/deserialization");
+			}
+		}
+		Constructor<T>	constr = (Constructor<T>) serializerCache.get(clazz);
+		try{return constr.newInstance();
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+			throw new ContentException("Class ["+clazz.getCanonicalName()+"] - instantiation failure : "+e.getLocalizedMessage(),e);
 		}
 	}
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<app:root xmlns:app="http://ui.purelib.chav1961/">
+	<app:i18n location="i18n:xml:root://chav1961.purelib.ui.html.HtmlUtils/chav1961/purelib/i18n/localization.xml"/>
+	<app:menu id="mainmenu">
+		<app:submenu name="menu.file" caption="testSet1" tooltip="testSet2">
+			<app:item name="menu.file.new" caption="testSet3" tooltip="testSet2" action="testAction"/>
+		</app:submenu>
+	</app:menu>
+</app:root>

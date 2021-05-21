@@ -8,6 +8,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.json.JsonNode;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.html.interfaces.HtmlSerializable;
@@ -76,7 +77,7 @@ public class SimpleNavigatorTree<Session> implements LocaleChangeListener, Sessi
 		else {
 			final StringBuilder	sb = new StringBuilder();
 			
-			sb.append("<ul id=\"").append(metadata.getUIPath()).append("\">");
+			sb.append("<ul id=\"").append(metadata.getUIPath()).append("\" class=\"simpleNavigatorTreeRoot\">");
 			for (ContentNodeMetadata item : metadata) {
 				appendContent(sb,item);
 			}
@@ -85,6 +86,13 @@ public class SimpleNavigatorTree<Session> implements LocaleChangeListener, Sessi
 			writer.write(sb.toString());
 		}
 	}
+
+	@Override
+	public void processRequest(final JsonNode request, final Writer response) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		
@@ -110,7 +118,7 @@ public class SimpleNavigatorTree<Session> implements LocaleChangeListener, Sessi
 			if (item.getIcon() != null) {
 				
 			}
-			sb.append("<a href=\"#\">").append(getValue(item.getLabelId())).append("</a></li>");
+			sb.append("<a href=\"").append(item.getApplicationPath()).append("\">").append(getValue(item.getLabelId())).append("</a></li>");
 			if (item.getTooltipId() != null) {
 				sb.append("<span class=\"tooltiptext\">").append(getValue(item.getTooltipId())).append("</span>");
 			}
@@ -123,5 +131,5 @@ public class SimpleNavigatorTree<Session> implements LocaleChangeListener, Sessi
 			return value;
 		}
 	}
-	
+
 }
