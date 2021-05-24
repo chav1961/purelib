@@ -156,7 +156,15 @@ public abstract class SwingUtils {
 	private static final String				UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
 	private static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
-	
+
+	private static final int				SEGMENT_NORTH = 0;
+	private static final int				SEGMENT_NORTH_EAST = 1;
+	private static final int				SEGMENT_EAST = 2;
+	private static final int				SEGMENT_SOUTH_EAST = 3;
+	private static final int				SEGMENT_SOUTH = 4;
+	private static final int				SEGMENT_SOUTH_WEST = 5;
+	private static final int				SEGMENT_WEST = 6;
+	private static final int				SEGMENT_NORTH_WEST = 7;
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -1391,20 +1399,133 @@ loop:			for (Component comp : children(node)) {
 		return new Point(-1,-1);
 	}
 	
-    private static void makeClockwiseContour(final Raster raster, int xAnchor, int yAnchor, final Color transparentColor, final GeneralPath gp) {
-		// TODO Auto-generated method stub
+    private static GeneralPath makeClockwiseContour(final Raster raster, int xAnchor, int yAnchor, final Color transparentColor, final GeneralPath gp) {
 		final float[]	colorParts = transparentColor.getComponents(null);
-		final float[]	temp = new float[4];
+		final float[]	temp = new float[9];
 		final int		xMax = raster.getWidth(), yMax = raster.getHeight();
+		final int		oldXAnchor= xAnchor, oldYAnchor = yAnchor;
 		final long		points = raster.getWidth()*raster.getHeight();
+		int				oldSobelGradX = -100, oldSobelGradY = -100; 
 		
 		for (long count = 0; count < points; count++) {
-			int	mask = 0;
+			int		matrix, sobelGradX, sobelGradY;
+			
+			if (xAnchor > 0 && xAnchor < xMax-1) {
+				if (yAnchor > 0 && yAnchor < yMax-1) {
+					raster.getPixels(xAnchor-1, yAnchor-1, 3, 3, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b111111111);
+				}
+				else if (yAnchor == 0) {
+					raster.getPixels(xAnchor-1, yAnchor, 3, 2, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b111111000);
+				}
+				else {
+					raster.getPixels(xAnchor-1, yAnchor, 3, 2, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b000111111);
+				}
+			}
+			else if (xAnchor == 0) {
+				if (yAnchor > 0 && yAnchor < yMax-1) {
+					raster.getPixels(xAnchor, yAnchor-1, 2, 3, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b110110110);
+				}
+				else if (yAnchor == 0) {
+					raster.getPixels(xAnchor, yAnchor, 2, 2, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b000110110);
+				}
+				else {
+					raster.getPixels(xAnchor, yAnchor-1, 2, 2, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b110110000);
+				}
+			}
+			else {
+				if (yAnchor > 0 && yAnchor < yMax-1) {
+					raster.getPixels(xAnchor-1, yAnchor, 2, 3, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b011011011);
+				}
+				else if (yAnchor == 0) {
+					raster.getPixels(xAnchor, yAnchor, 2, 2, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b000011011);
+				}
+				else {
+					raster.getPixels(xAnchor, yAnchor-1, 2, 2, temp);
+					matrix = buildPixelMatrix(temp,colorParts,0b011011000);
+				}
+			}
+			sobelGradX = calcSobelGradX(matrix); 
+			sobelGradY = calcSobelGradY(matrix);
+			switch (calcSobelAngleSegment(calcSobelAngle(sobelGradX,sobelGradY)-90)) {
+				case SEGMENT_NORTH		:
+					yAnchor--;
+					break;
+				case SEGMENT_NORTH_EAST	:
+					yAnchor--;
+					xAnchor++;
+					break;
+				case SEGMENT_EAST		:
+					xAnchor++;
+					break;
+				case SEGMENT_SOUTH_EAST	:
+					yAnchor--;
+					xAnchor++;
+					break;
+				case SEGMENT_SOUTH		:
+					yAnchor++;
+					break;
+				case SEGMENT_SOUTH_WEST	:
+					yAnchor--;
+					xAnchor--;
+					break;
+				case SEGMENT_WEST		:
+					xAnchor--;
+					break;
+				case SEGMENT_NORTH_WEST	:
+					yAnchor++;
+					xAnchor--;
+					break;
+				default : throw new UnsupportedOperationException(); 
+			}
+			
+			if (xAnchor == oldXAnchor && yAnchor == oldYAnchor) {
+				gp.closePath();
+				return gp;
+			}
+			else {
+				if (sobelGradX != oldSobelGradX || sobelGradY != oldSobelGradY) {
+					gp.moveTo(xAnchor,yAnchor);
+				}
+				oldSobelGradX = sobelGradX;
+				oldSobelGradY = sobelGradY;
+			}
 		}
 		throw new IllegalArgumentException("Raster contour is too long");
-		
 	}
 
+	private static int buildPixelMatrix(final float[] source, final float[] fill, final int mask) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private static int calcSobelGradX(final int matrix) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private static int calcSobelGradY(final int matrix) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private static int calcSobelAngle(int sobelGradX, int sobelGradY) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private static int calcSobelAngleSegment(final int angle) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
 	private static GraphicsConfiguration getCurrentGraphicsConfiguration(final Point popupLocation) {
         final GraphicsEnvironment 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] 		gd = ge.getScreenDevices();
