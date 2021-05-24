@@ -4,6 +4,7 @@ package chav1961.purelib.ui.swing;
 
 
 
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -27,6 +28,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.GeneralPath;
+import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
@@ -1320,7 +1323,89 @@ loop:			for (Component comp : children(node)) {
         return popupLocation;
 	}
 
-    private static GraphicsConfiguration getCurrentGraphicsConfiguration(final Point popupLocation) {
+	/**
+	 * <p>Build contour path around transparent image content.</p>
+	 * @param raster raster to guild contour for. Can't be null
+	 * @return contour built. Can't be null
+	 * @throws NullPointerException on any parameter s are null
+	 * @since 0.0.5
+	 */
+	public static GeneralPath buildContour(final Raster raster) throws NullPointerException {
+		if (raster == null) {
+			throw new NullPointerException("Raster to build contour for can't be null");
+		}
+		else {
+			final int[]	colors = raster.getPixel(0, 0, (int[])null);
+			
+			return buildContour(raster,new Color(colors[0],colors[1],colors[2]));
+		}
+	}
+	
+	/**
+	 * <p>Build contour path around transparent image content.</p>
+	 * @param raster raster to guild contour for. Can't be null
+	 * @param transparentColor transparent color. Can't be null
+	 * @return contour built. Can't be null
+	 * @throws NullPointerException on any parameter s are null
+	 * @since 0.0.5
+	 */
+	public static GeneralPath buildContour(final Raster raster, final Color transparentColor) throws NullPointerException {
+		if (raster == null) {
+			throw new NullPointerException("Raster to build contour for can't be null");
+		}
+		else if (transparentColor == null) {
+			throw new NullPointerException("Transparent color for can't be null");
+		}
+		else {
+			final GeneralPath	gp = new GeneralPath();
+			final Point			p = findFirstDifferentColorPoint(raster,transparentColor);
+			
+			if (p.getX() < 0 || p.getY() < 0) {
+				gp.moveTo(0, 0);
+				gp.lineTo(raster.getWidth(), 0);
+				gp.lineTo(raster.getWidth(), raster.getHeight());
+				gp.lineTo(0, raster.getHeight());
+				gp.closePath();
+			}
+			else {
+				gp.moveTo(p.getX(), p.getY());
+				makeClockwiseContour(raster,p.x,p.y,transparentColor,gp);
+			}
+			return gp;
+		}
+	}
+
+	private static Point findFirstDifferentColorPoint(final Raster raster, final Color transparentColor) {
+		final float[]	colorParts = transparentColor.getComponents(null);
+		final float[]	temp = new float[4];
+		
+		for (int x = 0, maxX = raster.getWidth(); x < maxX; x++) {
+			for (int y = 0, maxY = raster.getWidth(); y < maxY; y++) {
+				raster.getPixel(x, y, temp);
+				
+				if (!Arrays.equals(colorParts, temp)) {
+					return new Point(x,y);
+				}
+			}
+		}
+		return new Point(-1,-1);
+	}
+	
+    private static void makeClockwiseContour(final Raster raster, int xAnchor, int yAnchor, final Color transparentColor, final GeneralPath gp) {
+		// TODO Auto-generated method stub
+		final float[]	colorParts = transparentColor.getComponents(null);
+		final float[]	temp = new float[4];
+		final int		xMax = raster.getWidth(), yMax = raster.getHeight();
+		final long		points = raster.getWidth()*raster.getHeight();
+		
+		for (long count = 0; count < points; count++) {
+			int	mask = 0;
+		}
+		throw new IllegalArgumentException("Raster contour is too long");
+		
+	}
+
+	private static GraphicsConfiguration getCurrentGraphicsConfiguration(final Point popupLocation) {
         final GraphicsEnvironment 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] 		gd = ge.getScreenDevices();
         

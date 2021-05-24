@@ -71,4 +71,9 @@
 	<app:keyset id="mainMenuKeyset">
 		<app:key code="INSERT" ctrl="true" action="newProject"/>
 	</app:keyset>
+	<app:menu id="mapMenuTest" icon="file:./src/test/resources/chav1961/purelib/ui/swing/menumap.png">
+		<app:item name="area1" caption="testSet1" tooltip="testSet1" action="action1"/>
+		<app:item name="area2" caption="testSet2" tooltip="testSet2" action="action2"/>
+		<app:item name="area3" caption="testSet3" tooltip="testSet3" action="action3"/>
+	</app:menu>
 </app:root>

@@ -133,7 +133,11 @@ public class SwingUnitTest {
 	} 
 
 	public SwingUnitTest click(final int buttonId, final int clickCount) throws DebuggingException {
-		move(1,1);
+		return click(1,1,buttonId,clickCount);
+	}
+	
+	public SwingUnitTest click(final int x, final int y, final int buttonId, final int clickCount) throws DebuggingException {
+		move(x,y);
 		switch (buttonId) {
 			case MouseEvent.BUTTON1		: clickInternal(InputEvent.BUTTON1_DOWN_MASK,clickCount); break;
 			case MouseEvent.BUTTON2		: clickInternal(InputEvent.BUTTON1_DOWN_MASK,clickCount); break;

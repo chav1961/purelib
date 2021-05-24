@@ -30,7 +30,7 @@ import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
 import chav1961.purelib.basic.interfaces.OnlineStringGetter;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
-class SVGUtils {
+public class SVGUtils {
 	public static Point2D[] extractPoints(final String source) throws SyntaxException {
 		if (source == null || source.isEmpty()) {
 			throw new IllegalArgumentException("Source string can't be null or empty");
@@ -389,7 +389,7 @@ loop:		for (;;) {
 			return result;
 		}
 	}
-
+	
 	static <T> T convertTo(final Class<T> awaited, final String source) throws SyntaxException {
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");

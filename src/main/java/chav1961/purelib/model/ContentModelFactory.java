@@ -696,6 +696,7 @@ public class ContentModelFactory {
 			case XML_TAG_APP_MENU		:
 				final String	menuId = getAttribute(document,XML_ATTR_ID);
 				final String	keySet = getAttribute(document,XML_ATTR_KEYSET);
+				final String	menuIcon = getAttribute(document,XML_ATTR_ICON);
 				
 				child = new MutableContentNodeMetadata(menuId
 						, String.class
@@ -706,7 +707,7 @@ public class ContentModelFactory {
 						, null
 						, null
 						, null
-						, null);
+						, menuIcon == null || menuIcon.isEmpty() ? null : URI.create(menuIcon));
 				break;
 			case XML_TAG_APP_SUBMENU	:
 				final String	submenuName = getAttribute(document,XML_ATTR_NAME);
