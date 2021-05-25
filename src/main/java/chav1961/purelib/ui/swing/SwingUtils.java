@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -30,6 +31,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.GeneralPath;
+import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
@@ -169,15 +171,15 @@ public abstract class SwingUtils {
 	private static final int				SEGMENT_WEST = 6;
 	private static final int				SEGMENT_NORTH_WEST = 7;
 	private static final SobelGradSeg[]		SOBEL_SEG = {
-												new SobelGradSeg(0, 0, SEGMENT_NORTH, "SEGMENT_NORTH"),
-												new SobelGradSeg(0, 0, SEGMENT_NORTH_EAST, "SEGMENT_NORTH_EAST"),
-												new SobelGradSeg(0, 0, SEGMENT_EAST, "SEGMENT_EAST"),
-												new SobelGradSeg(0, 0, SEGMENT_SOUTH_EAST, "SEGMENT_SOUTH_EAST"),
-												new SobelGradSeg(0, 0, SEGMENT_SOUTH, "SEGMENT_SOUTH"),
-												new SobelGradSeg(0, 0, SEGMENT_SOUTH_WEST, "SEGMENT_SOUTH_WEST"),
-												new SobelGradSeg(0, 0, SEGMENT_WEST, "SEGMENT_WEST"),
-												new SobelGradSeg(0, 0, SEGMENT_WEST, "SEGMENT_WEST"),
-												new SobelGradSeg(0, 0, SEGMENT_NORTH_WEST, "SEGMENT_NORTH_WEST")
+												new SobelGradSeg(180f-22.5f, 180f, SEGMENT_WEST, "SEGMENT_WEST"),
+												new SobelGradSeg(180f-22.5f-45f, 180f-22.5f, SEGMENT_NORTH_WEST, "SEGMENT_NORTH_WEST"),
+												new SobelGradSeg(180f-22.5f-45f-45f, 180f-22.5f-45f, SEGMENT_NORTH, "SEGMENT_NORTH"),
+												new SobelGradSeg(180f-22.5f-45f-45f-45f, 180f-22.5f-45f-45f, SEGMENT_NORTH_EAST, "SEGMENT_NORTH_EAST"),
+												new SobelGradSeg(180f-22.5f-45f-45f-45f-45f, 180f-22.5f-45f-45f-45f, SEGMENT_EAST, "SEGMENT_EAST"),
+												new SobelGradSeg(180f-22.5f-45f-45f-45f-45f-45f, 180f-22.5f-45f-45f-45f-45f, SEGMENT_SOUTH_EAST, "SEGMENT_SOUTH_EAST"),
+												new SobelGradSeg(180f-22.5f-45f-45f-45f-45f-45f-45f, 180f-22.5f-45f-45f-45f-45f-45f, SEGMENT_SOUTH, "SEGMENT_SOUTH"),
+												new SobelGradSeg(180f-22.5f-45f-45f-45f-45f-45f-45f-45f, 180f-22.5f-45f-45f-45f-45f-45f-45f, SEGMENT_SOUTH_WEST, "SEGMENT_SOUTH_WEST"),
+												new SobelGradSeg(180f-22.5f-45f-45f-45f-45f-45f-45f-45f-45f, 180f-22.5f-45f-45f-45f-45f-45f-45f-45f, SEGMENT_WEST, "SEGMENT_WEST"),
 											};	
 	
 	static {
@@ -1347,32 +1349,30 @@ loop:			for (Component comp : children(node)) {
 
 	/**
 	 * <p>Build contour path around transparent image content.</p>
-	 * @param raster raster to guild contour for. Can't be null
+	 * @param image image to build contour for. Can't be null
 	 * @return contour built. Can't be null
 	 * @throws NullPointerException on any parameter s are null
 	 * @since 0.0.5
 	 */
-	public static GeneralPath buildContour(final Raster raster) throws NullPointerException {
-		if (raster == null) {
+	public static GeneralPath buildContour(final BufferedImage image) throws NullPointerException {
+		if (image == null) {
 			throw new NullPointerException("Raster to build contour for can't be null");
 		}
 		else {
-			final int[]	colors = raster.getPixel(0, 0, (int[])null);
-			
-			return buildContour(raster,new Color(colors[0],colors[1],colors[2]));
+			return buildContour(image,new Color(image.getRGB(0, 0)));
 		}
 	}
 	
 	/**
 	 * <p>Build contour path around transparent image content.</p>
-	 * @param raster raster to guild contour for. Can't be null
+	 * @param image image to build contour for. Can't be null
 	 * @param transparentColor transparent color. Can't be null
 	 * @return contour built. Can't be null
 	 * @throws NullPointerException on any parameter s are null
 	 * @since 0.0.5
 	 */
-	public static GeneralPath buildContour(final Raster raster, final Color transparentColor) throws NullPointerException {
-		if (raster == null) {
+	public static GeneralPath buildContour(final BufferedImage image, final Color transparentColor) throws NullPointerException {
+		if (image == null) {
 			throw new NullPointerException("Raster to build contour for can't be null");
 		}
 		else if (transparentColor == null) {
@@ -1380,32 +1380,29 @@ loop:			for (Component comp : children(node)) {
 		}
 		else {
 			final GeneralPath	gp = new GeneralPath();
-			final Point			p = findFirstDifferentColorPoint(raster,transparentColor);
+			final int			color = transparentColor.getRGB();
+			final Point			p = findFirstDifferentColorPoint(image, color & 0xFFFFFF);
 			
 			if (p.getX() < 0 || p.getY() < 0) {
 				gp.moveTo(0, 0);
-				gp.lineTo(raster.getWidth(), 0);
-				gp.lineTo(raster.getWidth(), raster.getHeight());
-				gp.lineTo(0, raster.getHeight());
+				gp.lineTo(image.getWidth(), 0);
+				gp.lineTo(image.getWidth(), image.getHeight());
+				gp.lineTo(0, image.getHeight());
 				gp.closePath();
 			}
 			else {
 				gp.moveTo(p.getX(), p.getY());
-				makeClockwiseContour(raster,p.x,p.y,transparentColor,gp);
+				makeClockwiseContour(image,p.x,p.y,color & 0xFFFFFF,gp);
 			}
 			return gp;
 		}
 	}
 
-	private static Point findFirstDifferentColorPoint(final Raster raster, final Color transparentColor) {
-		final float[]	colorParts = transparentColor.getComponents(null);
-		final float[]	temp = new float[4];
-		
-		for (int x = 0, maxX = raster.getWidth(); x < maxX; x++) {
-			for (int y = 0, maxY = raster.getWidth(); y < maxY; y++) {
-				raster.getPixel(x, y, temp);
-				
-				if (!Arrays.equals(colorParts, temp)) {
+	private static Point findFirstDifferentColorPoint(final BufferedImage image, final int transparentColor) {
+		for (int x = 0, maxX = image.getWidth(); x < maxX; x++) {
+			for (int y = 0, maxY = image.getWidth(); y < maxY; y++) {
+				if ((image.getRGB(x, y) & 0xFFFFFF) != transparentColor) {
+					System.err.println("FOUND: "+transparentColor+" at "+x+"/"+y);
 					return new Point(x,y);
 				}
 			}
@@ -1413,62 +1410,61 @@ loop:			for (Component comp : children(node)) {
 		return new Point(-1,-1);
 	}
 	
-    private static GeneralPath makeClockwiseContour(final Raster raster, int xAnchor, int yAnchor, final Color transparentColor, final GeneralPath gp) {
-		final float[]	colorParts = transparentColor.getComponents(null);
-		final float[]	temp = new float[9];
-		final int		xMax = raster.getWidth(), yMax = raster.getHeight();
-		final int		oldXAnchor= xAnchor, oldYAnchor = yAnchor;
-		final long		points = raster.getWidth()*raster.getHeight();
-		int				oldSobelGradX = -100, oldSobelGradY = -100; 
+    private static GeneralPath makeClockwiseContour(final BufferedImage image, int xAnchor, int yAnchor, final int transparentColor, final GeneralPath gp) {
+		final int[]	temp = new int[9];
+		final int	xMax = image.getWidth(), yMax = image.getHeight();
+		final int	oldXAnchor= xAnchor, oldYAnchor = yAnchor;
+		final long	points = image.getWidth()*image.getHeight();
+		int			oldSobelGradX = Integer.MAX_VALUE, oldSobelGradY = Integer.MAX_VALUE; 
 		
 		for (long count = 0; count < points; count++) {
 			int		matrix, sobelGradX, sobelGradY;
 			
 			if (xAnchor > 0 && xAnchor < xMax-1) {
 				if (yAnchor > 0 && yAnchor < yMax-1) {
-					raster.getPixels(xAnchor-1, yAnchor-1, 3, 3, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b111111111);
+					image.getRGB(xAnchor-1, yAnchor-1, 3, 3, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b111111111);
 				}
 				else if (yAnchor == 0) {
-					raster.getPixels(xAnchor-1, yAnchor, 3, 2, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b111111000);
+					image.getRGB(xAnchor-1, yAnchor, 3, 2, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b111111000);
 				}
 				else {
-					raster.getPixels(xAnchor-1, yAnchor, 3, 2, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b000111111);
+					image.getRGB(xAnchor-1, yAnchor, 3, 2, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b000111111);
 				}
 			}
 			else if (xAnchor == 0) {
 				if (yAnchor > 0 && yAnchor < yMax-1) {
-					raster.getPixels(xAnchor, yAnchor-1, 2, 3, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b110110110);
+					image.getRGB(xAnchor, yAnchor-1, 2, 3, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b110110110);
 				}
 				else if (yAnchor == 0) {
-					raster.getPixels(xAnchor, yAnchor, 2, 2, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b000110110);
+					image.getRGB(xAnchor, yAnchor, 2, 2, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b000110110);
 				}
 				else {
-					raster.getPixels(xAnchor, yAnchor-1, 2, 2, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b110110000);
+					image.getRGB(xAnchor, yAnchor-1, 2, 2, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b110110000);
 				}
 			}
 			else {
 				if (yAnchor > 0 && yAnchor < yMax-1) {
-					raster.getPixels(xAnchor-1, yAnchor, 2, 3, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b011011011);
+					image.getRGB(xAnchor-1, yAnchor, 2, 3, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b011011011);
 				}
 				else if (yAnchor == 0) {
-					raster.getPixels(xAnchor, yAnchor, 2, 2, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b000011011);
+					image.getRGB(xAnchor, yAnchor, 2, 2, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b000011011);
 				}
 				else {
-					raster.getPixels(xAnchor, yAnchor-1, 2, 2, temp);
-					matrix = buildPixelMatrix(temp,colorParts,0b011011000);
+					image.getRGB(xAnchor, yAnchor-1, 2, 2, temp, 0, 1);
+					matrix = buildPixelMatrix(temp,transparentColor,0b011011000);
 				}
 			}
 			sobelGradX = calcSobelGradX(matrix); 
 			sobelGradY = calcSobelGradY(matrix);
-			switch (calcSobelAngleSegment(calcSobelAngle(sobelGradX,sobelGradY)-90)) {
+			switch (calcSobelAngleSegment(calcSobelAngle(sobelGradX,sobelGradY)+180)) {
 				case SEGMENT_NORTH		:
 					yAnchor--;
 					break;
@@ -1480,25 +1476,28 @@ loop:			for (Component comp : children(node)) {
 					xAnchor++;
 					break;
 				case SEGMENT_SOUTH_EAST	:
-					yAnchor--;
+					yAnchor++;
 					xAnchor++;
 					break;
 				case SEGMENT_SOUTH		:
 					yAnchor++;
 					break;
 				case SEGMENT_SOUTH_WEST	:
-					yAnchor--;
+					yAnchor++;
 					xAnchor--;
 					break;
 				case SEGMENT_WEST		:
 					xAnchor--;
 					break;
 				case SEGMENT_NORTH_WEST	:
-					yAnchor++;
+					yAnchor--;
 					xAnchor--;
 					break;
 				default : throw new UnsupportedOperationException(); 
 			}
+			System.err.println("X="+xAnchor+", Y="+yAnchor+", matrix="+matrix);
+			System.err.println("Xgrad="+sobelGradX+", Ygrad="+sobelGradY);
+			
 			
 			if (xAnchor == oldXAnchor && yAnchor == oldYAnchor) {
 				gp.closePath();
@@ -1515,11 +1514,12 @@ loop:			for (Component comp : children(node)) {
 		throw new IllegalArgumentException("Raster contour is too long");
 	}
 
-	private static int buildPixelMatrix(final float[] source, final float[] fill, final int mask) {
+	private static int buildPixelMatrix(final int[] source, final int color, final int mask) {
 		int result = 0;
-		
-		for (int index = 0, src = 0; index < 9; index++) {
-			if ((mask & (1 << (8-index))) != 0 && source[src++] == fill[0]) {
+	
+		System.err.println("Array: "+Arrays.toString(source)+", mask="+mask+", color="+color);
+		for (int index = 0, src = 0; index < 9; index++, result <<= 1) {
+			if ((mask & (1 << (8-index))) != 0 && (source[src++] & 0xFFFFFF) == color) {
 				result |= 0b1;
 			}
 		}
@@ -1553,10 +1553,18 @@ loop:			for (Component comp : children(node)) {
 	}
 
 	private static int calcSobelAngleSegment(final int angle) {
-		final int	normalizedAngle = angle % 180;
+		int	normalizedAngle = angle;
+		
+		while (normalizedAngle > 180) {
+			normalizedAngle -= 360;
+		}
+		while (normalizedAngle < -180) {
+			normalizedAngle += 360;
+		}
 		
 		for (SobelGradSeg item : SOBEL_SEG) {
 			if (item.from <= normalizedAngle && normalizedAngle <= item.to) {
+				System.err.println("Detect "+item.segmentName+" for "+angle+"/"+normalizedAngle);
 				return item.segment;
 			}
 		}
@@ -2182,12 +2190,12 @@ loop:			for (Component comp : children(node)) {
 
 
 	private static class SobelGradSeg {
-		private final int 		from; 
-		private final int 		to; 
+		private final float		from; 
+		private final float		to; 
 		private final int 		segment;
 		private final String	segmentName;
 		
-		SobelGradSeg(final int from, final int to, final int segment, final String segmentName) {
+		SobelGradSeg(final float from, final float to, final int segment, final String segmentName) {
 			this.from = from;
 			this.to = to;
 			this.segment = segment;

@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.geom.GeneralPath;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -630,6 +632,24 @@ public class SwingUtilsTest {
 		try{SwingUtils.toJComponent(mdi.byUIPath(URI.create("ui:/model/navigation.top.mainmenu")),JLabel.class);
 			Assert.fail("Mandatory exception was not detected (illegal 2-nd argument)");
 		} catch (IllegalArgumentException exc) {
+		}
+	}
+
+	@Category(OrdinalTestCategory.class)
+	@Test
+	public void buildContourTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
+		final BufferedImage	bi = ImageIO.read(this.getClass().getResource("blackrhomb.png"));
+		final GeneralPath	gp = SwingUtils.buildContour(bi);
+		
+		Assert.assertEquals(new Rectangle(20, 20), gp.getBounds());
+		
+		try{SwingUtils.buildContour(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{SwingUtils.buildContour(bi,null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
 		}
 	}
 }
