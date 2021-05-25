@@ -1,0 +1,14 @@
+package chav1961.purelib.matrix.interfaces;
+
+public interface Matrix {
+	Class<?> getContentType();
+	int getDimensions();
+	int getSize(int dimension);
+	Matrix add(Matrix another);
+	Matrix sub(Matrix another);
+	Matrix mul(Matrix another);
+	Matrix inv();
+	Matrix transp();
+	double getEpsilon();
+	Matrix setEpsilon(double epsilon);
+}

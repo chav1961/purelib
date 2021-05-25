@@ -6,6 +6,7 @@ package chav1961.purelib.ui.swing;
 
 
 import java.awt.Color;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -157,6 +158,8 @@ public abstract class SwingUtils {
 	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
 	private static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
 
+	private static final int[]				SOBEL_X = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+	private static final int[]				SOBEL_Y = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
 	private static final int				SEGMENT_NORTH = 0;
 	private static final int				SEGMENT_NORTH_EAST = 1;
 	private static final int				SEGMENT_EAST = 2;
@@ -165,6 +168,17 @@ public abstract class SwingUtils {
 	private static final int				SEGMENT_SOUTH_WEST = 5;
 	private static final int				SEGMENT_WEST = 6;
 	private static final int				SEGMENT_NORTH_WEST = 7;
+	private static final SobelGradSeg[]		SOBEL_SEG = {
+												new SobelGradSeg(0, 0, SEGMENT_NORTH, "SEGMENT_NORTH"),
+												new SobelGradSeg(0, 0, SEGMENT_NORTH_EAST, "SEGMENT_NORTH_EAST"),
+												new SobelGradSeg(0, 0, SEGMENT_EAST, "SEGMENT_EAST"),
+												new SobelGradSeg(0, 0, SEGMENT_SOUTH_EAST, "SEGMENT_SOUTH_EAST"),
+												new SobelGradSeg(0, 0, SEGMENT_SOUTH, "SEGMENT_SOUTH"),
+												new SobelGradSeg(0, 0, SEGMENT_SOUTH_WEST, "SEGMENT_SOUTH_WEST"),
+												new SobelGradSeg(0, 0, SEGMENT_WEST, "SEGMENT_WEST"),
+												new SobelGradSeg(0, 0, SEGMENT_WEST, "SEGMENT_WEST"),
+												new SobelGradSeg(0, 0, SEGMENT_NORTH_WEST, "SEGMENT_NORTH_WEST")
+											};	
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -1502,28 +1516,51 @@ loop:			for (Component comp : children(node)) {
 	}
 
 	private static int buildPixelMatrix(final float[] source, final float[] fill, final int mask) {
-		// TODO Auto-generated method stub
-		return 0;
+		int result = 0;
+		
+		for (int index = 0, src = 0; index < 9; index++) {
+			if ((mask & (1 << (8-index))) != 0 && source[src++] == fill[0]) {
+				result |= 0b1;
+			}
+		}
+		return result;
 	}
 
 	private static int calcSobelGradX(final int matrix) {
-		// TODO Auto-generated method stub
-		return 0;
+		int	sum = 0;
+		
+		for (int index = 0, mask = 0b100000000; index < 9; index++, mask >>= 1) {
+			if ((matrix & mask) != 0) {
+				sum += SOBEL_X[index];
+			}
+		}
+		return sum;
 	}
 
 	private static int calcSobelGradY(final int matrix) {
-		// TODO Auto-generated method stub
-		return 0;
+		int	sum = 0;
+		
+		for (int index = 0, mask = 0b100000000; index < 9; index++, mask >>= 1) {
+			if ((matrix & mask) != 0) {
+				sum += SOBEL_Y[index];
+			}
+		}
+		return sum;
 	}
 
 	private static int calcSobelAngle(int sobelGradX, int sobelGradY) {
-		// TODO Auto-generated method stub
-		return 0;
+		return (int) Math.round(180*Math.atan2(sobelGradX, sobelGradY)/Math.PI);
 	}
 
 	private static int calcSobelAngleSegment(final int angle) {
-		// TODO Auto-generated method stub
-		return 0;
+		final int	normalizedAngle = angle % 180;
+		
+		for (SobelGradSeg item : SOBEL_SEG) {
+			if (item.from <= normalizedAngle && normalizedAngle <= item.to) {
+				return item.segment;
+			}
+		}
+		throw new UnsupportedOperationException();
 	}
 	
 	private static GraphicsConfiguration getCurrentGraphicsConfiguration(final Point popupLocation) {
@@ -2140,6 +2177,26 @@ loop:			for (Component comp : children(node)) {
 			pane.removeHyperlinkListener(this);
 			owner.removeKeyListener(this);
 			owner.removeFocusListener(this);
+		}
+	}
+
+
+	private static class SobelGradSeg {
+		private final int 		from; 
+		private final int 		to; 
+		private final int 		segment;
+		private final String	segmentName;
+		
+		SobelGradSeg(final int from, final int to, final int segment, final String segmentName) {
+			this.from = from;
+			this.to = to;
+			this.segment = segment;
+			this.segmentName = segmentName;
+		}
+
+		@Override
+		public String toString() {
+			return "SobelGradSeg [from=" + from + ", to=" + to + ", segment=" + segment + ", segmentName=" + segmentName + "]";
 		}
 	}
 }
