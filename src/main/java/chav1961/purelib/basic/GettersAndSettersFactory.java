@@ -1202,7 +1202,7 @@ public class GettersAndSettersFactory {
 
 	private static <T> GetterAndSetter buildReferencedHandleStatic(final Field f, final Class<T> fType) {
 		f.setAccessible(true);
-		
+
 		try{final MethodHandle	getter = MethodHandles.lookup().unreflectGetter(f);
 			final MethodHandle	setter = MethodHandles.lookup().unreflectSetter(f);
 

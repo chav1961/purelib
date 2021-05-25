@@ -735,7 +735,6 @@ sw:				for(;;) {
 		synchronized(listeners) {
 			listeners.clear();
 			if (getParent() != null) {
-				System.err.println("Close localizer: "+getLocalizerId());
 				getParent().pop(this);
 			}
 		}

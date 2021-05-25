@@ -3,6 +3,7 @@ package chav1961.purelib.i18n;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,6 +36,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 
 public final class LocalizerFactory {
 	private static final Map<URI,LocalizerCacheItem>	cache = new ConcurrentHashMap<>();
+	private static final Map<URI,URI>					aliases = new ConcurrentHashMap<>();
 
 	private LocalizerFactory() {
 	}
@@ -74,9 +76,13 @@ public final class LocalizerFactory {
 		else {
 			Localizer			localizer;
 			LocalizerCacheItem	localizerItem;
+			URI					alias;
 			
 			if ((localizerItem = cache.get(localizerUri)) != null) {	// Double checked locking!
 				return localizerItem.localizer; 
+			}
+			else if ((alias = aliases.get(localizerUri)) != null && (localizerItem = cache.get(alias)) != null) {	// Double checked locking!
+				return localizerItem.localizer;
 			}
 			else {
 				for (Localizer item : ServiceLoader.load(Localizer.class)) {
@@ -92,9 +98,10 @@ public final class LocalizerFactory {
 									for (String key : localizer.localKeys()) {
 										localizerHash += key.hashCode();
 									}
-								
+
 									for (Entry<URI, LocalizerCacheItem> entry : cache.entrySet()) {
 										if (entry.getValue().localizerHash == localizerHash && deepCompare(entry.getValue().localizer,localizer)) {
+											aliases.put(localizerUri,entry.getValue().uri);
 											return entry.getValue().localizer;
 										}
 									}
