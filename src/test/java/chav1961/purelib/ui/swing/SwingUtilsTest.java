@@ -7,7 +7,9 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -641,7 +644,15 @@ public class SwingUtilsTest {
 		final BufferedImage	bi = ImageIO.read(this.getClass().getResource("blackrhomb.png"));
 		final GeneralPath	gp = SwingUtils.buildContour(bi);
 		
-		Assert.assertEquals(new Rectangle(20, 20), gp.getBounds());
+		Assert.assertEquals(new Rectangle(14, 11, 68, 68), gp.getBounds());
+//		final PathIterator	pi = gp.getPathIterator(new AffineTransform());
+//		final float[]		item = new float[6];
+//		
+//		while (!pi.isDone()) {
+//			final int type = pi.currentSegment(item);
+//			System.err.println("Type["+type+"]="+Arrays.toString(item));
+//			pi.next();
+//		}
 		
 		try{SwingUtils.buildContour(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
