@@ -295,6 +295,49 @@ public class LongMatrixImpl implements LongMatrix {
 	}
 
 	@Override
+	public Matrix add(final Number number) {
+		if (number == null) {
+			throw new NullPointerException("Number to add can't be null"); 
+		}
+		else {
+			final long[]	result = content.clone();
+			final long		val = number.longValue();
+			
+			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
+				result[index] += val;
+			}
+			return new LongMatrixImpl(sizeX, sizeY, false, result);
+		}
+	}
+
+	@Override
+	public Matrix mul(final Number number) {
+		if (number == null) {
+			throw new NullPointerException("Number to moltiply can't be null"); 
+		}
+		else {
+			final long[]	result = content.clone();
+			final long		val = number.longValue();
+			
+			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
+				result[index] *= val;
+			}
+			return new LongMatrixImpl(sizeX, sizeY, false, result);
+		}
+	}
+
+	@Override
+	public double getEpsilon() {
+		return epsilon;
+	}
+
+	@Override
+	public Matrix setEpsilon(final double epsilon) {
+		this.epsilon = Math.abs(epsilon);
+		return this;
+	}
+	
+	@Override
 	public void get(final int from, final long[] content, final int to, final int length) {
 		System.arraycopy(this.content, from, content, to, length);
 	}
@@ -338,16 +381,5 @@ public class LongMatrixImpl implements LongMatrix {
 			sb.append("|\n");
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public double getEpsilon() {
-		return epsilon;
-	}
-
-	@Override
-	public Matrix setEpsilon(final double epsilon) {
-		this.epsilon = Math.abs(epsilon);
-		return this;
 	}
 }

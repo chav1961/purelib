@@ -8,6 +8,7 @@ import chav1961.purelib.matrix.interfaces.DoubleMatrix;
 import chav1961.purelib.matrix.interfaces.FloatMatrix;
 import chav1961.purelib.matrix.interfaces.IntMatrix;
 import chav1961.purelib.matrix.interfaces.LongMatrix;
+import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -55,7 +56,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{dm4.add(null);
+		try{dm4.add((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}
@@ -73,7 +74,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{dm1.mul(null);
+		try{dm1.mul((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}
@@ -136,7 +137,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{fm4.add(null);
+		try{fm4.add((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}
@@ -154,7 +155,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{fm1.mul(null);
+		try{fm1.mul((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}
@@ -217,7 +218,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{lm4.add(null);
+		try{lm4.add((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}
@@ -235,7 +236,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{lm1.mul(null);
+		try{lm1.mul((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}
@@ -298,7 +299,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{im4.add(null);
+		try{im4.add((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}
@@ -316,7 +317,7 @@ public class MatrixTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		try{im1.mul(null);
+		try{im1.mul((Matrix)null);
 			Assert.fail("Mandatory exception was not detected (different size of operands)");
 		} catch (NullPointerException exc) {
 		}

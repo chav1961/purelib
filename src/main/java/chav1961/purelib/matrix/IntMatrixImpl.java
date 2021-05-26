@@ -295,6 +295,49 @@ public class IntMatrixImpl implements IntMatrix {
 	}
 
 	@Override
+	public Matrix add(final Number number) {
+		if (number == null) {
+			throw new NullPointerException("Number to add can't be null"); 
+		}
+		else {
+			final int[]	result = content.clone();
+			final int	val = number.intValue();
+			
+			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
+				result[index] += val;
+			}
+			return new IntMatrixImpl(sizeX, sizeY, false, result);
+		}
+	}
+
+	@Override
+	public Matrix mul(final Number number) {
+		if (number == null) {
+			throw new NullPointerException("Number to moltiply can't be null"); 
+		}
+		else {
+			final int[]	result = content.clone();
+			final int	val = number.intValue();
+			
+			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
+				result[index] *= val;
+			}
+			return new IntMatrixImpl(sizeX, sizeY, false, result);
+		}
+	}
+
+	@Override
+	public double getEpsilon() {
+		return epsilon;
+	}
+
+	@Override
+	public Matrix setEpsilon(final double epsilon) {
+		this.epsilon = Math.abs(epsilon);
+		return this;
+	}
+	
+	@Override
 	public void get(final int from, final int[] content, final int to, final int length) {
 		System.arraycopy(this.content, from, content, to, length);
 	}
@@ -338,16 +381,5 @@ public class IntMatrixImpl implements IntMatrix {
 			sb.append("|\n");
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public double getEpsilon() {
-		return epsilon;
-	}
-
-	@Override
-	public Matrix setEpsilon(final double epsilon) {
-		this.epsilon = Math.abs(epsilon);
-		return this;
 	}
 }

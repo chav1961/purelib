@@ -9,6 +9,8 @@ public interface Matrix {
 	Matrix mul(Matrix another);
 	Matrix inv();
 	Matrix transp();
+	Matrix add(Number number);
+	Matrix mul(Number number);
 	double getEpsilon();
 	Matrix setEpsilon(double epsilon);
 }
