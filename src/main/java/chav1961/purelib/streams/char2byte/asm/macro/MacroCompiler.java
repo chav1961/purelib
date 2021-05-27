@@ -65,8 +65,12 @@ public class MacroCompiler {
 	private static final char[]		COMMAND_IFNE = "ifne".toCharArray();
 
 	private static final Method		ME_TO_STRING_L;
+	private static final Method		ME_TO_LIST_L;
 	private static final Method		ME_TO_STRING_D;
+	private static final Method		ME_TO_LIST_D;
+	private static final Method		ME_TO_LIST_STR;
 	private static final Method		ME_TO_STRING_Z;
+	private static final Method		ME_TO_LIST_Z;
 	private static final Method		ME_COMPARE_STRINGS;
 	private static final Method		ME_VALUE_EXISTS;
 	private static final Method		ME_TO_BOOLEAN;
@@ -82,6 +86,10 @@ public class MacroCompiler {
 	private static final Method		ENI_GET_DOUBLE_INDEX;	
 	private static final Method		ENI_GET_STRING_INDEX;	
 	private static final Method		ENI_GET_BOOLEAN_INDEX;	
+	private static final Method		ENI_GET_LONG_CONTENT;	
+	private static final Method		ENI_GET_DOUBLE_CONTENT;	
+	private static final Method		ENI_GET_STRING_CONTENT;	
+	private static final Method		ENI_GET_BOOLEAN_CONTENT;	
 	private static final Method		ENI_GET_SIZE;
 
 	private static final Method		CU_PARSE_SIGNED_LONG;	
@@ -91,8 +99,12 @@ public class MacroCompiler {
 		try{final Class<MacroExecutor>				macroExecutorClass = MacroExecutor.class;
 			
 			ME_TO_STRING_L = macroExecutorClass.getMethod("toString",long.class);
+			ME_TO_LIST_L = macroExecutorClass.getMethod("toString",long[].class);
 			ME_TO_STRING_D = macroExecutorClass.getMethod("toString",double.class);
+			ME_TO_LIST_D = macroExecutorClass.getMethod("toString",double[].class);
+			ME_TO_LIST_STR = macroExecutorClass.getMethod("toString",char[][].class);
 			ME_TO_STRING_Z = macroExecutorClass.getMethod("toString",boolean.class);
+			ME_TO_LIST_Z = macroExecutorClass.getMethod("toString",boolean[].class);
 			ME_COMPARE_STRINGS = macroExecutorClass.getMethod("compareStrings",char[].class,char[].class);
 			ME_VALUE_EXISTS = macroExecutorClass.getMethod("valueExists",AssignableExpressionNodeInterface.class);
 			ME_TO_BOOLEAN = macroExecutorClass.getMethod("toBoolean",char[].class); 
@@ -114,6 +126,10 @@ public class MacroCompiler {
 			ENI_GET_DOUBLE_INDEX = expressionNodeInterfaceClass.getMethod("getDouble",long.class);
 			ENI_GET_STRING_INDEX = expressionNodeInterfaceClass.getMethod("getString",long.class);
 			ENI_GET_BOOLEAN_INDEX = expressionNodeInterfaceClass.getMethod("getBoolean",long.class);
+			ENI_GET_LONG_CONTENT = expressionNodeInterfaceClass.getMethod("getLongContent");
+			ENI_GET_DOUBLE_CONTENT = expressionNodeInterfaceClass.getMethod("getDoubleContent");
+			ENI_GET_STRING_CONTENT = expressionNodeInterfaceClass.getMethod("getStringContent");
+			ENI_GET_BOOLEAN_CONTENT = expressionNodeInterfaceClass.getMethod("getBooleanContent");
 			ENI_GET_SIZE = expressionNodeInterfaceClass.getMethod("getSize");
 			
 			final Class<CharUtils>					charUtilsClass = CharUtils.class;
@@ -437,6 +453,9 @@ public class MacroCompiler {
 	
 	static void compileExpression(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer, final int trueLabel, final int falseLabel) throws CalculationException {
 		try(final NameKeeper	current = callback.push()) {
+			if (node == null) {
+				int x = 0;
+			}
 			switch (node.getType()) {
 				case CONSTANT				:
 					buildConstant(node, storage, repo, callback, writer, trueLabel, falseLabel);
@@ -646,7 +665,7 @@ public class MacroCompiler {
 								final ExpressionNode	operand = ((OperatorNode)node).getOperands()[0];
 								
 								if (operand.getType() != ExpressionNodeType.LOCAL_VARIABLE && operand.getType() != ExpressionNodeType.KEY_PARAMETER && operand.getType() != ExpressionNodeType.POSITIONAL_PARAMETER ) {
-									throw new CalculationException("Operand of len(...) fucunction can be parameter or variable only");
+									throw new CalculationException("Operand of zzz[index] can be parameter or variable only");
 								}
 								else {
 									repo.append(writer,PART_VALIDATE_VAR_VALUE,current.put(VAR_INDEX,((AssignableExpressionNode)operand).getSequentialNumber()));
@@ -797,6 +816,28 @@ public class MacroCompiler {
 									repo.append(writer,PART_VALIDATE_VAR_VALUE,current.put(VAR_INDEX,((AssignableExpressionNode)operandLen).getSequentialNumber()));
 									repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_SIZE)+"\n");
 									repo.append(writer,"	i2l\n");
+								}
+								break;
+							case F_TO_LIST	:
+								repo.append(writer,PART_VALIDATE_VAR_VALUE,current.put(VAR_INDEX,((AssignableExpressionNode)((FuncToListNode)node).operands.get(0)).getSequentialNumber()));
+								switch (((FuncToListNode)node).operands.get(0).getValueType()) {
+									case INTEGER_ARRAY	:
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_LONG_CONTENT)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_LIST_L)+"\n");
+										break;
+									case REAL_ARRAY		:
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_DOUBLE_CONTENT)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_LIST_D)+"\n");
+										break;
+									case STRING_ARRAY	:
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_STRING_CONTENT)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_LIST_STR)+"\n");
+										break;
+									case BOOLEAN_ARRAY	:
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ENI_GET_BOOLEAN_CONTENT)+"\n");
+										repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_TO_LIST_Z)+"\n");
+										break;
+									default : throw new UnsupportedOperationException("Data type ["+((FuncToStringNode)node).operands.get(0).getValueType()+"] is not supported yet");
 								}
 								break;
 							default : throw new UnsupportedOperationException("Expression operator ["+((OperatorListNode)node).getOperator()+"] is not supported yet");						

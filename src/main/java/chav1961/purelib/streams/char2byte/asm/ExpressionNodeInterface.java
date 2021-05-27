@@ -14,5 +14,9 @@ public interface ExpressionNodeInterface {
 	double getDouble(long index) throws CalculationException;
 	char[] getString(long index) throws CalculationException;
 	boolean getBoolean(long index) throws CalculationException;
+	long[] getLongContent() throws CalculationException;
+	double[] getDoubleContent() throws CalculationException;
+	char[][] getStringContent() throws CalculationException;
+	boolean[] getBooleanContent() throws CalculationException;
 	int getSize() throws CalculationException;
 }

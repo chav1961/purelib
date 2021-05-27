@@ -6,6 +6,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeInterface;
@@ -248,6 +249,46 @@ class ConstantNode extends ExpressionNode {
 		}
 	}
 
+	@Override
+	public long[] getLongContent() throws CalculationException {
+		if (valueType == ExpressionNodeValue.INTEGER_ARRAY) {
+			return longArrayValue;
+		}
+		else {
+			throw new CalculationException("Attempt to get long array for ["+valueType+"] constant");
+		}
+	}
+
+	@Override
+	public double[] getDoubleContent() throws CalculationException {
+		if (valueType == ExpressionNodeValue.REAL_ARRAY) {
+			return doubleArrayValue;
+		}
+		else {
+			throw new CalculationException("Attempt to get double array for ["+valueType+"] constant");
+		}
+	}
+
+	@Override
+	public char[][] getStringContent() throws CalculationException {
+		if (valueType == ExpressionNodeValue.STRING_ARRAY) {
+			return stringArrayValue;
+		}
+		else {
+			throw new CalculationException("Attempt to get string array for ["+valueType+"] constant");
+		}
+	}
+
+	@Override
+	public boolean[] getBooleanContent() throws CalculationException {
+		if (valueType == ExpressionNodeValue.STRING_ARRAY) {
+			return booleanArrayValue;
+		}
+		else {
+			throw new CalculationException("Attempt to get boolean array for ["+valueType+"] constant");
+		}
+	}
+	
 	@Override 
 	public int getSize() throws CalculationException {
 		switch (valueType) {
@@ -384,6 +425,7 @@ class ConstantNode extends ExpressionNode {
 		}
 		return result;
 	}
+
 }
 
 abstract class AssignableExpressionNode extends ExpressionNode implements AssignableExpressionNodeInterface {
@@ -555,6 +597,11 @@ class PositionalParameter extends AssignableExpressionNode {
 	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue.getBoolean(index);}
 	@Override public boolean hasValue(final long index) {return currentValue != null;}
 
+	@Override public long[] getLongContent() throws CalculationException {return currentValue.getLongContent();}
+	@Override public double[] getDoubleContent() throws CalculationException {return currentValue.getDoubleContent();}
+	@Override public char[][] getStringContent() throws CalculationException {return currentValue.getStringContent();}
+	@Override public boolean[] getBooleanContent() throws CalculationException {return currentValue.getBooleanContent();}
+	
 	@Override
 	public String toString() {
 		return "PositionalParameter [name=" + Arrays.toString(name) + ", currentValue=" + currentValue + "]";
@@ -773,6 +820,11 @@ class KeyParameter extends AssignableExpressionNode {
 	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue.getBoolean(index);}
 	@Override public boolean hasValue(final long index) {return currentValue != null;}
 
+	@Override public long[] getLongContent() throws CalculationException {return currentValue.getLongContent();}
+	@Override public double[] getDoubleContent() throws CalculationException {return currentValue.getDoubleContent();}
+	@Override public char[][] getStringContent() throws CalculationException {return currentValue.getStringContent();}
+	@Override public boolean[] getBooleanContent() throws CalculationException {return currentValue.getBooleanContent();}
+	
 	@Override
 	public String toString() {
 		return "KeyParameter [name=" + Arrays.toString(name) + ", defaultValue=" + defaultValue + ", currentValue=" + currentValue + "]";
@@ -993,6 +1045,11 @@ class LocalVariable extends AssignableExpressionNode {
 	@Override public char[] getString(final long index) throws CalculationException {return currentValue.getString(index);}
 	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue.getBoolean(index);}
 	@Override public boolean hasValue(final long index) {return currentValue != null;}
+
+	@Override public long[] getLongContent() throws CalculationException {return currentValue.getLongContent();}
+	@Override public double[] getDoubleContent() throws CalculationException {return currentValue.getDoubleContent();}
+	@Override public char[][] getStringContent() throws CalculationException {return currentValue.getStringContent();}
+	@Override public boolean[] getBooleanContent() throws CalculationException {return currentValue.getBooleanContent();}
 	
 	@Override
 	public String toString() {
@@ -1109,6 +1166,11 @@ class NotNode extends UnaryOperatorNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -1176,6 +1238,11 @@ class NegNode extends UnaryOperatorNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -1283,6 +1350,11 @@ class ArrayAccessNode extends BinaryOperatorNode {
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
 	
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	
 	@Override
 	public String toString() {
 		return "ArrayAccessNode [node=" + Arrays.toString(node) + "]";
@@ -1363,6 +1435,11 @@ class ArithmeticNode extends BinaryOperatorNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -1464,6 +1541,11 @@ class ComparisonNode extends BinaryOperatorNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	private static int compareContent(final char[] left, final char[] right) {
         final int 	len1 = left.length, len2 = right.length, lim = Math.min(len1, len2);
@@ -1562,6 +1644,11 @@ class TernaryOperatorNode extends OperatorNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+getValueType()+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+getValueType()+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+getValueType()+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -1655,6 +1742,11 @@ class OrNode extends OperatorListNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -1690,6 +1782,11 @@ class AndNode extends OperatorListNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -1735,6 +1832,11 @@ class CatNode extends OperatorListNode {
 	@Override public double getDouble(final long index) throws CalculationException {throw new CalculationException("Attempt to get real array value for ["+ExpressionNodeValue.STRING+"] operator ");}
 	@Override public char[] getString(final long index) throws CalculationException {throw new CalculationException("Attempt to get string array value for ["+ExpressionNodeValue.STRING+"] operator ");}
 	@Override public boolean getBoolean(final long index) throws CalculationException {throw new CalculationException("Attempt to get boolean array value for ["+ExpressionNodeValue.STRING+"] operator ");}
+
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 	
 	@Override
 	public String toString() {
@@ -1890,6 +1992,11 @@ class FuncNode extends OperatorListNode {
 			throw new CalculationException("Attempt to get bool value for ["+getValueType()+"] type");
 		}
 	}
+	
+	@Override public long[] getLongContent() throws CalculationException {throw new CalculationException("Attempt to get long array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public double[] getDoubleContent() throws CalculationException {throw new CalculationException("Attempt to get double array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public char[][] getStringContent() throws CalculationException {throw new CalculationException("Attempt to get string array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
+	@Override public boolean[] getBooleanContent() throws CalculationException {throw new CalculationException("Attempt to get boolean array for ["+ExpressionNodeValue.BOOLEAN+"] operator ");}
 }
 
 class FuncToIntNode extends FuncNode {
@@ -2039,3 +2146,32 @@ class FuncLenNode extends FuncNode {
 	}
 }
 
+class FuncToListNode extends FuncNode {
+	private static final char[]			PURE_FALSE = "false".toCharArray();
+	private static final char[]			PURE_TRUE = "true".toCharArray();
+	private static final StringCallback	callback = new StringCallback() {
+													final GrowableCharArray<GrowableCharArray<?>> gca = new GrowableCharArray<GrowableCharArray<?>>(false);
+													@Override
+													public char[] calculate(final ExpressionNode[] list) throws CalculationException {
+														char	prefix = '{';
+														
+														gca.length(0);
+														switch (list[0].getValueType()) {
+															case INTEGER_ARRAY	: 
+																break;
+															case REAL_ARRAY		: 
+																break;
+															case STRING_ARRAY	: 
+																break;
+															case BOOLEAN_ARRAY	:
+																break;
+															default : throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
+														}
+														return gca.extract();
+													}
+												};
+
+	FuncToListNode() {
+		super(ExpressionNodeOperator.F_TO_LIST,ExpressionNodeValue.STRING,callback);
+	}
+}

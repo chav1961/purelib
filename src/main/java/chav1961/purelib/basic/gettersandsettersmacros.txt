@@ -846,6 +846,32 @@ newInstance			.end
 
 ; --------------------------------------------------------------------
 
+buildSerializer	.macro className:str=,managedClass:str=,serializers:str[]=,names:str[]=,types:str[]=,indices:int[]=
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif		!exists(managedClass)
+			.error		"mandatory parameter 'managedClass' is missing"
+		.elseif		!exists(serializers)
+			.error		"mandatory parameter 'serializers' is missing"
+		.elseif		!exists(names)
+			.error		"mandatory parameter 'names' is missing"
+		.elseif		!exists(types)
+			.error		"mandatory parameter 'types' is missing"
+		.elseif		!exists(indices)
+			.error		"mandatory parameter 'indices' is missing"
+		.else
+;			buildSerializerCaption 		"&className","&managedClass"
+			buildSerializerClInit		"&className","&managedClass",&serializers,&names,&types,&indices
+			buildSerializerInit
+			buildSerializerSerialize	&serializers,&names,&types,&indices
+			buildSerializerDeserialize	&serializers,&names,&types,&indices
+			buildSerializerToString		"&managedClass",&serializers,&names,&types,&indices
+			buildSerializerTail			"&className",
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
 	.package	chav1961.purelib.streams.char2byte.asm
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$GetterAndSetter
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$BooleanGetterAndSetter	

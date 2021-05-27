@@ -24,40 +24,40 @@ public class InternalUtilsTest {
 	public void parseConstantTest() throws CalculationException, SyntaxException {
 		final ExpressionNode[]	result = new ExpressionNode[1];
 		
-		Assert.assertEquals(InternalUtils.parseConstant(" \"123\" ".toCharArray(),0,false,result),6);
+		Assert.assertEquals(InternalUtils.parseConstant(" \"123\" ".toCharArray(),0,false,false,null,result),6);
 		Assert.assertEquals(result[0],new ConstantNode("123".toCharArray()));
 
-		Assert.assertEquals(InternalUtils.parseConstant(" -456 ".toCharArray(),0,false,result),5);
+		Assert.assertEquals(InternalUtils.parseConstant(" -456 ".toCharArray(),0,false,false,null,result),5);
 		Assert.assertEquals(result[0],new ConstantNode(-456));
 
-		Assert.assertEquals(InternalUtils.parseConstant(" 456L ".toCharArray(),0,false,result),5);
+		Assert.assertEquals(InternalUtils.parseConstant(" 456L ".toCharArray(),0,false,false,null,result),5);
 		Assert.assertEquals(result[0],new ConstantNode(456));
 		
-		Assert.assertEquals(InternalUtils.parseConstant(" 789.05 ".toCharArray(),0,false,result),7);
+		Assert.assertEquals(InternalUtils.parseConstant(" 789.05 ".toCharArray(),0,false,false,null,result),7);
 		Assert.assertEquals(result[0].getDouble(),new ConstantNode(789.05).getDouble(),0.0001);
 
-		Assert.assertEquals(InternalUtils.parseConstant(" -789.05f ".toCharArray(),0,false,result),9);
+		Assert.assertEquals(InternalUtils.parseConstant(" -789.05f ".toCharArray(),0,false,false,null,result),9);
 		Assert.assertEquals(result[0].getDouble(),new ConstantNode(-789.05).getDouble(),0.0001);
 		
-		Assert.assertEquals(InternalUtils.parseConstant(" true ".toCharArray(),0,false,result),4);
+		Assert.assertEquals(InternalUtils.parseConstant(" true ".toCharArray(),0,false,false,null,result),4);
 		Assert.assertEquals(result[0],new ConstantNode(true));
 
-		Assert.assertEquals(InternalUtils.parseConstant(" false ".toCharArray(),0,false,result),5);
+		Assert.assertEquals(InternalUtils.parseConstant(" false ".toCharArray(),0,false,false,null,result),5);
 		Assert.assertEquals(result[0],new ConstantNode(false));
 		
-		try{InternalUtils.parseConstant(" tygydym ".toCharArray(),0,false,result);
+		try{InternalUtils.parseConstant(" tygydym ".toCharArray(),0,false,false,null,result);
 			Assert.fail("Mandatory exception was not detected (non-boolean constant)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.parseConstant(" ??? ".toCharArray(),0,false,result);
+		try{InternalUtils.parseConstant(" ??? ".toCharArray(),0,false,false,null,result);
 			Assert.fail("Mandatory exception was not detected (unknown chars)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.parseConstant(" -true ".toCharArray(),0,false,result);
+		try{InternalUtils.parseConstant(" -true ".toCharArray(),0,false,false,null,result);
 			Assert.fail("Mandatory exception was not detected (minus sign invalid)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.parseConstant(" +\"1\" ".toCharArray(),0,false,result);
+		try{InternalUtils.parseConstant(" +\"1\" ".toCharArray(),0,false,false,null,result);
 			Assert.fail("Mandatory exception was not detected (plus sign invalid)");
 		} catch (IllegalArgumentException exc) {
 		}

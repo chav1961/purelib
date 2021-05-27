@@ -78,7 +78,7 @@ class InternalUtils {
 		return from;
 	} 
 
-	static int parseConstant(final char[] data, int from, final boolean treatUnknownAsString, final ExpressionNode[] result) throws CalculationException, SyntaxException {
+	static int parseConstant(final char[] data, int from, final boolean treatUnknownAsString, final boolean convert2PreferredType, final ExpressionNodeValue preferredType, final ExpressionNode[] result) throws CalculationException, SyntaxException {
 		switch (data[from = skipBlank(data,from)]) {
 			case '\"' :
 				final StringBuilder	sb = new StringBuilder();
@@ -87,10 +87,29 @@ class InternalUtils {
 				} catch (IOException e) {
 					throw new IllegalArgumentException(e.getLocalizedMessage());
 				}
-				result[0] = new ConstantNode(sb.toString().toCharArray());
+				if (convert2PreferredType) {
+					switch (preferredType) {
+						case BOOLEAN	:
+							result[0] = new ConstantNode(Boolean.valueOf(sb.toString()));
+							break;
+						case INTEGER	:
+							result[0] = new ConstantNode(Long.valueOf(sb.toString()));
+							break;
+						case REAL		:
+							result[0] = new ConstantNode(Double.valueOf(sb.toString()));
+							break;
+						case STRING		:
+							result[0] = new ConstantNode(sb.toString().toCharArray());
+							break;
+						default : throw new UnsupportedOperationException("Conversion from String to ["+preferredType+"] is not supported yet");
+					}
+				}
+				else {
+					result[0] = new ConstantNode(sb.toString().toCharArray());
+				}
 				return from;
 			case '-' :
-				from = parseConstant(data,skipBlank(data,from+1),treatUnknownAsString,result);
+				from = parseConstant(data, skipBlank(data,from+1), treatUnknownAsString, convert2PreferredType,  preferredType, result);
 				switch (result[0].getValueType()) {
 					case INTEGER	: result[0] = new ConstantNode(-result[0].getLong()); break;
 					case REAL		: result[0] = new ConstantNode(-result[0].getDouble()); break;
@@ -98,7 +117,7 @@ class InternalUtils {
 				}
 				return from;
 			case '+' :
-				from = parseConstant(data,skipBlank(data,from+1),treatUnknownAsString,result);
+				from = parseConstant(data,skipBlank(data,from+1), treatUnknownAsString, convert2PreferredType,  preferredType, result);
 				if (result[0].getValueType() != ExpressionNodeValue.INTEGER && result[0].getValueType() != ExpressionNodeValue.REAL) {
 					throw new IllegalArgumentException("Plus sign (+) is not applicable for the given constant type!");
 				}
@@ -110,20 +129,102 @@ class InternalUtils {
 				
 				from = UnsafedCharUtils.uncheckedParseNumber(data,from,numbers,CharUtils.PREF_ANY, true);
 				switch ((int)numbers[1]) {
-					case CharUtils.PREF_INT		: result[0] = new ConstantNode(numbers[0]); break;
-					case CharUtils.PREF_LONG	: result[0] = new ConstantNode(numbers[0]); break;
-					case CharUtils.PREF_FLOAT	: result[0] = new ConstantNode(Float.intBitsToFloat((int)numbers[0])); break;
-					case CharUtils.PREF_DOUBLE	: result[0] = new ConstantNode(Double.longBitsToDouble(numbers[0])); break;
+					case CharUtils.PREF_INT		: case CharUtils.PREF_LONG	: 
+						if (convert2PreferredType) {
+							switch (preferredType) {
+								case INTEGER	:
+									result[0] = new ConstantNode(numbers[0]);
+									break;
+								case REAL		:
+									result[0] = new ConstantNode((double)numbers[0]); 
+									break;
+								case STRING		:
+									result[0] = new ConstantNode(String.valueOf(numbers[0]).toCharArray());
+									break;
+								default : throw new UnsupportedOperationException("Conversion from long to ["+preferredType+"] is not supported yet");
+							}
+						}
+						else {
+							result[0] = new ConstantNode(numbers[0]); 
+						}
+						break;
+					case CharUtils.PREF_FLOAT	: 
+						double	floatVal = Float.intBitsToFloat((int)numbers[0]);
+						
+						if (convert2PreferredType) {
+							switch (preferredType) {
+								case INTEGER	:
+									result[0] = new ConstantNode((long)floatVal);
+									break;
+								case REAL		:
+									result[0] = new ConstantNode(floatVal); 
+									break;
+								case STRING		:
+									result[0] = new ConstantNode(String.valueOf(floatVal).toCharArray());
+									break;
+								default : throw new UnsupportedOperationException("Conversion from real to ["+preferredType+"] is not supported yet");
+							}
+						}
+						else {
+							result[0] = new ConstantNode(floatVal); 
+						}
+					case CharUtils.PREF_DOUBLE	:
+						double	doubleVal = Double.longBitsToDouble(numbers[0]);
+						
+						if (convert2PreferredType) {
+							switch (preferredType) {
+								case INTEGER	:
+									result[0] = new ConstantNode((long)doubleVal);
+									break;
+								case REAL		:
+									result[0] = new ConstantNode(doubleVal); 
+									break;
+								case STRING		:
+									result[0] = new ConstantNode(String.valueOf(doubleVal).toCharArray());
+									break;
+								default : throw new UnsupportedOperationException("Conversion from real to ["+preferredType+"] is not supported yet");
+							}
+						}
+						else {
+							result[0] = new ConstantNode(doubleVal); 
+						}
+						break;
 					default : throw new UnsupportedOperationException("Numeric value type ["+numbers[1]+"] is not supported yet");
 				}
 				return from;
 			case 't' : case 'f' :
 				if (UnsafedCharUtils.uncheckedCompare(data,from,FALSE,0,FALSE.length)) {
-					result[0] = new ConstantNode(false);
+					if (convert2PreferredType) {
+						switch (preferredType) {
+							case BOOLEAN	:
+								result[0] = new ConstantNode(false);
+								break;
+							case STRING		:
+								result[0] = new ConstantNode("false".toCharArray());
+								break;
+							default : throw new UnsupportedOperationException("Conversion from String to ["+preferredType+"] is not supported yet");
+						}
+					}
+					else {
+						result[0] = new ConstantNode(false);
+					}
 					return from + FALSE.length - 1;
 				}
 				else if (UnsafedCharUtils.uncheckedCompare(data,from,TRUE,0,TRUE.length)) {
-					result[0] = new ConstantNode(true);
+					if (convert2PreferredType) {
+						switch (preferredType) {
+							case BOOLEAN	:
+								result[0] = new ConstantNode(true);
+								break;
+							case STRING		:
+								result[0] = new ConstantNode("true".toCharArray());
+								break;
+							default : throw new UnsupportedOperationException("Conversion from String to ["+preferredType+"] is not supported yet");
+						}
+					}
+					else {
+						result[0] = new ConstantNode(true);
+					}
 					return from + TRUE.length - 1;
 				}
 				else if (treatUnknownAsString) {
@@ -142,7 +243,26 @@ class InternalUtils {
 					while (to > start && data[to] <= ' ') {
 						to--;
 					}
-					result[0] = new ConstantNode(Arrays.copyOfRange(data,start,to));
+					if (convert2PreferredType) {
+						switch (preferredType) {
+							case BOOLEAN	:
+								result[0] = new ConstantNode(Boolean.valueOf(new String(Arrays.copyOfRange(data,start,to))));
+								break;
+							case INTEGER	:
+								result[0] = new ConstantNode(Long.valueOf(new String(Arrays.copyOfRange(data,start,to))));
+								break;
+							case REAL		:
+								result[0] = new ConstantNode(Double.valueOf(new String(Arrays.copyOfRange(data,start,to))));
+								break;
+							case STRING		:
+								result[0] = new ConstantNode(Arrays.copyOfRange(data,start,to));
+								break;
+							default : throw new UnsupportedOperationException("Conversion from String to ["+preferredType+"] is not supported yet");
+						}
+					}
+					else {
+						result[0] = new ConstantNode(Arrays.copyOfRange(data,start,to));
+					}
 					return from;
 				}
 				else {
@@ -153,19 +273,20 @@ class InternalUtils {
 				from = skipBlank(data,from+1);
 				
 				if (data[from] == '}') {
-					result[0] = new ConstantNode(ExpressionNodeValue.STRING_ARRAY);
+					result[0] = new ConstantNode(convert2PreferredType ? preferredType : ExpressionNodeValue.STRING_ARRAY);
 					return from + 1;
 				}
 				else {
 					from--;
 				}
 				
-				do {from = skipBlank(data,parseConstant(data, from+1, treatUnknownAsString, result));
+				do {from = skipBlank(data,parseConstant(data, from+1, treatUnknownAsString, convert2PreferredType, ExpressionNodeValue.typeByArray(preferredType), result));
 					itemList.add(result[0]);
 				} while (data[from] == ',');
 				
 				if (data[from] == '}') {
-					result[0] = new ConstantNode(itemList.isEmpty() ? ExpressionNodeValue.STRING_ARRAY : ExpressionNodeValue.arrayByType(itemList.get(0).getValueType())
+					result[0] = new ConstantNode(itemList.isEmpty() ? (convert2PreferredType ? preferredType : ExpressionNodeValue.STRING_ARRAY) 
+												: ExpressionNodeValue.arrayByType(itemList.get(0).getValueType())
 												, itemList.toArray(new ExpressionNode[itemList.size()]));
 					from++;
 				}

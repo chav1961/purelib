@@ -33,12 +33,88 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 		return String.valueOf(value).toCharArray();
 	}
 
+	public static char[] toString(final long[] value) throws CalculationException {
+		final StringBuilder	sb = new StringBuilder();
+		char				prefix = '{';
+		
+		for (long item : value) {
+			sb.append(prefix).append(item);
+			prefix=',';
+		}
+		if (sb.length() == 0) {
+			sb.append(prefix);
+		}
+		sb.append('}');
+		
+		final char[]		result = new char[sb.length()];
+		
+		sb.getChars(0, result.length, result, 0);
+		return result;
+	}
+	
 	public static char[] toString(final double value) throws CalculationException {
 		return String.valueOf(value).toCharArray();
 	}
 
+	public static char[] toString(final double[] value) throws CalculationException {
+		final StringBuilder	sb = new StringBuilder();
+		char				prefix = '{';
+		
+		for (double item : value) {
+			sb.append(prefix).append(item);
+			prefix=',';
+		}
+		if (sb.length() == 0) {
+			sb.append(prefix);
+		}
+		sb.append('}');
+		
+		final char[]		result = new char[sb.length()];
+		
+		sb.getChars(0, result.length, result, 0);
+		return result;
+	}
+
+	public static char[] toString(final char[][] value) throws CalculationException {
+		final StringBuilder	sb = new StringBuilder();
+		char				prefix = '{';
+		
+		for (char[] item : value) {
+			sb.append(prefix).append('\"').append(item).append('\"');
+			prefix=',';
+		}
+		if (sb.length() == 0) {
+			sb.append(prefix);
+		}
+		sb.append('}');
+		
+		final char[]		result = new char[sb.length()];
+		
+		sb.getChars(0, result.length, result, 0);
+		return result;
+	}
+	
 	public static char[] toString(final boolean value) throws CalculationException {
 		return String.valueOf(value).toCharArray();
+	}
+
+	public static char[] toString(final boolean[] value) throws CalculationException {
+		final StringBuilder	sb = new StringBuilder();
+		char				prefix = '{';
+		
+		for (boolean item : value) {
+			sb.append(prefix).append(item);
+			prefix=',';
+		}
+		if (sb.length() == 0) {
+			sb.append(prefix);
+		}
+		sb.append('}');
+		
+		final char[]		result = new char[sb.length()];
+		
+		sb.getChars(0, result.length, result, 0);
+		return result;
 	}
 	
 	public static int compareStrings(final char[] left, final char[] right) {

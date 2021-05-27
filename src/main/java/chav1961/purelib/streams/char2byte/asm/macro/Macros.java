@@ -3,6 +3,7 @@ package chav1961.purelib.streams.char2byte.asm.macro;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.AndOrTree;
@@ -864,7 +865,7 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 								throw new SyntaxException(lineNo,from,"Too many positional parameters in the macro call!");
 							}
 							else {
-								InternalUtils.parseConstant(data,bounds[0],true,val);
+								InternalUtils.parseConstant(data, bounds[0], true, true, cmd.getDeclarations()[positional].getValueType(), val);
 								cmd.getDeclarations()[positional].assign(val[0]);
 								positional++;
 							}
@@ -881,7 +882,7 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 							else {
 								final AssignableExpressionNode	node = cmd.getDeclarations()[positional];
 								
-								from = InternalUtils.parseConstant(data,bounds[0],true,val);
+								from = InternalUtils.parseConstant(data, bounds[0], true, true, cmd.getDeclarations()[positional].getValueType(), val);
 								
 								if (node.getValueType().isArray()) {
 									if (val[0].getValueType().isArray()) {
@@ -916,7 +917,7 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 						final AssignableExpressionNode	key = cmd.seekDeclaration(keyName);
 						
 						if (key != null && key.getType() == ExpressionNodeType.KEY_PARAMETER) {
-							from = InternalUtils.parseConstant(data,InternalUtils.skipBlank(data,from+1),true,val);
+							from = InternalUtils.parseConstant(data, InternalUtils.skipBlank(data,from+1), true, true, key.getValueType(), val);
 							
 							if (key.getValueType().isArray()) {
 								if (val[0].getValueType().isArray()) {
@@ -940,6 +941,7 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 				from = InternalUtils.skipBlank(data,from);
 			} while (from < data.length && data[from] == ',');
 		} catch (CalculationException | IllegalArgumentException exc) {
+			exc.printStackTrace();
 			throw new SyntaxException(lineNo,from,exc.getLocalizedMessage(),exc); 
 		}
 		
@@ -994,60 +996,10 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 	
 	private void setInitialValue(final AssignableExpressionNode node, final ExpressionNode value) throws CalculationException {
 		CONV_TABLE[node.getValueType().ordinal()][value.getValueType().ordinal()].assign(node, value);
-//		
-//		switch (node.getValueType()) {
-//			case INTEGER	:
-//				switch (value.getValueType()) {
-//					case INTEGER	: node.assign(value); break;
-//					case REAL		: node.assign(new ConstantNode((long)value.getDouble())); break;
-//					case STRING		: node.assign(new ConstantNode(Long.valueOf(new String(value.getString())))); break;
-//					case BOOLEAN	: throw new CalculationException("Boolean substitution value can't be converted to ["+node.getValueType()+"]");
-//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-//				}
-//				break;
-//			case REAL		:
-//				switch (value.getValueType()) {
-//					case INTEGER	: node.assign(new ConstantNode((double)value.getLong())); break;
-//					case REAL		: node.assign(value); break;
-//					case STRING		: node.assign(new ConstantNode(Double.valueOf(new String(value.getString())))); break;
-//					case BOOLEAN	: throw new CalculationException("Boolean substitution value can't be converted to ["+node.getValueType()+"]");
-//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-//				}
-//				break;
-//			case STRING		:
-//				switch (value.getValueType()) {
-//					case INTEGER	: node.assign(new ConstantNode(String.valueOf(value.getLong()).toCharArray())); break;
-//					case REAL		: node.assign(new ConstantNode(String.valueOf(value.getDouble()).toCharArray())); break;
-//					case STRING		: node.assign(value); break;
-//					case BOOLEAN	: node.assign(new ConstantNode(String.valueOf(value.getBoolean()).toCharArray())); break;
-//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-//				}
-//				break;
-//			case BOOLEAN	:
-//				switch (value.getValueType()) {
-//					case INTEGER	: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
-//					case REAL		: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
-//					case STRING		: node.assign(new ConstantNode(Boolean.valueOf(new String(value.getString())))); break;
-//					case BOOLEAN	: node.assign(value); break;
-//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-//				}
-//				break;
-//			case BOOLEAN_ARRAY	:
-//				switch (value.getValueType()) {
-//					case INTEGER	: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
-//					case REAL		: throw new CalculationException("Integer substitution value can't be converted to ["+node.getValueType()+"]");
-//					case STRING		: node.assign(new ConstantNode(Boolean.valueOf(new String(value.getString())))); break;
-//					case BOOLEAN	: node.assign(value); break;
-//					default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-//				}
-//				break;
-//			default : throw new UnsupportedOperationException("Value ["+node.getValueType()+"] is not supported yet");						
-//		}
 	}
 
 	private static void throwConvException(final AssignableExpressionNode to, final ExpressionNode from) throws CalculationException {
-		throw new CalculationException("Illegal convertion from ["+from.getValueType()+"] to ["+to.getValueType()+"]");
+		throw new CalculationException("Illegal conversion from ["+from.getValueType()+"] to ["+to.getValueType()+"]");
 	}
-
 }
 

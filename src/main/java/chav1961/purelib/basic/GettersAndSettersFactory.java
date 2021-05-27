@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
@@ -94,6 +95,7 @@ public class GettersAndSettersFactory {
 			}
 			writer = tempWriter;
 		} catch (NullPointerException | IOException e) {
+			e.printStackTrace();
 			PureLibSettings.CURRENT_LOGGER.message(Severity.warning,"Attempt to get AsmWriter functionality failed: "+e.getMessage()+". This problem will reduce performance for getters and setters functionality", e);
 			writer = null;
 		}
@@ -721,7 +723,7 @@ public class GettersAndSettersFactory {
 			}
 		} 
 		else {
-			throw new IllegalStateException("Class to build serializer is not public, but sun.misc.Unsafe functionality is not available to build memory allocation code.");
+			throw new IllegalStateException("Class to build serializer is not public and will not supported to build serializer for.");
 		}
 	}  
 	
@@ -1269,6 +1271,10 @@ public class GettersAndSettersFactory {
 	@SuppressWarnings("unchecked")
 	private static GetterAndSetter buildGetterAndSetterCode(final AsmWriter writer, final Class<?> owner, final Class<?> type, final ModuleAccessor assigner, final SimpleURLClassLoader loader, final String className, final String format, final Object... parameters) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			if (writer == null) {
+				throw new PreparationException("Class ["+GettersAndSettersFactory.class.getCanonicalName()+"] was not prepared correctly");
+			}
+
 			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
 				
 				if (!type.isPrimitive()) {
@@ -1313,6 +1319,10 @@ public class GettersAndSettersFactory {
 	@SuppressWarnings("unchecked")
 	private static <T> Instantiator<T> buildInstantiatorCode(final AsmWriter writer, final Class<T> owner, final String className, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			if (writer == null) {
+				throw new PreparationException("Class ["+GettersAndSettersFactory.class.getCanonicalName()+"] was not prepared correctly");
+			}
+
 			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
 				
 				try{wr.importClass(owner);
@@ -1359,10 +1369,16 @@ public class GettersAndSettersFactory {
 		});
 		
 		for (Class<?> item : usedClasses) {
-			buildSerializerCode(writer, owner, item.getCanonicalName()+"$serializer", assigner, loader);
+			if (!item.isPrimitive() && !item.isArray()) {
+				buildSerializerCode(writer, item, item.getCanonicalName()+"$serializer", assigner, loader);
+			}
 		}
 		
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			if (writer == null) {
+				throw new PreparationException("Class ["+GettersAndSettersFactory.class.getCanonicalName()+"] was not prepared correctly");
+			}
+			
 			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
 				
 				try{wr.importClass(owner);

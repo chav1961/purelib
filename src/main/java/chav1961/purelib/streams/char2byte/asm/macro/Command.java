@@ -27,6 +27,11 @@ abstract class Command {
 		container.add(command);
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "Command [container=" + container + ", getType()=" + getType() + "]";
+	}
 }
 
 class MacroCommand extends Command implements Cloneable {
@@ -207,7 +212,12 @@ class SetCommand extends Command {
 	SetCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,macro,rightPart);
 		return this;
-	}		
+	}
+
+	@Override
+	public String toString() {
+		return "SetCommand [leftPart=" + leftPart + ", rightPart=" + Arrays.toString(rightPart) + ", getType()=" + getType() + "]";
+	}	
 }
 
 class SetIndexCommand extends Command {
@@ -234,6 +244,11 @@ class SetIndexCommand extends Command {
 		else {
 			throw new SyntaxException(lineNo, from-begin, "Missing ','"); 
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "SetIndexCommand [leftPart=" + leftPart + ", index=" + Arrays.toString(index) + ", rightPart=" + Arrays.toString(rightPart) + ", getType()=" + getType() + "]";
 	}		
 }
 
@@ -246,6 +261,11 @@ class IfContainer extends Command {
 	@Override
 	IfContainer processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "IfContainer [container=" + container + ", getType()=" + getType() + "]";
 	}
 }
 
@@ -265,6 +285,11 @@ class IfConditionCommand extends Command {
 		}
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "IfConditionCommand [cond=" + Arrays.toString(cond) + ", container=" + container + ", getType()=" + getType() + "]";
+	}
 }
 
 class ElseCommand extends Command {
@@ -276,6 +301,11 @@ class ElseCommand extends Command {
 	@Override
 	ElseCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "ElseCommand [container=" + container + ", getType()=" + getType() + "]";
 	}
 }
 
@@ -312,6 +342,11 @@ class WhileCommand extends LoopCommand {
 	@Override
 	char[] getLabel() {
 		return label;
+	}
+
+	@Override
+	public String toString() {
+		return "WhileCommand [cond=" + Arrays.toString(cond) + ", getType()=" + getType() + ", getLabel()=" + Arrays.toString(getLabel()) + "]";
 	}
 }
 
@@ -403,6 +438,11 @@ class ForCommand extends LoopCommand {
 	char[] getLabel() {
 		return label;
 	}
+
+	@Override
+	public String toString() {
+		return "ForCommand [parameters=" + Arrays.toString(parameters) + ", getType()=" + getType() + ", getLabel()=" + Arrays.toString(getLabel()) + "]";
+	}
 }
 
 
@@ -486,6 +526,11 @@ class ForEachCommand extends LoopCommand {
 	char[] getLabel() {
 		return label;
 	}
+
+	@Override
+	public String toString() {
+		return "ForEachCommand [parameters=" + Arrays.toString(parameters) + ", getType()=" + getType() + ", getLabel()=" + Arrays.toString(getLabel()) + "]";
+	}
 }
 
 
@@ -521,6 +566,11 @@ class BreakCommand extends ControlCommand {
 	char[] getLabel() {
 		return label;
 	}
+
+	@Override
+	public String toString() {
+		return "BreakCommand [getType()=" + getType() + ", getLabel()=" + Arrays.toString(getLabel()) + "]";
+	}
 }
 
 class ContinueCommand extends ControlCommand {
@@ -551,6 +601,11 @@ class ContinueCommand extends ControlCommand {
 	char[] getLabel() {
 		return label;
 	}
+
+	@Override
+	public String toString() {
+		return "ContinueCommand [getType()=" + getType() + ", getLabel()=" + Arrays.toString(getLabel()) + "]";
+	}
 }
 
 class ChoiseContainer extends Command {
@@ -570,6 +625,11 @@ class ChoiseContainer extends Command {
 		InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,macro,expr);
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "ChoiseContainer [expr=" + Arrays.toString(expr) + ", container=" + container + ", getType()=" + getType() + "]";
+	}
 }
 
 class ChoiseConditionCommand extends Command {
@@ -585,6 +645,11 @@ class ChoiseConditionCommand extends Command {
 		InternalUtils.parseExpression(InternalUtils.ORDER_OR,lineNo,data,begin,from,macro,value);
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "ChoiseConditionCommand [value=" + Arrays.toString(value) + ", getType()=" + getType() + "]";
+	}
 }
 
 class OtherwiseCommand extends Command {
@@ -597,6 +662,11 @@ class OtherwiseCommand extends Command {
 	OtherwiseCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "OtherwiseCommand [getType()=" + getType() + "]";
+	}
 }
 
 class ExitCommand extends Command {
@@ -608,6 +678,11 @@ class ExitCommand extends Command {
 	@Override
 	ExitCommand processCommand(final int lineNo, final int begin, final char[] data, int from, final int to, final MacroCommand macro) throws SyntaxException {
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "ExitCommand [getType()=" + getType() + "]";
 	}
 }
 
@@ -626,6 +701,11 @@ class MErrorCommand extends Command {
 			throw new SyntaxException(lineNo,from-begin,"merror expression must have string value"); 
 		}
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "MErrorCommand [value=" + Arrays.toString(value) + ", getType()=" + getType() + "]";
 	}
 }
 
@@ -687,11 +767,21 @@ class SubstitutionCommand extends Command {
 							wereAnyAdditions = true;
 							break;
 						case INTEGER_ARRAY : case REAL_ARRAY : case BOOLEAN_ARRAY	:
-							subst[0].addOperand(new FuncToStringNode().addOperand(new ArrayAccessNode(var, node[0])));
+							if (node[0] == null) {
+								subst[0].addOperand(new FuncToListNode().addOperand(var));
+							}
+							else {
+								subst[0].addOperand(new FuncToStringNode().addOperand(new ArrayAccessNode(var, node[0])));
+							}
 							wereAnyAdditions = true;
 							break;
 						case STRING_ARRAY		:
-							subst[0].addOperand(new ArrayAccessNode(var, node[0]));
+							if (node[0] == null) {
+								subst[0].addOperand(new FuncToListNode().addOperand(var));
+							}
+							else {
+								subst[0].addOperand(new ArrayAccessNode(var, node[0]));
+							}
 							wereAnyAdditions = true;
 							break;
 						default : throw new UnsupportedOperationException("Value type ["+var.getValueType()+"] is ot supportd yet"); 
@@ -712,5 +802,10 @@ class SubstitutionCommand extends Command {
 			subst[0].addOperand(new ConstantNode(new char[]{'\n'}));
 		}
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "SubstitutionCommand [subst=" + Arrays.toString(subst) + ", container=" + container + ", getType()=" + getType() + "]";
 	}
 }
