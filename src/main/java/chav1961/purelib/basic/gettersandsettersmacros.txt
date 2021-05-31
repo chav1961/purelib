@@ -846,11 +846,13 @@ newInstance			.end
 
 ; --------------------------------------------------------------------
 
-buildSerializer	.macro className:str=,managedClass:str=,serializers:str[]=,names:str[]=,types:str[]=,indices:int[]=
+buildSerializer	.macro className:str=,managedClass:str=,parentClass:str=,serializers:str[]=,names:str[]=,types:str[]=,indices:int[]=
 		.if			!exists(className)
 			.error		"mandatory parameter 'className' is missing"
 		.elseif		!exists(managedClass)
 			.error		"mandatory parameter 'managedClass' is missing"
+		.elseif		!exists(parentClass)
+			.error		"mandatory parameter 'parentClass' is missing"
 		.elseif		!exists(serializers)
 			.error		"mandatory parameter 'serializers' is missing"
 		.elseif		!exists(names)
@@ -860,13 +862,71 @@ buildSerializer	.macro className:str=,managedClass:str=,serializers:str[]=,names
 		.elseif		!exists(indices)
 			.error		"mandatory parameter 'indices' is missing"
 		.else
-;			buildSerializerCaption 		"&className","&managedClass"
-			buildSerializerClInit		"&className","&managedClass",&serializers,&names,&types,&indices
-			buildSerializerInit
-			buildSerializerSerialize	&serializers,&names,&types,&indices
-			buildSerializerDeserialize	&serializers,&names,&types,&indices
-			buildSerializerToString		"&managedClass",&serializers,&names,&types,&indices
-			buildSerializerTail			"&className",
+			buildSerializerImport 		&serializers
+			buildSerializerCaption 		"&className","&managedClass","&parentClass"
+;			buildSerializerClInit		"&className","&managedClass",&serializers,&names,&types,&indices
+			buildSerializerInit			"&className","&managedClass","&parentClass"
+;			buildSerializerSerialize	&serializers,&names,&types,&indices
+;			buildSerializerDeserialize	&serializers,&names,&types,&indices
+;			buildSerializerToString		"&managedClass",&serializers,&names,&types,&indices
+			buildSerializerTail			"&className"
+		.endif
+		.mend
+
+
+; --------------------------------------------------------------------
+buildSerializerImport	.macro 	serializers:str[]
+index	.local		int
+		.if		!exists(serializers)
+			.error		"mandatory parameter 'serializers' is missing"
+		.elseif len(serializers) > 0
+			.for index = 0 to len(serializers)
+				.import	&serializers[index] protected
+			.endfor
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildSerializerCaption	.macro className:str,managedClass:str,parentClass:str
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif			!exists(managedClass)
+			.error		"mandatory parameter 'managedClass' is missing"
+		.elseif			!exists(parentClass)
+			.error		"mandatory parameter 'parentClass' is missing"
+		.else
+&className	.class public extends &parentClass		
+		.endif
+		.mend
+; --------------------------------------------------------------------
+
+buildSerializerInit	.macro className:str,managedClass:str,parentClass:str
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.elseif			!exists(managedClass)
+			.error		"mandatory parameter 'managedClass' is missing"
+		.elseif			!exists(parentClass)
+			.error		"mandatory parameter 'parentClass' is missing"
+		.else
+&className	.method	void public
+nested		.parameter	java.lang.Class final
+			.stack optimistic
+			aload	this
+			aload	nested
+			invokespecial	&parentClass..<init>(Ljava/lang/Class;)V
+			return
+&className	.end				
+		.endif
+		.mend
+
+; --------------------------------------------------------------------
+
+buildSerializerTail	.macro className:str
+		.if			!exists(className)
+			.error		"mandatory parameter 'className' is missing"
+		.else
+&className	.end		
 		.endif
 		.mend
 
@@ -885,6 +945,8 @@ buildSerializer	.macro className:str=,managedClass:str=,serializers:str[]=,names
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$ObjectGetterAndSetter
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$Instantiator
 	.import		chav1961.purelib.basic.GettersAndSettersFactory$InstantiatorImpl protected		
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$Serializer
+	.import		chav1961.purelib.basic.GettersAndSettersFactory$SerializerImpl protected		
 	.import		chav1961.purelib.basic.CharUtils	
 	.import		chav1961.purelib.basic.exceptions.ContentException	
 	.import		chav1961.purelib.cdb.CompilerUtils	
