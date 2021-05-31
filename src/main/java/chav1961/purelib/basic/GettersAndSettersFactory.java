@@ -1348,11 +1348,12 @@ public class GettersAndSettersFactory {
 	}
 
 	private static <T> Serializer<T> buildSerializerCode(final AsmWriter writer, final Class<T> owner, final String className, final ModuleAccessor assigner, final SimpleURLClassLoader loader) throws IOException {
-		final Set<Class<?>>	usedClasses = new HashSet<>();
-		final Set<String>	usedClassSignatures = new HashSet<>();
-		final List<Field>	fields = new ArrayList<>();
-		final List<Integer>	fieldIndices = new ArrayList<>();
-		final AtomicInteger	ai = new AtomicInteger();
+		final Set<Class<?>>			usedClasses = new HashSet<>();
+		final Set<String>			usedClassSignatures = new HashSet<>();
+		final List<Field>			fields = new ArrayList<>();
+		final List<Integer>			fieldIndices = new ArrayList<>();
+		final AtomicInteger			ai = new AtomicInteger();
+		final Class<SerializerImpl>	parent = SerializerImpl.class;
 		
 		CompilerUtils.collectTypes(usedClasses, owner);
 		CompilerUtils.walkFields(owner, (cl,f)->{
@@ -1386,7 +1387,8 @@ public class GettersAndSettersFactory {
 					wr.importClass(SerializerImpl.class);
 				} catch (ContentException e) {
 				}
-				wr.write(" buildSerializer className=\""+className+"\",managedClass=\""+owner.getCanonicalName()+"\""+
+				wr.write(" buildSerializer className=\""+className+"\",parentClass=\""+CompilerUtils.buildClassPath(parent)
+						+"\",managedClass=\""+owner.getCanonicalName()+"\""+
 						",serializers="+CompilerUtils.content2String(usedClassSignatures, (c)->c.toString())+
 						",names="+CompilerUtils.content2String(fields,(c)->CompilerUtils.buildFieldPath(c))+
 						",types="+CompilerUtils.content2String(fields,(c)->CompilerUtils.buildFieldSignature(c))+
@@ -1398,10 +1400,11 @@ public class GettersAndSettersFactory {
 			
 			try{inst = (Class<Serializer<T>>) loader.createClass(className,baos.toByteArray());
 			} catch (Exception exc) {
+				exc.printStackTrace();
 				inst = (Class<Serializer<T>>) loader.loadClass(className);
 			}
 			assigner.allowUnnamedModuleAccess(loader.getUnnamedModule());
-			return inst.getConstructor().newInstance();
+			return inst.getConstructor(Class.class).newInstance(owner);
 		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | SecurityException | InvocationTargetException | NoSuchMethodException e) {
 			e.printStackTrace();
 			throw new IllegalArgumentException("Can't build code for create serializer of class ["+className+"] : "+e.getLocalizedMessage(),e);
