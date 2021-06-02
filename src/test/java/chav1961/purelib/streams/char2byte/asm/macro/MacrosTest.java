@@ -165,7 +165,7 @@ public class MacrosTest {
 			
 			
 			successCall(m,"100,key2=false,key1=1");
-			successCall(m,"-10,key1=1");
+			errorCall(m,"-10,key1=1","Invalid constant value",SyntaxException.class,IOException.class);
 			successCall(m,"{10,20},key1=1");
 			successCall(m,"10,key3=\"val1\"");
 			successCall(m,"10,key3={\"val1\",\"val2\"}");

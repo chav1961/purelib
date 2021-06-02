@@ -101,6 +101,18 @@ class InternalUtils {
 						case STRING		:
 							result[0] = new ConstantNode(sb.toString().toCharArray());
 							break;
+						case BOOLEAN_ARRAY	:
+							result[0] = new ConstantNode(new boolean[] {Boolean.valueOf(sb.toString())});
+							break;
+						case INTEGER_ARRAY	:
+							result[0] = new ConstantNode(new long[] {Long.valueOf(sb.toString())});
+							break;
+						case REAL_ARRAY		:
+							result[0] = new ConstantNode(new double[] {Double.valueOf(sb.toString())});
+							break;
+						case STRING_ARRAY		:
+							result[0] = new ConstantNode(new char[][] {sb.toString().toCharArray()});
+							break;
 						default : throw new UnsupportedOperationException("Conversion from String to ["+preferredType+"] is not supported yet");
 					}
 				}
@@ -113,13 +125,13 @@ class InternalUtils {
 				switch (result[0].getValueType()) {
 					case INTEGER	: result[0] = new ConstantNode(-result[0].getLong()); break;
 					case REAL		: result[0] = new ConstantNode(-result[0].getDouble()); break;
-					default : throw new IllegalArgumentException("Minus sign (-) is not applicable for the given constant type!");
+					default : throw new IllegalArgumentException("Minus sign (-) is not applicable for the constant type ["+result[0].getValueType()+"]!");
 				}
 				return from;
 			case '+' :
 				from = parseConstant(data,skipBlank(data,from+1), treatUnknownAsString, convert2PreferredType,  preferredType, result);
 				if (result[0].getValueType() != ExpressionNodeValue.INTEGER && result[0].getValueType() != ExpressionNodeValue.REAL) {
-					throw new IllegalArgumentException("Plus sign (+) is not applicable for the given constant type!");
+					throw new IllegalArgumentException("Plus sign (+) is not applicable for the constant type ["+result[0].getValueType()+"]!");
 				}
 				else {
 					return from;
@@ -140,6 +152,15 @@ class InternalUtils {
 									break;
 								case STRING		:
 									result[0] = new ConstantNode(String.valueOf(numbers[0]).toCharArray());
+									break;
+								case INTEGER_ARRAY 	:
+									result[0] = new ConstantNode(new long[] {numbers[0]});
+									break;
+								case REAL_ARRAY		:
+									result[0] = new ConstantNode(new double[] {(double)numbers[0]});
+									break;
+								case STRING_ARRAY	:
+									result[0] = new ConstantNode(new char[][] {String.valueOf(numbers[0]).toCharArray()});
 									break;
 								default : throw new UnsupportedOperationException("Conversion from long to ["+preferredType+"] is not supported yet");
 							}
@@ -162,12 +183,22 @@ class InternalUtils {
 								case STRING		:
 									result[0] = new ConstantNode(String.valueOf(floatVal).toCharArray());
 									break;
+								case INTEGER_ARRAY 	:
+									result[0] = new ConstantNode(new long[] {(long)floatVal});
+									break;
+								case REAL_ARRAY		:
+									result[0] = new ConstantNode(new double[] {floatVal});
+									break;
+								case STRING_ARRAY	:
+									result[0] = new ConstantNode(new char[][] {String.valueOf(floatVal).toCharArray()});
+									break;
 								default : throw new UnsupportedOperationException("Conversion from real to ["+preferredType+"] is not supported yet");
 							}
 						}
 						else {
 							result[0] = new ConstantNode(floatVal); 
 						}
+						break;
 					case CharUtils.PREF_DOUBLE	:
 						double	doubleVal = Double.longBitsToDouble(numbers[0]);
 						
@@ -181,6 +212,15 @@ class InternalUtils {
 									break;
 								case STRING		:
 									result[0] = new ConstantNode(String.valueOf(doubleVal).toCharArray());
+									break;
+								case INTEGER_ARRAY 	:
+									result[0] = new ConstantNode(new long[] {(long)doubleVal});
+									break;
+								case REAL_ARRAY		:
+									result[0] = new ConstantNode(new double[] {doubleVal});
+									break;
+								case STRING_ARRAY	:
+									result[0] = new ConstantNode(new char[][] {String.valueOf(doubleVal).toCharArray()});
 									break;
 								default : throw new UnsupportedOperationException("Conversion from real to ["+preferredType+"] is not supported yet");
 							}

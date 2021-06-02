@@ -23,6 +23,16 @@ package chav1961.purelib.basic.interfaces;
  */
 public interface ProgressIndicator {
 	/**
+	 * <p>Dummy progress indicator to use as stub</p>
+	 * @since 0.0.5
+	 */
+	ProgressIndicator	DUMMY = new ProgressIndicator() {
+										@Override public void start(String caption) {}
+										@Override public void start(String caption, long total) {}
+										@Override public boolean processed(long processed) {return true;}
+										@Override public void end() {}
+								};
+	/**
 	 * <p>Start single-stage progress.</p>
 	 * @param caption caption to display. Can't be null or empty. Always is not localized. You can use it as a key to get localized string
 	 * @param total total data to process. If unknown, -1 will be typed.

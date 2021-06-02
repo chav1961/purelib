@@ -106,12 +106,6 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  */
 
 public class Utils {
-	private static final ProgressIndicator	NULL_PROGRESS = new ProgressIndicator() {
-												@Override public void start(String caption, long total) {}
-												@Override public void start(String caption) {}
-												@Override public boolean processed(long processed) {return true;}
-												@Override public void end() {}
-											};
 	private static final AtomicInteger		AI = new AtomicInteger();
 	private static AsmWriter				writer;
 	
@@ -144,9 +138,10 @@ public class Utils {
 	 * @return length transferred (in bytes)
 	 * @throws IOException if any I/O exception was thrown
 	 * @throws NullPointerException when any problems with parameters
+	 * @lastUpdate 0.0.5
 	 */
 	public static long copyStream(final InputStream is, final OutputStream os) throws IOException, NullPointerException {
-		return Math.abs(copyStream(is, os, NULL_PROGRESS));
+		return Math.abs(copyStream(is, os, ProgressIndicator.DUMMY));
 	}
 
 	/**
@@ -193,9 +188,10 @@ public class Utils {
 	 * @return length transferred (in chars)
 	 * @throws IOException if any I/O exception was thrown
 	 * @throws NullPointerException when any problems with parameters
+	 * @lastUpdate 0.0.5
 	 */
 	public static int copyStream(final Reader is, final Writer os) throws IOException {
-		return Math.abs(copyStream(is, os, NULL_PROGRESS));
+		return Math.abs(copyStream(is, os, ProgressIndicator.DUMMY));
 	}
 
 	/**

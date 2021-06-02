@@ -171,6 +171,10 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 		else {
 			final char[]	temp = buffer;
 			int				multiplier = 1;
+
+			while (cursor < temp.length && temp[cursor] <= ' ') {
+				cursor++;
+			}
 			
 			try{switch (temp[cursor]) {
 					case '{' 	:

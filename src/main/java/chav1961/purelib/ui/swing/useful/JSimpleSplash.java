@@ -14,14 +14,15 @@ import java.net.URL;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 
-public class JSimpleSplash implements ProgressIndicator, Closeable {
+public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 	private static final int	STRING_X_GAP = 20;
-	private static final int	STRING_Y_GAP = 15;
+	private static final int	STRING_Y_GAP = 25;
 	private static final Color	STRING_COLOR = Color.BLACK;
 	private static final Font	STRING_FONT = new Font("Courier", Font.PLAIN, 12);
 	private static final int	RECT_X_GAP = 20;
-	private static final int	RECT_Y_GAP = 40;
+	private static final int	RECT_Y_GAP = 5;
 	private static final int	RECT_HEIGHT = 10;
+	private static final float	RECT_PERCENT = 0.02f;
 	private static final Color	RECT_BOUND_COLOR = Color.BLACK;
 	private static final Color	RECT_COMPLETED_COLOR = Color.CYAN;
 	private static final Color	RECT_RETAINED_COLOR = Color.WHITE;
@@ -31,6 +32,15 @@ public class JSimpleSplash implements ProgressIndicator, Closeable {
 	private boolean				needDraw = false, needRect = false;
 	private String				caption;
 	private long				old, current, total, discrete;
+
+	public JSimpleSplash() throws NullPointerException, EnvironmentException {
+		if (splash == null) {
+			throw new EnvironmentException("Splash screnn functionality is not available");
+		}
+		else {
+			g2d = splash.createGraphics();
+		}
+	}
 	
 	public JSimpleSplash(final URL imageURL) throws IOException, NullPointerException, EnvironmentException {
 		if (imageURL == null) {
@@ -46,7 +56,7 @@ public class JSimpleSplash implements ProgressIndicator, Closeable {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() throws RuntimeException {
 		end();
 		splash.close();
 	}
@@ -119,6 +129,7 @@ public class JSimpleSplash implements ProgressIndicator, Closeable {
 		if (needDraw) {
         	final Color		oldColor =  g2d.getColor();  
 			final Rectangle	rect = splash.getBounds();
+        	final int		height = Math.max(RECT_HEIGHT, (int) (RECT_PERCENT * rect.height));
 			
 	        g2d.setComposite(AlphaComposite.Clear);
 	        g2d.fillRect(0, 0, rect.width, rect.height);
@@ -131,38 +142,24 @@ public class JSimpleSplash implements ProgressIndicator, Closeable {
 	        	
 		        g2d.setColor(STRING_COLOR);
 	        	g2d.setFont(STRING_FONT);
-	        	g2d.drawString(cap, STRING_X_GAP, rect.height - STRING_Y_GAP);
+	        	g2d.drawString(cap, STRING_X_GAP, rect.height - STRING_Y_GAP - (needRect ? height + RECT_Y_GAP : 0));
 	        	g2d.setFont(oldFont);
 	        }
 	        if (needRect) {
 	        	final long	curr = current;
 	        	final int	width = rect.width - 2 * RECT_X_GAP;
-	        	final int	height = Math.max(RECT_HEIGHT, (int) (0.05 * rect.height));
 	        	final int	percent = (int) (100.0 * curr / total);
 	        	final int	widthLeft = width * percent / 100; 
 	        	final int	widthRight = width - widthLeft;
 	        	
 		        g2d.setColor(RECT_COMPLETED_COLOR);
-		        g2d.fillRect(RECT_X_GAP, rect.height - RECT_Y_GAP, widthLeft, height);
+		        g2d.fillRect(RECT_X_GAP, rect.height - RECT_Y_GAP - height, widthLeft, height);
 		        g2d.setColor(RECT_RETAINED_COLOR);
-		        g2d.fillRect(RECT_X_GAP + widthLeft, rect.height - RECT_Y_GAP, widthRight, height);
+		        g2d.fillRect(RECT_X_GAP + widthLeft, rect.height - RECT_Y_GAP - height, widthRight, height);
 		        g2d.setColor(RECT_BOUND_COLOR);
-		        g2d.drawRect(RECT_X_GAP, rect.height - RECT_Y_GAP, width, height);
+		        g2d.drawRect(RECT_X_GAP, rect.height - RECT_Y_GAP - height, width, height);
 	        }
 	        g2d.setColor(oldColor);
-		}
-	}
-	
-	public static void main(final String[] args) throws NullPointerException, EnvironmentException, MalformedURLException, IOException, InterruptedException {
-		try(final JSimpleSplash	ss = new JSimpleSplash(new URL("file:/c:/tmp/splash.gif"))) {
-			ss.start("TEST",10);
-			
-			for (int index = 0; index < 10; index++) {
-				ss.processed(index);
-				ss.caption("TEST : "+index);
-				Thread.sleep(200);
-			}
-			ss.end();
 		}
 	}
 }
