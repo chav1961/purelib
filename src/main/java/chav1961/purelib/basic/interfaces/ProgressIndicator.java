@@ -19,6 +19,7 @@ package chav1961.purelib.basic.interfaces;
  * </ul>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.5
  */
 public interface ProgressIndicator {
 	/**
@@ -59,6 +60,14 @@ public interface ProgressIndicator {
 	 */
 	boolean processed(long processed);
 
+	/**
+	 * <p>Refresh caption in the progress indicator</p>
+	 * @param caption caption to refresh. Can't be null or empty
+	 * @since 0.0.5
+	 */
+	default void caption(String caption) {}
+	
+	
 	/**
 	 * <p>Ends the current stage</p>
 	 * @return -1 - continue processing, 0 - interrupt long progress, any positive - ultimate branch to the given stage of the processing  
