@@ -77,6 +77,12 @@ public interface ProgressIndicator {
 	 */
 	default void caption(String caption) {}
 	
+	/**
+	 * <p>Refresh stage caption in the progress indicator</p>
+	 * @param caption caption to refresh. Can't be null or empty
+	 * @since 0.0.5
+	 */
+	default void stageCaption(String caption) {}
 	
 	/**
 	 * <p>Ends the current stage</p>

@@ -159,8 +159,7 @@ public abstract class SwingUtils {
 	private static final String				UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
 	private static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
-
-	private static final int[][]			CLOCKWISE_XY = {{-1,-1}, {0,-1}, {1,-1}, {1,0}, {1,1}, {0,1}, {-1,1}, {-1,0}};
+	private static final int[] 				CONTOUR_NEIGBOUR_X = {-1, 0, 1, 0, 1, 0, -1, 0}, CONTOUR_NEIGBOUR_Y = {-1, -1, -1, 0, 1, 1, 1, 0};
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -1360,96 +1359,86 @@ loop:			for (Component comp : children(node)) {
 		}
 		else {
 			final GeneralPath	gp = new GeneralPath();
-			final int			color = transparentColor.getRGB();
-			final Point			p = findFirstDifferentColorPoint(image, color & 0xFFFFFF);
+			final int			w = image.getWidth(), h = image.getHeight();
 			
-			if (p.getX() < 0 || p.getY() < 0) {
-				gp.moveTo(0, 0);
-				gp.lineTo(image.getWidth(), 0);
-				gp.lineTo(image.getWidth(), image.getHeight());
-				gp.lineTo(0, image.getHeight());
-				gp.closePath();
+			if (w + h >= Short.MAX_VALUE) {
+				throw new IllegalArgumentException("Image size is too long");
+			}
+			else if (((long)w) * h >= Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("Image size is too long");
 			}
 			else {
-				gp.moveTo(p.getX(), p.getY());
-				makeSingleContour(image,p.x,p.y,color & 0xFFFFFF,gp);
-			}
-			return gp;
-		}
-	}
+				final int			maxK = CONTOUR_NEIGBOUR_X.length, transparent = transparentColor.getRGB();
+				final Set<Point>	points = new HashSet<>();
+				short[] 			grid = new short[w*h];
+				short				d = 0, nextD = (short)(d + 1);
+				boolean 			stop;
+				
+				grid[0] = Short.MAX_VALUE;
 
-	private static Point findFirstDifferentColorPoint(final BufferedImage image, final int transparentColor) {
-		for (int y = 0, maxY = image.getHeight(); y < maxY; y++) {
-			for (int x = 0, maxX = image.getWidth(); x < maxX; x++) {
-				if ((image.getRGB(x, y) & 0xFFFFFF) != transparentColor) {
-//					System.err.println("FOUND: "+transparentColor+" at "+x+"/"+y);
-					return new Point(x,y);
+				do {stop = true;	// First part of wave Lea algorithm...
+					for (int y = 0; y < h; y++ ) {
+						for (int x = 0; x < w; x++) {
+							if (grid[y*w + x] == d) {
+					          for (int k = 0; k < maxK; k++) {
+					             int	iy = y + CONTOUR_NEIGBOUR_Y[k], ix = x + CONTOUR_NEIGBOUR_X[k];
+					             
+					             if ( iy >= 0 && iy < h && ix >= 0 && ix < w && grid[iy * w + ix] == 0) {
+									stop = false;
+									if (image.getRGB(ix, iy) == transparent) {
+										grid[iy * w + ix] = nextD;
+									}
+									else {
+										grid[iy * w +  ix] = Short.MAX_VALUE;
+										points.add(new Point(ix,iy));
+									}
+					             }
+					          }
+							}
+						}
+					}
+				    d++;
+				    nextD++;
+				} while (!stop);
+				
+				grid = null;
+				
+				if (!points.isEmpty()) {
+					final Point[] 	p = points.toArray(new Point[points.size()]);
+					
+					points.clear();
+					
+					final int		pSize = p.length, pSizeMinus1 = pSize - 1;
+					double 			dist, newDist;
+					Point			temp;
+					 
+					gp.moveTo(p[0].x, p[0].y);
+					for (int index = 0; index < pSizeMinus1; index++) {	// Reordering points by minimum distance (square) between them
+						dist = p[index].distanceSq(p[index+1]);
+						
+						for (int next = index+1; next < pSize; next++) {
+							newDist = p[index].distanceSq(p[next]);
+							
+							if (newDist < dist) {
+								dist = newDist;
+								temp = p[index+1];
+								p[index+1] = p[next];
+								p[next] = temp;
+							}
+						}
+						if (dist >= 3) {	// Separated contour detected
+							gp.closePath();
+							gp.moveTo(p[index+1].x, p[index+1].y);
+						}
+						else {
+							gp.lineTo(p[index+1].x, p[index+1].y);
+						}						
+					}
+					gp.closePath();
 				}
+				return gp;
 			}
 		}
-		return new Point(-1,-1);
-	}
-	
-    private static void makeSingleContour(final BufferedImage image, final int xAnchor, final int yAnchor, final int transparentColor, final GeneralPath gp) {
-    	final int		width = image.getWidth(), height = image.getHeight();
-    	final long[]	points = new long[(width * height) >> 6];
-    	long			number;
-    	int				xCurrent = xAnchor, yCurrent = yAnchor;
-    	int				neighbours, xCandidate, yCandidate;
-    	
-//		System.err.println("XStart = "+xCurrent+", YStart = "+yCurrent);
-    	do{	
-    		number = ((long)yCurrent) * width + ((long)xCurrent);
-    		points[(int)(number >> 6)] |= (1 << (number & 63));    		
-    		neighbours = 0;
-    		xCandidate = xCurrent;
-    		yCandidate = yCurrent;
-    		for (int[] xy : CLOCKWISE_XY) {
-    			final int	x = xCurrent+xy[0], y = yCurrent+xy[1];
-    			number = ((long)y) * width + ((long)x); 
-    			
-    			if ((points[(int)(number >> 6)] & (1 << (number & 63))) == 0 && (image.getRGB(x, y) & 0xFFFFFF) != transparentColor) {
-    				final int	currentNeighbours = calcNeigbours(image, x, y, transparentColor);
-//    	    		System.err.println("X = "+x+", Y = "+y+", N="+currentNeighbours+", n="+number);
-    				
-    				if (currentNeighbours >= neighbours) {
-    					neighbours = currentNeighbours;
-    					xCandidate = x;
-    					yCandidate = y;
-    				}
-    			}
-    		}
-			
-    		xCurrent = xCandidate;
-    		yCurrent = yCandidate;
-    		gp.lineTo(xCurrent, yCurrent);
-//    		System.err.println("XCurrent = "+xCurrent+", YCurrent = "+yCurrent);
-    	} while (neighbours > 0);
-    	gp.closePath();
-	}
-	
-    private static int calcNeigbours(final BufferedImage image, final int x, final int y, final int transparentColor) {
-    	final int	width = image.getWidth(), height = image.getHeight();
-    	int			total = 0;
-    	
-    	if (x == 0 || x == width) {
-    		if (y == 0 || y == height) { 
-    			total += 5;
-    		}
-    		else {
-    			total += 3;
-    		}
-    	}
-    	for (int xP = x - 1; xP <= x + 1; xP++) {
-        	for (int yP = y - 1; yP <= y + 1; yP++) {
-        		if (xP >= 0 && xP < width && yP >= 0 && yP < height && xP != x && yP != y) {
-        			if ((image.getRGB(xP, yP) & 0xFFFFFF) == transparentColor) {
-        				total++;
-        			}
-        		}
-        	}
-    	}
-		return total;
 	}
 
 	private static GraphicsConfiguration getCurrentGraphicsConfiguration(final Point popupLocation) {

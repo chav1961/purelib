@@ -1,10 +1,6 @@
 package chav1961.purelib.ui;
 
 import java.awt.Color;
-import java.io.InputStream;
-
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.interfaces.PureLibColorScheme;

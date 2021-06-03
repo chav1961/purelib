@@ -6,27 +6,36 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
+import java.net.URI;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
+
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
+import javax.swing.ToolTipManager;
 
+import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
@@ -39,35 +48,41 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 	private static final long serialVersionUID = 7000659520053155494L;
 	
 	private static final String			SIZE_PROP = "size";
+	private static final String			AUTO_SHAPE_PROP = "autoShape";
+	private static final String			DEFAULT_AUTO_SHAPE_PROP = "true";
+	private static final String			SELECTED_COLOR_PROP = "selectedColor";
+	private static final Color			DEFAULT_SELECTED_COLOR = Color.DARK_GRAY;
 	private static final String			FOCUSED_COLOR_PROP = "focusedColor";
 	private static final Color			DEFAULT_FOCUSED_COLOR = Color.BLACK;
+	private static final String			TRANSFORM_PROP_SUFFIX = ".transform";
 
 	private final ContentNodeMetadata	metadata;
 	private final Image					icon;
 	private final double				menuWidth;
 	private final double				menuHeight;
-	private final MetadataAndShape[]	areas;
+	private final MetadataShapeAndTransform[]	areas;
 	private final ImageObserver			observer = new ImageObserver() {
 											@Override
 											public boolean imageUpdate(final Image img, int infoflags, int x, int y, int width, int height) {
 												return true;
 											}
 										};
-	private final Color					focusedColor;
+	private final Color					selectedColor, focusedColor;
+	private final Map<URI,Image>		icons = new HashMap<>();
 	
 	private boolean 					invalid = false;
 	private Object						value;
-	private volatile MetadataAndShape	inside = null;
-	private volatile MetadataAndShape	selected = null;
-	
-	public JMapMenuWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor, final Properties areas) throws LocalizationException, SyntaxException {
+	private volatile MetadataShapeAndTransform	inside = null;
+	private volatile MetadataShapeAndTransform	selected = null;
+
+	public JMapMenuWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor, final Properties areaDescriptors) throws LocalizationException, SyntaxException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
 		else if (monitor == null) {
 			throw new NullPointerException("Monitor can't be null"); 
 		}
-		else if (areas == null) {
+		else if (areaDescriptors == null) {
 			throw new NullPointerException("Menu areas can't be null"); 
 		}
 		else if (metadata.getIcon() == null) {
@@ -79,8 +94,8 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 			
 			this.metadata = metadata;
 			
-			if (areas.containsKey(SIZE_PROP)) {
-				final char[]	content = CharUtils.terminateAndConvert2CharArray(areas.getProperty(SIZE_PROP), '\n');
+			if (areaDescriptors.containsKey(SIZE_PROP)) {
+				final char[]	content = CharUtils.terminateAndConvert2CharArray(areaDescriptors.getProperty(SIZE_PROP), '\n');
 				
 				try{from = CharUtils.parseDouble(content, CharUtils.skipBlank(content, from, true), value, true);
 					menuWidth = value[0];
@@ -119,28 +134,49 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 				throw new SyntaxException(0, 0, "I/O error loading image ["+metadata.getIcon()+"]: "+e.getLocalizedMessage());
 			}
 			
-			if (areas.containsKey(FOCUSED_COLOR_PROP)) {
-				this.focusedColor = PureLibSettings.colorByName(areas.getProperty(FOCUSED_COLOR_PROP), DEFAULT_FOCUSED_COLOR);
+			if (areaDescriptors.containsKey(SELECTED_COLOR_PROP)) {
+				this.selectedColor = PureLibSettings.colorByName(areaDescriptors.getProperty(SELECTED_COLOR_PROP), DEFAULT_SELECTED_COLOR);
+			}
+			else {
+				this.selectedColor = DEFAULT_SELECTED_COLOR;
+			}
+			if (areaDescriptors.containsKey(FOCUSED_COLOR_PROP)) {
+				this.focusedColor = PureLibSettings.colorByName(areaDescriptors.getProperty(FOCUSED_COLOR_PROP), DEFAULT_FOCUSED_COLOR);
 			}
 			else {
 				this.focusedColor = DEFAULT_FOCUSED_COLOR;
 			}
 			
-			final List<MetadataAndShape>	temp = new ArrayList<>(); 
+			final List<MetadataShapeAndTransform>	temp = new ArrayList<>();
+			final boolean					autoShape = Boolean.valueOf(areaDescriptors.getProperty(AUTO_SHAPE_PROP, DEFAULT_AUTO_SHAPE_PROP)); 
 					
 			for (ContentNodeMetadata item : metadata) {
-				if (!areas.containsKey(item.getName())) {
-					throw new SyntaxException(0, 0, "Mandatory name ["+item.getName()+"] is missing in the areas");
+				final AffineTransform	at;
+				if (!areaDescriptors.containsKey(item.getName()+TRANSFORM_PROP_SUFFIX)) {
+					at = CSSUtils.asTransform(areaDescriptors.getProperty(item.getName()+TRANSFORM_PROP_SUFFIX));
 				}
 				else {
-					temp.add(new MetadataAndShape(item, SVGUtils.extractCommands(areas.getProperty(item.getName()))));
+					at = new AffineTransform();
+				}
+				if (!areaDescriptors.containsKey(item.getName())) {
+					if (autoShape && item.getIcon() != null) {
+						final Image		image = extractImage(item.getIcon());
+						
+						temp.add(new MetadataShapeAndTransform(item, SwingUtils.buildContour((BufferedImage)image),at));
+					}
+					else {
+						throw new SyntaxException(0, 0, "Mandatory name ["+item.getName()+"] is missing in the areas");
+					}
+				}
+				else {
+					temp.add(new MetadataShapeAndTransform(item, SVGUtils.extractCommands(areaDescriptors.getProperty(item.getName())),at));
 				}
 			}
 			if (temp.isEmpty()) {
 				throw new SyntaxException(0, 0, "No any areas in the properties");
 			}
 			else {
-				this.areas = temp.toArray(new MetadataAndShape[temp.size()]);
+				this.areas = temp.toArray(new MetadataShapeAndTransform[temp.size()]);
 			}
 			
 			addMouseListener(new MouseListener() {
@@ -151,7 +187,7 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 				
 				@Override 
 				public void mouseClicked(final MouseEvent e) {
-					final MetadataAndShape	temp = inside;
+					final MetadataShapeAndTransform	temp = inside;
 					
 					if (e.getButton() == MouseEvent.BUTTON1 && e.getModifiersEx() == 0) {
 						if (temp != null) {
@@ -193,7 +229,7 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 				}
 				
 				private void processFocusGained(final ContentNodeMetadata meta) {
-					for (MetadataAndShape item : JMapMenuWithMeta.this.areas) {
+					for (MetadataShapeAndTransform item : JMapMenuWithMeta.this.areas) {
 						if (item.meta == meta) {
 							inside = item;
 							
@@ -208,7 +244,7 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 				}
 				
 				private void processFocusLost() {
-					final MetadataAndShape	mas = inside; 
+					final MetadataShapeAndTransform	mas = inside; 
 					
 					repaint();
 					
@@ -220,6 +256,7 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 			});
 
 			setFocusable(true);
+			ToolTipManager.sharedInstance().registerComponent(this);
 			fillLocalizedStrings();
 		}
 	}	
@@ -279,7 +316,7 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 		final double	kx = menuWidth/getWidth(), ky = menuHeight/getHeight();
 		final double	scaledX = x * kx, scaledY = y * ky;
 		
-		for (MetadataAndShape item : areas) {
+		for (MetadataShapeAndTransform item : areas) {
 			if (item.shape.contains(scaledX, scaledY)) {
 				return item.meta;
 			}
@@ -287,6 +324,32 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 		return null;
 	}
 
+	@Override
+	public String getToolTipText(final MouseEvent event) {
+		final Point		p = event.getPoint();
+		final double	kx = menuWidth/getWidth(), ky = menuHeight/getHeight();
+		final double	scaledX = p.x * kx, scaledY = p.y * ky;
+		
+		for (MetadataShapeAndTransform item : areas) {
+			if (item.shape.contains(scaledX, scaledY)) {
+				return extractTooltip(item.meta);
+			}
+		}
+		return super.getToolTipText(event);
+	}
+	
+	@Override
+	public String getToolTipText() {
+		final String	tooltipId = extractTooltip(getNodeMetadata());
+		
+		if (tooltipId == null || tooltipId.isEmpty()) {
+			return super.getToolTipText();
+		}
+		else {
+			return tooltipId;
+		}
+	}
+	
 	@Override
 	protected void paintComponent(final Graphics g) {
 		final Graphics2D		g2d = (Graphics2D)g;
@@ -306,13 +369,12 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 			final Stroke		oldStroke = g2d.getStroke();
 			final Color			oldColor = g2d.getColor();
 			
-			g2d.setColor(focusedColor);
 			g2d.setStroke(new BasicStroke((float) (0.005*Math.min(menuWidth, menuHeight))));
-			for (MetadataAndShape item : areas) {
+			for (MetadataShapeAndTransform item : areas) {
 				final boolean 	isFocused = item == inside;
 				final boolean 	isSelected = item == selected;
 				
-				paintItem(g2d, item.meta, item.shape, isFocused, isSelected);
+				paintItem(g2d, item.meta, imageAt, item.shape, isFocused, isSelected);
 			}
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);
@@ -320,28 +382,67 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 		g2d.setTransform(oldAt);
 	}
 	
-	protected void paintItem(final Graphics2D g2d, final ContentNodeMetadata metadata, final Shape shape, final boolean focused, final boolean selected) {
-		if (focused) {
-			if (metadata.getIcon() != null) {
-//				try{final Image	img = ImageIO.read(metadata.getIcon().toURL());
-//				} catch (IOException e) {
-//				}
+	protected void paintItem(final Graphics2D g2d, final ContentNodeMetadata metadata, final AffineTransform at, Shape shape, final boolean focused, final boolean selected) {
+		final Color	oldColor = g2d.getColor();
+		
+		if (metadata.getIcon() != null) {
+			final Image	image = extractImage(metadata.getIcon());
+			
+			if (image !=  null) {
+				g2d.drawImage(icon, at, observer);
 			}
+		}
+		if (selected && !focused) {
+			g2d.setColor(selectedColor);
 			g2d.draw(shape);
 		}
+		else if (focused) {
+			g2d.setColor(focusedColor);
+			g2d.draw(shape);
+		}
+		g2d.setColor(oldColor);
+	}
+	
+	private String extractTooltip(final ContentNodeMetadata meta) {
+		final String	tooltipId = meta.getTooltipId();
+		
+		if (tooltipId == null || tooltipId.isEmpty()) {
+			return null;
+		}
+		else {
+			try{
+				return LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(tooltipId);
+			} catch (LocalizationException e) {
+				return tooltipId;
+			}
+		}
+	}
+	
+	private Image extractImage(final URI imageUri) {
+		if (!icons.containsKey(imageUri)) {
+			try{icons.put(imageUri, ImageIO.read(metadata.getIcon().toURL()));
+			} catch (IOException e) {
+				try{icons.put(imageUri, ImageIO.read(this.getClass().getResource("notfound.png")));
+				} catch (IOException e1) {
+				}
+			}
+		}
+		return icons.get(imageUri); 
 	}
 	
 	private void fillLocalizedStrings() {
 		
 	}
 	
-	private static class MetadataAndShape {
+	private static class MetadataShapeAndTransform {
 		private final ContentNodeMetadata	meta;
 		private final Shape					shape;
+		private final AffineTransform		transform;
 		
-		private MetadataAndShape(final ContentNodeMetadata meta, final Shape shape) {
+		private MetadataShapeAndTransform(final ContentNodeMetadata meta, final Shape shape, final AffineTransform transform) {
 			this.meta = meta;
 			this.shape = shape;
+			this.transform = transform;
 		}
 
 		@Override
