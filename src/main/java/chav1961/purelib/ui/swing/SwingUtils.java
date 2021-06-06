@@ -1376,7 +1376,13 @@ loop:			for (Component comp : children(node)) {
 				
 				grid[0] = Short.MAX_VALUE;
 
-				do {stop = true;	// First part of wave Lea algorithm...
+				gp.moveTo(0, 0);
+				gp.lineTo(w, 0);
+				gp.lineTo(w, h);
+				gp.lineTo(0, h);
+				gp.closePath();
+				
+/*				do {stop = true;	// First part of wave Lea algorithm...
 					for (int y = 0; y < h; y++ ) {
 						for (int x = 0; x < w; x++) {
 							if (grid[y*w + x] == d) {
@@ -1436,6 +1442,7 @@ loop:			for (Component comp : children(node)) {
 					}
 					gp.closePath();
 				}
+*/			
 				return gp;
 			}
 		}

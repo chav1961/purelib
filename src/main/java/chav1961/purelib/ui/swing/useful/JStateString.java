@@ -2,7 +2,9 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +19,7 @@ import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -34,6 +37,8 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.swing.SwingUtils;
@@ -47,7 +52,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @see ProgressIndicator
  * @see JTextPaneHighlighter
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public class JStateString extends JPanel implements LoggerFacade, ProgressIndicator, LocaleChangeListener {
@@ -228,6 +233,63 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	public void localeChanged(Locale oldLocale, Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
 	}; 
+
+	@Override
+	public void setFont(final Font font) {
+		super.setFont(font);
+		SwingUtils.walkDown(this, (node,item)->{
+			if (node == NodeEnterMode.ENTER && item != JStateString.this) {
+				item.setFont(font);
+			}
+			return ContinueMode.CONTINUE;
+		});
+	}
+	
+	@Override
+	public void setForeground(final Color color) {
+		super.setForeground(color);
+		SwingUtils.walkDown(this, (node,item)->{
+			if (node == NodeEnterMode.ENTER && item != JStateString.this) {
+				item.setForeground(color);
+			}
+			return ContinueMode.CONTINUE;
+		});
+	}
+	
+	@Override
+	public void setOpaque(final boolean opaque) {
+		super.setOpaque(opaque);
+		SwingUtils.walkDown(this, (node,item)->{
+			if (node == NodeEnterMode.ENTER && item != JStateString.this && (item instanceof JComponent)) {
+				((JComponent)item).setOpaque(opaque);
+			}
+			return ContinueMode.CONTINUE;
+		});
+	}
+	
+	@Override
+	public void setBackground(final Color color) {
+		super.setBackground(color);
+		SwingUtils.walkDown(this, (node,item)->{
+			if (node == NodeEnterMode.ENTER && item != JStateString.this) {
+				item.setBackground(color);
+			}
+			return ContinueMode.CONTINUE;
+		});
+	}
+
+	@Override
+	public void setMinimumSize(final Dimension minimumSize) {
+		state.setPreferredSize(minimumSize);
+		super.setMinimumSize(minimumSize);
+	}
+	
+	@Override
+	public void setPreferredSize(final Dimension preferredSize) {
+		state.setPreferredSize(preferredSize);
+		super.setPreferredSize(preferredSize);
+	}
+	
 	
 	/**
 	 * <p>Assign cancel callback before long operation. This callback will be called on pressing 'cancel' button
@@ -557,8 +619,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		commonPanel.add(common);
 		commonPanel.add(cancelCommon);
 		
-		commonPanel.setPreferredSize(new Dimension(100,20));
-		stagedPanel.setPreferredSize(new Dimension(100,20));
+		commonPanel.setPreferredSize(new Dimension(100,24));
+		stagedPanel.setPreferredSize(new Dimension(100,24));
 		
 		springCommon.putConstraint(SpringLayout.NORTH, common, 0, SpringLayout.NORTH, commonPanel);
 		springCommon.putConstraint(SpringLayout.SOUTH, common, 0, SpringLayout.SOUTH, commonPanel);
@@ -596,7 +658,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(state).addComponent(rightPanel));
 			layout.setVerticalGroup(
 			   layout.createSequentialGroup()
-			      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+			      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			           .addComponent(state)
 			           .addComponent(rightPanel)
 			           )
@@ -613,7 +675,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(state).addComponent(rightPanel));
 			layout.setVerticalGroup(
 			   layout.createSequentialGroup()
-			      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+			      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			           .addComponent(state)
 			           .addComponent(rightPanel)
 			           )
