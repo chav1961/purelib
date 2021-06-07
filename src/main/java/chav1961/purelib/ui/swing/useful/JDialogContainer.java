@@ -218,6 +218,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 				item.prepare(common,temporary);
 			}
 			this.result = false;
+			pack();
 			setVisible(true);
 			dispose();
 			for (WizardStep<Common, ErrorType, Content> item : steps) {
@@ -227,6 +228,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		}
 		else {
 			this.result = false;
+			pack();
 			setVisible(true);
 			dispose();
 			return this.result;

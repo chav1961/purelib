@@ -745,6 +745,7 @@ public class ContentModelFactory {
 				final String	itemName = getAttribute(document,XML_ATTR_NAME);
 				final String	itemCaption = getAttribute(document,XML_ATTR_CAPTION);
 				final String	itemTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
+				final String	itemHelp = getAttribute(document,XML_ATTR_HELP);
 				final String	itemAction = getAttribute(document,XML_ATTR_ACTION);
 				final String	groupAction = getAttribute(document,XML_ATTR_GROUP);
 				final String	itemIcon = getAttribute(document,XML_ATTR_ICON);
@@ -755,7 +756,7 @@ public class ContentModelFactory {
 						, null
 						, itemCaption
 						, itemTooltip 
-						, null
+						, itemHelp
 						, null
 						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : ""))
 						, itemIcon == null || itemIcon.isEmpty() ? null : URI.create(itemIcon));

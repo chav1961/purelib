@@ -581,7 +581,7 @@ loop:		do {if (cursor.child != null) {
 	}
 
 	@Override
-	public Localizer setParent(Localizer parent) throws LocalizationException {
+	public Localizer setParent(final Localizer parent) throws LocalizationException {
 		if ((this.parent = parent) != null) {
 			final Set<Localizer>	path = new HashSet<>();
 			Localizer				current = this;
