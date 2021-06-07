@@ -334,11 +334,12 @@ public abstract class AbstractLocalizer implements Localizer {
 				return new StringReader(value);
 			}
 			else {
-				try(final CharArrayWriter	wr = new CharArrayWriter();
-					final Writer			conv = StreamsUtil.getStreamClassForOutput(wr,sourceType,targetType)) {
+				try(final CharArrayWriter	wr = new CharArrayWriter()) {
+					try(final Writer		conv = StreamsUtil.getStreamClassForOutput(wr,sourceType,targetType)) {
 					
-					conv.write(value);
-					conv.flush();
+						conv.write(value);
+						conv.flush();
+					}
 					return new CharArrayReader(wr.toCharArray());
 				} catch (IOException e) {
 					throw new LocalizationException("I/O error converting string content from ["+sourceType+"] to ["+targetType+"]: "+e.getLocalizedMessage(),e);

@@ -1,0 +1,2 @@
+== test
+line [[testSet5|inner]] [[#test|next]] http://ya.ru end line 

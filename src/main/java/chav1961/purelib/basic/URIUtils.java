@@ -20,6 +20,7 @@ import java.util.Hashtable;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.5
  */
 public class URIUtils {
 	/**
@@ -305,6 +306,37 @@ public class URIUtils {
 		}
 	}
 
+	/**
+	 * <p>Remove fragment from URI</p>
+	 * @param uri uri to remove fragment from. Can't be null
+	 * @return URi without fragment. Can't be null
+	 * @throws NullPointerException when argument is null
+	 * @since 0.0.5
+	 */
+	public static URI removeFragmentFromURI(final URI uri) throws NullPointerException {
+		if (uri == null) {
+			throw new NullPointerException("Uri to remove fragment from can't be null");
+		}
+		else {
+			final String		str = uri.toString();
+			
+			if (str.contains("#")) {
+				if (uri.getQuery() != null) {
+					final String	query = str.substring(str.lastIndexOf('?'));
+					
+					return URI.create(str.substring(0,str.lastIndexOf('#'))+query);
+				}
+				else {
+					return URI.create(str.substring(0,str.lastIndexOf('#')));
+				}
+			}
+			else {
+				return uri;
+			}
+		}
+	}
+	
+	
 	/**
 	 * <p>Extract query string from multi-schemed URI</p>
 	 * @param uri uri to extract query from

@@ -1256,7 +1256,7 @@ loop:			for (Component comp : children(node)) {
 		}
 		else {
 			final PopupFactory		pf = PopupFactory.getSharedInstance();
-			final JEditorPane		pane = new JEditorPane("text/html","");
+			final JEditorPane		pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),"");
 			final JScrollPane		scroll = new JScrollPane(pane);
 			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(Math.max(640,ownerSize.width),Math.max(480,ownerSize.height)); 
 			final Point				point = new Point((ownerSize.width-helpSize.width)/2,(ownerSize.height-helpSize.height)/2);
