@@ -97,7 +97,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 				}
 			});
 			
-			SwingUtils.assignActionKey(this, SwingUtils.KS_BACKWARD, (e)->backward(), "");
+			SwingUtils.assignActionKey(this, SwingUtils.KS_BACKWARD, (e)->backward(), "help");
 			setEditable(false);
 		}
 	}

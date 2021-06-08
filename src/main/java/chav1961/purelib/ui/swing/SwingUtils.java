@@ -1370,6 +1370,7 @@ loop:			for (Component comp : children(node)) {
 			else {
 				final int			maxK = CONTOUR_NEIGBOUR_X.length, transparent = transparentColor.getRGB();
 				final Set<Point>	points = new HashSet<>();
+				final Set<Point>	processed = new HashSet<>();
 				short[] 			grid = new short[w*h];
 				short				d = 0, nextD = (short)(d + 1);
 				boolean 			stop;
@@ -1382,67 +1383,6 @@ loop:			for (Component comp : children(node)) {
 				gp.lineTo(0, h);
 				gp.closePath();
 				
-/*				do {stop = true;	// First part of wave Lea algorithm...
-					for (int y = 0; y < h; y++ ) {
-						for (int x = 0; x < w; x++) {
-							if (grid[y*w + x] == d) {
-					          for (int k = 0; k < maxK; k++) {
-					             int	iy = y + CONTOUR_NEIGBOUR_Y[k], ix = x + CONTOUR_NEIGBOUR_X[k];
-					             
-					             if ( iy >= 0 && iy < h && ix >= 0 && ix < w && grid[iy * w + ix] == 0) {
-									stop = false;
-									if (image.getRGB(ix, iy) == transparent) {
-										grid[iy * w + ix] = nextD;
-									}
-									else {
-										grid[iy * w +  ix] = Short.MAX_VALUE;
-										points.add(new Point(ix,iy));
-									}
-					             }
-					          }
-							}
-						}
-					}
-				    d++;
-				    nextD++;
-				} while (!stop);
-				
-				grid = null;
-				
-				if (!points.isEmpty()) {
-					final Point[] 	p = points.toArray(new Point[points.size()]);
-					
-					points.clear();
-					
-					final int		pSize = p.length, pSizeMinus1 = pSize - 1;
-					double 			dist, newDist;
-					Point			temp;
-					 
-					gp.moveTo(p[0].x, p[0].y);
-					for (int index = 0; index < pSizeMinus1; index++) {	// Reordering points by minimum distance (square) between them
-						dist = p[index].distanceSq(p[index+1]);
-						
-						for (int next = index+1; next < pSize; next++) {
-							newDist = p[index].distanceSq(p[next]);
-							
-							if (newDist < dist) {
-								dist = newDist;
-								temp = p[index+1];
-								p[index+1] = p[next];
-								p[next] = temp;
-							}
-						}
-						if (dist >= 3) {	// Separated contour detected
-							gp.closePath();
-							gp.moveTo(p[index+1].x, p[index+1].y);
-						}
-						else {
-							gp.lineTo(p[index+1].x, p[index+1].y);
-						}						
-					}
-					gp.closePath();
-				}
-*/			
 				return gp;
 			}
 		}

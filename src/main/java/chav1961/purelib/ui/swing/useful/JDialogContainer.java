@@ -256,8 +256,8 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			}
 			
 			this.result = false;
-			pack();
 			
+			pack();
 			setVisible(true);
 			dispose();
 			return this.result;

@@ -227,11 +227,19 @@ loop:		for (;;) {
 							x1 += number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							y1 += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
+							if (content[from] == ',') {
+								from++;
+							}
+							from = CharUtils.parseSignedFloat(content,from,number,true);
 							controleX = x2 += number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							controleY = y2 += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
+							if (content[from] == ',') {
+								from++;
+							}
+							from = CharUtils.parseSignedFloat(content,from,number,true);
 							x += number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							y += number[0];
@@ -248,11 +256,19 @@ loop:		for (;;) {
 							x1 = number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							y1 = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
+							if (content[from] == ',') {
+								from++;
+							}
+							from = CharUtils.parseSignedFloat(content,from,number,true);
 							controleX = x2 = number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							controleY = y2 = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
+							if (content[from] == ',') {
+								from++;
+							}
+							from = CharUtils.parseSignedFloat(content,from,number,true);
 							x = number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							y = number[0];
