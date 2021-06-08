@@ -59,8 +59,11 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	private static final String	NEXT_TEXT_TT = "NEXT.tooltip";
 	private static final String	FINISH_TEXT_TT = "FINISH.tooltip";
 	
-	private final boolean		isWizard, isModal;
+	private final boolean		isWizard;
+	private final ModalityType	isModal;
 	private final Localizer		localizer;
+	private final Component		parent;
+	private final JComponent	inner;
 	private final Common		common;
 	private final JStateString	state;
 	private final JButton		okButton = new JButton();
@@ -85,8 +88,12 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner) throws LocalizationException {
 		this(localizer, parent, captionId, inner, true);
 	}
-	
+
 	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException {
+		this(localizer, parent, captionId, inner, modal ? ModalityType.DOCUMENT_MODAL : ModalityType.MODELESS);
+	}
+	
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final ModalityType modal) throws LocalizationException {
 		super(parent,modal);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -98,6 +105,8 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			throw new NullPointerException("Inner component can't be null");
 		}
 		else {
+			this.parent = parent;
+			this.inner = inner;
 			this.isWizard = false;
 			this.isModal = modal;
 			this.localizer = localizer;
@@ -114,6 +123,10 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	}
 
 	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException {
+		this(localizer, parent, captionId, inner, modal ? ModalityType.DOCUMENT_MODAL : ModalityType.MODELESS);
+	}
+	
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final ModalityType modal) throws LocalizationException {
 		super(parent,modal);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -125,6 +138,8 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			throw new NullPointerException("Inner component can't be null");
 		}
 		else {
+			this.parent = parent;
+			this.inner = inner;
 			this.isWizard = false;
 			this.isModal = modal;
 			this.localizer = localizer;
@@ -155,8 +170,10 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			throw new NullPointerException("Wizard stepe can't be null or empty array");
 		}
 		else {
+			this.parent = parent;
+			this.inner = null;
 			this.isWizard = true;
-			this.isModal = true;
+			this.isModal = ModalityType.DOCUMENT_MODAL;
 			this.localizer = localizer;
 			this.common = instance;
 			this.err = err;
@@ -183,8 +200,10 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			throw new NullPointerException("Wizard stepe can't be null or empty array");
 		}
 		else {
+			this.parent = parent;
+			this.inner = null;
 			this.isWizard = true;
-			this.isModal = true;
+			this.isModal = ModalityType.DOCUMENT_MODAL;
 			this.localizer = localizer;
 			this.common = instance;
 			this.err = err;
@@ -210,7 +229,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	}
 	
 	public boolean showDialog() throws LocalizationException {
-		if (!isModal) {
+		if (isModal == ModalityType.MODELESS) {
 			throw new IllegalStateException("showDialog call is applicable to modal dialog only");
 		}
 		else if (isWizard) {
@@ -227,8 +246,18 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			return this.result;
 		}
 		else {
+			final Dimension	innerSize = inner.getPreferredSize();
+
+			if (innerSize == null) {
+				SwingUtils.centerMainWindow(this,0.5f);
+			}
+			else {
+				setLocationRelativeTo(parent);
+			}
+			
 			this.result = false;
 			pack();
+			
 			setVisible(true);
 			dispose();
 			return this.result;
@@ -343,7 +372,6 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		try(final LoggerFacade	trans = PureLibSettings.CURRENT_LOGGER.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
-			final Dimension		screenSize = Toolkit.getDefaultToolkit().getScreenSize(), innerSize = inner.getPreferredSize();
 			
 			bottom.add(okButton);
 			okButton.addActionListener((e)->{ok();});
@@ -354,12 +382,6 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			south.add(state);
 			getContentPane().add(inner,BorderLayout.CENTER);
 			getContentPane().add(south,BorderLayout.SOUTH);
-			if (innerSize != null) {
-				SwingUtils.centerMainWindow(this,(float)Math.max(innerSize.getWidth()/screenSize.getWidth(),(innerSize.getHeight()+south.getPreferredSize().getHeight())/screenSize.getHeight()));
-			}
-			else {
-				SwingUtils.centerMainWindow(this,0.5f);
-			}
 			assignKeys();
 			trans.rollback();
 		}

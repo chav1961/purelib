@@ -6,6 +6,8 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -22,12 +24,14 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.swing.SwingUtils;
 
 public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListener {
 	private static final long 			serialVersionUID = -2121747413508372083L;
 	private static final Set<String> 	HEADERS = Set.of("h1","h2","h3","h4","h5","h6");
 
 	private final Localizer				localizer;
+	private final List<String>			history = new ArrayList<>();
 	private String						lastContent;
 	
 	public JCreoleHelpWindow(final Localizer localizer, final String root) throws LocalizationException {
@@ -66,29 +70,34 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 					else {
 						final URI	uri = URI.create(e.getDescription());
 						
-						if (uri.getPath() != null && !uri.getPath().isEmpty()) {
-							try{loadContent(lastContent = URIUtils.removeFragmentFromURI(URIUtils.removeQueryFromURI(uri)).toString());
-							} catch (IOException | LocalizationException exc) {
-								PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage(), exc);
-							}
-						}
-						final String	fragment = uri.getFragment();
-						
-						if (fragment != null) {
-							for (Element item : getDocument().getRootElements()) {
-								try{final int	found = findHtmlReference(fragment, item);
-
-									if (found >= 0) {
-										scrollRectToVisible(modelToView2D(found).getBounds());
-										break;
-									}
-								} catch (BadLocationException e1) {
-								}
-							}
-						}
+						history.add(lastContent);
+						processContent(uri);
+//						if (uri.getPath() != null && !uri.getPath().isEmpty()) {
+//							try{history.add(lastContent);
+//								loadContent(lastContent = URIUtils.removeFragmentFromURI(URIUtils.removeQueryFromURI(uri)).toString());
+//							} catch (IOException | LocalizationException exc) {
+//								PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage(), exc);
+//							}
+//						}
+//						final String	fragment = uri.getFragment();
+//						
+//						if (fragment != null) {
+//							for (Element item : getDocument().getRootElements()) {
+//								try{final int	found = findHtmlReference(fragment, item);
+//
+//									if (found >= 0) {
+//										scrollRectToVisible(modelToView2D(found).getBounds());
+//										break;
+//									}
+//								} catch (BadLocationException e1) {
+//								}
+//							}
+//						}
 					}
 				}
 			});
+			
+			SwingUtils.assignActionKey(this, SwingUtils.KS_BACKWARD, (e)->backward(), "");
 			setEditable(false);
 		}
 	}
@@ -98,6 +107,12 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 		try{loadContent(lastContent);
 		} catch (IOException e) {
 			throw new LocalizationException(e.getLocalizedMessage(),e);
+		}
+	}
+	
+	public void backward() {
+		if (!history.isEmpty()) {
+			processContent(URI.create(history.remove(history.size()-1)));
 		}
 	}
 	
@@ -114,6 +129,30 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 				}
 			}
 			return -1;
+		}
+	}
+	
+	private void processContent(final URI content) {
+		if (content.getPath() != null && !content.getPath().isEmpty()) {
+			try{history.add(lastContent);
+				loadContent(lastContent = URIUtils.removeFragmentFromURI(URIUtils.removeQueryFromURI(content)).toString());
+			} catch (IOException | LocalizationException exc) {
+				PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage(), exc);
+			}
+		}
+		final String	fragment = content.getFragment();
+		
+		if (fragment != null) {
+			for (Element item : getDocument().getRootElements()) {
+				try{final int	found = findHtmlReference(fragment, item);
+
+					if (found >= 0) {
+						scrollRectToVisible(modelToView2D(found).getBounds());
+						break;
+					}
+				} catch (BadLocationException e1) {
+				}
+			}
 		}
 	}
 	
