@@ -1350,6 +1350,12 @@ loop:			for (Component comp : children(node)) {
 	 * @throws NullPointerException on any parameter s are null
 	 * @since 0.0.5
 	 */
+	// SImplest algorithm:
+	// 1. previous (at the beginning - the same first) line has all falses for all image points
+	// 2. Current line of image has falses at transparent color and trues otherwise.
+	// 3. Any changes between lines produce new point into point set
+	// 4. After testing current line becomes previous
+	// 5. When all points have been built, make chain from it as a shortest distance between them
 	public static GeneralPath buildContour(final BufferedImage image, final Color transparentColor) throws NullPointerException {
 		if (image == null) {
 			throw new NullPointerException("Raster to build contour for can't be null");

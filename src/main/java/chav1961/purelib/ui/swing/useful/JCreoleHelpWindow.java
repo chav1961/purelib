@@ -26,6 +26,12 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.swing.SwingUtils;
 
+/**
+ * <p>This class shows Creole-based Help and supports hyperlinking inside. Cll hyperlinks must be either external links (for example 
+ * https://google.com) or header names inside current content ('#name') or resource name inside localizer rassed</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.5
+ */
 public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListener {
 	private static final long 			serialVersionUID = -2121747413508372083L;
 	private static final Set<String> 	HEADERS = Set.of("h1","h2","h3","h4","h5","h6");
@@ -34,7 +40,15 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 	private final List<String>			history = new ArrayList<>();
 	private String						lastContent;
 	
-	public JCreoleHelpWindow(final Localizer localizer, final String root) throws LocalizationException {
+	/**
+	 * <p>Create instance of the class</p>
+	 * @param localizer localizer to use for accessing content. Can't be null</p>
+	 * @param root root content id inside the localizer passed. Can't be null or empty string
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException root content id is null or empty
+	 */
+	public JCreoleHelpWindow(final Localizer localizer, final String root) throws LocalizationException, NullPointerException, IllegalArgumentException {
 		super(PureLibSettings.MIME_HTML_TEXT.toString(),"");
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -72,27 +86,6 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 						
 						history.add(lastContent);
 						processContent(uri);
-//						if (uri.getPath() != null && !uri.getPath().isEmpty()) {
-//							try{history.add(lastContent);
-//								loadContent(lastContent = URIUtils.removeFragmentFromURI(URIUtils.removeQueryFromURI(uri)).toString());
-//							} catch (IOException | LocalizationException exc) {
-//								PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage(), exc);
-//							}
-//						}
-//						final String	fragment = uri.getFragment();
-//						
-//						if (fragment != null) {
-//							for (Element item : getDocument().getRootElements()) {
-//								try{final int	found = findHtmlReference(fragment, item);
-//
-//									if (found >= 0) {
-//										scrollRectToVisible(modelToView2D(found).getBounds());
-//										break;
-//									}
-//								} catch (BadLocationException e1) {
-//								}
-//							}
-//						}
 					}
 				}
 			});
@@ -109,7 +102,10 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 			throw new LocalizationException(e.getLocalizedMessage(),e);
 		}
 	}
-	
+
+	/**
+	 * <p>Return to previous step in the hyperlink history</p>
+	 */
 	public void backward() {
 		if (!history.isEmpty()) {
 			processContent(URI.create(history.remove(history.size()-1)));

@@ -9,7 +9,9 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
  * @param <ErrorType> type of the errors can be detected on the wizard execution stages
  * @author chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.5
  */
+@FunctionalInterface
 public interface ErrorProcessing<Common, ErrorType extends Enum<?>> {
 	/**
 	 * <p>Process errors detected</p>
@@ -19,7 +21,9 @@ public interface ErrorProcessing<Common, ErrorType extends Enum<?>> {
 	 * @throws FlowException usually need be thrown to indicate error
 	 * @throws LocalizationException when any localization errors were detected
 	 */
-	void processError(Common content,ErrorType err,Object... parameters) throws FlowException, LocalizationException;
+	default void processError(Common content,ErrorType err,Object... parameters) throws FlowException, LocalizationException {
+		processWarning(content, err, parameters);
+	}
 	
 	/**
 	 * <p>Process warnings detected</p>

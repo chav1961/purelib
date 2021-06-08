@@ -7,9 +7,6 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -20,21 +17,18 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -46,6 +40,15 @@ import chav1961.purelib.ui.interfaces.WizardStep;
 import chav1961.purelib.ui.interfaces.WizardStep.StepType;
 import chav1961.purelib.ui.swing.SwingUtils;
 
+/**
+ * <p>This class implements dialog container for both single screen and wizard steps.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @param <Common> any instance contains common information, shared between all content items. Treat it as global store tor them
+ * @param <ErrorType> type of errors on wizard steps
+ * @param <Content> content for showing on wizard steps
+ * @since 0.0.4
+ * @lastUpdate 0.0.5
+ */
 public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends JDialog implements LocaleChangeListener {
 	private static final long 	serialVersionUID = 8956769935164098957L;
 	private static final String	OK_TEXT = "OK";
@@ -81,19 +84,63 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	protected Component			currentComponent;
 	protected boolean			result;
 	
-	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner) throws LocalizationException {
-		this(localizer, parent, captionId, inner, true);
+	/**
+	 * <p>Create class instance for single modal dialog form</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param captionId caption id for dialog. Can't be null or empty. Id must contain in the localizer passed
+	 * @param inner content of dialog. Can't be null
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 */
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner) throws LocalizationException, NullPointerException, IllegalArgumentException {
+		this(localizer, parent, captionId, inner, ModalityType.DOCUMENT_MODAL);
 	}
 
-	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner) throws LocalizationException {
-		this(localizer, parent, captionId, inner, true);
+	/**
+	 * <p>Create class instance for single modal dialog form</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param captionId caption id for dialog. Can't be null or empty. Id must contain in the localizer passed
+	 * @param inner content of dialog. Can't be null
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 */
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner) throws LocalizationException, NullPointerException, IllegalArgumentException {
+		this(localizer, parent, captionId, inner, ModalityType.DOCUMENT_MODAL);
 	}
 
-	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException {
+	/**
+	 * <p>Create class instance for single modal or modeless dialog form</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param captionId caption id for dialog. Can't be null or empty. Id must contain in the localizer passed
+	 * @param inner content of dialog. Can't be null
+	 * @param modal true for modal dialog, false otherwise
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 * @deprecated since 0.0.5. Use {@linkplain #JDialogContainer(Localizer, JDialog, String, JComponent, ModalityType)} instead
+	 */
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException, NullPointerException, IllegalArgumentException {
 		this(localizer, parent, captionId, inner, modal ? ModalityType.DOCUMENT_MODAL : ModalityType.MODELESS);
 	}
 	
-	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final ModalityType modal) throws LocalizationException {
+	/**
+	 * <p>Create class instance for single modal or modeless dialog form</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param captionId caption id for dialog. Can't be null or empty. Id must contain in the localizer passed
+	 * @param inner content of dialog. Can't be null
+	 * @param modal true for modal dialog, false otherwise
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 * @deprecated since 0.0.5. Use {@linkplain #JDialogContainer(Localizer, JDialog, String, JComponent, ModalityType)} instead
+	 */
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final String captionId, final JComponent inner, final ModalityType modal) throws LocalizationException, NullPointerException, IllegalArgumentException {
 		super(parent,modal);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -122,11 +169,35 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		}
 	}
 
-	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException {
+	/**
+	 * <p>Create class instance for single modal or modeless dialog form</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param captionId caption id for dialog. Can't be null or empty. Id must contain in the localizer passed
+	 * @param inner content of dialog. Can't be null
+	 * @param modal modality of the dialog. Can't be null
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 * @since 0.0.5
+	 */
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final boolean modal) throws LocalizationException, NullPointerException, IllegalArgumentException {
 		this(localizer, parent, captionId, inner, modal ? ModalityType.DOCUMENT_MODAL : ModalityType.MODELESS);
 	}
 	
-	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final ModalityType modal) throws LocalizationException {
+	/**
+	 * <p>Create class instance for single modal or modeless dialog form</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param captionId caption id for dialog. Can't be null or empty. Id must contain in the localizer passed
+	 * @param inner content of dialog. Can't be null
+	 * @param modal modality of the dialog. Can't be null
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 * @since 0.0.5
+	 */
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final String captionId, final JComponent inner, final ModalityType modal) throws LocalizationException, NullPointerException, IllegalArgumentException {
 		super(parent,modal);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -155,7 +226,18 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		}
 	}
 	
-	public JDialogContainer(final Localizer localizer, final JFrame parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) throws LocalizationException {
+	/**
+	 * <p>Create class instance for modal wizard</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param instance shared instance for steps. Can't be null
+	 * @param err error processing from wizards. Can't be null. Can use lambdas
+	 * @param steps list of wizard steps. Can't be null or empty
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 */
+	public JDialogContainer(final Localizer localizer, final JFrame parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) throws LocalizationException, NullPointerException, IllegalArgumentException {
 		super(parent,true);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -185,7 +267,18 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		}
 	}
 
-	public JDialogContainer(final Localizer localizer, final JDialog parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) throws LocalizationException {
+	/**
+	 * <p>Create class instance for modal wizard</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param parent owner of the dialog. Can be null
+	 * @param instance shared instance for steps. Can't be null
+	 * @param err error processing from wizards. Can't be null. Can use lambdas
+	 * @param steps list of wizard steps. Can't be null or empty
+	 * @throws LocalizationException on any localization errors
+	 * @throws NullPointerException on any parameters are null
+	 * @throws IllegalArgumentException on invalid arguments
+	 */
+	public JDialogContainer(final Localizer localizer, final JDialog parent, final Common instance, final ErrorProcessing<Common, ErrorType> err, @SuppressWarnings("unchecked") final WizardStep<Common,ErrorType,Content>... steps) throws LocalizationException, NullPointerException, IllegalArgumentException {
 		super(parent,true);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -219,16 +312,32 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
 	}
-	
+
+	/**
+	 * <p>Set options for container. Default implementation is empty</p>
+	 * @param props options to set. Can't be null
+	 * @return self
+	 */
 	public JDialogContainer<Common,ErrorType,Content> setOptions(final SubstitutableProperties props) {
 		return this;
 	}
 
+	/**
+	 * <p>Set options for container. Default implementation is empty</p>
+	 * @param props options to set. Can't be null
+	 * @return self
+	 */
 	public JDialogContainer<Common,ErrorType,Content> setOptions(final Map<String,Object> props) {
 		return this;
 	}
 	
-	public boolean showDialog() throws LocalizationException {
+	/**
+	 * <p>Show modal dialog or wizard and return true on 'OK' and false on 'Cancel'</p>
+	 * @return true on 'OK', false otherwise
+	 * @throws LocalizationException on any localization error
+	 * @throws IllegalStateException when call on modeless dialog
+	 */
+	public boolean showDialog() throws LocalizationException, IllegalStateException {
 		if (isModal == ModalityType.MODELESS) {
 			throw new IllegalStateException("showDialog call is applicable to modal dialog only");
 		}
