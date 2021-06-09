@@ -1375,7 +1375,7 @@ loop:			for (Component comp : children(node)) {
 				throw new IllegalArgumentException("Image size is too long");
 			}
 			else {
-				final int			transparent = transparentColor.getRGB(), maxDim = Math.max(w, h);
+				final int			transparent = transparentColor.getRGB() & 0xFFFFFF, maxDim = Math.max(w, h);
 				final Set<Point>	points = new HashSet<>();
 				final int[]			line = new int[maxDim];
 				boolean[]			prevLine = new boolean[maxDim], currentLine = prevLine.clone(), temp;
@@ -1383,7 +1383,7 @@ loop:			for (Component comp : children(node)) {
 				for (int y = 0; y < h; y++) {	// Collect bounds by Y axis
 					image.getRGB(0, y, w, 1, line, 0, 1);
 					for (int x = 0; x < w; x++) {
-						currentLine[x] = line[x] != transparent;
+						currentLine[x] = (line[x] & 0xFFFFFF) != transparent;
 					}
 					for (int x = 0; x < w; x++) {
 						if (currentLine[x] != prevLine[x]) {
