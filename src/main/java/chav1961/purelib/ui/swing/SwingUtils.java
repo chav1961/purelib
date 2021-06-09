@@ -46,6 +46,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -100,6 +101,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableLongArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.CompilerUtils;
@@ -159,7 +161,6 @@ public abstract class SwingUtils {
 	private static final String				UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
 	private static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
-	private static final int[] 				CONTOUR_NEIGBOUR_X = {-1, 0, 1, 0, 1, 0, -1, 0}, CONTOUR_NEIGBOUR_Y = {-1, -1, -1, 0, 1, 1, 1, 0};
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -1374,20 +1375,100 @@ loop:			for (Component comp : children(node)) {
 				throw new IllegalArgumentException("Image size is too long");
 			}
 			else {
-				final int			maxK = CONTOUR_NEIGBOUR_X.length, transparent = transparentColor.getRGB();
+				final int			transparent = transparentColor.getRGB(), maxDim = Math.max(w, h);
 				final Set<Point>	points = new HashSet<>();
-				final Set<Point>	processed = new HashSet<>();
-				short[] 			grid = new short[w*h];
-				short				d = 0, nextD = (short)(d + 1);
-				boolean 			stop;
+				final int[]			line = new int[maxDim];
+				boolean[]			prevLine = new boolean[maxDim], currentLine = prevLine.clone(), temp;
 				
-				grid[0] = Short.MAX_VALUE;
+				for (int y = 0; y < h; y++) {	// Collect bounds by Y axis
+					image.getRGB(0, y, w, 1, line, 0, 1);
+					for (int x = 0; x < w; x++) {
+						currentLine[x] = line[x] != transparent;
+					}
+					for (int x = 0; x < w; x++) {
+						if (currentLine[x] != prevLine[x]) {
+							points.add(new Point(x,currentLine[x] ? y : y - 1));
+						}
+					}
+					temp = prevLine;
+					prevLine = currentLine;
+					currentLine = temp;
+				}
+				for (int x = 0; x < w; x++) {
+					if (prevLine[x]) {
+						points.add(new Point(x,h-1));
+					}
+				}
 
-				gp.moveTo(0, 0);
-				gp.lineTo(w, 0);
-				gp.lineTo(w, h);
-				gp.lineTo(0, h);
-				gp.closePath();
+				Arrays.fill(prevLine, false);
+				for (int x = 0; x < w; x++) {	// Collect bounds by X axis
+					image.getRGB(x, 0, 1, h, line, 0, 1);
+					for (int y = 0; y < h; y++) {
+						currentLine[y] = line[y] != transparent;
+					}
+					for (int y = 0; y < h; y++) {
+						if (currentLine[y] != prevLine[y]) {
+							points.add(new Point(currentLine[y] ? x : x - 1,y));
+						}
+					}
+					temp = prevLine;
+					prevLine = currentLine;
+					currentLine = temp;
+				}
+				for (int y = 0; y < h; y++) {
+					if (prevLine[y]) {
+						points.add(new Point(w-1,y));
+					}
+				}
+				
+				final Point[]		p = points.toArray(new Point[points.size()]);
+				final boolean[]		used = new boolean[p.length];
+				Point				last, preLast, candidate;
+				double				dist, newDist;
+				int					candidateIndex;
+				boolean				found;
+
+				for (int index = 0, maxIndex = p.length; index < maxIndex; index++) {	// Search point pairs with nearest distance between 
+					if (!used[index]) {
+						last = p[index];
+						preLast = null;
+						
+						used[index] = true;
+						gp.moveTo(last.getX(), last.getY());
+						
+						do {found = false;
+							dist = Double.MAX_VALUE;
+							candidateIndex = -1;
+							
+							for (int next = 0; next < maxIndex; next++) {
+								if (!used[next]) {
+									newDist = last.distanceSq(p[next]);
+									if (newDist < dist) {
+										dist = newDist;
+										candidateIndex = next;
+										found = true;
+									}
+								}
+							}
+							if (dist > 2.5) {
+								gp.lineTo(last.getX(), last.getY());
+								break;
+							}
+							else if (found) {
+								candidate = p[candidateIndex]; 
+								used[candidateIndex] = true;
+								
+								// Reduce number of points - if new point "continues" direction of previous two, it will not be included in the path
+								if (preLast != null && !(last.x - preLast.x == candidate.x - last.x && last.y - preLast.y == candidate.y - last.y)) {	// line is not continued...
+									gp.lineTo(last.getX(), last.getY());
+								}
+								preLast = last;
+								last = candidate;
+							}
+						} while (found);
+						gp.closePath();
+					}
+				}
 				
 				return gp;
 			}
