@@ -323,6 +323,10 @@ public class GrowableShortArray {
 		return true;
 	}
 
+	boolean isSliced() {
+		return !usePlain;
+	}
+	
 	private class PlainManager extends AbstractPlainContentManager<short[]> {
 		PlainManager(final int initialPow) {
 			super(initialPow);

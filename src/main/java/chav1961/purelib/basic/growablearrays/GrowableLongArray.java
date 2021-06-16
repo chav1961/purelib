@@ -3,6 +3,7 @@ package chav1961.purelib.basic.growablearrays;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.Spliterator.OfLong;
 
 /**
  * <p>This class implements functionality for the growable long arrays.</p>
@@ -323,6 +324,11 @@ public class GrowableLongArray {
 		return true;
 	}
 
+	OfLong getSpliterator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	private class PlainManager extends AbstractPlainContentManager<long[]> {
 		PlainManager(final int initialPow) {
 			super(initialPow);
@@ -389,4 +395,5 @@ public class GrowableLongArray {
 //			}
 //		}
 	}
+
 }

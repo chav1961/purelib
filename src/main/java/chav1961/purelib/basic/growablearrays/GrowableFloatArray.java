@@ -323,6 +323,10 @@ public class GrowableFloatArray {
 		return true;
 	}
 
+	boolean isSliced() {
+		return !usePlain;
+	}
+	
 	private class PlainManager extends AbstractPlainContentManager<float[]> {
 		PlainManager(final int initialPow) {
 			super(initialPow);

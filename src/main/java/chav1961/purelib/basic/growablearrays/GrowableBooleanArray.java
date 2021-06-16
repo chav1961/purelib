@@ -323,6 +323,10 @@ public class GrowableBooleanArray {
 		return true;
 	}
 
+	boolean isSliced() {
+		return !usePlain;
+	}
+	
 	private class PlainManager extends AbstractPlainContentManager<boolean[]> {
 		PlainManager(final int initialPow) {
 			super(initialPow);

@@ -1,8 +1,12 @@
 package chav1961.purelib.basic.growablearrays;
 
 
+
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.Spliterator;
+import java.util.function.IntConsumer;
+import java.util.PrimitiveIterator.OfInt;
 
 /**
  * <p>This class implements functionality for the growable int arrays.</p>
@@ -323,6 +327,119 @@ public class GrowableIntArray {
 		return true;
 	}
 
+	Spliterator.OfInt getSpliterator() {
+		if (usePlain || sliced.length == 1) {
+			return new PlainSpliterator(0, length()); 
+		}
+		else {
+			return new SlicedSpliterator(0, length()); 
+		}
+	}
+
+	OfInt getIterator() {
+		return new OfInt() {
+			int	index = 0;
+			
+			@Override
+			public boolean hasNext() {
+				return index < length();
+			}
+
+			@Override
+			public int nextInt() {
+				if (usePlain) {
+					return plain[index++];
+				}
+				else {
+					final int	result = sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)];
+					
+					index++;
+					return result;
+				}
+			}
+		};
+	}
+	
+	private class PlainSpliterator implements Spliterator.OfInt {
+		private int	from, to;
+		private int	index;
+		
+		PlainSpliterator(final int from, final int to) {
+			this.from = from;
+			this.to = to;
+			this.index = from;
+		}
+
+		@Override
+		public long estimateSize() {
+			return to - from;
+		}
+
+		@Override
+		public int characteristics() {
+			return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED;
+		}
+
+		@Override
+		public OfInt trySplit() {
+			return null;
+		}
+
+		@Override
+		public boolean tryAdvance(IntConsumer action) {
+			if (index < length()) {
+				action.accept(plain !=  null ? plain[index++] : sliced[0][index++]);
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		
+	}
+	
+	private class SlicedSpliterator implements Spliterator.OfInt {
+		private int	from, to;
+		private int	index;
+		
+		SlicedSpliterator(final int from, final int to) {
+			this.from = from;
+			this.to = to;
+			this.index = from;
+		}
+
+		@Override
+		public long estimateSize() {
+			return to - from;
+		}
+
+		@Override
+		public int characteristics() {
+			return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED | Spliterator.SUBSIZED;
+		}
+
+		@Override
+		public OfInt trySplit() {
+			final int	delta = to - index, halfDelta = delta / 2;
+			
+			to = halfDelta - 1;
+			return new SlicedSpliterator(index + halfDelta, to);
+		}
+
+		@Override
+		public boolean tryAdvance(IntConsumer action) {
+			if (index < to) {
+				action.accept(sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)]);
+				index++;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		
+	}
+	
 	private class PlainManager extends AbstractPlainContentManager<int[]> {
 		PlainManager(final int initialPow) {
 			super(initialPow);
@@ -342,11 +459,6 @@ public class GrowableIntArray {
 			}
 			return newSize;
 		}
-
-//		@Override
-//		void walk(Walker<int[]> walker) {
-//			walker.process(plain,0,currentSize);
-//		}
 	}
 
 	private class SlicedManager extends AbstractSlicedContentManager<int[]> {
@@ -372,21 +484,5 @@ public class GrowableIntArray {
 			}
 			return newSize;
 		}
-
-//		@Override
-//		void walk(chav1961.purelib.basic.growablearrays.AbstractArrayContentManager.Walker<int[]> walker) {
-//			int	size = currentSize;
-//			
-//			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
-//				if (sliced[index] != null) {
-//					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
-//						return;
-//					}
-//					else {
-//						size -= sliced[index].length; 
-//					}
-//				}
-//			}
-//		}
 	}
 }

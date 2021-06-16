@@ -451,7 +451,9 @@ public class GrowableByteArray {
 		return len;
 	}	
 	
-
+	boolean isSliced() {
+		return !usePlain;
+	}
 	
 	private class PlainManager extends AbstractPlainContentManager<byte[]> {
 		PlainManager(final int initialPow) {

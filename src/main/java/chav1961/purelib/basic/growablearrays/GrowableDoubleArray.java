@@ -3,6 +3,7 @@ package chav1961.purelib.basic.growablearrays;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.Spliterator.OfDouble;
 
 /**
  * <p>This class implements functionality for the growable double arrays.</p>
@@ -323,6 +324,11 @@ public class GrowableDoubleArray {
 		return true;
 	}
 
+	OfDouble getSpliterator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	private class PlainManager extends AbstractPlainContentManager<double[]> {
 		PlainManager(final int initialPow) {
 			super(initialPow);
@@ -389,4 +395,5 @@ public class GrowableDoubleArray {
 //			}
 //		}
 	}
+
 }

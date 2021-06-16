@@ -574,6 +574,10 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 		return true;
 	}
 
+	boolean isSliced() {
+		return !usePlain;
+	}
+	
 	private class PlainManager extends AbstractPlainContentManager<char[]> {
 		PlainManager(final int initialPow) {
 			super(initialPow);
