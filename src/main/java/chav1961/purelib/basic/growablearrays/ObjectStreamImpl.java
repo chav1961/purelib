@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Spliterator;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -177,15 +178,35 @@ class ObjectStreamImpl<T> implements Stream<T> {
 	}
 
 	@Override
-	public void forEach(Consumer<? super T> action) {
-		// TODO Auto-generated method stub
-		
+	public void forEach(final Consumer<? super T> action) {
+		if (action == null) {
+			throw new NullPointerException("Action can't be null");
+		}
+		else if (spliterator != null) {
+			collect(()->null, (acc, val) ->action.accept(val), null);
+		}
+		else {
+			while (iterator.hasNext()) {
+				action.accept(iterator.next());
+			}
+		}
 	}
 
 	@Override
 	public void forEachOrdered(Consumer<? super T> action) {
-		// TODO Auto-generated method stub
-		
+		if (action == null) {
+			throw new NullPointerException("Action can't be null");
+		}
+		else if (spliterator != null) {
+			while (spliterator.tryAdvance((value) -> action.accept(value))) {
+				// Empty body...
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				action.accept(iterator.next());
+			}
+		}
 	}
 
 	@Override
@@ -220,8 +241,36 @@ class ObjectStreamImpl<T> implements Stream<T> {
 
 	@Override
 	public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-		// TODO Auto-generated method stub
-		return null;
+		if (supplier == null) {
+			throw new NullPointerException("Supplier can't be null"); 
+		}
+		else if (accumulator == null) {
+			throw new NullPointerException("Accumulator can't be null"); 
+		}
+		else if (spliterator != null) {
+			try{if (combiner == null) {
+					final BiConsumer<R, R>	simpleCombiner = new BiConsumer<R, R>(){
+												@Override public void accept(R t, R u) {}
+											};
+											
+					return ArrayUtils.forkJoinPool.submit(new ArrayUtils.Executes<R,T>(spliterator, supplier, accumulator, simpleCombiner)).get();
+				}
+				else {
+					return ArrayUtils.forkJoinPool.submit(new ArrayUtils.Executes<R,T>(spliterator, supplier, accumulator, combiner)).get();
+				}
+				
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e.getLocalizedMessage(),e);
+			}
+		}
+		else {
+			final R	result = supplier.get();
+			
+			while (iterator.hasNext()) {
+				accumulator.accept(result, iterator.next());
+			}
+			return result;
+		}
 	}
 
 	@Override
@@ -244,8 +293,27 @@ class ObjectStreamImpl<T> implements Stream<T> {
 
 	@Override
 	public long count() {
-		// TODO Auto-generated method stub
-		return 0;
+		long	result = 0;
+		
+		if (spliterator != null) {
+			if (spliterator.hasCharacteristics(Spliterator.SIZED)) {
+				return spliterator.estimateSize();
+			}
+			else {
+				while (spliterator.tryAdvance((val)->{})) {
+					// Empty body;
+					result++;
+				}
+				return result;
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				iterator.next();
+				result++;
+			}
+			return result;
+		}
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Spliterator;
 import java.util.function.IntConsumer;
+import java.util.stream.IntStream;
 import java.util.PrimitiveIterator.OfInt;
 
 /**
@@ -15,10 +16,11 @@ import java.util.PrimitiveIterator.OfInt;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public class GrowableIntArray {
+	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final int[]	NULL_INT = new int[0];
 	
 	private final boolean		usePlain;
@@ -299,6 +301,14 @@ public class GrowableIntArray {
 	public void clear() {
 		length(0);
 	}
+
+	/**
+	 * <p>Convert array content to stream</p> 
+	 * @return immutable stream converted. Can't be null
+	 */
+	public IntStream toStream() {
+		return new IntStreamImpl(this);
+	}
 	
 	@Override
 	public String toString() {
@@ -328,11 +338,11 @@ public class GrowableIntArray {
 	}
 
 	Spliterator.OfInt getSpliterator() {
-		if (usePlain || sliced.length == 1) {
+		if (usePlain) {
 			return new PlainSpliterator(0, length()); 
 		}
 		else {
-			return new SlicedSpliterator(0, length()); 
+			return new SlicedSpliterator(0, length(), MINIMUM_SPLIT_SIZE); 
 		}
 	}
 
@@ -395,17 +405,23 @@ public class GrowableIntArray {
 				return false;
 			}
 		}
-		
+
+		@Override
+		public String toString() {
+			return "PlainSpliterator [from=" + from + ", to=" + to + ", index=" + index + "]";
+		}
 	}
 	
 	private class SlicedSpliterator implements Spliterator.OfInt {
-		private int	from, to;
-		private int	index;
+		private final int	minimumSplitSize;
+		private int			from, to;
+		private int			index;
 		
-		SlicedSpliterator(final int from, final int to) {
+		SlicedSpliterator(final int from, final int to, final int minimumSplitSize) {
 			this.from = from;
 			this.to = to;
 			this.index = from;
+			this.minimumSplitSize = minimumSplitSize;
 		}
 
 		@Override
@@ -420,10 +436,17 @@ public class GrowableIntArray {
 
 		@Override
 		public OfInt trySplit() {
-			final int	delta = to - index, halfDelta = delta / 2;
+ 			final int	delta = to - index, halfDelta = delta / 2;
 			
-			to = halfDelta - 1;
-			return new SlicedSpliterator(index + halfDelta, to);
+			if (halfDelta >= minimumSplitSize) {
+				final int	splittedTo = to;
+				
+				to = halfDelta;
+				return new SlicedSpliterator(index + halfDelta, splittedTo, minimumSplitSize);
+			}
+			else {
+				return null;
+			}
 		}
 
 		@Override
@@ -435,9 +458,13 @@ public class GrowableIntArray {
 			}
 			else {
 				return false;
-			}
+			} 
 		}
-		
+
+		@Override
+		public String toString() {
+			return "SlicedSpliterator [minimumSplitSize=" + minimumSplitSize + ", from=" + from + ", to=" + to + ", index=" + index + "]";
+		}
 	}
 	
 	private class PlainManager extends AbstractPlainContentManager<int[]> {
