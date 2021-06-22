@@ -1,19 +1,19 @@
 package chav1961.purelib.basic.growablearrays;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+
 import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.PrimitiveIterator.OfInt;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -21,6 +21,7 @@ import java.util.function.IntPredicate;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.IntToLongFunction;
 import java.util.function.IntUnaryOperator;
+import java.util.function.LongConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
@@ -28,8 +29,13 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfDouble;
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfLong;
+import chav1961.purelib.basic.growablearrays.GrowableIntArray.SlicedSpliterator;
+
 class IntStreamImpl implements IntStream {
-	private final Spliterator.OfInt	spliterator;
+	private final SpliteratorOfInt	spliterator;
 	private final OfInt				iterator;
 	private final AutoCloseable		close;
 	private List<Runnable>			handlers = null;
@@ -46,7 +52,7 @@ class IntStreamImpl implements IntStream {
 		this.close = close; 
 	}
 
-	IntStreamImpl(final Spliterator.OfInt spliterator, final AutoCloseable close) {
+	IntStreamImpl(final SpliteratorOfInt spliterator, final AutoCloseable close) {
 		this.spliterator = spliterator;
 		this.iterator = null;
 		this.close = close; 
@@ -91,8 +97,16 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public IntStream filter(final IntPredicate predicate) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO:
+		if (predicate == null) {
+			throw new NullPointerException("Predicate can't be null");
+		}
+		else if (spliterator != null) {
+			return new IntStreamImpl(spliterator,this::close);
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -125,7 +139,7 @@ class IntStreamImpl implements IntStream {
 	public LongStream mapToLong(final IntToLongFunction mapper) {
 		// TODO Auto-generated method stub
 		if (spliterator != null) {
-			return new LongStreamImpl((Spliterator.OfLong)null, this::close);
+			return new LongStreamImpl(new SpliteratorWrapperLong(spliterator,mapper), this::close);
 		}
 		else {
 			return null;
@@ -133,9 +147,14 @@ class IntStreamImpl implements IntStream {
 	}
 
 	@Override
-	public DoubleStream mapToDouble(IntToDoubleFunction mapper) {
+	public DoubleStream mapToDouble(final IntToDoubleFunction mapper) {
 		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			return new DoubleStreamImpl(new SpliteratorWrapperDouble(spliterator,mapper), this::close);
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -400,14 +419,14 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public long count() {
-		return (int)summaryStatistics().getCount();
+		return summaryStatistics().getCount();
 	}
 
 	@Override
 	public OptionalDouble average() {
 		final IntSummaryStatistics	iss = summaryStatistics();
 		
-		return iss.getCount() == 0 ? OptionalDouble.empty() : OptionalDouble.of(1.0 * iss.getSum() / iss.getCount());
+		return iss.getCount() == 0 ? OptionalDouble.empty() : OptionalDouble.of(iss.getAverage());
 	}
 
 	@Override
@@ -581,17 +600,22 @@ class IntStreamImpl implements IntStream {
 	}
 
 	@Override
-	public Spliterator.OfInt spliterator() {
+	public SpliteratorOfInt spliterator() {
 		return spliterator;
 	}
 	
-	private static class SpliteratorWrapperInt implements Spliterator.OfInt {
-		private final Spliterator.OfInt	nested;
+	private static class SpliteratorWrapperInt implements SpliteratorOfInt {
+		private final SpliteratorOfInt	nested;
 		private final IntUnaryOperator	op;
 		
-		private SpliteratorWrapperInt(final Spliterator.OfInt nested, final IntUnaryOperator op) {
+		private SpliteratorWrapperInt(final SpliteratorOfInt nested, final IntUnaryOperator op) {
 			this.nested = nested;
 			this.op = op;
+		}
+		
+		@Override
+		public boolean mustBeProcessed(final long sequential, final int value) {
+			return nested.mustBeProcessed(sequential, value);
 		}
 		
 		@Override
@@ -605,8 +629,8 @@ class IntStreamImpl implements IntStream {
 		}
 
 		@Override
-		public OfInt trySplit() {
-			final OfInt	result = nested.trySplit();
+		public SpliteratorOfInt trySplit() {
+			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
 			
 			if (result != null) {
 				return new SpliteratorWrapperInt(result, op);
@@ -627,6 +651,100 @@ class IntStreamImpl implements IntStream {
 		}
 	}
 
+	private static class SpliteratorWrapperLong implements SpliteratorOfLong {
+		private final SpliteratorOfInt	nested;
+		private final IntToLongFunction	op;
+		
+		private SpliteratorWrapperLong(final SpliteratorOfInt nested, final IntToLongFunction op) {
+			this.nested = nested;
+			this.op = op;
+		}
+		
+		@Override
+		public boolean mustBeProcessed(final long sequential, final long value) {
+			return true;
+		}
+		
+		@Override
+		public long estimateSize() {
+			return nested.estimateSize();
+		}
+
+		@Override
+		public int characteristics() {
+			return nested.characteristics();
+		}
+
+		@Override
+		public OfLong trySplit() {
+			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
+			
+			if (result != null) {
+				return new SpliteratorWrapperLong(result, op);
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		public boolean tryAdvance(final LongConsumer action) {
+			return nested.tryAdvance((int e)->action.accept(op.applyAsLong(e))); 
+		}
+
+		@Override
+		public String toString() {
+			return "SpliteratorWrapperLong [nested=" + nested + ", op=" + op + "]";
+		}
+	}
+
+	private static class SpliteratorWrapperDouble implements SpliteratorOfDouble {
+		private final SpliteratorOfInt		nested;
+		private final IntToDoubleFunction	op;
+		
+		private SpliteratorWrapperDouble(final SpliteratorOfInt nested, final IntToDoubleFunction op) {
+			this.nested = nested;
+			this.op = op;
+		}
+		
+		@Override
+		public boolean mustBeProcessed(final long sequential, final double value) {
+			return true;
+		}
+		
+		@Override
+		public long estimateSize() {
+			return nested.estimateSize();
+		}
+
+		@Override
+		public int characteristics() {
+			return nested.characteristics();
+		}
+
+		@Override
+		public OfDouble trySplit() {
+			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
+			
+			if (result != null) {
+				return new SpliteratorWrapperDouble(result, op);
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		public boolean tryAdvance(final DoubleConsumer action) {
+			return nested.tryAdvance((int e)->action.accept(op.applyAsDouble(e))); 
+		}
+
+		@Override
+		public String toString() {
+			return "SpliteratorWrapperLong [nested=" + nested + ", op=" + op + "]";
+		}
+	}
+	
 	private static class IteratorWrapperInt implements OfInt {
 		private final OfInt				nested;
 		private final IntPredicate		test;
@@ -657,10 +775,10 @@ class IntStreamImpl implements IntStream {
 	}
 	
 	private static class SpliteratorWrapperObj<R> implements Spliterator<R> {
-		private final Spliterator.OfInt	nested;
+		private final SpliteratorOfInt	nested;
 		private final IntFunction<R>	op;
 		
-		private SpliteratorWrapperObj(final Spliterator.OfInt nested, final IntFunction<R> op) {
+		private SpliteratorWrapperObj(final SpliteratorOfInt nested, final IntFunction<R> op) {
 			this.nested = nested;
 			this.op = op;
 		}
@@ -677,7 +795,7 @@ class IntStreamImpl implements IntStream {
 
 		@Override
 		public Spliterator<R> trySplit() {
-			final OfInt	result = nested.trySplit();
+			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
 			
 			if (result != null) {
 				return new SpliteratorWrapperObj<R>(result, op);
@@ -721,17 +839,17 @@ class IntStreamImpl implements IntStream {
 	private static class Reduces extends RecursiveTask<int[]> {
 		private static final long 		serialVersionUID = 1L;
 		
-		private final Spliterator.OfInt	spliterator;
+		private final SpliteratorOfInt	spliterator;
 		private final IntBinaryOperator	op;
 
-        public Reduces(final Spliterator.OfInt spliterator, final IntBinaryOperator op) {
+        public Reduces(final SpliteratorOfInt spliterator, final IntBinaryOperator op) {
             this.spliterator = spliterator;
             this.op = op;
         }
 
         @Override
         protected int[] compute() {
-        	final Spliterator.OfInt		leftSplit = spliterator.trySplit();
+        	final SpliteratorOfInt		leftSplit = (SpliteratorOfInt)spliterator.trySplit();
 
            	if (leftSplit == null) {
            		final int[]	result = new int[1];
@@ -756,23 +874,22 @@ class IntStreamImpl implements IntStream {
 
 		@Override
 		public String toString() {
-			return "Statistics [spliterator=" + spliterator + "]";
+			return "Reduces [spliterator=" + spliterator + "]";
 		}
     }
-	
 	
 	private static class Statistics extends RecursiveTask<IntSummaryStatistics> {
 		private static final long 		serialVersionUID = 1L;
 		
-		private final Spliterator.OfInt	spliterator;
+		private final SpliteratorOfInt	spliterator;
 
-        public Statistics(final Spliterator.OfInt spliterator) {
+        public Statistics(final SpliteratorOfInt spliterator) {
             this.spliterator = spliterator;
         }
 
         @Override
         protected IntSummaryStatistics compute() {
-        	final Spliterator.OfInt		leftSplit = spliterator.trySplit();
+        	final SpliteratorOfInt		leftSplit = (SpliteratorOfInt)spliterator.trySplit();
 
            	if (leftSplit == null) {
            		final long[]	result = new long[] {0, Long.MAX_VALUE, Long.MIN_VALUE, 0};
@@ -811,18 +928,18 @@ class IntStreamImpl implements IntStream {
 			boolean test(final int value);
 		}
 		
-		private final Spliterator.OfInt	spliterator;
+		private final SpliteratorOfInt	spliterator;
 		private final MatchesTest		test;
 
 		
-        public Matches(final Spliterator.OfInt spliterator, final MatchesTest test) {
+        public Matches(final SpliteratorOfInt spliterator, final MatchesTest test) {
             this.spliterator = spliterator;
             this.test = test;
         }
 
         @Override
         protected Boolean compute() {
-        	final Spliterator.OfInt		leftSplit = spliterator.trySplit();
+        	final SpliteratorOfInt		leftSplit = (SpliteratorOfInt)spliterator.trySplit();
 
            	if (leftSplit == null) {
            		final boolean[]	result = new boolean[] {false};

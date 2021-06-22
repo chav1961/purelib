@@ -122,7 +122,7 @@ public class StreamsTest {
 			giaFull.append(2*index).append(2*index+1);
 		}
 		
-		// To int
+		// To int. Must have terminal function call!
 		Assert.assertEquals(0, giaEmpty.toStream().map((int val)->2 * val).sum());
 		Assert.assertEquals(261632, giaFull.toStream().map((int val)->2 * val).sum());
 		
@@ -133,6 +133,42 @@ public class StreamsTest {
 		ai.set(0);
 		Assert.assertEquals(512, giaFull.toStream().peek((e)->ai.addAndGet(e)).count());
 		Assert.assertEquals(130816, ai.intValue());
+
+		// To long.
+		Assert.assertEquals(0, giaEmpty.toStream().mapToLong((int val)->2 * val).sum());
+		Assert.assertEquals(261632, giaFull.toStream().mapToLong((int val)->2 * val).sum());
+		
+		Assert.assertEquals(0, giaEmpty.toStream().asLongStream().sum());
+		Assert.assertEquals(130816, giaFull.toStream().asLongStream().sum());
+
+		ai.set(0);
+		Assert.assertEquals(0, giaEmpty.toStream().asLongStream().peek((e)->ai.addAndGet((int)e)).count());
+		Assert.assertEquals(0, ai.intValue());
+
+		ai.set(0);
+		Assert.assertEquals(512, giaFull.toStream().asLongStream().peek((e)->ai.addAndGet((int)e)).count());
+		Assert.assertEquals(130816, ai.intValue());
+
+		Assert.assertEquals(0, giaEmpty.toStream().asLongStream().collect(()->new long[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0]);
+		Assert.assertEquals(130816, giaFull.toStream().asLongStream().collect(()->new long[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0]);
+		
+		// To double.
+		Assert.assertEquals(0, giaEmpty.toStream().mapToDouble((int val)->2 * val).sum(), 0.001);
+		Assert.assertEquals(261632, giaFull.toStream().mapToDouble((int val)->2 * val).sum(), 0.001);
+		
+		Assert.assertEquals(0, giaEmpty.toStream().asDoubleStream().sum(), 0.001);
+		Assert.assertEquals(130816, giaFull.toStream().asDoubleStream().sum(), 0.001);
+
+		ai.set(0);
+		Assert.assertEquals(0, giaEmpty.toStream().asDoubleStream().peek((e)->ai.addAndGet((int)e)).count());
+		Assert.assertEquals(0, ai.intValue());
+
+		ai.set(0);
+		Assert.assertEquals(512, giaFull.toStream().asDoubleStream().peek((e)->ai.addAndGet((int)e)).count());
+		Assert.assertEquals(130816, ai.intValue());
+		
+		Assert.assertEquals(0, giaEmpty.toStream().asDoubleStream().collect(()->new double[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0], 0.001);
+		Assert.assertEquals(130816, giaFull.toStream().asDoubleStream().collect(()->new double[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0], 0.001);
 		
 		// To object
 		Assert.assertEquals(0, giaEmpty.toStream().boxed().count());
@@ -145,4 +181,17 @@ public class StreamsTest {
 		Assert.assertEquals(0, giaEmpty.toStream().boxed().collect(()->new int[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0]);
 		Assert.assertEquals(130816, giaFull.toStream().boxed().collect(()->new int[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0]);
 	} 
+
+	@Test
+	public void integerResizableTest() {
+		final GrowableIntArray	giaEmpty = new GrowableIntArray(false);
+		final GrowableIntArray	giaFull = new GrowableIntArray(false);
+		final AtomicInteger		ai = new AtomicInteger();
+		
+		for (int index = 0; index < GrowableIntArray.MINIMUM_SPLIT_SIZE; index++) {
+			giaFull.append(2*index).append(2*index+1);
+		}
+		
+		
+	}
 }

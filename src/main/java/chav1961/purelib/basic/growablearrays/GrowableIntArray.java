@@ -7,6 +7,9 @@ import java.util.Arrays;
 import java.util.Spliterator;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
+
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
+
 import java.util.PrimitiveIterator.OfInt;
 
 /**
@@ -337,7 +340,7 @@ public class GrowableIntArray {
 		return true;
 	}
 
-	Spliterator.OfInt getSpliterator() {
+	SpliteratorOfInt getSpliterator() {
 		if (usePlain) {
 			return new PlainSpliterator(0, length()); 
 		}
@@ -369,20 +372,48 @@ public class GrowableIntArray {
 			}
 		};
 	}
-	
-	private class PlainSpliterator implements Spliterator.OfInt {
-		private int	from, to;
-		private int	index;
+
+	abstract class AbstractSpliterator implements SpliteratorOfInt {
+		protected int	from, to;
+		protected int	index;
 		
-		PlainSpliterator(final int from, final int to) {
+		AbstractSpliterator(final int from, final int to) {
 			this.from = from;
 			this.to = to;
 			this.index = from;
 		}
 
+		@Override public abstract SpliteratorOfInt trySplit();
+		@Override public abstract int characteristics();
+		protected abstract int getValue(final int index);
+
 		@Override
+		public boolean tryAdvance(IntConsumer action) {
+			while (index < to) {
+				final int	value = getValue(index);
+				
+				if (mustBeProcessed(index++, value)) {
+					action.accept(value);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		@Override 
 		public long estimateSize() {
 			return to - from;
+		}
+
+		@Override
+		public boolean mustBeProcessed(final long sequential, final int value) {
+			return true;
+		}
+	}
+	
+	protected class PlainSpliterator extends AbstractSpliterator {
+		PlainSpliterator(final int from, final int to) {
+			super(from,to);
 		}
 
 		@Override
@@ -390,59 +421,59 @@ public class GrowableIntArray {
 			return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED;
 		}
 
-		@Override
-		public OfInt trySplit() {
+		@Override 
+		public SpliteratorOfInt trySplit() {
 			return null;
 		}
 
 		@Override
-		public boolean tryAdvance(IntConsumer action) {
-			if (index < length()) {
-				action.accept(plain !=  null ? plain[index++] : sliced[0][index++]);
-				return true;
-			}
-			else {
-				return false;
-			}
+		protected int getValue(final int index) {
+			return plain[index];
 		}
-
+		
 		@Override
 		public String toString() {
 			return "PlainSpliterator [from=" + from + ", to=" + to + ", index=" + index + "]";
 		}
 	}
 	
-	private class SlicedSpliterator implements Spliterator.OfInt {
-		private final int	minimumSplitSize;
-		private int			from, to;
-		private int			index;
+	protected class SlicedSpliterator extends AbstractSpliterator {
+		protected final int					minimumSplitSize;
+		protected final SlicedSpliterator	nested; 
 		
 		SlicedSpliterator(final int from, final int to, final int minimumSplitSize) {
-			this.from = from;
-			this.to = to;
-			this.index = from;
-			this.minimumSplitSize = minimumSplitSize;
+			this(null, from, to, minimumSplitSize);
 		}
 
-		@Override
-		public long estimateSize() {
-			return to - from;
+		SlicedSpliterator(final SlicedSpliterator nested) {
+			this(nested, nested.from, nested.to, nested.minimumSplitSize);
 		}
 
+		SlicedSpliterator(final SlicedSpliterator nested, final int from, final int to, final int minimumSplitSize) {
+			super(from, to);
+			this.minimumSplitSize = nested != null ? nested.minimumSplitSize : MINIMUM_SPLIT_SIZE;
+			this.nested = nested;
+		}
+		
 		@Override
 		public int characteristics() {
-			return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED | Spliterator.SUBSIZED;
+			if (nested != null) {
+				return nested.characteristics();
+			}
+			else {
+				return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED | Spliterator.SUBSIZED;
+			}
 		}
 
 		@Override
-		public OfInt trySplit() {
+		public SpliteratorOfInt trySplit() {
  			final int	delta = to - index, halfDelta = delta / 2;
 			
 			if (halfDelta >= minimumSplitSize) {
 				final int	splittedTo = to;
 				
 				to = halfDelta;
-				return new SlicedSpliterator(index + halfDelta, splittedTo, minimumSplitSize);
+				return new SlicedSpliterator(this, index + halfDelta, splittedTo, minimumSplitSize);
 			}
 			else {
 				return null;
@@ -450,17 +481,15 @@ public class GrowableIntArray {
 		}
 
 		@Override
-		public boolean tryAdvance(IntConsumer action) {
-			if (index < to) {
-				action.accept(sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)]);
-				index++;
-				return true;
+		protected int getValue(final int index) {
+			if (nested != null) {
+				return nested.getValue(index);
 			}
 			else {
-				return false;
-			} 
+				return sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)];
+			}
 		}
-
+		
 		@Override
 		public String toString() {
 			return "SlicedSpliterator [minimumSplitSize=" + minimumSplitSize + ", from=" + from + ", to=" + to + ", index=" + index + "]";

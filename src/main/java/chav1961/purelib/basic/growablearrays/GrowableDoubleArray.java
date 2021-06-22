@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Spliterator.OfDouble;
 
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfDouble;
+
 /**
  * <p>This class implements functionality for the growable double arrays.</p>
  * <p>This class is not thread-safe.</p>
@@ -324,7 +326,7 @@ public class GrowableDoubleArray {
 		return true;
 	}
 
-	OfDouble getSpliterator() {
+	SpliteratorOfDouble getSpliterator() {
 		// TODO Auto-generated method stub
 		return null;
 	}

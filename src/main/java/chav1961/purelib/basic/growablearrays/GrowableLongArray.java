@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Spliterator.OfLong;
 
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfLong;
+
 /**
  * <p>This class implements functionality for the growable long arrays.</p>
  * <p>This class is not thread-safe.</p>
@@ -324,7 +326,7 @@ public class GrowableLongArray {
 		return true;
 	}
 
-	OfLong getSpliterator() {
+	SpliteratorOfLong getSpliterator() {
 		// TODO Auto-generated method stub
 		return null;
 	}
