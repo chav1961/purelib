@@ -34,7 +34,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  * @lastUpdate 0.0.5
- */
+ */ 
 
 public abstract class AbstractLoggerFacade implements LoggerFacade {
 	private static volatile Severity		globalSuppress = Severity.tooltip;
