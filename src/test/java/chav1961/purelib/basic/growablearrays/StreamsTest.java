@@ -192,6 +192,19 @@ public class StreamsTest {
 			giaFull.append(2*index).append(2*index+1);
 		}
 		
-		
+		Assert.assertEquals(0, giaEmpty.toStream().limit(10).count());
+		Assert.assertEquals(10, giaFull.toStream().limit(10).count());
+
+		Assert.assertEquals(0, giaEmpty.toStream().skip(10).count());
+		Assert.assertEquals(2 * GrowableIntArray.MINIMUM_SPLIT_SIZE - 10, giaFull.toStream().skip(10).count());
+
+		Assert.assertEquals(0, giaEmpty.toStream().filter((v)->v % 2 == 0).count());
+		Assert.assertEquals(GrowableIntArray.MINIMUM_SPLIT_SIZE, giaFull.toStream().filter((v)->v % 2 == 0).count());
+
+		Assert.assertEquals(0, giaEmpty.toStream().distinct().count());
+		Assert.assertEquals(2 * GrowableIntArray.MINIMUM_SPLIT_SIZE, giaFull.toStream().distinct().count());
+
+		Assert.assertEquals(0, giaEmpty.toStream().sorted().count());
+		Assert.assertEquals(2 * GrowableIntArray.MINIMUM_SPLIT_SIZE, giaFull.toStream().sorted().count());
 	}
 }

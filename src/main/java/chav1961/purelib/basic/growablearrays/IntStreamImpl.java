@@ -1,13 +1,15 @@
 package chav1961.purelib.basic.growablearrays;
 
 import java.util.ArrayList;
-
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
@@ -97,15 +99,30 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public IntStream filter(final IntPredicate predicate) {
-		// TODO:
 		if (predicate == null) {
 			throw new NullPointerException("Predicate can't be null");
 		}
 		else if (spliterator != null) {
-			return new IntStreamImpl(spliterator,this::close);
+			return sequential().filter(predicate);
 		}
 		else {
-			return null;
+			final int[]	stored = new int[1];
+			
+			return new IntStreamImpl(new IteratorWrapperInt(iterator, (c)-> {
+				while (iterator.hasNext()) {
+					int value = iterator.nextInt();
+					
+					if (predicate.test(value)) {
+						stored[0] = value;
+						return true;
+					}
+				}
+				return false;
+			}, (e)->e){
+				public int nextInt() {
+					return stored[0];
+				};
+			} , this::close);
 		}
 	}
 
@@ -159,20 +176,64 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public IntStream flatMap(IntFunction<? extends IntStream> mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null");
+		}
+		else if (spliterator != null) {
+			return sequential().flatMap(mapper);
+		}
+		else {
+			return null;// TODO:
+		}
 	}
 
 	@Override
 	public IntStream distinct() {
-		// TODO Auto-generated method stub
-		return null;
+		final Set<Integer>	values = new HashSet<>();
+		
+		return filter((e)->{
+			if (values.contains(e)) {
+				return false;
+			}
+			else {
+				values.add(e);
+				return true;
+			}
+		});
 	}
 
 	@Override
 	public IntStream sorted() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			return sequential().sorted();
+		}
+		else {
+			final IteratorWrapperInt	ivi = new IteratorWrapperInt(iterator, null, (e)->e) {
+											int[]	content;
+											int		index = -1;
+											
+											@Override
+											public boolean hasNext() {
+												if (index < 0) {
+													final GrowableIntArray	gia = new GrowableIntArray(false);
+													
+													while (iterator.hasNext()) {
+														gia.append(iterator.nextInt());
+													}
+													content = gia.extract();
+													Arrays.sort(content);
+													index = 0;
+												}
+												return index < content.length;
+											}
+											
+											@Override
+											public int nextInt() {
+												return content[index++];
+											}
+										};
+			return new IntStreamImpl(new IteratorWrapperInt(ivi, (c)->true, (e)->e), this::close);
+		}
 	}
 
 	@Override
@@ -182,7 +243,6 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public IntStream limit(final long maxSize) {
-		// TODO Auto-generated method stub
 		if (maxSize < 0) {
 			throw new IllegalArgumentException("Max size ["+maxSize+"] can't be negative"); 
 		}
@@ -196,7 +256,6 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public IntStream skip(final long n) {
-		// TODO Auto-generated method stub
 		if (n < 0) {
 			throw new IllegalArgumentException("Number of skips ["+n+"] can't be negative"); 
 		}
