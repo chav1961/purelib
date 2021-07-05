@@ -134,7 +134,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 								}
 							};
 			
-			this.desc = buildPresentation(metadata, components, this, markupDescriptor, instance.getClass());
+			this.desc = buildPresentation(metadata, components, this, markupDescriptor.indexOf('\r') > 0 ? markupDescriptor.replace("\r", "") : markupDescriptor, instance.getClass());
 			this.lastFocused = new JComponent[desc.getPageCount()];
 
 			final Component	toolBar = !actions.isEmpty() ? buildToolbar(actions,this,instance,formMgr) : null;
@@ -274,7 +274,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		Hashtable<String,String[]>	props;
 		String						pageContent;
 		int							width = 0, height = 0;
-		int							start = 0, end, nl;
+		int							start = 0, end, nl, rc;
 
 		if (markupDescriptor.startsWith(">>")) {
 			nl = markupDescriptor.indexOf('\n');

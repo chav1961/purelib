@@ -176,163 +176,151 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 				cursor++;
 			}
 			
-			try{switch (temp[cursor]) {
-					case '{' 	:
-						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited object start in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							if (pseudoStackDepth >= pseudoStack.length-1) {
-								pseudoStack = Arrays.copyOf(pseudoStack,2*pseudoStack.length);
-								awaitedLex = Arrays.copyOf(awaitedLex,2*awaitedLex.length);
-							}
-							awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-							pseudoStackDepth++;
-							pseudoStack[pseudoStackDepth] = '{';
-							awaitedLex[pseudoStackDepth] = NAME_AWAITED;
-							cursor++; 
-							return currentLex = JsonStaxParserLexType.START_OBJECT;
-						}	
-					case '}' 	:
-						if (pseudoStackDepth < 0) {
-							detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator: nesting stack exhausted");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else if (pseudoStack[pseudoStackDepth] != '{') {
-							detected = new SyntaxException(currentRow,currentCol,"Unpaired object terminator. Array terminator awaiting");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							pseudoStackDepth--;
-							cursor++; 
-							return currentLex = JsonStaxParserLexType.END_OBJECT;
-						}
-					case '[' 	: 
-						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited array start in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							if (pseudoStackDepth >= pseudoStack.length-1) {
-								pseudoStack = Arrays.copyOf(pseudoStack,2*pseudoStack.length);
-								awaitedLex = Arrays.copyOf(awaitedLex,2*awaitedLex.length);
-							}
-							awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-							pseudoStackDepth++;
-							pseudoStack[pseudoStackDepth] = '[';
-							awaitedLex[pseudoStackDepth] = VALUE_AWAITED;
-							cursor++; 
-							return currentLex = JsonStaxParserLexType.START_ARRAY;
-						}
-					case ']' 	: 
-						if (pseudoStackDepth < 0) {
-							detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator: nesting stack exhausted");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else if (pseudoStack[pseudoStackDepth] != '[') {
-							detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator. Object terminator awaiting");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							pseudoStackDepth--;
-							cursor++; 
-							return currentLex = JsonStaxParserLexType.END_ARRAY;
-						}
-					case ',' 	:
-						if (awaitedLex[pseudoStackDepth] != LIST_SPLITTER_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited list splitter in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							cursor++; 
-							awaitedLex[pseudoStackDepth] = pseudoStack[pseudoStackDepth] == '{' ? NAME_AWAITED : VALUE_AWAITED;
-							return currentLex = JsonStaxParserLexType.LIST_SPLITTER;
-						}
-					case ':' 	: 
-						if (awaitedLex[pseudoStackDepth] != NAME_SPLITTER_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited name splitter in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							cursor++; 
-							awaitedLex[pseudoStackDepth] = VALUE_AWAITED;
-							return currentLex = JsonStaxParserLexType.NAME_SPLITTER;
-						}
-					case 't' 	:
-						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							if (compare(TRUE_VALUE)) {
-								parsedBoolean = true;
-								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = JsonStaxParserLexType.BOOLEAN_VALUE;
-							}
-							else {
-								detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
+			try{if (cursor >= temp.length) {
+					detected = new SyntaxException(currentRow,currentCol,"End of data in the stream");
+					return currentLex = JsonStaxParserLexType.ERROR;
+				}
+				else {
+					switch (temp[cursor]) {
+						case '{' 	:
+							if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited object start in the stream");
 								return currentLex = JsonStaxParserLexType.ERROR;
 							}
-						}
-					case 'f' 	:
-						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							if (compare(FALSE_VALUE)) {
-								parsedBoolean = false;
-								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = JsonStaxParserLexType.BOOLEAN_VALUE;
-							}
 							else {
-								detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
+								if (pseudoStackDepth >= pseudoStack.length-1) {
+									pseudoStack = Arrays.copyOf(pseudoStack,2*pseudoStack.length);
+									awaitedLex = Arrays.copyOf(awaitedLex,2*awaitedLex.length);
+								}
+								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
+								pseudoStackDepth++;
+								pseudoStack[pseudoStackDepth] = '{';
+								awaitedLex[pseudoStackDepth] = NAME_AWAITED;
+								cursor++; 
+								return currentLex = JsonStaxParserLexType.START_OBJECT;
+							}	
+						case '}' 	:
+							if (pseudoStackDepth < 0) {
+								detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator: nesting stack exhausted");
 								return currentLex = JsonStaxParserLexType.ERROR;
 							}
-						}
-					case 'n'	:
-						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							if (compare(NULL_VALUE)) {
-								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = JsonStaxParserLexType.NULL_VALUE;
-							}
-							else {
-								detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
+							else if (pseudoStack[pseudoStackDepth] != '{') {
+								detected = new SyntaxException(currentRow,currentCol,"Unpaired object terminator. Array terminator awaiting");
 								return currentLex = JsonStaxParserLexType.ERROR;
 							}
-						}
-					case '-' :
-						multiplier = -1;
-					case '+' : 
-						cursor++;
-						if (!skipBlank()) {
-							detected = new SyntaxException(currentRow,currentCol,"Illegal sign in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-						int		from = cursor;
-						
-						do {while (cursor < currentLen && temp[cursor] >= '0' && temp[cursor] <= '9') {
-								cursor++;							
+							else {
+								pseudoStackDepth--;
+								cursor++; 
+								return currentLex = JsonStaxParserLexType.END_OBJECT;
 							}
-							if (cursor < currentLen) {
-								break;
+						case '[' 	: 
+							if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited array start in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
 							}
 							else {
-								sb.setLength(0);
-								sb.append(buffer,from,currentLen-from);
+								if (pseudoStackDepth >= pseudoStack.length-1) {
+									pseudoStack = Arrays.copyOf(pseudoStack,2*pseudoStack.length);
+									awaitedLex = Arrays.copyOf(awaitedLex,2*awaitedLex.length);
+								}
+								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
+								pseudoStackDepth++;
+								pseudoStack[pseudoStackDepth] = '[';
+								awaitedLex[pseudoStackDepth] = VALUE_AWAITED;
+								cursor++; 
+								return currentLex = JsonStaxParserLexType.START_ARRAY;
 							}
-						} while (readBlock());
-						
-						currentLex = JsonStaxParserLexType.INTEGER_VALUE;
-						if (temp[cursor] == '.') {
-							currentLex = JsonStaxParserLexType.REAL_VALUE;
+						case ']' 	: 
+							if (pseudoStackDepth < 0) {
+								detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator: nesting stack exhausted");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+							else if (pseudoStack[pseudoStackDepth] != '[') {
+								detected = new SyntaxException(currentRow,currentCol,"Unpaired array terminator. Object terminator awaiting");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+							else {
+								pseudoStackDepth--;
+								cursor++; 
+								return currentLex = JsonStaxParserLexType.END_ARRAY;
+							}
+						case ',' 	:
+							if (awaitedLex[pseudoStackDepth] != LIST_SPLITTER_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited list splitter in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+							else {
+								cursor++; 
+								awaitedLex[pseudoStackDepth] = pseudoStack[pseudoStackDepth] == '{' ? NAME_AWAITED : VALUE_AWAITED;
+								return currentLex = JsonStaxParserLexType.LIST_SPLITTER;
+							}
+						case ':' 	: 
+							if (awaitedLex[pseudoStackDepth] != NAME_SPLITTER_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited name splitter in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+							else {
+								cursor++; 
+								awaitedLex[pseudoStackDepth] = VALUE_AWAITED;
+								return currentLex = JsonStaxParserLexType.NAME_SPLITTER;
+							}
+						case 't' 	:
+							if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+							else {
+								if (compare(TRUE_VALUE)) {
+									parsedBoolean = true;
+									awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
+									return currentLex = JsonStaxParserLexType.BOOLEAN_VALUE;
+								}
+								else {
+									detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
+									return currentLex = JsonStaxParserLexType.ERROR;
+								}
+							}
+						case 'f' 	:
+							if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+							else {
+								if (compare(FALSE_VALUE)) {
+									parsedBoolean = false;
+									awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
+									return currentLex = JsonStaxParserLexType.BOOLEAN_VALUE;
+								}
+								else {
+									detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
+									return currentLex = JsonStaxParserLexType.ERROR;
+								}
+							}
+						case 'n'	:
+							if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+							else {
+								if (compare(NULL_VALUE)) {
+									awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
+									return currentLex = JsonStaxParserLexType.NULL_VALUE;
+								}
+								else {
+									detected = new SyntaxException(currentRow,currentCol,"Illegal keyword in the stream");
+									return currentLex = JsonStaxParserLexType.ERROR;
+								}
+							}
+						case '-' :
+							multiplier = -1;
+						case '+' : 
 							cursor++;
+							if (!skipBlank()) {
+								detected = new SyntaxException(currentRow,currentCol,"Illegal sign in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
+							}
+						case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
+							int		from = cursor;
 							
 							do {while (cursor < currentLen && temp[cursor] >= '0' && temp[cursor] <= '9') {
 									cursor++;							
@@ -345,126 +333,144 @@ public class JsonStaxParser implements JsonStaxParserInterface {
 									sb.append(buffer,from,currentLen-from);
 								}
 							} while (readBlock());
-						}
-						
-						if (temp[cursor] == 'e' || temp[cursor] == 'E') {
-							currentLex = JsonStaxParserLexType.REAL_VALUE;
-							cursor++;
 							
-							do {while (cursor < currentLen && (temp[cursor] == '+' || temp[cursor] == '-')) {
-									cursor++;							
-								}
-								if (cursor < currentLen) {
-									break;
-								}
-								else {
-									sb.setLength(0);
-									sb.append(buffer,from,currentLen-from);
-								}
-							} while (readBlock());
+							currentLex = JsonStaxParserLexType.INTEGER_VALUE;
+							if (temp[cursor] == '.') {
+								currentLex = JsonStaxParserLexType.REAL_VALUE;
+								cursor++;
+								
+								do {while (cursor < currentLen && temp[cursor] >= '0' && temp[cursor] <= '9') {
+										cursor++;							
+									}
+									if (cursor < currentLen) {
+										break;
+									}
+									else {
+										sb.setLength(0);
+										sb.append(buffer,from,currentLen-from);
+									}
+								} while (readBlock());
+							}
 							
-							do {while (cursor < currentLen && temp[cursor] >= '0' && temp[cursor] <= '9') {
-									cursor++;							
-								}
-								if (cursor < currentLen) {
-									break;
-								}
-								else {
-									sb.setLength(0);
-									sb.append(buffer,from,currentLen-from);
-								}
-							} while (readBlock());
-						}
-						
-						if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
-							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							if (currentLex == JsonStaxParserLexType.INTEGER_VALUE) {
-								if (from < cursor) {
-									cursor = UnsafedCharUtils.uncheckedParseLong(buffer,from,forParsedLong,true);
-								}
-								else {
-									UnsafedCharUtils.uncheckedParseLong(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedLong,true);
-								}							
-								forParsedLong[0] *= multiplier;
+							if (temp[cursor] == 'e' || temp[cursor] == 'E') {
+								currentLex = JsonStaxParserLexType.REAL_VALUE;
+								cursor++;
+								
+								do {while (cursor < currentLen && (temp[cursor] == '+' || temp[cursor] == '-')) {
+										cursor++;							
+									}
+									if (cursor < currentLen) {
+										break;
+									}
+									else {
+										sb.setLength(0);
+										sb.append(buffer,from,currentLen-from);
+									}
+								} while (readBlock());
+								
+								do {while (cursor < currentLen && temp[cursor] >= '0' && temp[cursor] <= '9') {
+										cursor++;							
+									}
+									if (cursor < currentLen) {
+										break;
+									}
+									else {
+										sb.setLength(0);
+										sb.append(buffer,from,currentLen-from);
+									}
+								} while (readBlock());
+							}
+							
+							if (awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
 							}
 							else {
-								if (from < cursor) {
-									cursor = UnsafedCharUtils.uncheckedParseDouble(buffer,from,forParsedDouble,true);
+								if (currentLex == JsonStaxParserLexType.INTEGER_VALUE) {
+									if (from < cursor) {
+										cursor = UnsafedCharUtils.uncheckedParseLong(buffer,from,forParsedLong,true);
+									}
+									else {
+										UnsafedCharUtils.uncheckedParseLong(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedLong,true);
+									}							
+									forParsedLong[0] *= multiplier;
 								}
 								else {
-									UnsafedCharUtils.uncheckedParseDouble(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedDouble,true);
+									if (from < cursor) {
+										cursor = UnsafedCharUtils.uncheckedParseDouble(buffer,from,forParsedDouble,true);
+									}
+									else {
+										UnsafedCharUtils.uncheckedParseDouble(sb.append(buffer,0,cursor).toString().toCharArray(),0,forParsedDouble,true);
+									}
+									forParsedDouble[0] *= multiplier;
 								}
-								forParsedDouble[0] *= multiplier;
+								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
 							}
-							awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-						}
-						return currentLex;
-					case '\"'	:
-						int		fromString = ++cursor;
-						boolean	moreThanBlock = false, escaped = false;
-						
-						do {while (cursor < currentLen && temp[cursor] != '\"') {
-								if (temp[cursor] == '\\') {
-									escaped = true;
+							return currentLex;
+						case '\"'	:
+							int		fromString = ++cursor;
+							boolean	moreThanBlock = false, escaped = false;
+							
+							do {while (cursor < currentLen && temp[cursor] != '\"') {
+									if (temp[cursor] == '\\') {
+										escaped = true;
+										cursor++;
+									}
 									cursor++;
 								}
-								cursor++;
-							}
-							if (cursor < currentLen) {
-								break;
-							}
-							else {
-								if (!moreThanBlock) {
-									moreThanBlock = true;
+								if (cursor < currentLen) {
+									break;
+								}
+								else {
+									if (!moreThanBlock) {
+										moreThanBlock = true;
+										sb.setLength(0);
+									}
 									sb.setLength(0);
+									sb.append(buffer,fromString,currentLen-fromString);
+									fromString = 0;
 								}
-								sb.setLength(0);
-								sb.append(buffer,fromString,currentLen-fromString);
-								fromString = 0;
+							} while (readBlock());
+							
+							if (awaitedLex[pseudoStackDepth] != NAME_AWAITED && awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
+								detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
+								return currentLex = JsonStaxParserLexType.ERROR;
 							}
-						} while (readBlock());
-						
-						if (awaitedLex[pseudoStackDepth] != NAME_AWAITED && awaitedLex[pseudoStackDepth] != VALUE_AWAITED) {
-							detected = new SyntaxException(currentRow,currentCol,"Unwaited value in the stream");
+							else {
+								if (moreThanBlock) {
+									if (escaped) {
+										sbResult.setLength(0);
+										cursor = UnsafedCharUtils.uncheckedParseString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString,'\"',sbResult);
+									}
+									else {
+										cursor = UnsafedCharUtils.uncheckedParseUnescapedString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString, '\"',true,bounds);
+									}
+									shortString = false;
+								}
+								else {
+									if (escaped) {
+										sbResult.setLength(0);
+										cursor = UnsafedCharUtils.uncheckedParseStringExtended(buffer,fromString,'\"',sbResult);
+									}
+									else {
+										cursor = UnsafedCharUtils.uncheckedParseUnescapedString(buffer,fromString,'\"',true,bounds);
+									}
+									shortString = true;
+								}
+								escapedString = escaped;
+								if (awaitedLex[pseudoStackDepth] == NAME_AWAITED) {
+									awaitedLex[pseudoStackDepth] = NAME_SPLITTER_AWAITED;
+									return currentLex = JsonStaxParserLexType.NAME;
+								}
+								else {
+									awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
+									return currentLex = JsonStaxParserLexType.STRING_VALUE;
+								}
+							}
+						default : 
+							detected = new SyntaxException(currentRow,currentCol,"Illegal char ["+temp[cursor]+"] in the stream");
 							return currentLex = JsonStaxParserLexType.ERROR;
-						}
-						else {
-							if (moreThanBlock) {
-								if (escaped) {
-									sbResult.setLength(0);
-									cursor = UnsafedCharUtils.uncheckedParseString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString,'\"',sbResult);
-								}
-								else {
-									cursor = UnsafedCharUtils.uncheckedParseUnescapedString(sb.append(buffer,0,cursor-1).toString().toCharArray(),fromString, '\"',true,bounds);
-								}
-								shortString = false;
-							}
-							else {
-								if (escaped) {
-									sbResult.setLength(0);
-									cursor = UnsafedCharUtils.uncheckedParseStringExtended(buffer,fromString,'\"',sbResult);
-								}
-								else {
-									cursor = UnsafedCharUtils.uncheckedParseUnescapedString(buffer,fromString,'\"',true,bounds);
-								}
-								shortString = true;
-							}
-							escapedString = escaped;
-							if (awaitedLex[pseudoStackDepth] == NAME_AWAITED) {
-								awaitedLex[pseudoStackDepth] = NAME_SPLITTER_AWAITED;
-								return currentLex = JsonStaxParserLexType.NAME;
-							}
-							else {
-								awaitedLex[pseudoStackDepth] = LIST_SPLITTER_AWAITED;
-								return currentLex = JsonStaxParserLexType.STRING_VALUE;
-							}
-						}
-					default : 
-						detected = new SyntaxException(currentRow,currentCol,"Illegal char ["+temp[cursor]+"] in the stream");
-						return currentLex = JsonStaxParserLexType.ERROR;
+					}
 				}
 			} catch (IOException | SyntaxException e) {
 				detected = e;

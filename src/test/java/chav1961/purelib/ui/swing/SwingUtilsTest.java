@@ -638,8 +638,8 @@ public class SwingUtilsTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
-	@Test
+//	@Category(OrdinalTestCategory.class)
+//	@Test
 	public void buildContourTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		final BufferedImage	bi = ImageIO.read(this.getClass().getResource("blackrhomb.png"));
 		final GeneralPath	gp = SwingUtils.buildContour(bi);
