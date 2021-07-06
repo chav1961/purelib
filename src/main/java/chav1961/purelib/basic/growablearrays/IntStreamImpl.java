@@ -1,21 +1,20 @@
 package chav1961.purelib.basic.growablearrays;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
-import java.util.Iterator;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.PrimitiveIterator.OfLong;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -31,10 +30,8 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfDouble;
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfLong;
-import chav1961.purelib.basic.growablearrays.GrowableIntArray.SlicedSpliterator;
 
 class IntStreamImpl implements IntStream {
 	private final SpliteratorOfInt	spliterator;
@@ -42,12 +39,30 @@ class IntStreamImpl implements IntStream {
 	private final AutoCloseable		close;
 	private List<Runnable>			handlers = null;
 	
+	IntStreamImpl(final GrowableByteArray gba) {
+		this.spliterator = gba.getSpliterator();
+		this.iterator = null;
+		this.close = null;
+	}
+
+	public IntStreamImpl(final GrowableShortArray gsa) {
+		this.spliterator = gsa.getSpliterator();
+		this.iterator = null;
+		this.close = null;
+	}
+	
 	IntStreamImpl(final GrowableIntArray gia) {
 		this.spliterator = gia.getSpliterator();
 		this.iterator = null;
 		this.close = null;
 	}
 
+	public IntStreamImpl(GrowableCharArray<?> gca) {
+		this.spliterator = gca.getSpliterator();
+		this.iterator = null;
+		this.close = null;
+	}
+	
 	IntStreamImpl(final OfInt iterator, final AutoCloseable close) {
 		this.spliterator = null;
 		this.iterator = iterator;
@@ -154,23 +169,27 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public LongStream mapToLong(final IntToLongFunction mapper) {
-		// TODO Auto-generated method stub
-		if (spliterator != null) {
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null"); 
+		}
+		else if (spliterator != null) {
 			return new LongStreamImpl(new SpliteratorWrapperLong(spliterator,mapper), this::close);
 		}
 		else {
-			return null;
+			return new LongStreamImpl(new IteratorWrapperLong(iterator,mapper), this::close);
 		}
 	}
 
 	@Override
 	public DoubleStream mapToDouble(final IntToDoubleFunction mapper) {
-		// TODO Auto-generated method stub
-		if (spliterator != null) {
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null"); 
+		}
+		else if (spliterator != null) {
 			return new DoubleStreamImpl(new SpliteratorWrapperDouble(spliterator,mapper), this::close);
 		}
 		else {
-			return null;
+			return new DoubleStreamImpl(new IteratorWrapperDouble(iterator,mapper), this::close);
 		}
 	}
 
@@ -183,7 +202,46 @@ class IntStreamImpl implements IntStream {
 			return sequential().flatMap(mapper);
 		}
 		else {
-			return null;// TODO:
+			final IteratorWrapperInt	ivi = new IteratorWrapperInt(iterator, null, (e)->e) {
+												IntStream	nestedStream = null;
+												OfInt		nested = null; 
+				
+												@Override
+												public boolean hasNext() {
+													if (nested == null) {
+														if (iterator.hasNext()) {
+															nestedStream = mapper.apply(iterator.nextInt());
+															if (nestedStream != null) {
+																nested = nestedStream.iterator();
+															}
+															else {
+																nested = null;
+															}
+															return hasNext();
+														}
+														else {
+															return false;
+														}
+													}
+													else {
+														if (nested.hasNext()) {
+															return true;
+														}
+														else {
+															nested = null;
+															nestedStream.close();
+															nestedStream = null;
+															return hasNext();
+														}
+													}
+												}
+												
+												@Override
+												public int nextInt() {
+													return nested.nextInt();
+												}
+											};
+			return new IntStreamImpl(new IteratorWrapperInt(ivi, (c)->true, (e)->e), this::close);
 		}
 	}
 
@@ -238,7 +296,12 @@ class IntStreamImpl implements IntStream {
 
 	@Override
 	public IntStream peek(final IntConsumer action) {
-		return map((int e)->{action.accept(e); return e;});
+		if (action == null) {
+			throw new NullPointerException("Action can't be null"); 
+		}
+		else {
+			return map((int e)->{action.accept(e); return e;});
+		}
 	}
 
 	@Override
@@ -585,10 +648,10 @@ class IntStreamImpl implements IntStream {
 		else {
 			while (iterator.hasNext()) {
 				if (predicate.test(iterator.nextInt())) {
-					return true;
+					return false;
 				}
 			}
-			return false;
+			return true;
 		}
 	}
 
@@ -663,53 +726,6 @@ class IntStreamImpl implements IntStream {
 		return spliterator;
 	}
 	
-	private static class SpliteratorWrapperInt implements SpliteratorOfInt {
-		private final SpliteratorOfInt	nested;
-		private final IntUnaryOperator	op;
-		
-		private SpliteratorWrapperInt(final SpliteratorOfInt nested, final IntUnaryOperator op) {
-			this.nested = nested;
-			this.op = op;
-		}
-		
-		@Override
-		public boolean mustBeProcessed(final long sequential, final int value) {
-			return nested.mustBeProcessed(sequential, value);
-		}
-		
-		@Override
-		public long estimateSize() {
-			return nested.estimateSize();
-		}
-
-		@Override
-		public int characteristics() {
-			return nested.characteristics();
-		}
-
-		@Override
-		public SpliteratorOfInt trySplit() {
-			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
-			
-			if (result != null) {
-				return new SpliteratorWrapperInt(result, op);
-			}
-			else {
-				return null;
-			}
-		}
-
-		@Override
-		public boolean tryAdvance(final IntConsumer action) {
-			return nested.tryAdvance((int e)->action.accept(op.applyAsInt(e))); 
-		}
-
-		@Override
-		public String toString() {
-			return "SpliteratorWrapperInt [nested=" + nested + ", op=" + op + "]";
-		}
-	}
-
 	private static class SpliteratorWrapperLong implements SpliteratorOfLong {
 		private final SpliteratorOfInt	nested;
 		private final IntToLongFunction	op;
@@ -754,144 +770,6 @@ class IntStreamImpl implements IntStream {
 		@Override
 		public String toString() {
 			return "SpliteratorWrapperLong [nested=" + nested + ", op=" + op + "]";
-		}
-	}
-
-	private static class SpliteratorWrapperDouble implements SpliteratorOfDouble {
-		private final SpliteratorOfInt		nested;
-		private final IntToDoubleFunction	op;
-		
-		private SpliteratorWrapperDouble(final SpliteratorOfInt nested, final IntToDoubleFunction op) {
-			this.nested = nested;
-			this.op = op;
-		}
-		
-		@Override
-		public boolean mustBeProcessed(final long sequential, final double value) {
-			return true;
-		}
-		
-		@Override
-		public long estimateSize() {
-			return nested.estimateSize();
-		}
-
-		@Override
-		public int characteristics() {
-			return nested.characteristics();
-		}
-
-		@Override
-		public OfDouble trySplit() {
-			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
-			
-			if (result != null) {
-				return new SpliteratorWrapperDouble(result, op);
-			}
-			else {
-				return null;
-			}
-		}
-
-		@Override
-		public boolean tryAdvance(final DoubleConsumer action) {
-			return nested.tryAdvance((int e)->action.accept(op.applyAsDouble(e))); 
-		}
-
-		@Override
-		public String toString() {
-			return "SpliteratorWrapperLong [nested=" + nested + ", op=" + op + "]";
-		}
-	}
-	
-	private static class IteratorWrapperInt implements OfInt {
-		private final OfInt				nested;
-		private final IntPredicate		test;
-		private final IntUnaryOperator	op;
-		private int						count = 0;
-		
-		private IteratorWrapperInt(final OfInt nested, final IntPredicate predicate, final  IntUnaryOperator op) {
-			this.nested = nested;
-			this.test = predicate;
-			this.op = op;
-		}
-		
-		@Override
-		public boolean hasNext() {
-			return nested.hasNext() && test.test(count);
-		}
-
-		@Override
-		public int nextInt() {
-			count++;
-			return op.applyAsInt(nested.nextInt());
-		}
-
-		@Override
-		public String toString() {
-			return "IteratorWrapperInt [nested=" + nested + ", op=" + op + "]";
-		}
-	}
-	
-	private static class SpliteratorWrapperObj<R> implements Spliterator<R> {
-		private final SpliteratorOfInt	nested;
-		private final IntFunction<R>	op;
-		
-		private SpliteratorWrapperObj(final SpliteratorOfInt nested, final IntFunction<R> op) {
-			this.nested = nested;
-			this.op = op;
-		}
-		
-		@Override
-		public long estimateSize() {
-			return nested.estimateSize();
-		}
-
-		@Override
-		public int characteristics() {
-			return nested.characteristics();
-		}
-
-		@Override
-		public Spliterator<R> trySplit() {
-			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
-			
-			if (result != null) {
-				return new SpliteratorWrapperObj<R>(result, op);
-			}
-			else {
-				return null;
-			}
-		}
-		
-		@Override
-		public boolean tryAdvance(Consumer<? super R> action) {
-			return nested.tryAdvance((int e)->action.accept(op.apply(e)));
-		}
-
-		@Override
-		public String toString() {
-			return "SpliteratorWrapperInt [nested=" + nested + ", op=" + op + "]";
-		}
-	}
-
-	private static class IteratorWrapperObj<U> implements Iterator<U> {
-		private final OfInt						nested;
-		private final IntFunction<? extends U>	op;
-		
-		private IteratorWrapperObj(final OfInt nested, final IntFunction<? extends U> mapper) {
-			this.nested = nested;
-			this.op = mapper;
-		}
-
-		@Override
-		public boolean hasNext() {
-			return nested.hasNext();
-		}
-
-		@Override
-		public U next() {
-			return op.apply(nested.nextInt());
 		}
 	}
 

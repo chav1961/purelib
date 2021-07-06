@@ -5,7 +5,6 @@ package chav1961.purelib.basic.growablearrays;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Spliterator;
-import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
@@ -308,6 +307,7 @@ public class GrowableIntArray {
 	/**
 	 * <p>Convert array content to stream</p> 
 	 * @return immutable stream converted. Can't be null
+	 * @since 0.0.5
 	 */
 	public IntStream toStream() {
 		return new IntStreamImpl(this);
@@ -373,45 +373,7 @@ public class GrowableIntArray {
 		};
 	}
 
-	abstract class AbstractSpliterator implements SpliteratorOfInt {
-		protected int	from, to;
-		protected int	index;
-		
-		AbstractSpliterator(final int from, final int to) {
-			this.from = from;
-			this.to = to;
-			this.index = from;
-		}
-
-		@Override public abstract SpliteratorOfInt trySplit();
-		@Override public abstract int characteristics();
-		protected abstract int getValue(final int index);
-
-		@Override
-		public boolean tryAdvance(IntConsumer action) {
-			while (index < to) {
-				final int	value = getValue(index);
-				
-				if (mustBeProcessed(index++, value)) {
-					action.accept(value);
-					return true;
-				}
-			}
-			return false;
-		}
-
-		@Override 
-		public long estimateSize() {
-			return to - from;
-		}
-
-		@Override
-		public boolean mustBeProcessed(final long sequential, final int value) {
-			return true;
-		}
-	}
-	
-	protected class PlainSpliterator extends AbstractSpliterator {
+	protected class PlainSpliterator extends AbstractIntSpliterator {
 		PlainSpliterator(final int from, final int to) {
 			super(from,to);
 		}
@@ -437,7 +399,7 @@ public class GrowableIntArray {
 		}
 	}
 	
-	protected class SlicedSpliterator extends AbstractSpliterator {
+	protected class SlicedSpliterator extends AbstractIntSpliterator {
 		protected final int					minimumSplitSize;
 		protected final SlicedSpliterator	nested; 
 		

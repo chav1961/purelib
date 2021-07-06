@@ -3,6 +3,13 @@ package chav1961.purelib.basic.growablearrays;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.Spliterator;
+import java.util.PrimitiveIterator.OfInt;
+import java.util.stream.IntStream;
+
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
+import chav1961.purelib.basic.growablearrays.GrowableByteArray.PlainSpliterator;
+import chav1961.purelib.basic.growablearrays.GrowableByteArray.SlicedSpliterator;
 
 /**
  * <p>This class implements functionality for the growable short arrays.</p>
@@ -11,10 +18,11 @@ import java.util.Arrays;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public class GrowableShortArray {
+	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final short[]	NULL_SHORT = new short[0];
 	
 	private final boolean		usePlain;
@@ -296,6 +304,15 @@ public class GrowableShortArray {
 		length(0);
 	}
 	
+	/**
+	 * <p>Convert array content to stream</p> 
+	 * @return immutable stream converted. Can't be null
+	 * @since 0.0.5
+	 */
+	public IntStream toStream() {
+		return new IntStreamImpl(this);
+	}
+	
 	@Override
 	public String toString() {
 		return "GrowableShortArray [usePlain=" + usePlain + ", initialSize=" + initialSize + ", filled=" + filled + ", plain=" + Arrays.toString(plain) + ", sliced=" + Arrays.toString(sliced) + "]";
@@ -323,6 +340,125 @@ public class GrowableShortArray {
 		return true;
 	}
 
+	SpliteratorOfInt getSpliterator() {
+		if (usePlain) {
+			return new PlainSpliterator(0, length()); 
+		}
+		else {
+			return new SlicedSpliterator(0, length(), MINIMUM_SPLIT_SIZE); 
+		}
+	}
+
+	OfInt getIterator() {
+		return new OfInt() {
+			int	index = 0;
+			
+			@Override
+			public boolean hasNext() {
+				return index < length();
+			}
+
+			@Override
+			public int nextInt() {
+				if (usePlain) {
+					return plain[index++];
+				}
+				else {
+					final int	result = sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)];
+					
+					index++;
+					return result;
+				}
+			}
+		};
+	}
+
+	protected class PlainSpliterator extends AbstractIntSpliterator {
+		PlainSpliterator(final int from, final int to) {
+			super(from,to);
+		}
+
+		@Override
+		public int characteristics() {
+			return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED;
+		}
+
+		@Override 
+		public SpliteratorOfInt trySplit() {
+			return null;
+		}
+
+		@Override
+		protected int getValue(final int index) {
+			return plain[index];
+		}
+		
+		@Override
+		public String toString() {
+			return "PlainSpliterator [from=" + from + ", to=" + to + ", index=" + index + "]";
+		}
+	}
+	
+	protected class SlicedSpliterator extends AbstractIntSpliterator {
+		protected final int					minimumSplitSize;
+		protected final SlicedSpliterator	nested; 
+		
+		SlicedSpliterator(final int from, final int to, final int minimumSplitSize) {
+			this(null, from, to, minimumSplitSize);
+		}
+
+		SlicedSpliterator(final SlicedSpliterator nested) {
+			this(nested, nested.from, nested.to, nested.minimumSplitSize);
+		}
+
+		SlicedSpliterator(final SlicedSpliterator nested, final int from, final int to, final int minimumSplitSize) {
+			super(from, to);
+			this.minimumSplitSize = nested != null ? nested.minimumSplitSize : MINIMUM_SPLIT_SIZE;
+			this.nested = nested;
+		}
+		
+		@Override
+		public int characteristics() {
+			if (nested != null) {
+				return nested.characteristics();
+			}
+			else {
+				return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED | Spliterator.SUBSIZED;
+			}
+		}
+
+		@Override
+		public SpliteratorOfInt trySplit() {
+ 			final int	delta = to - index, halfDelta = delta / 2;
+			
+			if (halfDelta >= minimumSplitSize) {
+				final int	splittedTo = to;
+				
+				to = halfDelta;
+				return new SlicedSpliterator(this, index + halfDelta, splittedTo, minimumSplitSize);
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		protected int getValue(final int index) {
+			if (nested != null) {
+				return nested.getValue(index);
+			}
+			else {
+				return sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)];
+			}
+		}
+		
+		@Override
+		public String toString() {
+			return "SlicedSpliterator [minimumSplitSize=" + minimumSplitSize + ", from=" + from + ", to=" + to + ", index=" + index + "]";
+		}
+	}
+	
+	
 	boolean isSliced() {
 		return !usePlain;
 	}

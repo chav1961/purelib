@@ -1,10 +1,14 @@
 package chav1961.purelib.basic.growablearrays;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
+import java.util.Set;
+import java.util.PrimitiveIterator.OfInt;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
@@ -89,8 +93,31 @@ class LongStreamImpl implements LongStream {
 
 	@Override
 	public LongStream filter(LongPredicate predicate) {
-		// TODO Auto-generated method stub
-		return null;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate can't be null");
+		}
+		else if (spliterator != null) {
+			return sequential().filter(predicate);
+		}
+		else {
+			final long[]	stored = new long[1];
+			
+			return new LongStreamImpl(new IteratorWrapperLong(iterator, (c)-> {
+				while (iterator.hasNext()) {
+					long value = iterator.nextLong();
+					
+					if (predicate.test(value)) {
+						stored[0] = value;
+						return true;
+					}
+				}
+				return false;
+			}, (e)->e){
+				public long nextLong() {
+					return stored[0];
+				};
+			} , this::close);
+		}
 	}
 
 	@Override
@@ -108,73 +135,254 @@ class LongStreamImpl implements LongStream {
 
 	@Override
 	public <U> Stream<U> mapToObj(LongFunction<? extends U> mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null");
+		}
+		else if (spliterator != null) {
+			return new ObjectStreamImpl<U>(new SpliteratorWrapperObj<U>(spliterator, (long val)->mapper.apply(val)), this::close);
+		}
+		else {
+			return new ObjectStreamImpl<U>(new IteratorWrapperObj<U>(iterator, mapper), this::close);
+		}
 	}
 
 	@Override
 	public IntStream mapToInt(LongToIntFunction mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null"); 
+		}
+		else if (spliterator != null) {
+			return new IntStreamImpl(new SpliteratorWrapperInt(spliterator,mapper), this::close);
+		}
+		else {
+			return new IntStreamImpl(new IteratorWrapperInt(iterator,mapper), this::close);
+		}
 	}
 
 	@Override
 	public DoubleStream mapToDouble(LongToDoubleFunction mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null"); 
+		}
+		else if (spliterator != null) {
+			return new DoubleStreamImpl(new SpliteratorWrapperDouble(spliterator,mapper), this::close);
+		}
+		else {
+			return new DoubleStreamImpl(new IteratorWrapperDouble(iterator,mapper), this::close);
+		}
 	}
 
 	@Override
 	public LongStream flatMap(LongFunction<? extends LongStream> mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null");
+		}
+		else if (spliterator != null) {
+			return sequential().flatMap(mapper);
+		}
+		else {
+			final IteratorWrapperLong	ivi = new IteratorWrapperLong(iterator, null, (e)->e) {
+												LongStream	nestedStream = null;
+												OfLong		nested = null; 
+				
+												@Override
+												public boolean hasNext() {
+													if (nested == null) {
+														if (iterator.hasNext()) {
+															nestedStream = mapper.apply(iterator.nextLong());
+															if (nestedStream != null) {
+																nested = nestedStream.iterator();
+															}
+															else {
+																nested = null;
+															}
+															return hasNext();
+														}
+														else {
+															return false;
+														}
+													}
+													else {
+														if (nested.hasNext()) {
+															return true;
+														}
+														else {
+															nested = null;
+															nestedStream.close();
+															nestedStream = null;
+															return hasNext();
+														}
+													}
+												}
+												
+												@Override
+												public long nextLong() {
+													return nested.nextLong();
+												}
+											};
+			return new LongStreamImpl(new IteratorWrapperLong(ivi, (c)->true, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public LongStream distinct() {
-		// TODO Auto-generated method stub
-		return null;
+		final Set<Long>	values = new HashSet<>();
+		
+		return filter((e)->{
+			if (values.contains(e)) {
+				return false;
+			}
+			else {
+				values.add(e);
+				return true;
+			}
+		});
 	}
 
 	@Override
 	public LongStream sorted() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			return sequential().sorted();
+		}
+		else {
+			final IteratorWrapperLong	ivi = new IteratorWrapperLong(iterator, null, (e)->e) {
+											long[]	content;
+											int		index = -1;
+											
+											@Override
+											public boolean hasNext() {
+												if (index < 0) {
+													final GrowableLongArray	gia = new GrowableLongArray(false);
+													
+													while (iterator.hasNext()) {
+														gia.append(iterator.nextLong());
+													}
+													content = gia.extract();
+													Arrays.sort(content);
+													index = 0;
+												}
+												return index < content.length;
+											}
+											
+											@Override
+											public long nextLong() {
+												return content[index++];
+											}
+										};
+			return new LongStreamImpl(new IteratorWrapperLong(ivi, (c)->true, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public LongStream peek(final LongConsumer action) {
-		return map((long e)->{action.accept(e); return e;});
+		if (action == null) {
+			throw new NullPointerException("Action can't be null"); 
+		}
+		else {
+			return map((long e)->{action.accept(e); return e;});
+		}
 	}
 
 	@Override
 	public LongStream limit(long maxSize) {
-		// TODO Auto-generated method stub
-		return null;
+		if (maxSize < 0) {
+			throw new IllegalArgumentException("Max size ["+maxSize+"] can't be negative"); 
+		}
+		else if (spliterator != null) {
+			return sequential().limit(maxSize);
+		}
+		else {
+			return new LongStreamImpl(new IteratorWrapperLong(iterator, (c)-> c < maxSize, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public LongStream skip(long n) {
-		// TODO Auto-generated method stub
-		return null;
+		if (n < 0) {
+			throw new IllegalArgumentException("Number of skips ["+n+"] can't be negative"); 
+		}
+		else if (spliterator != null) {
+			return sequential().skip(n);
+		}
+		else {
+			return new LongStreamImpl(new IteratorWrapperLong(iterator, (c)-> {
+				if (c == 0) {
+					boolean	result;
+					int 	count = 0;
+					
+					while ((result = iterator.hasNext()) && count < n) {
+						iterator.next();
+						count++;
+					}
+					return result;
+				}
+				else {
+					return true;
+				}
+			}, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public void forEach(LongConsumer action) {
-		// TODO Auto-generated method stub
-		
+		if (action == null) {
+			throw new NullPointerException("Action can't be null");
+		}
+		else if (spliterator != null) {
+			collect(()->null, (acc, val) ->action.accept(val), null);
+		}
+		else {
+			while (iterator.hasNext()) {
+				action.accept(iterator.nextLong());
+			}
+		}
 	}
 
 	@Override
 	public void forEachOrdered(LongConsumer action) {
-		// TODO Auto-generated method stub
-		
+		if (action == null) {
+			throw new NullPointerException("Action can't be null");
+		}
+		else if (spliterator != null) {
+			while (spliterator.tryAdvance((long value) -> action.accept(value))) {
+				// Empty body...
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				action.accept(iterator.nextLong());
+			}
+		}
 	}
 
 	@Override
 	public long[] toArray() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			if ((spliterator.characteristics() & Spliterator.SUBSIZED) != 0) {
+				final long[]	result = new long[(int)spliterator.estimateSize()];
+				
+				for (int index = 0; index < result.length; index++) {
+					final int	currentIndex = index;
+					spliterator.tryAdvance((long e)->result[currentIndex] = e);
+				}
+				return result;
+			}
+			else {
+				final GrowableLongArray	gia = new GrowableLongArray(false);
+				
+				while (spliterator.tryAdvance((long e)->gia.append(e))) {
+				}
+				return gia.extract();
+			}
+		}
+		else {
+			final GrowableLongArray	gia = new GrowableLongArray(false);
+			
+			while (iterator.hasNext()) {
+				gia.append(iterator.nextLong());
+			}
+			return gia.extract();
+		}
 	}
 
 	@Override

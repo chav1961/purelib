@@ -19,6 +19,11 @@ public class StreamsTest {
 		try (final IntStream	is = gia.toStream()) {
 			
 			is.onClose(()->closed[0] = true);
+
+			try {is.onClose(null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
 			
 			Assert.assertTrue(is.isParallel());
 			Assert.assertArrayEquals(new int[0], is.toArray());
@@ -90,25 +95,44 @@ public class StreamsTest {
 		Assert.assertArrayEquals(gia.extract(), gia.toStream().toArray());
 		
 		Assert.assertEquals(512, gia.toStream().count());
+		Assert.assertEquals(512, gia.toStream().sequential().count());
 		Assert.assertEquals(130816, gia.toStream().sum());
+		Assert.assertEquals(130816, gia.toStream().sequential().sum());
 		Assert.assertEquals(OptionalInt.of(0), gia.toStream().min());
+		Assert.assertEquals(OptionalInt.of(0), gia.toStream().sequential().min());
 		Assert.assertEquals(OptionalInt.of(511), gia.toStream().max());
+		Assert.assertEquals(OptionalInt.of(511), gia.toStream().sequential().max());
 		Assert.assertEquals(OptionalDouble.of(255.5), gia.toStream().average());
+		Assert.assertEquals(OptionalDouble.of(255.5), gia.toStream().sequential().average());
 
 		Assert.assertTrue(gia.toStream().anyMatch((int value)->value == 511));
+		Assert.assertTrue(gia.toStream().sequential().anyMatch((int value)->value == 511));
 		Assert.assertTrue(gia.toStream().allMatch((int value)->value <= 511));
+		Assert.assertTrue(gia.toStream().sequential().allMatch((int value)->value <= 511));
 		Assert.assertTrue(gia.toStream().noneMatch((int value)->value > 511));
+		Assert.assertTrue(gia.toStream().sequential().noneMatch((int value)->value > 511));
 
 		Assert.assertArrayEquals(new int[] {130816}, gia.toStream().collect(()->new int[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0]));
+		Assert.assertArrayEquals(new int[] {130816}, gia.toStream().sequential().collect(()->new int[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0]));
 		Assert.assertEquals(130821, gia.toStream().reduce(5,(a,b)->a+b));
+		Assert.assertEquals(130821, gia.toStream().sequential().reduce(5,(a,b)->a+b));
 		Assert.assertEquals(OptionalInt.of(130816), gia.toStream().reduce((a,b)->a+b));
+		Assert.assertEquals(OptionalInt.of(130816), gia.toStream().sequential().reduce((a,b)->a+b));
 
 		sum.set(0);
 		gia.toStream().forEach((value)->sum.addAndGet(value));
 		Assert.assertEquals(130816, sum.intValue());
 		
 		sum.set(0);
+		gia.toStream().sequential().forEach((value)->sum.addAndGet(value));
+		Assert.assertEquals(130816, sum.intValue());
+		
+		sum.set(0);
 		gia.toStream().forEachOrdered((value)->sum.addAndGet(value));
+		Assert.assertEquals(130816, sum.intValue());
+		
+		sum.set(0);
+		gia.toStream().sequential().forEachOrdered((value)->sum.addAndGet(value));
 		Assert.assertEquals(130816, sum.intValue());
 	}
  
@@ -125,6 +149,12 @@ public class StreamsTest {
 		// To int. Must have terminal function call!
 		Assert.assertEquals(0, giaEmpty.toStream().map((int val)->2 * val).sum());
 		Assert.assertEquals(261632, giaFull.toStream().map((int val)->2 * val).sum());
+		Assert.assertEquals(261632, giaFull.toStream().sequential().map((int val)->2 * val).sum());
+		
+		try {giaEmpty.toStream().map(null).sum();
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
 		
 		ai.set(0);
 		Assert.assertEquals(0, giaEmpty.toStream().peek((e)->ai.addAndGet(e)).count());
@@ -134,9 +164,24 @@ public class StreamsTest {
 		Assert.assertEquals(512, giaFull.toStream().peek((e)->ai.addAndGet(e)).count());
 		Assert.assertEquals(130816, ai.intValue());
 
+		ai.set(0);
+		Assert.assertEquals(512, giaFull.toStream().sequential().peek((e)->ai.addAndGet(e)).count());
+		Assert.assertEquals(130816, ai.intValue());
+		
+		try {giaEmpty.toStream().peek(null).sum();
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
 		// To long.
 		Assert.assertEquals(0, giaEmpty.toStream().mapToLong((int val)->2 * val).sum());
 		Assert.assertEquals(261632, giaFull.toStream().mapToLong((int val)->2 * val).sum());
+		Assert.assertEquals(261632, giaFull.toStream().sequential().mapToLong((int val)->2 * val).sum());
+
+		try {giaEmpty.toStream().mapToLong(null).sum();
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
 		
 		Assert.assertEquals(0, giaEmpty.toStream().asLongStream().sum());
 		Assert.assertEquals(130816, giaFull.toStream().asLongStream().sum());
@@ -155,6 +200,12 @@ public class StreamsTest {
 		// To double.
 		Assert.assertEquals(0, giaEmpty.toStream().mapToDouble((int val)->2 * val).sum(), 0.001);
 		Assert.assertEquals(261632, giaFull.toStream().mapToDouble((int val)->2 * val).sum(), 0.001);
+		Assert.assertEquals(261632, giaFull.toStream().sequential().mapToDouble((int val)->2 * val).sum(), 0.001);
+
+		try {giaEmpty.toStream().mapToDouble(null).sum();
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
 		
 		Assert.assertEquals(0, giaEmpty.toStream().asDoubleStream().sum(), 0.001);
 		Assert.assertEquals(130816, giaFull.toStream().asDoubleStream().sum(), 0.001);
@@ -178,6 +229,15 @@ public class StreamsTest {
 		giaFull.toStream().mapToObj((int val)->Integer.valueOf(2 * val)).forEach((e)->ai.addAndGet(e.intValue()));
 		Assert.assertEquals(261632, ai.intValue());
 
+		ai.set(0);
+		giaFull.toStream().sequential().mapToObj((int val)->Integer.valueOf(2 * val)).forEach((e)->ai.addAndGet(e.intValue()));
+		Assert.assertEquals(261632, ai.intValue());
+		
+		try {giaEmpty.toStream().mapToObj(null).count();
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
 		Assert.assertEquals(0, giaEmpty.toStream().boxed().collect(()->new int[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0]);
 		Assert.assertEquals(130816, giaFull.toStream().boxed().collect(()->new int[] {0}, (acc, val) -> acc[0] += val, (left, right) -> left[0] += right[0])[0]);
 	} 
@@ -186,7 +246,6 @@ public class StreamsTest {
 	public void integerResizableTest() {
 		final GrowableIntArray	giaEmpty = new GrowableIntArray(false);
 		final GrowableIntArray	giaFull = new GrowableIntArray(false);
-		final AtomicInteger		ai = new AtomicInteger();
 		
 		for (int index = 0; index < GrowableIntArray.MINIMUM_SPLIT_SIZE; index++) {
 			giaFull.append(2*index).append(2*index+1);
@@ -195,16 +254,39 @@ public class StreamsTest {
 		Assert.assertEquals(0, giaEmpty.toStream().limit(10).count());
 		Assert.assertEquals(10, giaFull.toStream().limit(10).count());
 
+		try {giaEmpty.toStream().limit(-1).count();
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
 		Assert.assertEquals(0, giaEmpty.toStream().skip(10).count());
 		Assert.assertEquals(2 * GrowableIntArray.MINIMUM_SPLIT_SIZE - 10, giaFull.toStream().skip(10).count());
 
+		try {giaEmpty.toStream().skip(-1).count();
+			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
 		Assert.assertEquals(0, giaEmpty.toStream().filter((v)->v % 2 == 0).count());
 		Assert.assertEquals(GrowableIntArray.MINIMUM_SPLIT_SIZE, giaFull.toStream().filter((v)->v % 2 == 0).count());
 
+		try {giaEmpty.toStream().filter(null).count();
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
 		Assert.assertEquals(0, giaEmpty.toStream().distinct().count());
 		Assert.assertEquals(2 * GrowableIntArray.MINIMUM_SPLIT_SIZE, giaFull.toStream().distinct().count());
 
 		Assert.assertEquals(0, giaEmpty.toStream().sorted().count());
 		Assert.assertEquals(2 * GrowableIntArray.MINIMUM_SPLIT_SIZE, giaFull.toStream().sorted().count());
+
+		Assert.assertEquals(0, giaEmpty.toStream().flatMap((e)->e % 2 == 0 ? null : IntStream.of(e,2*e,3*e)).count());
+		Assert.assertEquals(3 * GrowableIntArray.MINIMUM_SPLIT_SIZE, giaFull.toStream().flatMap((e)->e % 2 == 0 ? null : IntStream.of(e,2*e,3*e)).count());
+
+		try {giaEmpty.toStream().flatMap(null).count();
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
 	}
 }
