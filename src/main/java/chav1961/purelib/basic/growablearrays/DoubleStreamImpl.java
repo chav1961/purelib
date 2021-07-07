@@ -1,14 +1,16 @@
 package chav1961.purelib.basic.growablearrays;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
+import java.util.HashSet;
 import java.util.List;
-import java.util.LongSummaryStatistics;
 import java.util.OptionalDouble;
-import java.util.OptionalLong;
-import java.util.Spliterator;
+import java.util.OptionalInt;
+import java.util.Set;
 import java.util.PrimitiveIterator.OfDouble;
-import java.util.PrimitiveIterator.OfLong;
+import java.util.PrimitiveIterator.OfInt;
+import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.BiConsumer;
@@ -19,9 +21,6 @@ import java.util.function.DoublePredicate;
 import java.util.function.DoubleToIntFunction;
 import java.util.function.DoubleToLongFunction;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.LongConsumer;
-import java.util.function.LongPredicate;
-import java.util.function.LongUnaryOperator;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
@@ -94,8 +93,31 @@ class DoubleStreamImpl implements DoubleStream {
 
 	@Override
 	public DoubleStream filter(DoublePredicate predicate) {
-		// TODO Auto-generated method stub
-		return null;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate can't be null");
+		}
+		else if (spliterator != null) {
+			return sequential().filter(predicate);
+		}
+		else {
+			final double[]	stored = new double[1];
+			
+			return new DoubleStreamImpl(new IteratorWrapperDouble(iterator, (c)-> {
+				while (iterator.hasNext()) {
+					double value = iterator.nextDouble();
+					
+					if (predicate.test(value)) {
+						stored[0] = value;
+						return true;
+					}
+				}
+				return false;
+			}, (e)->e){
+				public double nextDouble() {
+					return stored[0];
+				};
+			} , this::close);
+		}
 	}
 
 	@Override
@@ -113,85 +135,334 @@ class DoubleStreamImpl implements DoubleStream {
 
 	@Override
 	public <U> Stream<U> mapToObj(DoubleFunction<? extends U> mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null");
+		}
+		else if (spliterator != null) {
+			return new ObjectStreamImpl<U>(new SpliteratorWrapperObj<U>(spliterator, (double val)->mapper.apply(val)), this::close);
+		}
+		else {
+			return new ObjectStreamImpl<U>(new IteratorWrapperObj<U>(iterator, mapper), this::close);
+		}
 	}
 
 	@Override
 	public IntStream mapToInt(DoubleToIntFunction mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null"); 
+		}
+		else if (spliterator != null) {
+			return new IntStreamImpl(new SpliteratorWrapperInt(spliterator,mapper), this::close);
+		}
+		else {
+			return new IntStreamImpl(new IteratorWrapperInt(iterator,mapper), this::close);
+		}
 	}
 
 	@Override
 	public LongStream mapToLong(DoubleToLongFunction mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null"); 
+		}
+		else if (spliterator != null) {
+			return new LongStreamImpl(new SpliteratorWrapperLong(spliterator,mapper), this::close);
+		}
+		else {
+			return new LongStreamImpl(new IteratorWrapperLong(iterator,mapper), this::close);
+		}
 	}
 
 	@Override
 	public DoubleStream flatMap(DoubleFunction<? extends DoubleStream> mapper) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mapper == null) {
+			throw new NullPointerException("Mapper can't be null");
+		}
+		else if (spliterator != null) {
+			return sequential().flatMap(mapper);
+		}
+		else {
+			final IteratorWrapperDouble	ivi = new IteratorWrapperDouble(iterator, null, (e)->e) {
+												DoubleStream	nestedStream = null;
+												OfDouble		nested = null; 
+				
+												@Override
+												public boolean hasNext() {
+													if (nested == null) {
+														if (iterator.hasNext()) {
+															nestedStream = mapper.apply(iterator.nextDouble());
+															if (nestedStream != null) {
+																nested = nestedStream.iterator();
+															}
+															else {
+																nested = null;
+															}
+															return hasNext();
+														}
+														else {
+															return false;
+														}
+													}
+													else {
+														if (nested.hasNext()) {
+															return true;
+														}
+														else {
+															nested = null;
+															nestedStream.close();
+															nestedStream = null;
+															return hasNext();
+														}
+													}
+												}
+												
+												@Override
+												public double nextDouble() {
+													return nested.nextDouble();
+												}
+											};
+			return new DoubleStreamImpl(new IteratorWrapperDouble(ivi, (c)->true, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public DoubleStream distinct() {
-		// TODO Auto-generated method stub
-		return null;
+		final Set<Double>	values = new HashSet<>();
+		
+		return filter((e)->{
+			if (values.contains(e)) {
+				return false;
+			}
+			else {
+				values.add(e);
+				return true;
+			}
+		});
 	}
 
 	@Override
 	public DoubleStream sorted() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			return sequential().sorted();
+		}
+		else {
+			final IteratorWrapperDouble	ivi = new IteratorWrapperDouble(iterator, null, (e)->e) {
+											double[]	content;
+											int			index = -1;
+											
+											@Override
+											public boolean hasNext() {
+												if (index < 0) {
+													final GrowableDoubleArray	gia = new GrowableDoubleArray(false);
+													
+													while (iterator.hasNext()) {
+														gia.append(iterator.nextDouble());
+													}
+													content = gia.extract();
+													Arrays.sort(content);
+													index = 0;
+												}
+												return index < content.length;
+											}
+											
+											@Override
+											public double nextDouble() {
+												return content[index++];
+											}
+										};
+			return new DoubleStreamImpl(new IteratorWrapperDouble(ivi, (c)->true, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public DoubleStream peek(final DoubleConsumer action) {
-		return map((double e)->{action.accept(e); return e;});
+		if (action == null) {
+			throw new NullPointerException("Action can't be null"); 
+		}
+		else {
+			return map((double e)->{action.accept(e); return e;});
+		}
 	}
 
 	@Override
 	public DoubleStream limit(long maxSize) {
-		// TODO Auto-generated method stub
-		return null;
+		if (maxSize < 0) {
+			throw new IllegalArgumentException("Max size ["+maxSize+"] can't be negative"); 
+		}
+		else if (spliterator != null) {
+			return sequential().limit(maxSize);
+		}
+		else {
+			return new DoubleStreamImpl(new IteratorWrapperDouble(iterator, (c)-> c < maxSize, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public DoubleStream skip(long n) {
-		// TODO Auto-generated method stub
-		return null;
+		if (n < 0) {
+			throw new IllegalArgumentException("Number of skips ["+n+"] can't be negative"); 
+		}
+		else if (spliterator != null) {
+			return sequential().skip(n);
+		}
+		else {
+			return new DoubleStreamImpl(new IteratorWrapperDouble(iterator, (c)-> {
+				if (c == 0) {
+					boolean	result;
+					int 	count = 0;
+					
+					while ((result = iterator.hasNext()) && count < n) {
+						iterator.next();
+						count++;
+					}
+					return result;
+				}
+				else {
+					return true;
+				}
+			}, (e)->e), this::close);
+		}
 	}
 
 	@Override
 	public void forEach(DoubleConsumer action) {
-		// TODO Auto-generated method stub
-		
+		if (action == null) {
+			throw new NullPointerException("Action can't be null");
+		}
+		else if (spliterator != null) {
+			collect(()->null, (acc, val) ->action.accept(val), null);
+		}
+		else {
+			while (iterator.hasNext()) {
+				action.accept(iterator.nextDouble());
+			}
+		}
 	}
 
 	@Override
 	public void forEachOrdered(DoubleConsumer action) {
-		// TODO Auto-generated method stub
-		
+		if (action == null) {
+			throw new NullPointerException("Action can't be null");
+		}
+		else if (spliterator != null) {
+			while (spliterator.tryAdvance((double value) -> action.accept(value))) {
+				// Empty body...
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				action.accept(iterator.nextDouble());
+			}
+		}
 	}
 
 	@Override
 	public double[] toArray() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			if ((spliterator.characteristics() & Spliterator.SUBSIZED) != 0) {
+				final double[]	result = new double[(int)spliterator.estimateSize()];
+				
+				for (int index = 0; index < result.length; index++) {
+					final int	currentIndex = index;
+					spliterator.tryAdvance((double e)->result[currentIndex] = e);
+				}
+				return result;
+			}
+			else {
+				final GrowableDoubleArray	gia = new GrowableDoubleArray(false);
+				
+				while (spliterator.tryAdvance((double e)->gia.append(e))) {
+				}
+				return gia.extract();
+			}
+		}
+		else {
+			final GrowableDoubleArray	gia = new GrowableDoubleArray(false);
+			
+			while (iterator.hasNext()) {
+				gia.append(iterator.nextDouble());
+			}
+			return gia.extract();
+		}
 	}
 
 	@Override
 	public double reduce(double identity, DoubleBinaryOperator op) {
-		// TODO Auto-generated method stub
-		return 0;
+		if (op == null) {
+			throw new NullPointerException("Binary operator can't be null"); 
+		}
+		else if (spliterator != null) {
+			if (spliterator.hasCharacteristics(Spliterator.SIZED) && spliterator.hasCharacteristics(Spliterator.SUBSIZED)) {
+				if (spliterator.estimateSize() != 0) {
+					try{
+						return identity + ArrayUtils.forkJoinPool.submit(new Reduces<double[]>(spliterator, op)).get()[0];
+					} catch (InterruptedException | ExecutionException e) {
+						throw new RuntimeException(e.getLocalizedMessage(),e);
+					}
+				}
+				else {
+					return identity;
+				}
+			}
+			else {
+				double[]	result = {identity};
+				
+				while (spliterator.tryAdvance((double e)->result[0] = op.applyAsDouble(result[0], iterator.nextDouble()))) {
+					// Empty body
+				}
+				return result[0];
+			}
+		}
+		else {
+			double result = identity;
+			
+			while (iterator.hasNext()) {
+				result = op.applyAsDouble(result, iterator.nextDouble());
+			}
+			return result;
+		}
 	}
 
 	@Override
 	public OptionalDouble reduce(DoubleBinaryOperator op) {
-		// TODO Auto-generated method stub
-		return null;
+		if (op == null) {
+			throw new NullPointerException("Binary operator can't be null"); 
+		}
+		else if (spliterator != null) {
+			if (spliterator.hasCharacteristics(Spliterator.SIZED) && spliterator.hasCharacteristics(Spliterator.SUBSIZED)) {
+				if (spliterator.estimateSize() != 0) {
+					try{
+						return OptionalDouble.of(ArrayUtils.forkJoinPool.submit(new Reduces<double[]>(spliterator, op)).get()[0]);
+					} catch (InterruptedException | ExecutionException e) {
+						throw new RuntimeException(e.getLocalizedMessage(),e);
+					}
+				}
+				else {
+					return OptionalDouble.empty();
+				}
+			}
+			else {
+				double[]	result = {0};
+				boolean[]	inside = {false};
+				
+				while (spliterator.tryAdvance((double e)->{
+					result[0] = op.applyAsDouble(result[0], iterator.nextDouble());
+					inside[0] = true;})) {
+					// Empty body
+				}
+				return inside[0] ? OptionalDouble.of(result[0]) : OptionalDouble.empty();
+			}
+		}
+		else if (iterator.hasNext()) {
+			double result = iterator.nextDouble();
+			
+			while (iterator.hasNext()) {
+				result = op.applyAsDouble(result, iterator.nextDouble());
+			}
+			return OptionalDouble.of(result);
+		}
+		else {
+			return OptionalDouble.empty();
+		}
 	}
 
 	@Override
@@ -288,62 +559,140 @@ class DoubleStreamImpl implements DoubleStream {
 
 	@Override
 	public boolean anyMatch(DoublePredicate predicate) {
-		// TODO Auto-generated method stub
-		return false;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate to test mathes can't be null");
+		}
+		else if (spliterator != null) {
+			final boolean[]	result = {false};
+			
+			while (!result[0] && spliterator.tryAdvance((double value)->{
+					result[0] |= predicate.test(value);
+				})) {
+				// Empty body...
+			}
+			return result[0];
+		}
+		else {
+			while (iterator.hasNext()) {
+				if (predicate.test(iterator.nextDouble())) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 
 	@Override
 	public boolean allMatch(DoublePredicate predicate) {
-		// TODO Auto-generated method stub
-		return false;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate to test mathes can't be null");
+		}
+		else if (spliterator != null) {
+			final boolean[]	tested = {false};
+			
+			try{return !ArrayUtils.forkJoinPool.submit(new Matches(spliterator, (double value)->{
+					tested[0] = true;
+					return !predicate.test(value);
+				})).get() && tested[0];
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e.getLocalizedMessage(),e);
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				if (!predicate.test(iterator.nextDouble())) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 
 	@Override
 	public boolean noneMatch(DoublePredicate predicate) {
-		// TODO Auto-generated method stub
-		return false;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate to test mathes can't be null");
+		}
+		else if (spliterator != null) {
+			final boolean[]	tested = {false};
+			
+			try{return !ArrayUtils.forkJoinPool.submit(new Matches(spliterator, (double value)->{
+					tested[0] = true;
+					return predicate.test(value);
+				})).get() && tested[0];
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e.getLocalizedMessage(),e);
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				if (predicate.test(iterator.nextDouble())) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 
 	@Override
 	public OptionalDouble findFirst() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			final double[]	result = new double[] {0};
+			
+			if (spliterator.tryAdvance((double value)->{result[0] = value;})) {
+				return OptionalDouble.of(result[0]);
+			}
+			else {
+				return OptionalDouble.empty();
+			}
+		}
+		else if (iterator.hasNext()) {
+			return OptionalDouble.of(iterator.nextDouble());
+		}
+		else {
+			return OptionalDouble.empty();
+		}
 	}
 
 	@Override
 	public OptionalDouble findAny() {
-		// TODO Auto-generated method stub
-		return null;
+		return findFirst();
 	}
 
 	@Override
 	public Stream<Double> boxed() {
-		// TODO Auto-generated method stub
-		return null;
+		return mapToObj((e)->Double.valueOf(e));
 	}
 
 	@Override
 	public DoubleStream sequential() {
-		// TODO Auto-generated method stub
-		return null;
+		final GrowableDoubleArray	gia = new GrowableDoubleArray(false);
+		
+		gia.append(toArray());
+		return new DoubleStreamImpl(gia.getIterator(),this::close);
 	}
 
 	@Override
 	public DoubleStream parallel() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null && spliterator().hasCharacteristics(Spliterator.CONCURRENT)) {
+			return this;
+		}
+		else {
+			final GrowableDoubleArray	gia = new GrowableDoubleArray(false);
+			
+			gia.append(toArray());
+			return new DoubleStreamImpl(gia);
+		}
 	}
 
 	@Override
 	public OfDouble iterator() {
-		// TODO Auto-generated method stub
-		return null;
+		return iterator;
 	}
 
 	@Override
 	public java.util.Spliterator.OfDouble spliterator() {
-		// TODO Auto-generated method stub
-		return null;
+		return spliterator();
 	}
 
 	private static class SpliteratorWrapperDouble implements SpliteratorOfDouble {

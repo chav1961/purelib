@@ -27,16 +27,21 @@ class IteratorWrapperDouble implements OfDouble {
 
 	@Override
 	public boolean hasNext() {
-		return nestedInt.hasNext();
+		return nestedInt != null ? nestedInt.hasNext() : nestedLong.hasNext();
 	}
 
 	@Override
 	public double nextDouble() {
-		return mapperInt.applyAsDouble(nestedInt.nextInt());
+		if (mapperInt != null) {
+			return mapperInt.applyAsDouble(nestedInt.nextInt());
+		}
+		else {
+			return mapperLong.applyAsDouble(nestedLong.nextLong());
+		}
 	}
 
 	@Override
 	public String toString() {
-		return "IteratorWrapperDouble [nested=" + nestedInt + ", mapper=" + mapperInt + "]";
+		return "IteratorWrapperDouble [nestedInt=" + nestedInt + ", mapperInt=" + mapperInt + ", nestedLong=" + nestedLong + ", mapperLong=" + mapperLong + "]";
 	}
 }

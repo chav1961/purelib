@@ -1,11 +1,18 @@
 package chav1961.purelib.basic.growablearrays;
 
 
+
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-import java.util.Spliterator.OfLong;
+import java.util.Spliterator;
+import java.util.PrimitiveIterator.OfLong;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
+import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfLong;
+import chav1961.purelib.basic.growablearrays.GrowableIntArray.PlainSpliterator;
+import chav1961.purelib.basic.growablearrays.GrowableIntArray.SlicedSpliterator;
 
 /**
  * <p>This class implements functionality for the growable long arrays.</p>
@@ -14,10 +21,11 @@ import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfLong;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public class GrowableLongArray {
+	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final long[]	NULL_LONG = new long[0];
 	
 	private final boolean		usePlain;
@@ -298,6 +306,15 @@ public class GrowableLongArray {
 	public void clear() {
 		length(0);
 	}
+
+	/**
+	 * <p>Convert array content to stream</p> 
+	 * @return immutable stream converted. Can't be null
+	 * @since 0.0.5
+	 */
+	public LongStream toStream() {
+		return new LongStreamImpl(this);
+	}
 	
 	@Override
 	public String toString() {
@@ -327,9 +344,123 @@ public class GrowableLongArray {
 	}
 
 	SpliteratorOfLong getSpliterator() {
-		// TODO Auto-generated method stub
-		return null;
+		if (usePlain) {
+			return new PlainSpliterator(0, length()); 
+		}
+		else {
+			return new SlicedSpliterator(0, length(), MINIMUM_SPLIT_SIZE); 
+		}
 	}
+
+	OfLong getIterator() {
+		return new OfLong() {
+			int	index = 0;
+			
+			@Override
+			public boolean hasNext() {
+				return index < length();
+			}
+
+			@Override
+			public long nextLong() {
+				if (usePlain) {
+					return plain[index++];
+				}
+				else {
+					final long	result = sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)];
+					
+					index++;
+					return result;
+				}
+			}
+		};
+	}
+	
+	protected class PlainSpliterator extends AbstractLongSpliterator {
+		PlainSpliterator(final int from, final int to) {
+			super(from,to);
+		}
+
+		@Override
+		public int characteristics() {
+			return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED;
+		}
+
+		@Override 
+		public SpliteratorOfLong trySplit() {
+			return null;
+		}
+
+		@Override
+		protected long getValue(final int index) {
+			return plain[index];
+		}
+		
+		@Override
+		public String toString() {
+			return "PlainSpliterator [from=" + from + ", to=" + to + ", index=" + index + "]";
+		}
+	}
+	
+	protected class SlicedSpliterator extends AbstractLongSpliterator {
+		protected final int					minimumSplitSize;
+		protected final SlicedSpliterator	nested; 
+		
+		SlicedSpliterator(final int from, final int to, final int minimumSplitSize) {
+			this(null, from, to, minimumSplitSize);
+		}
+
+		SlicedSpliterator(final SlicedSpliterator nested) {
+			this(nested, nested.from, nested.to, nested.minimumSplitSize);
+		}
+
+		SlicedSpliterator(final SlicedSpliterator nested, final int from, final int to, final int minimumSplitSize) {
+			super(from, to);
+			this.minimumSplitSize = nested != null ? nested.minimumSplitSize : MINIMUM_SPLIT_SIZE;
+			this.nested = nested;
+		}
+		
+		@Override
+		public int characteristics() {
+			if (nested != null) {
+				return nested.characteristics();
+			}
+			else {
+				return Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED | Spliterator.SUBSIZED;
+			}
+		}
+
+		@Override
+		public SpliteratorOfLong trySplit() {
+ 			final int	delta = to - index, halfDelta = delta / 2;
+			
+			if (halfDelta >= minimumSplitSize) {
+				final int	splittedTo = to;
+				
+				to = halfDelta;
+				return new SlicedSpliterator(this, index + halfDelta, splittedTo, minimumSplitSize);
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		protected long getValue(final int index) {
+			if (nested != null) {
+				return nested.getValue(index);
+			}
+			else {
+				return sliced[aacm.toSliceIndex(index)][aacm.toRelativeOffset(index)];
+			}
+		}
+		
+		@Override
+		public String toString() {
+			return "SlicedSpliterator [minimumSplitSize=" + minimumSplitSize + ", from=" + from + ", to=" + to + ", index=" + index + "]";
+		}
+	}
+	
 	
 	private class PlainManager extends AbstractPlainContentManager<long[]> {
 		PlainManager(final int initialPow) {
@@ -350,11 +481,6 @@ public class GrowableLongArray {
 			}
 			return newSize;
 		}
-
-//		@Override
-//		void walk(Walker<long[]> walker) {
-//			walker.process(plain,0,currentSize);
-//		}
 	}
 
 	private class SlicedManager extends AbstractSlicedContentManager<long[]> {
@@ -380,22 +506,6 @@ public class GrowableLongArray {
 			}
 			return newSize;
 		}
-
-//		@Override
-//		void walk(Walker<long[]> walker) {
-//			int	size = currentSize;
-//			
-//			for (int index = 0, maxIndex = sliced.length; index < maxIndex; index++) {
-//				if (sliced[index] != null) {
-//					if (!walker.process(sliced[index],0,Math.min(sliced[index].length,size))) {
-//						return;
-//					}
-//					else {
-//						size -= sliced[index].length; 
-//					}
-//				}
-//			}
-//		}
 	}
 
 }

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.OptionalDouble;
+import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.PrimitiveIterator.OfInt;
@@ -388,13 +389,82 @@ class LongStreamImpl implements LongStream {
 	@Override
 	public long reduce(long identity, LongBinaryOperator op) {
 		// TODO Auto-generated method stub
-		return 0;
+		if (op == null) {
+			throw new NullPointerException("Binary operator can't be null"); 
+		}
+		else if (spliterator != null) {
+			if (spliterator.hasCharacteristics(Spliterator.SIZED) && spliterator.hasCharacteristics(Spliterator.SUBSIZED)) {
+				if (spliterator.estimateSize() != 0) {
+					try{
+						return identity + ArrayUtils.forkJoinPool.submit(new Reduces<long[]>(spliterator, op)).get()[0];
+					} catch (InterruptedException | ExecutionException e) {
+						throw new RuntimeException(e.getLocalizedMessage(),e);
+					}
+				}
+				else {
+					return identity;
+				}
+			}
+			else {
+				long[]		result = {identity};
+				
+				while (spliterator.tryAdvance((long e)->result[0] = op.applyAsLong(result[0], iterator.nextLong()))) {
+					// Empty body
+				}
+				return result[0];
+			}
+		}
+		else {
+			long	result = identity;
+			
+			while (iterator.hasNext()) {
+				result = op.applyAsLong(result, iterator.nextLong());
+			}
+			return result;
+		}
 	}
 
 	@Override
 	public OptionalLong reduce(LongBinaryOperator op) {
-		// TODO Auto-generated method stub
-		return null;
+		if (op == null) {
+			throw new NullPointerException("Binary operator can't be null"); 
+		}
+		else if (spliterator != null) {
+			if (spliterator.hasCharacteristics(Spliterator.SIZED) && spliterator.hasCharacteristics(Spliterator.SUBSIZED)) {
+				if (spliterator.estimateSize() != 0) {
+					try{
+						return OptionalLong.of(ArrayUtils.forkJoinPool.submit(new Reduces<long[]>(spliterator, op)).get()[0]);
+					} catch (InterruptedException | ExecutionException e) {
+						throw new RuntimeException(e.getLocalizedMessage(),e);
+					}
+				}
+				else {
+					return OptionalLong.empty();
+				}
+			}
+			else {
+				long[]		result = {0};
+				boolean[]	inside = {false};
+				
+				while (spliterator.tryAdvance((long e)->{
+					result[0] = op.applyAsLong(result[0], iterator.nextLong());
+					inside[0] = true;})) {
+					// Empty body
+				}
+				return inside[0] ? OptionalLong.of(result[0]) : OptionalLong.empty();
+			}
+		}
+		else if (iterator.hasNext()) {
+			long result = iterator.nextLong();
+			
+			while (iterator.hasNext()) {
+				result = op.applyAsLong(result, iterator.nextLong());
+			}
+			return OptionalLong.of(result);
+		}
+		else {
+			return OptionalLong.empty();
+		}
 	}
 
 	@Override
@@ -491,68 +561,145 @@ class LongStreamImpl implements LongStream {
 
 	@Override
 	public boolean anyMatch(LongPredicate predicate) {
-		// TODO Auto-generated method stub
-		return false;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate to test mathes can't be null");
+		}
+		else if (spliterator != null) {
+			final boolean[]	result = {false};
+			
+			while (!result[0] && spliterator.tryAdvance((long value)->{
+					result[0] |= predicate.test(value);
+				})) {
+				// Empty body...
+			}
+			return result[0];
+		}
+		else {
+			while (iterator.hasNext()) {
+				if (predicate.test(iterator.nextLong())) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 
 	@Override
 	public boolean allMatch(LongPredicate predicate) {
-		// TODO Auto-generated method stub
-		return false;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate to test mathes can't be null");
+		}
+		else if (spliterator != null) {
+			final boolean[]	tested = {false};
+			
+			try{return !ArrayUtils.forkJoinPool.submit(new Matches(spliterator, (long value)->{
+					tested[0] = true;
+					return !predicate.test(value);
+				})).get() && tested[0];
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e.getLocalizedMessage(),e);
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				if (!predicate.test(iterator.nextLong())) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 
 	@Override
 	public boolean noneMatch(LongPredicate predicate) {
-		// TODO Auto-generated method stub
-		return false;
+		if (predicate == null) {
+			throw new NullPointerException("Predicate to test mathes can't be null");
+		}
+		else if (spliterator != null) {
+			final boolean[]	tested = {false};
+			
+			try{return !ArrayUtils.forkJoinPool.submit(new Matches(spliterator, (long value)->{
+					tested[0] = true;
+					return predicate.test(value);
+				})).get() && tested[0];
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e.getLocalizedMessage(),e);
+			}
+		}
+		else {
+			while (iterator.hasNext()) {
+				if (predicate.test(iterator.nextLong())) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 
 	@Override
 	public OptionalLong findFirst() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null) {
+			final long[]	result = new long[] {0};
+			
+			if (spliterator.tryAdvance((long value)->{result[0] = value;})) {
+				return OptionalLong.of(result[0]);
+			}
+			else {
+				return OptionalLong.empty();
+			}
+		}
+		else if (iterator.hasNext()) {
+			return OptionalLong.of(iterator.nextLong());
+		}
+		else {
+			return OptionalLong.empty();
+		}
 	}
 
 	@Override
 	public OptionalLong findAny() {
-		// TODO Auto-generated method stub
-		return null;
+		return findFirst();
 	}
 
 	@Override
 	public DoubleStream asDoubleStream() {
-		// TODO Auto-generated method stub
-		return null;
+		return mapToDouble((e)->(double)e);
 	}
 
 	@Override
 	public Stream<Long> boxed() {
-		// TODO Auto-generated method stub
-		return null;
+		return mapToObj((e)->Long.valueOf(e));
 	}
 
 	@Override
 	public LongStream sequential() {
-		// TODO Auto-generated method stub
-		return null;
+		final GrowableLongArray	gia = new GrowableLongArray(false);
+		
+		gia.append(toArray());
+		return new LongStreamImpl(gia.getIterator(),this::close);
 	}
 
 	@Override
 	public LongStream parallel() {
-		// TODO Auto-generated method stub
-		return null;
+		if (spliterator != null && spliterator().hasCharacteristics(Spliterator.CONCURRENT)) {
+			return this;
+		}
+		else {
+			final GrowableLongArray	gia = new GrowableLongArray(false);
+			
+			gia.append(toArray());
+			return new LongStreamImpl(gia);
+		}
 	}
 
 	@Override
 	public OfLong iterator() {
-		// TODO Auto-generated method stub
-		return null;
+		return iterator;
 	}
 
 	@Override
 	public java.util.Spliterator.OfLong spliterator() {
-		// TODO Auto-generated method stub
-		return null;
+		return spliterator;
 	}
 
 	private static class SpliteratorWrapperLong implements SpliteratorOfLong {

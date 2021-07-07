@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.PrimitiveIterator.OfInt;
-import java.util.PrimitiveIterator.OfLong;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
@@ -22,7 +21,6 @@ import java.util.function.IntPredicate;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.IntToLongFunction;
 import java.util.function.IntUnaryOperator;
-import java.util.function.LongConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
@@ -31,7 +29,6 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
-import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfLong;
 
 class IntStreamImpl implements IntStream {
 	private final SpliteratorOfInt	spliterator;
@@ -415,7 +412,7 @@ class IntStreamImpl implements IntStream {
 			if (spliterator.hasCharacteristics(Spliterator.SIZED) && spliterator.hasCharacteristics(Spliterator.SUBSIZED)) {
 				if (spliterator.estimateSize() != 0) {
 					try{
-						return identity + ArrayUtils.forkJoinPool.submit(new Reduces(spliterator, op)).get()[0];
+						return identity + ArrayUtils.forkJoinPool.submit(new Reduces<int[]>(spliterator, op)).get()[0];
 					} catch (InterruptedException | ExecutionException e) {
 						throw new RuntimeException(e.getLocalizedMessage(),e);
 					}
@@ -452,7 +449,7 @@ class IntStreamImpl implements IntStream {
 			if (spliterator.hasCharacteristics(Spliterator.SIZED) && spliterator.hasCharacteristics(Spliterator.SUBSIZED)) {
 				if (spliterator.estimateSize() != 0) {
 					try{
-						return OptionalInt.of(ArrayUtils.forkJoinPool.submit(new Reduces(spliterator, op)).get()[0]);
+						return OptionalInt.of(ArrayUtils.forkJoinPool.submit(new Reduces<int[]>(spliterator, op)).get()[0]);
 					} catch (InterruptedException | ExecutionException e) {
 						throw new RuntimeException(e.getLocalizedMessage(),e);
 					}
@@ -726,95 +723,6 @@ class IntStreamImpl implements IntStream {
 		return spliterator;
 	}
 	
-	private static class SpliteratorWrapperLong implements SpliteratorOfLong {
-		private final SpliteratorOfInt	nested;
-		private final IntToLongFunction	op;
-		
-		private SpliteratorWrapperLong(final SpliteratorOfInt nested, final IntToLongFunction op) {
-			this.nested = nested;
-			this.op = op;
-		}
-		
-		@Override
-		public boolean mustBeProcessed(final long sequential, final long value) {
-			return true;
-		}
-		
-		@Override
-		public long estimateSize() {
-			return nested.estimateSize();
-		}
-
-		@Override
-		public int characteristics() {
-			return nested.characteristics();
-		}
-
-		@Override
-		public OfLong trySplit() {
-			final SpliteratorOfInt	result = (SpliteratorOfInt)nested.trySplit();
-			
-			if (result != null) {
-				return new SpliteratorWrapperLong(result, op);
-			}
-			else {
-				return null;
-			}
-		}
-
-		@Override
-		public boolean tryAdvance(final LongConsumer action) {
-			return nested.tryAdvance((int e)->action.accept(op.applyAsLong(e))); 
-		}
-
-		@Override
-		public String toString() {
-			return "SpliteratorWrapperLong [nested=" + nested + ", op=" + op + "]";
-		}
-	}
-
-	private static class Reduces extends RecursiveTask<int[]> {
-		private static final long 		serialVersionUID = 1L;
-		
-		private final SpliteratorOfInt	spliterator;
-		private final IntBinaryOperator	op;
-
-        public Reduces(final SpliteratorOfInt spliterator, final IntBinaryOperator op) {
-            this.spliterator = spliterator;
-            this.op = op;
-        }
-
-        @Override
-        protected int[] compute() {
-        	final SpliteratorOfInt		leftSplit = (SpliteratorOfInt)spliterator.trySplit();
-
-           	if (leftSplit == null) {
-           		final int[]	result = new int[1];
-           		
-           		while (spliterator.tryAdvance((int value)->{
-           				result[0] = op.applyAsInt(result[0],value);
-           			})) {
-           			// empty body...
-           		}
-           		return result;
-           	}
-           	else {
-               	final Reduces		leftReduce = new Reduces(leftSplit, op);
-            	
-               	leftReduce.fork();            	
-            	final int[]			right = this.compute(), left = leftReduce.join();
-            	
-            	left[0] = op.applyAsInt(left[0], right[0]);
-           		return left;
-        	}
-        }
-
-		@Override
-		public String toString() {
-			return "Reduces [spliterator=" + spliterator + "]";
-		}
-    }
-	
 	private static class Statistics extends RecursiveTask<IntSummaryStatistics> {
 		private static final long 		serialVersionUID = 1L;
 		
@@ -854,51 +762,6 @@ class IntStreamImpl implements IntStream {
 		@Override
 		public String toString() {
 			return "Statistics [spliterator=" + spliterator + "]";
-		}
-    }
-
-	private static class Matches extends RecursiveTask<Boolean> {
-		private static final long 		serialVersionUID = 1L;
-
-		@FunctionalInterface
-		private interface MatchesTest {
-			boolean test(final int value);
-		}
-		
-		private final SpliteratorOfInt	spliterator;
-		private final MatchesTest		test;
-
-		
-        public Matches(final SpliteratorOfInt spliterator, final MatchesTest test) {
-            this.spliterator = spliterator;
-            this.test = test;
-        }
-
-        @Override
-        protected Boolean compute() {
-        	final SpliteratorOfInt		leftSplit = (SpliteratorOfInt)spliterator.trySplit();
-
-           	if (leftSplit == null) {
-           		final boolean[]	result = new boolean[] {false};
-           		
-           		while (!result[0] && spliterator.tryAdvance((int value)->result[0] = test.test(value))) {
-           			// empty body...
-           		}
-           		return result[0];
-           	}
-           	else {
-               	final Matches		leftMatches = new Matches(leftSplit, test);
-            	
-               	leftMatches.fork();            	
-            	final Boolean		right = this.compute();
-            	
-           		return right || leftMatches.join();
-        	}
-        }
-
-		@Override
-		public String toString() {
-			return "Matches [spliterator=" + spliterator + "]";
 		}
     }
 
