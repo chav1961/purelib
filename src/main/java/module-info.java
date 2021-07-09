@@ -61,6 +61,7 @@ module chav1961.purelib {
 	exports chav1961.purelib.streams.charsource;
 	exports chav1961.purelib.streams.chartarget;
 	exports chav1961.purelib.streams.interfaces;
+	exports chav1961.purelib.testing;
 	exports chav1961.purelib.ui;
 	exports chav1961.purelib.ui.interfaces;
 	exports chav1961.purelib.ui.swing;
