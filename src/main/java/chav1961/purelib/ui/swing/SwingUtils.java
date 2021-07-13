@@ -145,6 +145,8 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_FORWARD = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_HELP = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
 	public static final KeyStroke			KS_ACCEPT = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+	public static final KeyStroke			KS_INSERT = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
+	public static final KeyStroke			KS_DUPLICATE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
 	public static final KeyStroke			KS_DELETE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 	public static final KeyStroke			KS_EXIT = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	public static final KeyStroke			KS_DROPDOWN = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK);
@@ -152,9 +154,37 @@ public abstract class SwingUtils {
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";
-	public static final String				ACTION_HELP = "help";
+	public static final String				ACTION_INSERT = "insert";
+	public static final String				ACTION_DUPLICATE = "duplicate";
+	public static final String				ACTION_DELETE = "delete";
 	public static final String				ACTION_ACCEPT = "accept";
 	public static final String				ACTION_EXIT = "exit";
+	public static final String				ACTION_HELP = "help";
+	
+	public static enum EditorKeys {
+		EK_INSERT(KS_INSERT, ACTION_INSERT),
+		EK_DUPLICATE(KS_DUPLICATE, ACTION_DUPLICATE),
+		EK_DELETE(KS_DELETE, ACTION_DELETE),
+		EK_ACCEPT(KS_ACCEPT, ACTION_ACCEPT),
+		EK_EXIT(KS_EXIT, ACTION_EXIT),
+		EX_HELP(KS_HELP, ACTION_HELP);
+		
+		private final KeyStroke	ks;
+		private final String	action;
+		
+		private EditorKeys(final KeyStroke ks, final String action) {
+			this.ks = ks;
+			this.action = action;
+		}
+		
+		public KeyStroke getKeyStroke() {
+			return ks;
+		}
+		
+		public String getAction() {
+			return action;
+		}
+	}
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
 
@@ -727,6 +757,40 @@ loop:			for (Component comp : children(node)) {
 		assignActionKey(component,JPanel.WHEN_FOCUSED,keyStroke, listener, actionId);
 	}	
 
+	/**
+	 * <p>Assigns key to process action on component</p>
+	 * @param component component to assign key to
+	 * @param listener action listener to call
+	 * @param keys key  list to assign. Can't be null
+	 * @throws NullPointerException any parameters are null
+	 * @throws IllegalArgumentException some parameters are invalid
+	 * @since 0.0.5
+	 */
+	public static void assignActionKeys(final JComponent component, final ActionListener listener, final EditorKeys... keys) throws NullPointerException, IllegalArgumentException {
+		assignActionKeys(component,JPanel.WHEN_FOCUSED,listener,keys);
+	}	
+
+	/**
+	 * <p>Assigns key to process action on component</p>
+	 * @param component component to assign key to
+	 * @param mode input map mode
+	 * @param listener action listener to call
+	 * @param keys key  list to assign. Can't be null
+	 * @throws NullPointerException any parameters are null
+	 * @throws IllegalArgumentException some parameters are invalid
+	 * @since 0.0.5
+	 */
+	public static void assignActionKeys(final JComponent component, final int mode, final ActionListener listener, final EditorKeys... keys) throws NullPointerException, IllegalArgumentException {
+		if (keys == null) {
+			throw new NullPointerException("Editor keys can't be null");
+		}
+		else {
+			for (EditorKeys item : keys) {
+				assignActionKey(component, mode, item.getKeyStroke(), listener, item.getAction());
+			}
+		}
+	}	
+	
 	/**
 	 * <p>Remove action key was assigned earlier</p>
 	 * @param component component to remove key from
@@ -1895,40 +1959,6 @@ loop:			for (Component comp : children(node)) {
 
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
 			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
-			if (getNodeMetadata().getTooltipId() != null) {
-				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
-			}
-		}
-	}
-
-	private static class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener {
-		private static final long serialVersionUID = 366031204608808220L;
-		
-		private final ContentNodeMetadata	metadata;
-		
-		private JToolBarWithMeta(final ContentNodeMetadata metadata) {
-			this.metadata = metadata;
-			this.setName(metadata.getName());
-			try{fillLocalizedStrings();
-			} catch (IOException | LocalizationException e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public ContentNodeMetadata getNodeMetadata() {
-			return metadata;
-		}
-		
-		@Override
-		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-			try{fillLocalizedStrings();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		private void fillLocalizedStrings() throws LocalizationException, IOException {
 			if (getNodeMetadata().getTooltipId() != null) {
 				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
 			}
