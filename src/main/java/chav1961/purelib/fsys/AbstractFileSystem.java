@@ -22,6 +22,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
@@ -232,7 +233,9 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	@Override
 	public String[] list() throws IOException {
 		final List<String>	result = new ArrayList<>();
-		list(fsys -> result.add(fsys.getName()));
+		list(fsys -> {result.add(fsys.getName());
+			return ContinueMode.CONTINUE;
+		});
 		
 		final String[]		returned = result.toArray(new String[result.size()]);		
 		result.clear();
@@ -256,7 +259,9 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		}
 		else {
 			final List<String>	result = new ArrayList<>();
-			list(mask,fsys -> result.add(fsys.getName()));
+			list(mask,fsys -> {result.add(fsys.getName());
+				return ContinueMode.CONTINUE;
+			});
 			
 			final String[]		returned = result.toArray(new String[result.size()]);		
 			result.clear();
@@ -822,11 +827,15 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	
 	private FileSystemInterface list(final Pattern mask, final FileSystemListCallbackInterface callback) throws IOException {
 		if (exists() && isDirectory()) {
-			final AbstractFileSystem	clone = (AbstractFileSystem) clone();
-			
-			for (URI item : getDataWrapper(currentPath).list(mask)) {
-				callback.process(clone.push(build(item.toString())));
-				clone.pop();
+			try(final AbstractFileSystem	clone = (AbstractFileSystem) clone()) {
+				for (URI item : getDataWrapper(currentPath).list(mask)) {
+					final ContinueMode rc = callback.process(clone.push(build(item.toString())));
+					
+					clone.pop();
+					if (rc != ContinueMode.CONTINUE) {
+						break;
+					}
+				}
 			}
 		}
 		return this;

@@ -10,6 +10,7 @@ import java.net.URI;
 import java.util.Map;
 
 import chav1961.purelib.basic.interfaces.SpiService;
+import chav1961.purelib.enumerations.ContinueMode;
 
 
 
@@ -93,7 +94,7 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 		 * @param item IFileSystem item for one of the directory content items
 		 * @throws IOException if any exception was detected during processing
 		 */
-		void process(FileSystemInterface item) throws IOException;
+		ContinueMode process(FileSystemInterface item) throws IOException;
 	}
 	
 	/**

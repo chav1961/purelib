@@ -28,6 +28,7 @@ import javax.swing.border.LineBorder;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.model.FieldFormat;
 
@@ -249,6 +250,7 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 				else {
 					files.add(new JFileListItemDescriptor(s.getName(),s.getPath(),false));
 				}
+				return ContinueMode.CONTINUE;
 			});
 			dirs.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
 			files.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
