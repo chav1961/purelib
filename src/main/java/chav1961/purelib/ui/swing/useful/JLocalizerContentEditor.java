@@ -77,7 +77,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	private TimerTask				tt = null;
 	private FocusedComponent		focused;
 	
-	public JLocalizerContentEditor(final Localizer localizer, final LoggerFacade logger) throws EnvironmentException {
+	public JLocalizerContentEditor(final Localizer localizer, final LoggerFacade logger) throws EnvironmentException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}

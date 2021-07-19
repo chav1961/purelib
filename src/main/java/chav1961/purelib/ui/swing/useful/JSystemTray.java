@@ -27,13 +27,12 @@ import javax.swing.JSeparator;
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeListener, AutoCloseable {

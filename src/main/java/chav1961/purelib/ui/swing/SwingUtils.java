@@ -18,7 +18,6 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -61,7 +60,6 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.FocusManager;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -190,7 +188,7 @@ public abstract class SwingUtils {
 
 	private static final String				UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
-	private static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
+	static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -527,12 +525,15 @@ loop:			for (Component comp : children(node)) {
 					throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
 				}
 				else {
-					final JToolBar	result = new JToolBarWithMeta(node);
-					
-					for (ContentNodeMetadata child : node) {
+					try {
+						return (T)new JToolBarWithMeta(node);
+					} catch (LocalizationException | ContentException e) {
+						throw new IllegalArgumentException("Error creation toolbar: "+e.getLocalizedMessage(),e); 
+					}
+/*					for (ContentNodeMetadata child : node) {
 						if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 							final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child);
-							final JButton 				btn = new JButtonWithMetaAndActions(child,JButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
+							final JButton 				btn = new JButtonWithMetaAndActions(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
 							
 							for (ContentNodeMetadata item : child) {
 								toMenuEntity(item,menu);
@@ -544,13 +545,14 @@ loop:			for (Component comp : children(node)) {
 							result.add(btn);
 						}
 						else if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-							result.add(new JButtonWithMeta(child,JButtonWithMeta.LAFType.ICON_THEN_TEXT));
+							result.add(new JInternalButtonWithMeta(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT));
 						}
 						else if (URI.create("./navigation.separator").equals(child.getRelativeUIPath())) {
 							result.addSeparator();
 						}
 					}
 					return (T) result;
+*/					
 				}
 			}
 			else {
@@ -1760,78 +1762,6 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
-	private static class JMenuPopupWithMeta extends JPopupMenu implements NodeMetadataOwner, LocaleChangeListener {
-		private static final long serialVersionUID = 2873312186080690483L;
-		
-		private final ContentNodeMetadata	metadata;
-		
-		private JMenuPopupWithMeta(final ContentNodeMetadata metadata) {
-			this.metadata = metadata;
-			this.setName(metadata.getName());
-			try{fillLocalizedStrings();
-			} catch (IOException | LocalizationException e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public ContentNodeMetadata getNodeMetadata() {
-			return metadata;
-		}
-		
-		@Override
-		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-			try{fillLocalizedStrings();
-				for (int index = 0, maxIndex = this.getComponentCount(); index < maxIndex; index++) {
-					final Component	item = this.getComponent(index);
-					
-					if (item instanceof LocaleChangeListener) {
-						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
-					}
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public void show(final Component invoker, final int x, final int y) {
-			final Map<String,Container>	map = new HashMap<>();
-			final Window				frame = SwingUtilities.getWindowAncestor(invoker);
-			
-			getNodeMetadata().getOwner().walkDown((mode, applicationPath, uiPath, node) -> {
-				if (mode == NodeEnterMode.ENTER && applicationPath != null && URIUtils.canServeURI(applicationPath, MODEL_REF_URI)) {
-					final Container		item = SwingUtils.findComponentByName(this,node.getName());
-					final Container		ref = SwingUtils.findComponentByName(frame,node.getLabelId());
-					
-					if ((item instanceof JMenuItem) && (ref instanceof JMenuItem)) {
-						((JMenuItem)item).setText(((JMenuItem)ref).getText());
-						((JMenuItem)item).setIcon(((JMenuItem)ref).getIcon());
-						((JMenuItem)item).setToolTipText(((JMenuItem)ref).getToolTipText());
-						((JMenuItem)item).setEnabled(((JMenuItem)ref).isEnabled());
-						((JMenuItem)item).addActionListener((e)->((JMenuItem)ref).doClick());
-					}
-					else if ((item instanceof JMenu) && (ref instanceof JMenu)) {
-						((JMenu)item).setText(((JMenu)ref).getText());
-						((JMenu)item).setIcon(((JMenu)ref).getIcon());
-						((JMenu)item).setToolTipText(((JMenu)ref).getToolTipText());
-						((JMenu)item).setEnabled(((JMenu)ref).isEnabled());
-					}
-				}
-				return ContinueMode.CONTINUE;
-			},getNodeMetadata().getUIPath());
-			super.show(invoker, x, y);
-		}
-		
-		private void fillLocalizedStrings() throws LocalizationException, IOException {
-			final String	ttId = getNodeMetadata().getTooltipId();
-			
-			if (ttId != null && !ttId.isEmpty()) {
-				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(ttId));
-			}
-		}
-	}
-	
 	private static class JMenuItemWithMeta extends JMenuItem implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = -1731094524456032387L;
 
@@ -1961,105 +1891,6 @@ loop:			for (Component comp : children(node)) {
 			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
 			if (getNodeMetadata().getTooltipId() != null) {
 				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
-			}
-		}
-	}
-
-	private static class JButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener {
-		private static final long serialVersionUID = 366031204608808220L;
-		
-		protected enum LAFType {
-			TEXT_ONLY, ICON_INLY, BOTH, ICON_THEN_TEXT
-		}
-		
-		private final ContentNodeMetadata	metadata;
-		private final LAFType				type;
-
-		private JButtonWithMeta(final ContentNodeMetadata metadata) {
-			this(metadata,LAFType.BOTH);
-		}		
-		
-		private JButtonWithMeta(final ContentNodeMetadata metadata, final LAFType type) {
-			this.metadata = metadata;
-			this.type = type;
-			this.setName(metadata.getName());
-			this.setActionCommand(metadata.getApplicationPath() != null ? metadata.getApplicationPath().getSchemeSpecificPart() : "action:/"+metadata.getName());
-			try{fillLocalizedStrings();
-			} catch (IOException | LocalizationException e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public ContentNodeMetadata getNodeMetadata() {
-			return metadata;
-		}
-		
-		@Override
-		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-			try{fillLocalizedStrings();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		private void fillLocalizedStrings() throws LocalizationException, IOException {
-			if (getNodeMetadata().getTooltipId() != null) {
-				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
-			}
-			switch (type) {
-				case BOTH			:
-					if (getNodeMetadata().getIcon() != null) {
-						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
-					}
-					setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
-					break;
-				case ICON_INLY		:
-					if (getNodeMetadata().getIcon() != null) {
-						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
-					}
-					break;
-				case ICON_THEN_TEXT	:
-					if (getNodeMetadata().getIcon() != null) {
-						setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
-						break;
-					}
-					// break doesn't need!
-				case TEXT_ONLY		:
-					setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
-					break;
-				default:
-					throw new UnsupportedOperationException("LAF type ["+type+"] is not supported yet"); 
-			}
-		}
-	}
-
-	private static class JButtonWithMetaAndActions extends JButtonWithMeta implements InnerActionNode {
-		private static final long serialVersionUID = 366031204608808220L;
-		
-		private final JComponent[]	actionable;
-
-		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final JComponent... actionable) {
-			super(metadata);
-			this.actionable = actionable;
-		}
-		
-		
-		private JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final LAFType type, final JComponent... actionable) {
-			super(metadata,type);
-			this.actionable = actionable;
-		}
-
-		@Override
-		public JComponent[] getActionNodes() {
-			return actionable;
-		}
-
-		@Override
-		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-			super.localeChanged(oldLocale, newLocale);
-			for (JComponent item : getActionNodes()) {
-				SwingUtils.refreshLocale(item,oldLocale, newLocale);
 			}
 		}
 	}

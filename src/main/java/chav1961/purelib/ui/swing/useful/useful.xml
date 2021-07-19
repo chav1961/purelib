@@ -1,62 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <app:root xmlns:app="http://ui.purelib.chav1961/">
-	<app:i18n location="i18n:xml:root://chav1961.purelibnavigator.admin.Application/chav1961/purelib/admin/i18n/i18n.xml"/>
+	<app:i18n location="i18n:xml:root://chav1961.purelib.basic.PureLibSettings/chav1961/purelib/i18n/localization.xml"/>
 	<app:menu id="localizerContentEditor">
-		<app:submenu name="menu.file" caption="menu.file" tooltip="menu.file.tt">
-			<app:item name="menu.file.new" caption="menu.file.new" tooltip="menu.file.new.tt" action="newFile"/>
-			<app:item name="menu.file.open" caption="menu.file.open" tooltip="menu.file.open.tt" action="openFile"/>
-			<app:separator/>
-			<app:item name="menu.file.save" caption="menu.file.save" tooltip="menu.file.save.tt" action="saveFile"/>
-			<app:item name="menu.file.saveas" caption="menu.file.saveAs" tooltip="menu.file.saveAs.tt" action="saveFileAs"/>
-			<app:separator/>
-			<app:submenu name="menu.file.lru" caption="menu.file.lru" tooltip="menu.file.lru.tt">	
-				<app:separator/>
-			</app:submenu>
-			<app:item name="menu.file.exit" caption="menu.file.exit" tooltip="menu.file.exit.tt" action="exit"/>
-		</app:submenu>
-		<app:submenu name="menu.tools" caption="menu.tools" tooltip="menu.tools.tt">
-			<app:item name="menu.tools.preview" caption="menu.tools.preview" tooltip="menu.tools.preview.tt" action="preview"/>
-			<app:builtinSubmenu name="builtin.languages" caption="menu.tools.languages" tooltip="menu.tools.languages.tt"/>
-		</app:submenu>
-		<app:submenu name="menu.help" caption="menu.help" tooltip="menu.help.tt">
-			<app:item name="menu.help.startBrowser" caption="menu.help.startBrowser" tooltip="menu.help.startBrowser.tt" action="startBrowser"/>
-			<app:separator/>
-			<app:item name="menu.help.about" caption="menu.help.about" tooltip="menu.help.about.tt" action="helpAbout"/>
-		</app:submenu>
+		<app:item name="menu.fileSystemNavigator.asIcons" caption="menu.fileSystemNavigator.asIcons" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asIcons.png" tooltip="menu.fileSystemNavigator.asIcons.tt" action="asIcons"/>
 	</app:menu>
-	<app:keyset id="localizerContentEditor.keyset">
-		<app:key code="N" ctrl="true" action="newFile"/>
-		<app:key code="O" ctrl="true" action="openFile"/>
-		<app:key code="S" ctrl="true" action="saveFile"/>
-		<app:key code="Q" ctrl="true" action="exit"/>
-	</app:keyset>
 	<app:menu id="fileSystemNavigator">
-		<app:submenu name="menu.file" caption="menu.file" tooltip="menu.file.tt">
-			<app:item name="menu.file.new" caption="menu.file.new" tooltip="menu.file.new.tt" action="newFile"/>
-			<app:item name="menu.file.open" caption="menu.file.open" tooltip="menu.file.open.tt" action="openFile"/>
-			<app:separator/>
-			<app:item name="menu.file.save" caption="menu.file.save" tooltip="menu.file.save.tt" action="saveFile"/>
-			<app:item name="menu.file.saveas" caption="menu.file.saveAs" tooltip="menu.file.saveAs.tt" action="saveFileAs"/>
-			<app:separator/>
-			<app:submenu name="menu.file.lru" caption="menu.file.lru" tooltip="menu.file.lru.tt">	
-				<app:separator/>
-			</app:submenu>
-			<app:item name="menu.file.exit" caption="menu.file.exit" tooltip="menu.file.exit.tt" action="exit"/>
-		</app:submenu>
-		<app:submenu name="menu.tools" caption="menu.tools" tooltip="menu.tools.tt">
-			<app:item name="menu.tools.preview" caption="menu.tools.preview" tooltip="menu.tools.preview.tt" action="preview"/>
-			<app:builtinSubmenu name="builtin.languages" caption="menu.tools.languages" tooltip="menu.tools.languages.tt"/>
-		</app:submenu>
-		<app:submenu name="menu.help" caption="menu.help" tooltip="menu.help.tt">
-			<app:item name="menu.help.startBrowser" caption="menu.help.startBrowser" tooltip="menu.help.startBrowser.tt" action="startBrowser"/>
-			<app:separator/>
-			<app:item name="menu.help.about" caption="menu.help.about" tooltip="menu.help.about.tt" action="helpAbout"/>
-		</app:submenu>
+		<app:item name="menu.fileSystemNavigator.asIcons" caption="menu.fileSystemNavigator.asIcons" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asIcons.png" tooltip="menu.fileSystemNavigator.asIcons.tt" action="asIcons"/>
+		<app:item name="menu.fileSystemNavigator.asLargeIcons" caption="menu.fileSystemNavigator.asLargeIcons" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asLargeIcons.png" tooltip="menu.fileSystemNavigator.asLargeIcons.tt" action="asLargeIcons"/>
+		<app:item name="menu.fileSystemNavigator.asTable" caption="menu.fileSystemNavigator.asTable" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asTable.png" tooltip="menu.fileSystemNavigator.asTable.tt" action="asTable"/>
 	</app:menu>
 	<app:keyset id="fileSystemNavigator.keyset">
-		<app:key code="N" ctrl="true" action="newFile"/>
-		<app:key code="O" ctrl="true" action="openFile"/>
-		<app:key code="S" ctrl="true" action="saveFile"/>
-		<app:key code="Q" ctrl="true" action="exit"/>
+		<app:key code="I" ctrl="true" action="asIcons"/>
+		<app:key code="L" ctrl="true" action="asIcons"/>
+		<app:key code="T" ctrl="true" action="asTable"/>
+	</app:keyset>
+	<app:menu id="writableFileSystemNavigator">
+		<app:item name="menu.fileSystemNavigator.asIcons" caption="menu.fileSystemNavigator.asIcons" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asIcons.png" tooltip="menu.fileSystemNavigator.asIcons.tt" action="asIcons"/>
+		<app:item name="menu.fileSystemNavigator.asLargeIcons" caption="menu.fileSystemNavigator.asLargeIcons" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asLargeIcons.png" tooltip="menu.fileSystemNavigator.asLargeIcons.tt" action="asLargeIcons"/>
+		<app:item name="menu.fileSystemNavigator.asTable" caption="menu.fileSystemNavigator.asTable" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asTable.png" tooltip="menu.fileSystemNavigator.asTable.tt" action="asTable"/>
+	</app:menu>
+	<app:keyset id="writableFileSystemNavigator.keyset">
+		<app:key code="I" ctrl="true" action="asIcons"/>
+		<app:key code="L" ctrl="true" action="asIcons"/>
+		<app:key code="T" ctrl="true" action="asTable"/>
 	</app:keyset>
 </app:root>
