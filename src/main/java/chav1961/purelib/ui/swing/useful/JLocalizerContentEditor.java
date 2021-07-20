@@ -1,7 +1,10 @@
 package chav1961.purelib.ui.swing.useful;
 
 
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.ByteArrayOutputStream;
@@ -18,24 +21,32 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimerTask;
 
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
+import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -43,10 +54,19 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.InputStreamGetter;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.OutputStreamGetter;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.cdb.SyntaxNode;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.fsys.FileSystemOnFile;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.i18n.AbstractLocalizer;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.ui.swing.JToolBarWithMeta;
@@ -55,79 +75,99 @@ import chav1961.purelib.ui.swing.interfaces.OnAction;
 
 public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeListener {
 	private static final long 		serialVersionUID = 3237259445965828668L;
-	private static final long		TT_DELAY = 300;
-	private static final String		KEY_SELECT_FIELDS_TITLE = "";
-
+	private static final String		KEY_SELECT_FIELDS_TITLE = "JLocalizerContentEditor.selectFieldsTitle";
+	private static final String		KEY_SELECT_FIELDS_FIELD = "JLocalizerContentEditor.selectFields.field";
+	
 	public static enum ContentType {
-		XML
+		XML, JSON
 	}
 
+	@FunctionalInterface
+	public interface StoreContentInterface {
+		void process(final Localizer localizer, final ContentType type) throws LocalizationException, IOException;
+	}
+	
 	private static enum FocusedComponent {
 		TREE, TABLE, OTHER
 	}
 	
+	private final Localizer				localizer;
+	private final LoggerFacade			logger;
+	private final StoreContentInterface	sci;
+	private final SupportedLanguages[]	languages;
+	private final SyntaxTreeInterface<LocalizerRecord>	content = new AndOrTree<>();
+	private final JToolBarWithMeta		tbm;
+	private final JCreoleEditor			editor;
+	private final InnerTableModel		model;
+	private final JFreezableTable		table;
+	private Node						root = null;
+	private TimerTask					tt = null;
+	private FocusedComponent			focused;
 	
-	private final Localizer			localizer;
-	private final LoggerFacade		logger;
-	private final JToolBarWithMeta	tbm;
-	private final JTree				tree = new JTree();
-	private final InnerTableModel	model = new InnerTableModel();
-	private final JFreezableTable	table;
-	private Node					root = null;
-	private TimerTask				tt = null;
-	private FocusedComponent		focused;
-	
-	public JLocalizerContentEditor(final Localizer localizer, final LoggerFacade logger) throws EnvironmentException, ContentException {
+	public JLocalizerContentEditor(final Localizer localizer, final LoggerFacade logger, final StoreContentInterface store) throws EnvironmentException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
 		else if (logger == null) {
 			throw new NullPointerException("Logger can't be null"); 
 		}
+		else if (store == null) {
+			throw new NullPointerException("Store content interfacle can't be null"); 
+		}
 		else {
 			final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("useful.xml"));
+			final List<SupportedLanguages>	langsList = new ArrayList<>(); 
+			
+			AbstractLocalizer.enumerateLocales((lang, langName, icon) ->{
+					langsList.add(lang);
+				}
+			);
 			
 			this.localizer = localizer;
 			this.logger = logger;
+			this.sci = store;
+			this.languages = langsList.toArray(new SupportedLanguages[langsList.size()]);
 			this.tbm = new JToolBarWithMeta(mdi.byUIPath(URI.create("ui:/model/navigation.top.localizerContentEditor")));
+			this.model = new InnerTableModel(content, this.languages);
 			this.table = new JFreezableTable(model, "key");
+			this.editor = new JCreoleEditor();
+			
 			SwingUtils.assignActionListeners(this.tbm, this);
 			SwingUtils.assignActionKeys(this, JSplitPane.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, (e)->processAction(e.getSource(),e.getActionCommand()), SwingUtils.EditorKeys.values());
 			
-			setLeftComponent(new JScrollPane(tree));
-			tree.addFocusListener(new FocusListener() {
-				@Override public void focusLost(FocusEvent e) {focused = FocusedComponent.OTHER;}
-				@Override public void focusGained(FocusEvent e) {focused = FocusedComponent.TREE;}
-			});
-			tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-			tree.addTreeSelectionListener(new TreeSelectionListener() {
-				@Override 
-				public void valueChanged(final TreeSelectionEvent e) {
-					tt = new TimerTask() {
-						@Override
-						public void run() {
-							refreshTable(e.getNewLeadSelectionPath());
-							refreshState();
-						}
-					};
-					PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, TT_DELAY);
-					refreshState();
-				}
-			});
-			
-			setRightComponent(new JScrollPane(table));
 			table.addFocusListener(new FocusListener() {
 				@Override public void focusLost(FocusEvent e) {focused = FocusedComponent.OTHER;}
 				@Override public void focusGained(FocusEvent e) {focused = FocusedComponent.TABLE;}
 			});
-			table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+			table.getTableHeader().setDefaultRenderer(new TableCellRenderer() {
+				@Override
+				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+			        final String				name = table.getModel().getColumnName(column);
+		        	final SupportedLanguages	lang = SupportedLanguages.valueOf(name);
+			        final JLabel				label = new JLabel(lang.name(), lang.getIcon(), JLabel.LEFT);
+			        
+			        label.setBorder(BorderFactory.createLineBorder(table.getGridColor()));
+			        return label;
+				}
+			});
+			table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 				@Override
 				public void valueChanged(final ListSelectionEvent e) {
 					refreshState();
 				}
 			});
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
 			
+			final JPanel	rightPanel = new JPanel(new BorderLayout());
+			
+			tbm.setFloatable(false);
+			rightPanel.add(tbm, BorderLayout.NORTH);
+			rightPanel.add(new JScrollPane(editor), BorderLayout.CENTER);
+			
+			setLeftComponent(new JScrollPane(table));
+			setRightComponent(rightPanel);
 			fillLocalizedStrings();
 		}
 	}
@@ -137,41 +177,73 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		fillLocalizedStrings();
 	}
 
-	protected void loadContent(final InputStream is, final ContentType type) throws IOException {
+	protected void loadContent(final Localizer load, final boolean replaceExistent) throws IOException, LocalizationException, IllegalArgumentException {
+		final List<LocaleDescriptor>	temp = new ArrayList<>();
 		
-	}
-
-	protected void loadContent(final Localizer localizer) throws IOException {
+		for (LocaleDescriptor item : localizer.supportedLocales()) {
+			temp.add(item);
+		}
+		final SupportedLanguages[]		langs = new SupportedLanguages[temp.size()];
 		
+		for (int index = 0; index < langs.length; index++) {
+			langs[index] = SupportedLanguages.valueOf(temp.get(index).getLanguage());
+		}
+		
+		for (String item : load.localKeys()) {
+			final long	id = content.seekName(item);
+			
+			if (id >= 0) {
+				if (replaceExistent) {
+					final LocalizerRecord	rec = content.getCargo(id);
+					
+					for (int index = 0; index < langs.length; index++) {
+						rec.values[index] = load.getLocalValue(item, temp.get(index).getLocale());
+					}
+				}
+			}
+			else {
+				final long				newId = content.placeName(item, null); 
+				final LocalizerRecord	newRec = new LocalizerRecord(newId, langs, new String[langs.length]); 
+				
+				for (int index = 0; index < langs.length; index++) {
+					newRec.values[index] = load.getLocalValue(item, temp.get(index).getLocale());
+				}
+				content.setCargo(newId, newRec);
+			}
+		}
 	}
 	
-	protected void storeContent(final InputStream is, final ContentType type) throws IOException {
-		
+	protected void storeContent(final Localizer content, final ContentType type) throws IOException, LocalizationException {
+		sci.process(content, type);
 	}
 	
 	protected void loadClassContent(final InputStream is) throws IOException, LocalizationException, IllegalArgumentException, ContentException {
-		final List<Field>	list = new ArrayList<>(), selected = new ArrayList<>(); 
-		
 		try(final SimpleURLClassLoader		sucl = new SimpleURLClassLoader(new URL[0]);
 			final ByteArrayOutputStream		baos = new ByteArrayOutputStream()) {
 			
 			Utils.copyStream(is, baos);
-			
-			CompilerUtils.walkFields(sucl.createClass(baos.toByteArray()), (clazz, field) ->{
-				if (!Modifier.isStatic(field.getModifiers())) {
-					list.add(field);
-				}
-			});
+			loadClassContent(sucl.createClass(baos.toByteArray()));
 		}
+	}
+
+	protected void loadClassContent(final Class<?> cl) throws IOException, LocalizationException, IllegalArgumentException, ContentException {
+		final List<Field>	list = new ArrayList<>(), selected = new ArrayList<>(); 
+		
+		CompilerUtils.walkFields(cl, (clazz, field) ->{
+			if (!Modifier.isStatic(field.getModifiers())) {
+				list.add(field);
+			}
+		});
 		
 		if (selectContent2Load(list, selected)) {
 			for (Field item : selected) {
 				insertKey(field2Label(item));
 				insertKey(field2Tooltip(item));
 			}
+			model.fireTableDataChanged();
 		}
 	}
-
+	
 	private boolean selectContent2Load(final List<Field> list, final List<Field> selected) throws LocalizationException {
 		final JSelectTableModel	model = new JSelectTableModel(localizer, list);
 		final JSelectTable		table = new JSelectTable(model);
@@ -194,7 +266,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	private void storeContent() {
 	}
 
-	@OnAction("action:/storeContent")
+	@OnAction("action:/lodaClassContent")
 	private void loadClassContent() {
 	}
 	
@@ -212,76 +284,28 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		
 	}
 
-	@OnAction("action:/insertSubtree")
-	private void insertSubtree() {
+	private void insertKey(final String key) {
+		final long	id = content.seekName(key);
 		
-	}
-
-	@OnAction("action:/insertSubtree")
-	private void duplicateSubtree() {
-		
-	}
-	
-	@OnAction("action:/removeSubtree")
-	private void removeSubtree() {
-		
-	}
-
-	@OnAction("action:/editSubtree")
-	private void editSubtree() {
-		
-	}
-	
-	private void insertKey(String key) {
-		
+		if (id < 0) {
+			final long				newId = content.placeName(key, null);
+			final String[]			values = new String[languages.length];
+			final LocalizerRecord	rec = new LocalizerRecord(newId, languages, values);
+			
+			Arrays.fill(values, key);
+			content.setCargo(newId, rec);
+		}
 	}
 
 	private static String field2Label(final Field item) {
-		// TODO Auto-generated method stub
-		return null;
+		return CompilerUtils.buildFieldPath(item);
 	}
 	
 	private static String field2Tooltip(final Field item) {
-		// TODO Auto-generated method stub
-		return null;
+		return CompilerUtils.buildFieldPath(item)+".tt";
 	}
 	
 	private void processAction(final Object source, final String action) {
-		switch (action) {
-			case SwingUtils.ACTION_INSERT 		:
-				switch (focused) {
-					case TREE	: insertSubtree(); break;
-					case TABLE	: insertKey(); break;
-					default :
-				}
-				break;
-			case SwingUtils.ACTION_DUPLICATE	:
-				switch (focused) {
-					case TREE	: duplicateSubtree(); break;
-					case TABLE	: duplicateKey(); break;
-					default :
-				}
-				break;
-			case SwingUtils.ACTION_DELETE		:
-				switch (focused) {
-					case TREE	: removeSubtree(); break;
-					case TABLE	: removeKey(); break;
-					default :
-				}
-				break;
-			case SwingUtils.ACTION_ACCEPT		:
-				break;
-			case SwingUtils.ACTION_EXIT			:
-				break;
-			case SwingUtils.ACTION_HELP			:
-				break;
-			default :
-		}
-	}
-	
-	private void refreshTable(final TreePath path) {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	private void refreshState() {
@@ -294,49 +318,157 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		
 	}
 
-	private class InnerTableModel extends DefaultTableModel {
-		private static final long serialVersionUID = 6525386077011559488L;
+	private static class LocalizerRecord {
+		final long					key;
+		final SupportedLanguages[]	langs;
+		final String[]				values;
 
-		@Override
-		public int getRowCount() {
-			// TODO Auto-generated method stub
-			return 0;
+		LocalizerRecord(final long key, final SupportedLanguages[] langs, final String[] values) {
+			this.key = key;
+			this.langs = langs;
+			this.values = values;
 		}
 
 		@Override
-		public int getColumnCount() {
-			// TODO Auto-generated method stub
-			return 0;
+		public String toString() {
+			return "LocalizerRecord [key=" + key + ", langs=" + Arrays.toString(langs) + ", values=" + Arrays.toString(values) + "]";
+		}
+	}
+	
+	private static class OutputLocalizer extends AbstractLocalizer {
+		private final SyntaxTreeInterface<LocalizerRecord>	tree;
+		
+		protected OutputLocalizer(final SyntaxTreeInterface<LocalizerRecord> tree) throws LocalizationException, NullPointerException {
+			super();
+			this.tree = tree;
 		}
 
 		@Override
-		public String getColumnName(int columnIndex) {
-			// TODO Auto-generated method stub
-			return null;
+		public URI getLocalizerId() {
+			return URI.create(LOCALIZER_SCHEME+":/internal");
 		}
 
 		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			// TODO Auto-generated method stub
+		public boolean canServe(final URI resource) throws NullPointerException {
 			return false;
 		}
 
 		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
+		public Localizer newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+			return this;
+		}
+
+		@Override
+		public Iterable<String> localKeys() {
+			final List<String>	keys = new ArrayList<>();
+			
+			tree.walk((name, len, id, cargo)->{
+				keys.add(new String(name, 0 , len));
+				return true;
+			});
+			return keys;
+		}
+
+		@Override
+		public String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException {
+			return getLocalValue(key, currentLocale().getLocale());
+		}
+
+		@Override
+		public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+			final long	id = tree.seekName(key);
+			
+			if (id >= 0) {
+				final LocalizerRecord	rec = tree.getCargo(id);
+				final String			lang = locale.getLanguage();
+				
+				for (int index = 0; index < rec.langs.length;  index++) {
+					if (lang.equals(rec.langs[index])) {
+						return rec.values[index];
+					}
+				}
+				throw new LocalizationException("Language ["+lang+"] not found"); 
+			}
+			else {
+				throw new LocalizationException("Key ["+key+"] not found"); 
+			}
+		}
+
+		@Override
+		protected void loadResource(Locale newLocale) throws LocalizationException, NullPointerException {
+		}
+
+		@Override
+		protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
 			// TODO Auto-generated method stub
 			return null;
+		}
+	}
+	
+	private class InnerTableModel extends DefaultTableModel {
+		private static final long serialVersionUID = 6525386077011559488L;
+
+		private final SyntaxTreeInterface<LocalizerRecord>	tree;
+		private final SupportedLanguages[]					langs;
+		
+		InnerTableModel(final SyntaxTreeInterface<LocalizerRecord> tree, final SupportedLanguages[] langs) {
+			this.tree = tree;
+			this.langs = langs;
+		}
+
+		@Override
+		public int getRowCount() {
+			return (int) (tree == null ? 0 : tree.size());
+		}
+
+		@Override
+		public int getColumnCount() {
+			return langs.length + 1;
+		}
+
+		@Override
+		public String getColumnName(final int columnIndex) {
+			if (columnIndex == 0) {
+				return "key";
+			}
+			else {
+				return langs[columnIndex-1].name();
+			}
+		}
+
+		@Override
+		public Class<?> getColumnClass(final int columnIndex) {
+			return String.class;
+		}
+
+		@Override
+		public boolean isCellEditable(int rowIndex, int columnIndex) {
+			return false;
+		}
+
+		@Override
+		public Object getValueAt(final int rowIndex, final int columnIndex) {
+			final int[]	place = new int[] {rowIndex};
+			final LocalizerRecord[]	result = new LocalizerRecord[1];
+			
+			content.walk((name, len, id, cargo) -> {
+					if (--place[0] > 0) {
+						return true;
+					}
+					else {
+						result[0] = cargo;
+						return false;
+					}
+				}
+			);
+			switch (columnIndex) {
+				case 0 : return content.getName(result[0].key);
+				default : return result[0].values[columnIndex-1];
+			}
 		}
 
 		@Override
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-			// TODO Auto-generated method stub
-			
 		}
 		
 		public void refreshContent(final String prefix) {
@@ -405,8 +537,14 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		@Override
 		public String getColumnName(final int columnIndex) {
 			switch (columnIndex) {
-				case 0	: return "*"; 
-				case 1  : return "field";
+				case 0	: 
+					return "*"; 
+				case 1  : 
+					try{
+						return localizer.getValue(KEY_SELECT_FIELDS_FIELD);
+					} catch (LocalizationException | IllegalArgumentException e) {
+						return KEY_SELECT_FIELDS_FIELD;
+					}
 				default : throw new UnsupportedOperationException();
 			}
 		}
@@ -441,9 +579,21 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		@Override
 		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
 			switch (columnIndex) {
-				case 0	: selection[rowIndex] = (Boolean)aValue; 
+				case 0	: selection[rowIndex] = (Boolean)aValue; break; 
 				default : throw new UnsupportedOperationException();
 			}
 		}
 	}
+	
+	public static void main(final String[] args) throws IOException, NullPointerException, EnvironmentException, ContentException {
+		try(final FileSystemInterface		fsi = new FileSystemOnFile(URI.create("file:/c:/"))) {
+			final JLocalizerContentEditor	lce = new JLocalizerContentEditor(PureLibSettings.PURELIB_LOCALIZER, PureLibSettings.CURRENT_LOGGER, (l,t)->{});
+			
+			lce.setPreferredSize(new Dimension(800,600));
+			lce.loadContent(PureLibSettings.PURELIB_LOCALIZER, false);
+			lce.loadClassContent(lce.getClass());
+			JOptionPane.showMessageDialog(null, lce);
+		}
+		
+	}	
 }

@@ -241,6 +241,10 @@
 		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3">Created</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3.tt">Creation or last modification date</key>
 
+<!-- Localizer content editor localization  -->
+		<key name="JLocalizerContentEditor.selectFieldsTitle">Select fields to load</key>
+		<key name="JLocalizerContentEditor.selectFields.field">Field name</key>
+
 <!-- Useful classes localization  -->
 		<key name="JCloseButton.tt">Close window</key>
 		
@@ -484,6 +488,9 @@
 		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3">Создан</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3.tt">Дата создания или последнего изменения</key>
 
+<!-- Локализация редактора кодержимого локализатора  -->
+		<key name="JLocalizerContentEditor.selectFieldsTitle">Выбор полей для загрузки</key>
+		<key name="JLocalizerContentEditor.selectFields.field">Имя поля</key>
 
 <!-- Локализация полезных классов -->
 		<key name="JCloseButton.tt">Закрыть окно</key>

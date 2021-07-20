@@ -2,6 +2,7 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.FocusTraversalPolicy;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.FocusEvent;
@@ -158,6 +159,7 @@ loop:			for (String item : columns2freeze) {
 
 	protected void createLeftBar(final JScrollPane scroll) {
 		leftBar = new JTable(new LeftTableModel(model,columns2Freeze));
+        leftBar.setPreferredScrollableViewportSize(new Dimension(200,0));
 		scroll.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER,leftBar.getTableHeader());
 		scroll.setRowHeaderView(leftBar);
 		leftBarExists = true;

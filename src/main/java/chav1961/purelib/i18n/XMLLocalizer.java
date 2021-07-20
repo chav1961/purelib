@@ -156,6 +156,35 @@ public class XMLLocalizer extends AbstractLocalizer {
 			return null;
 		}
 	}
+
+	@Override
+	public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException, NullPointerException {
+		if (key == null || key.isEmpty()) {
+			throw new IllegalArgumentException("Key to get value for can't be null or empty"); 
+		}
+		else if (locale == null) {
+			throw new NullPointerException("Locale can't be null"); 
+		}
+		else {
+			final KeyCollection	kc = keys.get(locale.getLanguage());
+			
+			if (kc != null) {
+				if (kc.containsKey(key)) {
+					return kc.getValue(key);
+				}
+				else if (kc.containsHelp(key)) {
+					return "uri("+kc.getHelpURI(key)+")";
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+			
+		}
+	}
 	
 	@Override
 	public String toString() {

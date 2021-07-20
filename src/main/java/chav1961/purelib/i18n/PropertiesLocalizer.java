@@ -105,6 +105,17 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
+	public String getLocalValue(final String key, final  Locale locale) throws LocalizationException, IllegalArgumentException {
+		String		result = getBundle().getString(key).trim();
+		final int	newLine = result.indexOf(NEW_LINE_MARK);
+		
+		if (newLine >= 0) {
+			result = result.replace(NEW_LINE_MARK, "\n");
+		}
+		return result; 
+	}
+	
+	@Override
 	public String toString() {
 		return "PropertiesLocalizer [resourceAddress="+resourceAddress+", localizerURI="+localizerURI+"]";
 	}

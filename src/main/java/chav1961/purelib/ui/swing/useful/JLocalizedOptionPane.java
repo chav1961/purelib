@@ -53,13 +53,13 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 	}
 
 	public void message(final Component parent, final Object content, final String title, final int type) throws LocalizationException {
-		JOptionPane.showMessageDialog(parent,localizeObject(content,localizer),fromLocalizer(title),type,extractIcon(icons,type));
+		JOptionPane.showMessageDialog(parent, localizeObject(content,localizer), fromLocalizer(title),type,extractIcon(icons,type));
 	}
 
 	public int confirm(final Component parent, final Object content, final String title, final int type, final int options) throws LocalizationException {
 		final Object[]	buttons = buildButtons(options,localizer);
 		
-		return JOptionPane.showOptionDialog(parent,localizeObject(content,localizer),fromLocalizer(title), options, type, extractIcon(icons,type), buttons, buttons[0]);
+		return JOptionPane.showOptionDialog(parent, localizeObject(content,localizer), fromLocalizer(title), options, type, extractIcon(icons,type), buttons, buttons[0]);
 	}
 
 	private static Icon[] selectIcons() {

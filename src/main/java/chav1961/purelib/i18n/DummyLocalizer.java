@@ -58,6 +58,12 @@ public class DummyLocalizer extends AbstractLocalizer {
 	public String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException {
 		return key;
 	}
+	
+	@Override
+	public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return key;
+	}
+	
 
 	@Override
 	protected void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException {

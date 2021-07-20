@@ -102,6 +102,24 @@ public class FileSystemLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
+	public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		final ResourceBundle	oldBundle = getBundle();
+		
+		loadResource(locale);
+		
+		String			result = getBundle().getString(key).trim();
+		final int		newLine = result.indexOf(NEW_LINE_MARK);
+		
+		if (newLine >= 0) {
+			result = result.replace(NEW_LINE_MARK, "\n");
+		}
+		
+		setBundle(oldBundle);
+		return result; 
+	}
+
+	
+	@Override
 	protected void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException {
 		if (newLocale == null) {
 			throw new IllegalArgumentException("Locale to set can't be null");

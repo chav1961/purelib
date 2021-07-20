@@ -69,8 +69,8 @@ public abstract class AbstractLocalizer implements Localizer {
 	
 	private static final Pattern					URI_PATTERN = Pattern.compile("uri\\((?<uri>.*)\\)");
 	private static final LocaleDescriptor[]			LOCALES = new LocaleDescriptor[]{
-															 new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.en.name()).build(),SupportedLanguages.en,"English",new ImageIcon(AbstractLocalizer.class.getResource(SupportedLanguages.en.name()+".png")))
-															,new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.ru.name()).build(),SupportedLanguages.ru,"Russian",new ImageIcon(AbstractLocalizer.class.getResource(SupportedLanguages.ru.name()+".png")))
+															 new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.en.name()).build(),SupportedLanguages.en,"English",new ImageIcon(SupportedLanguages.class.getResource(SupportedLanguages.en.name()+".png")))
+															,new LocaleDescriptorImpl(new Locale.Builder().setLanguage(SupportedLanguages.ru.name()).build(),SupportedLanguages.ru,"Russian",new ImageIcon(SupportedLanguages.class.getResource(SupportedLanguages.ru.name()+".png")))
 														};
 	private static final Iterable<LocaleDescriptor>	LOCALE_ITERATOR = new Iterable<LocaleDescriptor>(){
 															@Override
@@ -818,6 +818,11 @@ sw:				for(;;) {
 			return nested.getLocalValue(key);
 		}
 
+		@Override
+		public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+			return nested.getLocalValue(key, locale);
+		}
+		
 		@Override
 		public URI getLocalizerId() {
 			return nested.getLocalizerId();

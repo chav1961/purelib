@@ -102,6 +102,16 @@ public class DebuggingLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
+	public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		if (keysAndValues.containsKey(currentLocale().getLocale().getLanguage())) {
+			return keysAndValues.get(locale.getLanguage()).getProperty(key);
+		}
+		else {
+			throw new LocalizationException("Any key/value pairs are missing for the locale");
+		}
+	}
+	
+	@Override
 	protected void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException {
 	}
 

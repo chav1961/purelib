@@ -213,9 +213,23 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @return string localized
 	 * @throws LocalizationException if the key is missing anywhere.
 	 * @throws IllegalArgumentException if key to get is null or empty
-	 * @see #getValue(String)
+	 * @see #getValue(String), #getLocalValue(String, Locale)
 	 */
 	String getLocalValue(String key) throws LocalizationException, IllegalArgumentException;
+
+	/**
+	 * <p>Get localization value for the given key and locale in the current Localizer only.</p>
+	 * @param key key to get localization string for. Key content is case-sensitive. Can't be null.
+	 * @param locale locale to get key for. Can't be null.
+	 * @return string localized
+	 * @throws LocalizationException if the key is missing anywhere.
+	 * @throws IllegalArgumentException if key to get is null or empty
+	 * @see #getValue(String), #getLocalValue(String)
+	 * @since 0.0.5
+	 */
+	default String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
+		return getLocalValue(key);
+	}
 	
 	/**
 	 * <p>Get localization value for the given key as Reader.</p> 

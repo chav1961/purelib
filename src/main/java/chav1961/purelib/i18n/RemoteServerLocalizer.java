@@ -85,6 +85,12 @@ public class RemoteServerLocalizer implements Localizer {
 	}
 
 	@Override
+	public String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public Reader getContent(String key) throws LocalizationException, IllegalArgumentException {
 		// TODO Auto-generated method stub
 		return null;

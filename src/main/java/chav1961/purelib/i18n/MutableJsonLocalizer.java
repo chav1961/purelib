@@ -188,6 +188,19 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 			return null;
 		}
 	}
+
+	@Override
+	public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		if (key == null || key.isEmpty()) {
+			throw new IllegalArgumentException("Key to get value for can't be null or empty"); 
+		}
+		else if (keys.containsKey(locale.getLanguage()) && keys.get(locale.getLanguage()).containsHelp(key)) {
+			return "uri("+currentCollection.getHelpURI(key)+")";
+		}
+		else {
+			return null;
+		}
+	}
 	
 	public TableModel getTableModel(final LoggerFacade facade) {
 		if (isReadOnly) {
