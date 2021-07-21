@@ -53,6 +53,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
 
@@ -105,11 +106,11 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	private static final String	ALREADY_EXISTS_MESSAGE = "JFileSelectionDialog.ask.alreadyexists.message";
 	private static final String	NOT_EXISTS_CAPTION = "JFileSelectionDialog.ask.notexists.caption";
 	private static final String	NOT_EXISTS_MESSAGE = "JFileSelectionDialog.ask.notexists.message";
-	private static final Icon	LEVEL_UP_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("levelUp.png"));
-	private static final Icon	MKDIR_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("mkdir.png"));
-	private static final Icon	DELETE_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("delete.png"));
-	private static final Icon	DIR_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("directory.png"));
-	private static final Icon	FILE_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("file.png"));
+	private static final Icon	LEVEL_UP_ICON = PureLibStandardIcons.LEVEL_UP.getIcon();
+	private static final Icon	MKDIR_ICON = PureLibStandardIcons.NEW_DIR.getIcon();
+	private static final Icon	DELETE_ICON = PureLibStandardIcons.REMOVE.getIcon();
+	private static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
+	private static final Icon	FILE_ICON = PureLibStandardIcons.FILE.getIcon();
 	
 	public static final int		OPTIONS_CAN_SELECT_DIR = 1 << 0; 
 	public static final int		OPTIONS_CAN_SELECT_FILE = 1 << 1; 

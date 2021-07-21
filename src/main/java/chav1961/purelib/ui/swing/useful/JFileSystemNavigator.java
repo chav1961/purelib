@@ -63,6 +63,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.JToolBarWithMeta;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
@@ -84,8 +85,8 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	public static final String	PROP_DIRECTORIES_ONLY = "directoriesOnly";
 	public static final String	PROP_FILES_AND_DIRECTORIES = "all";
 	
-	private static final Icon	DIR_ICON = new ImageIcon(JFileSystemNavigator.class.getResource("directory.png"));
-	private static final Icon	FILE_ICON = new ImageIcon(JFileSystemNavigator.class.getResource("file.png"));
+	private static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
+	private static final Icon	FILE_ICON = PureLibStandardIcons.FILE.getIcon();
 	private static final long	REFRESH_DELAY = 500;
 	private static final String	CARD_ICONS = "icons";
 	private static final String	CARD_TABLE = "table";

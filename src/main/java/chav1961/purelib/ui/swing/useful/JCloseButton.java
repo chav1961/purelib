@@ -8,18 +8,18 @@ import java.awt.event.MouseListener;
 import java.util.Locale;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.border.LineBorder;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 
 public class JCloseButton extends JButton implements LocaleChangeListener {
 	private static final long serialVersionUID = 5015631943131172836L;
 	
-	private static final Icon	DELETE_ICON = new ImageIcon(JCloseButton.class.getResource("delete.png"));
+	private static final Icon	DELETE_ICON = PureLibStandardIcons.REMOVE.getIcon();
 	private static final String	BUTTON_TOOLTIP = "JCloseButton.tt";
 
 	private final Localizer		localizer;

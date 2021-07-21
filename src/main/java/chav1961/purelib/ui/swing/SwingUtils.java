@@ -1310,7 +1310,33 @@ loop:			for (Component comp : children(node)) {
 	/**
 	 * <p>Show Creole-based help</p>
 	 * @param owner help window owner
-	 * @param helpContent help reference
+	 * @param localizer localizer to get help from. Can't be null
+	 * @param helpKey key inside localizer. Can't be null or empty
+	 * @throws IOException on any I/O errors
+	 * @throws NullPointerException when any parameter is null
+	 * @throws IllegalArgumentException when help key is null or empty
+	 * @since 0.0.5
+	 */
+	public static void showCreoleHelpWindow(final Component owner, final Localizer localizer, final String helpKey) throws IOException, NullPointerException, IllegalArgumentException {
+		if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null"); 
+		}
+		else if (helpKey == null || helpKey.isEmpty()) {
+			throw new IllegalArgumentException("Help key can't be null or empty"); 
+		}
+		else {
+			try {
+				SwingUtils.showCreoleHelpWindow(owner, URIUtils.convert2selfURI(Utils.fromResource(localizer.getContent(helpKey)).toCharArray(), Localizer.LOCALIZER_DEFAULT_ENCODING));
+			} catch (LocalizationException exc) {
+				throw new IOException("Localization error on ["+helpKey+"]: "+exc.getLocalizedMessage(), exc);
+			}
+		}
+	}	
+	
+	/**
+	 * <p>Show Creole-based help</p>
+	 * @param owner help window owner
+	 * @param helpContent help reference. Can't be null
 	 * @throws IOException on any I/O errors
 	 * @throws NullPointerException when any parameter is null
 	 */

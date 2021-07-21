@@ -11,6 +11,7 @@ import java.awt.event.MouseListener;
 import java.net.MalformedURLException;
 import java.util.Locale;
 
+import javax.swing.GrayFilter;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -24,6 +25,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 public class JCloseableTab extends JPanel implements LocaleChangeListener {
@@ -32,8 +34,8 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	public static final String	LABEL_NAME = "JCloseableTab.label";
 	public static final String	CROSSER_NAME = "JCloseableTab.crosser";
 	
-	private static final Icon	GRAY_ICON = new ImageIcon(JCloseableTab.class.getResource("grayIcon.png"));
-	private static final Icon	RED_ICON = new ImageIcon(JCloseableTab.class.getResource("redIcon.png"));
+	private static final Icon	RED_ICON = PureLibStandardIcons.CLOSE.getIcon();
+	private static final Icon	GRAY_ICON = PureLibStandardIcons.CLOSE.getDisabledIcon();
 
 	private final Localizer		localizer;
 	private final JLabel		label = new JLabel();

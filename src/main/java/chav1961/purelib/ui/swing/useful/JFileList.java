@@ -31,11 +31,12 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 
 public abstract class JFileList extends JList<JFileListItemDescriptor> {
 	private static final long 			serialVersionUID = 6388035688220928716L;
-	private static final Icon			DIR_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("directory.png"));
-	private static final Icon			FILE_ICON = new ImageIcon(JFileSelectionDialog.class.getResource("file.png"));
+	private static final Icon			DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
+	private static final Icon			FILE_ICON = PureLibStandardIcons.FILE.getIcon();
 
 	public enum JFileListSelectionType {
 		NONE, 

@@ -41,6 +41,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
@@ -65,6 +66,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private static final int		STATE_COMMON = 1;
 	private static final int		STATE_STAGED = 2;
 	private static final Dimension	DEFAULT_HISTORY_SIZE = new Dimension(400,200);
+	private static final Icon		VIEW_ICON = PureLibStandardIcons.LEVEL_UP.getIcon();
+	private static final Icon		CANCEL_ICON = PureLibStandardIcons.CANCEL.getIcon();
 
 	/**
 	 * <p>This lambda-oriented interface will be called on pressing 'cancel' button 
@@ -93,11 +96,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private final JProgressBar		stage = new JProgressBar();
 	private final JProgressBar		step = new JProgressBar();
 	private final JProgressBar		common = new JProgressBar();
-	private final Icon				viewIcon = new ImageIcon(this.getClass().getResource("levelUp.png"));
-	private final JButton			historyView = new JButton(viewIcon);
-	private final Icon				cancelIcon = new ImageIcon(this.getClass().getResource("delete.png"));
-	private final JButton			cancelStaged = new JButton(cancelIcon);
-	private final JButton			cancelCommon = new JButton(cancelIcon);
+	private final JButton			historyView = new JButton(VIEW_ICON);
+	private final JButton			cancelStaged = new JButton(CANCEL_ICON);
+	private final JButton			cancelCommon = new JButton(CANCEL_ICON);
 	private final JPanel			rightPanel = new JPanel(new CardLayout());
 	private final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
 	private final HistoryTableModel	model;
@@ -610,11 +611,11 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		final SpringLayout	springCommon = new SpringLayout();
 		final JPanel		commonPanel = new JPanel(springCommon);
 		
-		historyView.setPreferredSize(new Dimension(viewIcon.getIconWidth()+2,viewIcon.getIconHeight()+2));
-		cancelCommon.setPreferredSize(new Dimension(cancelIcon.getIconWidth()+2,cancelIcon.getIconHeight()+2));
-		cancelStaged.setPreferredSize(new Dimension(cancelIcon.getIconWidth()+2,cancelIcon.getIconHeight()+2));
-		common.setPreferredSize(new Dimension(100,cancelIcon.getIconHeight()+2));
-		stage.setPreferredSize(new Dimension(100,cancelIcon.getIconHeight()+2));
+		historyView.setPreferredSize(new Dimension(VIEW_ICON.getIconWidth()+2,VIEW_ICON.getIconHeight()+2));
+		cancelCommon.setPreferredSize(new Dimension(CANCEL_ICON.getIconWidth()+2,CANCEL_ICON.getIconHeight()+2));
+		cancelStaged.setPreferredSize(new Dimension(CANCEL_ICON.getIconWidth()+2,CANCEL_ICON.getIconHeight()+2));
+		common.setPreferredSize(new Dimension(100,CANCEL_ICON.getIconHeight()+2));
+		stage.setPreferredSize(new Dimension(100,CANCEL_ICON.getIconHeight()+2));
 		
 		commonPanel.add(common);
 		commonPanel.add(cancelCommon);

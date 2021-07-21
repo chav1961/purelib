@@ -2,15 +2,19 @@ package chav1961.purelib.ui.swing.useful;
 
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Point;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -23,52 +27,46 @@ import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
-import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.basic.interfaces.InputStreamGetter;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.OutputStreamGetter;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.cdb.SyntaxNode;
-import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.FileSystemOnFile;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.AbstractLocalizer;
-import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
-import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
+import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.JToolBarWithMeta;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
@@ -77,6 +75,13 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	private static final long 		serialVersionUID = 3237259445965828668L;
 	private static final String		KEY_SELECT_FIELDS_TITLE = "JLocalizerContentEditor.selectFieldsTitle";
 	private static final String		KEY_SELECT_FIELDS_FIELD = "JLocalizerContentEditor.selectFields.field";
+	private static final String		KEY_SELECT_FILTER_STATIC = "JLocalizerContentEditor.selectFields.static";
+	private static final String		KEY_SELECT_FILTER_NON_PUBLIC = "JLocalizerContentEditor.selectFields.nonPublic";
+	private static final String		KEY_SELECT_FILTER_STATIC_TT = "JLocalizerContentEditor.selectFields.static.tt";
+	private static final String		KEY_SELECT_FILTER_NON_PUBLIC_TT = "JLocalizerContentEditor.selectFields.nonPublic.tt";
+	private static final String		KEY_SELECT_FIELDS_HELP = "JLocalizerContentEditor.selectFields.help";
+	private static final Icon		GREEN_ICON = PureLibStandardIcons.SUCCESS.getIcon();
+	private static final Icon		RED_ICON = PureLibStandardIcons.FAIL.getIcon();
 	
 	public static enum ContentType {
 		XML, JSON
@@ -230,9 +235,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		final List<Field>	list = new ArrayList<>(), selected = new ArrayList<>(); 
 		
 		CompilerUtils.walkFields(cl, (clazz, field) ->{
-			if (!Modifier.isStatic(field.getModifiers())) {
-				list.add(field);
-			}
+			list.add(field);
 		});
 		
 		if (selectContent2Load(list, selected)) {
@@ -246,10 +249,71 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	
 	private boolean selectContent2Load(final List<Field> list, final List<Field> selected) throws LocalizationException {
 		final JSelectTableModel	model = new JSelectTableModel(localizer, list);
-		final JSelectTable		table = new JSelectTable(model);
+		final JTable			table = new JTable(model);
+		final JCheckBox			includeStatic = new JCheckBox(localizer.getValue(KEY_SELECT_FILTER_STATIC)); 
+		final JCheckBox			includeNonPublic = new JCheckBox(localizer.getValue(KEY_SELECT_FILTER_NON_PUBLIC)); 
+		final JPanel			panel = new JPanel(new BorderLayout());
+		final JPanel			bottomPanel = new JPanel(new GridLayout(2,1));
 
-		table.setPreferredSize(new Dimension(250,400));
-		if (new JLocalizedOptionPane(localizer).confirm(this, new JScrollPane(table), KEY_SELECT_FIELDS_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+		table.setDefaultRenderer(Field.class, new TableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+				final Field		f = (Field)value;
+				final String	name = f.getName();
+				final JLabel	label = new JLabel(name, f.isAnnotationPresent(LocaleResource.class) ? GREEN_ICON : RED_ICON, JLabel.LEFT);
+		
+				label.setOpaque(true);
+				if (isSelected) {
+					if (table.isCellEditable(row, 0)) {
+						label.setForeground(table.getSelectionForeground());
+					}
+					else {
+						label.setForeground(Color.LIGHT_GRAY);
+					}
+					label.setBackground(table.getSelectionBackground());
+				}
+				else {
+					if (table.isCellEditable(row, 0)) {
+						label.setForeground(table.getForeground());
+					}
+					else {
+						label.setForeground(Color.LIGHT_GRAY);
+					}
+					label.setBackground(table.getBackground());
+				}
+				if (hasFocus) {
+					label.setBorder(new LineBorder(table.getGridColor()));
+				}
+				return label;
+			}
+		});
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		table.getColumnModel().getColumn(0).setMaxWidth(table.getRowHeight());
+		
+		bottomPanel.add(includeStatic);
+		includeStatic.setToolTipText(localizer.getValue(KEY_SELECT_FILTER_STATIC_TT));
+		includeStatic.setSelected(true);
+		includeStatic.addActionListener((e)->model.processStatic(includeStatic.isSelected()));
+		bottomPanel.add(includeNonPublic);
+		includeNonPublic.setToolTipText(localizer.getValue(KEY_SELECT_FILTER_NON_PUBLIC_TT));
+		includeNonPublic.setSelected(true);
+		includeNonPublic.addActionListener((e)->model.processNonPublic(includeNonPublic.isSelected()));
+		
+		panel.add(new JScrollPane(table), BorderLayout.CENTER);
+		panel.add(bottomPanel, BorderLayout.SOUTH);
+		panel.setPreferredSize(new Dimension(250,400));
+
+		final JLocalizedOptionPane	op = new JLocalizedOptionPane(localizer);
+		
+		SwingUtils.assignActionKey(panel, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e) -> {
+			try {
+				SwingUtils.showCreoleHelpWindow(panel, localizer, KEY_SELECT_FIELDS_HELP);
+			} catch (IOException exc) {
+				logger.message(Severity.error, "I/O error on help: "+exc.getLocalizedMessage(), exc);
+			}
+		},SwingUtils.ACTION_HELP);
+		
+		if (op.confirm(this, panel, KEY_SELECT_FIELDS_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
 			model.fillSelected(selected);
 			return true;
 		}
@@ -298,11 +362,21 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	}
 
 	private static String field2Label(final Field item) {
-		return CompilerUtils.buildFieldPath(item);
+		if (item.isAnnotationPresent(LocaleResource.class)) {
+			return item.getAnnotation(LocaleResource.class).value();
+		}
+		else {
+			return CompilerUtils.buildFieldPath(item);
+		}
 	}
 	
 	private static String field2Tooltip(final Field item) {
-		return CompilerUtils.buildFieldPath(item)+".tt";
+		if (item.isAnnotationPresent(LocaleResource.class)) {
+			return item.getAnnotation(LocaleResource.class).tooltip();
+		}
+		else {
+			return CompilerUtils.buildFieldPath(item)+".tt";
+		}
 	}
 	
 	private void processAction(final Object source, final String action) {
@@ -488,20 +562,14 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		}
 	}
 
-	private static class JSelectTable extends JTable {
-		private static final long serialVersionUID = 1L;
-
-		private JSelectTable(final TableModel model) {
-			super(model);
-		}
-	}
-	
 	private  static class JSelectTableModel extends DefaultTableModel {
 		private static final long serialVersionUID = 1L;
 
 		private final Localizer		localizer;
 		private final List<Field>	fields;
 		private final boolean[]		selection;
+		private boolean				allowStatic = true;
+		private boolean				allowNonPublic = true;
 		
 		JSelectTableModel(final Localizer localizer, final List<Field> fields) {
 			this.localizer = localizer;
@@ -517,6 +585,26 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 					selected.add(fields.get(index));
 				}
 			}
+		}
+		
+		public void processStatic(final boolean select) {
+			allowStatic = select;
+			for (int index = 0; index < selection.length; index++) {
+				if (Modifier.isStatic(fields.get(index).getModifiers())) {
+					selection[index] = select;
+				}
+			}
+			fireTableDataChanged();
+		}
+
+		public void processNonPublic(final boolean select) {
+			allowNonPublic = select;
+			for (int index = 0; index < selection.length; index++) {
+				if (!Modifier.isPublic(fields.get(index).getModifiers())) {
+					selection[index] = select;
+				}
+			}
+			fireTableDataChanged();
 		}
 		
 		@Override
@@ -553,7 +641,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		public Class<?> getColumnClass(final int columnIndex) {
 			switch (columnIndex) {
 				case 0	: return Boolean.class; 
-				case 1  : return String.class;
+				case 1  : return Field.class;
 				default : throw new UnsupportedOperationException();
 			}
 		}
@@ -561,8 +649,11 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		@Override
 		public boolean isCellEditable(final int rowIndex, final int columnIndex) {
 			switch (columnIndex) {
-				case 0	: return true; 
-				case 1  : return false;
+				case 0	: 
+					return (Modifier.isStatic(fields.get(rowIndex).getModifiers()) && allowStatic || !Modifier.isStatic(fields.get(rowIndex).getModifiers())) 
+							&& (!Modifier.isPublic(fields.get(rowIndex).getModifiers()) && allowNonPublic || Modifier.isPublic(fields.get(rowIndex).getModifiers()));
+				case 1  : 
+					return false;
 				default : throw new UnsupportedOperationException();
 			}
 		}
@@ -571,7 +662,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			switch (columnIndex) {
 				case 0	: return selection[rowIndex]; 
-				case 1  : return fields.get(rowIndex).getName();
+				case 1  : return fields.get(rowIndex);
 				default : throw new UnsupportedOperationException();
 			}
 		}

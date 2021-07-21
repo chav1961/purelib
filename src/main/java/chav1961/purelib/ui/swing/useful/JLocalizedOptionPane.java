@@ -35,10 +35,10 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 	
 	public JLocalizedOptionPane(final Localizer localizer, final Icon[] iconSet, final boolean ignoreLocalizationErrros) {
 		if (localizer== null) {
-			throw new NullPointerException("Loclaizer can't be null");
+			throw new NullPointerException("Localizer can't be null");
 		}
 		else if (iconSet == null || iconSet.length != 4) {
-			throw new IllegalArgumentException("Icon set can't be null and must contain exactry 4 elements");
+			throw new IllegalArgumentException("Icon set can't be null and must contain exactly 4 elements");
 		}
 		else {
 			this.localizer = localizer;
@@ -53,7 +53,7 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 	}
 
 	public void message(final Component parent, final Object content, final String title, final int type) throws LocalizationException {
-		JOptionPane.showMessageDialog(parent, localizeObject(content,localizer), fromLocalizer(title),type,extractIcon(icons,type));
+		JOptionPane.showMessageDialog(parent, localizeObject(content,localizer), fromLocalizer(title), type, extractIcon(icons,type));
 	}
 
 	public int confirm(final Component parent, final Object content, final String title, final int type, final int options) throws LocalizationException {

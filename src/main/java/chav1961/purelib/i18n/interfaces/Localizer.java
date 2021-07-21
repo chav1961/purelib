@@ -50,13 +50,19 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see SubstitutableProperties
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	/**
 	 * <p>Scheme name for the localizers</p>
 	 */
 	public static final String	LOCALIZER_SCHEME = "i18n";
+	
+	/**
+	 * <p>Default localizer encoding</p>
+	 * @since 0.0.5
+	 */
+	public static final String	LOCALIZER_DEFAULT_ENCODING = "UTF-8";
 	
 	/**
 	 * <p>This interface describes descriptor of the supported locale.</p> 

@@ -47,6 +47,7 @@ import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.Format;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingUtils;
@@ -72,8 +73,8 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	private static final String 	TEST_URI_TOOLTIP = "JFileSystemChanger.test.uri.tooltip";
 	private static final String 	ERROR_HEADER = "JFileSystemChanger.message.error.header";
 	private static final String 	ERROR_DESCRIPTION = "JFileSystemChanger.message.error.description";
-	private static final Icon		TEST_OK = new ImageIcon(JFileSystemChanger.class.getResource("testOK.png"));
-	private static final Icon		TEST_FAILED = new ImageIcon(JFileSystemChanger.class.getResource("testFailed.png"));
+	private static final Icon		TEST_OK = PureLibStandardIcons.SUCCESS.getIcon();
+	private static final Icon		TEST_FAILED = PureLibStandardIcons.FAIL.getIcon();
 	
 	private final Localizer			localizer;
 	private final FileSystemDescription			content = new FileSystemDescription();
