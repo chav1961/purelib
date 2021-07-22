@@ -8,6 +8,7 @@ import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.MimeType;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SpiService;
@@ -62,7 +63,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * <p>Default localizer encoding</p>
 	 * @since 0.0.5
 	 */
-	public static final String	LOCALIZER_DEFAULT_ENCODING = "UTF-8";
+	public static final String	LOCALIZER_DEFAULT_ENCODING = PureLibSettings.DEFAULT_CONTENT_ENCODING;
 	
 	/**
 	 * <p>This interface describes descriptor of the supported locale.</p> 

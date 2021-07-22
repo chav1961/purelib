@@ -1,0 +1,246 @@
+package chav1961.purelib.ui.swing.useful;
+
+import java.awt.Component;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Objects;
+import java.util.TimerTask;
+
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JTree;
+import javax.swing.ToolTipManager;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
+
+public abstract class JFileTree extends JTree {
+	private static final long 	serialVersionUID = -9727348906597529L;
+
+	protected static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
+	protected static final Icon	FILE_ICON = PureLibStandardIcons.FILE.getIcon();
+
+	private static final long	REFRESH_DELAY = 500;
+
+	protected final LoggerFacade			logger;
+	protected final FileSystemInterface		fsi;
+	protected final boolean 				showFiles;
+	protected final DefaultMutableTreeNode	root = new DefaultMutableTreeNode();
+	
+	private TimerTask						tt = null;
+	private boolean							fastRefresh = false;
+	
+	public JFileTree(final LoggerFacade logger, final FileSystemInterface fsi, final boolean showFiles) throws NullPointerException, IllegalArgumentException, IOException {
+		if (logger == null) {
+			throw new NullPointerException("Logger can't be null");
+		}
+		else if (fsi == null) {
+			throw new NullPointerException("File system interface can't be null");
+		}
+		else {
+			this.logger = logger;
+			this.fsi = fsi;
+			this.showFiles = showFiles;
+			
+			getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+			setRootVisible(true);
+			addTreeWillExpandListener(new TreeWillExpandListener() {
+				@Override public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {}
+				
+				@Override
+				public void treeWillExpand(final TreeExpansionEvent event) throws ExpandVetoException {
+					final DefaultMutableTreeNode	last = (DefaultMutableTreeNode)event.getPath().getLastPathComponent(); 
+					final String					path = ((JFileItemDescriptor)last.getUserObject()).getPath();
+					
+					try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
+						fillChildren(last, partFsi);
+					} catch (IOException e) {
+						logger.message(Severity.error, "error expanding tree: "+e.getLocalizedMessage(),e);
+					}
+				}
+			});
+			addTreeSelectionListener(new TreeSelectionListener() {
+				@Override
+				public void valueChanged(final TreeSelectionEvent event) {
+					final DefaultMutableTreeNode	last = (DefaultMutableTreeNode)event.getPath().getLastPathComponent(); 
+					final String					path = ((JFileItemDescriptor)last.getUserObject()).getPath();
+					
+					if (tt != null) {
+						tt.cancel();
+						tt = null;
+					}
+					if (fastRefresh) {
+						try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
+							
+							refreshLinkedContent(partFsi);
+						} catch (IOException e) {
+							logger.message(Severity.error, "error refreshing right panel: "+e.getLocalizedMessage(),e);
+						} finally {
+							fastRefresh = false;
+						}
+					}
+					else {
+						tt = new TimerTask() {
+							@Override
+							public void run() {
+								try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
+									
+									refreshLinkedContent(partFsi);
+								} catch (IOException e) {
+									logger.message(Severity.error, "error refreshing right panel: "+e.getLocalizedMessage(),e);
+								}
+							}
+						};
+						PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY);
+					}
+				}
+			});
+			root.setUserObject(new JFileItemDescriptor("/", fsi.getAbsoluteURI().toString(), true));
+			fillChildren(root, fsi);
+			((DefaultTreeModel)getModel()).setRoot(root);
+			
+			setCellRenderer(new DefaultTreeCellRenderer() {	// Don't move before setRoot() !!!
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+					final JLabel					label = (JLabel)super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+					final JFileItemDescriptor	desc = (JFileItemDescriptor) ((DefaultMutableTreeNode)value).getUserObject();
+					
+					try {final String	path = URLDecoder.decode(desc.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
+					
+						label.setText(path.endsWith("/") ? path : path.substring(path.lastIndexOf('/')+1));
+						label.setIcon(desc.isDirectory() ? DIR_ICON : FILE_ICON);
+					} catch (UnsupportedEncodingException e) {
+						label.setText("I/O error: "+e.getLocalizedMessage());
+					}
+	
+					return label;
+				}
+			});
+	        addComponentListener(new ComponentListener() {
+				@Override public void componentResized(ComponentEvent e) {}
+				@Override public void componentMoved(ComponentEvent e) {}
+				
+				@Override
+				public void componentShown(ComponentEvent e) {
+					final ToolTipManager 	toolTipManager = ToolTipManager.sharedInstance();
+			        
+			        toolTipManager.registerComponent(JFileTree.this);
+				}
+				
+				@Override
+				public void componentHidden(ComponentEvent e) {
+					final ToolTipManager 	toolTipManager = ToolTipManager.sharedInstance();
+			        
+			        toolTipManager.unregisterComponent(JFileTree.this);
+				}
+			});
+		}
+	}
+
+	public abstract void refreshLinkedContent(final FileSystemInterface content);
+	
+	public void setSelection(final String path) {
+		if (path == null || path.isEmpty()) {
+			throw new IllegalArgumentException("Path to select can-t be null or empty"); 
+		}
+		else {
+			findAndSelect((DefaultMutableTreeNode)getModel().getRoot(), path);
+		}
+	}
+
+	@Override
+	public String getToolTipText(final MouseEvent event) {
+		final TreePath	path = getClosestPathForLocation(event.getX(), event.getY());
+		
+		if (path != null) {
+			final JFileItemDescriptor	desc = (JFileItemDescriptor) ((DefaultMutableTreeNode)path.getLastPathComponent()).getUserObject();
+			final StringBuilder				sb = new StringBuilder();
+			
+			try {
+				sb.append(URLDecoder.decode(desc.getPath(),PureLibSettings.DEFAULT_CONTENT_ENCODING));
+			} catch (UnsupportedEncodingException e) {
+				logger.message(Severity.warning, e.getLocalizedMessage(), e);
+			}
+			return sb.toString();
+		}
+		else {
+			return super.getToolTipText(event);
+		}
+	}
+	
+	private void fillChildren(final DefaultMutableTreeNode node, final FileSystemInterface fsi) throws IOException {
+		final boolean[]	flag = new boolean[1];
+		
+		node.removeAllChildren();
+		
+		for (String item : fsi.list()) {
+			try(final FileSystemInterface	child = fsi.clone().open(item)) {
+				if (child.isDirectory()) {
+					flag[0] = false;
+					child.list((i)->{
+						return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
+					});
+					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory());
+					
+					node.add(new DefaultMutableTreeNode(desc) {
+						private static final long	serialVersionUID = 1L;
+						
+						final boolean				dirsInside = flag[0];
+						
+						@Override
+						public boolean isLeaf() {
+							return !dirsInside;
+						}
+					});
+				}
+				else if (showFiles) {
+					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory());
+					
+					node.add(new DefaultMutableTreeNode(desc) {
+						private static final long	serialVersionUID = 1L;
+						@Override public boolean isLeaf() {return true;}
+					});
+				}
+			}
+		}
+	}
+
+	private void findAndSelect(final DefaultMutableTreeNode node, final String path) {
+		for (int index = 0, maxIndex = node.getChildCount(); index < maxIndex; index++) {
+			final DefaultMutableTreeNode	item = (DefaultMutableTreeNode)node.getChildAt(index);
+			final JFileItemDescriptor	desc = (JFileItemDescriptor) item.getUserObject(); 
+			
+			if (Objects.equals(desc.getPath(),path)) {
+				final TreeNode[]	tn = ((DefaultMutableTreeNode)node.getChildAt(index)).getPath();
+				
+				fastRefresh = true;
+				setSelectionPath(new TreePath(tn));
+				break;
+			}
+			else {
+				findAndSelect(item, path);
+			}
+		}
+	}
+}

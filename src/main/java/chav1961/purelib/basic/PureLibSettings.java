@@ -89,7 +89,7 @@ public final class PureLibSettings {
 	/**
 	 * <p>This is current version of the Pure Library</p>
 	 */
-	public static final String		CURRENT_VERSION = "0.0.4";
+	public static final String		CURRENT_VERSION = "0.0.5";
 
 	/**
 	 * <p>This is a vendor of the Pure Library</p>
@@ -247,6 +247,12 @@ public final class PureLibSettings {
 	 * @since 0.0.4
 	 */
 	public static SimpleURLClassLoader		INTERNAL_LOADER = new SimpleURLClassLoader(new URL[0]);
+	
+	/**
+	 * <p>Default content encoding for library</p>
+	 * @since 0.0.5
+	 */
+	public static final String				DEFAULT_CONTENT_ENCODING = "UTF-8";
 	
 	/**
 	 * <p>This interface describes well-known factories in the Pure Library. All the factories are accessible via standard Java SPI service</p>

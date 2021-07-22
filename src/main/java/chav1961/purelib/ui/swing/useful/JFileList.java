@@ -8,6 +8,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -26,6 +27,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -33,7 +35,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 
-public abstract class JFileList extends JList<JFileListItemDescriptor> {
+public abstract class JFileList extends JList<JFileItemDescriptor> {
 	private static final long 			serialVersionUID = 6388035688220928716L;
 	private static final Icon			DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
 	private static final Icon			FILE_ICON = PureLibStandardIcons.FILE.getIcon();
@@ -65,17 +67,21 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 			this.fsi = fsi;
 			this.insertParent = insertParent;
 			
-			setModel(new DefaultListModel<JFileListItemDescriptor>());
+			setModel(new DefaultListModel<JFileItemDescriptor>());
 			setLayoutOrientation(horizontalPlacement ? JList.HORIZONTAL_WRAP : JList.VERTICAL_WRAP);
 			setVisibleRowCount(-1);
-			setCellRenderer(new ListCellRenderer<JFileListItemDescriptor>() {
+			setCellRenderer(new ListCellRenderer<JFileItemDescriptor>() {
 				@Override
-				public Component getListCellRendererComponent(final JList<? extends JFileListItemDescriptor> list, final JFileListItemDescriptor value, final int index, final boolean isSelected, final boolean cellHasFocus) {
+				public Component getListCellRendererComponent(final JList<? extends JFileItemDescriptor> list, final JFileItemDescriptor value, final int index, final boolean isSelected, final boolean cellHasFocus) {
 					final JLabel	result = new JLabel();
 					final String	val = URI.create(value.getPath()).getRawSchemeSpecificPart();
 						
-					result.setText(CharUtils.fillInto(URLDecoder.decode(value.getName()),10,false,CharUtils.FillingAdjstment.LEFT));
-					result.setToolTipText(URLDecoder.decode(value.getPath()));
+					try{
+						result.setText(CharUtils.fillInto(URLDecoder.decode(value.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING),10,false,CharUtils.FillingAdjstment.LEFT));
+						result.setToolTipText(URLDecoder.decode(value.getPath(), PureLibSettings.DEFAULT_CONTENT_ENCODING));
+					} catch (UnsupportedEncodingException e) {
+						result.setToolTipText(value.getPath());					
+					}
 					if (value.isDirectory()) {
 						result.setIcon(DIR_ICON);
 						if (isSelected) {
@@ -142,7 +148,7 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 				@Override
 				public void keyReleased(final KeyEvent e) {
 					if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-						final JFileListItemDescriptor	value = getSelectedValue();
+						final JFileItemDescriptor	value = getSelectedValue();
 						
 						if (value != null) {
 							try(final FileSystemInterface	current = fsi.clone().open(value.getPath())) {
@@ -230,35 +236,35 @@ public abstract class JFileList extends JList<JFileListItemDescriptor> {
 	}
 	
 	private void open(final String newLocation) throws IOException {
-		final DefaultListModel<JFileListItemDescriptor>	model = ((DefaultListModel<JFileListItemDescriptor>)getModel()); 
+		final DefaultListModel<JFileItemDescriptor>	model = ((DefaultListModel<JFileItemDescriptor>)getModel()); 
 		
 		model.removeAllElements();
 		if (insertParent && !"/".equals(newLocation)) {
 			try(final FileSystemInterface current = fsi.clone().open(newLocation)) {
 				final String	parentPath = current.open("..").getPath(); 
 				
-				model.addElement(new JFileListItemDescriptor("..",parentPath,true));
+				model.addElement(new JFileItemDescriptor("..",parentPath,true));
 			}
 		}
 		try(final FileSystemInterface current = fsi.clone().open(newLocation)) {
-			final List<JFileListItemDescriptor>	dirs = new ArrayList<>();
-			final List<JFileListItemDescriptor>	files = new ArrayList<>();
+			final List<JFileItemDescriptor>	dirs = new ArrayList<>();
+			final List<JFileItemDescriptor>	files = new ArrayList<>();
 			
 			current.list((s)-> {
 				if (s.isDirectory()) {
-					dirs.add(new JFileListItemDescriptor(s.getName(),s.getPath(),true));
+					dirs.add(new JFileItemDescriptor(s.getName(),s.getPath(),true));
 				}
 				else {
-					files.add(new JFileListItemDescriptor(s.getName(),s.getPath(),false));
+					files.add(new JFileItemDescriptor(s.getName(),s.getPath(),false));
 				}
 				return ContinueMode.CONTINUE;
 			});
 			dirs.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
 			files.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
-			for (JFileListItemDescriptor item : dirs) {
+			for (JFileItemDescriptor item : dirs) {
 				model.addElement(item);
 			}
-			for (JFileListItemDescriptor item : files) {
+			for (JFileItemDescriptor item : files) {
 				model.addElement(item);
 			}
 		}

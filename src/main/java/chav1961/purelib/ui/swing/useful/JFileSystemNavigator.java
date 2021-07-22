@@ -16,13 +16,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Properties;
-import java.util.TimerTask;
 
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -30,24 +27,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTree;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.TreeWillExpandListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultTreeSelectionModel;
-import javax.swing.tree.ExpandVetoException;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
@@ -87,10 +73,8 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	
 	private static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
 	private static final Icon	FILE_ICON = PureLibStandardIcons.FILE.getIcon();
-	private static final long	REFRESH_DELAY = 500;
 	private static final String	CARD_ICONS = "icons";
 	private static final String	CARD_TABLE = "table";
-	private static final String	DEFAULT_URI_ENCODING = "UTF-8";
 	
 	private static enum ContentViewType {
 		AS_TABLE, 
@@ -138,7 +122,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	private final boolean					readOnly;
 	private final SelectionType				selectionType;
 	private final SelectedObjects			selectedObjects;
-	private final JTree						tree = new JTree();
+	private final JFileTree					tree;
 	private final JList<String>				list = new JList<>(new DefaultListModel<String>());
 	private final NavigatorModel			model;  
 	private final JTable					table;
@@ -146,11 +130,8 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	private final JPanel					rightCard = new JPanel(card);
 	private final JPanel					right = new JPanel(new BorderLayout());
 	private final JToolBarWithMeta			toolbar;
-	private final DefaultMutableTreeNode	root = new DefaultMutableTreeNode();
 	
 	private ContentViewType		contentView = ContentViewType.AS_ICONS;
-	private TimerTask			tt = null;
-	private volatile boolean	fastRefresh = false;
 	
 	public JFileSystemNavigator(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final Properties props) throws IOException, NullPointerException, EnvironmentException, ContentException {
 		if (localizer == null) {
@@ -172,6 +153,18 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 			this.logger = logger;
 			this.fsi = fsi;
 			this.props = props;
+			this.tree = new JFileTree(logger, fsi, false) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void refreshLinkedContent(final FileSystemInterface content) {
+								try{
+									refreshRightPanel(content);
+								} catch (IOException e) {
+									logger.message(Severity.error, "I/O error refreshing right panel: "+e.getLocalizedMessage(),e);
+								}
+							}
+						};
 			this.readOnly = checkParameter(props, PROP_ACCESS, PROP_ACCESS_READ_ONLY, PROP_ACCESS_READ_ONLY, PROP_ACCESS_READ_WRITE) == 0;
 			this.selectionType = SelectionType.values()[checkParameter(props, PROP_SELECTION_TYPE, SelectionType.NONE.getValue(), SelectionType.NONE.getValue(),SelectionType.SINGLE.getValue(), SelectionType.MULTIPLE.getValue())];
 			this.selectedObjects = SelectedObjects.values()[checkParameter(props, PROP_SELECTED_OBJECTS, SelectedObjects.NONE.getValue(), SelectedObjects.NONE.getValue(), SelectedObjects.FILES.getValue(), SelectedObjects.DIRECTORIES.getValue(), SelectedObjects.ALL.getValue())];
@@ -182,82 +175,11 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 			this.table = new JTable(this.model);
 			SwingUtils.assignActionListeners(this.toolbar, this);
 			
-			tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-			tree.setRootVisible(true);
-			tree.addTreeWillExpandListener(new TreeWillExpandListener() {
-				@Override public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {}
-				
-				@Override
-				public void treeWillExpand(final TreeExpansionEvent event) throws ExpandVetoException {
-					final DefaultMutableTreeNode	last = (DefaultMutableTreeNode)event.getPath().getLastPathComponent(); 
-					final String					path = (String) last.getUserObject();
-					
-					try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
-						fillChildren(last, partFsi);
-					} catch (IOException e) {
-						logger.message(Severity.error, "error expanding tree: "+e.getLocalizedMessage(),e);
-					}
-				}
-			});
-			tree.addTreeSelectionListener(new TreeSelectionListener() {
-				@Override
-				public void valueChanged(final TreeSelectionEvent event) {
-					final DefaultMutableTreeNode	last = (DefaultMutableTreeNode)event.getPath().getLastPathComponent(); 
-					final String					path = (String) last.getUserObject();
-					
-					if (tt != null) {
-						tt.cancel();
-						tt = null;
-					}
-					if (fastRefresh) {
-						try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
-							
-							refreshRightPanel(partFsi);
-						} catch (IOException e) {
-							logger.message(Severity.error, "error refreshing right panel: "+e.getLocalizedMessage(),e);
-						} finally {
-							fastRefresh = false;
-						}
-					}
-					else {
-						tt = new TimerTask() {
-							@Override
-							public void run() {
-								try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
-									
-									refreshRightPanel(partFsi);
-								} catch (IOException e) {
-									logger.message(Severity.error, "error refreshing right panel: "+e.getLocalizedMessage(),e);
-								}
-							}
-						};
-						PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY);
-					}
-				}
-			});
-			tree.setCellRenderer(new DefaultTreeCellRenderer() {
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-					final JLabel		label = (JLabel)super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-					try {final String	path = URLDecoder.decode(label.getText(), DEFAULT_URI_ENCODING);
-					
-						label.setText(path.endsWith("/") ? path : path.substring(path.lastIndexOf('/')+1));
-						label.setIcon(DIR_ICON);
-					} catch (UnsupportedEncodingException e) {
-						label.setText("I/O error: "+e.getLocalizedMessage());
-					}
-
-					return label;
-				}
-			});
-			
 			list.setCellRenderer(new ListCellRenderer<String>() {
 				@Override
 				public Component getListCellRendererComponent(final JList<? extends String> list, final String value, final int index, final boolean isSelected, final boolean cellHasFocus) {
 					try(final FileSystemInterface	temp = fsi.clone().open(value)) {
-						final String	name = URLDecoder.decode(temp.getName(), DEFAULT_URI_ENCODING);
+						final String	name = URLDecoder.decode(temp.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
 						
 						switch (contentView) {
 							case AS_ICONS		:
@@ -322,7 +244,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 			table.setDefaultRenderer(NavigatorModel.NavigatorRecord.class, (table, value, isSelected, hasFocus, row, column) -> {
 					final NavigatorModel.NavigatorRecord	rec = (NavigatorModel.NavigatorRecord)value;
 					
-					try {final JLabel	label = new JLabel(URLDecoder.decode(rec.name.substring(rec.name.lastIndexOf('/')+1), DEFAULT_URI_ENCODING), rec.isDirectory ? DIR_ICON : FILE_ICON, JLabel.LEFT);
+					try {final JLabel	label = new JLabel(URLDecoder.decode(rec.name.substring(rec.name.lastIndexOf('/')+1), PureLibSettings.DEFAULT_CONTENT_ENCODING), rec.isDirectory ? DIR_ICON : FILE_ICON, JLabel.LEFT);
 					
 						label.setOpaque(true);
 						if (isSelected) {
@@ -356,10 +278,6 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 					}
 				}
 			});
-			
-			root.setUserObject("/");
-			fillChildren(root, fsi);
-			((DefaultTreeModel)tree.getModel()).setRoot(root);
 			
 			rightCard.add(new JScrollPane(list), CARD_ICONS);
 			rightCard.add(new JScrollPane(table), CARD_TABLE);
@@ -421,39 +339,11 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 		refreshRightPanel();
 	}
 	
-	private void fillChildren(final DefaultMutableTreeNode node, final FileSystemInterface fsi) throws IOException {
-		final boolean[]	flag = new boolean[1];
-		
-		node.removeAllChildren();
-		
-		for (String item : fsi.list()) {
-			try(final FileSystemInterface	child = fsi.clone().open(item)) {
-				if (child.isDirectory()) {
-					flag[0] = false;
-					child.list((i)->{
-						return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
-					});
-					
-					node.add(new DefaultMutableTreeNode(child.getPath()) {
-						private static final long	serialVersionUID = 1L;
-						
-						final boolean				dirsInside = flag[0];
-						
-						@Override
-						public boolean isLeaf() {
-							return !dirsInside;
-						}
-					});
-				}
-			}
-		}
-	}
-
 	private void refreshRightPanel() {
 		final TreePath	selected = tree.getSelectionPath();
 		
 		if (selected != null) {
-			final String	path = (String)((DefaultMutableTreeNode)selected.getLastPathComponent()).getUserObject(); 
+			final String	path = ((JFileItemDescriptor)((DefaultMutableTreeNode)selected.getLastPathComponent()).getUserObject()).getPath(); 
 					
 			try(final FileSystemInterface	temp = fsi.clone().open(path)) {
 				refreshRightPanel(temp);
@@ -510,24 +400,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 
 	private void clickInRightPanel(final String path) {
 		tree.expandPath(tree.getSelectionPath());
-		SwingUtilities.invokeLater(()->findAndSelect((DefaultMutableTreeNode)tree.getModel().getRoot(),path));
-	}
-
-	private void findAndSelect(final DefaultMutableTreeNode node, final String path) {
-		for (int index = 0, maxIndex = node.getChildCount(); index < maxIndex; index++) {
-			final DefaultMutableTreeNode	item = (DefaultMutableTreeNode)node.getChildAt(index); 
-			
-			if (Objects.equals(item.getUserObject(),path)) {
-				final TreeNode[]	tn = ((DefaultMutableTreeNode)node.getChildAt(index)).getPath();
-				
-				fastRefresh = true;
-				tree.setSelectionPath(new TreePath(tn));
-				break;
-			}
-			else {
-				findAndSelect(item, path);
-			}
-		}
+		SwingUtilities.invokeLater(()->tree.setSelection(path));
 	}
 
 	private void fillLocalizedStrings() {
