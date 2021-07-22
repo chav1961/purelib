@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -243,7 +244,7 @@ public abstract class JFileList extends JList<JFileItemDescriptor> {
 			try(final FileSystemInterface current = fsi.clone().open(newLocation)) {
 				final String	parentPath = current.open("..").getPath(); 
 				
-				model.addElement(new JFileItemDescriptor("..",parentPath,true));
+				model.addElement(new JFileItemDescriptor("..", parentPath, true, 0, new Date(0)));
 			}
 		}
 		try(final FileSystemInterface current = fsi.clone().open(newLocation)) {
@@ -252,10 +253,10 @@ public abstract class JFileList extends JList<JFileItemDescriptor> {
 			
 			current.list((s)-> {
 				if (s.isDirectory()) {
-					dirs.add(new JFileItemDescriptor(s.getName(),s.getPath(),true));
+					dirs.add(new JFileItemDescriptor(s.getName(), s.getPath(), true, s.size(), new Date(s.lastModified())));
 				}
 				else {
-					files.add(new JFileItemDescriptor(s.getName(),s.getPath(),false));
+					files.add(new JFileItemDescriptor(s.getName(), s.getPath(), false, s.size(), new Date(s.lastModified())));
 				}
 				return ContinueMode.CONTINUE;
 			});

@@ -11,6 +11,8 @@ import chav1961.purelib.ui.swing.useful.CursorsAndIconsLibrary;
 public enum PureLibStandardIcons implements IconKeeper {
 	DIRECTORY(InternalConstants.ICON_DIRECTORY),
 	FILE(InternalConstants.ICON_FILE),
+	LARGE_DIRECTORY(InternalConstants.ICON_DIRECTORY),
+	LARGE_FILE(InternalConstants.ICON_FILE),
 	SUCCESS(InternalConstants.ICON_SUCCESS),
 	FAIL(InternalConstants.ICON_FAIL),
 	ACCEPT(InternalConstants.ICON_SUCCESS),

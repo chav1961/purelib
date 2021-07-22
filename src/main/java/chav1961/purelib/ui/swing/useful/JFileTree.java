@@ -7,6 +7,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Date;
 import java.util.Objects;
 import java.util.TimerTask;
 
@@ -114,7 +115,7 @@ public abstract class JFileTree extends JTree {
 					}
 				}
 			});
-			root.setUserObject(new JFileItemDescriptor("/", fsi.getAbsoluteURI().toString(), true));
+			root.setUserObject(new JFileItemDescriptor("/", fsi.getAbsoluteURI().toString(), true, fsi.size(), new Date(fsi.lastModified())));
 			fillChildren(root, fsi);
 			((DefaultTreeModel)getModel()).setRoot(root);
 			
@@ -201,7 +202,7 @@ public abstract class JFileTree extends JTree {
 					child.list((i)->{
 						return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
 					});
-					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory());
+					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
 					
 					node.add(new DefaultMutableTreeNode(desc) {
 						private static final long	serialVersionUID = 1L;
@@ -215,7 +216,7 @@ public abstract class JFileTree extends JTree {
 					});
 				}
 				else if (showFiles) {
-					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory());
+					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
 					
 					node.add(new DefaultMutableTreeNode(desc) {
 						private static final long	serialVersionUID = 1L;
