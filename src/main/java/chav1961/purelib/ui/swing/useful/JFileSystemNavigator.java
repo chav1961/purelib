@@ -123,15 +123,11 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	private final SelectionType				selectionType;
 	private final SelectedObjects			selectedObjects;
 	private final JFileTree					tree;
-	private final JList<String>				list = new JList<>(new DefaultListModel<String>());
-	private final NavigatorModel			model;  
-	private final JTable					table;
-	private final CardLayout				card = new CardLayout();
-	private final JPanel					rightCard = new JPanel(card);
+	private final JFileList					list;
+//	private final NavigatorModel			model;  
+//	private final JTable					table;
 	private final JPanel					right = new JPanel(new BorderLayout());
 	private final JToolBarWithMeta			toolbar;
-	
-	private ContentViewType		contentView = ContentViewType.AS_ICONS;
 	
 	public JFileSystemNavigator(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final Properties props) throws IOException, NullPointerException, EnvironmentException, ContentException {
 		if (localizer == null) {
@@ -165,63 +161,17 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 								}
 							}
 						};
+			this.list = new JFileList(localizer, logger, fsi, false, false);
 			this.readOnly = checkParameter(props, PROP_ACCESS, PROP_ACCESS_READ_ONLY, PROP_ACCESS_READ_ONLY, PROP_ACCESS_READ_WRITE) == 0;
 			this.selectionType = SelectionType.values()[checkParameter(props, PROP_SELECTION_TYPE, SelectionType.NONE.getValue(), SelectionType.NONE.getValue(),SelectionType.SINGLE.getValue(), SelectionType.MULTIPLE.getValue())];
 			this.selectedObjects = SelectedObjects.values()[checkParameter(props, PROP_SELECTED_OBJECTS, SelectedObjects.NONE.getValue(), SelectedObjects.NONE.getValue(), SelectedObjects.FILES.getValue(), SelectedObjects.DIRECTORIES.getValue(), SelectedObjects.ALL.getValue())];
 			
 			this.toolbar = new JToolBarWithMeta(mdi.byUIPath(URI.create("ui:/model/navigation.top.fileSystemNavigator")));
 			this.toolbar.setFloatable(false);
-			this.model = new NavigatorModel(localizer);
-			this.table = new JTable(this.model);
+//			this.model = new NavigatorModel(localizer);
+//			this.table = new JTable(this.model);
 			SwingUtils.assignActionListeners(this.toolbar, this);
 			
-			list.setCellRenderer(new ListCellRenderer<String>() {
-				@Override
-				public Component getListCellRendererComponent(final JList<? extends String> list, final String value, final int index, final boolean isSelected, final boolean cellHasFocus) {
-					try(final FileSystemInterface	temp = fsi.clone().open(value)) {
-						final String	name = URLDecoder.decode(temp.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
-						
-						switch (contentView) {
-							case AS_ICONS		:
-								final JLabel	label = new JLabel(name, temp.isDirectory() ? DIR_ICON : FILE_ICON, JLabel.LEFT);
-								final String	tooltip = "<html><body><p>size: <b>"+temp.size()+"</b></p><p>created: <b>"+new Date(temp.lastModified())+"</b></p></body></html>";
-								
-								label.setOpaque(true);
-								if (isSelected) {
-									label.setForeground(list.getSelectionForeground());
-									label.setBackground(list.getSelectionBackground());
-								}
-								else {
-									label.setForeground(list.getForeground());
-									label.setBackground(list.getBackground());
-								}
-								label.setToolTipText(tooltip);
-								return label;
-							case AS_LARGE_ICONS	:
-								final JLabel	largeLabel = new JLabel(name,temp.isDirectory() ? DIR_ICON : FILE_ICON, JLabel.CENTER);
-								final String	largeTooltip = "<html><body><p>size: <b>"+temp.size()+"</b></p><p>created: <b>"+new Date(temp.lastModified())+"</b></p></body></html>";
-								
-								largeLabel.setVerticalTextPosition(JLabel.BOTTOM);
-								largeLabel.setHorizontalTextPosition(JLabel.CENTER);								
-								largeLabel.setOpaque(true);
-								if (isSelected) {
-									largeLabel.setForeground(list.getSelectionForeground());
-									largeLabel.setBackground(list.getSelectionBackground());
-								}
-								else {
-									largeLabel.setForeground(list.getForeground());
-									largeLabel.setBackground(list.getBackground());
-								}
-								largeLabel.setToolTipText(largeTooltip);
-								return largeLabel;
-							default :
-								throw new UnsupportedOperationException("Content view ["+contentView+"] is not supported yet");
-						}
-					} catch (IOException e) {
-						return new JLabel("I/O error on ["+value+"]");
-					}
-				}
-			});
 			list.addMouseListener(new MouseListener() {
 				@Override public void mouseReleased(final MouseEvent e) {}
 				@Override public void mousePressed(final MouseEvent e) {}
@@ -230,61 +180,57 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 				
 				@Override
 				public void mouseClicked(final MouseEvent e) {
-					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
-						final int	index = list.locationToIndex(e.getPoint());
-						
-						if (index >= 0) {
-							clickInRightPanel((String)list.getModel().getElementAt(index));
-						}
-					}
+//					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
+//						final int	index = list.locationToIndex(e.getPoint());
+//						
+//						if (index >= 0) {
+//							clickInRightPanel((String)list.getModel().getElementAt(index));
+//						}
+//					}
 				}
 			});
 
-			table.setTableHeader(new NavigatorTableHeader(table.getColumnModel(), model));
-			table.setDefaultRenderer(NavigatorModel.NavigatorRecord.class, (table, value, isSelected, hasFocus, row, column) -> {
-					final NavigatorModel.NavigatorRecord	rec = (NavigatorModel.NavigatorRecord)value;
-					
-					try {final JLabel	label = new JLabel(URLDecoder.decode(rec.name.substring(rec.name.lastIndexOf('/')+1), PureLibSettings.DEFAULT_CONTENT_ENCODING), rec.isDirectory ? DIR_ICON : FILE_ICON, JLabel.LEFT);
-					
-						label.setOpaque(true);
-						if (isSelected) {
-							label.setForeground(table.getSelectionForeground());
-							label.setBackground(table.getSelectionBackground());
-						}
-						else {
-							label.setForeground(table.getForeground());
-							label.setBackground(table.getBackground());
-						}
-						return label;
-					} catch (UnsupportedEncodingException e) {
-						return new JLabel("I/O error on ["+value+"]");
-					}
-				}
-			);
-			table.addMouseListener(new MouseListener() {
-				@Override public void mouseReleased(final MouseEvent e) {}
-				@Override public void mousePressed(final MouseEvent e) {}
-				@Override public void mouseExited(final MouseEvent e) {}
-				@Override public void mouseEntered(final MouseEvent e) {}
-				
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
-						final int	index = table.rowAtPoint(e.getPoint());
-						
-						if (index >= 0) {
-							clickInRightPanel(((NavigatorRecord)table.getModel().getValueAt(index,0)).name);
-						}
-					}
-				}
-			});
-			
-			rightCard.add(new JScrollPane(list), CARD_ICONS);
-			rightCard.add(new JScrollPane(table), CARD_TABLE);
+//			table.setTableHeader(new NavigatorTableHeader(table.getColumnModel(), model));
+//			table.setDefaultRenderer(NavigatorModel.NavigatorRecord.class, (table, value, isSelected, hasFocus, row, column) -> {
+//					final NavigatorModel.NavigatorRecord	rec = (NavigatorModel.NavigatorRecord)value;
+//					
+//					try {final JLabel	label = new JLabel(URLDecoder.decode(rec.name.substring(rec.name.lastIndexOf('/')+1), PureLibSettings.DEFAULT_CONTENT_ENCODING), rec.isDirectory ? DIR_ICON : FILE_ICON, JLabel.LEFT);
+//					
+//						label.setOpaque(true);
+//						if (isSelected) {
+//							label.setForeground(table.getSelectionForeground());
+//							label.setBackground(table.getSelectionBackground());
+//						}
+//						else {
+//							label.setForeground(table.getForeground());
+//							label.setBackground(table.getBackground());
+//						}
+//						return label;
+//					} catch (UnsupportedEncodingException e) {
+//						return new JLabel("I/O error on ["+value+"]");
+//					}
+//				}
+//			);
+//			table.addMouseListener(new MouseListener() {
+//				@Override public void mouseReleased(final MouseEvent e) {}
+//				@Override public void mousePressed(final MouseEvent e) {}
+//				@Override public void mouseExited(final MouseEvent e) {}
+//				@Override public void mouseEntered(final MouseEvent e) {}
+//				
+//				@Override
+//				public void mouseClicked(MouseEvent e) {
+//					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
+//						final int	index = table.rowAtPoint(e.getPoint());
+//						
+//						if (index >= 0) {
+//							clickInRightPanel(((NavigatorRecord)table.getModel().getValueAt(index,0)).name);
+//						}
+//					}
+//				}
+//			});
 			
 			right.add(toolbar, BorderLayout.NORTH);
-			right.add(rightCard, BorderLayout.CENTER);
-			card.show(rightCard, CARD_ICONS);
+			right.add(list, BorderLayout.CENTER);
 			
 			setLeftComponent(new JScrollPane(tree));
 			setRightComponent(right);
@@ -317,25 +263,20 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	}
 	
 	@OnAction("action:/asIcons")
-	private void asIcons() {
-		contentView = ContentViewType.AS_ICONS;
-		card.show(rightCard, CARD_ICONS);
-		list.setLayoutOrientation(JList.VERTICAL);
+	private void asIcons() throws IOException {
+		list.setContentViewType(JFileList.ContentViewType.AS_ICONS);
 		refreshRightPanel();
 	}
 
 	@OnAction("action:/asLargeIcons")
-	private void asLagreIcons() {
-		contentView = ContentViewType.AS_LARGE_ICONS;
-		card.show(rightCard, CARD_ICONS);
-		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+	private void asLagreIcons() throws IOException {
+		list.setContentViewType(JFileList.ContentViewType.AS_LARGE_ICONS);
 		refreshRightPanel();
 	}
 	
 	@OnAction("action:/asTable")
-	private void asTable() {
-		contentView = ContentViewType.AS_TABLE;
-		card.show(rightCard, CARD_TABLE);
+	private void asTable() throws IOException {
+		list.setContentViewType(JFileList.ContentViewType.AS_TABLE);
 		refreshRightPanel();
 	}
 	
@@ -360,42 +301,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	}
 	
 	private void refreshRightPanel(final FileSystemInterface current) throws IOException {
-		switch (contentView) {
-			case AS_ICONS : case AS_LARGE_ICONS :
-				if (current != null) {
-					final List<String>	content = new ArrayList<>();
-					
-					current.list((i)->{
-						if (i.isDirectory()) {
-							content.add(i.getPath());
-						}
-						return ContinueMode.CONTINUE;
-					});
-					current.list((i)->{
-						if (i.isFile()) {
-							content.add(i.getPath());
-						}
-						return ContinueMode.CONTINUE;
-					});
-					SwingUtilities.invokeLater(()->{
-						final DefaultListModel<String>	model = (DefaultListModel<String>)list.getModel();
-						model.clear();
-						model.addAll(content);
-					});
-				}
-				else {
-					SwingUtilities.invokeLater(()->{
-						final DefaultListModel<String>	model = (DefaultListModel<String>)list.getModel();
-						model.clear();
-					});
-				}
-				break;
-			case AS_TABLE	:
-				model.refillModel(current);
-				break;
-			default:
-				throw new UnsupportedOperationException("Content type ["+contentView+"] is not supported yet");
-		}
+		list.refreshContent(current.getPath());
 	}
 
 	private void clickInRightPanel(final String path) {
@@ -404,7 +310,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	}
 
 	private void fillLocalizedStrings() {
-		model.fireTableStructureChanged();
+//		model.fireTableStructureChanged();
 	}
 
 	private static int checkParameter(final Properties props, final String key, final String defaultValue, final String... availableValues) throws IllegalArgumentException {

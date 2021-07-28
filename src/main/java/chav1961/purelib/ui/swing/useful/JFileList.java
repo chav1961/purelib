@@ -1,274 +1,714 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.Point;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
 
-import javax.swing.DefaultListModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.ToolTipManager;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
-import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
+import chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel;
 
-public abstract class JFileList extends JList<JFileItemDescriptor> {
-	private static final long 			serialVersionUID = 6388035688220928716L;
-	private static final Icon			DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
-	private static final Icon			FILE_ICON = PureLibStandardIcons.FILE.getIcon();
+public class JFileList extends JPanel implements LocaleChangeListener {
+	private static final long 				serialVersionUID = 1L;
+	private static final String				CARD_ICONS = "icons";
+	private static final String				CARD_TABLE = "table";
+	private static final String				TABLE_COL_FILE = "chav1961.purelib.ui.swing.useful.JFileList.column1";
+	private static final String				TABLE_COL_FILE_TT = "chav1961.purelib.ui.swing.useful.JFileList.column1.tt";
+	private static final String				TABLE_COL_SIZE = "chav1961.purelib.ui.swing.useful.JFileList.column2";
+	private static final String				TABLE_COL_SIZE_TT = "chav1961.purelib.ui.swing.useful.JFileList.column2.tt";
+	private static final String				TABLE_COL_CREATED = "chav1961.purelib.ui.swing.useful.JFileList.column3";
+	private static final String				TABLE_COL_CREATED_TT = "chav1961.purelib.ui.swing.useful.JFileList.column3.tt";
+	private static final String				TABLE_TT_FILE = "chav1961.purelib.ui.swing.useful.JFileList.tooltip.file";
+	private static final String				TABLE_TT_DIRECTORY = "chav1961.purelib.ui.swing.useful.JFileList.tooltip.directory";
+	
+	private static final NullSelectionModel	NULL_SELECTION = new NullSelectionModel();
 
-	public enum JFileListSelectionType {
-		NONE, 
-		EXACTLY_ONE_DIRECTORY,
-		EXACTLY_ONE_FILE,
-		DIRECTORIES_ONLY,
-		FILES_ONLY,
-		MIX
+	public static enum SelectionType {
+		NONE,
+		SINGLE,
+		MULTIPLE;
+	}
+
+	public static enum SelectedObjects {
+		NONE,
+		FILES,
+		DIRECTORIES,
+		ALL;
 	}
 	
-	private final LoggerFacade			logger;
-	private final FileSystemInterface	fsi;
-	private final boolean				insertParent;
+	public static enum ContentViewType {
+		AS_TABLE(CARD_TABLE), 
+		AS_ICONS(CARD_ICONS),
+		AS_LARGE_ICONS(CARD_ICONS);
+		
+		private final String	cardName;
+		
+		private ContentViewType(final String cardName) {
+			this.cardName = cardName;
+		}
+		
+		String getCardName() {
+			return cardName;
+		}
+	}
+
+	private final Localizer						localizer;
+	private final LoggerFacade					logger;
+	private final FileSystemInterface			fsi;
+	private final boolean						insertParent;
+	private final SelectionType					selType;
+	private final SelectedObjects				selObjects;
+	private final CardLayout					layout = new CardLayout();
+	private final InnerTableModel				model;
+	private final JTable						table = new JTable() {
+													private static final long serialVersionUID = 1L;
+
+													@Override
+													public String getToolTipText(final MouseEvent event) {
+														final int	row = table.rowAtPoint(event.getPoint());
+														
+														if (row >= 0) {
+															return getTooltip4Path(((InnerTableModel)table.getModel()).getValueAt(row).getPath()); 
+														}
+														else {
+															return null;
+														}
+													}
+												};
+	private final JList<JFileItemDescriptor>	list = new JList<>(){
+													private static final long serialVersionUID = 1L;
+
+													@Override
+													public String getToolTipText(final MouseEvent event) {
+														final int	row = list.locationToIndex(event.getPoint());
+														
+														if (row >= 0) {
+															return getTooltip4Path(list.getModel().getElementAt(row).getPath()); 
+														}
+														else {
+															return null;
+														}
+													}
+												};
+
+	private ContentViewType				viewType;
+	private String						currentPath = "/";
 	
-	private String						currentLocation;
-	
-	public JFileList(final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final boolean useMultiselection, final boolean horizontalPlacement) throws IOException, NullPointerException {
+	public JFileList(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final boolean useMultiselection) throws NullPointerException, LocalizationException {
+		this(localizer, logger, fsi, insertParent, useMultiselection ? SelectionType.MULTIPLE : SelectionType.SINGLE, SelectedObjects.ALL, ContentViewType.AS_ICONS);
+	}
+
+	public JFileList(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final SelectionType selectionType, final SelectedObjects selectedObjects, final ContentViewType viewType) throws NullPointerException, LocalizationException {
 		if (logger == null) {
-			throw new NullPointerException("Logger facade can't be null"); 
+			throw new NullPointerException("Logger can't be null"); 
 		}
 		else if (fsi == null) {
 			throw new NullPointerException("File system interface can't be null"); 
 		}
+		else if (selectionType == null) {
+			throw new NullPointerException("Selection type can't be null"); 
+		}
+		else if (selectedObjects == null) {
+			throw new NullPointerException("Selected objects can't be null"); 
+		}
+		else if (viewType == null) {
+			throw new NullPointerException("View type can't be null"); 
+		}
 		else {
+			this.localizer = localizer;
 			this.logger = logger;
 			this.fsi = fsi;
 			this.insertParent = insertParent;
+			this.selType = selectionType;
+			this.selObjects = selectedObjects;
+			this.viewType = viewType;
+			this.model = new InnerTableModel(localizer);
 			
-			setModel(new DefaultListModel<JFileItemDescriptor>());
-			setLayoutOrientation(horizontalPlacement ? JList.HORIZONTAL_WRAP : JList.VERTICAL_WRAP);
-			setVisibleRowCount(-1);
-			setCellRenderer(new ListCellRenderer<JFileItemDescriptor>() {
+			setLayout(layout);
+			table.setModel(model);
+
+			table.setDefaultRenderer(JFileItemDescriptor.class, new TableCellRenderer() {
 				@Override
-				public Component getListCellRendererComponent(final JList<? extends JFileItemDescriptor> list, final JFileItemDescriptor value, final int index, final boolean isSelected, final boolean cellHasFocus) {
-					final JLabel	result = new JLabel();
-					final String	val = URI.create(value.getPath()).getRawSchemeSpecificPart();
-						
-					try{
-						result.setText(CharUtils.fillInto(URLDecoder.decode(value.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING),10,false,CharUtils.FillingAdjstment.LEFT));
-						result.setToolTipText(URLDecoder.decode(value.getPath(), PureLibSettings.DEFAULT_CONTENT_ENCODING));
-					} catch (UnsupportedEncodingException e) {
-						result.setToolTipText(value.getPath());					
-					}
-					if (value.isDirectory()) {
-						result.setIcon(DIR_ICON);
-						if (isSelected) {
-							result.setOpaque(true);
-							result.setForeground(list.getSelectionForeground());
-							result.setBackground(list.getSelectionBackground());
-						}
+				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+					final JFileItemDescriptor	desc = (JFileItemDescriptor) value;
+					final JLabel				label = new JLabel(desc.getName(), desc.isDirectory() ? PureLibStandardIcons.DIRECTORY.getIcon() : PureLibStandardIcons.FILE.getIcon() , JLabel.LEFT);
+
+					label.setOpaque(true);
+					if (isSelected) {
+						label.setForeground(table.getSelectionForeground());
+						label.setBackground(table.getSelectionBackground());
 					}
 					else {
-						result.setIcon(FILE_ICON);
-						if (isSelected) {
-							result.setOpaque(true);
-							result.setForeground(list.getSelectionForeground());
-							result.setBackground(list.getSelectionBackground());
-						}
+						label.setForeground(table.getForeground());
+						label.setBackground(table.getBackground());
+					}
+					return label;
+				}
+			});
+			table.setDefaultRenderer(Long.class, new TableCellRenderer() {
+				@Override
+				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+					final Long		desc = (Long) value;
+					final JLabel	label = new JLabel("<html><body><p><b>"+desc.longValue()+"</b></p></body></html>", JLabel.RIGHT);
+
+					label.setOpaque(true);
+					if (isSelected) {
+						label.setForeground(table.getSelectionForeground());
+						label.setBackground(table.getSelectionBackground());
+					}
+					else {
+						label.setForeground(table.getForeground());
+						label.setBackground(table.getBackground());
+					}
+					return label;
+				}
+			});
+			table.setDefaultRenderer(Date.class, new TableCellRenderer() {
+				@Override
+				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+					final Date		desc = (Date) value;
+					final JLabel	label = new JLabel(new SimpleDateFormat("yyyy-MM-dd", localizer.currentLocale().getLocale()).format(desc), JLabel.LEFT);
+
+					label.setOpaque(true);
+					if (isSelected) {
+						label.setForeground(table.getSelectionForeground());
+						label.setBackground(table.getSelectionBackground());
+					}
+					else {
+						label.setForeground(table.getForeground());
+						label.setBackground(table.getBackground());
+					}
+					return label;
+				}
+			});
+			table.setTableHeader(new NavigatorTableHeader(table.getColumnModel(), model));
+			list.setCellRenderer(new ListCellRenderer<JFileItemDescriptor>() {
+				@Override
+				public Component getListCellRendererComponent(final JList<? extends JFileItemDescriptor> list, final JFileItemDescriptor value, final int index, final boolean isSelected, final boolean cellHasFocus) {
+					JLabel	label = null;
+					
+					switch (viewType) {
+						case AS_ICONS		:
+							label = new JLabel(value.getName(), value.isDirectory() ? PureLibStandardIcons.LARGE_DIRECTORY.getIcon() : PureLibStandardIcons.LARGE_FILE.getIcon(), JLabel.LEFT);
+							break;
+						case AS_LARGE_ICONS	:
+							label = new JLabel(value.getName(), value.isDirectory() ? PureLibStandardIcons.LARGE_DIRECTORY.getIcon() : PureLibStandardIcons.LARGE_FILE.getIcon(), JLabel.LEFT);
+							break;
+						case AS_TABLE		:
+							return null;
+						default	: throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet");
+					}
+					label.setOpaque(true);
+					if (isSelected) {
+						label.setForeground(list.getSelectionForeground());
+						label.setBackground(list.getSelectionBackground());
+					}
+					else {
+						label.setForeground(list.getForeground());
+						label.setBackground(list.getBackground());
 					}
 					if (cellHasFocus) {
-						result.setBorder(new LineBorder(Color.BLACK));
+						label.setBorder(new LineBorder(Color.BLUE));
 					}
-					
-					return result;
+					return label; 
 				}
 			});
-			addMouseListener(new MouseListener() {
-				@Override public void mouseReleased(MouseEvent e) {}
-				@Override public void mousePressed(MouseEvent e) {}
-				@Override public void mouseExited(MouseEvent e) {}
-				@Override public void mouseEntered(MouseEvent e) {}
-				
-				@Override 
-				public void mouseClicked(MouseEvent e) {
-					if (e.getClickCount() > 1) {
-						final int	index = locationToIndex(e.getPoint());
-						
-						if (index >= 0) {
-							String	newLocation = null;
-							
-							try (final FileSystemInterface	fsiNew = fsi.clone().open(getModel().getElementAt(index).getPath())) {
-								
-								if (fsiNew.isDirectory()) {
-									newLocation = fsiNew.getPath();
-								}
-								else {
-									setSelectedIndex(index);
-									selectAndAccept(getSelectedValue().getPath());
-								}
-							} catch (IOException e1) {
-								logger.message(Severity.error,e1,"Error querying file system node ["+getModel().getElementAt(index)+"]: "+e1.getLocalizedMessage());
-							}
-							if (newLocation != null) {
-								try{open(newLocation);
-								} catch (IOException e1) {
-									logger.message(Severity.error,e1,"Error opening file system node ["+newLocation+"]: "+e1.getLocalizedMessage());
-								}
-							}
-						}
-					}
-				}
-			});
-			addKeyListener(new KeyListener() {
-				@Override public void keyTyped(final KeyEvent e) {}
-				@Override public void keyPressed(final KeyEvent e) {}
+			
+			addComponentListener(new ComponentListener() {
+				@Override public void componentResized(ComponentEvent e) {}
+				@Override public void componentMoved(ComponentEvent e) {}
 				
 				@Override
-				public void keyReleased(final KeyEvent e) {
-					if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-						final JFileItemDescriptor	value = getSelectedValue();
-						
-						if (value != null) {
-							try(final FileSystemInterface	current = fsi.clone().open(value.getPath())) {
-								if (current.isDirectory()) {
-									open(value.getPath());
-								}
-								else {
-									selectAndAccept(value.getPath());
-								}
-							} catch (IOException exc) {
-								logger.message(Severity.error,exc,"Error selection file system node ["+value+"]: "+exc.getLocalizedMessage());
-							}
-						}
-					}
+				public void componentShown(ComponentEvent e) {
+					final ToolTipManager 	toolTipManager = ToolTipManager.sharedInstance();
+			        
+			        toolTipManager.registerComponent(table);
+			        toolTipManager.registerComponent(list);
+				}
+				
+				@Override
+				public void componentHidden(ComponentEvent e) {
+					final ToolTipManager 	toolTipManager = ToolTipManager.sharedInstance();
+			        
+			        toolTipManager.unregisterComponent(table);
+			        toolTipManager.unregisterComponent(list);
 				}
 			});
-			setSelectionMode(useMultiselection ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION : ListSelectionModel.SINGLE_SELECTION);
-			open(fsi.getPath());
+			switch (selType) {
+				case NONE		:
+					list.setSelectionModel(NULL_SELECTION);
+					table.setSelectionModel(NULL_SELECTION);
+					break;
+				case SINGLE		:
+					list.setSelectionModel(new SelectionModelWrapper(()->upload(list), new DefaultListSelectionModel(), selObjects));
+					table.setSelectionModel(new SelectionModelWrapper(()->upload(table), new DefaultListSelectionModel(), selObjects));
+					list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+					table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+					break;
+				case MULTIPLE	:
+					list.setSelectionModel(new SelectionModelWrapper(()->upload(list), new DefaultListSelectionModel(), selObjects));
+					table.setSelectionModel(new SelectionModelWrapper(()->upload(table), new DefaultListSelectionModel(), selObjects));
+					list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+					table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+					break;
+				default:
+					break;
+			}
+			
+			add(new JScrollPane(table), CARD_TABLE);
+			add(new JScrollPane(list), CARD_ICONS);
+			layout.show(this, viewType.getCardName());
+			fillLocalizationStrings();
 		}
 	}
 
-	protected abstract void selectAndAccept(final String path);
-
-	public String getCurrentLocation() {
-		return currentLocation;
-	}
-
-	public String getCurrentSelection() {
-		if (getSelectedIndex() >= 0) {
-			return getSelectedValue().getPath();
-		}
-		else {
-			return null;
-		}
+	@Override
+	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		fillLocalizationStrings();
 	}
 	
-	public void refresh() throws IOException {
-		open(getCurrentLocation());
+	public ContentViewType getContentViewType() {
+		return viewType;
 	}
-
-	public JFileListSelectionType getSelectionType() {
-		final int[]	indices = getSelectedIndices();
-		
-		if (indices == null || indices.length == 0) {
-			return JFileListSelectionType.NONE;
-		}
-		else if (indices.length == 1) {
-			return getModel().getElementAt(indices[0]).isDirectory() ? JFileListSelectionType.EXACTLY_ONE_DIRECTORY : JFileListSelectionType.EXACTLY_ONE_FILE; 
+	
+	public void setContentViewType(final ContentViewType type) throws NullPointerException, IOException {
+		if (viewType ==  null) {
+			throw new NullPointerException("View type can't be null");
 		}
 		else {
-			boolean	filePresent = false, directoryPresent = false;
-			
-			for (int index : indices) {
-				if (getModel().getElementAt(index).isDirectory()) {
-					directoryPresent = true;
-				}
-				else {
-					filePresent = true;
-				}
+			viewType = type;
+			layout.show(this, viewType.getCardName());
+			switch (viewType) {
+				case AS_ICONS		:
+					break;
+				case AS_LARGE_ICONS	:
+					break;
+				case AS_TABLE		:
+					break;
+				default	: throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet");
 			}
-			if (directoryPresent && filePresent) {
-				return JFileListSelectionType.MIX;
+			refreshContent(currentPath);
+		}
+	}
+
+	public void refreshContent(final String path) throws IllegalArgumentException, IOException {
+		if (path == null || path.isEmpty()) {
+			throw new IllegalArgumentException("Path  to refresh can't be null or empty");
+		}
+		else {
+			final List<JFileItemDescriptor>	items = new ArrayList<>();
+			
+			currentPath = path;
+			try(final FileSystemInterface	temp = fsi.clone().open(path)) {
+				if (insertParent && !"/".equals(temp.getPath())) {
+					temp.push("..");
+					items.add(new JFileItemDescriptor("..", temp.getPath(), true, 0, new Date(0)));
+					temp.pop();
+				}
+				temp.list((i)->{
+					items.add(new JFileItemDescriptor(i.getName(), i.getPath(), i.isDirectory(), i.size(), new Date(i.lastModified())));
+					return ContinueMode.CONTINUE;
+				});
+			}
+			switch (viewType) {
+				case AS_ICONS : case AS_LARGE_ICONS :
+					list.removeAll();
+					list.setListData(items.toArray(new JFileItemDescriptor[items.size()]));
+					break;
+				case AS_TABLE		:
+					((InnerTableModel)table.getModel()).refreshContent(items);
+					break;
+				default	: throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet");
+			}
+		}
+	}
+
+	private String getTooltip4Path(final String path) {
+		try(final FileSystemInterface	temp = fsi.clone().open(path)) {
+
+			if (temp.isDirectory()) {
+				return String.format(localizer.getValue(TABLE_TT_DIRECTORY), temp.getPath(), new Date(temp.lastModified()));
 			}
 			else {
-				return directoryPresent ? JFileListSelectionType.DIRECTORIES_ONLY : JFileListSelectionType.FILES_ONLY;
+				return String.format(localizer.getValue(TABLE_TT_FILE), temp.getPath(), temp.size(), new Date(temp.lastModified()));
 			}
+		} catch (IOException | LocalizationException e) {
+			return path;
+		}
+	}
+	
+	private void fillLocalizationStrings() throws LocalizationException {
+		model.fireTableStructureChanged();
+	}
+
+	private static List<JFileItemDescriptor> upload(final JList<JFileItemDescriptor> from) {
+		final List<JFileItemDescriptor>			result = new ArrayList<>();
+		final ListModel<JFileItemDescriptor>	model = from.getModel(); 
+		
+		for (int index = 0, maxIndex = model.getSize(); index < maxIndex; index++) {
+			result.add(model.getElementAt(index));
+		}
+ 		return result;
+	}
+
+	private static List<JFileItemDescriptor> upload(final JTable from) {
+		final List<JFileItemDescriptor>	result = new ArrayList<>();
+		final InnerTableModel			model = (InnerTableModel)from.getModel(); 
+		
+		for (int index = 0, maxIndex = model.getRowCount(); index < maxIndex; index++) {
+			result.add((JFileItemDescriptor)model.getValueAt(index));
+		}
+ 		return result;
+	}
+	
+
+	private static class InnerTableModel extends DefaultTableModel {
+		private static final long serialVersionUID = 1L;
+
+		private final Localizer					localizer;
+		private final List<JFileItemDescriptor>	content = new ArrayList<>();
+		
+		InnerTableModel(final Localizer localizer) {
+			this.localizer = localizer;
+		}
+
+		@Override public boolean isCellEditable(final int rowIndex, final int columnIndex) {return false;}
+		@Override public void setValueAt(Object aValue, int rowIndex, int columnIndex) {}
+
+		@Override
+		public int getRowCount() {
+			if (content == null) {
+				return 0;
+			}
+			else {
+				return content.size();
+			}
+		}
+
+		@Override
+		public int getColumnCount() {
+			return 3;
+		}
+
+		@Override
+		public String getColumnName(final int columnIndex) {
+			switch (columnIndex) {
+				case 0 :
+					try {
+						return localizer.getValue(TABLE_COL_FILE);
+					} catch (LocalizationException e) {
+						return TABLE_COL_FILE;
+					}
+				case 1 :
+					try {
+						return localizer.getValue(TABLE_COL_SIZE);
+					} catch (LocalizationException e) {
+						return TABLE_COL_FILE;
+					}
+				case 2 :
+					try {
+						return localizer.getValue(TABLE_COL_CREATED);
+					} catch (LocalizationException e) {
+						return TABLE_COL_FILE;
+					}
+				default : throw new IllegalArgumentException();
+			}
+		}
+
+		
+		@Override
+		public Class<?> getColumnClass(final int columnIndex) {
+			switch (columnIndex) {
+				case 0 : return JFileItemDescriptor.class;
+				case 1 : return Long.class;
+				case 2 : return Date.class;
+				default : throw new IllegalArgumentException();
+			}
+		}
+
+		@Override
+		public Object getValueAt(final int rowIndex, final int columnIndex) {
+			final JFileItemDescriptor	desc = getValueAt(rowIndex);
+			
+			switch (columnIndex) {
+				case 0 : return desc;
+				case 1 : return desc.getSize();
+				case 2 : return desc.getLastModified();
+				default : throw new IllegalArgumentException();
+			}
+		}
+
+		public String getColumnTooltip(final int columnIndex) {
+			switch (columnIndex) {
+				case 0 :
+					try {
+						return localizer.getValue(TABLE_COL_FILE_TT);
+					} catch (LocalizationException e) {
+						return TABLE_COL_FILE_TT;
+					}
+				case 1 :
+					try {
+						return localizer.getValue(TABLE_COL_SIZE_TT);
+					} catch (LocalizationException e) {
+						return TABLE_COL_FILE_TT;
+					}
+				case 2 :
+					try {
+						return localizer.getValue(TABLE_COL_CREATED_TT);
+					} catch (LocalizationException e) {
+						return TABLE_COL_FILE_TT;
+					}
+				default : throw new IllegalArgumentException();
+			}
+		}
+		
+		JFileItemDescriptor getValueAt(final int rowIndex) {
+			return content.get(rowIndex);
+		}
+		
+		void refreshContent(final List<JFileItemDescriptor> content) {
+			this.content.clear();
+			this.content.addAll(content);
+			fireTableDataChanged();
+		}
+	}
+	
+	
+	private static class SelectionModelWrapper implements ListSelectionModel {
+		private final ModelContent			contentGetter;
+		private final ListSelectionModel	nested;
+		private final SelectedObjects		objects;
+		
+		@FunctionalInterface
+		private interface ModelContent {
+			List<JFileItemDescriptor> extract();
+		}
+		
+		SelectionModelWrapper(final ModelContent contentGetter, final ListSelectionModel nested, final SelectedObjects objects) {
+			this.contentGetter = contentGetter;
+			this.nested = nested;
+			this.objects = objects;
+		}
+
+		@Override
+		public void setSelectionInterval(final int index0, final int index1) {
+			for (int[] item : collectAllowedIntervals(index0, index1)) {
+				nested.setSelectionInterval(item[0], item[1]);
+			}
+		}
+
+		@Override
+		public void addSelectionInterval(int index0, int index1) {
+			for (int[] item : collectAllowedIntervals(index0, index1)) {
+				nested.addSelectionInterval(item[0], item[1]);
+			}
+		}
+
+		@Override
+		public void removeSelectionInterval(final int index0, final int index1) {
+			nested.removeSelectionInterval(index0, index1);
+		}
+
+		@Override
+		public int getMinSelectionIndex() {
+			return nested.getMinSelectionIndex();
+		}
+
+		@Override
+		public int getMaxSelectionIndex() {
+			return nested.getMaxSelectionIndex();
+		}
+
+		@Override
+		public boolean isSelectedIndex(final int index) {
+			final boolean	result = nested.isSelectedIndex(index);
+			
+			if (result) {
+				return allowSelection(index);
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
+		public int getAnchorSelectionIndex() {
+			return nested.getAnchorSelectionIndex();
+		}
+
+		@Override
+		public void setAnchorSelectionIndex(final int index) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public int getLeadSelectionIndex() {
+			return nested.getLeadSelectionIndex();
+		}
+
+		@Override
+		public void setLeadSelectionIndex(final int index) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void clearSelection() {
+			nested.clearSelection();
+		}
+
+		@Override
+		public boolean isSelectionEmpty() {
+			return nested.isSelectionEmpty();
+		}
+
+		@Override
+		public void insertIndexInterval(final int index, final int length, final boolean before) {
+			nested.insertIndexInterval(index, length, before);
+		}
+
+		@Override
+		public void removeIndexInterval(final int index0, final int index1) {
+			nested.removeIndexInterval(index0, index1);
+		}
+
+		@Override
+		public void setValueIsAdjusting(final boolean valueIsAdjusting) {
+			nested.setValueIsAdjusting(valueIsAdjusting);
+		}
+
+		@Override
+		public boolean getValueIsAdjusting() {
+			return nested.getValueIsAdjusting();
+		}
+
+		@Override
+		public void setSelectionMode(final int selectionMode) {
+			nested.setSelectionMode(selectionMode);
+		}
+
+		@Override
+		public int getSelectionMode() {
+			return nested.getSelectionMode();
+		}
+
+		@Override
+		public void addListSelectionListener(final ListSelectionListener x) {
+			nested.addListSelectionListener(x);
+		}
+
+		@Override
+		public void removeListSelectionListener(final ListSelectionListener x) {
+			nested.removeListSelectionListener(x);
+		}
+
+		private boolean allowSelection(final int index) {
+			final JFileItemDescriptor	desc = contentGetter.extract().get(index);
+			
+			switch (objects) {
+				case ALL			: return true;
+				case DIRECTORIES	: return desc.isDirectory();
+				case FILES			: return !desc.isDirectory();
+				case NONE			: return false;
+				default : throw new UnsupportedOperationException("Selected objects ["+objects+"] is not supported yet");
+			}
+		}
+		
+		private List<int[]> collectAllowedIntervals(final int index0, final int index1) {
+			final List<int[]>	intervals = new ArrayList<>();
+			int					start = -1;
+			
+			for (int index = index0; index <= index1; index++) {
+				if (allowSelection(index)) {
+					if (start == -1) {
+						start = index;
+					}
+				}
+				else {
+					if (start != -1) {
+						intervals.add(new int[] {start, index-1});
+						start = -1;
+					}
+				}
+			}
+			if (start != -1) {
+				intervals.add(new int[] {start, index1});
+			}
+			return intervals;
 		}
 	}
 
-	public Set<String> getSelectedExtensions() {
-		final Set<String>	result = new HashSet<>();
-		final int[]			indices = getSelectedIndices();
+	private static class NavigatorTableHeader extends JTableHeader {
+		private static final long 		serialVersionUID = 1L;
+
+		private final InnerTableModel	tableModel;
 		
-		if (indices != null) {
-			for (int index : indices) {
-				final String	path = getModel().getElementAt(index).getPath();
-				final String	name = path.endsWith("/") ? path.substring(path.lastIndexOf('/',path.lastIndexOf('/')) + 1) : path.substring(path.lastIndexOf('/') + 1);
-				
-				if (name.contains(".")) {
-					result.add(name.substring(name.lastIndexOf('.')+1));
-				}
-			}
-		}
-		return result;
+		private NavigatorTableHeader(final TableColumnModel columnModel, final InnerTableModel model) {
+	    	super(columnModel);
+	    	this.tableModel = model;
+	    }
+
+		@Override
+	    public String getToolTipText(final MouseEvent e) {
+	        final Point	p = e.getPoint();
+	        final int 	index = columnModel.getColumnIndexAtX(p.x);
+	        final int 	realIndex = columnModel.getColumn(index).getModelIndex();
+	        
+	        return tableModel.getColumnTooltip(realIndex);
+	    }
 	}
 	
-	private void open(final String newLocation) throws IOException {
-		final DefaultListModel<JFileItemDescriptor>	model = ((DefaultListModel<JFileItemDescriptor>)getModel()); 
-		
-		model.removeAllElements();
-		if (insertParent && !"/".equals(newLocation)) {
-			try(final FileSystemInterface current = fsi.clone().open(newLocation)) {
-				final String	parentPath = current.open("..").getPath(); 
-				
-				model.addElement(new JFileItemDescriptor("..", parentPath, true, 0, new Date(0)));
-			}
-		}
-		try(final FileSystemInterface current = fsi.clone().open(newLocation)) {
-			final List<JFileItemDescriptor>	dirs = new ArrayList<>();
-			final List<JFileItemDescriptor>	files = new ArrayList<>();
-			
-			current.list((s)-> {
-				if (s.isDirectory()) {
-					dirs.add(new JFileItemDescriptor(s.getName(), s.getPath(), true, s.size(), new Date(s.lastModified())));
-				}
-				else {
-					files.add(new JFileItemDescriptor(s.getName(), s.getPath(), false, s.size(), new Date(s.lastModified())));
-				}
-				return ContinueMode.CONTINUE;
-			});
-			dirs.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
-			files.sort((o1,o2)->o1.getName().compareTo(o2.getName()));
-			for (JFileItemDescriptor item : dirs) {
-				model.addElement(item);
-			}
-			for (JFileItemDescriptor item : files) {
-				model.addElement(item);
-			}
-		}
-		currentLocation = newLocation;
+	private static class NullSelectionModel implements ListSelectionModel {
+		@Override public void setSelectionInterval(int index0, int index1) {}
+		@Override public void addSelectionInterval(int index0, int index1) {}
+		@Override public void removeSelectionInterval(int index0, int index1) {}
+		@Override public int getMinSelectionIndex() {return -1;}
+		@Override public int getMaxSelectionIndex() {return -1;}
+		@Override public boolean isSelectedIndex(int index) {return false;}
+		@Override public int getAnchorSelectionIndex() {return -1;}
+		@Override public void setAnchorSelectionIndex(int index) {}
+		@Override public int getLeadSelectionIndex() {return -1;}
+		@Override public void setLeadSelectionIndex(int index) {}
+		@Override public void clearSelection() {}
+		@Override public boolean isSelectionEmpty() {return true;}
+		@Override public void insertIndexInterval(int index, int length, boolean before) {}
+		@Override public void removeIndexInterval(int index0, int index1) {}
+		@Override public void setValueIsAdjusting(boolean valueIsAdjusting) {}
+		@Override public boolean getValueIsAdjusting() {return false;}
+		@Override public void setSelectionMode(int selectionMode) {}
+		@Override public int getSelectionMode() {return SINGLE_SELECTION;}
+		@Override public void addListSelectionListener(ListSelectionListener x) {}
+		@Override public void removeListSelectionListener(ListSelectionListener x) {}
 	}
 }

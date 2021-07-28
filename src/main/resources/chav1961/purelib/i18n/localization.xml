@@ -227,6 +227,16 @@
 		<key name="JContentMetadataEditor.root.fieldName">Model name:</key>
 		<key name="JContentMetadataEditor.root.fieldName.tt">Name id the model:</key>
 
+<!-- File system list localization  -->
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column1">File/dir</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column1.tt">File or directory name</key> 
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column2">Size</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column2.tt">file size or 0 for directory</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column3">Created</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column3.tt">Creation or last modification date</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.file">&lt;html&gt;&lt;body&gt;&lt;p&gt;File: %1$s&lt;/p&gt;&lt;p&gt;Size=%2$d&lt;/p&gt;&lt;p&gt;Created: %3$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.directory">&lt;html&gt;&lt;body&gt;&lt;p&gt;Directory: %1$s&lt;/p&gt;&lt;p&gt;Created: %2$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
+
 <!-- File system navigator localization  -->
 		<key name="menu.fileSystemNavigator.asIcons">As icons</key>
 		<key name="menu.fileSystemNavigator.asIcons.tt">Show content as icons</key>
@@ -234,12 +244,6 @@
 		<key name="menu.fileSystemNavigator.asLargeIcons.tt">Show content as large icons</key>
 		<key name="menu.fileSystemNavigator.asTable">As table</key>
 		<key name="menu.fileSystemNavigator.asTable.tt">Show content as table</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column1">File/dir</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column1.tt">File or directory name</key> 
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column2">Size</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column2.tt">file size or 0 for directory</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3">Created</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3.tt">Creation or last modification date</key>
 
 <!-- Localizer content editor localization  -->
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Select fields to load</key>
@@ -479,6 +483,14 @@
 		<key name="JContentMetadataEditor.root.fieldName">Имя модели:</key>
 		<key name="JContentMetadataEditor.root.fieldName.tt">Имя модели</key>
 
+<!-- File system list localization  -->
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column1">Файл/дир</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column1.tt">Имя файла или директории</key> 
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column2">Размер</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column2.tt">Размер файла или 0 для директории</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column3">Создан</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.column3.tt">Дата создания или последнего изменения</key>
+
 <!-- Локализация навигатора файловой системы  -->
 		<key name="menu.fileSystemNavigator.asIcons">Иконки</key>
 		<key name="menu.fileSystemNavigator.asIcons.tt">Показать содержимое в виде иконок</key>
@@ -486,12 +498,8 @@
 		<key name="menu.fileSystemNavigator.asLargeIcons.tt">Показать содержимое в виде больших иконок</key>
 		<key name="menu.fileSystemNavigator.asTable">Таблица</key>
 		<key name="menu.fileSystemNavigator.asTable.tt">Показать содржимое в виде таблицы</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column1">Файл/дир</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column1.tt">Имя файла или директории</key> 
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column2">Размер</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column2.tt">Размер файла или 0 для директории</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3">Создан</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3.tt">Дата создания или последнего изменения</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.file">&lt;html&gt;&lt;body&gt;&lt;p&gt;Файл: %1$s&lt;/p&gt;&lt;p&gt;Размер=%2$d&lt;/p&gt;&lt;p&gt;Создан: %3$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.directory">&lt;html&gt;&lt;body&gt;&lt;p&gt;Папка: %1$s&lt;/p&gt;&lt;p&gt;Создана: %2$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
 
 <!-- Локализация редактора кодержимого локализатора  -->
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Выбор полей для загрузки</key>
