@@ -27,6 +27,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.GeneralPath;
@@ -1583,6 +1586,67 @@ loop:			for (Component comp : children(node)) {
         return gd[0].getDefaultConfiguration();
     }
 
+	/**
+	 * <p>Redirect all mouse and/or key events from one component to another</p>
+	 * @param from component to redirect events from
+	 * @param to component to redirect events to
+	 * @throws NullPointerException any component is null
+	 * @since 0.0.5
+	 */
+	public static void redirectMouseAndKeyEvents(final JComponent from, final JComponent to) throws NullPointerException {
+		redirectMouseAndKeyEvents(from, to, true, true, true, true);
+	}	
+
+	/**
+	 * <p>Redirect all mouse and/or key events from one component to another</p>
+	 * @param from component to redirect events from
+	 * @param to component to redirect events to
+	 * @param forMouseEvent redirect mouse events
+	 * @param forMouseMotionEvent redirect mouse motion events
+	 * @param forMouseWheelEvent redirect mouse wheel events
+	 * @param forKeyEvent redirect  key events
+	 * @throws NullPointerException any component is null
+	 * @since 0.0.5
+	 */
+	public static void redirectMouseAndKeyEvents(final JComponent from, final JComponent to, final boolean forMouseEvent, final boolean forMouseMotionEvent, final boolean forMouseWheelEvent, final boolean forKeyEvent) throws NullPointerException {
+		if (from == null) {
+			throw new NullPointerException("From component can't be null");
+		}
+		else if (to == null) {
+			throw new NullPointerException("To component can't be null");
+		}
+		else {
+			if (forMouseEvent) {
+				from.addMouseListener(new MouseListener() {
+					@Override public void mouseReleased(MouseEvent e) {to.dispatchEvent(e);}
+					@Override public void mousePressed(MouseEvent e) {to.dispatchEvent(e);}
+					@Override public void mouseExited(MouseEvent e) {to.dispatchEvent(e);}
+					@Override public void mouseEntered(MouseEvent e) {to.dispatchEvent(e);}
+					@Override public void mouseClicked(MouseEvent e) {to.dispatchEvent(e);}
+				});
+			}
+			if (forMouseMotionEvent) {
+				from.addMouseMotionListener(new MouseMotionListener() {
+					@Override public void mouseMoved(MouseEvent e) {to.dispatchEvent(e);}
+					@Override public void mouseDragged(MouseEvent e) {to.dispatchEvent(e);}
+				});
+			}
+			if (forMouseWheelEvent) {
+				from.addMouseWheelListener(new MouseWheelListener() {
+					@Override public void mouseWheelMoved(MouseWheelEvent e) {to.dispatchEvent(e);}
+				});
+			}
+			if (forKeyEvent) {
+				from.addKeyListener(new KeyListener() {
+					@Override public void keyTyped(KeyEvent e) {to.dispatchEvent(e);}
+					@Override public void keyReleased(KeyEvent e) {to.dispatchEvent(e);}
+					@Override public void keyPressed(KeyEvent e) {to.dispatchEvent(e);}
+				});
+			}
+		}
+	}
+	
+	
 	private static class MethodHandleAndAsync {
 		final String		signature;
 		final MethodHandle	handle;
@@ -1976,26 +2040,6 @@ loop:			for (Component comp : children(node)) {
 			pane.removeHyperlinkListener(this);
 			owner.removeKeyListener(this);
 			owner.removeFocusListener(this);
-		}
-	}
-
-
-	private static class SobelGradSeg {
-		private final float		from; 
-		private final float		to; 
-		private final int 		segment;
-		private final String	segmentName;
-		
-		SobelGradSeg(final float from, final float to, final int segment, final String segmentName) {
-			this.from = from;
-			this.to = to;
-			this.segment = segment;
-			this.segmentName = segmentName;
-		}
-
-		@Override
-		public String toString() {
-			return "SobelGradSeg [from=" + from + ", to=" + to + ", segment=" + segment + ", segmentName=" + segmentName + "]";
 		}
 	}
 }

@@ -1,37 +1,21 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
-import javax.swing.DefaultListModel;
-import javax.swing.Icon;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
@@ -42,18 +26,15 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.FileSystemOnFile;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.JToolBarWithMeta;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
-import chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.NavigatorRecord;
 
 public class JFileSystemNavigator extends JSplitPane implements LocaleChangeListener {
 	private static final long 	serialVersionUID = -1220218092405433021L;
@@ -70,17 +51,6 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	public static final String	PROP_FILES_ONLY = "filesOnly";
 	public static final String	PROP_DIRECTORIES_ONLY = "directoriesOnly";
 	public static final String	PROP_FILES_AND_DIRECTORIES = "all";
-	
-	private static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
-	private static final Icon	FILE_ICON = PureLibStandardIcons.FILE.getIcon();
-	private static final String	CARD_ICONS = "icons";
-	private static final String	CARD_TABLE = "table";
-	
-	private static enum ContentViewType {
-		AS_TABLE, 
-		AS_ICONS,
-		AS_LARGE_ICONS;
-	}
 	
 	private static enum SelectionType {
 		NONE(PROP_NONE_SELECTION),
@@ -124,8 +94,6 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	private final SelectedObjects			selectedObjects;
 	private final JFileTree					tree;
 	private final JFileList					list;
-//	private final NavigatorModel			model;  
-//	private final JTable					table;
 	private final JPanel					right = new JPanel(new BorderLayout());
 	private final JToolBarWithMeta			toolbar;
 	
@@ -168,8 +136,6 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 			
 			this.toolbar = new JToolBarWithMeta(mdi.byUIPath(URI.create("ui:/model/navigation.top.fileSystemNavigator")));
 			this.toolbar.setFloatable(false);
-//			this.model = new NavigatorModel(localizer);
-//			this.table = new JTable(this.model);
 			SwingUtils.assignActionListeners(this.toolbar, this);
 			
 			list.addMouseListener(new MouseListener() {
@@ -180,54 +146,16 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 				
 				@Override
 				public void mouseClicked(final MouseEvent e) {
-//					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
-//						final int	index = list.locationToIndex(e.getPoint());
-//						
-//						if (index >= 0) {
-//							clickInRightPanel((String)list.getModel().getElementAt(index));
-//						}
-//					}
+					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
+						final int	index = list.locationToIndex(e.getPoint());
+						
+						if (index >= 0) {
+							clickInRightPanel(list.getModel().getElementAt(index));
+						}
+					}
 				}
 			});
-
-//			table.setTableHeader(new NavigatorTableHeader(table.getColumnModel(), model));
-//			table.setDefaultRenderer(NavigatorModel.NavigatorRecord.class, (table, value, isSelected, hasFocus, row, column) -> {
-//					final NavigatorModel.NavigatorRecord	rec = (NavigatorModel.NavigatorRecord)value;
-//					
-//					try {final JLabel	label = new JLabel(URLDecoder.decode(rec.name.substring(rec.name.lastIndexOf('/')+1), PureLibSettings.DEFAULT_CONTENT_ENCODING), rec.isDirectory ? DIR_ICON : FILE_ICON, JLabel.LEFT);
-//					
-//						label.setOpaque(true);
-//						if (isSelected) {
-//							label.setForeground(table.getSelectionForeground());
-//							label.setBackground(table.getSelectionBackground());
-//						}
-//						else {
-//							label.setForeground(table.getForeground());
-//							label.setBackground(table.getBackground());
-//						}
-//						return label;
-//					} catch (UnsupportedEncodingException e) {
-//						return new JLabel("I/O error on ["+value+"]");
-//					}
-//				}
-//			);
-//			table.addMouseListener(new MouseListener() {
-//				@Override public void mouseReleased(final MouseEvent e) {}
-//				@Override public void mousePressed(final MouseEvent e) {}
-//				@Override public void mouseExited(final MouseEvent e) {}
-//				@Override public void mouseEntered(final MouseEvent e) {}
-//				
-//				@Override
-//				public void mouseClicked(MouseEvent e) {
-//					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
-//						final int	index = table.rowAtPoint(e.getPoint());
-//						
-//						if (index >= 0) {
-//							clickInRightPanel(((NavigatorRecord)table.getModel().getValueAt(index,0)).name);
-//						}
-//					}
-//				}
-//			});
+			list.setFocusable(true);
 			
 			right.add(toolbar, BorderLayout.NORTH);
 			right.add(list, BorderLayout.CENTER);
@@ -242,6 +170,8 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
 		SwingUtils.refreshLocale(toolbar, oldLocale, newLocale);
+		SwingUtils.refreshLocale(tree, oldLocale, newLocale);
+		SwingUtils.refreshLocale(list, oldLocale, newLocale);
 	}
 
 	public String getSelectedObject() {
@@ -249,7 +179,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 			return null;
 		}
 		else {
-			throw new IllegalStateException("Calling this method is avaiable for ["+PROP_SELECTION_TYPE+"] = ["+PROP_SINGLE_SELECTION+"] only"); 
+			throw new IllegalStateException("Calling this method is available for ["+PROP_SELECTION_TYPE+"] = ["+PROP_SINGLE_SELECTION+"] only"); 
 		}
 	}
 
@@ -304,13 +234,12 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 		list.refreshContent(current.getPath());
 	}
 
-	private void clickInRightPanel(final String path) {
+	private void clickInRightPanel(final JFileItemDescriptor path) {
 		tree.expandPath(tree.getSelectionPath());
-		SwingUtilities.invokeLater(()->tree.setSelection(path));
+		SwingUtilities.invokeLater(()->tree.setSelection(path.getPath()));
 	}
 
 	private void fillLocalizedStrings() {
-//		model.fireTableStructureChanged();
 	}
 
 	private static int checkParameter(final Properties props, final String key, final String defaultValue, final String... availableValues) throws IllegalArgumentException {
@@ -323,189 +252,6 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 		}
 		throw new IllegalArgumentException("Property key ["+key+"] contains illegal value ["+value+"]. Available values are "+Arrays.toString(availableValues));
 	}
-	
-	private static class NavigatorTableHeader extends JTableHeader {
-		private static final long 	serialVersionUID = 1L;
-
-		private final NavigatorModel	tableModel;
-		
-		private NavigatorTableHeader(final TableColumnModel columnModel, final NavigatorModel tableModel) {
-	    	super(columnModel);
-	    	this.tableModel = tableModel;
-	    }
-
-		@Override
-	    public String getToolTipText(final MouseEvent e) {
-	        final Point	p = e.getPoint();
-	        final int 	index = columnModel.getColumnIndexAtX(p.x);
-	        final int 	realIndex = columnModel.getColumn(index).getModelIndex();
-	        
-	        return tableModel.getColumnTooltip(realIndex);
-	    }
-	}
-	
-	static class NavigatorModel extends DefaultTableModel {
-		private static final long 	serialVersionUID = 1L;
-		private static final NavigatorRecord[]	EMPTY_LIST = new NavigatorRecord[0];
-		
-		private static final String	COL1_NAME = "chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column1"; 
-		private static final String	COL1_TT = "chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column1.tt"; 
-		private static final String	COL2_NAME = "chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column2"; 
-		private static final String	COL2_TT = "chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column2.tt"; 
-		private static final String	COL3_NAME = "chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3"; 
-		private static final String	COL3_TT = "chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel.column3.tt";
-		
-		private final Localizer		localizer;
-		private NavigatorRecord[]	rec = EMPTY_LIST;
-		
-		NavigatorModel(final Localizer localizer) {
-			this.localizer = localizer;
-		}
-
-		public void refillModel(final FileSystemInterface fsi) throws IOException {
-			if (fsi != null) {
-				final List<NavigatorRecord>	list = new ArrayList<>();
-				
-				fsi.list((i)->{
-					if (i.isDirectory()) {
-						list.add(new NavigatorRecord(true, i.getPath(), i.size(), i.lastModified()));
-					}
-					return ContinueMode.CONTINUE;
-				});
-				fsi.list((i)->{
-					if (i.isFile()) {
-						list.add(new NavigatorRecord(false, i.getPath(), i.size(), i.lastModified()));
-					}
-					return ContinueMode.CONTINUE;
-				});
-				rec = list.toArray(new NavigatorRecord[list.size()]);
-			}
-			else {
-				rec = EMPTY_LIST;	
-			}
-			fireTableDataChanged();
-		}
-		
-		@Override
-		public int getRowCount() {
-			if (rec == null) {
-				return 0;
-			}
-			else {
-				return rec.length;
-			}
-		}
-
-		@Override
-		public int getColumnCount() {
-			return 3;
-		}
-
-		@Override
-		public String getColumnName(final int columnIndex) {
-			switch (columnIndex) {
-				case 0 : 
-					try {
-						return localizer.getValue(COL1_NAME);
-					} catch (LocalizationException e) {
-						return COL1_NAME;
-					}
-				case 1 :
-					try {
-						return localizer.getValue(COL2_NAME);
-					} catch (LocalizationException e) {
-						return COL2_NAME;
-					}
-				case 2 :
-					try {
-						return localizer.getValue(COL3_NAME);
-					} catch (LocalizationException e) {
-						return COL3_NAME;
-					}
-				default :
-					throw new UnsupportedOperationException();
-			}
-		}
-
-		public String getColumnTooltip(final int columnIndex) {
-			switch (columnIndex) {
-				case 0 : 
-					try {
-						return localizer.getValue(COL1_TT);
-					} catch (LocalizationException e) {
-						return COL1_TT;
-					}
-				case 1 :
-					try {
-						return localizer.getValue(COL2_TT);
-					} catch (LocalizationException e) {
-						return COL2_TT;
-					}
-				case 2 :
-					try {
-						return localizer.getValue(COL3_TT);
-					} catch (LocalizationException e) {
-						return COL3_TT;
-					}
-				default :
-					throw new UnsupportedOperationException();
-			}
-		}
-		
-		@Override
-		public Class<?> getColumnClass(final int columnIndex) {
-			switch (columnIndex) {
-				case 0 : return NavigatorRecord.class;
-				case 1 : return Long.class;
-				case 2 : return Date.class;
-				default : throw new UnsupportedOperationException();
-			}
-		}
-
-		@Override
-		public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-			return false;
-		}
-
-		@Override
-		public Object getValueAt(final int rowIndex, final int columnIndex) {
-			if (rec == null) {
-				return null;
-			}
-			else {
-				switch (columnIndex) {
-					case 0 : return rec[rowIndex];
-					case 1 : return rec[rowIndex].size;
-					case 2 : return new Date(rec[rowIndex].created);
-					default : throw new UnsupportedOperationException();
-				}
-			}
-		}
-
-		@Override
-		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
-		}
-		
-		static class NavigatorRecord {
-			private final boolean	isDirectory;
-			private final String	name;
-			private final long		created;
-			private final long		size;
-			
-			public NavigatorRecord(final boolean isDirectory, final String name, final long size, final long created) {
-				this.isDirectory = isDirectory;
-				this.name = name;
-				this.created = created;
-				this.size = size;
-			}
-
-			@Override
-			public String toString() {
-				return "NavigatorRecord [isDirectory=" + isDirectory + ", name=" + name + ", created=" + created + ", size=" + size + "]";
-			}
-		}
-	}
-
 	
 	public static void main(final String[] args) throws IOException, NullPointerException, EnvironmentException, ContentException {
 		try(final FileSystemInterface	fsi = new FileSystemOnFile(URI.create("file:/c:/"))) {

@@ -25,7 +25,12 @@ import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.ToolTipManager;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
@@ -33,12 +38,13 @@ import javax.swing.table.TableColumnModel;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
-import chav1961.purelib.ui.swing.useful.JFileSystemNavigator.NavigatorModel;
+import chav1961.purelib.ui.swing.SwingUtils;
 
 public class JFileList extends JPanel implements LocaleChangeListener {
 	private static final long 				serialVersionUID = 1L;
@@ -88,6 +94,8 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 	private final LoggerFacade					logger;
 	private final FileSystemInterface			fsi;
 	private final boolean						insertParent;
+	private final LightWeightListenerList<ListDataListener>			listeners = new LightWeightListenerList<>(ListDataListener.class);
+	private final LightWeightListenerList<ListSelectionListener>	selectionListeners = new LightWeightListenerList<>(ListSelectionListener.class);
 	private final SelectionType					selType;
 	private final SelectedObjects				selObjects;
 	private final CardLayout					layout = new CardLayout();
@@ -122,7 +130,13 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 														}
 													}
 												};
-
+	private final ListModel<JFileItemDescriptor> totalModel = new ListModel<JFileItemDescriptor>() {
+													@Override public int getSize() {return getModelSize();}
+													@Override public JFileItemDescriptor getElementAt(int index) {return getModelItem(index);}
+													@Override public void addListDataListener(final ListDataListener l) {listeners.addListener(l);}
+													@Override public void removeListDataListener(final ListDataListener l) {listeners.removeListener(l);}
+												};
+												
 	private ContentViewType				viewType;
 	private String						currentPath = "/";
 	
@@ -159,61 +173,28 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 			setLayout(layout);
 			table.setModel(model);
 
-			table.setDefaultRenderer(JFileItemDescriptor.class, new TableCellRenderer() {
-				@Override
-				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-					final JFileItemDescriptor	desc = (JFileItemDescriptor) value;
-					final JLabel				label = new JLabel(desc.getName(), desc.isDirectory() ? PureLibStandardIcons.DIRECTORY.getIcon() : PureLibStandardIcons.FILE.getIcon() , JLabel.LEFT);
-
-					label.setOpaque(true);
-					if (isSelected) {
-						label.setForeground(table.getSelectionForeground());
-						label.setBackground(table.getSelectionBackground());
-					}
-					else {
-						label.setForeground(table.getForeground());
-						label.setBackground(table.getBackground());
-					}
-					return label;
-				}
-			});
-			table.setDefaultRenderer(Long.class, new TableCellRenderer() {
-				@Override
-				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-					final Long		desc = (Long) value;
-					final JLabel	label = new JLabel("<html><body><p><b>"+desc.longValue()+"</b></p></body></html>", JLabel.RIGHT);
-
-					label.setOpaque(true);
-					if (isSelected) {
-						label.setForeground(table.getSelectionForeground());
-						label.setBackground(table.getSelectionBackground());
-					}
-					else {
-						label.setForeground(table.getForeground());
-						label.setBackground(table.getBackground());
-					}
-					return label;
-				}
-			});
-			table.setDefaultRenderer(Date.class, new TableCellRenderer() {
-				@Override
-				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-					final Date		desc = (Date) value;
-					final JLabel	label = new JLabel(new SimpleDateFormat("yyyy-MM-dd", localizer.currentLocale().getLocale()).format(desc), JLabel.LEFT);
-
-					label.setOpaque(true);
-					if (isSelected) {
-						label.setForeground(table.getSelectionForeground());
-						label.setBackground(table.getSelectionBackground());
-					}
-					else {
-						label.setForeground(table.getForeground());
-						label.setBackground(table.getBackground());
-					}
-					return label;
-				}
-			});
+			table.setDefaultRenderer(JFileItemDescriptor.class, new InnerTableCellRenderer<JFileItemDescriptor>((t,v)->new JLabel(v.getName(), v.isDirectory() ? PureLibStandardIcons.DIRECTORY.getIcon() : PureLibStandardIcons.FILE.getIcon() , JLabel.LEFT)));
+			table.setDefaultRenderer(Long.class, new InnerTableCellRenderer<Long>((t,v)->new JLabel("<html><body><p><b>"+v.longValue()+"</b></p></body></html>", JLabel.RIGHT))); 
+			table.setDefaultRenderer(Date.class, new InnerTableCellRenderer<Date>((t,v)->new JLabel(new SimpleDateFormat("yyyy-MM-dd", localizer.currentLocale().getLocale()).format(v), JLabel.LEFT))); 
 			table.setTableHeader(new NavigatorTableHeader(table.getColumnModel(), model));
+			model.addTableModelListener(new TableModelListener() {
+				@Override
+				public void tableChanged(final TableModelEvent e) {
+					switch (e.getType()) {
+						case TableModelEvent.INSERT :
+							notifyDataInserted(e.getFirstRow(), e.getLastRow());
+							break;
+						case TableModelEvent.DELETE :
+							notifyDataRemoved(e.getFirstRow(), e.getLastRow());
+							break;
+						case TableModelEvent.UPDATE :
+							notifyDataChanged(e.getFirstRow(), e.getLastRow());
+							break;
+					}
+				}
+			});
+			table.getSelectionModel().addListSelectionListener((e)->notifySelectionChanged(e));
+			
 			list.setCellRenderer(new ListCellRenderer<JFileItemDescriptor>() {
 				@Override
 				public Component getListCellRendererComponent(final JList<? extends JFileItemDescriptor> list, final JFileItemDescriptor value, final int index, final boolean isSelected, final boolean cellHasFocus) {
@@ -245,6 +226,23 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 					return label; 
 				}
 			});
+			list.getModel().addListDataListener(new ListDataListener() {
+				@Override
+				public void intervalAdded(final ListDataEvent e) {
+					notifyDataInserted(e.getIndex0(), e.getIndex1());
+				}
+
+				@Override
+				public void intervalRemoved(final ListDataEvent e) {
+					notifyDataRemoved(e.getIndex0(), e.getIndex1());
+				}
+
+				@Override
+				public void contentsChanged(final ListDataEvent e) {
+					notifyDataChanged(e.getIndex0(), e.getIndex1());
+				}
+			});
+			list.addListSelectionListener((e)->notifySelectionChanged(e));
 			
 			addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
@@ -286,6 +284,9 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 				default:
 					break;
 			}
+
+			SwingUtils.redirectMouseAndKeyEvents(table, this);
+			SwingUtils.redirectMouseAndKeyEvents(list, this);
 			
 			add(new JScrollPane(table), CARD_TABLE);
 			add(new JScrollPane(list), CARD_ICONS);
@@ -297,6 +298,26 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizationStrings();
+	}
+	
+	public int locationToIndex(final Point point) {
+		switch (viewType) {
+			case AS_ICONS : case AS_LARGE_ICONS : return list.locationToIndex(point);
+			case AS_TABLE : return table.rowAtPoint(point);
+			default : throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet");
+		}
+	}
+	
+	public ListModel<JFileItemDescriptor> getModel() {
+		return totalModel;
+	}
+
+	public void addListSelectionListener(final ListSelectionListener l) {
+		selectionListeners.addListener(l);
+	}
+
+	public void removeListSelectionListener(final ListSelectionListener l) {
+		selectionListeners.removeListener(l);
 	}
 	
 	public ContentViewType getContentViewType() {
@@ -369,6 +390,44 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 		}
 	}
 	
+	private int getModelSize() {
+		switch (viewType) {
+			case AS_ICONS : case AS_LARGE_ICONS : return list.getModel().getSize();
+ 			case AS_TABLE: return table.getModel().getRowCount();
+			default : throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet"); 
+		}
+	}
+	
+	private JFileItemDescriptor getModelItem(final int index) {
+		switch (viewType) {
+			case AS_ICONS : case AS_LARGE_ICONS : return list.getModel().getElementAt(index);
+			case AS_TABLE: return (JFileItemDescriptor)table.getModel().getValueAt(index,0);
+			default : throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet"); 
+		}
+	}
+
+	private void notifyDataInserted(final int from, final int to) {
+		final ListDataEvent	lde = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, from, to);
+		
+		listeners.fireEvent((l)->l.intervalAdded(lde));
+	}
+
+	private void notifyDataRemoved(final int from, final int to) {
+		final ListDataEvent	lde = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, from, to);
+		
+		listeners.fireEvent((l)->l.intervalRemoved(lde));
+	}
+
+	private void notifyDataChanged(final int from, final int to) {
+		final ListDataEvent	lde = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, from, to);
+		
+		listeners.fireEvent((l)->l.contentsChanged(lde));
+	}
+
+	private void notifySelectionChanged(final ListSelectionEvent event) {
+		
+	}
+	
 	private void fillLocalizationStrings() throws LocalizationException {
 		model.fireTableStructureChanged();
 	}
@@ -392,7 +451,35 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 		}
  		return result;
 	}
-	
+
+	private static class InnerTableCellRenderer<T> implements TableCellRenderer {
+		private static interface LabelBuilder<T> {
+			JLabel build(JTable table, T value);
+		}
+
+		private final LabelBuilder<T>	builder;
+		
+		public InnerTableCellRenderer(final LabelBuilder<T> builder) {
+			this.builder = builder;
+		}
+		
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			final JLabel				label = builder.build(table, (T)value);
+
+			label.setOpaque(true);
+			if (isSelected) {
+				label.setForeground(table.getSelectionForeground());
+				label.setBackground(table.getSelectionBackground());
+			}
+			else {
+				label.setForeground(table.getForeground());
+				label.setBackground(table.getBackground());
+			}
+			return label;
+		}
+		
+	}
 
 	private static class InnerTableModel extends DefaultTableModel {
 		private static final long serialVersionUID = 1L;
