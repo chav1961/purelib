@@ -244,6 +244,12 @@
 		<key name="menu.fileSystemNavigator.asLargeIcons.tt">Show content as large icons</key>
 		<key name="menu.fileSystemNavigator.asTable">As table</key>
 		<key name="menu.fileSystemNavigator.asTable.tt">Show content as table</key>
+		<key name="menu.fileSystemNavigator.newDir">Create directory</key>
+		<key name="menu.fileSystemNavigator.newDir.tt">Create new directory</key>
+		<key name="menu.fileSystemNavigator.renameItem">Rename item</key>
+		<key name="menu.fileSystemNavigator.renameItem.tt">Rename file or directory</key>
+		<key name="menu.fileSystemNavigator.removeItem">Remove item</key>
+		<key name="menu.fileSystemNavigator.removeItem.tt">Remove file or directory</key>
 
 <!-- Localizer content editor localization  -->
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Select fields to load</key>
@@ -490,6 +496,8 @@
 		<key name="chav1961.purelib.ui.swing.useful.JFileList.column2.tt">Размер файла или 0 для директории</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFileList.column3">Создан</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFileList.column3.tt">Дата создания или последнего изменения</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.file">&lt;html&gt;&lt;body&gt;&lt;p&gt;Файл: %1$s&lt;/p&gt;&lt;p&gt;Размер=%2$d&lt;/p&gt;&lt;p&gt;Создан: %3$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.directory">&lt;html&gt;&lt;body&gt;&lt;p&gt;Папка: %1$s&lt;/p&gt;&lt;p&gt;Создана: %2$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
 
 <!-- Локализация навигатора файловой системы  -->
 		<key name="menu.fileSystemNavigator.asIcons">Иконки</key>
@@ -498,8 +506,12 @@
 		<key name="menu.fileSystemNavigator.asLargeIcons.tt">Показать содержимое в виде больших иконок</key>
 		<key name="menu.fileSystemNavigator.asTable">Таблица</key>
 		<key name="menu.fileSystemNavigator.asTable.tt">Показать содржимое в виде таблицы</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.file">&lt;html&gt;&lt;body&gt;&lt;p&gt;Файл: %1$s&lt;/p&gt;&lt;p&gt;Размер=%2$d&lt;/p&gt;&lt;p&gt;Создан: %3$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
-		<key name="chav1961.purelib.ui.swing.useful.JFileList.tooltip.directory">&lt;html&gt;&lt;body&gt;&lt;p&gt;Папка: %1$s&lt;/p&gt;&lt;p&gt;Создана: %2$s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</key>
+		<key name="menu.fileSystemNavigator.newDir">Создать папаку</key>
+		<key name="menu.fileSystemNavigator.newDir.tt">Создать новую папку</key>
+		<key name="menu.fileSystemNavigator.renameItem">Переименовать</key>
+		<key name="menu.fileSystemNavigator.renameItem.tt">Переименовать папку или файл</key>
+		<key name="menu.fileSystemNavigator.removeItem">Удалить</key>
+		<key name="menu.fileSystemNavigator.removeItem.tt">Удалить папку или файл</key>
 
 <!-- Локализация редактора кодержимого локализатора  -->
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Выбор полей для загрузки</key>

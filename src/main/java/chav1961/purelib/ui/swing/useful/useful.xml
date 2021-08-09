@@ -18,6 +18,10 @@
 		<app:item name="menu.fileSystemNavigator.asIcons" caption="menu.fileSystemNavigator.asIcons" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asIcons.png" tooltip="menu.fileSystemNavigator.asIcons.tt" action="asIcons"/>
 		<app:item name="menu.fileSystemNavigator.asLargeIcons" caption="menu.fileSystemNavigator.asLargeIcons" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asLargeIcons.png" tooltip="menu.fileSystemNavigator.asLargeIcons.tt" action="asLargeIcons"/>
 		<app:item name="menu.fileSystemNavigator.asTable" caption="menu.fileSystemNavigator.asTable" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/asTable.png" tooltip="menu.fileSystemNavigator.asTable.tt" action="asTable"/>
+		<app:separator/>
+		<app:item name="menu.fileSystemNavigator.newDir" caption="menu.fileSystemNavigator.newDir" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/newDir.png" tooltip="menu.fileSystemNavigator.newDir.tt" action="newDir"/>
+		<app:item name="menu.fileSystemNavigator.renameItem" caption="menu.fileSystemNavigator.renameItem" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/renameItem.png" tooltip="menu.fileSystemNavigator.renameItem.tt" action="renameItem"/>
+		<app:item name="menu.fileSystemNavigator.removeItem" caption="menu.fileSystemNavigator.removeItem" icon="root://chav1961.purelib.ui.swing.useful.JFileSystemNavigator/chav1961/purelib/ui/swing/useful/removeItem.png" tooltip="menu.fileSystemNavigator.removeItem.tt" action="removeItem"/>
 	</app:menu>
 	<app:keyset id="writableFileSystemNavigator.keyset">
 		<app:key code="I" ctrl="true" action="asIcons"/>

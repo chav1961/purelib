@@ -51,6 +51,7 @@ public class JsonUtils {
 	public static final String		JSON_TYPE_STR = "str";
 	public static final String		JSON_TYPE_OBJ = "{}";
 	public static final String		JSON_TYPE_ARR = "[]";
+	public static final String		JSON_TYPE_NOT_NULL = " not null";
 	
 	private static final JsonNode[]	EMPTY_LIST = new JsonNode[0];
 	private static final Object		NULL_MARKER = new Object();
@@ -215,7 +216,7 @@ public class JsonUtils {
 	/**
 	 * <p>Check existence of mandatory JSON fields inside JSON record and build list of missing fields, if needed</p> 
 	 * @param node node to test. Can't be null
-	 * @param fields fields to test mandatories. Can't be empty list, can't contain nulls or empties
+	 * @param fields fields to test mandatories. Can't be empty list, can't contain nulls or empties. Content of the parameter is case-sensitive
 	 * @return true if all the fields present, false otherwise
 	 * @throws NullPointerException on any null arguments
 	 * @throws IllegalArgumentException on any errors in field list
@@ -229,7 +230,7 @@ public class JsonUtils {
 	 * <p>Check existence of mandatory JSON fields inside JSON record and build list of missing fields, if needed</p> 
 	 * @param node node to test. Can't be null
 	 * @param forMissingFields instance to keep missing field names. Fields, if any, will be splitted by ' '. 
-	 * @param fields fields to test mandatories. Can't be empty list, can't contain nulls or empties
+	 * @param fields fields to test mandatories. Can't be empty list, can't contain nulls or empties. Content of the parameter is case-sensitive
 	 * @return true if all the fields present, false otherwise
 	 * @throws NullPointerException on any null arguments
 	 * @throws IllegalArgumentException on any errors in field list
@@ -242,8 +243,11 @@ public class JsonUtils {
 		else if (forMissingFields == null) {
 			throw new NullPointerException("String builder for missing fields can't be null");
 		}
+		else if (fields == null || fields.length == 0) {
+			throw new IllegalArgumentException("Fields list is null or empty");
+		}
 		else if (Utils.checkArrayContent4Nulls(fields, true) >= 0) {
-			throw new IllegalArgumentException("Fields list is null, empty or contains nulls/empties inside");
+			throw new IllegalArgumentException("Fields list contains nulls/empties inside");
 		}
 		else {
 			final int	length = forMissingFields.length();
@@ -267,7 +271,10 @@ public class JsonUtils {
 	/**
 	 * <p>Check JSON field types inside JSON record and build list of illegal fields, if needed</p> 
 	 * @param node node to test. Can't be null
-	 * @param fieldsAndTypes fields to test field types. Must be 'name/type[,type...] [not null]'.  Can't be empty list, can't contain nulls or empties
+	 * @param fieldsAndTypes fields to test field types. Must be 'name/type[,type...] [ not null]'.  Can't be empty list, can't contain nulls or empties. It's strongly
+	 * recommended to use {@linkplain #JSON_TYPE_ARR}, {@linkplain #JSON_TYPE_OBJ}, {@linkplain #JSON_TYPE_BOOLEAN}, {@linkplain #JSON_TYPE_INTEGER}, {@linkplain #JSON_TYPE_REAL},
+	 * {@linkplain #JSON_TYPE_STR} and {@linkplain #JSON_TYPE_NOT_NULL} constants for types. If name typed is missing on the object checked, no any checks will be executed for it.
+	 * Content of the parameter is case-sensitive        
 	 * @return true if all the fields present, false otherwise
 	 * @throws NullPointerException on any null arguments
 	 * @throws IllegalArgumentException on any errors in field list
@@ -281,7 +288,10 @@ public class JsonUtils {
 	 * <p>Check JSON field types inside JSON record and build list of illegal fields, if needed. Missing fields will not be checked and marked as erroneous</p> 
 	 * @param node node to test. Can't be null
 	 * @param forIllegalTypes instance to keep field names with illegal type. Fields, if any, will be splitted by ' '.
-	 * @param fieldsAndTypes fields to test field types. Must be 'name/type[,type...] [not null]'.  Can't be empty list, can't contain nulls or empties
+	 * @param fieldsAndTypes fields to test field types. Must be 'name/type[,type...] [ not null]'.  Can't be empty list, can't contain nulls or empties. It's strongly
+	 * recommended to use {@linkplain #JSON_TYPE_ARR}, {@linkplain #JSON_TYPE_OBJ}, {@linkplain #JSON_TYPE_BOOLEAN}, {@linkplain #JSON_TYPE_INTEGER}, {@linkplain #JSON_TYPE_REAL},
+	 * {@linkplain #JSON_TYPE_STR} and {@linkplain #JSON_TYPE_NOT_NULL} constants for types. If name typed is missing on the object checked, no any checks will be executed for it.
+	 * Content of the parameter is case-sensitive        
 	 * @return true if all the fields present, false otherwise
 	 * @throws NullPointerException on any null arguments
 	 * @throws IllegalArgumentException on any errors in field list
@@ -294,8 +304,11 @@ public class JsonUtils {
 		else if (forIllegalTypes == null) {
 			throw new NullPointerException("String builder for missing fields can't be null");
 		}
+		else if (fieldsAndTypes == null || fieldsAndTypes.length == 0) {
+			throw new IllegalArgumentException("Fields and types list is null or empty");
+		}
 		else if (Utils.checkArrayContent4Nulls(fieldsAndTypes, true) >= 0) {
-			throw new IllegalArgumentException("Fields and types list is null, empty or contains nulls/empties inside");
+			throw new IllegalArgumentException("Fields and types list contains nulls/empties inside");
 		}
 		else {
 			final int	length = forIllegalTypes.length();
@@ -307,63 +320,73 @@ public class JsonUtils {
 				else {
 					final String[]	fieldAndType = item.split("/");
 					
-					if (node.hasName(fieldAndType[0])) {
-						final JsonNode	child = node.getChild(fieldAndType[0]); 
-						final String[]	types;
-						final boolean	checkNulls;
-						
-						if (fieldAndType[1].contains("not") && fieldAndType[1].contains("null")) {
-							types = fieldAndType[1].replace("not","").replace("null","").trim().split(",");
-							checkNulls = true;
-						}
-						else {
-							types = fieldAndType[1].trim().split(",");
-							checkNulls = false;
-						}
-						
-						if (checkNulls && child.getType() == JsonNodeType.JsonNull) {
-							forIllegalTypes.append(' ').append(item);
-						}
-						else {
-							boolean	allOk = false;
+					if (fieldAndType.length == 2) {
+						if (node.hasName(fieldAndType[0])) {
+							final JsonNode	child = node.getChild(fieldAndType[0]); 
+							final String[]	types;
+							final boolean	checkNulls;
 							
-							for (String checkType : types) {
-								switch (checkType) {
-									case JSON_TYPE_BOOLEAN 	:
-										if (child.getType() == JsonNodeType.JsonBoolean) {
-											allOk = true;
-										}
-										break;
-									case JSON_TYPE_INTEGER 	:
-										if (child.getType() == JsonNodeType.JsonInteger) {
-											allOk = true;
-										}
-										break;
-									case JSON_TYPE_REAL 	:
-										if (child.getType() == JsonNodeType.JsonReal) {
-											allOk = true;
-										}
-										break;
-									case JSON_TYPE_STR		:
-										if (child.getType() == JsonNodeType.JsonString) {
-											allOk = true;
-										}
-										break;
-									case JSON_TYPE_OBJ		:
-										if (child.getType() == JsonNodeType.JsonObject) {
-											allOk = true;
-										}
-										break;
-									case JSON_TYPE_ARR		:
-										if (child.getType() == JsonNodeType.JsonArray) {
-											allOk = true;
-										}
-										break;
-									default :
-										throw new IllegalArgumentException("Illegal field and type format for ["+item+"] : unknown value type ["+checkType+"] to check");
+							if (fieldAndType[1].contains("not") && fieldAndType[1].contains("null")) {
+								types = fieldAndType[1].replace("not","").replace("null","").trim().split(",");
+								checkNulls = true;
+							}
+							else {
+								types = fieldAndType[1].trim().split(",");
+								checkNulls = false;
+							}
+							
+							if (child.getType() == JsonNodeType.JsonNull) {
+								if (checkNulls) {
+									forIllegalTypes.append(' ').append(item);
+								}
+							}
+							else {
+								boolean	allOk = false;
+								
+								for (String checkType : types) {
+									switch (checkType) {
+										case JSON_TYPE_BOOLEAN 	:
+											if (child.getType() == JsonNodeType.JsonBoolean) {
+												allOk = true;
+											}
+											break;
+										case JSON_TYPE_INTEGER 	:
+											if (child.getType() == JsonNodeType.JsonInteger) {
+												allOk = true;
+											}
+											break;
+										case JSON_TYPE_REAL 	:
+											if (child.getType() == JsonNodeType.JsonReal) {
+												allOk = true;
+											}
+											break;
+										case JSON_TYPE_STR		:
+											if (child.getType() == JsonNodeType.JsonString) {
+												allOk = true;
+											}
+											break;
+										case JSON_TYPE_OBJ		:
+											if (child.getType() == JsonNodeType.JsonObject) {
+												allOk = true;
+											}
+											break;
+										case JSON_TYPE_ARR		:
+											if (child.getType() == JsonNodeType.JsonArray) {
+												allOk = true;
+											}
+											break;
+										default :
+											throw new IllegalArgumentException("Illegal field and type format for ["+item+"] : unknown value type ["+checkType+"] to check");
+									}
+								}
+								if (!allOk) {
+									forIllegalTypes.append(' ').append(item);
 								}
 							}
 						}
+					}
+					else {
+						throw new IllegalArgumentException("Illegal field and type format for ["+item+"] : missing '/' or parameters after it");
 					}
 				}
 			}

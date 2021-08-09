@@ -26,7 +26,6 @@ import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 
 public class JsonNodeAndUtilsTest {
-
 	@Test
 	public void basicNodeTest() {
 		// null node
@@ -1433,6 +1432,138 @@ public class JsonNodeAndUtilsTest {
 		try{JsonUtils.filterOf("/**/yy/[has i = 0]",null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
+		}
+	}	
+
+	@Test
+	public void checkMandatoriesTest() throws SyntaxException, IOException {
+		final StringBuilder	sb = new StringBuilder();
+		JsonNode			root;
+
+		root = loadJson("{\"f1\":100,\"f2\":200,\"f3\":300}");
+		Assert.assertTrue(JsonUtils.checkJsonMandatories(root, "f1","f3"));
+		Assert.assertFalse(JsonUtils.checkJsonMandatories(root, "f1","f4"));
+		
+		sb.setLength(0);
+		Assert.assertTrue(JsonUtils.checkJsonMandatories(root, sb, "f1","f3"));
+		Assert.assertEquals("", sb.toString());
+		sb.setLength(0);
+		Assert.assertFalse(JsonUtils.checkJsonMandatories(root, sb, "f1","f4"));
+		Assert.assertEquals(" f4", sb.toString());
+		
+		try{JsonUtils.checkJsonMandatories(null, "f1","f3");
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, (String[])null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root);
+			Assert.fail("Mandatory exception was not detected (empty 2-nd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, (String)null);
+			Assert.fail("Mandatory exception was not detected (2-nd argument contains nulls)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, "");
+			Assert.fail("Mandatory exception was not detected (2-nd argument contains empties)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		try{JsonUtils.checkJsonMandatories(null, sb, "f1","f3");
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, (StringBuilder)null, "f1","f3");
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, sb, (String[])null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, sb);
+			Assert.fail("Mandatory exception was not detected (empty 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, sb, (String)null);
+			Assert.fail("Mandatory exception was not detected (3-rd argument contains nulls)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonMandatories(root, sb, "");
+			Assert.fail("Mandatory exception was not detected (3-rd argument contains empties)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
+
+	@Test
+	public void checkFieldTypesTest() throws SyntaxException, IOException {
+		final StringBuilder	sb = new StringBuilder();
+		JsonNode			root;
+
+		root = loadJson("{\"f1\":100}");
+		Assert.assertTrue(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_INTEGER));
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_REAL));
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_STR));
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_BOOLEAN));
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_ARR));
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_OBJ));
+
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, sb, "f1/"+JsonUtils.JSON_TYPE_REAL));
+		Assert.assertEquals(" f1/real", sb.toString());
+		Assert.assertTrue(JsonUtils.checkJsonFieldTypes(root, sb, "f1/"+JsonUtils.JSON_TYPE_REAL+","+JsonUtils.JSON_TYPE_INTEGER));
+		
+		root = loadJson("{\"f1\":100}");
+		Assert.assertTrue(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_INTEGER+" not null"));
+		root = loadJson("{\"f1\":null}");
+		Assert.assertTrue(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_REAL));
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_INTEGER+" not null"));
+		
+		root = loadJson("{\"f1\":100,\"f2\":\"200\",\"f3\":300.0,\"f4\":true,\"f5\":[],\"f6\":{}}");
+		Assert.assertTrue(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_INTEGER,"f2/"+JsonUtils.JSON_TYPE_STR,"f3/"+JsonUtils.JSON_TYPE_REAL,"f4/"+JsonUtils.JSON_TYPE_BOOLEAN,"f5/"+JsonUtils.JSON_TYPE_ARR,"f6/"+JsonUtils.JSON_TYPE_OBJ));
+		Assert.assertFalse(JsonUtils.checkJsonFieldTypes(root, "f1/"+JsonUtils.JSON_TYPE_INTEGER,"f2/"+JsonUtils.JSON_TYPE_STR,"f3/"+JsonUtils.JSON_TYPE_REAL,"f4/"+JsonUtils.JSON_TYPE_BOOLEAN,"f5/"+JsonUtils.JSON_TYPE_ARR,"f6/"+JsonUtils.JSON_TYPE_ARR));
+		
+		try{JsonUtils.checkJsonFieldTypes(null, sb, "f1/"+JsonUtils.JSON_TYPE_INTEGER);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, (StringBuilder)null, "f1/"+JsonUtils.JSON_TYPE_INTEGER);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb, (String[])null);
+			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb);
+			Assert.fail("Mandatory exception was not detected (empty 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb, (String)null);
+			Assert.fail("Mandatory exception was not detected (3-rd argument contains nulls)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb, "");
+			Assert.fail("Mandatory exception was not detected (3-rd argument contains empties)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb, "f1");
+			Assert.fail("Mandatory exception was not detected (syntax error in the 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb, "f1/");
+			Assert.fail("Mandatory exception was not detected (syntax error in the 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb, "f1/unknown");
+			Assert.fail("Mandatory exception was not detected (syntax error in the 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.checkJsonFieldTypes(root, sb, "f1/"+JsonUtils.JSON_TYPE_INTEGER+" any shaize");
+			Assert.fail("Mandatory exception was not detected (syntax error in the 3-rd argument)");
+		} catch (IllegalArgumentException exc) {
 		}
 	}	
 	

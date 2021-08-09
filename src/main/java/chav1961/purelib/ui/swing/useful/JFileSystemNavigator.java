@@ -51,6 +51,9 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	public static final String	PROP_FILES_ONLY = "filesOnly";
 	public static final String	PROP_DIRECTORIES_ONLY = "directoriesOnly";
 	public static final String	PROP_FILES_AND_DIRECTORIES = "all";
+
+	private static final String	URI_READONLY_NAVI = "ui:/model/navigation.top.fileSystemNavigator";
+	private static final String	URI_WRITABLE_NAVI = "ui:/model/navigation.top.writableFileSystemNavigator";
 	
 	private static enum SelectionType {
 		NONE(PROP_NONE_SELECTION),
@@ -134,7 +137,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 			this.selectionType = SelectionType.values()[checkParameter(props, PROP_SELECTION_TYPE, SelectionType.NONE.getValue(), SelectionType.NONE.getValue(),SelectionType.SINGLE.getValue(), SelectionType.MULTIPLE.getValue())];
 			this.selectedObjects = SelectedObjects.values()[checkParameter(props, PROP_SELECTED_OBJECTS, SelectedObjects.NONE.getValue(), SelectedObjects.NONE.getValue(), SelectedObjects.FILES.getValue(), SelectedObjects.DIRECTORIES.getValue(), SelectedObjects.ALL.getValue())];
 			
-			this.toolbar = new JToolBarWithMeta(mdi.byUIPath(URI.create("ui:/model/navigation.top.fileSystemNavigator")));
+			this.toolbar = new JToolBarWithMeta(mdi.byUIPath(URI.create(this.readOnly ? URI_READONLY_NAVI : URI_WRITABLE_NAVI)));
 			this.toolbar.setFloatable(false);
 			SwingUtils.assignActionListeners(this.toolbar, this);
 			
@@ -254,8 +257,11 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 	}
 	
 	public static void main(final String[] args) throws IOException, NullPointerException, EnvironmentException, ContentException {
+		final SubstitutableProperties	props = new SubstitutableProperties();
+		
+		props.setProperty(PROP_ACCESS, PROP_ACCESS_READ_WRITE);
 		try(final FileSystemInterface	fsi = new FileSystemOnFile(URI.create("file:/c:/"))) {
-			final JFileSystemNavigator	navi = new JFileSystemNavigator(PureLibSettings.PURELIB_LOCALIZER, PureLibSettings.CURRENT_LOGGER, fsi, new SubstitutableProperties());
+			final JFileSystemNavigator	navi = new JFileSystemNavigator(PureLibSettings.PURELIB_LOCALIZER, PureLibSettings.CURRENT_LOGGER, fsi, props);
 			
 			navi.setPreferredSize(new Dimension(800,600));
 			JOptionPane.showMessageDialog(null, navi);
