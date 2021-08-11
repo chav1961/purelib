@@ -55,6 +55,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
  * @see ContentMetadataInterface.ContentNodeMetadata
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class SQLUtils {
 	public static final int							UNKNOWN_TYPE = 666;
@@ -483,20 +484,10 @@ public class SQLUtils {
 			return (T)value;
 		}
 		else if (awaited.isPrimitive()) {
-			switch (CompilerUtils.defineClassType(awaited)) {
-				case CompilerUtils.CLASSTYPE_BYTE		:	return (T)convert(Byte.class,value);
-				case CompilerUtils.CLASSTYPE_SHORT		:	return (T)convert(Short.class,value);
-				case CompilerUtils.CLASSTYPE_INT		:	return (T)convert(Integer.class,value);
-				case CompilerUtils.CLASSTYPE_LONG		:	return (T)convert(Long.class,value);
-				case CompilerUtils.CLASSTYPE_FLOAT	 	:	return (T)convert(Float.class,value);
-				case CompilerUtils.CLASSTYPE_DOUBLE		:	return (T)convert(Double.class,value);
-				case CompilerUtils.CLASSTYPE_CHAR		:	return (T)convert(Character.class,value);
-				case CompilerUtils.CLASSTYPE_BOOLEAN	:	return (T)convert(Boolean.class,value);
-				default : throw new UnsupportedOperationException("Primitive type ["+awaited.getSimpleName()+"] is not supported yet"); 
-			}
+			return (T) convertInternal(CompilerUtils.toWrappedClass(awaited), value);
 		}
 		else {
-			return 	convertInternal(awaited,value);		
+			return convertInternal(awaited,value);		
 		}
 	}
 	

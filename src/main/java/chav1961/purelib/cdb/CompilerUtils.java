@@ -80,9 +80,6 @@ public class CompilerUtils {
 	 */
 	public static final int		CLASSTYPE_VOID = 9;	
 
-	
-	
-	
 	/**
 	 * <p>Classify the given class by it's primitive type</p>
 	 * @param clazz class to classify
@@ -124,6 +121,34 @@ public class CompilerUtils {
 		}
 	}
 
+	/**
+	 * <p>Convert primitive class to wrapped object class</p>
+	 * @param clazz class to convert. Can't be null
+	 * @return class converted. If parameter is a reference class, returns as-is.
+	 * @throws NullPointerException class to convert is null
+	 * @since 0.0.5
+	 */
+	public static Class<?> toWrappedClass(final Class<?> clazz) throws NullPointerException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to define can't be null"); 
+		}
+		else {
+			switch (defineClassType(clazz)) {
+				case CompilerUtils.CLASSTYPE_BYTE		: return Byte.class;
+				case CompilerUtils.CLASSTYPE_SHORT		: return Short.class;
+				case CompilerUtils.CLASSTYPE_CHAR		: return Character.class;	
+				case CompilerUtils.CLASSTYPE_INT		: return Integer.class;	
+				case CompilerUtils.CLASSTYPE_LONG		: return Long.class;
+				case CompilerUtils.CLASSTYPE_FLOAT		: return Float.class;
+				case CompilerUtils.CLASSTYPE_DOUBLE		: return Double.class;
+				case CompilerUtils.CLASSTYPE_BOOLEAN	: return Boolean.class;
+				case CompilerUtils.CLASSTYPE_VOID		: return Void.class;
+				default 								: return clazz;
+			}
+		}
+	}
+	
+	
 	/**
 	 * <p>Convert class type returned by {@linkplain #defineClassType(Class) method to it's string representation</p>
 	 * @param classType class type to convert

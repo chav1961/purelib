@@ -44,18 +44,19 @@ public class InMemoryLittleArray implements Array {
 			this.content = content;
 			if (SQLUtils.DEFAULT_CONVERTOR.containsKey(SQLUtils.typeNameByTypeId(contentType))) {
 				this.returnedClass = SQLUtils.DEFAULT_CONVERTOR.get(SQLUtils.typeNameByTypeId(contentType));
-				switch (CompilerUtils.defineClassType(this.returnedClass)) {
-					case CompilerUtils.CLASSTYPE_REFERENCE	:	this.wrappedClass = this.returnedClass; break;
-					case CompilerUtils.CLASSTYPE_BYTE		:	this.wrappedClass = Byte.class; break;
-					case CompilerUtils.CLASSTYPE_SHORT		:	this.wrappedClass = Short.class; break;
-					case CompilerUtils.CLASSTYPE_INT		:	this.wrappedClass = Integer.class; break;
-					case CompilerUtils.CLASSTYPE_LONG		:	this.wrappedClass = Long.class; break;
-					case CompilerUtils.CLASSTYPE_FLOAT 		:	this.wrappedClass = Float.class; break;
-					case CompilerUtils.CLASSTYPE_DOUBLE		:	this.wrappedClass = Double.class; break;
-					case CompilerUtils.CLASSTYPE_CHAR		:	this.wrappedClass = Character.class; break;
-					case CompilerUtils.CLASSTYPE_BOOLEAN	:	this.wrappedClass = Boolean.class; break;
-					default : throw new UnsupportedOperationException("Primitive type ["+this.returnedClass.getSimpleName()+"] is not supported yet"); 
-				}
+				this.wrappedClass = CompilerUtils.toWrappedClass(this.returnedClass);
+//				switch (CompilerUtils.defineClassType(this.returnedClass)) {
+//					case CompilerUtils.CLASSTYPE_REFERENCE	:	this.wrappedClass = this.returnedClass; break;
+//					case CompilerUtils.CLASSTYPE_BYTE		:	this.wrappedClass = Byte.class; break;
+//					case CompilerUtils.CLASSTYPE_SHORT		:	this.wrappedClass = Short.class; break;
+//					case CompilerUtils.CLASSTYPE_INT		:	this.wrappedClass = Integer.class; break;
+//					case CompilerUtils.CLASSTYPE_LONG		:	this.wrappedClass = Long.class; break;
+//					case CompilerUtils.CLASSTYPE_FLOAT 		:	this.wrappedClass = Float.class; break;
+//					case CompilerUtils.CLASSTYPE_DOUBLE		:	this.wrappedClass = Double.class; break;
+//					case CompilerUtils.CLASSTYPE_CHAR		:	this.wrappedClass = Character.class; break;
+//					case CompilerUtils.CLASSTYPE_BOOLEAN	:	this.wrappedClass = Boolean.class; break;
+//					default : throw new UnsupportedOperationException("Primitive type ["+this.returnedClass.getSimpleName()+"] is not supported yet"); 
+//				}
 			}
 			else {
 				throw new SQLException("Content type ["+contentType+"] is not supported for array"); 

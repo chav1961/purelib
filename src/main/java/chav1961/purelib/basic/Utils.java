@@ -744,26 +744,10 @@ public class Utils {
 	 * @throws NullPointerException when class is null
 	 * @throws IllegalArgumentException when class is not a primitive class
 	 * @since 0.0.2
+	 * @deprecated use CompilerUtils.toWrappedClass(Class) instead
 	 */
 	public static Class<?> primitive2Wrapper(final Class<?> clazz) throws NullPointerException, IllegalArgumentException {
-		if (clazz == null) {
-			throw new NullPointerException("Class to get wrapper for can't be null");
-		}
-		else {
-			switch (CompilerUtils.defineClassType(clazz)) {
-				case CompilerUtils.CLASSTYPE_REFERENCE	: throw new IllegalArgumentException("Class ["+clazz+"] must be primitive");
-				case CompilerUtils.CLASSTYPE_BYTE		: return Byte.class;
-				case CompilerUtils.CLASSTYPE_SHORT		: return Short.class;
-				case CompilerUtils.CLASSTYPE_CHAR		: return Character.class;
-				case CompilerUtils.CLASSTYPE_INT		: return Integer.class;
-				case CompilerUtils.CLASSTYPE_LONG		: return Long.class;
-				case CompilerUtils.CLASSTYPE_FLOAT		: return Float.class;
-				case CompilerUtils.CLASSTYPE_DOUBLE		: return Double.class;
-				case CompilerUtils.CLASSTYPE_BOOLEAN	: return Boolean.class;
-				case CompilerUtils.CLASSTYPE_VOID		: return Void.class;
-				default : throw new UnsupportedOperationException("Class type ["+CompilerUtils.defineClassType(clazz)+"] is not supported yet"); 
-			}
-		}
+		return CompilerUtils.toWrappedClass(clazz);
 	}
 
 	/**
