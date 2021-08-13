@@ -12,6 +12,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
@@ -37,7 +40,7 @@ import chav1961.purelib.i18n.PureLibLocalizer;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.5
  */
 
 
@@ -54,6 +57,7 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 	private final Map<String,MemoryDesc>	content;
 	private final FileSystemInMemory		another;
 	private final boolean					cloned;
+	private final InMemoryFileSystemLocker			lock;
 
 	/**
 	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
@@ -62,6 +66,7 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 		this.content = new HashMap<>();
 		this.another = null;
 		this.cloned = false;
+		this.lock = new InMemoryFileSystemLocker(false);
 	}
 
 	/**
@@ -75,6 +80,7 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 		content.put("/",new MemoryDesc("/",Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, "/", DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true)));
 		this.another = null;
 		this.cloned = false;
+		this.lock = new InMemoryFileSystemLocker(false);
 	}
 	
 	protected FileSystemInMemory(final FileSystemInMemory another) {
@@ -82,6 +88,7 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 		this.content = another.content;
 		this.another = another;
 		this.cloned = true;
+		this.lock =  null;
 	}
 
 	@Override
@@ -284,6 +291,36 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 			
 			desc.attributes.put(DataWrapperInterface.ATTR_NAME, getName());
 			content.put(key,desc);
+		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			if (!cloned) {
+				return lock.tryLock(path, sharedMode);
+			}
+			else {
+				return another.tryLock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			if (!cloned) {
+				lock.lock(path, sharedMode);
+			}
+			else {
+				another.lock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			if (!cloned) {
+				lock.unlock(path, sharedMode);
+			}
+			else {
+				another.unlock(path, sharedMode);
+			}
 		}		
 	}
 

@@ -151,4 +151,31 @@ public class RMIFileSystemServer extends UnicastRemoteObject implements RMIDataW
 			throw new RemoteException(e.getMessage()); 
 		}
 	}
+
+	@Override
+	public boolean tryLock(final String path, final boolean sharedMode) throws RemoteException {
+		try(final FileSystemInterface	fsi = nested.clone().open(path.toString())) {
+			return fsi.tryLock(path, sharedMode);
+		} catch (IOException e) {
+			throw new RemoteException(e.getMessage()); 
+		}
+	}
+
+	@Override
+	public void lock(final String path, final boolean sharedMode) throws RemoteException {
+		try(final FileSystemInterface	fsi = nested.clone().open(path.toString())) {
+			fsi.lock(path, sharedMode);
+		} catch (IOException e) {
+			throw new RemoteException(e.getMessage()); 
+		}
+	}
+
+	@Override
+	public void unlock(final String path, final boolean sharedMode) throws RemoteException {
+		try(final FileSystemInterface	fsi = nested.clone().open(path.toString())) {
+			fsi.unlock(path, sharedMode);
+		} catch (IOException e) {
+			throw new RemoteException(e.getMessage()); 
+		}
+	}
 }

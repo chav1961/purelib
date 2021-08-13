@@ -41,12 +41,16 @@ public class FileSystemOnClassLoader extends AbstractFileSystem implements FileS
 	private static final Icon	ICON = new ImageIcon(FileSystemOnClassLoader.class.getResource("classLoaderIcon.png"));
 	
 	private final boolean			needClose;
+	final FileSystemOnClassLoader 	another;
+	private final InMemoryFileSystemLocker	lock;
 
 	/**
 	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
 	 */
 	public FileSystemOnClassLoader(){
 		this.needClose = false;
+		this.another = null;
+		this.lock = new InMemoryFileSystemLocker(false);
 	}
 	
 	/**
@@ -64,11 +68,15 @@ public class FileSystemOnClassLoader extends AbstractFileSystem implements FileS
 			}
 		}
 		this.needClose = true;
+		this.another = null;
+		this.lock = new InMemoryFileSystemLocker(false);
 	}
 	
 	private FileSystemOnClassLoader(final FileSystemOnClassLoader another) {
 		super(another);
 		this.needClose = false;
+		this.another = another;
+		this.lock = null;
 	}
 
 	@Override
@@ -184,7 +192,7 @@ public class FileSystemOnClassLoader extends AbstractFileSystem implements FileS
 		}
 	}
 	
-	private static class ClassLoaderDataWrapperInterface implements DataWrapperInterface {
+	private class ClassLoaderDataWrapperInterface implements DataWrapperInterface {
 		private final URI			wrapper;
 		
 		public ClassLoaderDataWrapperInterface(final URI wrapper) {
@@ -278,10 +286,40 @@ public class FileSystemOnClassLoader extends AbstractFileSystem implements FileS
 			throw new IOException("This file system is read-only");
 		}
 		
-		private static String toValidPath(final URI path) {
+		private String toValidPath(final URI path) {
 			final String	pathString = path.getPath();
 			
 			return "/".equals(pathString) ? "" : (pathString.contains(".") ? pathString : pathString+"/").substring(1);			
 		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			if (another == null) {
+				return lock.tryLock(path, sharedMode);
+			}
+			else {
+				return another.tryLock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			if (another == null) {
+				lock.lock(path, sharedMode);
+			}
+			else {
+				another.lock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			if (another == null) {
+				lock.unlock(path, sharedMode);
+			}
+			else {
+				another.unlock(path, sharedMode);
+			}
+		}		
 	}
 }

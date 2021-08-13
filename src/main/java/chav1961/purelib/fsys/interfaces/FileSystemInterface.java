@@ -71,10 +71,10 @@ import chav1961.purelib.enumerations.ContinueMode;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
-public interface FileSystemInterface extends Cloneable, Closeable, SpiService<FileSystemInterface> {
+public interface FileSystemInterface extends Cloneable, Closeable, SpiService<FileSystemInterface>, FileSystemLockInterface {
 	/**
 	 * <p>URI scheme for all the FileSystemInterface implementations</p>
 	 */

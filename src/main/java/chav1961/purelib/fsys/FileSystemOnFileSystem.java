@@ -10,7 +10,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.spi.FileSystemProvider;
@@ -47,9 +46,9 @@ import chav1961.purelib.i18n.PureLibLocalizer;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.5
  */
-public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSystemInterfaceDescriptor {
+public class FileSystemOnFileSystem extends AbstractFileSystemWithLockService<AutoCloseable, AutoCloseable> implements FileSystemInterfaceDescriptor {
 	private static final URI	SERVE = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":filesystem:/");
 	private static final String	DESCRIPTION = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFileSystem.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_DESCRIPTION_SUFFIX;
 	private static final String	VENDOR = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFileSystem.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_VENDOR_SUFFIX;
@@ -227,7 +226,27 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 			}
 		}
 	}
-	
+
+	@Override
+	protected boolean sharedModeCheckRequired() {
+		return false;
+	}
+
+	@Override
+	protected AutoCloseable createLockerSource(String path) throws IOException {
+		throw new IOException("Locking mechanism is not oficially supported on file systems but default");
+	}
+
+	@Override
+	protected AutoCloseable tryCreateLocker(AutoCloseable source, String path, boolean sharedMode) throws IOException {
+		throw new IOException("Locking mechanism is not oficially supported on file systems but default");
+	}
+
+	@Override
+	protected AutoCloseable createLocker(AutoCloseable source, String path, boolean sharedMode) throws IOException {
+		throw new IOException("Locking mechanism is not oficially supported on file systems but default");
+	}
+
 	private static class FileSystemDataWrapperInterface implements DataWrapperInterface {
 		private final URI			wrapper;
 		private final FileSystem	fs;
@@ -322,6 +341,23 @@ public class FileSystemOnFileSystem extends AbstractFileSystem implements FileSy
 		private String wrapper2String() {
 			return wrapper.toString();
 		}
-	}
 
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+	}
 }

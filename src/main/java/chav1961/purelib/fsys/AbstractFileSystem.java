@@ -45,7 +45,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.5
  */
 
 public abstract class AbstractFileSystem implements FileSystemInterface {
@@ -714,6 +714,36 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	}
 	
 	@Override
+	public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+		if (path == null || path.isEmpty()) {
+			throw new NullPointerException("Path to locak can't be null"); 
+		}
+		else {
+			return getDataWrapper(URI.create(path)).tryLock(path, sharedMode);
+		}
+	}
+
+	@Override
+	public void lock(final String path, final boolean sharedMode) throws IOException {
+		if (path == null || path.isEmpty()) {
+			throw new NullPointerException("Path to locak can't be null"); 
+		}
+		else {
+			getDataWrapper(URI.create(path)).lock(path, sharedMode);
+		}
+	}
+
+	@Override
+	public void unlock(final String path, final boolean sharedMode) throws IOException {
+		if (path == null || path.isEmpty()) {
+			throw new NullPointerException("Path to locak can't be null"); 
+		}
+		else {
+			getDataWrapper(URI.create(path)).unlock(path, sharedMode);
+		}
+	}
+	
+	@Override
 	public String toString() {
 		try{
 			return "FileSystemFS [currentPath=" + currentPath + ", appendMode=" + appendMode + ", absoluteURI=" + getAbsoluteURI() + "]";
@@ -953,6 +983,36 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 					item.linkAttributes(attributes);
 					return;
 				}
+			}
+		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			if (path == null || path.isEmpty()) {
+				throw new NullPointerException("Path to loca can't be null or empty");
+			}
+			else {
+				return collection.get(collection.size()-1).tryLock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			if (path == null || path.isEmpty()) {
+				throw new NullPointerException("Path to loca can't be null or empty");
+			}
+			else {
+				collection.get(collection.size()-1).lock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			if (path == null || path.isEmpty()) {
+				throw new NullPointerException("Path to loca can't be null or empty");
+			}
+			else {
+				collection.get(collection.size()-1).unlock(path, sharedMode);
 			}
 		}
 	}

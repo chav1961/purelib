@@ -19,9 +19,10 @@ import java.util.regex.Pattern;
  *   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
+ * @lastUpdate 0.0.5
  */
 
-public interface DataWrapperInterface {
+public interface DataWrapperInterface extends FileSystemLockInterface {
 
 	public static final String ATTR_SIZE = "size";
 	public static final String ATTR_NAME = "name";
@@ -95,5 +96,4 @@ public interface DataWrapperInterface {
 	 * @throws IOException if any exceptions was thrown
 	 */
 	void linkAttributes(Map<String, Object> attributes) throws IOException;
-
 }

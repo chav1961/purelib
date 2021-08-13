@@ -1,15 +1,21 @@
 package chav1961.purelib.fsys;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -40,10 +46,10 @@ import chav1961.purelib.i18n.PureLibLocalizer;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.5
  */
 
-public class FileSystemOnFile extends AbstractFileSystem implements FileSystemInterfaceDescriptor {
+public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChannel,FileLock> implements FileSystemInterfaceDescriptor {
 	private static final URI	SERVE = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:/");
 	private static final String	DESCRIPTION = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_DESCRIPTION_SUFFIX;
 	private static final String	VENDOR = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnFile.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_VENDOR_SUFFIX;
@@ -101,7 +107,7 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 		}
 	}
 
-	private FileSystemOnFile(final FileSystemOnFile another) {
+	protected FileSystemOnFile(final FileSystemOnFile another) {
 		super(another);
 		this.rootPath = another.rootPath;
 		this.multiRoot = another.multiRoot;
@@ -208,54 +214,45 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 		}
 	}
 	
+	@Override
+	protected boolean sharedModeCheckRequired() {
+		return false;
+	}
+
+	@Override
+	protected FileChannel createLockerSource(final String path) throws IOException {
+		final RootsAndWrapper	raw = new RootsAndWrapper(multiRoot, URI.create(path), rootPath);
+		final File				f = new File(raw.wrapper.getSchemeSpecificPart());
+		
+		if (f.exists() && f.isDirectory()) {
+			throw new IOException("Resource ["+raw.wrapper+"] is directory, not file!"); 
+		} else if (!f.exists()) {
+			Files.write(f.toPath(), new byte[] {0}, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+		}
+		return new FileInputStream(f).getChannel();
+	}
+
+	@Override
+	protected FileLock tryCreateLocker(final FileChannel source, final String path, final boolean sharedMode) throws IOException {
+		return source.tryLock(0, 1, sharedMode);
+	}
+
+	@Override
+	protected FileLock createLocker(FileChannel source, String path, boolean sharedMode) throws IOException {
+		return source.lock(0, 1, sharedMode);
+	}
+	
 	private static class FileDataWrapper implements DataWrapperInterface {
 		private final boolean	atRoot;
 		private final boolean	atRootItem;
 		private final URI		wrapper;
 		
 		public FileDataWrapper(final boolean multiRoot, final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
-			final String	decodedWrapper = wrapper.isAbsolute() ? wrapper.getRawSchemeSpecificPart() : wrapper.toString();
-			final String	relative = decodedWrapper.replace(File.pathSeparator,"/"), root = rootPath.toString().replace(File.pathSeparator,"/"); 
-
-			if (ROOT_URI.equals(rootPath) && multiRoot) {
-				if (decodedWrapper.isEmpty() || "/".equals(decodedWrapper)) {
-					this.wrapper = rootPath;
-					this.atRoot = true;
-					this.atRootItem = false;
-				}
-				else if (decodedWrapper.endsWith(":/")) {
-					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)).normalize(); 
-					this.atRoot = false;
-					this.atRootItem = true;
-				}
-				else if (decodedWrapper.endsWith(":")) {
-					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)+'/').normalize(); 
-					this.atRoot = false;
-					this.atRootItem = true;
-				}
-				else {
-					if (relative.startsWith("/") && root.endsWith("/")) {
-						this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
-						this.atRoot = false;
-						this.atRootItem = false;
-					}
-					else {
-						this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
-						this.atRoot = false;
-						this.atRootItem = false;
-					}
-				}
-			}
-			else if (relative.startsWith("/") && root.endsWith("/")) {
-				this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
-				this.atRoot = false;
-				this.atRootItem = false;
-			}
-			else {
-				this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
-				this.atRoot = false;
-				this.atRootItem = false;
-			}
+			final RootsAndWrapper	raw = new RootsAndWrapper(multiRoot, wrapper, rootPath); 
+			
+			this.wrapper = raw.wrapper;
+			this.atRoot = raw.atRoot;
+			this.atRootItem = raw.atRootItem;
 		}
 
 		@Override
@@ -354,6 +351,80 @@ public class FileSystemOnFile extends AbstractFileSystem implements FileSystemIn
 		
 		private File getFile() {
 			return new File(wrapper.getSchemeSpecificPart());
+		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+	
+	private static class RootsAndWrapper {
+		private final boolean	atRoot;
+		private final boolean	atRootItem;
+		private final URI		wrapper;
+		
+		public RootsAndWrapper(final boolean multiRoot, final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
+			final String	decodedWrapper = wrapper.isAbsolute() ? wrapper.getRawSchemeSpecificPart() : wrapper.toString();
+			final String	relative = decodedWrapper.replace(File.pathSeparator,"/"), root = rootPath.toString().replace(File.pathSeparator,"/"); 
+
+			if (ROOT_URI.equals(rootPath) && multiRoot) {
+				if (decodedWrapper.isEmpty() || "/".equals(decodedWrapper)) {
+					this.wrapper = rootPath;
+					this.atRoot = true;
+					this.atRootItem = false;
+				}
+				else if (decodedWrapper.endsWith(":/")) {
+					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)).normalize(); 
+					this.atRoot = false;
+					this.atRootItem = true;
+				}
+				else if (decodedWrapper.endsWith(":")) {
+					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)+'/').normalize(); 
+					this.atRoot = false;
+					this.atRootItem = true;
+				}
+				else {
+					if (relative.startsWith("/") && root.endsWith("/")) {
+						this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
+						this.atRoot = false;
+						this.atRootItem = false;
+					}
+					else {
+						this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+						this.atRoot = false;
+						this.atRootItem = false;
+					}
+				}
+			}
+			else if (relative.startsWith("/") && root.endsWith("/")) {
+				this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
+				this.atRoot = false;
+				this.atRootItem = false;
+			}
+			else {
+				this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+				this.atRoot = false;
+				this.atRootItem = false;
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "RootsAndWrapper [atRoot=" + atRoot + ", atRootItem=" + atRootItem + ", wrapper=" + wrapper + "]";
 		}
 	}
 }

@@ -61,7 +61,7 @@ import chav1961.purelib.i18n.PureLibLocalizer;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.5
  */
 
 public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileSystemInterfaceDescriptor {
@@ -75,10 +75,12 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 	private static final String	HELP = FileSystemFactory.FILESYSTEM_LOCALIZATION_PREFIX+'.'+FileSystemOnXMLReadOnly.class.getSimpleName()+'.'+FileSystemFactory.FILESYSTEM_LICENSE_HELP_SUFFIX;
 	private static final Icon	ICON = new ImageIcon(FileSystemOnXMLReadOnly.class.getResource("xmlIcon.png"));
 	
-	private final XPathFactory 	factory = XPathFactory.newInstance();
-	private final URI 			rootPath;
-	private final Document		doc;
-	private final NodeList		mountPoints;
+	private final XPathFactory 				factory = XPathFactory.newInstance();
+	private final FileSystemOnXMLReadOnly	another;
+	private final URI 						rootPath;
+	private final Document					doc;
+	private final NodeList					mountPoints;
+	private final InMemoryFileSystemLocker			lock;
 
 	/**
 	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
@@ -87,6 +89,8 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 		this.rootPath = null;
 		this.doc = null;
 		this.mountPoints = null;
+		this.lock = new InMemoryFileSystemLocker(false);
+		this.another = null;
 	}
 
 	public FileSystemOnXMLReadOnly(final URI rootPath) throws IOException {
@@ -96,6 +100,8 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 		}
 		else {
 			this.rootPath = URI.create(rootPath.getSchemeSpecificPart());
+			this.lock = new InMemoryFileSystemLocker(false);
+			this.another = null;
 			
 			final DocumentBuilderFactory 	dbf = DocumentBuilderFactory.newInstance();
 			
@@ -178,6 +184,8 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 		this.rootPath = another.rootPath;
 		this.doc = (Document) another.doc.cloneNode(true);
 		this.mountPoints = another.mountPoints;
+		this.lock = null;
+		this.another = another;
 	}
 
 	@Override
@@ -306,9 +314,8 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 		}
 		return sb.toString();
 	}
-
 	
-	private static class XMLDataWrapper implements DataWrapperInterface {
+	private class XMLDataWrapper implements DataWrapperInterface {
 		private final Node	node;
 		
 		public XMLDataWrapper(final URI item, final Node node) {
@@ -428,5 +435,35 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 			}
 			return node.getTextContent() == null || node.getTextContent().isEmpty();
 		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			if (another == null) {
+				return lock.tryLock(path, sharedMode);
+			}
+			else {
+				return another.tryLock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			if (another == null) {
+				lock.lock(path, sharedMode);
+			}
+			else {
+				another.lock(path, sharedMode);
+			}
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			if (another == null) {
+				lock.unlock(path, sharedMode);
+			}
+			else {
+				another.unlock(path, sharedMode);
+			}
+		}		
 	}
 }

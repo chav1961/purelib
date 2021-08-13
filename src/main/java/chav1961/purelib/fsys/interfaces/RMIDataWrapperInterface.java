@@ -10,6 +10,7 @@ import java.util.Map;
  * <p>Don't use this interface for any purposes! It's a special for the RMI file system only.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
+ * @lastUpdate 0.0.5
  */
 public interface RMIDataWrapperInterface extends Remote, Serializable {
 	String[] list(URI path, String pattern) throws RemoteException;
@@ -21,4 +22,7 @@ public interface RMIDataWrapperInterface extends Remote, Serializable {
 	byte[] load(URI path) throws RemoteException;
 	Map<String, Object> getAttributes(URI path) throws RemoteException;
 	void linkAttributes(URI path,Map<String, Object> attributes) throws RemoteException;
+	boolean tryLock(String path, boolean sharedMode) throws RemoteException;
+	void lock(String path, boolean sharedMode) throws RemoteException;
+	void unlock(String path, boolean sharedMode) throws RemoteException;
 }

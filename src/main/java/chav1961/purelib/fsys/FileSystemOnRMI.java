@@ -39,7 +39,7 @@ import chav1961.purelib.i18n.PureLibLocalizer;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.5
  */
 
 public class FileSystemOnRMI extends AbstractFileSystem implements FileSystemInterfaceDescriptor {
@@ -274,6 +274,24 @@ public class FileSystemOnRMI extends AbstractFileSystem implements FileSystemInt
 			} catch (RemoteException exc) {
 				throw new IOException(exc.getMessage());
 			}
+		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 
