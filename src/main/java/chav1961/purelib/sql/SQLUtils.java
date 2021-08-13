@@ -484,7 +484,7 @@ public class SQLUtils {
 			return (T)value;
 		}
 		else if (awaited.isPrimitive()) {
-			return (T) convertInternal(CompilerUtils.toWrappedClass(awaited), value);
+			return (T) convert(CompilerUtils.toWrappedClass(awaited), value);
 		}
 		else {
 			return convertInternal(awaited,value);		

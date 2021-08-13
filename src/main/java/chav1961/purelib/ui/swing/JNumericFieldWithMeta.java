@@ -202,7 +202,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 
 	@Override
 	public Class<?> getValueType() {
-		return getNodeMetadata().getType();
+		return getNodeMetadata().getType();	
 	}
 
 	@Override
