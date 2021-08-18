@@ -13,6 +13,7 @@ import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,14 +39,18 @@ import chav1961.purelib.ui.swing.SwingUtils;
 public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeListener, AutoCloseable {
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
 	private final Localizer		localizer;
+	private final String		applicationName;
 	private final Image			image;
 	private final String		toolTip;
 	private final JPopupMenu	popup;
 	private final TrayIcon		icon;
 	
-	public JSystemTray(final Localizer localizer, final URI image) throws EnvironmentException, NullPointerException {
+	public JSystemTray(final Localizer localizer, final String applicationName, final URI image) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
+		}
+		else if (applicationName == null || applicationName.isEmpty()) {
+			throw new IllegalArgumentException("Application name can't be null or empty");
 		}
 		else if (image == null) {
 			throw new NullPointerException("Tray icon image URI can't be null");
@@ -55,6 +60,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 		else {
 			this.localizer = localizer;
+			this.applicationName = applicationName;
 			this.image = loadImage(image);
 			this.toolTip = null;
 			this.popup = null;
@@ -69,9 +75,12 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 
-	public JSystemTray(final Localizer localizer, final URI image, final String tooltip) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+	public JSystemTray(final Localizer localizer, final String applicationName, final URI image, final String tooltip) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
+		}
+		else if (applicationName == null || applicationName.isEmpty()) {
+			throw new IllegalArgumentException("Application name can't be null or empty");
 		}
 		else if (image == null) {
 			throw new NullPointerException("Tray icon image URI can't be null");
@@ -87,6 +96,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 		else {
 			this.localizer = localizer;
+			this.applicationName = applicationName;
 			this.image = loadImage(image);
 			this.toolTip = tooltip;
 			this.popup = null;
@@ -101,9 +111,12 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 	
-	public JSystemTray(final Localizer localizer, final URI image, final String tooltip, final JPopupMenu menu) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+	public JSystemTray(final Localizer localizer, final String applicationName, final URI image, final String tooltip, final JPopupMenu menu) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
+		}
+		else if (applicationName == null || applicationName.isEmpty()) {
+			throw new IllegalArgumentException("Application name can't be null or empty");
 		}
 		else if (image == null) {
 			throw new NullPointerException("Tray icon image URI can't be null");
@@ -122,6 +135,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 		else {
 			this.localizer = localizer;
+			this.applicationName = applicationName;
 			this.image = loadImage(image);
 			this.toolTip = tooltip;
 			this.popup = menu;
@@ -173,24 +187,23 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 	protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 		switch (level) {
 			case info	:
-				icon.displayMessage("???", text, MessageType.INFO);
+				icon.displayMessage(applicationName, text, MessageType.INFO);
 				break;
 			case error	: case severe	:
-				icon.displayMessage("???", text, MessageType.ERROR);
+				icon.displayMessage(applicationName, text, MessageType.ERROR);
 				break;
 			case tooltip:
 				break;
 			case debug	: case trace	:
-				icon.displayMessage("???", text, MessageType.NONE);
+				icon.displayMessage(applicationName, text, MessageType.NONE);
 				break;
 			case warning:
-				icon.displayMessage("???", text, MessageType.WARNING);
+				icon.displayMessage(applicationName, text, MessageType.WARNING);
 				break;
 			default	:
 				throw new UnsupportedOperationException("Severity level ["+level+"] is not supported yet");
 		}
 	}
-	
 	
 	private Image loadImage(final URI image) throws EnvironmentException {
 		try{return ImageIO.read(image.toURL());
@@ -228,9 +241,12 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							stack.add(0,localPopup);
 						}
 						else if (node instanceof JMenu) {
-							final Menu 	menu = new Menu(localizer.getValue(meta.getLabelId()));
+							final Menu 	menu = new Menu(translateString(localizer.getValue(meta.getLabelId())));
 							
-							if (stack.get(0) instanceof Menu) {
+							if (stack.get(0) instanceof PopupMenu) {
+								((PopupMenu)stack.get(0)).add(menu);
+							}
+							else if (stack.get(0) instanceof Menu) {
 								((Menu)stack.get(0)).add(menu);
 							}
 							else {
@@ -239,9 +255,12 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							stack.add(0,menu);
 						}
 						else if (node instanceof JMenuItem) {
-							final MenuItem 	menu = new MenuItem(localizer.getValue(meta.getLabelId()));
-							
-							if (stack.get(0) instanceof Menu) {
+							final MenuItem 	menu = new MenuItem(translateString(localizer.getValue(meta.getLabelId())));
+
+							if (stack.get(0) instanceof PopupMenu) {
+								((PopupMenu)stack.get(0)).add(menu);
+							}
+							else if (stack.get(0) instanceof Menu) {
 								((Menu)stack.get(0)).add(menu);
 							}
 							else {
@@ -272,5 +291,9 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 				return ContinueMode.STOP;
 			}
 		});
+	}
+	
+	private static String translateString(final String source) {
+		return source;
 	}
 }

@@ -8,6 +8,9 @@
 		<key name="testSet4">uri(x.txt)</key>
 		<key name="testSet5">uri(y.txt)</key>
 
+		<key name="en">en</key> 
+		<key name="ru">ru</key> 
+
 <!-- SwingUtils keys  -->
 		<key name="SwingUtils.unknownAction.title">Unknown action!</key>
 		<key name="SwingUtils.unknownAction.content">Action [%1$s] not found in the current window!</key>
@@ -271,6 +274,9 @@
 		<key name="testSet3">test set 3</key>
 		<key name="testSet4">uri(x.txt)</key>
 		<key name="testSet5">uri(y.txt)</key>
+
+		<key name="en">en</key> 
+		<key name="ru">ru</key> 
 
 <!-- Ключи класса SwingUtils  -->
 		<key name="SwingUtils.unknownAction.title">Неизвестное действие!</key>

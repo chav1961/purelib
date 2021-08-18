@@ -44,6 +44,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.FocusManager;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -111,12 +113,14 @@ import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
+import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
@@ -185,6 +189,15 @@ public abstract class SwingUtils {
 		public String getAction() {
 			return action;
 		}
+	}
+
+	private static enum NavigationNodeType {
+		MENU,
+		SUBMENU,
+		BUILTIN_SUBMENU,
+		ITEM,
+		SEPARATOR,
+		UNKNOWN;
 	}
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
@@ -1660,38 +1673,132 @@ loop:			for (Component comp : children(node)) {
 	}
 
 	static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
-		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
-			final JMenu	menu = new JMenuWithMeta(node);
-			
-			for (ContentNodeMetadata child : node) {
-				toMenuEntity(child,menu);
-			}
-			buildRadioButtonGroups(menu);
-			bar.add(menu);
-		} 
-		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-			bar.add(new JMenuItemWithMeta(node));
+		switch (getNavigationNodeType(node)) {
+			case ITEM	:
+				bar.add(new JMenuItemWithMeta(node));
+				break;
+			case SEPARATOR	:
+				bar.add(new JSeparator());
+				break;
+			case SUBMENU	:
+				final JMenu	menu = new JMenuWithMeta(node);
+				
+				for (ContentNodeMetadata child : node) {
+					toMenuEntity(child,menu);
+				}
+				buildRadioButtonGroups(menu);
+				bar.add(menu);
+				break;
+			case BUILTIN_SUBMENU :
+				bar.add(createBuiltinSubmenu(node));
+				break;
+			default : throw new UnsupportedOperationException("Navigation node type ["+getNavigationNodeType(node)+"] is not supported yet");
 		}
 	}
 
 	static void toMenuEntity(final ContentNodeMetadata node, final JPopupMenu popup) throws NullPointerException, IllegalArgumentException{
-		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
-			final JMenu	menu = new JMenuWithMeta(node);
-			
-			for (ContentNodeMetadata child : node) {
-				toMenuEntity(child,menu);
-			}
-			buildRadioButtonGroups(menu);
-			popup.add(menu);
-		} 
-		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-			popup.add(new JMenuItemWithMeta(node));
-		}
-		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
-			popup.add(new JSeparator());
+		switch (getNavigationNodeType(node)) {
+			case ITEM	:
+				popup.add(createMenuItem(node));
+				break;
+			case SEPARATOR	:
+				popup.add(new JSeparator());
+				break;
+			case SUBMENU	:
+				final JMenu	submenu = new JMenuWithMeta(node);
+				
+				for (ContentNodeMetadata child : node) {
+					toMenuEntity(child,submenu);
+				}
+				buildRadioButtonGroups(submenu);
+				popup.add(submenu);
+				break;
+			case BUILTIN_SUBMENU :
+				popup.add(createBuiltinSubmenu(node));
+				break;
+			default : throw new UnsupportedOperationException("Navigation node type ["+getNavigationNodeType(node)+"] is not supported yet");
 		}
 	}
+	
+	static void toMenuEntity(final ContentNodeMetadata node, final JMenu menu) throws NullPointerException, IllegalArgumentException{
+		switch (getNavigationNodeType(node)) {
+			case ITEM	:
+				menu.add(createMenuItem(node));
+				break;
+			case SEPARATOR	:
+				menu.add(new JSeparator());
+				break;
+			case SUBMENU	:
+				final JMenu	submenu = new JMenuWithMeta(node);
+				
+				for (ContentNodeMetadata child : node) {
+					toMenuEntity(child,submenu);
+				}
+				buildRadioButtonGroups(submenu);
+				menu.add(submenu);
+				break;
+			case BUILTIN_SUBMENU :
+				menu.add(createBuiltinSubmenu(node));
+				break;
+			default : throw new UnsupportedOperationException("Navigation node type ["+getNavigationNodeType(node)+"] is not supported yet");
+		}
+	}
+	
+	private static JMenu createBuiltinSubmenu(final ContentNodeMetadata node) {
+		final JMenu	submenu = new JMenuWithMeta(node);
 
+		switch (node.getName()) {
+			case Constants.MODEL_BUILTIN_LANGUAGE	:
+				final String		currentLang = Locale.getDefault().getLanguage();
+				final ButtonGroup	langGroup = new ButtonGroup();
+				
+				AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
+					final String						appPath = ContentMetadataInterface.APPLICATION_SCHEME+":action:/"+Constants.MODEL_BUILTIN_LANGUAGE+"?lang="+lang.name(); 
+					final MutableContentNodeMetadata	md = new MutableContentNodeMetadata(langName, String.class, "./"+langName, PureLibLocalizer.LOCALIZER_SCHEME_URI, lang.name(), null, null, null, URI.create(appPath), lang.getIconURI()) 
+																{{setOwner(node.getOwner());}};
+					final JRadioMenuItemWithMeta		radio = new JRadioMenuItemWithMeta(md);
+						
+					if (currentLang.equals(lang.toString())) {	// Mark current lang
+						radio.setSelected(true);
+					}
+					langGroup.add(radio);
+					submenu.add(radio);
+				});
+				break;
+			case Constants.MODEL_BUILTIN_LAF	:
+				final String		currentLafDesc = UIManager.getLookAndFeel().getName();
+				final ButtonGroup	lafGroup = new ButtonGroup();
+				
+				for (LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
+					try{final String				clazzName = laf.getClassName();
+						final Class<?> 				clazz = Class.forName(clazzName);
+						final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(clazz.getSimpleName());
+	
+						radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LAF+"?laf="+clazzName);
+						radio.setToolTipText(laf.getName());
+						if (currentLafDesc.equals(laf.getName())) {	// Mark current L&F
+							radio.setSelected(true);
+						}
+						lafGroup.add(radio);
+						submenu.add(radio);
+					} catch (ClassNotFoundException e) {
+					}
+				}
+				break;
+			default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");
+		}
+		return submenu; 
+	}
+
+	private static JMenuItem createMenuItem(final ContentNodeMetadata node) {
+		if (node.getApplicationPath().getFragment() != null) {
+			return new JRadioMenuItemWithMeta(node);
+		}
+		else {
+			return new JMenuItemWithMeta(node);
+		}
+	}	
+	
 	private static void buildRadioButtonGroups(final JMenu menu) {
 		final Set<String>	availableGroups = new HashSet<>(); 
 		
@@ -1722,77 +1829,26 @@ loop:			for (Component comp : children(node)) {
 		}				
 	}
 
-	static void toMenuEntity(final ContentNodeMetadata node, final JMenu menu) throws NullPointerException, IllegalArgumentException{
+	private static NavigationNodeType getNavigationNodeType(final ContentNodeMetadata node) {
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
-			final JMenu	submenu = new JMenuWithMeta(node);
-			
 			if (node.getApplicationPath() != null && node.getApplicationPath().toString().contains(Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION)) {
-				switch (node.getName()) {
-					case Constants.MODEL_BUILTIN_LANGUAGE	:
-						final String		currentLang = Locale.getDefault().getLanguage();
-						final ButtonGroup	langGroup = new ButtonGroup();
-						
-						AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
-							final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(langName,icon);
-							
-							radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LANGUAGE+"?lang="+lang.name());
-							if (currentLang.equals(lang.toString())) {	// Mark current lang
-								radio.setSelected(true);
-							}
-							langGroup.add(radio);
-							submenu.add(radio);
-						});
-						menu.add(submenu);
-						break;
-					case Constants.MODEL_BUILTIN_LAF	:
-						final String		currentLafDesc = UIManager.getLookAndFeel().getName();
-						final ButtonGroup	lafGroup = new ButtonGroup();
-						
-						for (LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
-							try{final String				clazzName = laf.getClassName();
-								final Class<?> 				clazz = Class.forName(clazzName);
-								final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(clazz.getSimpleName());
-
-								radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LAF+"?laf="+clazzName);
-								radio.setToolTipText(laf.getName());
-								if (currentLafDesc.equals(laf.getName())) {	// Mark current L&F
-									radio.setSelected(true);
-								}
-								lafGroup.add(radio);
-								submenu.add(radio);
-							} catch (ClassNotFoundException e) {
-							}
-						}
-						menu.add(submenu);
-						break;
-					default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");
-				}
+				return NavigationNodeType.BUILTIN_SUBMENU;
 			}
 			else {
-				for (ContentNodeMetadata child : node) {
-					toMenuEntity(child,submenu);
-				}
-				buildRadioButtonGroups(submenu);
-				menu.add(submenu);
+				return NavigationNodeType.SUBMENU;
 			}
-		} 
+		}
 		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-			if (node.getApplicationPath().getFragment() != null) {
-				final JRadioMenuItemWithMeta	item = new JRadioMenuItemWithMeta(node);
-				
-				menu.add(item);
-			}
-			else {
-				final JMenuItemWithMeta			item = new JMenuItemWithMeta(node);
-				
-				menu.add(item);
-			}
+			return NavigationNodeType.ITEM;
 		}
 		else if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_SEPARATOR)) {
-			menu.add(new JSeparator());
+			return NavigationNodeType.SEPARATOR;
+		}
+		else {
+			return NavigationNodeType.UNKNOWN;
 		}
 	}
-
+	
 	static boolean inAllowedClasses(final Object val, final Class<?>... classes) {
 		if (val == null) {
 			return false;
@@ -1905,6 +1961,11 @@ loop:			for (Component comp : children(node)) {
 			this.radioGroup = metadata.getApplicationPath().getFragment();
 			this.setName(metadata.getName());
 			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
+			if (metadata.getIcon() != null) {
+				try{this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+				} catch (MalformedURLException e) {
+				}
+			}
 			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
 				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
 					this.setAccelerator(KeyStroke.getKeyStroke(item.getLabelId()));
