@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Point;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragSource;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
@@ -12,6 +13,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.Objects;
 
 import javax.swing.SwingUtilities;
 
@@ -25,15 +27,42 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @author Alexander Chernomyrdin aka chav1961
  * @see DnDInterface
  * @since 0.0.4
+ * @lastUpate 0.0.5
  */
 public class DnDManager implements AutoCloseable {
 	/**
 	 * <p>This anumerations describes current Drag&amp;drop mode in the swing container.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.4
+	 * @lastUpate 0.0.5
 	 */
-	public enum DnDMode {
-		NONE, COPY, MOVE, LINK
+	public static enum DnDMode {
+		NONE(DnDConstants.ACTION_NONE, null, null), 
+		COPY(DnDConstants.ACTION_COPY, DragSource.DefaultCopyDrop, DragSource.DefaultCopyNoDrop), 
+		MOVE(DnDConstants.ACTION_MOVE, DragSource.DefaultMoveDrop, DragSource.DefaultMoveNoDrop),
+		LINK(DnDConstants.ACTION_LINK, DragSource.DefaultLinkDrop, DragSource.DefaultLinkNoDrop);
+		
+		private final int		mode;
+		private final Cursor	enabledCursor;
+		private final Cursor	disabledCursor;
+		
+		DnDMode(final int mode, final Cursor enabledCursor, final Cursor disabledCursor) {
+			this.mode = mode;
+			this.enabledCursor = enabledCursor;
+			this.disabledCursor = disabledCursor;
+		}
+		
+		public int getMode() {
+			return mode;
+		}
+		
+		public Cursor getEnabledCursor() {
+			return enabledCursor;
+		}
+
+		public Cursor getDisabledCursor() {
+			return disabledCursor;
+		}
 	}
 	
 	/**
@@ -60,7 +89,7 @@ public class DnDManager implements AutoCloseable {
 		 * @return content type to drag. Null cancels drag operation
 		 */
 		Class<?> getSourceContentClass(final DnDMode currentMode, final Component component, final int x, final int y);
-		
+
 		/**
 		 * <p>Get source content to pass it to {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method.</p>
 		 * @param currentMode current drag&drop mode. Can't be null
@@ -116,7 +145,7 @@ public class DnDManager implements AutoCloseable {
 
 	private interface TotalMouseListener extends MouseListener, MouseMotionListener, MouseWheelListener {}
 
-	public enum MouseAction {
+	public static enum MouseAction {
 		CLICKED, MOVED, WHEEL_MOVED, PRESSED, RELEASED, ENTERED, EXITED, DRAGGED, UNKNOWN
 	}
 	
@@ -204,6 +233,31 @@ public class DnDManager implements AutoCloseable {
 	 */
 	public DnDMode currentDnDMode() {
 		return currentDnDMode;
+	}
+	
+	
+	public void cut(final Component from) {
+		
+	}
+	
+	public void cut(final Component from, final int x, final int y) {
+		
+	}
+	
+	public void copy(final Component from) {
+		
+	}
+	
+	public void copy(final Component from, final int x, final int y) {
+		
+	}
+
+	public void paste(final Component to) {
+		
+	}
+	
+	public void paste(final Component to, final int x, final int y) {
+		
 	}
 	
 	private void componentAdded(final Component component) {
@@ -307,15 +361,6 @@ public class DnDManager implements AutoCloseable {
 	}
 
 	private Cursor selectCursor(final Component component, final boolean validTarget) {
-		final Cursor	result;
-		
-		switch (draggedDndMode) {
-			case COPY	: result = validTarget ? DragSource.DefaultCopyDrop : DragSource.DefaultCopyNoDrop; break; 
-			case LINK	: result = validTarget ? DragSource.DefaultLinkDrop : DragSource.DefaultLinkNoDrop; break;
-			case MOVE	: result = validTarget ? DragSource.DefaultMoveDrop : DragSource.DefaultMoveNoDrop; break;
-			case NONE	: result = component.getCursor(); break;
-			default		: throw new UnsupportedOperationException("Drag&Drop mode ["+currentDnDMode()+"] is not supported yet"); 
-		}
-		return result;
+		return Objects.requireNonNullElseGet(validTarget ? draggedDndMode.getEnabledCursor() : draggedDndMode.getDisabledCursor(), ()-> component.getCursor()); 
 	}
 }

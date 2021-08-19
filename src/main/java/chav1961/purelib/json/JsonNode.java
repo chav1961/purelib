@@ -1,5 +1,6 @@
 package chav1961.purelib.json;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,9 +21,11 @@ import chav1961.purelib.json.interfaces.JsonNodeType;
  * @see JsonNodeType
  * @see JsonUtils
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.4
+ * @since 0.0.5
  */
-public class JsonNode  {
+public class JsonNode  implements Serializable {
+	private static final long 	serialVersionUID = -7063561517162821362L;
+	
 	private final JsonNodeType	type;
 	private long				value;
 	private String				name = null;

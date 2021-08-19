@@ -494,6 +494,88 @@ public class JsonUtils {
 			return true;
 		}
 	}
+
+	public static String printJsonPath(final List<JsonNode> path) throws NullPointerException {
+		if (path == null) {
+			throw new NullPointerException("Json path can't be null"); 
+		}
+		else {
+			return printJsonPath(path.toArray(new JsonNode[path.size()]));
+		}
+	}
+	
+	public static String printJsonPath(final JsonNode... path) throws IllegalArgumentException {
+		if (path == null || Utils.checkArrayContent4Nulls(path) >= 0) {
+			throw new IllegalArgumentException("Json path is null or contains nulls inside"); 
+		}
+		else {
+			final StringBuilder		sb = new StringBuilder();
+			
+			for (int pathIndex = 0; pathIndex < path.length; pathIndex++) {
+				final JsonNode		item = path[pathIndex]; 
+						
+				switch (item.getType()) {
+					case JsonArray		:
+						if (pathIndex == path.length-1) {
+							sb.append("[]");
+						}
+						else {
+							final JsonNode[]	children = item.children();
+							int					found = -1;
+							
+							for (int index = 0, maxIndex = item.childrenCount(); index < maxIndex; index++) {
+								if (children[index] == path[pathIndex + 1]) {
+									found = index;
+									break;
+								}
+							}
+							sb.append(pathIndex == 0 ? "*" : "").append(found == -1 ? "[]" : "["+found+"]");
+						}
+						break;
+					case JsonBoolean	:
+						sb.append(':').append(item.getBooleanValue());
+						break;
+					case JsonInteger	:
+						sb.append(':').append(item.getLongValue());
+						break;
+					case JsonNull		:
+						sb.append(':').append("null");
+						break;
+					case JsonObject		:
+						if (pathIndex == path.length-1) {
+							sb.append("{}");
+						}
+						else {
+							final JsonNode[]	children = item.children();
+							int					found = -1;
+							
+							for (int index = 0, maxIndex = item.childrenCount(); index < maxIndex; index++) {
+								if (children[index] == path[pathIndex + 1]) {
+									found = index;
+									break;
+								}
+							}
+							
+							sb.append(pathIndex == 0 ? '{' : '.').append(found == -1 ? "*" : children[found].getName());
+						}
+						break;
+					case JsonReal		:
+						sb.append(':').append(item.getDoubleValue());
+						break;
+					case JsonString		:
+						sb.append(":\"").append(item.getStringValue()).append('\"');
+						break;
+					default :
+						throw new UnsupportedOperationException("Node type ["+item.getType()+"] is not supported yet");
+				}
+			}
+			if (path.length > 1 && path[0].getType() == JsonNodeType.JsonObject) {
+				sb.append('}');
+			}
+			return sb.toString();
+		}
+	}
+	
 	
 	/**
 	 * <p>Build callback filter for JSON tree. It's functionality is similar to XPath in the XML DOM tree</p>

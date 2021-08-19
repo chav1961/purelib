@@ -1567,6 +1567,30 @@ public class JsonNodeAndUtilsTest {
 		}
 	}	
 	
+	@Test
+	public void printJsonPathTest() throws SyntaxException, IOException {
+		JsonNode				root;
+
+		root = loadJson("{\"f1\":100,\"f2\":[100,200]}");
+		Assert.assertEquals("{}", JsonUtils.printJsonPath(root));
+		Assert.assertEquals("{f1:100}", JsonUtils.printJsonPath(root,root.children()[0]));
+		Assert.assertEquals("{f2[]}", JsonUtils.printJsonPath(root,root.children()[1]));
+		Assert.assertEquals("{f2[1]:200}", JsonUtils.printJsonPath(root,root.children()[1],root.children()[1].children()[1]));
+		
+		try{JsonUtils.printJsonPath((List<JsonNode>)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{JsonUtils.printJsonPath((JsonNode[])null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{JsonUtils.printJsonPath((JsonNode)null);
+			Assert.fail("Mandatory exception was not detected (nulls inside 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}	
+	
 	private JsonNode loadJson(final String content) throws IOException, SyntaxException {
 		try(final Reader			rdr = new StringReader(content);
 			final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
