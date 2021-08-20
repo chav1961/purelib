@@ -14,7 +14,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * </ul>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>, FieldFormManager<Id,Instance>, ActionFormManager<Id,Instance> {
@@ -36,7 +36,7 @@ public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>
 	default FormManager<?,?> getForEditor(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException {return null;} 
 
 	/**
-	 * <p>Get contetn for local editors (for example, drop-down lists)</p>
+	 * <p>Get content for local editors (for example, drop-down lists)</p>
 	 * @param <T> content type
 	 * @param inst current record instance 
 	 * @param id primary key of the current record instance
@@ -45,5 +45,46 @@ public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>
 	 * @return content. Can be null
 	 * @throws FlowException on any errors or on action canceling  
 	 */
-	default <T> T[] getForEditorContent(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException {return null;} 
+	default <T> T[] getForEditorContent(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException {return null;}
+	
+	/**
+	 * <p>This enumeration describes state of the appropriative UI control for the given field</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.5
+	 */
+	public static enum AvailableAndVisible {
+		/**
+		 * <p>No changes in the appropriative UI control required</p>
+		 */
+		DEFAULT,
+		
+		/**
+		 * <p>Hide appropriative UI control</p>
+		 */
+		NOTVISIBLE,
+		
+		/**
+		 * <p>Show appropriative UI control as not available</p>
+		 */
+		NOTAVAILABLE,
+		
+		/**
+		 * <p>Show appropriative UI control as available, but not modifiable</p>
+		 */
+		READONLY,
+		
+		/**
+		 * <p>Show appropriative UI control as fully accessed</p>
+		 */
+		MODIFIABLE
+	};
+	
+	/**
+	 * <p>Get state for the given item</p>
+	 * @param fieldName field name to get state for
+	 * @return UI item state. Can't be null. {@linkplain AvailableAndVisible#DEFAULT} means 'no changes required'
+	 */
+	default AvailableAndVisible getItemState(final String fieldName) {
+		return AvailableAndVisible.DEFAULT;
+	}
 }

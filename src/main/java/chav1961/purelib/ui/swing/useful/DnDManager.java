@@ -51,17 +51,53 @@ public class DnDManager implements AutoCloseable {
 			this.enabledCursor = enabledCursor;
 			this.disabledCursor = disabledCursor;
 		}
-		
+
+		/**
+		 * <p>Get Drag&Drop mode as {@linkplain DnDConstants} constant</p>
+		 * @return mode returned
+		 */
 		public int getMode() {
 			return mode;
 		}
 		
+		/**
+		 * <p>Get cursor for enabled operation of the give type</p>
+		 * @return cursor for enabled operation of null for NONE mode
+		 */
 		public Cursor getEnabledCursor() {
 			return enabledCursor;
 		}
 
+		/**
+		 * <p>Get cursor for disabled operation of the give type</p>
+		 * @return cursor for disabled operation of null for NONE mode
+		 */
 		public Cursor getDisabledCursor() {
 			return disabledCursor;
+		}
+		
+		/**
+		 * <p>Get Drag&Drop mode by {@linkplain DnDConstants} constants</p>
+		 * @param dndConstant constant to get mode for
+		 * @return mode for constant
+		 * @throws IllegalArgumentException if constant to get mode for is illegal
+		 */
+		public static DnDMode valueOf(final int dndConstant) throws IllegalArgumentException {
+			if ((dndConstant & DnDConstants.ACTION_COPY) != 0) {
+				return COPY;
+			}
+			else if ((dndConstant & DnDConstants.ACTION_MOVE) != 0) {
+				return MOVE;
+			}
+			else if ((dndConstant & DnDConstants.ACTION_LINK) != 0) {
+				return LINK;
+			}
+			else if (dndConstant == 0) {
+				return NONE;
+			}
+			else {
+				throw new IllegalArgumentException("Illegal value for constant [" +  dndConstant+ "], only DnDConstants.ACTION_NONE, DnDConstants.ACTION_COPY, DnDConstants.ACTION_MOVE and DnDConstants.ACTION_LINK are available");
+			}
 		}
 	}
 	

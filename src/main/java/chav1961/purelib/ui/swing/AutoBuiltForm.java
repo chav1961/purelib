@@ -84,7 +84,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and similar). You must close this form yourself, if required</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
 public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter {

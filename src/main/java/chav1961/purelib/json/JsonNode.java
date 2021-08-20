@@ -12,7 +12,7 @@ import chav1961.purelib.json.interfaces.JsonNodeType;
  * <p>This class is a JSON node of the JSON tree. It can be used similar to DOM tree in the XML. Once was created, type of the node can't be changed, 
  * but it's value and it's children (if exists) can be changed anyway. Any node can have or not have name with some restrictions:</p>
  * <ul>
- * <li>standalone item can have or can not have name</li>
+ * <li>stand-alone item can have or can not have name</li>
  * <li>{@linkplain JsonNodeType#JsonArray} children must not have names</li>
  * <li>{@linkplain JsonNodeType#JsonObject} children must have unique names</li>
  * <li></li>
@@ -23,7 +23,7 @@ import chav1961.purelib.json.interfaces.JsonNodeType;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.5
  */
-public class JsonNode  implements Serializable {
+public class JsonNode  implements Serializable, Cloneable {
 	private static final long 	serialVersionUID = -7063561517162821362L;
 	
 	private final JsonNodeType	type;
@@ -584,5 +584,15 @@ public class JsonNode  implements Serializable {
 			}
 			return sb.toString();
 		}
+	}
+	
+	@Override
+	public JsonNode clone() throws CloneNotSupportedException {
+		final JsonNode	result = (JsonNode)super.clone();
+		
+		if (result.children != null) {
+			result.children = new ArrayList<>();
+		}
+		return result;
 	}
 }

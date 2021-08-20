@@ -9,7 +9,7 @@ public interface RecordFormManager<Id,Instance> {
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
 	 */
-	public enum RecordAction {
+	public static enum RecordAction {
 		INSERT, DUPLICATE, CHANGE, DELETE, CHECK
 	}
 
