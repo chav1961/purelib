@@ -127,6 +127,8 @@ import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.streams.StreamsUtil;
 import chav1961.purelib.ui.interfaces.ActionFormManager;
 import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.interfaces.UIItemState;
+import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
@@ -507,13 +509,31 @@ loop:			for (Component comp : children(node)) {
 	 * @throws NullPointerException on any nulls in the parameter's list
 	 * @throws IllegalArgumentException unsupported class to build component.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <T extends JComponent> T toJComponent(final ContentNodeMetadata node, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
+		return toJComponent(node, awaited, (meta)->AvailableAndVisible.DEFAULT);
+	}	
+	
+	/**
+	 * <p>Build JComponent child by it's model description. Awaited classes can be JMenuBar, JPopupMenu or JToolBar only</p>
+	 * @param <T> awaited JComponent type
+	 * @param node metadata to build component for. Can't be null
+	 * @param awaited awaited class for returned component. Can't be null
+	 * @param state item state monitor for returned component. Can't be null
+	 * @return returned component
+	 * @throws NullPointerException on any nulls in the parameter's list
+	 * @throws IllegalArgumentException unsupported class to build component.
+	 * @since 0.0.5
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T extends JComponent> T toJComponent(final ContentNodeMetadata node, final Class<T> awaited, final UIItemState state) throws NullPointerException, IllegalArgumentException{
 		if (node == null) {
 			throw new NullPointerException("Model node can't be null"); 
 		}
 		else if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null"); 
+		}
+		else if (state == null) {
+			throw new NullPointerException("Item state monitor can't be null"); 
 		}
 		else {
 			if (awaited.isAssignableFrom(JMenuBar.class)) {
@@ -521,7 +541,7 @@ loop:			for (Component comp : children(node)) {
 					throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
 				}
 				else {
-					final JMenuBar	result = new JMenuBarWithMeta(node);
+					final JMenuBar	result = new JMenuBarWithMeta(node, state);
 					
 					for (ContentNodeMetadata child : node) {
 						toMenuEntity(child,result);
@@ -534,7 +554,7 @@ loop:			for (Component comp : children(node)) {
 					throw new IllegalArgumentException("Model node ["+node.getUIPath()+"] can't be converted to ["+awaited.getCanonicalName()+"] class"); 
 				}
 				else {
-					final JPopupMenu	result = new JMenuPopupWithMeta(node);
+					final JPopupMenu	result = new JMenuPopupWithMeta(node, state);
 					
 					for (ContentNodeMetadata child : node) {
 						toMenuEntity(child,result);
@@ -548,33 +568,10 @@ loop:			for (Component comp : children(node)) {
 				}
 				else {
 					try {
-						return (T)new JToolBarWithMeta(node);
+						return (T)new JToolBarWithMeta(node, state);
 					} catch (LocalizationException | ContentException e) {
 						throw new IllegalArgumentException("Error creation toolbar: "+e.getLocalizedMessage(),e); 
 					}
-/*					for (ContentNodeMetadata child : node) {
-						if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
-							final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child);
-							final JButton 				btn = new JButtonWithMetaAndActions(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
-							
-							for (ContentNodeMetadata item : child) {
-								toMenuEntity(item,menu);
-							}
-							
-							btn.addActionListener((e)->{
-								menu.show(btn,btn.getWidth()/2,btn.getHeight()/2);
-							});
-							result.add(btn);
-						}
-						else if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-							result.add(new JInternalButtonWithMeta(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT));
-						}
-						else if (URI.create("./navigation.separator").equals(child.getRelativeUIPath())) {
-							result.addSeparator();
-						}
-					}
-					return (T) result;
-*/					
 				}
 			}
 			else {
@@ -1875,9 +1872,11 @@ loop:			for (Component comp : children(node)) {
 		private static final long serialVersionUID = 2873312186080690483L;
 		
 		private final ContentNodeMetadata	metadata;
+		private final UIItemState			state;
 		
-		protected JMenuBarWithMeta(final ContentNodeMetadata metadata) {
+		protected JMenuBarWithMeta(final ContentNodeMetadata metadata, final UIItemState state) {
 			this.metadata = metadata;
+			this.state = state;
 			this.setName(metadata.getName());
 			try{fillLocalizedStrings();
 			} catch (IOException | LocalizationException e) {
@@ -1903,6 +1902,35 @@ loop:			for (Component comp : children(node)) {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+		
+		@Override
+		public void setVisible(final boolean visible) {
+			if (visible) {
+				SwingUtils.walkDown(this, (mode, node) ->{
+					if (mode == NodeEnterMode.ENTER) {
+						if (node instanceof NodeMetadataOwner) {
+							switch (state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())) {
+								case DEFAULT : case MODIFIABLE : case READONLY : 
+									node.setVisible(true);
+									node.setEnabled(true);
+									return ContinueMode.CONTINUE;
+								case NOTAVAILABLE	:
+									node.setVisible(true);
+									node.setEnabled(false);
+									return ContinueMode.SKIP_CHILDREN;
+								case NOTVISIBLE		:
+									node.setVisible(false);
+									node.setEnabled(false);
+									return ContinueMode.SKIP_CHILDREN;
+								default : throw new UnsupportedOperationException("Available type ["+state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())+"] is not supported yet");
+							}
+						}
+					}
+					return ContinueMode.CONTINUE;
+				});
+			}
+			super.setVisible(visible);
 		}
 
 		private void fillLocalizedStrings() throws LocalizationException, IOException {

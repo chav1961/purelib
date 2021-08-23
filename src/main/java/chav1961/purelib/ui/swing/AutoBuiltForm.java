@@ -63,6 +63,8 @@ import chav1961.purelib.ui.FormMonitor;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
+import chav1961.purelib.ui.interfaces.UIItemState;
+import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
@@ -106,6 +108,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final FormManager<Object,T>		formManager;
 	private final FormMonitor<T>			monitor;
 	private final ContentMetadataInterface	mdi;
+	private final UIItemState				itemState;
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
@@ -184,6 +187,29 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws ContentException errors in class or fields annotations
 	 */
 	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, logger, loader, leftIcon, instance, formMgr, numberOfBars, tooltipsOnFocus, (node)->AvailableAndVisible.DEFAULT);
+	}	
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param logger logger to get diagnostics while form is built. Defaults use current logger of the {@linkplain PureLibSettings} class.
+	 * @param loader loader to create on-the-fly classes in 
+	 * @param leftIcon icon will be shown on the left of the form built
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @param numberOfBars number of bars in the form
+	 * @param tooltipsOnFocus true if tooltips require in the state string when field gets focus
+	 * @param itemState item state monitor. Can't be null
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 * @since 0.0.5
+	 */
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (mdi == null) {
 			throw new NullPointerException("Metadata interface can't be null");
 		}
@@ -208,6 +234,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		else if (mdi.getRoot().getLocalizerAssociated() == null) {
 			throw new IllegalArgumentException("No localizer associated in the metadata model!");
 		}
+		else if (itemState == null) {
+			throw new NullPointerException("Item state monitor can't be null!");
+		}
 		else {
 			final BorderLayout	totalLayout = new BorderLayout(GAP_SIZE, GAP_SIZE);
 			final JPanel		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -216,6 +245,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			this.logger = logger;
 			this.formManager = formMgr;
 			this.instance = instance;
+			this.itemState = itemState;
 			this.childPanel = new JPanel(new LabelledLayout(numberOfBars, GAP_SIZE, GAP_SIZE, LabelledLayout.VERTICAL_FILLING));
 			this.childPanel.setName(this.mdi.getRoot().getUIPath().toString());
 			

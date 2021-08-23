@@ -13,19 +13,27 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.interfaces.UIItemState;
+
 
 public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener {
 	private static final long serialVersionUID = 366031204608808220L;
 	
 	private final ContentNodeMetadata	metadata;
-	
+
 	public JToolBarWithMeta(final ContentNodeMetadata metadata) throws LocalizationException, ContentException {
+		this(metadata, (node) -> AvailableAndVisible.DEFAULT);
+	}
+	
+	public JToolBarWithMeta(final ContentNodeMetadata metadata, final UIItemState state) throws LocalizationException, ContentException {
+		UIItemState s;
 		this.metadata = metadata;
 		this.setName(metadata.getName());
 		for (ContentNodeMetadata child : metadata) {
 			if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
-				final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child);
+				final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child, state);
 				final JButton 				btn = new JButtonWithMetaAndActions(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
 				
 				for (ContentNodeMetadata item : child) {

@@ -58,11 +58,11 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 	protected abstract JComponentInterface findComponentByName(final URI uiPath) throws ContentException;
 	
 	@Override
-	public boolean process(MonitorEvent event, ContentNodeMetadata metadata, JComponentInterface component, Object... parameters) throws ContentException {
+	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
 		switch (event) {
 			case Action:
 				if (metadata.getApplicationPath().toString().contains("().")) {
-					try{switch (seekAndCall(instance,metadata.getApplicationPath())) {
+					try{switch (processRefreshMode(seekAndCall(instance,metadata.getApplicationPath()), event, metadata, component, parameters)) {
 							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
 								break;
 							case TOTAL : case RECORD_ONLY :
@@ -80,7 +80,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 					}
 				}
 				else {
-					try{switch (formMgr.onAction(instance,null,metadata.getApplicationPath().toString(),null)) {
+					try{switch (processRefreshMode(formMgr.onAction(instance,null,metadata.getApplicationPath().toString(),null), event, metadata, component, parameters)) {
 							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
 								break;
 							case TOTAL : case RECORD_ONLY :
@@ -134,7 +134,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 				try{final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
 				
 					ModelUtils.setValueBySetter(instance, SQLUtils.convert(metadata.getType(),((JComponentInterface)component).getChangedValueFromComponent()), accessors.get(metadata.getUIPath()), metadata);
-					switch (formMgr.onField(instance,null,metadata.getName(),oldValue,false)) {
+					switch (processRefreshMode(formMgr.onField(instance,null,metadata.getName(),oldValue,false), event, metadata, component, parameters)) {
 						case FIELD_ONLY : case DEFAULT : case NONE :
 							break;
 						case TOTAL : case RECORD_ONLY :
@@ -192,6 +192,10 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 		return true;
 	}
 
+	protected RefreshMode processRefreshMode(final RefreshMode mode, final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
+		return mode;
+	}
+	
 	protected LoggerFacade getLogger() {
 		return logger;
 	}

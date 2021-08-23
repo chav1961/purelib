@@ -12,6 +12,8 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.interfaces.UIItemState;
+import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.SwingUtils.JMenuBarWithMeta;
 
 public class SimpleMenuBar extends JMenuBarWithMeta {
@@ -19,9 +21,13 @@ public class SimpleMenuBar extends JMenuBarWithMeta {
 	
 	private final Localizer					localizer;
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class); 
-	
+
 	public SimpleMenuBar(final Localizer localizer, final ContentNodeMetadata metadata) throws LocalizationException {
-		super(metadata);
+		this(localizer, metadata, (meta)-> AvailableAndVisible.DEFAULT);
+	}	
+	
+	public SimpleMenuBar(final Localizer localizer, final ContentNodeMetadata metadata, final UIItemState state) throws LocalizationException {
+		super(metadata, state);
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -30,6 +36,9 @@ public class SimpleMenuBar extends JMenuBarWithMeta {
 		}
 		else if (!metadata.getRelativeUIPath().toString().contains(Constants.MODEL_NAVIGATION_TOP_PREFIX)) {
 			throw new IllegalArgumentException("Metadata must be refered to navigation top node");
+		}
+		else if (state == null) {
+			throw new NullPointerException("Item state can't be null");
 		}
 		else {
 			this.localizer = localizer;

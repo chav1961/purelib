@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
@@ -21,14 +22,17 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.interfaces.UIItemState;
 
 class JMenuPopupWithMeta extends JPopupMenu implements NodeMetadataOwner, LocaleChangeListener {
 	private static final long serialVersionUID = 2873312186080690483L;
 	
 	private final ContentNodeMetadata	metadata;
+	private final UIItemState 			state;
 	
-	JMenuPopupWithMeta(final ContentNodeMetadata metadata) {
+	JMenuPopupWithMeta(final ContentNodeMetadata metadata, final UIItemState state) {
 		this.metadata = metadata;
+		this.state = state;
 		this.setName(metadata.getName());
 		try{fillLocalizedStrings();
 		} catch (IOException | LocalizationException e) {
@@ -58,7 +62,6 @@ class JMenuPopupWithMeta extends JPopupMenu implements NodeMetadataOwner, Locale
 
 	@Override
 	public void show(final Component invoker, final int x, final int y) {
-		final Map<String,Container>	map = new HashMap<>();
 		final Window				frame = SwingUtilities.getWindowAncestor(invoker);
 		
 		getNodeMetadata().getOwner().walkDown((mode, applicationPath, uiPath, node) -> {
@@ -82,7 +85,35 @@ class JMenuPopupWithMeta extends JPopupMenu implements NodeMetadataOwner, Locale
 			}
 			return ContinueMode.CONTINUE;
 		},getNodeMetadata().getUIPath());
+		prepareState();
 		super.show(invoker, x, y);
+	}
+
+	private void prepareState() {
+		SwingUtils.walkDown(this, (mode, node)-> {
+			if (mode == NodeEnterMode.ENTER) {
+				if (node instanceof NodeMetadataOwner) {
+					switch (state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())) {
+						case DEFAULT : 
+							return ContinueMode.CONTINUE;
+						case MODIFIABLE : case READONLY : 
+							node.setVisible(true);
+							node.setEnabled(true);
+							return ContinueMode.CONTINUE;
+						case NOTAVAILABLE	:
+							node.setVisible(true);
+							node.setEnabled(false);
+							return ContinueMode.SKIP_CHILDREN;
+						case NOTVISIBLE		:
+							node.setVisible(false);
+							node.setEnabled(false);
+							return ContinueMode.SKIP_CHILDREN;
+						default : throw new UnsupportedOperationException("Available type ["+state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())+"] is not supported yet");
+					}
+				}
+			}
+			return ContinueMode.CONTINUE;
+		});
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException, IOException {
