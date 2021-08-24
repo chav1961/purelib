@@ -72,7 +72,7 @@ import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class JFileSelectionDialog extends JPanel implements LocaleChangeListener {
 	private static final long 	serialVersionUID = 4285629141818684880L;
@@ -106,11 +106,6 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	private static final String	ALREADY_EXISTS_MESSAGE = "JFileSelectionDialog.ask.alreadyexists.message";
 	private static final String	NOT_EXISTS_CAPTION = "JFileSelectionDialog.ask.notexists.caption";
 	private static final String	NOT_EXISTS_MESSAGE = "JFileSelectionDialog.ask.notexists.message";
-	private static final Icon	LEVEL_UP_ICON = PureLibStandardIcons.LEVEL_UP.getIcon();
-	private static final Icon	MKDIR_ICON = PureLibStandardIcons.NEW_DIR.getIcon();
-	private static final Icon	DELETE_ICON = PureLibStandardIcons.REMOVE.getIcon();
-	private static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
-	private static final Icon	FILE_ICON = PureLibStandardIcons.FILE.getIcon();
 	
 	public static final int		OPTIONS_CAN_SELECT_DIR = 1 << 0; 
 	public static final int		OPTIONS_CAN_SELECT_FILE = 1 << 1; 
@@ -126,6 +121,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * <p>This interface is analog of {@linkplain FilterCallback}</p>  
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
+	 * @lastUpdate 0.0.5
 	 */
 	public interface FilterCallback {
 		/**
@@ -147,14 +143,60 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		 * @throws IOException when I/O errors during processing
 		 */
 		boolean accept(final FileSystemInterface item) throws IOException;
+		
+		/**
+		 * <p>Create simple filter callback implementation</p>
+		 * @param name filter name. Can't be null or empty
+		 * @param mask list of filter masks. Can't be empty
+		 * @return filter callback implementation. Can't be null
+		 * @throws IllegalArgumentException on any argument errors
+		 * @since 0.0.5
+		 */
+		static FilterCallback of(final String name, final String... mask) throws IllegalArgumentException {
+			if (name == null || name.isEmpty()) {
+				throw new IllegalArgumentException("Filter name can't be null or empty");
+			}
+			else if (mask == null || mask.length == 0 || Utils.checkArrayContent4Nulls(mask, true) >= 0) {
+				throw new IllegalArgumentException("Mask is null/empty or contains nulls/empties inside");
+			}
+			else {
+				final Pattern[]	p = new Pattern[] {};
+				
+				for (int index = 0; index < p.length; index++) {
+					p[index] = Pattern.compile(mask[index]);
+				}
+				
+				return new FilterCallback() {
+					@Override public String[] getFileMask() {return mask;}
+					@Override public String getFilterName() {return name;}
+
+					@Override
+					public boolean accept(final FileSystemInterface item) throws IOException {
+						if (item.isFile()) {
+							final String	name = item.getName();
+							
+							for (Pattern pItem : p) {
+								if (pItem.matcher(name).find()) {
+									return true;
+								}
+							}
+							return false;
+						}
+						else {
+							return true;
+						}
+					}
+				}; 
+			}
+		}
 	}
 	
 	private final Localizer			localizer;
 	private final LoggerFacade		logger;
 	private final JComboBox<String>	parent = new JComboBox<>();
-	private final JButton			mkDir = new JButton(MKDIR_ICON);
-	private final JButton			delete = new JButton(DELETE_ICON);
-	private final JButton			levelUp = new JButton(LEVEL_UP_ICON);
+	private final JButton			mkDir = new JWrappedButton(PureLibStandardIcons.NEW_DIR.getIcon());
+	private final JButton			delete = new JWrappedButton(PureLibStandardIcons.REMOVE.getIcon());
+	private final JButton			levelUp = new JWrappedButton(PureLibStandardIcons.LEVEL_UP.getIcon());
 	private final JList<String>		content = new JList<>();
 	private final JLabel			fileNameLabel = new JLabel();
 	private final JTextField		fileName = new JTextField();
@@ -218,9 +260,9 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			final JPanel			topPanel = new JPanel(topSpring);
 			final JPanel			topRightPanel = new JPanel(new GridLayout(1,3,5,0));
 			
-			topRightPanel.add(levelUp);		levelUp.setPreferredSize(new Dimension(LEVEL_UP_ICON.getIconWidth()-ICON_BORDER_WIDTH,LEVEL_UP_ICON.getIconHeight()-ICON_BORDER_WIDTH));
-			topRightPanel.add(mkDir);		mkDir.setPreferredSize(new Dimension(MKDIR_ICON.getIconWidth()-ICON_BORDER_WIDTH,MKDIR_ICON.getIconHeight()-ICON_BORDER_WIDTH));
-			topRightPanel.add(delete);		delete.setPreferredSize(new Dimension(DELETE_ICON.getIconWidth()-ICON_BORDER_WIDTH,DELETE_ICON.getIconHeight()-ICON_BORDER_WIDTH));
+			topRightPanel.add(levelUp);
+			topRightPanel.add(mkDir);
+			topRightPanel.add(delete);
 			topPanel.add(parent);
 			topPanel.add(topRightPanel);
 			topSpring.putConstraint(SpringLayout.NORTH, parent, 5, SpringLayout.NORTH, topPanel);
@@ -344,7 +386,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					try(final FileSystemInterface	node = currentNode.clone().open(value);) {
 						
 						if (node.isDirectory()) {
-							result.setIcon(DIR_ICON);
+							result.setIcon(PureLibStandardIcons.DIRECTORY.getIcon());
 							if (isSelected && canSelectDir) {
 								result.setOpaque(true);
 								result.setForeground(list.getSelectionForeground());
@@ -352,7 +394,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 							}
 						}
 						else {
-							result.setIcon(FILE_ICON);
+							result.setIcon(PureLibStandardIcons.FILE.getIcon());
 							if (isSelected && canSelectFile) {
 								result.setOpaque(true);
 								result.setForeground(list.getSelectionForeground());
@@ -510,17 +552,25 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				fileName.setInputVerifier(new InputVerifier() {
 					@Override
 					public boolean verify(final JComponent input) {
-						try{final String[]	selection = currentNode.list(Utils.fileMask2Regex(((JTextComponent)input).getText()));
+						final String	content = ((JTextComponent)input).getText().trim();
 						
-							if (selection == null || selection.length == 0) {
-								new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_EXISTS_MESSAGE,((JTextComponent)input).getText()), NOT_EXISTS_CAPTION, JOptionPane.ERROR_MESSAGE);
+						if (!content.isEmpty()) {
+							try{final String[]	selection = currentNode.list(Utils.fileMask2Regex(content));
+							
+								if (selection == null || selection.length == 0) {
+									new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_EXISTS_MESSAGE,((JTextComponent)input).getText()), NOT_EXISTS_CAPTION, JOptionPane.ERROR_MESSAGE);
+									return false;
+								}
+								else {
+									return true;
+								}
+							} catch (IOException | HeadlessException | LocalizationException  e) {
+								logger.message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
 								return false;
 							}
-							else {
-								return true;
-							}
-						} catch (IOException | HeadlessException | LocalizationException  e) {
-							logger.message(Severity.error,e,"Error processing file name content ["+((JTextComponent)input).getText()+"]: "+e.getLocalizedMessage());
+						}
+						else {
+							logger.message(Severity.error,"Error processing file name content: file name doesn't fill");
 							return false;
 						}
 					}
@@ -603,7 +653,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * @throws LocalizationException on any localization errors
 	 */
 	public static Iterable<String> select(final Dialog window, final Localizer localizer, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
-		return selectInternal(new JDialog(window,true), localizer, node, options, filter);
+		return selectInternal(new JDialog(window,true), localizer, PureLibSettings.CURRENT_LOGGER, node, options, filter);
 	}
 
 	/**
@@ -618,11 +668,45 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * @throws LocalizationException on any localization errors
 	 */
 	public static Iterable<String> select(final Frame window, final Localizer localizer, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
-		return selectInternal(new JDialog(window,true), localizer, node, options, filter);
+		return selectInternal(new JDialog(window,true), localizer, PureLibSettings.CURRENT_LOGGER, node, options, filter);
 	}
 
-	private static Iterable<String> selectInternal(final JDialog dlg, final Localizer localizer, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
-		final JFileSelectionDialog	select = new JFileSelectionDialog(localizer);
+	/**
+	 * <p>Show modal dialog to select files and return selected list</p>
+	 * @param window parent window to use. Can be null
+	 * @param localizer localizer to use (see {@linkplain #JFileSelectionDialog(Localizer)}
+	 * @param logger logger to print messages to. Can't be null.
+	 * @param node file system to select file from (see {@linkplain #select(FileSystemInterface, int, AcceptAndCancelCallback, FilterCallback...)}
+	 * @param options options to select
+	 * @param filter file filter
+	 * @return selected files. If the 'cancel' was pressed, will be empty
+	 * @throws IOException on any I/O errors
+	 * @throws LocalizationException on any localization errors
+	 * @since 0.0.5
+	 */
+	public static Iterable<String> select(final Dialog window, final Localizer localizer, final LoggerFacade logger, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
+		return selectInternal(new JDialog(window,true), localizer, logger, node, options, filter);
+	}
+	
+	/**
+	 * <p>Show modal dialog to select files and return selected list</p>
+	 * @param window parent window to use. Can be null
+	 * @param localizer localizer to use (see {@linkplain #JFileSelectionDialog(Localizer)}
+	 * @param logger logger to print messages to. Can't be null.
+	 * @param node file system to select file from (see {@linkplain #select(FileSystemInterface, int, AcceptAndCancelCallback, FilterCallback...)}
+	 * @param options options to select
+	 * @param filter file filter
+	 * @return selected files. If the 'cancel' was pressed, will be empty
+	 * @throws IOException on any I/O errors
+	 * @throws LocalizationException on any localization errors
+	 * @since 0.0.5
+	 */
+	public static Iterable<String> select(final Frame window, final Localizer localizer, final LoggerFacade logger, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
+		return selectInternal(new JDialog(window,true), localizer, logger, node, options, filter);
+	}
+	
+	private static Iterable<String> selectInternal(final JDialog dlg, final Localizer localizer, final LoggerFacade logger, final FileSystemInterface node, final int options, final FilterCallback... filter) throws IOException, LocalizationException {
+		final JFileSelectionDialog	select = new JFileSelectionDialog(localizer, logger);
 		@SuppressWarnings("unchecked")
 		final Iterable<String>[]	result = new Iterable[] {null}; 
 		
@@ -760,51 +844,60 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		SwingUtils.assignActionKey(component, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e) -> cancel(), SwingUtils.ACTION_EXIT);
 	}
 
-	public static class SimpleFileFilter implements FilterCallback {
-		private final String	filterName;
-		private final String[]	masks;
-		private final Pattern[]	regexMasks;
-		
-		public SimpleFileFilter(final String filterName, final String... masks) {
-			if (filterName == null || filterName.isEmpty()) {
-				throw new IllegalArgumentException("Filter name can't be null or empty"); 
-			}
-			else if (masks == null || masks.length == 0) {
-				throw new IllegalArgumentException("File masks can't be null or empty list"); 
-			}
-			else {
-				for (int index = 0; index < masks.length; index++) {
-					if (masks[index] == null || masks[index].isEmpty()) {
-						throw new IllegalArgumentException("NUll or empty file mask at index ["+index+"] in mask lists"); 
-					}
-				}
-				this.filterName = filterName;
-				this.masks = masks;
-				this.regexMasks = new Pattern[masks.length];
-				for (int index = 0; index < masks.length; index++) {
-					this.regexMasks[index] = Pattern.compile(Utils.fileMask2Regex(masks[index]));
-				}
-			}
-		}
+//	public static class SimpleFileFilter implements FilterCallback {
+//		private final String	filterName;
+//		private final String[]	masks;
+//		private final Pattern[]	regexMasks;
+//		
+//		public SimpleFileFilter(final String filterName, final String... masks) {
+//			if (filterName == null || filterName.isEmpty()) {
+//				throw new IllegalArgumentException("Filter name can't be null or empty"); 
+//			}
+//			else if (masks == null || masks.length == 0) {
+//				throw new IllegalArgumentException("File masks can't be null or empty list"); 
+//			}
+//			else {
+//				for (int index = 0; index < masks.length; index++) {
+//					if (masks[index] == null || masks[index].isEmpty()) {
+//						throw new IllegalArgumentException("NUll or empty file mask at index ["+index+"] in mask lists"); 
+//					}
+//				}
+//				this.filterName = filterName;
+//				this.masks = masks;
+//				this.regexMasks = new Pattern[masks.length];
+//				for (int index = 0; index < masks.length; index++) {
+//					this.regexMasks[index] = Pattern.compile(Utils.fileMask2Regex(masks[index]));
+//				}
+//			}
+//		}
+//
+//		@Override
+//		public String[] getFileMask() {
+//			return masks;
+//		}
+//
+//		@Override
+//		public String getFilterName() {
+//			return filterName;
+//		}
+//
+//		@Override
+//		public boolean accept(final FileSystemInterface item) throws IOException {
+//			for (Pattern template : regexMasks) {
+//				if (template.matcher(item.getName()).matches()) {
+//					return true;
+//				}
+//			}
+//			return false;
+//		}
+//	}
+	
+	private static class JWrappedButton extends JButton {
+		private static final long serialVersionUID = 1L;
 
-		@Override
-		public String[] getFileMask() {
-			return masks;
-		}
-
-		@Override
-		public String getFilterName() {
-			return filterName;
-		}
-
-		@Override
-		public boolean accept(final FileSystemInterface item) throws IOException {
-			for (Pattern template : regexMasks) {
-				if (template.matcher(item.getName()).matches()) {
-					return true;
-				}
-			}
-			return false;
+		public JWrappedButton(Icon icon) {
+			super(icon);
+			setPreferredSize(new Dimension(icon.getIconWidth()-ICON_BORDER_WIDTH,icon.getIconHeight()-ICON_BORDER_WIDTH));
 		}
 	}
 }
