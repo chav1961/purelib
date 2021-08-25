@@ -20,6 +20,8 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
@@ -546,6 +548,17 @@ loop:			for (Component comp : children(node)) {
 					for (ContentNodeMetadata child : node) {
 						toMenuEntity(child,result);
 					}
+					result.addMouseListener(new MouseListener() {
+						@Override public void mouseReleased(MouseEvent e) {}
+						@Override public void mousePressed(MouseEvent e) {}
+						@Override public void mouseExited(MouseEvent e) {}
+						@Override public void mouseClicked(MouseEvent e) {}
+						
+						@Override
+						public void mouseEntered(MouseEvent e) {
+							processMenuVisibility(result, state);
+						}
+					});
 					return (T) result;
 				}
 			}
@@ -559,6 +572,16 @@ loop:			for (Component comp : children(node)) {
 					for (ContentNodeMetadata child : node) {
 						toMenuEntity(child,result);
 					}
+					result.addComponentListener(new ComponentListener() {
+						@Override public void componentResized(ComponentEvent e) {}
+						@Override public void componentMoved(ComponentEvent e) {}
+						@Override public void componentHidden(ComponentEvent e) {}
+						
+						@Override 
+						public void componentShown(ComponentEvent e) {
+							processMenuVisibility(result, state);
+						}						
+					});
 					return (T) result;
 				}
 			}
@@ -1660,6 +1683,31 @@ loop:			for (Component comp : children(node)) {
 				});
 			}
 		}
+	}
+	
+	private static void processMenuVisibility(final JComponent component, final UIItemState state) {
+		walkDown(component, (mode, node)->{
+			if ((mode == NodeEnterMode.ENTER) && (node instanceof NodeMetadataOwner)) {
+				switch (state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())) {
+					case DEFAULT		: 
+						return ContinueMode.CONTINUE;
+					case READONLY: case MODIFIABLE :
+						node.setVisible(true);
+						node.setEnabled(true);
+						return ContinueMode.CONTINUE;
+					case NOTAVAILABLE	:
+						node.setVisible(true);
+						node.setEnabled(false);
+						return ContinueMode.CONTINUE;
+					case NOTVISIBLE		:
+						node.setVisible(false);
+						node.setEnabled(false);
+						return ContinueMode.CONTINUE;
+					default : throw new UnsupportedOperationException("Item state ["+state.getItemState(((NodeMetadataOwner)component).getNodeMetadata())+"] is not supported yet");
+				}
+			}
+			return ContinueMode.CONTINUE;
+		});
 	}
 	
 	

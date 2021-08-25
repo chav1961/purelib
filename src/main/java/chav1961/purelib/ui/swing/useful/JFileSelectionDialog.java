@@ -844,54 +844,6 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		SwingUtils.assignActionKey(component, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e) -> cancel(), SwingUtils.ACTION_EXIT);
 	}
 
-//	public static class SimpleFileFilter implements FilterCallback {
-//		private final String	filterName;
-//		private final String[]	masks;
-//		private final Pattern[]	regexMasks;
-//		
-//		public SimpleFileFilter(final String filterName, final String... masks) {
-//			if (filterName == null || filterName.isEmpty()) {
-//				throw new IllegalArgumentException("Filter name can't be null or empty"); 
-//			}
-//			else if (masks == null || masks.length == 0) {
-//				throw new IllegalArgumentException("File masks can't be null or empty list"); 
-//			}
-//			else {
-//				for (int index = 0; index < masks.length; index++) {
-//					if (masks[index] == null || masks[index].isEmpty()) {
-//						throw new IllegalArgumentException("NUll or empty file mask at index ["+index+"] in mask lists"); 
-//					}
-//				}
-//				this.filterName = filterName;
-//				this.masks = masks;
-//				this.regexMasks = new Pattern[masks.length];
-//				for (int index = 0; index < masks.length; index++) {
-//					this.regexMasks[index] = Pattern.compile(Utils.fileMask2Regex(masks[index]));
-//				}
-//			}
-//		}
-//
-//		@Override
-//		public String[] getFileMask() {
-//			return masks;
-//		}
-//
-//		@Override
-//		public String getFilterName() {
-//			return filterName;
-//		}
-//
-//		@Override
-//		public boolean accept(final FileSystemInterface item) throws IOException {
-//			for (Pattern template : regexMasks) {
-//				if (template.matcher(item.getName()).matches()) {
-//					return true;
-//				}
-//			}
-//			return false;
-//		}
-//	}
-	
 	private static class JWrappedButton extends JButton {
 		private static final long serialVersionUID = 1L;
 

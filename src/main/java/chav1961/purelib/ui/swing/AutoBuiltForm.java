@@ -13,6 +13,8 @@ import java.awt.Frame;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -140,6 +142,25 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @param loader loader to create on-the-fly classes in 
 	 * @param instance instance to show
 	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @param itemState item state monitor. Can't be null
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 * @since 0.0.5
+	 */
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, loader, instance, formMgr, 1, itemState);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param loader loader to create on-the-fly classes in 
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
 	 * @param columns number of bars in the form
 	 * @throws NullPointerException any arguments are null
 	 * @throws IllegalArgumentException any errors in arguments
@@ -151,6 +172,27 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, null, instance, formMgr, columns, false);
 	}
 
+	/**
+	 * 
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param loader loader to create on-the-fly classes in 
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @param columns number of bars in the form
+	 * @param itemState item state monitor. Can't be null
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 * @since 0.0.5
+	 */
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr, final int columns, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, null, instance, formMgr, columns, false, itemState);
+	}
+	
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param mdi metadata for the instance will be showed
@@ -169,6 +211,26 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, leftIcon, instance, formMgr, 1, false);
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param loader loader to create on-the-fly classes in 
+	 * @param leftIcon icon will be shown on the left of the form built
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @param itemState item state monitor. Can't be null
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 * @since 0.0.5
+	 */
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, leftIcon, instance, formMgr, 1, false, itemState);
+	}
+	
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param mdi metadata for the instance will be showed
@@ -324,6 +386,26 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 									protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
 										return AutoBuiltForm.this.processExit(metadata, component, parameters);
 									}
+									
+									@Override
+									protected RefreshMode processRefreshMode(final RefreshMode mode, final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
+										switch (mode) {
+											case EXIT : case NONE : 
+												break;
+											case FIELD_ONLY : case DEFAULT :
+												if (component instanceof JComponent) {
+													processComponentState((JComponent)component, metadata);
+												}
+												break;
+											case REJECT : case RECORD_ONLY : case TOTAL :
+												if (component instanceof JComponent) {
+													processContainerState(mdi.getRoot());
+												}
+												break;
+											default : throw new UnsupportedOperationException("Refresh mode ["+mode+"] is not supported yet"); 
+										}
+										return mode;
+									};
 								};
 
 				if (!outputFocused.isEmpty()) {
@@ -520,6 +602,14 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		return modifiableLabelIds.toArray(new String[labelIds.size()]); 
 	}
 
+	@Override
+	public void setVisible(final boolean visibility) {
+		if (visibility) {
+			processContainerState(mdi.getRoot());
+		}
+		super.setVisible(visibility);
+	}
+	
 	/**
 	 * <p>Process exit refreshing mode.</p>
 	 * @param metadata metadata of the control then fires {@linkplain RefreshMode RefreshMode.Exit}
@@ -531,6 +621,56 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		return true;
 	}
 
+	private void processContainerState(final ContentNodeMetadata metadata) {
+		for (ContentNodeMetadata item : metadata) {
+			final Container	control = SwingUtils.findComponentByName(AutoBuiltForm.this, item.getUIPath().toString()); 
+			
+			if (control instanceof JComponent) {
+				processComponentState((JComponent)control, item);
+			}
+		}
+	}
+	
+	private void processComponentState(final JComponent component, final ContentNodeMetadata metadata) {
+		switch (itemState.getItemState(metadata)) {
+			case DEFAULT		:
+				break;
+			case MODIFIABLE		:
+				if (component instanceof JComponent) {
+					((JComponent)component).setVisible(true);
+					((JComponent)component).setEnabled(true);
+					if (component instanceof JTextComponent) {
+						((JTextComponent)component).setEditable(true);
+						((JTextComponent)component).setDragEnabled(true);
+					}
+				}
+				break;
+			case NOTAVAILABLE	:
+				if (component instanceof JComponent) {
+					((JComponent)component).setVisible(true);
+					((JComponent)component).setEnabled(false);
+				}
+				break;
+			case NOTVISIBLE		:
+				if (component instanceof JComponent) {
+					((JComponent)component).setVisible(false);
+					((JComponent)component).setEnabled(false);
+				}
+				break;
+			case READONLY		:
+				if (component instanceof JComponent) {
+					((JComponent)component).setVisible(false);
+					((JComponent)component).setEnabled(false);
+					if (component instanceof JTextComponent) {
+						((JTextComponent)component).setEditable(false);
+						((JTextComponent)component).setDragEnabled(false);
+					}
+				}
+				break;
+			default : throw new UnsupportedOperationException("Item state ["+itemState.getItemState(metadata)+"] is not supported yet"); 
+		}
+	}
+	
 	private void fillLocalizedStrings(final Locale oldLocale, final Locale newLocale) {
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
@@ -695,6 +835,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			dlg.setLocationRelativeTo(parent);
 
 			try{SwingUtilities.invokeLater(()->{if (form.firstFocusedComponent != null) {form.firstFocusedComponent.requestFocusInWindow();}});
+				form.processContainerState(form.getContentModel().getRoot());
 				dlg.setVisible(true);
 				return result[0];
 			} finally {
