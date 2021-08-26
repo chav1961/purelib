@@ -626,6 +626,11 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 			final Container	control = SwingUtils.findComponentByName(AutoBuiltForm.this, item.getUIPath().toString()); 
 			
 			if (control instanceof JComponent) {
+				if ((control instanceof JComponentInterface) && accessors.containsKey(item.getUIPath())) {
+					try{process(MonitorEvent.Loading, item, (JComponentInterface)control);
+					} catch (ContentException e) {
+					}
+				}
 				processComponentState((JComponent)control, item);
 			}
 		}
@@ -635,7 +640,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		switch (itemState.getItemState(metadata)) {
 			case DEFAULT		:
 				break;
-			case MODIFIABLE		:
+			case AVAILABLE		:
 				if (component instanceof JComponent) {
 					((JComponent)component).setVisible(true);
 					((JComponent)component).setEnabled(true);

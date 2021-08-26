@@ -6,8 +6,11 @@ import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragSource;
+import java.awt.dnd.DropTarget;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -138,6 +141,19 @@ public class DnDManager implements AutoCloseable {
 		 * @return content to drag&drop. Null cancels drop operation
 		 */
 		Object getSourceContent(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo);
+
+		/**
+		 * <p>Get source content to pass it to {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param from source component. Can't be null
+		 * @param xFrom x-coordinate related to upper-left corner of the source component
+		 * @param yFrom y-coordinate related to upper-left corner of the source component
+		 * @return content to drag&drop. Null cancels drag&drop
+		 * @since 0.0.5
+		 */
+		default Object getSourceContent(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom) {
+			return null;
+		}
 		
 		/**
 		 * <p>Test the control can receive dragged data.</p>
@@ -152,6 +168,20 @@ public class DnDManager implements AutoCloseable {
 		 * @return true if the content can be dropped to the given target control
 		 */
 		boolean canReceive(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo, final Class<?> contentClass);
+
+		/**
+		 * <p>Test the control can receive dragged data.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param to target component. Can't be null
+		 * @param xTo x-coordinate related to upper-left corner of the target component
+		 * @param yTo y-coordinate related to upper-left corner of the target component
+		 * @param contentClass class of the content dragged. Can't be null
+		 * @return true if the content can be dropped to the given target control
+		 * @since 0.0.5
+		 */
+		default boolean canReceive(final DnDMode currentMode, final Component to, final int xTo, final int yTo, final Class<?> contentClass) {
+			return false;
+		}
 		
 		/**
 		 * <p>Track drag&drop operation. Can be used for visualization purposes.</p>
@@ -177,6 +207,20 @@ public class DnDManager implements AutoCloseable {
 		 * @param content content returned by {@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} method
 		 */
 		void complete(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo, final Object content);
+
+		/**
+		 * <p>Complete drop operation.</p>
+		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param xFrom x-coordinate related to upper-left corner of the source component
+		 * @param yFrom y-coordinate related to upper-left corner of the source component
+		 * @param to target component. Can't be null
+		 * @param xTo x-coordinate related to upper-left corner of the target component
+		 * @param yTo y-coordinate related to upper-left corner of the target component
+		 * @param content content returned by {@linkplain #getSourceContent(DnDMode, Component, int, int, Component, int, int)} method
+		 * @since 0.0.5
+		 */
+		default void complete(final DnDMode currentMode, final Component to, final int xTo, final int yTo, final Object content) {
+		}
 	}
 
 	private interface TotalMouseListener extends MouseListener, MouseMotionListener, MouseWheelListener {}
@@ -185,7 +229,7 @@ public class DnDManager implements AutoCloseable {
 		CLICKED, MOVED, WHEEL_MOVED, PRESSED, RELEASED, ENTERED, EXITED, DRAGGED, UNKNOWN
 	}
 	
-	private final TotalMouseListener	totalListener = new TotalMouseListener() {
+	private final TotalMouseListener	totalMouseListener = new TotalMouseListener() {
 												@Override public void mouseClicked(final MouseEvent e) {processMouseEvent(MouseAction.CLICKED,e);}
 												@Override public void mouseMoved(final MouseEvent e) {processMouseEvent(MouseAction.MOVED,e);}
 												@Override public void mouseWheelMoved(final MouseWheelEvent e) {processMouseEvent(MouseAction.WHEEL_MOVED,e);}
@@ -194,10 +238,10 @@ public class DnDManager implements AutoCloseable {
 												@Override public void mouseEntered(final MouseEvent e) {processMouseEvent(MouseAction.ENTERED,e);}
 												@Override public void mouseExited(final MouseEvent e) {processMouseEvent(MouseAction.EXITED,e);}
 												@Override public void mouseDragged(final MouseEvent e) {processMouseEvent(MouseAction.DRAGGED,e);}
-										
 											};
 	private final Container				owner;
 	private final DnDInterface			dndInterface;
+	private final DropTarget			dt = new DropTarget();
 	
 	private DnDMode						currentDnDMode = DnDMode.NONE, draggedDndMode = currentDnDMode; 
 	private Component					sourceComponent, enteredComponent;
@@ -207,6 +251,20 @@ public class DnDManager implements AutoCloseable {
 	private Class<?>					class2Process = null;
 	private int							lastX = Integer.MAX_VALUE, lastY = Integer.MAX_VALUE;
 	private MouseAction					lastAction = MouseAction.UNKNOWN;
+	private DropTarget					dtPrev = null;
+
+	private final FocusListener			totalFocusListener = new FocusListener() {
+											@Override 
+											public void focusLost(final FocusEvent e) {
+												e.getComponent().setDropTarget(dtPrev);
+											}
+											
+											@Override
+											public void focusGained(final FocusEvent e) {
+												dtPrev = e.getComponent().getDropTarget();
+												e.getComponent().setDropTarget(dt);
+											}
+										};
 	
 	/**
 	 * <p>Constructor of the class</p>
@@ -297,9 +355,10 @@ public class DnDManager implements AutoCloseable {
 	}
 	
 	private void componentAdded(final Component component) {
-		component.addMouseListener(totalListener);
-		component.addMouseMotionListener(totalListener);
-		component.addMouseWheelListener(totalListener);
+		component.addMouseListener(totalMouseListener);
+		component.addMouseMotionListener(totalMouseListener);
+		component.addMouseWheelListener(totalMouseListener);
+		component.addFocusListener(null);
 		for (Component child : SwingUtils.children(component)) {
 			componentAdded(child);
 		}
@@ -309,9 +368,9 @@ public class DnDManager implements AutoCloseable {
 		for (Component child : SwingUtils.children(component)) {
 			componentRemoved(child);
 		}
-		component.removeMouseWheelListener(totalListener);
-		component.removeMouseMotionListener(totalListener);
-		component.removeMouseListener(totalListener);
+		component.removeMouseWheelListener(totalMouseListener);
+		component.removeMouseMotionListener(totalMouseListener);
+		component.removeMouseListener(totalMouseListener);
 	}
 	
 	private void processMouseEvent(final MouseAction action, final MouseEvent event) {

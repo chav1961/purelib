@@ -266,8 +266,9 @@ public class Utils {
 	 * parameter is always {@link java.lang.String String}, type of the 'value' parameter can be any (including null as value)</p>
 	 * @param parameters key/value pairs to parse.
 	 * @return map built. Can be empty but not null.
+	 * @lastUpdate 0.0.5
 	 */
-	public static Map<String,Object> mkMap(final Object... parameters) {
+	public static <T> Map<String,T> mkMap(final Object... parameters) {
 		if (parameters == null) {
 			throw new NullPointerException("Parameters can't be null");
 		}
@@ -275,14 +276,14 @@ public class Utils {
 			throw new IllegalArgumentException("Odd parameters amount in the list! Parameters need be key/value pairs!");
 		}
 		else {
-			final Map<String,Object>	result = new HashMap<>();
+			final Map<String,T>	result = new HashMap<>();
 			
 			for (int index = 0; index < parameters.length; index += 2) {
 				if (parameters[index] == null || parameters[index].toString().isEmpty()) {
 					throw new IllegalArgumentException("Parameter #=["+index+"] is a key, but it is null or empty!");
 				}
 				else {
-					result.put(parameters[index].toString(),parameters[index+1]);
+					result.put(parameters[index].toString(),(T)parameters[index+1]);
 				}
 			}
 			return result;

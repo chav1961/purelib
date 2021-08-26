@@ -96,7 +96,7 @@ class JMenuPopupWithMeta extends JPopupMenu implements NodeMetadataOwner, Locale
 					switch (state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())) {
 						case DEFAULT : 
 							return ContinueMode.CONTINUE;
-						case MODIFIABLE : case READONLY : 
+						case AVAILABLE : case READONLY : 
 							node.setVisible(true);
 							node.setEnabled(true);
 							return ContinueMode.CONTINUE;

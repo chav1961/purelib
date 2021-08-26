@@ -32,7 +32,7 @@ public interface UIItemState {
 		/**
 		 * <p>Show appropriative UI control as fully accessed</p>
 		 */
-		MODIFIABLE
+		AVAILABLE
 	};
 	
 	/**

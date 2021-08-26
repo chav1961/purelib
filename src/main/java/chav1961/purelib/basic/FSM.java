@@ -16,6 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.5
  *
  * @param <Terminal> terminal (in the terms of FSM)
  * @param <NonTerminal> non-terminal (in the terms of FSM)
@@ -173,6 +174,15 @@ public class FSM<Terminal extends Enum<?>,NonTerminal extends Enum<?>,Exit exten
 	@Override
 	public boolean isDebugEnable() {
 		return debugEnable;
+	}
+	
+	/**
+	 * <p>Get current state of the FSM.</p>
+	 * @return current state of the FSM. Can't be null
+	 * @since 0.0.5
+	 */
+	public NonTerminal getCurrentState() {
+		return currentState;
 	}
 	
 	/**

@@ -1,18 +1,15 @@
 package chav1961.purelib.ui.swing;
 
-
-
-
-
-
 import java.awt.Color;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
@@ -39,6 +36,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.WrongMethodTypeException;
@@ -48,6 +46,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,6 +65,7 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.FocusManager;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -92,12 +92,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -105,6 +107,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableLongArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -1409,6 +1412,72 @@ loop:			for (Component comp : children(node)) {
 	}
 
 	/**
+	 * <p>Show "About" window</p>
+	 * @param owner window owner
+	 * @param localizer localizer to use. Can;t be null
+	 * @param title title key in the localizer. Can't be null or empty.
+	 * @param content content key in the localizer. Can't be null or empty.
+	 * @param imageIcon left icon to show window. Can't be null.
+	 * @param preferredSize preferred window size. Can't be null
+	 * @throws IllegalArgumentException any strings are null or empty
+	 * @throws NullPointerException any arguments are null
+	 * @since 0.0.5
+	 */
+	public static void showAboutScreen(final JFrame owner, final Localizer localizer, final String title, final String content, final URI imageIcon, final Dimension preferredSize) throws IllegalArgumentException, NullPointerException {
+		if (title == null || title.isEmpty()) {
+			throw new IllegalArgumentException("Title string can't be null or empty");
+		}
+		else if (content == null || content.isEmpty()) {
+			throw new IllegalArgumentException("Content string can't be null or empty");
+		}
+		else if (imageIcon == null) {
+			throw new NullPointerException("Image icon can't be null");
+		}
+		else if (preferredSize == null) {
+			throw new NullPointerException("Preferred size can't be null");
+		}
+		else {
+			try{JOptionPane.showMessageDialog(owner, buildAboutContent(localizer, content, preferredSize), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
+			} catch (LocalizationException | IOException | MimeParseException e) {
+				PureLibSettings.CURRENT_LOGGER.message(Severity.error, e.getLocalizedMessage());
+			}
+		}
+	}
+
+	/**
+	 * <p>Show "About" window</p>
+	 * @param owner window owner
+	 * @param localizer localizer to use. Can;t be null
+	 * @param title title key in the localizer. Can't be null or empty.
+	 * @param content content key in the localizer. Can't be null or empty.
+	 * @param imageIcon left icon to show window. Can't be null.
+	 * @param preferredSize preferred window size. Can't be null
+	 * @throws IllegalArgumentException any strings are null or empty
+	 * @throws NullPointerException any arguments are null
+	 * @since 0.0.5
+	 */
+	public static void showAboutScreen(final JDialog owner, final Localizer localizer, final String title, final String content, final URI imageIcon, final Dimension preferredSize) {
+		if (title == null || title.isEmpty()) {
+			throw new IllegalArgumentException("Title string can't be null or empty");
+		}
+		else if (content == null || content.isEmpty()) {
+			throw new IllegalArgumentException("Content string can't be null or empty");
+		}
+		else if (imageIcon == null) {
+			throw new NullPointerException("Image icon can't be null");
+		}
+		else if (preferredSize == null) {
+			throw new NullPointerException("Preferred size can't be null");
+		}
+		else {
+			try{JOptionPane.showMessageDialog(owner, buildAboutContent(localizer, content, preferredSize), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
+			} catch (LocalizationException | IOException | MimeParseException e) {
+				PureLibSettings.CURRENT_LOGGER.message(Severity.error, e.getLocalizedMessage());
+			}
+		}
+	}
+
+	/**
 	 * <p>Calculate location of left-top corner for the window to fit in into screen.</p>
 	 * @param xPosition x-coordinate of window anchor in the screen coordinates (for example, mouse hot spot)
 	 * @param yPosition y-coordinate of window anchor in the screen coordinates (for example, mouse hot spot)
@@ -1684,6 +1753,29 @@ loop:			for (Component comp : children(node)) {
 			}
 		}
 	}
+
+	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
+		final JEditorPane 	pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),null);
+	
+		try(final Reader	rdr = localizer.getContent(content,PureLibSettings.MIME_CREOLE_TEXT,PureLibSettings.MIME_HTML_TEXT)) {
+			pane.read(rdr,null);
+		}
+		pane.setEditable(false);
+		pane.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+		pane.setPreferredSize(preferredSize);
+		pane.addHyperlinkListener(new HyperlinkListener() {
+						@Override
+						public void hyperlinkUpdate(final HyperlinkEvent e) {
+							if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+								try{Desktop.getDesktop().browse(e.getURL().toURI());
+								} catch (URISyntaxException | IOException exc) {
+									exc.printStackTrace();
+								}
+							}
+						}
+		});
+		return pane;
+	}
 	
 	private static void processMenuVisibility(final JComponent component, final UIItemState state) {
 		walkDown(component, (mode, node)->{
@@ -1691,7 +1783,7 @@ loop:			for (Component comp : children(node)) {
 				switch (state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())) {
 					case DEFAULT		: 
 						return ContinueMode.CONTINUE;
-					case READONLY: case MODIFIABLE :
+					case READONLY: case AVAILABLE :
 						node.setVisible(true);
 						node.setEnabled(true);
 						return ContinueMode.CONTINUE;
@@ -1959,7 +2051,7 @@ loop:			for (Component comp : children(node)) {
 					if (mode == NodeEnterMode.ENTER) {
 						if (node instanceof NodeMetadataOwner) {
 							switch (state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())) {
-								case DEFAULT : case MODIFIABLE : case READONLY : 
+								case DEFAULT : case AVAILABLE : case READONLY : 
 									node.setVisible(true);
 									node.setEnabled(true);
 									return ContinueMode.CONTINUE;
