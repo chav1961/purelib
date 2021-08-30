@@ -21,7 +21,15 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 public class JBackgroundComponent extends JComponent implements LocaleChangeListener, ImageObserver {
 	private static final long 	serialVersionUID = 5947661254360981622L;
 
+	public static enum FillMode {
+		ORIGINAL,
+		FILL,
+		SQUARES
+	}
+	
+	
 	private final Localizer 	localizer;
+	private FillMode			currentFillMode = FillMode.FILL;
 	private Image				currentImage = null;
 	private int					imgWidth = -1, imgHeight = -1;
 	
@@ -39,7 +47,7 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 		// TODO Auto-generated method stub
 	}
 
-	public void setBackground(final URI imageUri) throws ContentException {
+	public void setBackground(final URI imageUri) throws ContentException, NullPointerException {
 		if (imageUri == null) {
 			throw new NullPointerException("Image URI can't be null"); 
 		}
@@ -51,7 +59,7 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 		}
 	}
 	
-	public void setBackground(final Image image) {
+	public void setBackground(final Image image) throws NullPointerException {
 		if (image == null) {
 			throw new NullPointerException("Image can't be null"); 
 		}
@@ -59,6 +67,20 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 			this.currentImage = image;
 			this.imgWidth = image.getWidth(this);
 			this.imgHeight = image.getHeight(this);
+			repaint();
+		}		
+	}
+	
+	public FillMode getFillMode() {
+		return currentFillMode;
+	}
+	
+	public void setFillMode(final FillMode newMode) throws NullPointerException {
+		if (newMode == null) {
+			throw new NullPointerException("Fill mode can't be null"); 
+		}
+		else {
+			currentFillMode = newMode;
 			repaint();
 		}		
 	}
@@ -76,8 +98,30 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 			final Dimension			windowSize = getSize();
 			final AffineTransform	at = new AffineTransform();
 			
-			at.scale(1.0*windowSize.width/imgWidth,-1.0*windowSize.height/imgHeight);
-			g2d.drawImage(currentImage,at,this);
+			switch (currentFillMode) {
+				case FILL		:
+					at.scale(1.0*windowSize.width/imgWidth,-1.0*windowSize.height/imgHeight);
+					g2d.drawImage(currentImage,at,this);
+					break;
+				case ORIGINAL	:
+					g2d.fillRect(0, 0, windowSize.width, windowSize.height);
+					at.translate((windowSize.width - imgWidth)/2,-1.0*(windowSize.height - imgHeight)/2);
+					g2d.drawImage(currentImage,at,this);
+					break;
+				case SQUARES	:
+					for (int x = 0, maxX = (windowSize.width + 1 ) / imgWidth; x < maxX; x++) {
+						for (int y = 0, maxY = (windowSize.height + 1) / imgHeight; y < maxY; y++) {
+							final AffineTransform	sq = new AffineTransform();
+							
+							sq.translate(x * imgWidth,-y * imgHeight);
+							g2d.drawImage(currentImage,sq,this);
+						}
+					}
+					break;
+				default :
+					throw new UnsupportedOperationException("Fill mode ["+currentFillMode+"] is not supported yet"); 
+			}
+			
 		}
 		else {
 			super.paintComponent(g);
