@@ -656,6 +656,12 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					((JComponent)component).setEnabled(false);
 				}
 				break;
+			case HIDDEN		:
+				if (component instanceof JComponent) {
+					((JComponent)component).setVisible(true);
+					((JComponent)component).setEnabled(false);
+				}
+				break;
 			case NOTVISIBLE		:
 				if (component instanceof JComponent) {
 					((JComponent)component).setVisible(false);

@@ -18,9 +18,14 @@ public interface UIItemState {
 		 * <p>Hide appropriative UI control</p>
 		 */
 		NOTVISIBLE,
+
+		/**
+		 * <p>Show appropriative UI control as not available, and it's value will be replaced by placeholder (for examples, asterisks)</p>
+		 */
+		HIDDEN,
 		
 		/**
-		 * <p>Show appropriative UI control as not available</p>
+		 * <p>Show appropriative UI control as not available, but it's value is visible</p>
 		 */
 		NOTAVAILABLE,
 		

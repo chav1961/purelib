@@ -88,6 +88,7 @@ public class FieldFormat {
 	private final boolean		isOutput;
 	private final boolean		supportNulls;
 	private final boolean		hasLocalEditor;
+	private final String		wizardType;
 	
 	/**
 	 * <p>Constructor of the class. Build default format for the given class</p>
@@ -136,11 +137,28 @@ public class FieldFormat {
 	 * @see https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 	 */
 	public FieldFormat(final Class<?> clazz, final String format) throws NullPointerException, IllegalArgumentException {
+		this(clazz, format, "");
+	}
+	
+	/**
+	 * <p>Constructor of the class. Build format for the given class and given format string. Format string can be (in BNC):</p>
+	 * @param clazz class to build format for. Can't be null
+	 * @param format format string. Can't be null
+	 * @param wizardType wizard type. Can't be null
+	 * @throws NullPointerException any parameters are null
+	 * @throws IllegalArgumentException illegal syntax in the format string
+	 * @see #FieldFormat(Class, String)
+	 * @since 0.0.5
+	 */
+	public FieldFormat(final Class<?> clazz, final String format, final String wizardType) throws NullPointerException, IllegalArgumentException {
 		if (clazz == null) {
 			throw new NullPointerException("Clazz to use in format can't be null");
 		}
 		else if (format == null) {
 			throw new NullPointerException("Format string can't be null");
+		}
+		else if (wizardType == null) {
+			throw new NullPointerException("Wizard type string can't be null");
 		}
 		else {
 			final char[]	data = CharUtils.terminateAndConvert2CharArray(format.trim(),'\n');
@@ -295,6 +313,7 @@ public class FieldFormat {
 			this.frac = frac;
 			this.contentType = defineContentType(clazz,mask);
 			this.mask = mask;
+			this.wizardType = wizardType;
 		}
 	}
 	
@@ -414,7 +433,7 @@ public class FieldFormat {
 	}
 
 	/**
-	 * <p>Is field can have local edito</p>
+	 * <p>Is field can have local editor</p>
 	 * @return true if yes
 	 */
 	public boolean hasLocalEditor() {
@@ -422,8 +441,18 @@ public class FieldFormat {
 	}
 	
 	/**
+	 * <p>Get wizard type</p>
+	 * @return Wizard type. Can be empty, but not null
+	 * @since 0.0.5
+	 */
+	public String getWizardType() {
+		return wizardType;
+	}
+	
+	/**
 	 * <p>Convert format to source format string</p>
 	 * @return format string. Can't be null
+	 * @lastUpdate 0.0.5
 	 */
 	public String toFormatString() {
 		final StringBuilder	sb = new StringBuilder();
@@ -472,7 +501,10 @@ public class FieldFormat {
 		if (needSelect) {
 			sb.append('s');
 		}
-		
+
+		if (!wizardType.isEmpty()) {
+			sb.append(" wizard=").append(wizardType);
+		}
 		return sb.toString();
 	}
 
