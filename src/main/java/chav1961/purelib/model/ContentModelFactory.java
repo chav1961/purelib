@@ -61,7 +61,7 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
  * <p>THis class is a factory for most model sources. It can load models from external sources or build models by existent entities.</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class ContentModelFactory {
 	private static final String			NAMESPACE_PREFIX = "app";
@@ -148,7 +148,7 @@ public class ContentModelFactory {
 																		, fieldLocaleResource == null ? null : fieldLocaleResource.tooltip() 
 																		, fieldLocaleResource == null ? null : fieldLocaleResource.help()
 																		, f.isAnnotationPresent(Format.class) 
-																				? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
+																				? new FieldFormat(type, f.getAnnotation(Format.class).value(), f.getAnnotation(Format.class).wizardType()) 
 																				: null
 																		, buildClassFieldApplicationURI(clazz,f)
 																		, null
@@ -229,7 +229,7 @@ public class ContentModelFactory {
 																	, fieldLocaleResource == null ? null : fieldLocaleResource.tooltip() 
 																	, fieldLocaleResource == null ? null : fieldLocaleResource.help()
 																	, f.isAnnotationPresent(Format.class) 
-																			? new FieldFormat(type,f.getAnnotation(Format.class).value()) 
+																			? new FieldFormat(type, f.getAnnotation(Format.class).value(), f.getAnnotation(Format.class).wizardType()) 
 																			: null
 																	, buildClassFieldApplicationURI(clazz,f)
 																	, null
@@ -414,7 +414,7 @@ public class ContentModelFactory {
 																	, rs.getString("REMARKS") == null ? label : rs.getString("REMARKS")
 																	, rs.getString("REMARKS") == null ? label+".tt" : rs.getString("REMARKS")+".tt" 
 																	, rs.getString("REMARKS") == null ? label+".help" : rs.getString("REMARKS")+".help"
-																	, new FieldFormat(type,buildColumnFormat(rs))
+																	, new FieldFormat(type, buildColumnFormat(rs))
 																	, URI.create(appUri)
 																	, null
 																);
@@ -492,7 +492,7 @@ public class ContentModelFactory {
 																	, description == null ? schemaAndTable+"."+fieldName : description
 																	, description == null ? schemaAndTable+"."+fieldName+".tt" : description+".tt" 
 																	, description == null ? schemaAndTable+"."+fieldName+".help" : description+".help"
-																	, new FieldFormat(type,buildColumnFormat(rsmd,columnIndex))
+																	, new FieldFormat(type, buildColumnFormat(rsmd,columnIndex))
 																	, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_COLUMN+":/"+schemaAndTable+"/"+fieldName
 																			+"?seq="+columnIndex+"&type="+rsmd.getColumnTypeName(columnIndex))
 																	, null
@@ -612,7 +612,7 @@ public class ContentModelFactory {
 															, fieldLabel == null ? "?" : fieldLabel
 															, fieldTooltip 
 															, fieldHelp
-															, fieldFormat == null ? null : new FieldFormat(type,fieldFormat)
+															, fieldFormat == null ? null : new FieldFormat(type, fieldFormat)
 															, buildClassFieldApplicationURI(clazz,f)
 															, fieldIcon == null ? null : URI.create(fieldIcon)
 														);

@@ -1787,7 +1787,7 @@ loop:			for (Component comp : children(node)) {
 						node.setVisible(true);
 						node.setEnabled(true);
 						return ContinueMode.CONTINUE;
-					case NOTAVAILABLE	:
+					case NOTAVAILABLE : case HIDDEN :
 						node.setVisible(true);
 						node.setEnabled(false);
 						return ContinueMode.CONTINUE;
@@ -2051,11 +2051,11 @@ loop:			for (Component comp : children(node)) {
 					if (mode == NodeEnterMode.ENTER) {
 						if (node instanceof NodeMetadataOwner) {
 							switch (state.getItemState(((NodeMetadataOwner)node).getNodeMetadata())) {
-								case DEFAULT : case AVAILABLE : case READONLY : 
+								case DEFAULT : case AVAILABLE : case READONLY :  
 									node.setVisible(true);
 									node.setEnabled(true);
 									return ContinueMode.CONTINUE;
-								case NOTAVAILABLE	:
+								case NOTAVAILABLE : case HIDDEN :
 									node.setVisible(true);
 									node.setEnabled(false);
 									return ContinueMode.SKIP_CHILDREN;
