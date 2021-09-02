@@ -2123,7 +2123,12 @@ loop:			for (Component comp : children(node)) {
 					break;
 				}
 			}
-			try{fillLocalizedStrings();
+			
+			try{
+				fillLocalizedStrings();
+				if (metadata.getIcon() != null) {
+					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+				}
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
 			}
@@ -2161,18 +2166,17 @@ loop:			for (Component comp : children(node)) {
 			this.radioGroup = metadata.getApplicationPath().getFragment();
 			this.setName(metadata.getName());
 			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
-			if (metadata.getIcon() != null) {
-				try{this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
-				} catch (MalformedURLException e) {
-				}
-			}
 			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
 				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
 					this.setAccelerator(KeyStroke.getKeyStroke(item.getLabelId()));
 					break;
 				}
 			}
-			try{fillLocalizedStrings();
+			try{
+				fillLocalizedStrings();
+				if (metadata.getIcon() != null) {
+					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+				}
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
 			}
@@ -2212,7 +2216,12 @@ loop:			for (Component comp : children(node)) {
 		private JMenuWithMeta(final ContentNodeMetadata metadata) {
 			this.metadata = metadata;
 			this.setName(metadata.getName());
-			try{fillLocalizedStrings();
+			
+			try{
+				fillLocalizedStrings();
+				if (metadata.getIcon() != null) {
+					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+				}
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
 			}
