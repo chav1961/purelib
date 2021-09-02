@@ -1,5 +1,6 @@
 package chav1961.purelib.cdb;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -1089,7 +1090,33 @@ public class CompilerUtils {
 			return new String(content,firstPoint,lastPoint-firstPoint);
 		}
 	}
-
+	
+	/**
+	 * <p>Extract annotation associated with enumeration item.</p>
+	 * @param <A> annotation class
+	 * @param <E> enumeration class
+	 * @param value enumeration item to extract annotation for. Can't be null
+	 * @param clazz annotation class to extract. Can't be null
+	 * @return annotation extracted or null if missing
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.5
+	 */
+	public static <A extends Annotation, E extends Enum<?>> A extractAnnotation(final E value, final Class<A> clazz) throws NullPointerException{
+		if (value == null) {
+			throw new NullPointerException("Value to extract annotation for can't be null");
+		}
+		else if (clazz == null) {
+			throw new NullPointerException("Annotation class to extract can't be null");
+		}
+		else {
+			try{return value.getClass().getField(value.name()).getAnnotation(clazz);
+			} catch (NoSuchFieldException | SecurityException e) {
+				return null;
+			}
+		}
+	}
+	
+	
 	private static void walkInterfaceFields(final Class<?> clazz, final FieldWalker walker, final boolean recursive, final Pattern pattern, final Class<?>[] availableTypes) {
 		for (Field item : clazz.getDeclaredFields()) {
 			if (pattern.matcher(item.getName()).matches() && fieldTypeInList(item.getType(),availableTypes)) {

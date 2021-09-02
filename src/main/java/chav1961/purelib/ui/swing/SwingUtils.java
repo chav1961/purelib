@@ -1754,6 +1754,30 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	public static void fillLruSubmenu(final JMenu menu, final Iterable<String> lruList) {
+		if (menu == null || !(menu instanceof JMenuWithMeta)) {
+			throw new IllegalArgumentException("Menu to fill can't be null and must be JMenuWithMeta instance");
+		}
+		else if (lruList ==  null) {
+			throw new NullPointerException("LRU list can't be null");
+		}
+		else {
+			final JMenuWithMeta	metaMenu = (JMenuWithMeta)menu;
+			boolean				filled = false;
+			
+			menu.removeAll();			
+			for (String item : lruList) {
+				final JMenuItem	menuItem = new JMenuItem(item);
+				
+				menuItem.addActionListener((e)->metaMenu.processActionEvent(metaMenu.getNodeMetadata().getApplicationPath().getSchemeSpecificPart()+"?name="+item));
+				menu.add(menuItem);
+				filled = true;
+			}
+			menu.setEnabled(filled);
+		}
+	}
+	
+	
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
 		final JEditorPane 	pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),null);
 	
@@ -1801,7 +1825,6 @@ loop:			for (Component comp : children(node)) {
 			return ContinueMode.CONTINUE;
 		});
 	}
-	
 	
 	private static class MethodHandleAndAsync {
 		final String		signature;
@@ -1888,7 +1911,7 @@ loop:			for (Component comp : children(node)) {
 	}
 	
 	private static JMenu createBuiltinSubmenu(final ContentNodeMetadata node) {
-		final JMenu	submenu = new JMenuWithMeta(node);
+		final JMenuWithMeta	submenu = new JMenuWithMeta(node);
 
 		switch (node.getName()) {
 			case Constants.MODEL_BUILTIN_LANGUAGE	:
@@ -1896,7 +1919,7 @@ loop:			for (Component comp : children(node)) {
 				final ButtonGroup	langGroup = new ButtonGroup();
 				
 				AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
-					final String						appPath = ContentMetadataInterface.APPLICATION_SCHEME+":action:/"+Constants.MODEL_BUILTIN_LANGUAGE+"?lang="+lang.name(); 
+					final String						appPath = submenu.getNodeMetadata().getApplicationPath()+"?lang="+lang.name(); 
 					final MutableContentNodeMetadata	md = new MutableContentNodeMetadata(langName, String.class, "./"+langName, PureLibLocalizer.LOCALIZER_SCHEME_URI, lang.name(), null, null, null, URI.create(appPath), lang.getIconURI()) 
 																{{setOwner(node.getOwner());}};
 					final JRadioMenuItemWithMeta		radio = new JRadioMenuItemWithMeta(md);
@@ -1927,6 +1950,9 @@ loop:			for (Component comp : children(node)) {
 					} catch (ClassNotFoundException e) {
 					}
 				}
+				break;
+			case Constants.MODEL_BUILTIN_LRU	:
+				submenu.setEnabled(false);
 				break;
 			default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");
 		}
@@ -2212,6 +2238,12 @@ loop:			for (Component comp : children(node)) {
 			}
 		}
 
+		void processActionEvent(final String actionString) {
+			for(ActionListener item : listenerList.getListeners(ActionListener.class)) {
+				item.actionPerformed(new ActionEvent(JMenuWithMeta.this, 0, actionString));
+			}
+		}
+		
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
 			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
 			if (getNodeMetadata().getTooltipId() != null) {

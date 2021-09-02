@@ -7,6 +7,7 @@ import java.util.Set;
  * <p>This class contains a set of well-known constants for the model entities</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.5
  */
 
 public class Constants {
@@ -30,11 +31,13 @@ public class Constants {
 	
 	public static final String	MODEL_BUILTIN_LANGUAGE = "builtin.languages";
 	public static final String	MODEL_BUILTIN_LAF = "builtin.lookAndFeel";
+	public static final String	MODEL_BUILTIN_LRU = "builtin.lru";
 
 	static final Set<String>	MODEL_AVAILABLE_BUILTINS = new HashSet<>();
 	
 	static {
 		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LANGUAGE);
 		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LAF);
+		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LRU);
 	}
 }

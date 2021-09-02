@@ -809,7 +809,9 @@ public class ContentModelFactory {
 							, builtinTooltip 
 							, null
 							, null
-							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":"+Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION+":/"+builtinAction)
+							, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":"+Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION+":/"
+										+(builtinAction == null ? builtinName : builtinAction)
+							  )
 							, null);
 				}
 				break;

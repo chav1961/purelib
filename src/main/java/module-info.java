@@ -69,6 +69,7 @@ module chav1961.purelib {
 	exports chav1961.purelib.ui.swing.interfaces;
 	exports chav1961.purelib.ui.swing.terminal;
 	exports chav1961.purelib.ui.swing.useful;
+	exports chav1961.purelib.ui.swing.useful.interfaces;
 	exports chav1961.purelib.ui.swing.useful.svg;
 	
 	uses chav1961.purelib.fsys.interfaces.FileSystemInterface;

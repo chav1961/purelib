@@ -27,6 +27,9 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeListener;
+import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeType;
+import chav1961.purelib.ui.swing.useful.interfaces.LRUPersistence;
 
 /**
  * <p>This class is used to support opening/editing/saving any content in the Swing applications. It implements very popular
@@ -47,7 +50,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class JFileContentManipulator implements Closeable, LocaleChangeListener {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
@@ -57,73 +60,6 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private static final String				LRU_MISSING_TITLE = "JFileContentManipulator.lru.missing.title";
 	private static final String				LRU_MISSING = "JFileContentManipulator.lru.missing";	
 	private static final int				LRU_LIMIT = 10;
-	private static final LRUPersistence		DUMMY_PERSISTENCE = new LRUPersistence(){
-												@Override public void loadLRU(List<String> lru) throws IOException {}
-												@Override public void saveLRU(List<String> lru) throws IOException {}
-											}; 
-
-	/**
-	 * <p>This interface describes persistence fotr LRU list in the content manupulator</p> 
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.3
-	 */
-	public interface LRUPersistence {
-		/**
-		 * <p>Load LRU persistence. Always is called from the constructor</p>
-		 * @param lru list to fill persistent names
-		 * @throws IOException on any I/O exceptions
-		 */
-		void loadLRU(List<String> lru) throws IOException;
-		
-		/**
-		 * <p>Store LRU persistence. Always is called from the {@linkplain JFileContentManipulator#close()} method</p>
-		 * @param lru list to store persistent names
-		 * @throws IOException on any I/O exceptions
-		 */
-		void saveLRU(List<String> lru) throws IOException;
-	}	
-	
-	/**
-	 * <p>This interface describes listener for content changes</p> 
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.4
-	 */
-	@FunctionalInterface
-	public interface FileContentChangeListener {
-		void actionPerformed(FileContentChangedEvent event);
-	}
-
-	/**
-	 * <p>This enumeradion describes type of content change in the {@linkplain JFileContentManipulator}</p>
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.4
-	 */
-	public enum FileContentChangeType {
-		NEW_FILE_CREATED, 
-		FILE_LOADED, 
-		FILE_STORED, 
-		FILE_STORED_AS, 
-		MODIFICATION_FLAG_SET, 
-		MODIFICATION_FLAG_CLEAR,
-		LRU_LIST_REFRESHED
-	}
-	
-	/**
-	 * <p>This interface describes changes in the listener content</p> 
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.4
-	 */
-	public interface FileContentChangedEvent {
-		FileContentChangeType getChangeType();
-		JFileContentManipulator getOwner();
-	}
-	
-	private static final ProgressIndicator	DUMMY = new ProgressIndicator() {
-												@Override public void start(String caption) {}
-												@Override public void start(String caption, long total) {}
-												@Override public boolean processed(long processed) {return true;}
-												@Override public void end() {}
-											};
 
 	private final LightWeightListenerList<FileContentChangeListener>	listeners = new LightWeightListenerList<>(FileContentChangeListener.class);
 	private final FileSystemInterface	fsi;
@@ -145,7 +81,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IllegalArgumentException text component to associate is invalid
 	 */
 	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final JTextComponent component) throws NullPointerException, IllegalArgumentException {
-		this(fsi,localizer,buildInputStreamGetter(component),buildOutputStreamGetter(component),DUMMY_PERSISTENCE);
+		this(fsi,localizer,buildInputStreamGetter(component),buildOutputStreamGetter(component),LRUPersistence.DUMMY);
 	}
 
 	/**
@@ -157,7 +93,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws NullPointerException any of parameters are null
 	 */
 	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut) throws NullPointerException {
-		this(fsi,localizer,getterIn,getterOut,DUMMY_PERSISTENCE);
+		this(fsi,localizer,getterIn,getterOut,LRUPersistence.DUMMY);
 	}
 
 	/**
@@ -243,7 +179,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean newFile() throws IOException {
-		return newFile(DUMMY);
+		return newFile(ProgressIndicator.DUMMY);
 	}
 	
 	/**
@@ -288,7 +224,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean openFile() throws IOException {
-		return openFile(DUMMY);
+		return openFile(ProgressIndicator.DUMMY);
 	}
 
 	/**
@@ -351,7 +287,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IllegalArgumentException when file name os null or empty
 	 */
 	public boolean openFile(final String file) throws IOException, IllegalArgumentException {
-		return openFile(file,DUMMY);
+		return openFile(file,ProgressIndicator.DUMMY);
 	}
 
 	/**
@@ -405,7 +341,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IllegalArgumentException when file name os null or empty
 	 */
 	public boolean openLRUFile(final String file) throws IOException, IllegalArgumentException {
-		return openLRUFile(file,DUMMY);
+		return openLRUFile(file,ProgressIndicator.DUMMY);
 	}
 
 	/**
@@ -463,7 +399,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean saveFile() throws IOException {
-		return saveFile(DUMMY);
+		return saveFile(ProgressIndicator.DUMMY);
 	}
 
 	/**
@@ -514,7 +450,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean saveFileAs() throws IOException {
-		return saveFileAs(DUMMY);
+		return saveFileAs(ProgressIndicator.DUMMY);
 	}
 
 	/**
