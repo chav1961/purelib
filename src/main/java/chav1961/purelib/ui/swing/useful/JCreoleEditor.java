@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JTextPane;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
@@ -22,6 +23,7 @@ import chav1961.purelib.ui.interfaces.FormModel;
  * @see CreoleWriter 
  * @see FormModel 
  * @since 0.0.3
+ * @lastUpdate 0.0.5
  */
 
 public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
@@ -239,6 +241,36 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		super(true);
 	}
 
+	/**
+	 * <p>Get paragraph styles for the given Creole lexema</p>
+	 * @param lex lexema to get paragraph style for
+	 * @return style found. Can be null
+	 * @since 0.0.5
+	 */
+	public AttributeSet getParagraphStyles(final CreoleLexema lex) {
+		if (lex == null) {
+			throw new NullPointerException("Lexema to get attributes for can't be null"); 
+		}
+		else {
+			return paragraphStyles.get(lex);
+		}
+	}
+
+	/**
+	 * <p>Get character styles for the given Creole lexema</p>
+	 * @param lex lexema to get character style for
+	 * @return style found. Can be null
+	 * @since 0.0.5
+	 */
+	public AttributeSet getCharacterStyles(final CreoleLexema lex) {
+		if (lex == null) {
+			throw new NullPointerException("Lexema to get attributes for can't be null"); 
+		}
+		else {
+			return characterStyles.get(lex);
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected HighlightItem<CreoleLexema>[] parseString(final String text) {
