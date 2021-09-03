@@ -215,8 +215,8 @@ public abstract class SwingUtils {
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
 
-	private static final String				UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
-	private static final String				UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
+	private static final String		UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
+	private static final String		UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
 	static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
 	
 	static {
@@ -1158,6 +1158,26 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	public static void assignActionListeners(final JComponent root, final ActionListener listener) {
+		assignActionListeners(root, listener, (a, b, c, d)->a);
+	}
+	
+	public static void assignActionListeners(final JComponent root, final ActionListener listener, final PreprocessActionStringCallback<?,?> preprocess) {
+		if (root == null) {
+			throw new NullPointerException("Root component can't be null"); 
+		}
+		else if (listener == null) {
+			throw new NullPointerException("Entity class can't be null"); 
+		}
+		else if (preprocess == null) {
+			throw new NullPointerException("Preprocess callback can't be null"); 
+		}
+		else {
+			internalAssignActionListeners(root, listener, preprocess);
+		}
+	}
+	
+	
 	/**
 	 * <p>Build {@linkplain ActionListener} to call methods marked with {@linkplain OnAction} annotation</p>  
 	 * @param entity marked instance to call methods in
