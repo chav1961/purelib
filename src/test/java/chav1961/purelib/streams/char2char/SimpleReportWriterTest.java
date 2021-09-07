@@ -39,7 +39,7 @@ public class SimpleReportWriterTest {
 	public void basicTest() throws IOException, SQLException, ContentException {
 		try(final Reader				rdr = new StringReader(PARTS);
 			final Writer				wr = new StringWriter();
-			final SimpleReportWriter	swr = new SimpleReportWriter(wr,WriterContent.CSV_CONTENT,rdr);
+			final SimpleReportWriter	swr = new SimpleReportWriter(wr,WriterContent.CSV_CONTENT,rdr,(c,f,t)->null);
 			final ResultSet				rs = ResultSetFactory.buildResultSet(null,URI.create("rsps:csv:root://"+this.getClass().getCanonicalName()+"/chav1961/purelib/streams/char2char/reportTest.csv?field1=VARCHAR(10)&field2=INTEGER&field3=INTEGER&field4=INTEGER&field5=INTEGER"),ResultSet.TYPE_FORWARD_ONLY)) {
 
 			swr.write(rs);

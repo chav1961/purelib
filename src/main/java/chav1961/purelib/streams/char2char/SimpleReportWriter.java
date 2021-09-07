@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -101,9 +102,10 @@ public class SimpleReportWriter extends Writer {
 	private final Writer					nested;
 	private final EnumMap<Option,Object>	props = new EnumMap<>(Option.class);
 	private final PrintManager				mgr; 
+	private final CharSubstitutionSource	source;
 	
 	
-	public SimpleReportWriter(final Writer nested, final WriterContent content, final Reader reportDescriptor) throws NullPointerException, IOException, SyntaxException {
+	public SimpleReportWriter(final Writer nested, final WriterContent content, final Reader reportDescriptor, final CharSubstitutionSource source) throws NullPointerException, IOException, SyntaxException {
 		if (nested == null) {
 			throw new NullPointerException("Nested writer can't be null");
 		}
@@ -112,6 +114,9 @@ public class SimpleReportWriter extends Writer {
 		}
 		else if (reportDescriptor == null) {
 			throw new NullPointerException("Report descriptor can't be null");
+		}
+		else if (source == null) {
+			throw new NullPointerException("Char substitution source can't be null");
 		}
 		else {
 			final List<PartDescriptor>			list = new ArrayList<>();
@@ -175,12 +180,13 @@ public class SimpleReportWriter extends Writer {
 				}
 			}
 			this.nested = nested;
-			this.mgr = buildInterpreter(list,props);			
+			this.mgr = buildInterpreter(list,props);
+			this.source = source;
 		}
 	}
 	
 	@Override
-	public void write(char[] cbuf, int off, int len) throws IOException {
+	public void write(final char[] cbuf, final int off, final int len) throws IOException {
 		// TODO Auto-generated method stub
 		
 	}
