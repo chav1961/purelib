@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -47,19 +48,19 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 		// TODO Auto-generated method stub
 	}
 
-	public void setBackground(final URI imageUri) throws ContentException, NullPointerException {
+	public void setBackgroundImage(final URI imageUri) throws ContentException, NullPointerException {
 		if (imageUri == null) {
 			throw new NullPointerException("Image URI can't be null"); 
 		}
 		else {
-			try{setBackground(ImageIO.read(imageUri.toURL()));
+			try{setBackgroundImage(ImageIO.read(imageUri.toURL()));
 			} catch (IOException e) {
 				throw new ContentException(e.getLocalizedMessage(),e);
 			}
 		}
 	}
 	
-	public void setBackground(final Image image) throws NullPointerException {
+	public void setBackgroundImage(final Image image) throws NullPointerException {
 		if (image == null) {
 			throw new NullPointerException("Image can't be null"); 
 		}
@@ -69,6 +70,10 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 			this.imgHeight = image.getHeight(this);
 			repaint();
 		}		
+	}
+	
+	public Image getBackgroundImage() {
+		return currentImage;
 	}
 	
 	public FillMode getFillMode() {
@@ -100,12 +105,13 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 			
 			switch (currentFillMode) {
 				case FILL		:
-					at.scale(1.0*windowSize.width/imgWidth,-1.0*windowSize.height/imgHeight);
+					at.scale(1.0*windowSize.width/imgWidth,1.0*windowSize.height/imgHeight);
 					g2d.drawImage(currentImage,at,this);
 					break;
 				case ORIGINAL	:
+					g2d.setColor(Color.GRAY);
 					g2d.fillRect(0, 0, windowSize.width, windowSize.height);
-					at.translate((windowSize.width - imgWidth)/2,-1.0*(windowSize.height - imgHeight)/2);
+					at.translate((windowSize.width - imgWidth)/2,1.0*(windowSize.height - imgHeight)/2);
 					g2d.drawImage(currentImage,at,this);
 					break;
 				case SQUARES	:
@@ -113,7 +119,7 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 						for (int y = 0, maxY = (windowSize.height + 1) / imgHeight; y < maxY; y++) {
 							final AffineTransform	sq = new AffineTransform();
 							
-							sq.translate(x * imgWidth,-y * imgHeight);
+							sq.translate(x * imgWidth,y * imgHeight);
 							g2d.drawImage(currentImage,sq,this);
 						}
 					}
