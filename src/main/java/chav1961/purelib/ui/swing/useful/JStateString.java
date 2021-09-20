@@ -3,9 +3,16 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.Point;
+import java.awt.PopupMenu;
+import java.awt.Taskbar;
+import java.awt.Taskbar.Feature;
+import java.awt.Taskbar.State;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -102,10 +109,13 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private final JPanel			rightPanel = new JPanel(new CardLayout());
 	private final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
 	private final HistoryTableModel	model;
+	private final boolean 			taskBarSupport = Taskbar.isTaskbarSupported();
+	private final Taskbar			taskBar;
 	private int 					currentState = STATE_PLAIN; 
 	private volatile CancelCallback	currentCallback = null;
 	private volatile boolean		canceled = false;
 	private int[]					timeouts = new int[Severity.values().length];
+	private long					progressBarTotal = 0;
 	
 	/**
 	 * <p>Create ordinal state string with no history and no logging</p>
@@ -134,6 +144,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			this.maxCapacity = 0;
 			this.dump = null;
 			setAutomaticClearTime(Severity.tooltip,3,TimeUnit.SECONDS);
+			this.taskBar = taskBarSupport ? Taskbar.getTaskbar() : null;  
 			prepareControls();
 			fillLocalizedStrings();
 		}
@@ -172,6 +183,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = historyDepth;
 			this.dump = null;
+			this.taskBar = taskBarSupport ? Taskbar.getTaskbar() : null;  
 			prepareControls();
 			fillLocalizedStrings();
 		}
@@ -196,6 +208,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = 0;
 			this.dump = dumpedTo;
+			this.taskBar = taskBarSupport ? Taskbar.getTaskbar() : null;  
 			prepareControls();
 			fillLocalizedStrings();
 		}
@@ -225,6 +238,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			this.model = new HistoryTableModel(localizer, history);
 			this.maxCapacity = historyDepth;
 			this.dump = dumpedTo;
+			this.taskBar = taskBarSupport ? Taskbar.getTaskbar() : null;  
 			prepareControls();
 			fillLocalizedStrings();
 		}
@@ -233,7 +247,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	@Override
 	public void localeChanged(Locale oldLocale, Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
-	}; 
+	}
 
 	@Override
 	public void setFont(final Font font) {
@@ -302,6 +316,28 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 	}
 	
+	/**
+	 * <p>Set popup menu for application</p> 
+	 * @param popup popup menu to set. Can be null
+	 * @since 0.0.5
+	 */
+	public void setPopupMenu(final PopupMenu popup) {
+		if (taskBarSupport && taskBar.isSupported(Feature.MENU)) {
+			taskBar.setMenu(popup);
+		}
+	}
+	
+	/**
+	 * <p>Set image icon for application</p>
+	 * @param icon image to set as icon. Can be null
+	 * @since 0.0.5
+	 */
+	public void setImageIcon(final Image icon) {
+		if (taskBarSupport && taskBar.isSupported(Feature.ICON_BADGE_IMAGE_WINDOW)) {
+			taskBar.setIconImage(icon);
+		}
+	}
+	
 	@Override
 	public void start(final String caption, final long total) throws IllegalStateException {
 		if (currentState != STATE_PLAIN) {
@@ -325,6 +361,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			common.setMaximum((int)total);
 			common.setIndeterminate(total <= 0);
 			common.setValue(0);
+			if (taskBarSupport && taskBar.isSupported(Feature.PROGRESS_STATE_WINDOW)) {
+				startProgressBar(total);
+			}
 			currentState = STATE_COMMON;
 			((CardLayout)rightPanel.getLayout()).show(rightPanel, COMMON_PANEL);
 			cancelCommon.setEnabled(true);
@@ -355,6 +394,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			common.setMaximum(0);
 			common.setIndeterminate(true);
 			common.setValue(0);
+			if (taskBarSupport && taskBar.isSupported(Feature.PROGRESS_STATE_WINDOW)) {
+				startProgressBar(-1);
+			}
 			currentState = STATE_COMMON;
 			((CardLayout)rightPanel.getLayout()).show(rightPanel, COMMON_PANEL);
 			cancelCommon.setEnabled(true);
@@ -457,6 +499,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 		else if (currentState == STATE_COMMON) {
 			common.setValue((int)processed);
+			if (taskBarSupport && taskBar.isSupported(Feature.PROGRESS_STATE_WINDOW)) {
+				setProgressBarValue(processed);
+			}
 			return !canceled;
 		}
 		else {
@@ -473,6 +518,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	@Override
 	public void end() {
 		rightPanel.setVisible(false);
+		if (taskBarSupport && taskBar.isSupported(Feature.PROGRESS_STATE_WINDOW)) {
+			stopProgressBar();
+		}
 		currentState = STATE_PLAIN;
 	}
 	
@@ -728,6 +776,51 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		showHistory(new JTable(model));
 	}
 
+	private void startProgressBar(final long total) {
+		final Window	w = getParentWindow4ProgressBar();
+		
+		if (w != null) {
+			if (total > 0 && taskBar.isSupported(Feature.PROGRESS_VALUE_WINDOW)) {
+				taskBar.setWindowProgressState(w, State.NORMAL);
+				taskBar.setWindowProgressValue(w, 0);
+				progressBarTotal = total;
+			}
+			else {
+				taskBar.setWindowProgressState(w, State.INDETERMINATE);
+			}
+		}
+	}
+
+	private void setProgressBarValue(final long value) {
+		final Window	w = getParentWindow4ProgressBar();
+		
+		if (w != null && taskBar.isSupported(Feature.PROGRESS_VALUE_WINDOW)) {
+			taskBar.setWindowProgressValue(w, (int) (value * 100 / progressBarTotal));
+		}
+	}
+	
+	private void stopProgressBar() {
+		final Window	w = getParentWindow4ProgressBar();
+		
+		if (w != null) {
+			taskBar.setWindowProgressState(w, State.OFF);
+		}
+	}
+	
+	private Window getParentWindow4ProgressBar() {
+		Component	c = getParent();
+		
+		while (c != null) {
+			if (c instanceof Window) {
+				return (Window)c;
+			}
+			else {
+				c = c.getParent();
+			}
+		}
+		return null;
+	}
+	
 	private static class Message {
 		final Severity	severity;
 		final Throwable	exception;

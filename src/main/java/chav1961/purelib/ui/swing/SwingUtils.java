@@ -1,7 +1,6 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Color;
-
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
@@ -9,10 +8,11 @@ import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.HeadlessException;
-import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Menu;
+import java.awt.MenuItem;
 import java.awt.Point;
+import java.awt.PopupMenu;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -1774,6 +1774,12 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	/**
+	 * <p>Fill last-recently-used menu (LRU) with items</p>
+	 * @param menu menu to fill. Must be JMenuWithMeta instance  
+	 * @param lruList list of instances to add. Can be empty but not null
+	 * @since 0.0.5
+	 */
 	public static void fillLruSubmenu(final JMenu menu, final Iterable<String> lruList) {
 		if (menu == null || !(menu instanceof JMenuWithMeta)) {
 			throw new IllegalArgumentException("Menu to fill can't be null and must be JMenuWithMeta instance");
@@ -1796,7 +1802,68 @@ loop:			for (Component comp : children(node)) {
 			menu.setEnabled(filled);
 		}
 	}
-	
+
+	/**
+	 * <p>Convert JPopupMenu content to PopupMenu</p>
+	 * @param menu menu to convert to popup. Can't be null
+	 * @param listener listener to associate with popup menu built. Can;t be null 
+	 * @return popup menu built. Can't be null
+	 * @throws NullPointerException on any nulls in arguments
+	 * @since 0.0.5
+	 */
+	public static PopupMenu toPopupMenu(final JPopupMenu menu, final ActionListener listener) throws NullPointerException {
+		if (menu == null) {
+			throw new NullPointerException("Popup menu to convert can't be null");
+		}
+		else if (listener == null) {
+			throw new NullPointerException("Listener to add can't be null");
+		}
+		else {
+			final PopupMenu		pm = new PopupMenu();
+			final List<Menu>	stack = new ArrayList<>();
+			
+			walkDown(menu, (mode,c) -> {
+				if (mode == NodeEnterMode.ENTER) {
+					if (c instanceof JSeparator) {
+						if (stack.isEmpty()) {
+							pm.addSeparator();
+						}
+						else {
+							stack.get(0).addSeparator();
+						}
+					}
+					else if (c instanceof JMenuItem) {
+						final JMenuItem	mi = (JMenuItem)c;
+						final MenuItem	item = new MenuItem(mi.getText());
+
+						item.setActionCommand(mi.getActionCommand());
+						item.addActionListener(listener);
+						if (stack.isEmpty()) {
+							pm.add(item);
+						}
+						else {
+							stack.get(0).add(item);
+						}
+					}
+					else if (c instanceof JMenu) {
+						stack.add(0,new Menu(((JMenu)c).getText()));
+					}
+				}
+				else if (c instanceof JMenu) {
+					final Menu	item = stack.remove(0);
+					
+					if (stack.isEmpty()) {
+						pm.add(item);
+					}
+					else {
+						stack.get(0).add(item);
+					}
+				}
+				return ContinueMode.CONTINUE;
+			});
+			return pm;
+		}
+	}
 	
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
 		final JEditorPane 	pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),null);
