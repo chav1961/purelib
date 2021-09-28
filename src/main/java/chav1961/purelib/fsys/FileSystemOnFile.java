@@ -229,7 +229,7 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 		} else if (!f.exists()) {
 			Files.write(f.toPath(), new byte[] {0}, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
 		}
-		return new FileInputStream(f).getChannel();
+		return new FileOutputStream(f).getChannel();
 	}
 
 	@Override
