@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class PseudoRandomInputStreamTest {
-	private static final int	MAX_VAL = 1 << 20; 
+	private static final int	MAX_VAL = 1 << 16; 
 	
 	private File	f;
 	
@@ -31,24 +31,51 @@ public class PseudoRandomInputStreamTest {
 		}
 	}
 	
-//	@Test
+	@Test
 	public void unboundedTest() throws IOException {
 		try(final FileInputStream			fis = new FileInputStream(f);
 			final PseudoRandomInputStream	pris = new PseudoRandomInputStream(fis, PseudoRandomInputStream.UNKNOWN);
 			final DataInputStream			dis = new DataInputStream(pris)) {
+
+			Assert.assertEquals(f.length(), pris.length());
 			
 			for (int index= 0; index < MAX_VAL; index++) {
 				Assert.assertEquals(index,dis.readInt());
 			}
 			
-			Assert.assertEquals(f.length(), pris.getFileLength());
 			Assert.assertEquals(f.length(), pris.getFilePointer());
 			
-			pris.setFilePointer(0);
-			Assert.assertEquals(0,dis.readInt());
+			for (int index= 0; index < MAX_VAL; index += 16) {
+				pris.seek(index * 4);
+				Assert.assertEquals(index,dis.readInt());
+			}
 		}
 	}
 
+	@Test
+	public void parentTest() throws IOException {
+		try(final FileInputStream			fis = new FileInputStream(f);
+			final PseudoRandomInputStream	pris = new PseudoRandomInputStream(fis, PseudoRandomInputStream.UNKNOWN);
+			final PseudoRandomInputStream	slice = new PseudoRandomInputStream(pris, 0, f.length());
+			final DataInputStream			dis = new DataInputStream(slice)) {
+
+			Assert.assertEquals(f.length(), slice.length());
+			
+			for (int index= 0; index < MAX_VAL; index++) {
+				Assert.assertEquals(index,dis.readInt());
+			}
+			
+			Assert.assertEquals(f.length(), slice.getFilePointer());
+			
+			for (int index= 0; index < MAX_VAL; index += 16) {
+				slice.seek(index * 4);
+				Assert.assertEquals(index,dis.readInt());
+			}
+		}
+	}
+	
+	
+	
 	@Test
 	public void boundedTest() throws IOException {
 		try(final FileInputStream			fis = new FileInputStream(f);
@@ -59,11 +86,13 @@ public class PseudoRandomInputStreamTest {
 				Assert.assertEquals(index,dis.readInt());
 			}
 			
-			Assert.assertEquals(f.length(), pris.getFileLength());
+			Assert.assertEquals(f.length(), pris.length());
 			Assert.assertEquals(f.length(), pris.getFilePointer());
 			
-			pris.setFilePointer(0);
-			Assert.assertEquals(0,dis.readInt());
+			for (int index= 0; index < MAX_VAL; index += 16) {
+				pris.seek(index * 4);
+				Assert.assertEquals(index,dis.readInt());
+			}
 		}
 	}
 	
