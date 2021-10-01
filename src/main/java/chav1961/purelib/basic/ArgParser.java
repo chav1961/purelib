@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -863,7 +864,63 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public String toString() {
-			return "StringArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
+			return "URIArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
+		}
+	}
+
+	protected static class FileArg extends AbstractArg {
+		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
+		
+		static {
+			SUPPORTED_CONVERSIONS.add(File.class);
+			SUPPORTED_CONVERSIONS.add(String.class);
+		}
+		
+		private final String[]	defaults;	
+
+		public FileArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
+			super(name, isMandatory, isPositional, helpDescriptor);
+			this.defaults = new String[]{""};
+		}
+
+		public FileArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
+			super(name, false, isPositional, helpDescriptor);
+			this.defaults = new String[]{defaultValue};
+		}
+		
+		@Override
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
+			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
+					return (T)SQLUtils.convert(awaited, value);
+				}
+				else {
+					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+				}
+			} catch (ContentException e) {
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
+			}
+		}
+
+		@Override
+		public String[] getDefaultValue() {
+			return defaults;
+		}
+
+		@Override
+		public boolean isList() {
+			return false;
+		}
+
+		@Override
+		public void validate(final String value) throws CommandLineParametersException {
+			if (value == null || value.isEmpty()) {
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "FileArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
 		}
 	}
 	

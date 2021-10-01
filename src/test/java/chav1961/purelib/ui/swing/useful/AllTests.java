@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ CursorsLibraryTest.class, JContentMetadataEditorTest.class,
+@SuiteClasses({ JContentMetadataEditorTest.class,
 		JPaginatorTest.class, JTextPaneHighlighterTest.class, LabelledLayoutTest.class })
 
 public class AllTests {

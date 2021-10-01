@@ -42,7 +42,7 @@ public class JExtendedScrollPane extends JScrollPane {
 					pressed = true;
 					pressedPoint = e.getPoint();
 					oldCursor = getCursor();
-					setCursor(CursorsAndIconsLibrary.DRAG_HAND);
+					setCursor(new Cursor(Cursor.HAND_CURSOR));
 				}
 			}
 		});

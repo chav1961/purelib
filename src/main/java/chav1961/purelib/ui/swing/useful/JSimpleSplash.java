@@ -27,7 +27,8 @@ public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 	private static final Color	RECT_COMPLETED_COLOR = Color.CYAN;
 	private static final Color	RECT_RETAINED_COLOR = Color.WHITE;
 	
-	private final SplashScreen 	splash = SplashScreen.getSplashScreen();
+	private final SplashScreen 	splash;
+	private final boolean		available;
 	private final Graphics2D	g2d;
 	private boolean				needDraw = false, needRect = false, needDrawStage = false, needRectStage = false;
 	private String				caption, subcaption;
@@ -35,31 +36,41 @@ public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 	private long				oldStage, currentStage, totalStage, discreteStage;
 
 	public JSimpleSplash() throws NullPointerException, EnvironmentException {
+		this.splash = SplashScreen.getSplashScreen();
+		
 		if (splash == null) {
-			throw new EnvironmentException("Splash screnn functionality is not available");
+			this.available = false;
+			this.g2d = null;
 		}
 		else {
-			g2d = splash.createGraphics();
+			this.available = true;
+			this.g2d = splash.createGraphics();
 		}
 	}
 	
 	public JSimpleSplash(final URL imageURL) throws IOException, NullPointerException, EnvironmentException {
+		this.splash = SplashScreen.getSplashScreen();
+		
 		if (imageURL == null) {
 			throw new NullPointerException("Image URL can't be null"); 
 		}
 		else if (splash == null) {
-			throw new EnvironmentException("Splash screnn functionality is not available");
+			this.available = false;
+			this.g2d = null;
 		}
 		else {
+			this.available = true;
+			this.g2d = splash.createGraphics();
 			splash.setImageURL(imageURL);
-			g2d = splash.createGraphics();
 		}
 	}
 
 	@Override
 	public void close() throws RuntimeException {
 		end();
-		splash.close();
+		if (available) {
+			splash.close();
+		}
 	}
 	
 	@Override
@@ -196,8 +207,10 @@ public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 	}
 
 	protected void refresh() {
-		redraw(g2d);
-		splash.update();
+		if (available) {
+			redraw(g2d);
+			splash.update();
+		}
 	}
 	
 	protected void redraw(final Graphics2D g2d) {

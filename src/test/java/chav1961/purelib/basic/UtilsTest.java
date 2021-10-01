@@ -181,15 +181,6 @@ public class UtilsTest {
 			Assert.assertEquals(clazz,Utils.wrapper2Primitive(Utils.primitive2Wrapper(clazz)));
 		}
 		
-		try{Utils.primitive2Wrapper(null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{Utils.primitive2Wrapper(String.class);
-			Assert.fail("Mandatory exception was not detected (1-st argument is not primitive class)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
 		try{Utils.wrapper2Primitive(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {

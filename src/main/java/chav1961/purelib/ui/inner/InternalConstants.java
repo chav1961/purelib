@@ -6,7 +6,6 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.exceptions.PreparationException;
-import chav1961.purelib.ui.swing.useful.CursorsAndIconsLibrary;
 
 public class InternalConstants {
 	public static final ImageIcon	ICON_DIRECTORY;

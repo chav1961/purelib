@@ -6,7 +6,6 @@ import javax.swing.ImageIcon;
 
 import chav1961.purelib.ui.inner.InternalConstants;
 import chav1961.purelib.ui.swing.interfaces.IconKeeper;
-import chav1961.purelib.ui.swing.useful.CursorsAndIconsLibrary;
 
 public enum PureLibStandardIcons implements IconKeeper {
 	DIRECTORY(InternalConstants.ICON_DIRECTORY),
