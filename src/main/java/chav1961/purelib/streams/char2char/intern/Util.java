@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.char2char.intern;
 
+import java.io.IOException;
 import java.util.List;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -65,7 +66,7 @@ class Util {
 			while (from < data.length && Character.isSpaceChar(data[from])) from++;
 			return from;
 		}
-	}
+	 }
 
 	 static int skipNonBlank(final char[] data, int from) {
 		if (from >= data.length) {
@@ -158,4 +159,47 @@ loop:	while (from < data.length) {
 		}
 		return from;
 	}
+	 
+	 static int findChar(final char[] data, final int from, final int to, final char symbol) {
+		 for(int index = from; index <= to; index++) {
+			 if (data[index] == symbol) {
+				 return index;
+			 }
+		 }
+		 return -1;
+	 }
+	 
+	 @FunctionalInterface
+	 interface KeyValueCallback {
+		 void process(char[] data, int keyFrom, final int keyTo, final int valueFrom, final int valueTo) throws IOException, SyntaxException;
+	 }
+	 
+	 static void parseQueryPart(final char[] data, int from, final int to, final KeyValueCallback callback) throws IOException, SyntaxException {
+		 int		keyFrom, keyTo, valueFrom, valueTo;
+		 
+		 while (from < to) {
+			 keyFrom = from;
+			 keyTo = from = skipName(data,from);
+			 
+			 if (data[from] == '=') {
+				 valueFrom = from + 1;
+				 while(from < to && data[from] != '&') {
+					 from++;
+				 }
+				 if (from < to) {
+					 valueTo = from - 1;
+					 callback.process(data, keyFrom, keyTo, valueFrom, valueTo);
+					 from++;
+				 }
+				 else {
+					 valueTo = from;
+					 callback.process(data, keyFrom, keyTo, valueFrom, valueTo);
+					 break;
+				 }
+			 }
+			 else {
+				 break;
+			 }
+		 }
+	 }
 }

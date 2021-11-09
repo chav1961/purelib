@@ -21,7 +21,9 @@ public class Constants {
 	
 	public static final String	MODEL_APPLICATION_SCHEME_CLASS = "class";
 	public static final String	MODEL_APPLICATION_SCHEME_FIELD = "field";
+	public static final String	MODEL_APPLICATION_SCHEME_SCHEMA = "schema";
 	public static final String	MODEL_APPLICATION_SCHEME_TABLE = "table";
+	public static final String	MODEL_APPLICATION_SCHEME_SEQUENCE = "sequence";
 	public static final String	MODEL_APPLICATION_SCHEME_COLUMN = "column";
 	public static final String	MODEL_APPLICATION_SCHEME_ID = "id";
 	public static final String	MODEL_APPLICATION_SCHEME_NAVIGATOR = "navigator";

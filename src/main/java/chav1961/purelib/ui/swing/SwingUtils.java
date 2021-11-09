@@ -162,6 +162,7 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_DELETE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 	public static final KeyStroke			KS_EXIT = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	public static final KeyStroke			KS_DROPDOWN = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK);
+	public static final KeyStroke			KS_CONTEXTMENU = KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0);
 	public static final KeyStroke			KS_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_CUT = KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_COPY = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK); 
@@ -178,6 +179,7 @@ public abstract class SwingUtils {
 	public static final String				ACTION_CUT = "cut";
 	public static final String				ACTION_COPY = "copy";
 	public static final String				ACTION_PASTE = "paste";
+	public static final String				ACTION_CONTEXTMENU = "contextmenu";
 	
 	public static enum EditorKeys {
 		EK_INSERT(KS_INSERT, ACTION_INSERT),

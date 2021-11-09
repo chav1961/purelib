@@ -53,6 +53,11 @@
 		<key name="wklk.check.localization.keyMissing">Localization URI [%1$s] doens't contain localization id [%2$s]</key>
 		<key name="wklk.check.illegalFieldFormat">Illegal field format [%2$s] for type [%1$s]: %3$s</key>
 		
+<!-- SubstitutableProperties messages --> 
+		<key name="SubstitutableProperties.notexists">File [%1$s] not exists</key>
+		<key name="SubstitutableProperties.isdirectory">File [%1$s] is directory, not file</key>
+		<key name="SubstitutableProperties.cannottread">File [%1$s] has no access to read for you</key>
+		<key name="SubstitutableProperties.ioerror">I/O error reading file [%1$s]</key>
 
 <!-- FileSystem descriptors  --> 
 		<key name="fileSystems.FileSystemInMemory.description">In-memory file system</key>
@@ -264,7 +269,13 @@
 		<key name="JLocalizerContentEditor.selectFields.nonPublic">Include non-public</key>
 		<key name="JLocalizerContentEditor.selectFields.nonPublic.tt">Allow or reject all non-public fields</key>
 		<key name="JLocalizerContentEditor.selectFields.help">uri(JLocalizerContentEditor.selectFields.help.txt)</key>
-		
+
+<!-- Model editor localization -->
+		<key name="JContentMetadataEditor.firsttab.caption">First</key>
+		<key name="JContentMetadataEditor.firsttab.caption.tt">First</key>
+		<key name="JContentMetadataEditor.secondtab.caption">Second</key>
+		<key name="JContentMetadataEditor.secondtab.caption.tt">Second</key>
+
 <!-- Useful classes localization  -->
 		<key name="JCloseButton.tt">Close window</key>
 		
@@ -320,6 +331,12 @@
 		<key name="wklk.check.uriRefers2NoWhere">URI [%1$s] ссылается на несуществующий ресурс</key>
 		<key name="wklk.check.localization.keyMissing">Локализатор (URI [%1$s]) не содержит идентификатора [%2$s]</key>
 		<key name="wklk.check.illegalFieldFormat">Неверный формат поля [%2$s] для типа [%1$s]: %3$s</key>
+
+<!-- Сообщения SubstitutableProperties --> 
+		<key name="SubstitutableProperties.notexists">Файл [%1$s] не существует</key>
+		<key name="SubstitutableProperties.isdirectory">Объект [%1$s] является директорией, а не файлом</key>
+		<key name="SubstitutableProperties.cannottread">У вас нет прав на чтения файла [%1$s]</key>
+		<key name="SubstitutableProperties.ioerror">Ошибка ввода/вывода при чтении файла [%1$s]</key>
 
 <!-- Описания файловых систем   -->
 		<key name="fileSystems.FileSystemInMemory.description">ФС в памяти</key>
@@ -523,7 +540,7 @@
 		<key name="menu.fileSystemNavigator.removeItem">Удалить</key>
 		<key name="menu.fileSystemNavigator.removeItem.tt">Удалить папку или файл</key>
 
-<!-- Локализация редактора кодержимого локализатора  -->
+<!-- Локализация редактора содержимого локализатора  -->
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Выбор полей для загрузки</key>
 		<key name="JLocalizerContentEditor.selectFields.field">Имя поля</key>
 		<key name="JLocalizerContentEditor.selectFields.static">Включить статические</key>
@@ -531,6 +548,12 @@
 		<key name="JLocalizerContentEditor.selectFields.nonPublic">Включить не-публичные</key>
 		<key name="JLocalizerContentEditor.selectFields.nonPublic.tt">Разрешить или запретить все не-публичные поля</key>
 		<key name="JLocalizerContentEditor.selectFields.help">uri(JLocalizerContentEditor.selectFields.help.txt)</key>
+
+<!-- Локализация редактора модели -->
+		<key name="JContentMetadataEditor.firsttab.caption">Первая</key>
+		<key name="JContentMetadataEditor.firsttab.caption.tt">Первая</key>
+		<key name="JContentMetadataEditor.secondtab.caption">Вторая</key>
+		<key name="JContentMetadataEditor.secondtab.caption.tt">Вторая</key>
 
 <!-- Локализация полезных классов -->
 		<key name="JCloseButton.tt">Закрыть окно</key>

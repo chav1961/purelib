@@ -204,11 +204,11 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	public void assignValueToComponent(final Object value) {
 		try{if (value instanceof File) {
 				newValue = value; 
-				setText(((File)value).getName());
+				setText(((File)value).getAbsolutePath());
 				setToolTipText(((File)value).getAbsolutePath());
 			}
 			else if (value instanceof FileSystemInterface) {
-				setText(((FileSystemInterface)value).getName());
+				setText(((FileSystemInterface)value).getPath());
 				setToolTipText(((FileSystemInterface)value).getPath());
 				newValue = value; 
 			}
@@ -305,7 +305,9 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			}
 			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-				return chooser.getSelectedFile();
+				final File	sel = chooser.getSelectedFile();  
+				
+				return sel.getAbsoluteFile();
 			}
 			else {
 				return null;

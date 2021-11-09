@@ -55,7 +55,10 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	private static final char[]		A_CLOSE = "</a>".toCharArray();
 	private static final char[]		IMG_START = "<img src=\"".toCharArray();
 	private static final char[]		IMG_MIDDLE = "\" alt=\"".toCharArray();
-	private static final char[]		IMG_END = "\">".toCharArray();
+	private static final char[]		IMG_END = "\" class=\"ordinal\">".toCharArray();
+	private static final char[]		IMG_END_VALUE = "\" ".toCharArray();
+	private static final char[]		IMG_START_VALUE = "=\"".toCharArray();
+	private static final char[]		IMG_END_TAG = ">".toCharArray();
 	private static final char[]		CODE_OPEN = "<pre><code>".toCharArray();
 	private static final char[]		CODE_CLOSE = "</code></pre>".toCharArray();
 
@@ -200,11 +203,29 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 
 	@Override
 	public void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException {
-		internalWrite(displacement,IMG_START);
-		write(displacement,data,startLink,endLink,false);
-		internalWrite(displacement,IMG_MIDDLE);
-		write(displacement,data,startCaption,endCaption,false);
-		internalWrite(displacement,IMG_END);
+		final int	question = Util.findChar(data, startLink, endLink, '?'); 
+		
+		if (question >= 0) {
+			internalWrite(displacement,IMG_START);
+			write(displacement,data,startLink,question,false);
+			internalWrite(displacement,IMG_MIDDLE);
+			write(displacement,data,startCaption,endCaption,false);
+			internalWrite(displacement,IMG_END_VALUE);
+			Util.parseQueryPart(data, question+1, endLink, (d,fk,tk,fv,tv)->{
+				write(displacement,data,fk,tk,false);
+				internalWrite(displacement,IMG_START_VALUE);
+				write(displacement,data,fv,tv,false);
+				internalWrite(displacement,IMG_END_VALUE);
+			});
+			internalWrite(displacement,IMG_END_TAG);
+		}
+		else {
+			internalWrite(displacement,IMG_START);
+			write(displacement,data,startLink,endLink,false);
+			internalWrite(displacement,IMG_MIDDLE);
+			write(displacement,data,startCaption,endCaption,false);
+			internalWrite(displacement,IMG_END);
+		}
 	}
 
 	@Override

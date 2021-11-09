@@ -3,6 +3,8 @@ package chav1961.purelib.basic.interfaces;
 import java.io.Closeable;
 import java.util.Set;
 
+import chav1961.purelib.basic.exceptions.LocalizationException;
+
 /**
  * <p>This interface is a facade for different loggers. The great problem with loggers is a huge amount of them at now. This Zoo strongly reduces compatibility of the 
  * 3-rd party software in the large systems. This interface isolates the pure library software from depending of any loggers. All the classes in this library use the 
@@ -78,10 +80,11 @@ public interface LoggerFacade extends Closeable {
 	 *
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
+	 * @lastUpdate 0.0.5
 	 */
 	@FunctionalInterface
 	public interface LoggerCallbackInterface {
-		String process();
+		String process() throws LocalizationException;
 	}
 	
 	/**

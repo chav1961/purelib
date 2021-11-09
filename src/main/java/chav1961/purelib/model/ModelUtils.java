@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -72,6 +73,7 @@ public class ModelUtils {
 	public static final String			JSON_METADATA_RELATIVE_UI_PATH = "relUri";
 	public static final String			JSON_METADATA_ICON = "icon";
 	public static final String			JSON_METADATA_LOCALIZER = "localizer";
+	public static final String			JSON_METADATA_CHILDREN = "children";
 	
 	private static final String[]		JSON_NAMES = {
 											JSON_METADATA_VERSION,
@@ -86,10 +88,10 @@ public class ModelUtils {
 											JSON_METADATA_APPLICATION_PATH,
 											JSON_METADATA_RELATIVE_UI_PATH,
 											JSON_METADATA_ICON,
-											JSON_METADATA_LOCALIZER
+											JSON_METADATA_LOCALIZER,
+											JSON_METADATA_CHILDREN
 										};
 	private static final String[]		JSON_MANDATORY_NAMES = {
-											JSON_METADATA_VERSION,
 											JSON_METADATA_NAME, 
 											JSON_METADATA_TYPE, 
 											JSON_METADATA_LABEL_ID, 
@@ -685,10 +687,11 @@ loop:		for (ContentNodeMetadata leftChild : left) {
 			throw new NullPointerException("Class laoder to deserialize with can't be null"); 
 		}
 		else {
-			final Map<String,Object>	pairs = new HashMap<>();
-			List<String>				values = null;
-			String						name = null;
-			int							currentState = 0;
+			final Map<String,Object>			pairs = new HashMap<>();
+			List<String>						values = null;
+			List<MutableContentNodeMetadata>	children = null;
+			String								name = null;
+			int									currentState = 0;
 			
 			for (String item : JSON_NAMES) {
 				pairs.put(item,null);
@@ -753,6 +756,10 @@ loop:		for(;;) {
 									currentState = 5;
 									continue;
 								}
+								else if (JSON_METADATA_CHILDREN.contentEquals(name)) {
+									currentState = 6;
+									continue;
+								}
 							default :
 								throw new IOException(new SyntaxException(parser.row(),parser.col(),"Missing value for name"));
 						}
@@ -784,6 +791,28 @@ loop:		for(;;) {
 							default:
 								break;
 						}
+						break;
+					case 6 :	// Inner metadata
+						switch (lex) {
+							case START_ARRAY	:
+								if (children == null) {
+									children = new ArrayList<>();
+								}
+								else {
+									children.clear();
+								}
+								break;
+							case END_ARRAY		:
+								pairs.put(name,children.toArray(new MutableContentNodeMetadata[children.size()]));
+								currentState = 4;
+								break;
+							case START_OBJECT	:
+								children.add(deserializeFromJson(parser, loader));
+								continue loop;
+							default:
+								break;
+						}
+						break;
 					default :
 						throw new UnsupportedOperationException("Internal error");
 				}
@@ -795,6 +824,7 @@ loop:		for(;;) {
 				parser.next();
 			}
 			
+			pairs.put(JSON_METADATA_VERSION, JSON_METADATA_VERSION_ID);
 			if (pairs.containsKey(JSON_METADATA_VERSION) && pairs.get(JSON_METADATA_VERSION) != null) {
 				switch (pairs.get(JSON_METADATA_VERSION).toString()) {
 					case JSON_METADATA_VERSION_ID :
@@ -812,36 +842,8 @@ loop:		for(;;) {
 							throw new IOException(new SyntaxException(parser.row(),parser.col(),"Serialized content version ["+JSON_METADATA_VERSION+"]- some mandatory fields are missing: "+mandatories));
 						}
 						
-						final String	type = pairs.get(JSON_METADATA_TYPE).toString();
-						
-						try{switch (type) {
-								case "byte" :
-									pairs.replace(JSON_METADATA_TYPE,byte.class);
-									break;
-								case "char" :
-									pairs.replace(JSON_METADATA_TYPE,char.class);
-									break;
-								case "double" :
-									pairs.replace(JSON_METADATA_TYPE,double.class);
-									break;
-								case "float" :
-									pairs.replace(JSON_METADATA_TYPE,float.class);
-									break;
-								case "int" :
-									pairs.replace(JSON_METADATA_TYPE,int.class);
-									break;
-								case "long" :
-									pairs.replace(JSON_METADATA_TYPE,long.class);
-									break;
-								case "short" :
-									pairs.replace(JSON_METADATA_TYPE,short.class);
-									break;
-								case "boolean" :
-									pairs.replace(JSON_METADATA_TYPE,boolean.class);
-									break;
-								default :
-									pairs.replace(JSON_METADATA_TYPE,loader.loadClass(type));
-							}
+						try{
+							pairs.replace(JSON_METADATA_TYPE, toClass(pairs.get(JSON_METADATA_TYPE).toString(), loader));
 						} catch (ClassNotFoundException e) {
 							throw new IOException(new SyntaxException(parser.row(),parser.col(),"Serialized content version ["+JSON_METADATA_VERSION+"], field ["+JSON_METADATA_TYPE+"]: class ["+pairs.get(JSON_METADATA_TYPE)+"] not found in the class loader passed"));
 						}
@@ -879,7 +881,13 @@ loop:		for(;;) {
 																		(URI)pairs.get(JSON_METADATA_APPLICATION_PATH),
 																		(URI)pairs.get(JSON_METADATA_ICON)
 																	);
-		
+						
+						if (pairs.get(JSON_METADATA_CHILDREN) != null) {
+							for (MutableContentNodeMetadata item : (MutableContentNodeMetadata[])pairs.get(JSON_METADATA_CHILDREN)) {
+								result.addChild(item);
+							}
+						}
+						
 						return result;						
 					default : 
 						throw new IOException(new SyntaxException(parser.row(),parser.col(),"Unsupported version ["+pairs.get(JSON_METADATA_VERSION)+"] of content node metadata serialization format"));
@@ -1319,5 +1327,38 @@ loop:		for(;;) {
 		for (ContentNodeMetadata item : node) {
 			toString(prefix+'\t',item,sb);
 		}
+	}
+	
+	private static Class<?> toClass(final String classDesc, final ClassLoader loader) throws ClassNotFoundException {
+		switch (classDesc) {
+				case "byte" : return byte.class;
+				case "char" : return char.class;
+				case "double" : return double.class;
+				case "float" : return float.class;
+				case "int" : return int.class;
+				case "long" : return long.class;
+				case "short" : return short.class;
+				case "boolean" : return boolean.class;
+				default :
+					if (classDesc.contains("[]")) {
+						String	temp = classDesc;
+						int		bracketIndex, arrayDepth = 0;
+						
+						while ((bracketIndex = temp.lastIndexOf("[]")) >= 0) {
+							temp = temp.substring(0,bracketIndex);
+							arrayDepth++;
+						}
+						
+						Class<?>	result = toClass(temp, loader);
+						for (int index = 0; index < arrayDepth; index++) {
+							result = Array.newInstance(result, 0).getClass();
+						}
+						return result;
+					}
+					else {
+						return loader.loadClass(classDesc);
+					}
+			}
+		
 	}
 }

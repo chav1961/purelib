@@ -15,6 +15,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
+import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.intern.ReducedExceptionWrapper;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -118,7 +119,10 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			throw new NullPointerException("Message callback can't be null or empty");
 		}
 		else if (isLoggedNow(level)) {
-			send(level,callback.process());
+			try{send(level,callback.process());
+			} catch (LocalizationException e) {
+				send(level,e.getLocalizedMessage());
+			}
 		}
 		return this;
 	}
@@ -157,7 +161,11 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			throw new NullPointerException("Message callback can't be null or empty");
 		}
 		else if (isLoggedNow(level)) {
-			sendWithThrowable(level,callback.process(),exception);
+			try {
+				sendWithThrowable(level,callback.process(),exception);
+			} catch (LocalizationException e) {
+				sendWithThrowable(level,e.getLocalizedMessage(),exception);
+			}
 		}
 		return this;
 	}

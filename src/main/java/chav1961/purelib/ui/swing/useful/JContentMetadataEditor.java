@@ -1,23 +1,33 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.util.Locale;
+import java.util.TimerTask;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
+import javax.swing.border.LineBorder;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeSelectionModel;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.ContentModelFactory;
@@ -30,10 +40,10 @@ import chav1961.purelib.ui.swing.useful.inner.SingleNodeDescriptor;
 
 public class JContentMetadataEditor extends JPanel implements LocaleChangeListener {
 	private static final long 			serialVersionUID = 4413926515693981943L;
-	private static final String			FIRST_TAB_CAPTION = ""; 
-	private static final String			FIRST_TAB_TOOLTIP = ""; 
-	private static final String			SECOND_TAB_CAPTION = ""; 
-	private static final String			SECOND_TAB_TOOLTIP = ""; 
+	private static final String			FIRST_TAB_CAPTION = "JContentMetadataEditor.firsttab.caption"; 
+	private static final String			FIRST_TAB_TOOLTIP = "JContentMetadataEditor.firsttab.caption.tt"; 
+	private static final String			SECOND_TAB_CAPTION = "JContentMetadataEditor.secondtab.caption"; 
+	private static final String			SECOND_TAB_TOOLTIP = "JContentMetadataEditor.secondtab.caption.tt"; 
 
 	private final Localizer					localizer;
 	private final LoggerFacade				logger;
@@ -48,6 +58,9 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 	private boolean							readOnly = false;
 	private ContentMetadataInterface		mdi = null;
 	private ContentNodeMetadata				node = null;
+	private DefaultMutableTreeNode			rootNode = new DefaultMutableTreeNode();
+	private TreeModel						treeModel = new DefaultTreeModel(rootNode, readOnly);
+	private TimerTask						tt = null;
 
 	@FunctionalInterface
 	public interface ClassEnumAssociated {
@@ -116,7 +129,7 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 			throw new NullPointerException("Value to set can'tt be null");
 		}
 		else if (getEditorMode() != EditorMode.FULL_TREE) {
-			throw new IllegalStateException("This call is not applicable now, because current editor mode is ["+EditorMode.FULL_TREE+"]");
+			throw new IllegalStateException("This call is not applicable now, because current editor mode is not ["+EditorMode.FULL_TREE+"]");
 		}
 		else {
 			this.mdi = value;
@@ -130,7 +143,7 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 			throw new NullPointerException("Value to set can'tt be null");
 		}
 		else if (getEditorMode() == EditorMode.FULL_TREE) {
-			throw new IllegalStateException("This call is not applicable now, because current editor mode is not ["+EditorMode.FULL_TREE+"]");
+			throw new IllegalStateException("This call is not applicable now, because current editor mode is ["+EditorMode.FULL_TREE+"]");
 		}
 		else {
 			this.mdi = null;
@@ -222,10 +235,53 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 	}
 	
 	private JTree buildNavigationTree(final JPanel panel) {
-		final JTree			tree = new JTree();
+		final JTree			tree = new JTree(treeModel);
 		final JScrollPane	scroll = new JScrollPane(tree);
 
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		tree.getSelectionModel().addTreeSelectionListener((e)->{
+			final ContentNodeMetadata	item = (ContentNodeMetadata)((DefaultMutableTreeNode)e.getNewLeadSelectionPath().getLastPathComponent()).getUserObject();
+			
+			restartTimerTask(()->{
+				try {
+					fillSingleNode(item);
+				} catch (ContentException exc) {
+					logger.message(Severity.error, exc, exc.getLocalizedMessage());
+				}
+			});
+		});
+		tree.setCellRenderer((self, value, selected, expanded, leaf, row, hasFocus) -> {
+				final JLabel				label = new JLabel();
+				final ContentNodeMetadata	meta = (ContentNodeMetadata)((DefaultMutableTreeNode)value).getUserObject();
+				
+				if (meta != null) {
+					label.setOpaque(true);
+					try{label.setText("["+meta.getName()+"] "+localizer.getValue(meta.getLabelId()));
+					} catch (LocalizationException e) {
+						label.setText("["+meta.getName()+"]");
+					}
+					if (selected) {
+						label.setBackground(self.getForeground());
+						label.setForeground(self.getBackground());
+					}
+					else {
+						label.setBackground(self.getBackground());
+						label.setForeground(self.getForeground());
+					}
+					if (hasFocus) {
+						label.setBorder(new LineBorder(Color.GREEN));
+					}
+					else {
+						label.setBorder(new LineBorder(self.getBackground()));
+					}
+				}
+				else {
+					label.setText("<missing>");
+				}
+				
+				return label;
+			}
+		);
 		panel.setLayout(new BorderLayout());
 		panel.add(scroll,BorderLayout.CENTER);
 		return tree;
@@ -277,7 +333,7 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 			case FULL_TREE			:
 				if (mdi != null) {
 					fillRoot(mdi);
-					fillNavigator(mdi.getRoot());
+					fillNavigator(mdi.getRoot(), (DefaultMutableTreeNode)treeModel.getRoot());
 					navigator.setSelectionRow(0);
 				}
 				else {
@@ -287,7 +343,7 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 				break;
 			case NODE_AND_SUBTREE	:
 				if (node != null) {
-					fillNavigator(node);
+					fillNavigator(node, (DefaultMutableTreeNode)treeModel.getRoot());
 					navigator.setSelectionRow(0);
 				}
 				else { 
@@ -326,9 +382,14 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 		
 	}
 	
-	private void fillNavigator(final ContentNodeMetadata root) {
-		// TODO Auto-generated method stub
-		
+	private void fillNavigator(final ContentNodeMetadata root, final DefaultMutableTreeNode	rootNode) {
+		rootNode.setUserObject(root);
+		for (ContentNodeMetadata item : root) {
+			final DefaultMutableTreeNode	child = new DefaultMutableTreeNode();
+			
+			fillNavigator(item, child);
+			rootNode.add(child);
+		}
 	}
 
 	private void fillSingleNode(final ContentNodeMetadata node) throws ContentException {
@@ -337,7 +398,7 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 		SwingUtils.putToScreen(sndModel.getRoot(),snd,itemPanel);
 	}
 
-	private void placeTab(final JTabbedPane pane, final JTabContent tab) {
+	private void placeTab(final JTabbedPane pane, final JTabContent tab) throws LocalizationException {
 		final JCloseableTab	label = tab.getTab();
 		
 		label.setCloseEnable(false);
@@ -345,6 +406,14 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 		pane.setTabComponentAt(pane.getTabCount()-1,label);
 	}
 
+	private void restartTimerTask(final Runnable runnable) {
+		if (tt != null) {
+			tt.cancel();
+			tt = null;
+		}
+		tt = SimpleTimerTask.start(()->{runnable.run(); tt = null;}, 300);
+	}
+	
 	private void fillLocalizedStrings() {
 		// TODO Auto-generated method stub
 	}
@@ -391,10 +460,10 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 			}
 		}
 
-		public JCloseableTab getTab() {
-			return null;
+		public JCloseableTab getTab() throws LocalizationException {
+			return new JCloseableTab(localizer);
 		}
-
+		
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 			// TODO Auto-generated method stub

@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -17,6 +18,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+
+import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 
 /**
  * <p>This class is an extension of the standard {@link Properties} class to support automatic substitutions and data type conversions 
@@ -46,10 +50,14 @@ import java.util.Set;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
+	private static final String	MESSAGE_FILE_NOT_EXISTS = "SubstitutableProperties.notexists";
+	private static final String	MESSAGE_FILE_IS_DIRECTORY = "SubstitutableProperties.isdirectory";
+	private static final String	MESSAGE_FILE_CANNOT_READ = "SubstitutableProperties.cannottread";
+	private static final String	MESSAGE_FILE_IO_ERROR = "SubstitutableProperties.ioerror";
 	
 	private static enum Conversions {
 		STRING,	INTWRAPPER, LONGWRAPPER, FLOATWRAPPER, DOUBLEWRAPPER, BOOLEANWRAPPER,
@@ -239,6 +247,54 @@ public class SubstitutableProperties extends Properties {
 		}
 	}
 
+	/**
+	 * <p>Try to load content from file</p>
+	 * @param content file to load content from
+	 * @return true when loading is successful
+	 * @since 0.0.5
+	 */
+	public boolean tryLoad(final File content) {
+		return tryLoad(content, PureLibSettings.CURRENT_LOGGER);
+	}
+	
+	/**
+	 * <p>Try to load content from file</p>
+	 * @param content file to load content from
+	 * @param logger logger to type problems to
+	 * @return true when loading is successful
+	 * @since 0.0.5
+	 */
+	public boolean tryLoad(final File content, final LoggerFacade logger) {
+		if (content == null) {
+			throw new NullPointerException("Content file can't be null");
+		}
+		else if (logger == null) {
+			throw new NullPointerException("Logger can't be null");
+		}
+		else if (!content.exists()) {
+			logger.message(Severity.warning, ()->PureLibSettings.PURELIB_LOCALIZER.getValue(MESSAGE_FILE_NOT_EXISTS, content.getAbsolutePath()));
+			return false;
+		}
+		else if (content.isDirectory()) {
+			logger.message(Severity.warning, ()->PureLibSettings.PURELIB_LOCALIZER.getValue(MESSAGE_FILE_IS_DIRECTORY, content.getAbsolutePath()));
+			return false;
+		}
+		else if (!content.canRead()) {
+			logger.message(Severity.warning, ()->PureLibSettings.PURELIB_LOCALIZER.getValue(MESSAGE_FILE_CANNOT_READ, content.getAbsolutePath()));
+			return false;
+		}
+		else {
+			try(final InputStream	is = new FileInputStream(content)) {
+				load(is);
+				return true;
+			} catch (IOException e) {
+				logger.message(Severity.warning, e, ()->PureLibSettings.PURELIB_LOCALIZER.getValue(MESSAGE_FILE_CANNOT_READ, content.getAbsolutePath()));
+				return false;
+			}
+		}
+	}
+	
+	
 	/**
 	 * <p>Convert value content to type awaited</p> 
 	 * @param <T> converted instance type

@@ -5,15 +5,23 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.SimpleURLClassLoader;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.model.interfaces.ORMModelMapper;
 import chav1961.purelib.streams.char2byte.AsmWriter;
+import chav1961.purelib.model.SchemaContainer;
+import chav1961.purelib.model.TableContainer;
+import chav1961.purelib.model.UniqueIdContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
 public class SQLModelUtils {
@@ -24,6 +32,137 @@ public class SQLModelUtils {
 		ASM_WRITER = null;
 	}
 
+	public static void createDatabaseByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException, NullPointerException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null");
+		}
+		else if (root == null) {
+			throw new NullPointerException("Root metadata can't be null");
+		}
+		else if (root.getType() == SchemaContainer.class) {
+			createDatabaseSchemaByModel(conn, root);
+			for (ContentNodeMetadata item : root) {
+				createDatabaseByModel(conn, item);
+			}
+		}
+		else if (root.getType() == UniqueIdContainer.class) {
+			createDatabaseSequenceByModel(conn, root);
+		}
+		else if (root.getType() == TableContainer.class) {
+			createDatabaseTableByModel(conn, root);
+		}
+	}
+	
+	private static void createDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+		try(final Statement	stmt = conn.createStatement()) {
+			stmt.executeUpdate("create schema \""+root.getName()+"\"");
+		}
+	}
+
+	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+		final StringBuilder	sb = new StringBuilder();
+		final List<String>	primaryKeys = new ArrayList<>();
+		char	prefix = '(';
+		
+		sb.append("create table ").append(root.getName());
+		
+		for (ContentNodeMetadata item : root) {
+			final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(item.getApplicationPath()));
+			
+			sb.append(prefix).append(item.getName()).append(' ').append(query.containsKey("type") ? query.get("type")[0] : "varchar(100)");
+			if (query.containsKey("pkSeq")) {
+				primaryKeys.add(item.getName());
+			}
+			else if (item.getFormatAssociated().isMandatory()) {
+				sb.append(" not null ");
+			}
+			prefix = ',';
+		}
+		
+		if (!primaryKeys.isEmpty()) {
+			prefix = '(';
+			sb.append(", primary key ");
+			for (String item : primaryKeys) {
+				sb.append(prefix).append(item);
+				prefix = ',';
+			}
+			sb.append(')');
+		}
+		
+		sb.append(')');
+		
+		try(final Statement	stmt = conn.createStatement()) {
+			stmt.executeUpdate(sb.toString());
+		}
+	}
+
+	private static void createDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+		final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(root.getApplicationPath()));
+		final StringBuilder	sb = new StringBuilder();
+		final long			from, to;
+
+		sb.append("create sequence ").append(root.getName());
+		if (query.containsKey("step")) {
+			sb.append(" increment by ").append(query.get("step")[0]);
+		}
+		if (query.containsKey("type")) {
+			from = 1;
+			to = Long.MAX_VALUE;
+		}
+		else {
+			from = 1;
+			to = Long.MAX_VALUE;
+		}
+		sb.append(" minvalue ").append(from).append(" maxvalue ").append(to);
+		
+		try(final Statement	stmt = conn.createStatement()) {
+			stmt.executeUpdate(sb.toString());
+		}
+	}
+
+	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException, NullPointerException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null");
+		}
+		else if (root == null) {
+			throw new NullPointerException("Root metadata can't be null");
+		}
+		else if (root.getType() == SchemaContainer.class) {
+			for (ContentNodeMetadata item : root) {
+				removeDatabaseByModel(conn, item);
+			}
+			removeDatabaseSchemaByModel(conn, root);
+		}
+		else if (root.getType() == UniqueIdContainer.class) {
+			removeDatabaseSequenceByModel(conn, root);
+		}
+		else if (root.getType() == TableContainer.class) {
+			removeDatabaseTableByModel(conn, root);
+		}
+	}
+	
+	private static void removeDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+		try(final Statement	stmt = conn.createStatement()) {
+			stmt.executeUpdate("drop schema \""+root.getName()+"\" cascade");
+		}
+	}
+
+	private static void removeDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+		final StringBuilder	sb = new StringBuilder();
+		
+		sb.append("drop table ").append(root.getName()).append(" cascade");
+		
+		try(final Statement	stmt = conn.createStatement()) {
+			stmt.executeUpdate(sb.toString());
+		}
+	}
+
+	private static void removeDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+		try(final Statement	stmt = conn.createStatement()) {
+			stmt.executeUpdate("drop sequence "+root.getName());
+		}
+	}
+	
 	@FunctionalInterface
 	public interface ConnectionGetter {
 		Connection getConnection() throws SQLException;

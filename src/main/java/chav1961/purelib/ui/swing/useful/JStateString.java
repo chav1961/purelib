@@ -35,6 +35,7 @@ import javax.swing.JTable;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
+import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.table.DefaultTableModel;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
@@ -73,7 +74,6 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private static final int		STATE_COMMON = 1;
 	private static final int		STATE_STAGED = 2;
 	private static final Dimension	DEFAULT_HISTORY_SIZE = new Dimension(400,200);
-	private static final Icon		VIEW_ICON = PureLibStandardIcons.LEVEL_UP.getIcon();
 	private static final Icon		CANCEL_ICON = PureLibStandardIcons.CANCEL.getIcon();
 
 	/**
@@ -103,7 +103,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private final JProgressBar		stage = new JProgressBar();
 	private final JProgressBar		step = new JProgressBar();
 	private final JProgressBar		common = new JProgressBar();
-	private final JButton			historyView = new JButton(VIEW_ICON);
+	private final JButton			historyView = new BasicArrowButton(BasicArrowButton.NORTH);
 	private final JButton			cancelStaged = new JButton(CANCEL_ICON);
 	private final JButton			cancelCommon = new JButton(CANCEL_ICON);
 	private final JPanel			rightPanel = new JPanel(new CardLayout());
@@ -659,7 +659,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		final SpringLayout	springCommon = new SpringLayout();
 		final JPanel		commonPanel = new JPanel(springCommon);
 		
-		historyView.setPreferredSize(new Dimension(VIEW_ICON.getIconWidth()+2,VIEW_ICON.getIconHeight()+2));
+//		historyView.setPreferredSize(new Dimension(VIEW_ICON.getIconWidth()+2,VIEW_ICON.getIconHeight()+2));
 		cancelCommon.setPreferredSize(new Dimension(CANCEL_ICON.getIconWidth()+2,CANCEL_ICON.getIconHeight()+2));
 		cancelStaged.setPreferredSize(new Dimension(CANCEL_ICON.getIconWidth()+2,CANCEL_ICON.getIconHeight()+2));
 		common.setPreferredSize(new Dimension(100,CANCEL_ICON.getIconHeight()+2));

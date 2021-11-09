@@ -66,7 +66,7 @@ public class StreamsUtilTest {
 	
 	@Test
 	public void loadCreoleContent() throws NullPointerException, IOException, URISyntaxException {
-		Assert.assertEquals("== Test==\npart\n",StreamsUtil.loadCreoleContent(this.getClass().getResource("creolecontent.cre").toURI(),MarkupOutputFormat.XML2TEXT));
+		Assert.assertEquals("== Test==\npart\n",StreamsUtil.loadCreoleContent(this.getClass().getResource("creolecontent.cre").toURI(),MarkupOutputFormat.XML2TEXT).replace("\r", ""));
 		
 		try{StreamsUtil.loadCreoleContent(null,MarkupOutputFormat.XML2TEXT);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

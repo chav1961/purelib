@@ -354,6 +354,50 @@ public class ContentModelFactory {
 		}
 	}	
 
+	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema) throws NullPointerException, PreparationException, ContentException {
+		if (dbDescription == null) {
+			throw new NullPointerException("Database description can't be null");
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema name can't be null or empty");
+		}
+		else if (schema.contains("_") || schema.contains("%")) {
+			throw new UnsupportedOperationException("Wildcards in the schema name are not supported yet");
+		}
+		else {
+			try(final ResultSet	rss = dbDescription.getSchemas(catalog, schema)) {
+				if (!rss.next()) {
+					return null;
+				}
+			} catch (SQLException e) {
+				throw new ContentException(e.getLocalizedMessage());
+			}
+			
+			try(final ResultSet	rs = dbDescription.getTables(catalog, schema, "%", null)) {
+				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(schema
+															, SchemaContainer.class
+															, schema
+															, null
+															, schema
+															, schema+".tt" 
+															, schema+".help"
+															, null
+															, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_SCHEMA+":/"+schema)
+															, null);
+
+				while (rs.next()) {
+					root.addChild(forDBContentDescription(dbDescription, catalog, schema, rs.getString("TABLE_NAME")).getRoot());
+				}
+				final SimpleContentMetadata result = new SimpleContentMetadata(root);
+				
+				root.setOwner(result);
+				return result;
+			} catch (SQLException e) {
+				throw new ContentException(e.getLocalizedMessage());
+			}
+		}
+	}	
+	
 	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema, final String table) throws NullPointerException, PreparationException, ContentException {
 		if (dbDescription == null) {
 			throw new NullPointerException("Database description can't be null");
@@ -373,7 +417,7 @@ public class ContentModelFactory {
 		else {
 			final String						schemaAndTable = schema+"."+table; 
 			
-			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata("table"
+			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(table
 													, TableContainer.class
 													, schemaAndTable
 													, null
