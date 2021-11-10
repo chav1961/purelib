@@ -15,6 +15,7 @@ public class InternalConstants {
 	public static final ImageIcon	ICON_CLOSE;
 	public static final ImageIcon	ICON_NEW_DIR;
 	public static final ImageIcon	ICON_LEVEL_UP;
+	public static final ImageIcon	ICON_SEARCH;
 
 	static {
 		try{ICON_DIRECTORY = new ImageIcon(ImageIO.read(InternalConstants.class.getResource("directory.png")));
@@ -24,6 +25,7 @@ public class InternalConstants {
 			ICON_CLOSE = new ImageIcon(ImageIO.read(InternalConstants.class.getResource("redIcon.png")));
 			ICON_NEW_DIR = new ImageIcon(ImageIO.read(InternalConstants.class.getResource("mkdir.png")));
 			ICON_LEVEL_UP = new ImageIcon(ImageIO.read(InternalConstants.class.getResource("levelUp.png")));
+			ICON_SEARCH = new ImageIcon(ImageIO.read(InternalConstants.class.getResource("search.png")));
 		} catch (IOException e) {
 			throw new PreparationException(e.getLocalizedMessage(),e);
 		}
