@@ -208,8 +208,11 @@ public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 
 	protected void refresh() {
 		if (available) {
-			redraw(g2d);
-			splash.update();
+			try {
+				redraw(g2d);
+				splash.update();
+			} catch (IllegalStateException exc) {
+			}
 		}
 	}
 	
