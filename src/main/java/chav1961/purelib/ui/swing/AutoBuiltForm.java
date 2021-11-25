@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -10,11 +11,14 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.FocusTraversalPolicy;
 import java.awt.Frame;
+import java.awt.Graphics2D;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -34,7 +38,10 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
@@ -334,7 +341,19 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 						
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
-						childPanel.add(fieldComponent,LabelledLayout.CONTENT_AREA);
+						if (fieldComponent instanceof JTextAreaWithMeta) {	// Place component with scroll pane
+							final JTextAreaWithMeta	fc = (JTextAreaWithMeta)fieldComponent;
+							final JScrollPane		pane = new JScrollPane(fc);
+							final BufferedImage		bi = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
+							final Graphics2D		g2d = bi.createGraphics();
+							final Rectangle2D		charSize = fieldComponent.getFontMetrics(fieldComponent.getFont()).getMaxCharBounds(g2d);
+							
+							pane.getViewport().setViewSize(new Dimension(fc.getColumns() * (int)charSize.getWidth(),fc.getRows() * (int)charSize.getHeight()));
+							childPanel.add(pane,LabelledLayout.CONTENT_AREA);
+						}
+						else {
+							childPanel.add(fieldComponent,LabelledLayout.CONTENT_AREA);
+						}
 						if (!firstFocused) {
 							firstFocused = true;
 							firstFocusedComponent = fieldComponent;
@@ -784,9 +803,12 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 											dlg.setVisible(false);
 										};
 									};
-			final ActionListener 	cancelListener = (e)->{result[0] = false; dlg.setVisible(false);}; 
+			final ActionListener 	cancelListener = (e)->{
+										result[0] = false; 
+										dlg.setVisible(false);
+									}; 
 
-			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,(e)->{
+			SwingUtils.assignActionKey(form, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e)->{
 				final Component		comp = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
 
 				if ((comp instanceof NodeMetadataOwner) && (comp instanceof JComponentInterface)) {
@@ -804,7 +826,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				}
 				okListener.actionPerformed(e);
 			}, DEFAULT_OK_BUTTON_NAME);
-			SwingUtils.assignActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,(e)->cancelListener.actionPerformed(e),DEFAULT_CANCEL_BUTTON_NAME);
+			SwingUtils.assignActionKey(form, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->cancelListener.actionPerformed(e), DEFAULT_CANCEL_BUTTON_NAME);
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if(node.getApplicationPath() != null) {

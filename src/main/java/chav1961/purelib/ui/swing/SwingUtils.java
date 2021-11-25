@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -132,11 +133,13 @@ import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.streams.StreamsUtil;
 import chav1961.purelib.ui.interfaces.ActionFormManager;
 import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
+import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 import chav1961.purelib.ui.swing.useful.JLocalizedOptionPane;
 import chav1961.purelib.ui.swing.useful.LocalizedFormatter;
 
@@ -157,6 +160,7 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_FORWARD = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_HELP = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
 	public static final KeyStroke			KS_ACCEPT = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+	public static final KeyStroke			KS_CLICK = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
 	public static final KeyStroke			KS_INSERT = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 	public static final KeyStroke			KS_DUPLICATE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
 	public static final KeyStroke			KS_DELETE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
@@ -174,6 +178,7 @@ public abstract class SwingUtils {
 	public static final String				ACTION_DUPLICATE = "duplicate";
 	public static final String				ACTION_DELETE = "delete";
 	public static final String				ACTION_ACCEPT = "accept";
+	public static final String				ACTION_CLICK = "click";
 	public static final String				ACTION_EXIT = "exit";
 	public static final String				ACTION_HELP = "help";
 	public static final String				ACTION_CUT = "cut";
@@ -495,8 +500,10 @@ loop:			for (Component comp : children(node)) {
 				case PasswordContent	:
 					result = new JPasswordFieldWithMeta(metadata,monitor);
 					break;
-				case Unclassified	:
 				case ArrayContent	:
+					result = new JSelectableListWithMeta(metadata, monitor);
+					break;
+				case Unclassified	:
 				case NestedContent	:
 				case TimestampContent	:
 				default:
@@ -1865,6 +1872,27 @@ loop:			for (Component comp : children(node)) {
 			});
 			return pm;
 		}
+	}
+
+	public static <R> R getCellRenderer(final ContentNodeMetadata meta, final Class<R> rendererType) throws EnvironmentException {
+		return getCellRenderer(meta, rendererType, Thread.currentThread().getContextClassLoader());
+	}
+
+	public static <R> R getCellRenderer(final ContentNodeMetadata meta, final Class<R> rendererType, final ClassLoader loader) throws EnvironmentException {
+		return getCellRenderer(meta.getType(), meta.getFormatAssociated(), rendererType, loader);
+	}	
+
+	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType) throws EnvironmentException {
+		return getCellRenderer(clazz, ff, rendererType, Thread.currentThread().getContextClassLoader());
+	}
+	
+	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType, final ClassLoader loader) throws EnvironmentException {
+		for (SwingItemRenderer<T,R> item : ServiceLoader.load(SwingItemRenderer.class, loader)) {
+			if (item.canServe(clazz, rendererType, ff)) {
+				return item.getRenderer(rendererType, ff);
+			}
+		}
+		throw new EnvironmentException("Renderer type ["+rendererType+"] for class ["+clazz+"] not found"); 
 	}
 	
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
