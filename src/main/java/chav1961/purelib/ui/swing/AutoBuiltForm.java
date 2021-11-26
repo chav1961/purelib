@@ -341,14 +341,13 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 						
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
-						if (fieldComponent instanceof JTextAreaWithMeta) {	// Place component with scroll pane
-							final JTextAreaWithMeta	fc = (JTextAreaWithMeta)fieldComponent;
-							final JScrollPane		pane = new JScrollPane(fc);
+						if (format.getHeight() > 1) {	// Place component with scroll pane
+							final JScrollPane		pane = new JScrollPane(fieldComponent);
 							final BufferedImage		bi = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
 							final Graphics2D		g2d = bi.createGraphics();
 							final Rectangle2D		charSize = fieldComponent.getFontMetrics(fieldComponent.getFont()).getMaxCharBounds(g2d);
 							
-							pane.getViewport().setViewSize(new Dimension(fc.getColumns() * (int)charSize.getWidth(),fc.getRows() * (int)charSize.getHeight()));
+							pane.getViewport().setViewSize(new Dimension(format.getLength() * (int)charSize.getWidth(),format.getHeight() * (int)charSize.getHeight()));
 							childPanel.add(pane,LabelledLayout.CONTENT_AREA);
 						}
 						else {

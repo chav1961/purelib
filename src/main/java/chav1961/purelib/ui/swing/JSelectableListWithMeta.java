@@ -44,18 +44,12 @@ import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
-public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JPanel implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JList<T> implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long serialVersionUID = 8688598119389158690L;
 
-	public static enum WizardType {
-		SELECTED_LIST,
-		TWO_SIDED_PANEL;
-	}
-	
 	private final ContentNodeMetadata	metadata;
 	private final Localizer				localizer;
 	private final InnerTableModel<T>	model = new InnerTableModel<>();
-	private final WizardType			wizardType;
 	private boolean						invalid = false;
 	
 	public JSelectableListWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws NullPointerException, IllegalArgumentException, LocalizationException {
@@ -65,23 +59,7 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JPan
 		else {
 			this.metadata = metadata;
 			this.localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
-			if (metadata.getFormatAssociated() != null && metadata.getFormatAssociated().getWizardType() != null && !metadata.getFormatAssociated().getWizardType().isEmpty()) {
-				this.wizardType = WizardType.valueOf(metadata.getFormatAssociated().getWizardType());
-			}
-			else {
-				this.wizardType = WizardType.SELECTED_LIST; 
-			}
-			setFocusable(true);
-			switch (wizardType) {
-				case SELECTED_LIST		:
-					prepareSelectedList(metadata);
-					break;
-				case TWO_SIDED_PANEL	:
-					prepareTwoSidedPanel();
-					break;
-				default :
-					break;
-			}
+			prepareSelectedList(metadata);
 			fillLocalizedStrings();
 		}
 	}
@@ -206,21 +184,11 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JPan
 	}
 
 	private void prepareSelectedList(final ContentNodeMetadata meta) {
-		final JList<T>		list = new JList<>();
-		final FieldFormat	format = meta.getFormatAssociated();
-		
-		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		
-		setLayout(new BorderLayout());
-		if (format == null && format.getHeight() == 1) {
-			add(list, BorderLayout.CENTER);
-		}
-		else {
-			add(new JScrollPane(list));
-		}
 		final InnerListModel<T>	listModel = new InnerListModel<T>();
 		
-		list.setModel(listModel);
+		setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		setLayout(new BorderLayout());
+		setModel(listModel);
 		model.addTableModelListener(new TableModelListener() {
 			@Override
 			public void tableChanged(final TableModelEvent e) {
@@ -234,13 +202,13 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JPan
 								listModel.remove(index);
 							}
 						}
-						listModel.fireIntervalRemoved(list, e.getFirstRow(), e.getLastRow());
+						listModel.fireIntervalRemoved(JSelectableListWithMeta.this, e.getFirstRow(), e.getLastRow());
 						break;
 					case TableModelEvent.INSERT :
 						for (int index = e.getFirstRow(), maxIndex = e.getLastRow(); index < maxIndex; index++) {
 							listModel.add(index, model.content[index]);
 						}
-						listModel.fireIntervalAdded(list, e.getFirstRow(), e.getLastRow());
+						listModel.fireIntervalAdded(JSelectableListWithMeta.this, e.getFirstRow(), e.getLastRow());
 						break;
 					case TableModelEvent.UPDATE :
 						if (e.getFirstRow() == 0 && e.getLastRow() == Integer.MAX_VALUE && e.getColumn() == TableModelEvent.ALL_COLUMNS) {
@@ -254,14 +222,14 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JPan
 								listModel.set(index, model.content[index]);
 							}
 						}
-						listModel.fireContentsChanged(list, e.getFirstRow(), e.getLastRow());
+						listModel.fireContentsChanged(JSelectableListWithMeta.this, e.getFirstRow(), e.getLastRow());
 						break;
 					default : throw new UnsupportedOperationException(); 
 				}
 			}
 		});
-		SwingUtils.assignActionKey(list, SwingUtils.KS_CLICK, (e)->toggleSelected(list), SwingUtils.ACTION_CLICK);
-		list.addMouseListener(new MouseListener() {
+		SwingUtils.assignActionKey(this, SwingUtils.KS_CLICK, (e)->toggleSelected(this), SwingUtils.ACTION_CLICK);
+		addMouseListener(new MouseListener() {
 			@Override public void mouseReleased(MouseEvent e) {}
 			@Override public void mousePressed(MouseEvent e) {}
 			@Override public void mouseExited(MouseEvent e) {}
@@ -269,13 +237,17 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JPan
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2) {
-					toggle(list, list.locationToIndex(e.getPoint()));
+				if (e.getButton() == MouseEvent.BUTTON1) {
+					final int	index = locationToIndex(e.getPoint());
+					
+					if (index >= 0 && (e.getClickCount() >= 2 || e.getPoint().x <= getCellBounds(index,index).height)) {
+						toggle(JSelectableListWithMeta.this, index);
+					}
 				}
 			}
 		});
 		try {
-			list.setCellRenderer(SwingUtils.getCellRenderer(meta, ListCellRenderer.class));
+			setCellRenderer(SwingUtils.getCellRenderer(meta, ListCellRenderer.class));
 		} catch (EnvironmentException e) {
 			throw new IllegalArgumentException("No rendered found for ["+meta.getType()+"] in the list");
 		}
@@ -291,14 +263,8 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JPan
 		model.setValueAt(!(Boolean)model.getValueAt(rowIndex, 0), rowIndex, 0);
 	}
 	
-	private void prepareTwoSidedPanel() {
-		// TODO Auto-generated method stub
-		
-	}
-
 	private void fillLocalizedStrings() {
 		// TODO Auto-generated method stub
-		
 	}
 
 	

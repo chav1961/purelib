@@ -501,7 +501,12 @@ loop:			for (Component comp : children(node)) {
 					result = new JPasswordFieldWithMeta(metadata,monitor);
 					break;
 				case ArrayContent	:
-					result = new JSelectableListWithMeta(metadata, monitor);
+					if (metadata.getType().isArray() && ItemAndSelection.class.isAssignableFrom(metadata.getType().getComponentType())) {
+						result = new JSelectableListWithMeta(metadata, monitor);
+					}
+					else {
+						throw new UnsupportedOperationException("Content type ["+content+"] for metadata ["+metadata.getName()+"] is not supported yet");
+					}
 					break;
 				case Unclassified	:
 				case NestedContent	:
