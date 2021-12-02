@@ -2,6 +2,7 @@ package chav1961.purelib.ui.interfaces;
 
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
+@FunctionalInterface
 public interface UIItemState {
 	/**
 	 * <p>This enumeration describes state of the appropriative UI control for the given field</p>

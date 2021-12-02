@@ -97,6 +97,9 @@ public interface ItemAndSelection<T> {
 					topMost = item;
 				}
 			}
+			if (topMost == null) {
+				topMost = String.class;
+			}
 			
 			final T[]	array = (T[])Array.newInstance(topMost, counter);
 			

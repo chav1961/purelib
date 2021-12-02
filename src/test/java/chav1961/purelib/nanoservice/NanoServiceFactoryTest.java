@@ -153,13 +153,11 @@ public class NanoServiceFactoryTest {
 
 	
 	private NanoServiceFactory	factory;
-	private int					currentPort;
 	
 	@Before 
 	public void prepare() throws Exception {
-		currentPort = (int) (1024 + 60000 * Math.random());
 		factory = new NanoServiceFactory(new SystemErrLoggerFacade(), new SubstitutableProperties(Utils.mkProps(
-												NanoServiceFactory.NANOSERVICE_PORT, ""+currentPort,
+												NanoServiceFactory.NANOSERVICE_PORT, "0",
 												NanoServiceFactory.NANOSERVICE_ROOT, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/nanoservice/root/",
 												NanoServiceFactory.NANOSERVICE_SSL_KEYSTORE, "./src/test/resources/chav1961/purelib/nanoservice/keystore.jks", 
 												NanoServiceFactory.NANOSERVICE_SSL_KEYSTORE_TYPE, "jks", 
@@ -180,7 +178,7 @@ public class NanoServiceFactoryTest {
 	@Test
 	public void constructorTest() throws IOException, SyntaxException, ContentException {
 		try {new NanoServiceFactory(null, new SubstitutableProperties(Utils.mkProps(
-				NanoServiceFactory.NANOSERVICE_PORT, ""+currentPort,
+				NanoServiceFactory.NANOSERVICE_PORT, "0",
 				NanoServiceFactory.NANOSERVICE_ROOT, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/nanoservice/root/")
 			));
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -197,7 +195,7 @@ public class NanoServiceFactoryTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		try {new NanoServiceFactory(new SystemErrLoggerFacade(), new SubstitutableProperties(Utils.mkProps(
-				NanoServiceFactory.NANOSERVICE_PORT, ""+currentPort)
+				NanoServiceFactory.NANOSERVICE_PORT, "0")
 			));
 			Assert.fail("Mandatory exception was not detected (mandatory nanoservice root is missing)");
 		} catch (IllegalArgumentException exc) {

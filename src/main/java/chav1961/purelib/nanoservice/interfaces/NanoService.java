@@ -1,6 +1,7 @@
 package chav1961.purelib.nanoservice.interfaces;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -25,6 +26,7 @@ import chav1961.purelib.nanoservice.NanoServiceFactory;
  * @see NanoServiceFactory
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.5
  */
 public interface NanoService extends ExecutionControl {
 	@Override
@@ -65,4 +67,11 @@ public interface NanoService extends ExecutionControl {
 	 * @return root static content or null
 	 */
 	FileSystemInterface getServiceRoot();
+	
+	/**
+	 * <p>Get listening address of the server</p>
+	 * @return listening address. Can be null if server is not started yet
+	 * @since 0.0.5
+	 */
+	InetSocketAddress getServerAddress();
 }

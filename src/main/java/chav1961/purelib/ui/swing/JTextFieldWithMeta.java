@@ -106,7 +106,12 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			});
 
-			setBackground(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+			if (InternalUtils.checkMandatory(metadata)) {
+				InternalUtils.prepareMandatoryColor(this);
+			}
+			else {
+				InternalUtils.prepareOptionalColor(this);
+			}
 			switch (format.getAlignment()) {
 				case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
 				case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;

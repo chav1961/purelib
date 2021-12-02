@@ -214,7 +214,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	@SuppressWarnings("rawtypes")
 	private final PrologueEpilogueMaster			prologue, epilogue;
 	private final int								executorPoolSize;
-	private final boolean							useBuiltiServer;
+	private final boolean							useBuiltinServer;
 
 	private volatile ExecutorService				executorPool;
 	private volatile boolean						started = false, paused = false;
@@ -233,12 +233,12 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		else {
 			this.facade = facade;
 			this.dataSource = dataSource;
-			this.useBuiltiServer = props.getProperty(NANOSERVICE_USE_BUILTIN_SERVER,boolean.class,"true");
+			this.useBuiltinServer = props.getProperty(NANOSERVICE_USE_BUILTIN_SERVER,boolean.class,"true");
 			
 			try(final LoggerFacade	check = facade.transaction("Microservice init")) {
 				boolean wereErrors = false;
 
-				if (useBuiltiServer) {
+				if (useBuiltinServer) {
 					if (!props.containsKey(NANOSERVICE_PORT)) {
 						wereErrors = true;
 						check.message(Severity.error, "Mandatory parameter [%1$s] is missing in the configuration",NANOSERVICE_PORT);
@@ -329,7 +329,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						Utils.copyStream(rdr,writer);
 					}
 					
-					if (useBuiltiServer) {
+					if (useBuiltinServer) {
 						if (props.getProperty(NANOSERVICE_USE_SSL,boolean.class,"false")) {
 							server = createHttpsServer(props);
 						}
@@ -356,7 +356,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			throw new IllegalStateException("Attempt to start server already started"); 
 		}
 		else {
-			if (useBuiltiServer) {
+			if (useBuiltinServer) {
 				server.setExecutor(this.executorPool = Executors.newFixedThreadPool(executorPoolSize));
 				server.start();
 			}
@@ -407,7 +407,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			throw new IllegalStateException("Attempt to stop server already stopped"); 
 		}
 		else {
-			if (useBuiltiServer) {
+			if (useBuiltinServer) {
 				server.stop(0);
 				executorPool.shutdownNow();
 			}
@@ -465,6 +465,16 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 		
 		handle(nse,call.getRemoteAddress(),type,call.getRequestURI(),call.getRequestHeaders(),call.getRequestBody(),call.getResponseHeaders(),call.getResponseBody());
+	}
+	
+	@Override
+	public InetSocketAddress getServerAddress() {
+		if (server != null) {
+			return server.getAddress();
+		}
+		else {
+			return null;
+		}
 	}
 	
 	public void handle(final NanoServiceEnvironment env,final InetSocketAddress remoteAddress, final QueryType queryType, final URI requestUri, final Map<String,List<String>> requestHeaders, final InputStream requestBody, final Map<String,List<String>> responseHeaders, final OutputStream responseBody) throws IOException {

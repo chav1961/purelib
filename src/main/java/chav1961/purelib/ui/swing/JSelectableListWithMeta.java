@@ -246,6 +246,12 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 				}
 			}
 		});
+		if (InternalUtils.checkMandatory(metadata)) {
+			InternalUtils.prepareMandatoryColor(this);
+		}
+		else {
+			InternalUtils.prepareOptionalColor(this);
+		}
 		try {
 			setCellRenderer(SwingUtils.getCellRenderer(meta, ListCellRenderer.class));
 		} catch (EnvironmentException e) {

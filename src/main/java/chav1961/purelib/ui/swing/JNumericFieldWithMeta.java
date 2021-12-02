@@ -131,15 +131,11 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				}
 			});
 
-			if (format.isMandatory()) {
-				setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
-				setSelectionColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND);
-				setSelectedTextColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND);
+			if (InternalUtils.checkMandatory(metadata)) {
+				InternalUtils.prepareMandatoryColor(this);
 			}
 			else {
-				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-				setSelectionColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
-				setSelectedTextColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
+				InternalUtils.prepareOptionalColor(this);
 			}
 			switch (format.getAlignment()) {
 				case CenterAlignment: setHorizontalAlignment(JTextField.CENTER); break;

@@ -54,6 +54,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeKeeper;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -98,7 +99,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * @lastUpdate 0.0.5
  */
 
-public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter {
+public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter, LoggerFacadeKeeper {
 	private static final long 				serialVersionUID = 4920624779261769348L;
 	private static final Module[]			EMPTY_MODULES = new Module[0];
 	
@@ -122,6 +123,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
 	private final JLabel					messages = new JLabel("",JLabel.LEFT);
+	private LoggerFacade					nearestLogger = null;
 	private JComponent						firstFocusedComponent;
 	private boolean							closed = false;
 
@@ -343,11 +345,13 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 						childPanel.add(fieldLabel,LabelledLayout.LABEL_AREA);
 						if (format.getHeight() > 1) {	// Place component with scroll pane
 							final JScrollPane		pane = new JScrollPane(fieldComponent);
-							final BufferedImage		bi = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
-							final Graphics2D		g2d = bi.createGraphics();
-							final Rectangle2D		charSize = fieldComponent.getFontMetrics(fieldComponent.getFont()).getMaxCharBounds(g2d);
+							final Dimension			charSize = InternalUtils.calculateFontCellSize(fieldComponent);
+//							final BufferedImage		bi = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
+//							final Graphics2D		g2d = bi.createGraphics();
+//							final Rectangle2D		charSize = fieldComponent.getFontMetrics(fieldComponent.getFont()).getMaxCharBounds(g2d);
 							
-							pane.getViewport().setViewSize(new Dimension(format.getLength() * (int)charSize.getWidth(),format.getHeight() * (int)charSize.getHeight()));
+//							pane.getViewport().setViewSize(new Dimension(format.getLength() * (int)charSize.getWidth(),format.getHeight() * (int)charSize.getHeight()));
+							pane.getViewport().setViewSize(new Dimension(format.getLength() * charSize.width, format.getHeight() * charSize.height));
 							childPanel.add(pane,LabelledLayout.CONTENT_AREA);
 						}
 						else {
@@ -454,12 +458,6 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		}
 	}
 
-	private void callHelp(final Localizer localizer, final String helpId) {
-		try{SwingUtils.showCreoleHelpWindow(FocusManager.getCurrentManager().getFocusOwner(), URIUtils.convert2selfURI(new GrowableCharArray<>(false).append(localizer.getContent(helpId)).extract(),"UTF-8"));
-		} catch (IOException | LocalizationException e) {
-		}
-	}
-
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException, NullPointerException {
 		fillLocalizedStrings(oldLocale,newLocale);
@@ -494,6 +492,24 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		super.setPreferredSize(preferredSize);
 		childPanel.setPreferredSize(new Dimension(preferredSize.width-leftIconPrefSize.width,childPanelPrefSize.height));
 	}
+
+	@Override
+	public LoggerFacade getLogger() {
+		return nearestLogger != null ? nearestLogger : logger;
+	}
+	
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		this.nearestLogger = SwingUtils.getNearestLogger(this);
+	}
+	
+	@Override
+	public void removeNotify() {
+		super.removeNotify();
+		this.nearestLogger = null;
+	}
+	
 	
 	/**
 	 * <p>Get localizer associated with the form</p>
@@ -637,6 +653,12 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 */
 	protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
 		return true;
+	}
+
+	private void callHelp(final Localizer localizer, final String helpId) {
+		try{SwingUtils.showCreoleHelpWindow(FocusManager.getCurrentManager().getFocusOwner(), URIUtils.convert2selfURI(new GrowableCharArray<>(false).append(localizer.getContent(helpId)).extract(),"UTF-8"));
+		} catch (IOException | LocalizationException e) {
+		}
 	}
 
 	private void processContainerState(final ContentNodeMetadata metadata) {
@@ -806,8 +828,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 										result[0] = false; 
 										dlg.setVisible(false);
 									}; 
-
-			SwingUtils.assignActionKey(form, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e)->{
+			final JComponent		contentPane = (JComponent)dlg.getContentPane(); 
+									
+			SwingUtils.assignActionKey(contentPane, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e)->{
 				final Component		comp = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
 
 				if ((comp instanceof NodeMetadataOwner) && (comp instanceof JComponentInterface)) {
@@ -825,7 +848,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				}
 				okListener.actionPerformed(e);
 			}, DEFAULT_OK_BUTTON_NAME);
-			SwingUtils.assignActionKey(form, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->cancelListener.actionPerformed(e), DEFAULT_CANCEL_BUTTON_NAME);
+			SwingUtils.assignActionKey(contentPane, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->cancelListener.actionPerformed(e), DEFAULT_CANCEL_BUTTON_NAME);
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if(node.getApplicationPath() != null) {
@@ -882,8 +905,9 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				else {
 					dlg.getContentPane().remove(bottomPanel);
 				}
-				SwingUtils.removeActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,"ask.accept");
-				SwingUtils.removeActionKey(form,WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,"ask.cancel");
+				SwingUtils.removeActionKey(contentPane, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_ACCEPT,"ask.accept");
+				SwingUtils.removeActionKey(contentPane, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,SwingUtils.KS_EXIT,"ask.cancel");
+				dlg.dispose();
 			}
 		}
 	}
@@ -971,7 +995,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	
 	private static boolean finalValidation(final AutoBuiltForm<?> form) {
 		return SwingUtils.walkDown(form, (mode,node)->{
-			if (mode == NodeEnterMode.ENTER && (node instanceof NodeMetadataOwner)) {
+			if (mode == NodeEnterMode.ENTER && (node instanceof NodeMetadataOwner) && (node instanceof JComponentInterface)) {
 				final ContentNodeMetadata	meta = ((NodeMetadataOwner)node).getNodeMetadata();
 				
 				try{if (!form.process(MonitorEvent.FinalValidation,meta,(JComponentInterface)node)) {

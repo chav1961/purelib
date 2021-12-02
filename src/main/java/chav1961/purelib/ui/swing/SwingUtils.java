@@ -33,7 +33,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -44,16 +43,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,9 +61,7 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.FocusManager;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
@@ -87,6 +80,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
@@ -97,10 +91,12 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.TreeCellEditor;
+import javax.swing.tree.TreeCellRenderer;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
-import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -110,9 +106,9 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.growablearrays.GrowableLongArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeKeeper;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -127,13 +123,14 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.MutableContentNodeMetadata;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.streams.StreamsUtil;
 import chav1961.purelib.ui.interfaces.ActionFormManager;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
+import chav1961.purelib.ui.interfaces.ReferenceAndComment;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
@@ -177,6 +174,7 @@ public abstract class SwingUtils {
 	public static final String				ACTION_INSERT = "insert";
 	public static final String				ACTION_DUPLICATE = "duplicate";
 	public static final String				ACTION_DELETE = "delete";
+	public static final String				ACTION_DROPDOWN = "dropdown";
 	public static final String				ACTION_ACCEPT = "accept";
 	public static final String				ACTION_CLICK = "click";
 	public static final String				ACTION_EXIT = "exit";
@@ -489,7 +487,7 @@ loop:			for (Component comp : children(node)) {
 					}
 					break;
 				case URIContent		:
-					result = new JTextFieldWithMeta(metadata,monitor);
+					result = new JUriFieldWithMeta(metadata,monitor);
 					break;
 				case ColorContent	:
 					result = new JColorPickerWithMeta(metadata,localizer,monitor);
@@ -501,8 +499,18 @@ loop:			for (Component comp : children(node)) {
 					result = new JPasswordFieldWithMeta(metadata,monitor);
 					break;
 				case ArrayContent	:
-					if (metadata.getType().isArray() && ItemAndSelection.class.isAssignableFrom(metadata.getType().getComponentType())) {
-						result = new JSelectableListWithMeta(metadata, monitor);
+					if (metadata.getType().isArray()) {
+						final Class<?>	componentClass = metadata.getType().getComponentType();
+						
+						if (ItemAndSelection.class.isAssignableFrom(componentClass)) {
+							result = new JSelectableListWithMeta<>(metadata, monitor);
+						}
+						else if (ReferenceAndComment.class.isAssignableFrom(componentClass)) {
+							result = new JReferenceListWithMeta(metadata, monitor);
+						}
+						else {
+							throw new UnsupportedOperationException("Content type ["+content+"] for metadata ["+metadata.getName()+"] is not supported yet");
+						}
 					}
 					else {
 						throw new UnsupportedOperationException("Content type ["+content+"] for metadata ["+metadata.getName()+"] is not supported yet");
@@ -1879,18 +1887,60 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	/**
+	 * <p>Get cell renderer for different controls. Each renderer is an SPI service with {@linkplain SwingItemRenderer} implementation </p>
+	 * @param <R> renderer type ({@linkplain ListCellRenderer}, {@linkplain TableCellRenderer}, {@linkplain TreeCellRenderer})
+	 * @param meta model descriptor. Can't be null
+	 * @param rendererType renderer type. Can't be null
+	 * @return renderer found
+	 * @throws EnvironmentException renderer is missing
+	 * @since 0.0.5
+	 */
 	public static <R> R getCellRenderer(final ContentNodeMetadata meta, final Class<R> rendererType) throws EnvironmentException {
 		return getCellRenderer(meta, rendererType, Thread.currentThread().getContextClassLoader());
 	}
 
+	/**
+	 * <p>Get cell renderer for different controls. Each renderer is an SPI service with {@linkplain SwingItemRenderer} implementation </p>
+	 * @param <R> renderer type ({@linkplain ListCellRenderer}, {@linkplain TableCellRenderer}, {@linkplain TreeCellRenderer})
+	 * @param meta model descriptor. Can't be null
+	 * @param rendererType renderer type. Can't be null
+	 * @param loader class loader to use SPI in. Can't be null
+	 * @return renderer found
+	 * @throws EnvironmentException renderer is missing
+	 * @since 0.0.5
+	 */
 	public static <R> R getCellRenderer(final ContentNodeMetadata meta, final Class<R> rendererType, final ClassLoader loader) throws EnvironmentException {
 		return getCellRenderer(meta.getType(), meta.getFormatAssociated(), rendererType, loader);
 	}	
 
+	/**
+	 * <p>Get cell renderer for different controls. Each renderer is an SPI service with {@linkplain SwingItemRenderer} implementation </p>
+	 * @param <T> class to render (for example, {@linkplain String})
+	 * @param <R> renderer type ({@linkplain ListCellRenderer}, {@linkplain TableCellRenderer}, {@linkplain TreeCellRenderer})
+	 * @param clazz class to render. Can't be null
+	 * @param ff field format. Can't be null
+	 * @param rendererType renderer type. Can't be null
+	 * @return renderer found
+	 * @throws EnvironmentException renderer is missing
+	 * @since 0.0.5
+	 */
 	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType) throws EnvironmentException {
 		return getCellRenderer(clazz, ff, rendererType, Thread.currentThread().getContextClassLoader());
 	}
-	
+
+	/**
+	 * <p>Get cell renderer for different controls. Each renderer is an SPI service with {@linkplain SwingItemRenderer} implementation </p>
+	 * @param <T> class to render (for example, {@linkplain String})
+	 * @param <R> renderer type ({@linkplain ListCellRenderer}, {@linkplain TableCellRenderer}, {@linkplain TreeCellRenderer})
+	 * @param clazz class to render. Can't be null
+	 * @param ff field format. Can't be null
+	 * @param rendererType renderer type. Can't be null
+	 * @param loader class loader to use SPI in. Can't be null
+	 * @return renderer found
+	 * @throws EnvironmentException renderer is missing
+	 * @since 0.0.5
+	 */
 	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType, final ClassLoader loader) throws EnvironmentException {
 		for (SwingItemRenderer<T,R> item : ServiceLoader.load(SwingItemRenderer.class, loader)) {
 			if (item.canServe(clazz, rendererType, ff)) {
@@ -1899,6 +1949,32 @@ loop:			for (Component comp : children(node)) {
 		}
 		throw new EnvironmentException("Renderer type ["+rendererType+"] for class ["+clazz+"] not found"); 
 	}
+
+	/**
+	 * <p>Get nearest logger available from component parents.</p>
+	 * @param component component to get logger for
+	 * @return logger found or standard Pure Library logger if not found
+	 * @since 0.0.5
+	 */
+	public static LoggerFacade getNearestLogger(final JComponent component) {
+		if (component == null) {
+			throw new NullPointerException("Component can't be null");
+		}
+		else {
+			Component	current = component.getParent();
+			
+			while (current != null) {
+				if (current instanceof LoggerFacadeKeeper) {
+					return ((LoggerFacadeKeeper)current).getLogger();
+				}
+				else {
+					current = current.getParent(); 
+				}
+			}
+			return PureLibSettings.CURRENT_LOGGER;
+		}
+	}
+	
 	
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
 		final JEditorPane 	pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),null);

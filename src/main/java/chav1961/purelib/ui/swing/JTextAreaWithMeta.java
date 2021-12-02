@@ -107,7 +107,12 @@ public class JTextAreaWithMeta extends JTextArea implements NodeMetadataOwner, L
 				}
 			});
 
-			setBackground(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+			if (InternalUtils.checkMandatory(metadata)) {
+				InternalUtils.prepareMandatoryColor(this);
+			}
+			else {
+				InternalUtils.prepareOptionalColor(this);
+			}
 			switch (format.getAlignment()) {
 				case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
 				case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
@@ -227,7 +232,6 @@ public class JTextAreaWithMeta extends JTextArea implements NodeMetadataOwner, L
 			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
 		}
 	}
-
 	
 	private void callLoad(final JComponentMonitor monitor) {
 		try{monitor.process(MonitorEvent.Loading,metadata,this);

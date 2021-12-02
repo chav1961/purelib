@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -153,6 +154,7 @@ public class NanoServiceManagerTest {
 			@Override public boolean isStarted() {return false;}
 			@Override public boolean isSuspended() {return false;}
 			@Override public FileSystemInterface getServiceRoot() {return null;}
+			@Override public InetSocketAddress getServerAddress() {return null;}
 			
 			@Override
 			public void deploy(String path, Object instance2deploy) throws IOException, ContentException, SyntaxException {
@@ -192,6 +194,7 @@ public class NanoServiceManagerTest {
 			@Override public boolean isStarted() {return false;}
 			@Override public boolean isSuspended() {return false;}
 			@Override public FileSystemInterface getServiceRoot() {return null;}
+			@Override public InetSocketAddress getServerAddress() {return null;}
 			
 			@Override
 			public void deploy(String path, Object instance2deploy) throws IOException, ContentException, SyntaxException {

@@ -1,17 +1,29 @@
 package chav1961.purelib.ui.swing;
 
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimerTask;
 
+import javax.swing.AbstractButton;
+import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JToolBar;
 import javax.swing.ToolTipManager;
 import javax.swing.text.InternationalFormatter;
 import javax.swing.text.JTextComponent;
@@ -19,15 +31,20 @@ import javax.swing.text.NumberFormatter;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 
 class InternalUtils {
-	static final String		VALIDATION_NULL_VALUE = "purelib.ui.validation.nullvalue";
-	static final String		VALIDATION_MANDATORY = "purelib.ui.validation.mandatory";
-	static final String		VALIDATION_NEITHER_TRUE_NOR_FALSE = "purelib.ui.validation.neithertruenorfalse";
+	static final String			VALIDATION_NULL_VALUE = "purelib.ui.validation.nullvalue";
+	static final String			VALIDATION_MANDATORY = "purelib.ui.validation.mandatory";
+	static final String			VALIDATION_NEITHER_TRUE_NOR_FALSE = "purelib.ui.validation.neithertruenorfalse";
+	static final String			VALIDATION_ILLEGAL_TYPE = "purelib.ui.validation.illegaltype";
+	static final String			VALIDATION_ILLEGAL_VALUE = "purelib.ui.validation.illegalvalue";
+	static final BufferedImage	BUFFERED_IMAGE = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
 
 	interface ComponentListenerCallback {
 		void process();
@@ -49,7 +66,25 @@ class InternalUtils {
 	static boolean checkMandatory(final ContentNodeMetadata metadata) {
 		return metadata.getFormatAssociated() != null && metadata.getFormatAssociated().isMandatory(); 
 	}
+
+	static void prepareMandatoryColor(final JComponent component) {
+		component.setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
+		component.setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
+		if (component instanceof JTextComponent) {
+			((JTextComponent)component).setSelectedTextColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND);
+			((JTextComponent)component).setSelectionColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND);
+		}
+	}
 	
+	static void prepareOptionalColor(final JComponent component) {
+		component.setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+		component.setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+		if (component instanceof JTextComponent) {
+			((JTextComponent)component).setSelectedTextColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
+			((JTextComponent)component).setSelectionColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
+		}
+	}
+
 	static void addComponentListener(final JComponent component, final ComponentListenerCallback callback) {
 		component.addComponentListener(new ComponentListener() {
 			private boolean	loaded = false;
@@ -127,10 +162,23 @@ class InternalUtils {
 		return formatter;
 	}
 	
-	static String buildStandardValidationMessage(final ContentNodeMetadata metadata, final String messageId) {
-		try{return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()).getValue(metadata.getLabelId()));
-		} catch (LocalizationException | IllegalArgumentException | NullPointerException e) {
-			return messageId + "(" + metadata.getLabelId() + ")";
+	static String buildStandardValidationMessage(final ContentNodeMetadata metadata, final String messageId, final Object... parameters) {
+		if (parameters.length == 0) {
+			try{return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()).getValue(metadata.getLabelId()));
+			} catch (LocalizationException | IllegalArgumentException | NullPointerException e) {
+				return messageId + "(" + metadata.getLabelId() + ")";
+			}
+		}
+		else {
+			final List<Object>	parms = new ArrayList<>();
+			
+			try{parms.add(LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()).getValue(metadata.getLabelId()));
+				parms.addAll(Arrays.asList(parameters));
+				
+				return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),parms.toArray());
+			} catch (LocalizationException | IllegalArgumentException | NullPointerException e) {
+				return messageId + "(" + metadata.getLabelId() + ")";
+			}
 		}
 	}
 	
@@ -150,6 +198,13 @@ class InternalUtils {
 		}
 	}
 
+	static Dimension calculateFontCellSize(final Component component) {
+		final Graphics2D	g2d = BUFFERED_IMAGE.createGraphics();
+		final Rectangle2D	charSize = component.getFontMetrics(component.getFont()).getMaxCharBounds(g2d);
+		
+		return new Dimension((int)charSize.getWidth(), (int)charSize.getHeight());
+	}
+	
 	private static <T extends JComponent> void internalShowTooltip(final T instance, final MouseEvent e) {
 		final ToolTipManager	mgr = ToolTipManager.sharedInstance();
 		final String			tt = instance.getToolTipText();
@@ -216,6 +271,42 @@ class InternalUtils {
 			}
 			sb.append("</body></html>");
 			return sb.toString();
+		}
+	}
+
+	static void cropButtonByIcon(final JButton button) {
+		final Icon	icon = button.getIcon();
+		
+		if (icon != null) {
+			button.setPreferredSize(new Dimension(icon.getIconWidth() + 2, icon.getIconHeight() + 2));
+		}
+	}
+	
+	static void cropToolbarButtonsByIcons(final JToolBar toolbar) {
+		final int[]	widthAndHeight = new int[] {0, 0};
+		
+		SwingUtils.walkDown(toolbar, (mode, node)->{
+			if (mode == NodeEnterMode.ENTER && (node instanceof AbstractButton)) {
+				final Icon	icon = ((AbstractButton)node).getIcon();
+				
+				if (icon != null) {
+					widthAndHeight[0] = Math.max(widthAndHeight[0], icon.getIconWidth());
+					widthAndHeight[1] = Math.max(widthAndHeight[1], icon.getIconHeight());
+				}
+			}
+			return ContinueMode.CONTINUE;
+		});
+
+		if (widthAndHeight[0] + widthAndHeight[1] > 0) {
+			final Dimension	newSize = new Dimension(widthAndHeight[0] + 2, widthAndHeight[1] + 2);
+			
+			SwingUtils.walkDown(toolbar, (mode, node)->{
+				if (mode == NodeEnterMode.ENTER && (node instanceof AbstractButton)) {
+					node.setPreferredSize(newSize);
+					node.setFocusable(false);
+				}
+				return ContinueMode.CONTINUE;
+			});
 		}
 	}
 }

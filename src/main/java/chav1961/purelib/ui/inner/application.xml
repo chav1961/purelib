@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<app:root xmlns:app="http://ui.purelib.chav1961/">
+	<app:i18n location="i18n:xml:root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/i18n/localization.xml"/>
+	<app:menu id="JReferenceListWithMeta.menu">
+		<app:item name="JReferenceListWithMeta.menu.copy" caption="JReferenceListWithMeta.menu.copy" tooltip="JReferenceListWithMeta.menu.copy.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/copy.png" action="menu.copy"/>
+		<app:item name="JReferenceListWithMeta.menu.paste" caption="JReferenceListWithMeta.menu.paste" tooltip="JReferenceListWithMeta.menu.paste.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/paste.png" action="menu.paste"/>
+		<app:separator/>
+		<app:item name="JReferenceListWithMeta.menu.insert" caption="JReferenceListWithMeta.menu.insert" tooltip="JReferenceListWithMeta.menu.insert.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/insert.png" action="menu.insert"/>
+		<app:item name="JReferenceListWithMeta.menu.edit" caption="JReferenceListWithMeta.menu.edit" tooltip="JReferenceListWithMeta.menu.edit.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/edit.png" action="menu.edit"/>
+		<app:item name="JReferenceListWithMeta.menu.delete" caption="JReferenceListWithMeta.menu.delete" tooltip="JReferenceListWithMeta.menu.delete.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/delete.png" action="menu.delete"/>
+	</app:menu>
+	<app:keyset id="JReferenceListWithMeta.menu.keyset">
+		<app:key code="C" ctrl="true" action="menu.copy"/>
+		<app:key code="V" ctrl="true" action="menu.paste"/>
+		<app:key code="Insert" action="menu.insert"/>
+		<app:key code="Delete" action="menu.delete"/>
+	</app:keyset>		
+</app:root>

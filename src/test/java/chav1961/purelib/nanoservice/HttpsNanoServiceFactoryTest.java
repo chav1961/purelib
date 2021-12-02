@@ -31,13 +31,11 @@ import chav1961.purelib.testing.OrdinalTestCategory;
 public class HttpsNanoServiceFactoryTest {
 	private SubstitutableProperties	props;
 	private NanoServiceFactory		factory;
-	private int						currentPort;
 	
 	@Before 
 	public void prepare() throws Exception {
-		currentPort = (int) (1024 + 60000 * Math.random());
 		props = new SubstitutableProperties(Utils.mkProps(
-				NanoServiceFactory.NANOSERVICE_PORT, ""+currentPort,
+				NanoServiceFactory.NANOSERVICE_PORT, "0",
 				NanoServiceFactory.NANOSERVICE_ROOT, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/nanoservice/root/",
 				NanoServiceFactory.NANOSERVICE_SSL_KEYSTORE, "./src/test/resources/chav1961/purelib/nanoservice/keystore.jks", 
 				NanoServiceFactory.NANOSERVICE_USE_SSL, "true", 

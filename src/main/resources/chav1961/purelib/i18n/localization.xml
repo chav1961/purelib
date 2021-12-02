@@ -41,7 +41,8 @@
 		<key name="purelib.ui.validation.nullvalue">Field [%1$s] can't be null</key>
 		<key name="purelib.ui.validation.mandatory">Field [%1$s] must be filled</key>
 		<key name="purelib.ui.validation.neithertruenorfalse">Field [%1$s] must be 'true' or 'false'</key>
-
+		<key name="purelib.ui.validation.illegaltype">Field [%1$s] has illegal type (%2$s awaited)</key>
+		<key name="purelib.ui.validation.illegalvalue">Field [%1$s] has illegal value (%2$s)</key>
 
 <!-- Well-known keys  -->
 		<key name="wklk.check.nullOrEmptyValue">Null or empty value is not supported for current control</key>
@@ -276,6 +277,27 @@
 		<key name="JContentMetadataEditor.secondtab.caption">Second</key>
 		<key name="JContentMetadataEditor.secondtab.caption.tt">Second</key>
 
+<!-- Reference list localization -->
+		<key name="JReferenceListWithMeta.ref">Reference</key>
+		<key name="JReferenceListWithMeta.comment">Comment</key>
+		<key name="JReferenceListWithMeta.menu.copy">Copy</key>
+		<key name="JReferenceListWithMeta.menu.copy.tt">Copy reference to clipboard</key>
+		<key name="JReferenceListWithMeta.menu.paste">Paste</key>
+		<key name="JReferenceListWithMeta.menu.paste.tt">Paste reference for clipboard</key>
+		<key name="JReferenceListWithMeta.menu.insert">Insert</key>
+		<key name="JReferenceListWithMeta.menu.insert.tt">Insert new line into list</key>
+		<key name="JReferenceListWithMeta.menu.edit">Edit</key>
+		<key name="JReferenceListWithMeta.menu.edit.tt">Edit selected line</key>
+		<key name="JReferenceListWithMeta.menu.delete">Delete</key>
+		<key name="JReferenceListWithMeta.menu.delete.tt">Delete selected line</key>
+		<key name="JReferenceListWithMeta.editor.title">Edit...</key>
+		<key name="JReferenceListWithMeta.editor.title.tt">Edit reference</key>
+		<key name="JReferenceListWithMeta.editor.title.help">Edit reference</key>
+		<key name="JReferenceListWithMeta.editor.ref">Reference</key>
+		<key name="JReferenceListWithMeta.editor.ref.tt">Reference URI</key>
+		<key name="JReferenceListWithMeta.editor.comment">Comment</key>
+		<key name="JReferenceListWithMeta.editor.comment.tt">Reference comment</key>
+
 <!-- Useful classes localization  -->
 		<key name="JCloseButton.tt">Close window</key>
 		
@@ -321,6 +343,8 @@
 		<key name="purelib.ui.validation.nullvalue">Поле [%1$s] не может отсутствовать</key>
 		<key name="purelib.ui.validation.mandatory">Поле [%1$s] должно быть заполнено</key>
 		<key name="purelib.ui.validation.neithertruenorfalse">Поле [%1$s] должно быть 'true' или 'false'</key>
+		<key name="purelib.ui.validation.illegaltype">Поле [%1$s] неверного типа (%2$s ожидался)</key>
+		<key name="purelib.ui.validation.illegalvalue">Поле [%1$s] неверное значение (%2$s)</key>
 
 <!-- Общеизвестные ключи -->
 		<key name="wklk.check.nullOrEmptyValue">Пустое или отсутствующее значение для данного поля недопустимо</key>
@@ -554,6 +578,27 @@
 		<key name="JContentMetadataEditor.firsttab.caption.tt">Первая</key>
 		<key name="JContentMetadataEditor.secondtab.caption">Вторая</key>
 		<key name="JContentMetadataEditor.secondtab.caption.tt">Вторая</key>
+
+<!-- Локализация списка ссылок -->
+		<key name="JReferenceListWithMeta.ref">Ссылка</key>
+		<key name="JReferenceListWithMeta.comment">Комментарий</key>
+		<key name="JReferenceListWithMeta.menu.copy">Копировать</key>
+		<key name="JReferenceListWithMeta.menu.copy.tt">Скопировать ссылку в буфер обмена</key>
+		<key name="JReferenceListWithMeta.menu.paste">Вставить</key>
+		<key name="JReferenceListWithMeta.menu.paste.tt">Вставить ссылку из буфра обмена</key>
+		<key name="JReferenceListWithMeta.menu.insert">Добавить</key>
+		<key name="JReferenceListWithMeta.menu.insert.tt">Добавить новую строку в список</key>
+		<key name="JReferenceListWithMeta.menu.edit">Исправить</key>
+		<key name="JReferenceListWithMeta.menu.edit.tt">Отредактировать выбранную строку</key>
+		<key name="JReferenceListWithMeta.menu.delete">Удалить</key>
+		<key name="JReferenceListWithMeta.menu.delete.tt">Удалить выбранную строку</key>
+		<key name="JReferenceListWithMeta.editor.title">Исправить...</key>
+		<key name="JReferenceListWithMeta.editor.title.tt">Исправить описание ссылки</key>
+		<key name="JReferenceListWithMeta.editor.title.help">Исправить описание ссылки</key>
+		<key name="JReferenceListWithMeta.editor.ref">Ссылка</key>
+		<key name="JReferenceListWithMeta.editor.ref.tt">URI ссылки</key>
+		<key name="JReferenceListWithMeta.editor.comment">Комментарий</key>
+		<key name="JReferenceListWithMeta.editor.comment.tt">Комментарий к ссылке</key>
 
 <!-- Локализация полезных классов -->
 		<key name="JCloseButton.tt">Закрыть окно</key>

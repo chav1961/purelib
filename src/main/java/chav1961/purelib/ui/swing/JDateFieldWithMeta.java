@@ -131,7 +131,12 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			});
 
 			if (format != null) {
-				setBackground(format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+				if (InternalUtils.checkMandatory(metadata)) {
+					InternalUtils.prepareMandatoryColor(this);
+				}
+				else {
+					InternalUtils.prepareOptionalColor(this);
+				}
 				switch (format.getAlignment()) {
 					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
 					case LeftAlignment	: setAlignmentX(JTextField.LEFT_ALIGNMENT); break;
@@ -145,7 +150,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 				setColumns(format.getLength() == 0 ? DEFAULT_COLUMNS : format.getLength());
 			}
 			else {
-				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
+				InternalUtils.prepareOptionalColor(this);
 				setAlignmentX(JTextField.RIGHT_ALIGNMENT);
 				setColumns(DEFAULT_COLUMNS);
 			}

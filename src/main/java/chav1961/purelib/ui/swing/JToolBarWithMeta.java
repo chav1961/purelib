@@ -1,6 +1,6 @@
 package chav1961.purelib.ui.swing;
 
-import java.io.IOException;
+import java.awt.Container;
 import java.net.URI;
 import java.util.Locale;
 
@@ -12,49 +12,79 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
-import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.interfaces.UIItemState;
+import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 
 
+/**
+ * <p>This class is a model-driven toolbar. The base model for toolbar is a menu model.<p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ * @lastUpdate 0.0.5
+ */
 public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener {
-	private static final long serialVersionUID = 366031204608808220L;
+	private static final long 	serialVersionUID = 366031204608808220L;
+	private static final String	NAVIGATION_NODE = "./"+Constants.MODEL_NAVIGATION_NODE_PREFIX; 
+	private static final String	NAVIGATION_LEAF = "./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX; 
+	private static final URI	SEPARATOR = URI.create("./navigation.separator"); 
 	
 	private final ContentNodeMetadata	metadata;
+	private final UIItemState			state;
 
-	public JToolBarWithMeta(final ContentNodeMetadata metadata) throws LocalizationException, ContentException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param metadata metadata from model. Can't be null
+	 * @throws LocalizationException on localization errors
+	 * @throws ContentException on any content errors
+	 * @throws NullPointerException when any parameter is null
+	 */
+	public JToolBarWithMeta(final ContentNodeMetadata metadata) throws LocalizationException, ContentException, NullPointerException {
 		this(metadata, (node) -> AvailableAndVisible.DEFAULT);
 	}
 	
-	public JToolBarWithMeta(final ContentNodeMetadata metadata, final UIItemState state) throws LocalizationException, ContentException {
-		UIItemState s;
-		this.metadata = metadata;
-		this.setName(metadata.getName());
-		for (ContentNodeMetadata child : metadata) {
-			if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
-				final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child, state);
-				final JButton 				btn = new JButtonWithMetaAndActions(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
-				
-				for (ContentNodeMetadata item : child) {
-					SwingUtils.toMenuEntity(item,menu);
-				}
-				
-				btn.addActionListener((e)->{
-					menu.show(btn,btn.getWidth()/2,btn.getHeight()/2);
-				});
-				add(btn);
-			}
-			else if (child.getRelativeUIPath().toString().startsWith("./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX)) {
-				add(new JInternalButtonWithMeta(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT));
-			}
-			else if (URI.create("./navigation.separator").equals(child.getRelativeUIPath())) {
-				addSeparator();
-			}
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param metadata metadata from model. Can't be null
+	 * @param state lambda-styled toolbar items enabled/visibility callback. Can' be null
+	 * @throws LocalizationException on localization errors
+	 * @throws ContentException on any content errors
+	 * @throws NullPointerException when any parameter is null
+	 */
+	public JToolBarWithMeta(final ContentNodeMetadata metadata, final UIItemState state) throws LocalizationException, ContentException, NullPointerException {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
 		}
-		try{fillLocalizedStrings();
-		} catch (IOException | LocalizationException e) {
-			e.printStackTrace();
+		else if (state == null) {
+			throw new NullPointerException("Item state callback can't be null");
+		}
+		else {
+			this.metadata = metadata;
+			this.state = state;
+			this.setName(metadata.getName());
+			for (ContentNodeMetadata child : metadata) {
+				if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_NODE)) {
+					final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child, state);
+					final JButton 				btn = new JButtonWithMetaAndActions(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
+					
+					for (ContentNodeMetadata item : child) {
+						SwingUtils.toMenuEntity(item,menu);
+					}
+					
+					btn.addActionListener((e)->{
+						menu.show(btn,btn.getWidth()/2,btn.getHeight()/2);
+					});
+					add(btn);
+				}
+				else if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_LEAF)) {
+					add(new JInternalButtonWithMeta(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT));
+				}
+				else if (SEPARATOR.equals(child.getRelativeUIPath())) {
+					addSeparator();
+				}
+			}
+			fillLocalizedStrings();
 		}
 	}
 
@@ -65,13 +95,43 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-		try{fillLocalizedStrings();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		fillLocalizedStrings();
 	}
 
-	private void fillLocalizedStrings() throws LocalizationException, IOException {
+	/**
+	 * <p>Notify button state changed</p>
+	 */
+	public void fireContentChanged() {
+		fireContentChanged(getNodeMetadata());
+	}
+
+	private void fireContentChanged(final ContentNodeMetadata node) {
+		final Container	c = SwingUtils.findComponentByName(this, node.getUIPath().toString());
+		
+		switch (state.getItemState(node)) {
+			case DEFAULT		:
+				break;
+			case AVAILABLE		:
+				c.setVisible(true);
+				c.setEnabled(true);
+				break;
+			case HIDDEN	: case NOTVISIBLE :
+				c.setVisible(false);
+				c.setEnabled(false);
+				break;
+			case NOTAVAILABLE : case READONLY :
+				c.setVisible(true);
+				c.setEnabled(false);
+				break;
+			default :
+				throw new UnsupportedOperationException("Item state ["+state.getItemState(node)+"] is not supported yet");
+		}
+		for (ContentNodeMetadata item : node) {
+			fireContentChanged(item);
+		}
+	}
+	
+	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null) {
 			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
 		}

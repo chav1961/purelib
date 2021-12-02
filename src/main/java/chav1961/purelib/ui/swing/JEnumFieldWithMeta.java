@@ -148,13 +148,11 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			});
 
 			if (format != null) {
-				if (format.isMandatory()) {
-					setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
-					setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
+				if (InternalUtils.checkMandatory(metadata)) {
+					InternalUtils.prepareMandatoryColor(this);
 				}
 				else {
-					setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-					setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+					InternalUtils.prepareOptionalColor(this);
 				}
 				switch (format.getAlignment()) {
 					case CenterAlignment: setAlignmentX(JTextField.CENTER_ALIGNMENT); break;
@@ -167,8 +165,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 				}
 			}
 			else {
-				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-				setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+				InternalUtils.prepareOptionalColor(this);
 				setAlignmentX(JComboBox.LEFT_ALIGNMENT);
 			}
 			
