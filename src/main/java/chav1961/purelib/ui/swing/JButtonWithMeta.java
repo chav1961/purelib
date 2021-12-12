@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -127,6 +128,16 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 		if (getIcon() == null) {
 			setText(localizer.getValue(getNodeMetadata().getLabelId()));
 		}
-		setToolTipText(localizer.getValue(getNodeMetadata().getLabelId()));
+		String	keyPrefix = "";
+
+		if (metadata.getOwner() != null) {
+			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
+				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+					keyPrefix = item.getLabelId()+": ";
+					break;
+				}
+			}
+		}
+		setToolTipText(keyPrefix+localizer.getValue(getNodeMetadata().getLabelId()));
 	}
 }

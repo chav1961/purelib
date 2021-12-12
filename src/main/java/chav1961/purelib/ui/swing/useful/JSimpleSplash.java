@@ -36,16 +36,27 @@ public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 	private long				oldStage, currentStage, totalStage, discreteStage;
 
 	public JSimpleSplash() throws NullPointerException, EnvironmentException {
-		this.splash = SplashScreen.getSplashScreen();
+		boolean			available = false;
+		Graphics2D		g2d = null;
+		SplashScreen	splash = null;
 		
-		if (splash == null) {
-			this.available = false;
-			this.g2d = null;
+		try{splash = SplashScreen.getSplashScreen();
+			
+			if (splash == null) {
+				available = false;
+				g2d = null;
+			}
+			else {
+				available = true;
+				g2d = splash.createGraphics();
+			}
+		} catch (Throwable t) {
+			available = false;
+			g2d = null;
 		}
-		else {
-			this.available = true;
-			this.g2d = splash.createGraphics();
-		}
+		this.splash = splash;
+		this.available = available;
+		this.g2d = g2d;
 	}
 	
 	public JSimpleSplash(final URL imageURL) throws IOException, NullPointerException, EnvironmentException {
@@ -209,15 +220,15 @@ public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 	protected void refresh() {
 		if (available) {
 			try {
-				redraw(g2d);
-				splash.update();
+//				redraw(g2d);
+//				splash.update();
 			} catch (IllegalStateException exc) {
 			}
 		}
 	}
 	
 	protected void redraw(final Graphics2D g2d) {
-		if (needDraw) {
+		if (needDraw && g2d != null) {
         	final Color		oldColor =  g2d.getColor();  
 			final Rectangle	rect = splash.getBounds();
         	final int		height = Math.max(RECT_HEIGHT, (int) (RECT_PERCENT * rect.height));
@@ -306,9 +317,14 @@ public class JSimpleSplash implements ProgressIndicator, AutoCloseable {
 	}
 	
 	private long calcDiscrete(final long total) {
-		final Rectangle	rect = splash.getBounds();
-		final int		len = rect.width - 2 * RECT_X_GAP;
-		
-		return Math.max(total / len, 1);
+		if (available) {
+			final Rectangle	rect = splash.getBounds();
+			final int		len = rect.width - 2 * RECT_X_GAP;
+			
+			return Math.max(total / len, 1);
+		}
+		else {
+			return 1;
+		}
 	}
 }

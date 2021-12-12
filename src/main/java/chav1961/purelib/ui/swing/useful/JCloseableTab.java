@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
 
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -62,7 +61,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 				try{
 					label.setIcon(new ImageIcon(meta.getIcon().toURL()));
 				} catch (MalformedURLException e) {
-					PureLibSettings.CURRENT_LOGGER.message(Severity.warning,e,"Icon loading failure: "+e.getLocalizedMessage());
+					SwingUtils.getNearestLogger(this).message(Severity.warning,e,"Icon loading failure: "+e.getLocalizedMessage());
 				}
 			}
 			prepare(meta.getUIPath().toString());
@@ -234,7 +233,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		if (tab instanceof AutoCloseable) {
 			try{((AutoCloseable)tab).close();
 			} catch (Exception exc) {
-				PureLibSettings.CURRENT_LOGGER.message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
+				SwingUtils.getNearestLogger(this).message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
 			}
 		}
 		container.remove(tab);

@@ -22,7 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.KeyStroke;
 
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -205,7 +204,7 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 		if (helpString != null) {
 			try{SwingUtils.showCreoleHelpWindow(this,URI.create(helpString));
 			} catch (IOException e) {
-				PureLibSettings.CURRENT_LOGGER.message(Severity.error,e,"Help calling problems: "+e.getLocalizedMessage());
+				SwingUtils.getNearestLogger(this).message(Severity.error,e,"Help calling problems: "+e.getLocalizedMessage());
 			}
 		}
 	}
@@ -283,7 +282,7 @@ public class JPaginator extends JPanel implements LocaleChangeListener {
 	private void movePageInternal(final PageMoving action) throws NullPointerException {
 		try{movePage(action);
 		} catch (LocalizationException e) {
-			PureLibSettings.CURRENT_LOGGER.message(Severity.error,e,"Localization problems: "+e.getLocalizedMessage());
+			SwingUtils.getNearestLogger(this).message(Severity.error,e,"Localization problems: "+e.getLocalizedMessage());
 		}
 	}	
 	

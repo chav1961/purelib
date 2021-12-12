@@ -13,6 +13,7 @@
 		<app:key code="C" ctrl="true" action="menu.copy"/>
 		<app:key code="V" ctrl="true" action="menu.paste"/>
 		<app:key code="Insert" action="menu.insert"/>
+		<app:key code="Enter" action="menu.edit"/>
 		<app:key code="Delete" action="menu.delete"/>
 	</app:keyset>		
 </app:root>

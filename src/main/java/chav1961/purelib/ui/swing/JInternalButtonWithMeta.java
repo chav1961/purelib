@@ -52,7 +52,17 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 
 	private void fillLocalizedStrings() throws LocalizationException, IOException {
 		if (getNodeMetadata().getTooltipId() != null) {
-			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			String	keyPrefix = "";
+
+			if (metadata.getOwner() != null) {
+				for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
+					if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+						keyPrefix = item.getLabelId()+": ";
+						break;
+					}
+				}
+			}
+			setToolTipText(keyPrefix+LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
 		}
 		switch (type) {
 			case BOTH			:

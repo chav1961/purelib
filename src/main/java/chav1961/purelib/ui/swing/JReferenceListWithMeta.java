@@ -541,8 +541,13 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 			
 			try{final Object	obj = Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
 				final String 	value = obj.toString();
+							
+				try{URI			uri = URI.create(value);
 				
-				try{rac.setReference(URI.create(value));
+					if (uri.getScheme() == null) {
+						uri = URI.create("http://"+value);
+					}
+					rac.setReference(uri);
 					rac.setComment("<from clipboard>");
 				} catch (IllegalArgumentException exc) {
 					rac.setReference(URI.create("https:/"));

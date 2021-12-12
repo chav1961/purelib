@@ -36,6 +36,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
@@ -260,7 +261,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 			if (mgr.testUri == null) {
 				try{new JLocalizedOptionPane(localizer).message(dlg, ERROR_DESCRIPTION, ERROR_HEADER, JOptionPane.ERROR_MESSAGE);
 				} catch (LocalizationException exc) {
-					PureLibSettings.logger.severe(exc.getLocalizedMessage());
+					PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage());
 				}
 			}
 			else {

@@ -77,7 +77,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 						if (Desktop.isDesktopSupported()) {
 							try{Desktop.getDesktop().browse(e.getURL().toURI());
 							} catch (IOException | URISyntaxException exc) {
-								PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage(), exc);
+								SwingUtils.getNearestLogger(this).message(Severity.error, exc.getLocalizedMessage(), exc);
 							}
 						}
 					}
@@ -133,7 +133,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 			try{history.add(lastContent);
 				loadContent(lastContent = URIUtils.removeFragmentFromURI(URIUtils.removeQueryFromURI(content)).toString());
 			} catch (IOException | LocalizationException exc) {
-				PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage(), exc);
+				SwingUtils.getNearestLogger(this).message(Severity.error, exc.getLocalizedMessage(), exc);
 			}
 		}
 		final String	fragment = content.getFragment();
