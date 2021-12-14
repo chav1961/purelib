@@ -305,7 +305,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 				final File	sel = chooser.getSelectedFile();  
 				
-				return sel.getAbsoluteFile();
+				return sel != null ? sel.getAbsoluteFile() : null;
 			}
 			else {
 				return null;

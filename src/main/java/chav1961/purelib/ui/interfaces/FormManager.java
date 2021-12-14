@@ -2,6 +2,7 @@ package chav1961.purelib.ui.interfaces;
 
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacadeKeeper;
 
 /**
  * <p>This class is an abstract class for implementing low-level UI form management. This class supports:</p> 
@@ -17,13 +18,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @lastUpdate 0.0.5
  */
 
-public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>, FieldFormManager<Id,Instance>, ActionFormManager<Id,Instance> {
-	/**
-	 * <p>Get logger to print messages and errors</p>
-	 * @return logger to print messages. Can't be null
-	 */
-	LoggerFacade getLogger();
-	
+public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>, FieldFormManager<Id,Instance>, ActionFormManager<Id,Instance>, LoggerFacadeKeeper {
 	/**
 	 * <p>Get form manager to manipulate with local editors (for example, lists, tables etc)</p>
 	 * @param inst current record instance 

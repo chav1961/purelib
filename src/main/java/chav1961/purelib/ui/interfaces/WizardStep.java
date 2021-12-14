@@ -27,6 +27,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
  * @param <Content> content type of the wizard step (for example, usually JComponent for the Swing application)
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @lastUpdate 0.0.5
  */
 
 public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
@@ -54,36 +55,39 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	
 	/**
 	 * <p>Get next step id</p>
-	 * @return id of the next step in the given wizard steps chain, or null if the next step appropriates to the natural step order in the given wizard steps chain. Can be changed under conditions  
+	 * @return id of the next step in the given wizard steps chain, or null if the next step appropriates to the natural step order in the given wizard steps chain. Can be changed under conditions
+	 * @lastUpdate 0.0.5  
 	 */
-	String getNextStep();
+	default String getNextStep() {return null;}
 	
 	/**
 	 * <p>Get previous step id</p>
 	 * @return id of the previous step in the given wizard steps chain, or null if the previous step appropriates to the natural step order in the given wizard steps chain. Can be changed under conditions  
+	 * @lastUpdate 0.0.5  
 	 */
-	String getPrevStep();
+	default String getPrevStep() {return null;}
 	
 	/**
-	 * <p>Get step type</p>
+	 * <p>Get step type.</p>
 	 * @return step type. Can't be null
 	 */
 	StepType getStepType();
 	
 	/**
-	 * <p>Get tab name in the tab collection for the given step</p>
-	 * @return any non-null and non-empty string. Can be identical with {@linkplain #getStepId()}
+	 * <p>Get tab name in the tab collection for the given step. Tab name appears at the left list of the wizard.</p>
+	 * @return any non-null and non-empty string. Can be identical with {@linkplain #getCaption()}
+	 * @lastUpdate 0.0.5  
 	 */
-	String getTabName();
+	default String getTabName() {return getCaption();}
 	
 	/**
-	 * <p>Get any caption for the given step</p>
+	 * <p>Get any caption for the given step. Caption appears at top of the wizard</p>
 	 * @return any non-null and non-empty string.
 	 */
 	String getCaption();
 	
 	/**
-	 * <p>Get human-readable description of the step</p>
+	 * <p>Get human-readable description of the step. DEsription appears before input form in the wizard</p>
 	 * @return any string. Can be identical with {@linkplain #getCaption()}
 	 */
 	String getDescription();
@@ -95,7 +99,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	String getHelpId();
 	
 	/**
-	 * <p>Get content kept inside the step</p>
+	 * <p>Get content kept inside the step. Method is called only once after calling {@linkplain #prepare(Object, Map)} method </p>
 	 * @return any kind of content. Can't be null. Interpretation of the content is a scope of the wizard, not wizard step
 	 */
 	Content getContent();
@@ -107,8 +111,9 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	 * @throws PreparationException when any problems on the preparation stage were detected
 	 * @throws LocalizationException when any localization problems were detected 
 	 * @throws NullPointerException if any of parameters are null
+	 * @lastUpate 0.0.5
 	 */
-	void prepare(Common content, Map<String,Object> temporary) throws PreparationException, LocalizationException, NullPointerException;
+	default void prepare(Common content, Map<String,Object> temporary) throws PreparationException, LocalizationException, NullPointerException {}
 	
 	/**
 	 * <p>Prepare wizard step before showing it in the wizard</p>
@@ -155,6 +160,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	 * @param temporary temporary map to share with all the wizard steps in the given wizard. Every wizard step can use it for any purposes 
 	 * @throws LocalizationException when any localization problems were detected 
 	 * @throws NullPointerException if any of parameters are null
+	 * @lastUpdate 0.0.5
 	 */
-	void unprepare(Common content, Map<String,Object> temporary) throws LocalizationException, NullPointerException;
+	default void unprepare(Common content, Map<String,Object> temporary) throws LocalizationException, NullPointerException {}
 }

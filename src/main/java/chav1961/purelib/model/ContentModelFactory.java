@@ -373,7 +373,7 @@ public class ContentModelFactory {
 				throw new ContentException(e.getLocalizedMessage());
 			}
 			
-			try(final ResultSet	rs = dbDescription.getTables(catalog, schema, "%", null)) {
+			try(final ResultSet	rs = dbDescription.getTables(catalog, schema, "%", new String[]{"TABLE", "VIEW"})) {
 				final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(schema
 															, SchemaContainer.class
 															, schema
@@ -411,7 +411,7 @@ public class ContentModelFactory {
 		else if (table == null || table.isEmpty()) {
 			throw new IllegalArgumentException("Table name can't be null or empty");
 		}
-		else if (table.contains("_") || table.contains("%")) {
+		else if (table.contains("%")) {
 			throw new UnsupportedOperationException("Wildcards in the table name are not supported yet");
 		}
 		else {

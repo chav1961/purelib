@@ -15,6 +15,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,9 +39,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
-import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.FlowException;
@@ -49,6 +52,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
@@ -73,7 +77,7 @@ import chav1961.purelib.ui.interfaces.WizardStep.StepType;
  * @see WizardStep
  * @see chav1961.purelib.streams JUnit tests
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog implements AutoCloseable, ErrorProcessing<Common,ErrorType> {
 	private static final long 							serialVersionUID = 750522918265155456L;
@@ -126,6 +130,7 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 	private final JButton								prev = new JButton(), next = new JButton(), cancel = new JButton();
 	private final DefaultListModel<WizardStep<?,?,?>>	hist = new DefaultListModel<>();
 	private final JTextPane								stepCaption = new JTextPane();
+	private final JTextPane								stepDescription = new JTextPane();
 	
 	protected final Localizer							localizer;
 	protected final Locale								oldLocale;
@@ -374,14 +379,13 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 	protected void prepareLeftPanel(final JPanel panel) {
 		final JList<WizardStep<?,?,?>>				histList = new JList<>(hist);
 		final ListCellRenderer<WizardStep<?,?,?>>	renderer = (list,value,index,isSelected,cellHasFocus)-> {
-														final String	content = (index + 1)+": "+value.getTabName();
-														
-														try{final JLabel 	result = new JLabel(extractLocalizedValue(localizer,content,content));
+														try{final String	content = extractLocalizedValue(localizer,value.getTabName(),value.getTabName());
+															final JLabel 	result = new JLabel((index + 1)+": "+content);
 														
 															result.setToolTipText(extractLocalizedValue(localizer,value.getDescription(),value.getDescription()));
 															return result;
 														} catch (LocalizationException e) {
-															return new JLabel(content);
+															return new JLabel((index + 1)+": "+value.getTabName());
 														}
 													}; 
 		
@@ -407,44 +411,89 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 	}
 	
 	private boolean animateInternal(final int stepIndex, final Common cargo, final BlockingQueue<ActionButton> stepper) throws PreparationException, FlowException, InterruptedException, LocalizationException {
-		final JComponent				container = prepareContainer(stepper);
-		final CardLayout				layout = (CardLayout) container.getLayout();
-		
+		final JComponent	container = prepareContainer(stepper);
+		final CardLayout	layout = (CardLayout) container.getLayout();
+		final boolean[]		result = {false};
+
 		for (int index = 0; index < steps.length; index++) {
 			steps[index].prepare(cargo,properties);
-			container.add(steps[index].getContent(),steps[index].getStepId());
-			if (localizer != null) {
-				try{if ((localizers[index] = LocalizerFactory.buildLocalizerForInstance(steps[index])) != null) {
-						localizer.push(localizers[index]);
-					}
-				} catch (IOException e) {
-					throw new LocalizationException(e.getLocalizedMessage(),e); 
-				}			
+			
+			final JComponent	item = steps[index].getContent();
+			
+			if (item.getPreferredSize() != null) {
+				final JPanel	panel = new JPanel();
+
+				panel.add(item);
+				container.add(panel, steps[index].getStepId());
+			}
+			else {
+				container.add(item, steps[index].getStepId());
+			}
+			
+			if (localizer != null && steps[index].getClass().isAnnotationPresent(LocaleResourceLocation.class)) {
+				final Localizer		nestedLocalizer = LocalizerFactory.getLocalizer(URI.create(steps[index].getClass().getAnnotation(LocaleResourceLocation.class).value()));
+				
+				if ((localizers[index] = nestedLocalizer) != null && !localizer.isInParentChain(nestedLocalizer)) { 
+					localizer.push(localizers[index]);
+				}
+				else {
+					localizers[index] = null;
+				}
 			}
 			else {
 				localizers[index] = null;
 			}
-		}
+		} 
 		if (localizer != null) {
 			refreshLocale(localizer.currentLocale().getLocale());
 		}
-
+		
 		if (getModalityType() != ModalityType.MODELESS) {	// Protection from modality, because setVisible is synchronous call in this case!
-			SwingUtilities.invokeLater(()->{setVisible(true);});
+			final Thread	t = new Thread(()->{
+								try{result[0] = processSteps(stepIndex, cargo, layout, container, stepper);
+								} catch (LocalizationException | FlowException | InterruptedException e) {
+									logger.message(Severity.error, e, e.getLocalizedMessage());
+								} finally {
+									setVisible(false);
+									dispose();
+								}
+							});
+			t.setDaemon(true);
+			t.start();
+			setVisible(true);
 		}
 		else {
 			setVisible(true);
+			try{result[0] = processSteps(stepIndex, cargo, layout, container, stepper);
+			} catch (LocalizationException | FlowException | InterruptedException e) {
+				logger.message(Severity.error, e, e.getLocalizedMessage());
+			} finally {
+				setVisible(false);
+				dispose();
+			}
 		}
 		
-		try{int				newStep;
-			ActionButton	ab;
-			String			newStepName;
+		return result[0];
+	}
 
-			currentStep = stepIndex;
+	private boolean processSteps(final int initialStep, final Common cargo, final CardLayout layout, final JComponent container, final BlockingQueue<ActionButton> stepper) throws LocalizationException, FlowException, InterruptedException {
+		final SimpleAttributeSet	center = new SimpleAttributeSet();
+		int							newStep;
+		String						newStepName;
+		ActionButton				ab;
+		
+		StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+		
+		try{currentStep = initialStep;
 			pushHistory(steps[currentStep]);
 			steps[currentStep].beforeShow(cargo,properties,this);	// Prevent beforeShow call when validation failed	
 			for (;;) {
+				final StyledDocument 		doc = stepCaption.getStyledDocument();
+				
 				stepCaption.setText(extractLocalizedValue(localizer,steps[currentStep].getCaption(),steps[currentStep].getCaption()));
+				doc.setParagraphAttributes(0, doc.getLength(), center, false);				
+				stepDescription.setText(extractLocalizedValue(localizer,steps[currentStep].getDescription(),steps[currentStep].getDescription()));
+				
 				layout.show(container,steps[currentStep].getStepId());
 				refreshButtonsState(currentStep);
 				if (steps[currentStep].getStepType() == StepType.PROCESSING) {
@@ -472,7 +521,8 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 					t.setDaemon(true);
 					t.start();
 				}
-				switch(ab = stepper.take()) {
+				ab = stepper.take();
+				switch(ab) {
 					case PREV	:
 						if ((newStepName = steps[currentStep].getPrevStep()) != null) {
 							if ((newStep = getStepIndexById(newStepName)) < 0) {
@@ -535,12 +585,14 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 			}
 		}
 	}
-
+	
 	private JComponent prepareContainer(final BlockingQueue<ActionButton> stepper) throws LocalizationException {
 		final JPanel		top = new JPanel();
 		final JPanel		left = new JPanel();
 		final JPanel		buttons = new JPanel();
-		final JPanel		centerPanel = new JPanel();
+		final JPanel		centerPanel = new JPanel(new BorderLayout());
+		final CardLayout	card = new CardLayout();
+		final JPanel		centerBottomPanel = new JPanel(card);
 		final Dimension		wizardSize = (Dimension)properties.get(PROP_PREFERRED_SIZE);
 		
 		setMinimumSize(wizardSize != null ? wizardSize : INITIAL_DIMENSION);
@@ -570,7 +622,7 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 		stepCaption.setBackground(this.getBackground());
 		stepCaption.setEditable(false);
 		top.add(stepCaption,BorderLayout.CENTER);
-
+		
 		if (showLocalizer && localizer != null) {
 			final DefaultComboBoxModel<Localizer.LocaleDescriptor>	cbm = new DefaultComboBoxModel<>(); 
 			final JComboBox<Localizer.LocaleDescriptor>				combo = new JComboBox<>(cbm);
@@ -626,9 +678,12 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 			}
 		});
 		refreshButtonsState(getCurrentStep());
-		
+	
+		stepDescription.setBackground(this.getBackground());
+		stepDescription.setEditable(false);
+		centerPanel.add(stepDescription, BorderLayout.NORTH);
+		centerPanel.add(centerBottomPanel, BorderLayout.CENTER);
 		centerPanel.setBorder(BorderFactory.createEmptyBorder(INNER_BORDER_GAP,INNER_BORDER_GAP,INNER_BORDER_GAP,INNER_BORDER_GAP));
-		centerPanel.setLayout(new CardLayout(0,0));
 		
 		left.setBorder(BorderFactory.createEmptyBorder(INNER_BORDER_GAP,INNER_BORDER_GAP,INNER_BORDER_GAP,INNER_BORDER_GAP));
 		prepareLeftPanel(left);
@@ -638,7 +693,7 @@ public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog imp
 		getContentPane().add(centerPanel,BorderLayout.CENTER);
 		getContentPane().add(top,BorderLayout.NORTH);
 
-		return centerPanel;
+		return centerBottomPanel;
 	}
 	
 	private void refreshButtonsState(final int currentStep) throws LocalizationException {

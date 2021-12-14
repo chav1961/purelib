@@ -3,10 +3,12 @@ package chav1961.purelib.sql.model;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,6 +24,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -31,20 +35,28 @@ import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
-import chav1961.purelib.model.interfaces.ORMModelMapper;
-import chav1961.purelib.sql.SQLUtils;
-import chav1961.purelib.streams.JsonStaxPrinter;
-import chav1961.purelib.streams.char2byte.AsmWriter;
+import chav1961.purelib.json.JsonNode;
+import chav1961.purelib.json.JsonUtils;
 import chav1961.purelib.model.SchemaContainer;
 import chav1961.purelib.model.TableContainer;
 import chav1961.purelib.model.UniqueIdContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ORMModelMapper;
+import chav1961.purelib.sql.InMemoryLittleBlob;
+import chav1961.purelib.sql.SQLUtils;
+import chav1961.purelib.sql.interfaces.SQLErrorType;
+import chav1961.purelib.streams.JsonStaxParser;
+import chav1961.purelib.streams.JsonStaxPrinter;
+import chav1961.purelib.streams.char2byte.AsmWriter;
+import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
 public class SQLModelUtils {
 	private static final AtomicInteger	AI = new AtomicInteger();
 	private static final AsmWriter		ASM_WRITER;
 	private static final Set<String>	LOBS = Set.of("BLOB", "CLOB", "NCLOB", "BYTEA");
+	private static final Pattern		PART_PATTERN = Pattern.compile("([^\\.]+)\\.([^@]+)@(.*)");
 	private static final Map<String, JsonValueType>	TYPES = Utils.mkMap("VARCHAR", JsonValueType.STRING,
 																		"TEXT", JsonValueType.STRING,
 																		"BIGINT", JsonValueType.INTEGER);
@@ -77,6 +89,9 @@ public class SQLModelUtils {
 	private static void createDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
 			stmt.executeUpdate("create schema \""+root.getName()+"\"");
+		} catch (SQLException exc) {
+			System.err.println("State="+exc.getSQLState());
+			throw exc;
 		}
 	}
 
@@ -165,6 +180,10 @@ public class SQLModelUtils {
 	private static void removeDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
 			stmt.executeUpdate("drop schema \""+root.getName()+"\" cascade");
+		} catch (SQLException exc) {
+			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
+				throw exc;
+			}
 		}
 	}
 
@@ -175,12 +194,20 @@ public class SQLModelUtils {
 		
 		try(final Statement	stmt = conn.createStatement()) {
 			stmt.executeUpdate(sb.toString());
+		} catch (SQLException exc) {
+			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
+				throw exc;
+			}
 		}
 	}
 
 	private static void removeDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
 			stmt.executeUpdate("drop sequence "+root.getName());
+		} catch (SQLException exc) {
+			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
+				throw exc;
+			}
 		}
 	}
 	
@@ -207,11 +234,215 @@ public class SQLModelUtils {
 			backupDatabaseTableByModel(conn, root, os);
 		}
 	}
+
+	public static void restoreDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final ZipInputStream is) throws SQLException, NullPointerException, IOException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null");
+		}
+		else if (root == null) {
+			throw new NullPointerException("Root metadata can't be null");
+		}
+		else if (is == null) {
+			throw new NullPointerException("Input stream can't be null");
+		}
+		else {
+			ZipEntry	ze;
+			JsonNode	schema = null;
+			
+			while ((ze = is.getNextEntry()) != null) {
+				if (".schema".equalsIgnoreCase(ze.getName())) {
+					final Reader			rdr = new InputStreamReader(is);
+					final JsonStaxParser	parser = new JsonStaxParser(rdr);
+					
+					parser.next();
+					try{schema = JsonUtils.loadJsonTree(parser);
+					} catch (SyntaxException e) {
+						throw new IOException(e);
+					}
+				}
+				else if (schema != null) {
+					final Matcher	m = PART_PATTERN.matcher(ze.getName());
+					
+					if (m.find()) {
+						loadImageContent(conn, m.group(1), m.group(2), m.group(3), is);
+					}
+					else {
+						for (ContentNodeMetadata item : root) {
+							if (item.getName().equals(ze.getName())) {
+								final Reader			rdr = new InputStreamReader(is);
+								final JsonStaxParser	parser = new JsonStaxParser(rdr);
+								
+								parser.next();
+								loadTableContent(parser, conn, item);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}	
 	
-	private static void backupDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root, final ZipOutputStream os) throws SQLException {
-		// TODO Auto-generated method stub
+	private static void loadImageContent(final Connection conn, final String table, final String key, final String field, final InputStream is) throws UnsupportedEncodingException, SQLException {
+		final byte[]	decodedKey = Base64.getDecoder().decode((key + '=').getBytes());
+		final String	sql = "select * from " + conn.getSchema() + "." + table +" where ci_Id = ?";
+		
+		try(final PreparedStatement	ps = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			ps.setLong(1, Long.valueOf(new String(decodedKey)));
+			try(final ResultSet				rs = ps.executeQuery();
+				final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+				
+				Utils.copyStream(is, baos);
+				rs.next();
+				rs.updateBytes(field, baos.toByteArray());
+				rs.updateRow();
+			} catch (IOException e) {
+				throw new SQLException(e);
+			}
+		}
+	}
+
+	private static void loadTableContent(final JsonStaxParser parser, final Connection conn, final ContentNodeMetadata node) throws IOException, SQLException {
+		final String	sql = "select * from "+node.getParent().getName()+"."+node.getName();
+		final boolean	isAutocommit = conn.getAutoCommit();
+		String			name = null;
+		
+		conn.setAutoCommit(false);
+		try(final Statement		stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			final ResultSet		rs = stmt.executeQuery(sql)) {
+			final Set<String>	bounded = new HashSet<>();
+			
+			for (JsonStaxParserLexType item : parser) {
+				switch (item) {
+					case BOOLEAN_VALUE	:
+						rs.updateBoolean(name, parser.booleanValue());
+						break;
+					case END_ARRAY		:
+						break;
+					case END_OBJECT		:
+						for (ContentNodeMetadata field : node) {
+							if (!bounded.contains(field.getName())) {
+								if (field.getFormatAssociated() != null && field.getFormatAssociated().isMandatory()) {
+									rs.updateBytes(field.getName(), new byte[0]);
+								}
+							}
+						}
+						rs.insertRow();
+						bounded.clear();
+						break;
+					case INTEGER_VALUE	:
+						rs.updateLong(name, parser.intValue());
+						break;
+					case LIST_SPLITTER	:
+						break;
+					case NAME			:
+						name = parser.name();
+						bounded.add(name);
+						break;
+					case NAME_SPLITTER	:
+						break;
+					case NULL_VALUE		:
+						rs.updateNull(name);
+						break;
+					case REAL_VALUE		:
+						rs.updateDouble(name, parser.realValue());
+						break;
+					case START_ARRAY	:
+						break;
+					case START_OBJECT	:
+						rs.moveToInsertRow();
+						break;
+					case STRING_VALUE	:
+						rs.updateString(name, parser.stringValue());
+						break;
+					default :
+						break;
+				}
+			}
+			conn.commit();
+		} finally {
+			conn.setAutoCommit(isAutocommit);
+		}
+	}
+
+	private static void backupDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root, final ZipOutputStream os) throws SQLException, IOException {
+		final ZipEntry			ze = new ZipEntry(".schema");
+		final Writer			wr = new OutputStreamWriter(os);
+		final JsonStaxPrinter 	prn = new JsonStaxPrinter(wr, 65536);
+		boolean					theSameFirst, theSameFirst2;
+		
+		os.putNextEntry(ze);
+		try(final Statement	stmt = conn.createStatement()) {
+			
+			prn.startObject();
+			prn.name("schemaName").value(conn.getSchema()).splitter();
+			
+			theSameFirst = true;
+			prn.name("sequences").startArray();
+			for (ContentNodeMetadata item : root) {
+				if (item.getType() == UniqueIdContainer.class) {
+					if (theSameFirst) {
+						theSameFirst = false;
+					}
+					else {
+						prn.splitter();
+					}
+					prn.value(item.getName());
+				}
+			}
+			prn.endArray().splitter();
+			
+			theSameFirst = true;
+			prn.name("tables").startArray();
+			for (ContentNodeMetadata item : root) {
+				if (item.getType() == TableContainer.class) {
+					if (theSameFirst) {
+						theSameFirst = false;
+					}
+					else {
+						prn.splitter();
+					}
+					prn.startObject();
+					prn.name("name").value(item.getName()).splitter();
+					prn.name("lobs").startArray();
+					theSameFirst2 = true;
+					for (ContentNodeMetadata lob : item) {
+						if (lob.getType() == byte[].class) {
+							if (theSameFirst2) {
+								theSameFirst2 = false;
+							}
+							else {
+								prn.splitter();
+							}
+							prn.startObject()
+								.name(lob.getName())
+								.value(getCount(stmt, "select count(" + lob.getName() + ") from "+item.getName()))
+								.endObject();
+						}
+					}
+					prn.endArray()
+						.endObject();
+				}
+			}
+			prn.endArray();			
+			prn.endObject();
+		} finally {
+			prn.flush();
+			os.closeEntry();
+		}
 	}
 	
+	private static long getCount(final Statement stmt, final String query) throws SQLException {
+		try(final ResultSet	rs = stmt.executeQuery(query)) {
+			if (rs.next()) {
+				return rs.getLong(1);
+			}
+			else {
+				return 0;
+			}
+		}
+	}
+
 	private static void backupDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final ZipOutputStream os) throws SQLException {
 		// TODO Auto-generated method stub
 	}
@@ -275,6 +506,7 @@ public class SQLModelUtils {
 		}
 	}
 
+	
 	private static ColumnAndType[] buildColumnAndType(final ContentNodeMetadata root) {
 		final List<ColumnAndType>	result = new ArrayList<>();
 		
