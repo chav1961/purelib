@@ -58,6 +58,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -380,7 +381,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 									((ActionListener)l).actionPerformed(e);
 								}
 							});
-							try{process(MonitorEvent.Action,metadata,button);
+							try{process(MonitorEvent.Action, metadata, button, button);
 							} catch (ContentException exc) {
 								logger.message(Severity.error,exc,"Button [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 							}
@@ -804,7 +805,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
 		return askInternal(window,new JDialog(window,true), localizer, form, okAndCancel);
 	}
-	
+
 	static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer, final AutoBuiltForm<?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
 		if (okAndCancel.length > 2) {
 			throw new IllegalArgumentException("Ok and cancel URI array length is too long. Only 0..2 are available");

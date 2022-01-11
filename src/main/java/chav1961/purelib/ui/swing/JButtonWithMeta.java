@@ -17,6 +17,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.inner.InternalConstants;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -64,7 +65,7 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 				}
 			});
 			addActionListener((e)->{
-				try{monitor.process(MonitorEvent.Action,metadata,JButtonWithMeta.this,e.getActionCommand());
+				try{monitor.process(MonitorEvent.Action, metadata, JButtonWithMeta.this, JButtonWithMeta.this, e.getActionCommand());
 				} catch (ContentException exc) {
 				}					
 			});
@@ -122,6 +123,18 @@ public class JButtonWithMeta extends JButton implements NodeMetadataOwner, Local
 	@Override
 	public boolean isInvalid() {
 		return false;
+	}
+	
+	public void markOK(final Boolean value) {
+		if (value == null) {
+			setIcon(null);
+		}
+		else if (value) {
+			setIcon(InternalConstants.ICON_SUCCESS);
+		}
+		else {
+			setIcon(InternalConstants.ICON_FAIL);
+		}
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {

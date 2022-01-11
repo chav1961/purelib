@@ -80,7 +80,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 					}
 				}
 				else {
-					try{switch (processRefreshMode(formMgr.onAction(instance,null,metadata.getApplicationPath().toString(),null), event, metadata, component, parameters)) {
+					try{switch (processRefreshMode(formMgr.onAction(instance, null, metadata.getApplicationPath().toString(), parameters), event, metadata, component, parameters)) {
 							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
 								break;
 							case TOTAL : case RECORD_ONLY :
@@ -151,7 +151,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 						default	:
 							break;
 					}
-				} catch (LocalizationException | FlowException | ContentException | RuntimeException exc) {
+				} catch (FlowException | ContentException | RuntimeException exc) {
 					getLogger().message(Severity.error,exc,"Saving for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 				}
 				break;

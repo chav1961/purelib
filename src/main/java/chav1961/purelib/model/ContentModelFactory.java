@@ -5,6 +5,7 @@ package chav1961.purelib.model;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -51,6 +52,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.SPIServiceNavigationMember;
 import chav1961.purelib.sql.SQLUtils;
+import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.interfaces.MultiAction;
@@ -244,11 +246,30 @@ public class ContentModelFactory {
 			}
 		}
 	}
-	
+
+	/**
+	 * Build model by XML description.</p>
+	 * @param contentDescription XML-based model descriptor. Can't be null
+	 * @return metadata parsed. Can't be null.
+	 * @throws NullPointerException on any parameter is null
+	 * @throws EnvironmentException on invalid XML
+	 * @see XSDCollection.XMLDescribedApplication
+	 * @since 0.0.4
+	 */
 	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription) throws NullPointerException, EnvironmentException {
-		return forXmlDescription(contentDescription,XSDCollection.XMLDescribedApplication);
+		return forXmlDescription(contentDescription, XSDCollection.XMLDescribedApplication);
 	}
 	
+	/**
+	 * Build model by XML description.</p>
+	 * @param contentDescription XML-based model descriptor. Can't be null
+	 * @param contentType content type to parse. Can't be null
+	 * @return metadata parsed. Can't be null.
+	 * @throws NullPointerException on any parameter is null
+	 * @throws EnvironmentException on invalid XML
+	 * @see XSDCollection.XMLDescribedApplication
+	 * @since 0.0.4
+	 */
 	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription, final XSDCollection contentType) throws NullPointerException, EnvironmentException {
 		if (contentDescription == null) {
 			throw new NullPointerException("Content description can't be null");
@@ -354,7 +375,18 @@ public class ContentModelFactory {
 		}
 	}	
 
-	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema) throws NullPointerException, PreparationException, ContentException {
+	/**
+	 * <p>Build model by database metadata.</p>
+	 * @param dbDescription database decription. Can't be null
+	 * @param catalog database catalog or null
+	 * @param schema database schema. Can't be null
+	 * @return metadata built. Can't be null.
+	 * @throws NullPointerException on any parameter is null
+	 * @throws ContentException on any content errors
+	 * @see DatabaseMetaData
+	 * @since 0.0.4
+	 */
+	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema) throws NullPointerException, ContentException {
 		if (dbDescription == null) {
 			throw new NullPointerException("Database description can't be null");
 		}
@@ -397,7 +429,19 @@ public class ContentModelFactory {
 			}
 		}
 	}	
-	
+
+	/**
+	 * <p>Build model by database table metadata.</p>
+	 * @param dbDescription database decription. Can't be null
+	 * @param catalog database catalog or null
+	 * @param schema database schema. Can't be null
+	 * @param table database table. Can't be null
+	 * @return metadata built. Can't be null.
+	 * @throws NullPointerException on any parameter is null
+	 * @throws ContentException on any content errors
+	 * @see DatabaseMetaData
+	 * @since 0.0.4
+	 */
 	public static ContentMetadataInterface forDBContentDescription(final DatabaseMetaData dbDescription, final String catalog, final String schema, final String table) throws NullPointerException, PreparationException, ContentException {
 		if (dbDescription == null) {
 			throw new NullPointerException("Database description can't be null");
@@ -502,7 +546,16 @@ public class ContentModelFactory {
 		}
 	}
 
-	public static ContentMetadataInterface forQueryContentDescription(final ResultSetMetaData rsmd) throws NullPointerException, PreparationException, ContentException {
+	/**
+	 * <p>Build model by query content metadata.</p>
+	 * @param rsmd query content metadata. Can't be null
+	 * @return metadata built. Can't be null.
+	 * @throws NullPointerException on any parameter is null
+	 * @throws ContentException on any content errors
+	 * @see ResultSetMetaData
+	 * @since 0.0.4
+	 */
+	public static ContentMetadataInterface forQueryContentDescription(final ResultSetMetaData rsmd) throws NullPointerException, ContentException {
 		if (rsmd == null) {
 			throw new NullPointerException("Result set description can't be null");
 		}
@@ -556,6 +609,31 @@ public class ContentModelFactory {
 			}
 		}
 	}
+
+	/**
+	 * <p>Build model by JSON description.</p>
+	 * @param contentDescription JSON content. Can't be null
+	 * @return metadata built. Can't be null.
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IOException on any content errors
+	 * @since 0.0.5
+	 */
+	public static ContentMetadataInterface forJsonDescription(final Reader contentDescription) throws IOException, NullPointerException {
+		if (contentDescription == null) {
+			throw new NullPointerException("Content description reader can't be null");
+		}
+		else {
+			final JsonStaxParser				parser = new JsonStaxParser(contentDescription);
+			
+			parser.next();
+			
+			final MutableContentNodeMetadata	root = ModelUtils.deserializeFromJson(parser);
+			final SimpleContentMetadata			result = new SimpleContentMetadata(root); 
+			
+			root.setOwner(result);
+			return result;
+		}
+	}	
 	
 	public static <T> ContentMetadataInterface forSPIServiceTree(final Class<T> spiService) throws NullPointerException, PreparationException, ContentException {
 		if (spiService == null) {

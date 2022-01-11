@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
 import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.junit.Assert;
@@ -9,6 +11,7 @@ import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -1418,6 +1421,86 @@ public class CharUtilsTest {
 		}
 	}
 	
+	@Test
+	public void parseHexStringTest() throws NullPointerException, IllegalArgumentException, IOException {
+		final GrowableByteArray	gba = new GrowableByteArray(false);
+
+		gba.length(0);
+		Assert.assertEquals(7, CharUtils.parseHexString("09afAF'".toCharArray(), 0, '\'', false, gba));
+		Assert.assertArrayEquals(new byte[] {(byte)0x09, (byte)0xAF, (byte)0xAF}, gba.extract());
+
+		gba.length(0);
+		Assert.assertEquals(6, CharUtils.parseHexString("09afA'".toCharArray(), 0, '\'', false, gba));
+		Assert.assertArrayEquals(new byte[] {(byte)0x09, (byte)0xAF, (byte)0x0A}, gba.extract());
+
+		gba.length(0);
+		Assert.assertEquals(9, CharUtils.parseHexString("0\r9af\nAf'".toCharArray(), 0, '\'', true, gba));
+		Assert.assertArrayEquals(new byte[] {(byte)0x09, (byte)0xAF, (byte)0xAF}, gba.extract());
+		
+		try{CharUtils.parseHexString(null, 0, '\'', true, gba);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString(new char[0], 0, '\'', true, gba);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString("09afAF'".toCharArray(), 0, '\'', true, (GrowableByteArray)null);
+			Assert.fail("Mandatory exception was not detected (5-th argument is null)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{CharUtils.parseHexString("09afAF".toCharArray(), 0, '\'', true, gba);
+			Assert.fail("Mandatory exception was not detected (terminator is missing)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString("09\rafAF'".toCharArray(), 0, '\'', false, gba);
+			Assert.fail("Mandatory exception was not detected (CR/LF but processing disabled)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString("09*afAF'".toCharArray(), 0, '\'', false, gba);
+			Assert.fail("Mandatory exception was not detected (invalid char inside)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
+		ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+		Assert.assertEquals(7, CharUtils.parseHexString("09afAF'".toCharArray(), 0, '\'', false, baos));
+		Assert.assertArrayEquals(new byte[] {(byte)0x09, (byte)0xAF, (byte)0xAF}, baos.toByteArray());
+
+		baos = new ByteArrayOutputStream();
+		Assert.assertEquals(6, CharUtils.parseHexString("09afA'".toCharArray(), 0, '\'', false, baos));
+		Assert.assertArrayEquals(new byte[] {(byte)0x09, (byte)0xAF, (byte)0x0A}, baos.toByteArray());
+
+		baos = new ByteArrayOutputStream();
+		Assert.assertEquals(9, CharUtils.parseHexString("0\r9af\nAf'".toCharArray(), 0, '\'', true, baos));
+		Assert.assertArrayEquals(new byte[] {(byte)0x09, (byte)0xAF, (byte)0xAF}, baos.toByteArray());
+
+		try{CharUtils.parseHexString(null, 0, '\'', true, new ByteArrayOutputStream());
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString(new char[0], 0, '\'', true, new ByteArrayOutputStream());
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString("09afAF'".toCharArray(), 0, '\'', true, (ByteArrayOutputStream)null);
+			Assert.fail("Mandatory exception was not detected (5-th argument is null)");
+		} catch (NullPointerException exc) {
+		}
+		
+		try{CharUtils.parseHexString("09afAF".toCharArray(), 0, '\'', true, new ByteArrayOutputStream());
+			Assert.fail("Mandatory exception was not detected (terminator is missing)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString("09\rafAF'".toCharArray(), 0, '\'', false, new ByteArrayOutputStream());
+			Assert.fail("Mandatory exception was not detected (CR/LF but processing disabled)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.parseHexString("09*afAF'".toCharArray(), 0, '\'', false, new ByteArrayOutputStream());
+			Assert.fail("Mandatory exception was not detected (invalid char inside)");
+		} catch (IllegalArgumentException exc) {
+		}
+	}
 	
 	private static void innerTest(final CharSequence seq) {
 		Assert.assertEquals(11,seq.length());

@@ -11,10 +11,10 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.InputVerifier;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
-import javax.swing.plaf.basic.BasicArrowButton;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -32,6 +32,7 @@ import chav1961.purelib.json.FileKeeper;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.inner.InternalConstants;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -46,7 +47,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	private static final Class<?>[]		VALID_CLASSES = {File.class, FileSystemInterface.class, FileKeeper.class};
 	
 	private final ContentNodeMetadata	metadata;
-	private final BasicArrowButton		callSelect = new BasicArrowButton(BasicArrowButton.SOUTH);
+	private final JButton				callSelect = new JButton(InternalConstants.ICON_FOLDER);
 	private final Class<?>				contentClass;
 	private Object						currentValue, newValue;
 	private boolean						invalid = false;	
@@ -141,6 +142,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			
 			setName(name);
 			callSelect.setName(name+'/'+CHOOSER_NAME);
+			callSelect.setFocusable(false);
 			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}		

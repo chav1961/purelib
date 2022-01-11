@@ -2,6 +2,8 @@ package chav1961.purelib.basic;
 
 
 import java.awt.Color;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,6 +23,7 @@ import java.util.Set;
 
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 
 /**
  * <p>This class is an extension of the standard {@link Properties} class to support automatic substitutions and data type conversions 
@@ -91,6 +94,7 @@ public class SubstitutableProperties extends Properties {
 								}};
 
 	private final Properties	defaults;
+	private final LightWeightListenerList<PropertyChangeListener>	listeners = new LightWeightListenerList<>(PropertyChangeListener.class);
 	
 	/**
 	 * <p>Constructor if the class</p>
@@ -118,6 +122,15 @@ public class SubstitutableProperties extends Properties {
         return !super.containsKey(key) ? defaults.containsKey(key) : true;
     }
 
+    @Override
+    public synchronized Object put(final Object key, final Object value) {
+    	final Object	oldValue = super.put(key, value);
+    	final PropertyChangeEvent	e = new PropertyChangeEvent(this, key.toString(), oldValue, value);  
+    	
+    	listeners.fireEvent((l)->l.propertyChange(e));
+    	return oldValue;
+    }
+    
     /**
      * <p>Check all the keys presents in the properties</p>
      * @param keys keys to test. Can't be null
@@ -368,6 +381,36 @@ public class SubstitutableProperties extends Properties {
 		}
 		else {
 			throw new UnsupportedOperationException("Unsupported class ["+awaited+"] to convert");
+		}
+	}
+
+	/**
+	 * <p>Add property change listener</p> 
+	 * @param listener listener to add. Can't be null
+	 * @throws NullPointerException if listener is null
+     * @since 0.0.5
+	 */
+	public void addPropertyChangeListener(final PropertyChangeListener listener) throws NullPointerException {
+		if (listener == null) {
+			throw new NullPointerException("Listener to add can't be null");
+		}
+		else {
+			listeners.addListener(listener);
+		}
+	}
+	
+	/**
+	 * <p>Remove property change listener</p>
+	 * @param listener listener to remove. Can't be null
+	 * @throws NullPointerException if listener is null
+     * @since 0.0.5
+	 */
+	public void removePropertyChangeListener(final PropertyChangeListener listener) throws NullPointerException {
+		if (listener == null) {
+			throw new NullPointerException("Listener to remove can't be null");
+		}
+		else {
+			listeners.addListener(listener);
 		}
 	}
 	

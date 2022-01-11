@@ -2,6 +2,7 @@ package chav1961.purelib.sql;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -864,6 +865,7 @@ public class SQLUtils {
 				throw new ContentException("String ["+source.toString()+"] can't be converted to URL: "+e.getLocalizedMessage());
 			}
 		});
+		toMap.put(File.class,(source)->new File(source.toString()));
 		
 		return toMap;
 	}

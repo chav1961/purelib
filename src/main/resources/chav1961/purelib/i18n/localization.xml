@@ -300,6 +300,14 @@
 
 <!-- Useful classes localization  -->
 		<key name="JCloseButton.tt">Close window</key>
+
+<!-- JDBCUtils class localization -->
+		<key name="JDBCUtils.illegal.driver">Archive [%1$s] doesn't contain JDBC driver or driver doesn't support connection string typed [%2$s]</key>
+		<key name="JDBCUtils.database.error">Database error when create connection (%1$s)</key>
+		<key name="JDBCUtils.io.error">I/O error using JDBC driver (%1$s)</key>
+		<key name="JDBCUtils.validate.notAbsolute">Connection string URI must be absolute (must contain scheme)</key>
+		<key name="JDBCUtils.validate.notJDBC">Connection string URI must have scheme named 'jdbc'</key>
+		<key name="JDBCUtils.validate.subschemeMissing">Connection string URI doesn't contain sub-scheme for the database</key>
 		
 	</lang>
 	<lang name="ru">
@@ -602,6 +610,14 @@
 
 <!-- Локализация полезных классов -->
 		<key name="JCloseButton.tt">Закрыть окно</key>
+
+<!-- Локализация класса JDBCUtils -->
+		<key name="JDBCUtils.illegal.driver">Архив [%1$s] не содержит JDBC-драйвера или драйвер не поддерживает строку соединения [%2$s]</key>
+		<key name="JDBCUtils.database.error">Ошибка БД при создании соединения (%1$s)</key>
+		<key name="JDBCUtils.io.error">Ошибка ввода/вывода при работе с JDBC-драйвером (%1$s)</key>
+		<key name="JDBCUtils.validate.notAbsolute">URI строки соединения должен быть абсолютным (содержать имя схемы)</key>
+		<key name="JDBCUtils.validate.notJDBC">URI строки соединения должен иметь схему 'jdbc'</key>
+		<key name="JDBCUtils.validate.subschemeMissing">URI строки соединения не содержит подсхемы для конккретной базы данных</key>
 
 	</lang>
 </localization>

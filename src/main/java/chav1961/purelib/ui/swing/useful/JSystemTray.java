@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.AWTException;
 import java.awt.HeadlessException;
 import java.awt.Image;
@@ -13,7 +14,6 @@ import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -184,21 +184,21 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 	}
 
 	@Override
-	protected void toLogger(final Severity level, final String text, final Throwable throwable) {
+	protected synchronized void toLogger(final Severity level, final String text, final Throwable throwable) {
 		switch (level) {
 			case info	:
-				icon.displayMessage(applicationName, text, MessageType.INFO);
+				icon.displayMessage(getLocalizedString(applicationName), getLocalizedString(text), MessageType.INFO);
 				break;
 			case error	: case severe	:
-				icon.displayMessage(applicationName, text, MessageType.ERROR);
+				icon.displayMessage(getLocalizedString(applicationName), getLocalizedString(text), MessageType.ERROR);
 				break;
 			case tooltip:
 				break;
 			case debug	: case trace	:
-				icon.displayMessage(applicationName, text, MessageType.NONE);
+				icon.displayMessage(getLocalizedString(applicationName), getLocalizedString(text), MessageType.NONE);
 				break;
 			case warning:
-				icon.displayMessage(applicationName, text, MessageType.WARNING);
+				icon.displayMessage(getLocalizedString(applicationName), getLocalizedString(text), MessageType.WARNING);
 				break;
 			default	:
 				throw new UnsupportedOperationException("Severity level ["+level+"] is not supported yet");
@@ -291,6 +291,13 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 				return ContinueMode.STOP;
 			}
 		});
+	}
+
+	private String getLocalizedString(final String source) {
+		try{return localizer.getValue(source);
+		} catch (LocalizationException e) {
+			return source;
+		}
 	}
 	
 	private static String translateString(final String source) {

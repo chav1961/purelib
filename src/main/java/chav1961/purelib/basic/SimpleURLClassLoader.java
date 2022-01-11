@@ -15,6 +15,7 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
+ * @lastUpdate 0.0.5
  */
 public class SimpleURLClassLoader extends URLClassLoader {
 	public SimpleURLClassLoader(String name, URL[] urls, ClassLoader parent, URLStreamHandlerFactory factory) {
@@ -107,5 +108,10 @@ public class SimpleURLClassLoader extends URLClassLoader {
 				return createClass(className,baos.toByteArray());
 			}
 		}
+	}
+	
+	@Override
+	public void addURL(final URL url) {
+		super.addURL(url);
 	}
 }

@@ -51,6 +51,7 @@ module chav1961.purelib {
 	exports chav1961.purelib.sql.interfaces;
 	exports chav1961.purelib.sql.junit;
 	exports chav1961.purelib.sql.junit.interfaces;
+	exports chav1961.purelib.sql.model;
 	exports chav1961.purelib.sql.util;
 	exports chav1961.purelib.streams;
 	exports chav1961.purelib.streams.byte2byte;
@@ -102,4 +103,6 @@ module chav1961.purelib {
 	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with chav1961.purelib.ui.swing.useful.renderers.ItemAndSelectionRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.ReferenceAndCommentRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
+
+	uses java.sql.Driver;
 }

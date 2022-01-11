@@ -492,7 +492,7 @@ public class SwingUtilsTest {
 										}
 							
 										@Override
-										public RefreshMode onAction(final AnnotatedWithOnAction inst, final Object id, final String actionName, final Object parameter) throws FlowException, LocalizationException {
+										public RefreshMode onAction(final AnnotatedWithOnAction inst, final Object id, final String actionName, final Object... parameter) throws FlowException, LocalizationException {
 											inst.call3();
 											return RefreshMode.DEFAULT;
 										}

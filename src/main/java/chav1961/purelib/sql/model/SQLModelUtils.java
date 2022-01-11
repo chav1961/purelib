@@ -39,6 +39,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.json.JsonNode;
 import chav1961.purelib.json.JsonUtils;
+import chav1961.purelib.json.interfaces.JsonValueType;
 import chav1961.purelib.model.SchemaContainer;
 import chav1961.purelib.model.TableContainer;
 import chav1961.purelib.model.UniqueIdContainer;
@@ -865,13 +866,6 @@ public class SQLModelUtils {
 		protected PreparedStatement createStatement(final Connection conn, final String statement) {
 			return null;
 		}
-	}
-	
-	private static enum JsonValueType {
-		STRING,
-		INTEGER,
-		REAL,
-		BOOLEAN
 	}
 	
 	private static class ColumnAndType {

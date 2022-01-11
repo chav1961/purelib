@@ -3,6 +3,7 @@ package chav1961.purelib.basic;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
@@ -663,6 +665,157 @@ public class CharUtils {
 		}
 	}
 
+	/**
+	 * <p>Parse long hexadecimal string. Parses string content and converts it to byte stream.</p>
+	 * @param source source data contains character representation of the string value
+	 * @param from starting position in the source data. Starting position need points not to quota mark, but the first character in the string (see JUnit tests) 
+	 * @param terminal quota mark to use for the string binding (usually (") or (')) 
+	 * @param processLineFeed allows line feed and/or carriage return inside the string
+	 * @param result byte keeper to store parsed string
+	 * @return position of the first char in the source after successful parsing of the current string 
+	 * @throws NullPointerException when result is null 
+	 * @throws IllegalArgumentException if any parsing errors ware detected
+	 * @since 0.0.5 
+	 */
+	public static int parseHexString(final char[] source, final int from, final char terminal, final boolean processLineFeed, final GrowableByteArray result) throws NullPointerException, IllegalArgumentException{
+		int		len;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
+		}
+		else if (result == null) {
+			throw new NullPointerException("Result builder can't be null"); 
+		}
+		else {
+			byte	value = 0;
+			char	symbol;
+			int		charCount = 0, index;
+			
+loop:		for (index = from; index < len; index++) {
+				switch (symbol = source[index]) {
+					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
+						value = (byte) ((value << 4) | (symbol - '0'));
+						charCount++;
+						break;
+					case 'a' : case 'b' : case 'c' : case 'd' : case 'e' : case 'f' :
+						value = (byte) ((value << 4) | (symbol - 'a' + 10));
+						charCount++;
+						break;
+					case 'A' : case 'B' : case 'C' : case 'D' : case 'E' : case 'F' :
+						value = (byte) ((value << 4) | (symbol - 'A' + 10));
+						charCount++;
+						break;
+					case '\n' : case '\r' :
+						if (!processLineFeed) {
+							throw new IllegalArgumentException("CR/LF inside the string. Use processLineFeed=true"); 
+						}
+						else {
+							continue;
+						}
+					default :
+						if (symbol == terminal) {
+							break loop;
+						}
+						else {
+							throw new IllegalArgumentException("Invalid hex symbol [] at index "+index);
+						}
+				}
+				if ((charCount & 0x01) == 0) {
+					result.append(value);
+					value = 0;
+				}
+			}
+			if (index >= len) {
+				throw new IllegalArgumentException("Terminal char ["+terminal+"] not found inside string");
+			}
+			else {
+				if ((charCount & 0x01) != 0) {
+					result.append(value);
+				}
+				return index + 1;
+			}
+		}
+	}	
+	
+	/**
+	 * <p>Parse long hexadecimal string. Parses string content and converts it to byte stream.</p>
+	 * @param source source data contains character representation of the string value
+	 * @param from starting position in the source data. Starting position need points not to quota mark, but the first character in the string (see JUnit tests) 
+	 * @param terminal quota mark to use for the string binding (usually (") or (')) 
+	 * @param processLineFeed allows line feed and/or carriage return inside the string
+	 * @param result byte keeper to store parsed string
+	 * @return position of the first char in the source after successful parsing of the current string
+	 * @throws NullPointerException when result is null 
+	 * @throws IOException on any I/O errors
+	 * @throws IllegalArgumentException if any parsing errors ware detected
+	 * @since 0.0.5 
+	 */
+	public static int parseHexString(final char[] source, final int from, final char terminal, final boolean processLineFeed, final OutputStream result) throws IOException, NullPointerException, IllegalArgumentException{
+		int		len;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source data can't be null or empty array"); 
+		}
+		else if (from < 0 || from >= len) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
+		}
+		else if (result == null) {
+			throw new NullPointerException("Result builder can't be null"); 
+		}
+		else {
+			byte	value = 0;
+			char	symbol;
+			int		charCount = 0, index;
+			
+loop:		for (index = from; index < len; index++) {
+				switch (symbol = source[index]) {
+					case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
+						value = (byte) ((value << 4) | (symbol - '0'));
+						charCount++;
+						break;
+					case 'a' : case 'b' : case 'c' : case 'd' : case 'e' : case 'f' :
+						value = (byte) ((value << 4) | (symbol - 'a' + 10));
+						charCount++;
+						break;
+					case 'A' : case 'B' : case 'C' : case 'D' : case 'E' : case 'F' :
+						value = (byte) ((value << 4) | (symbol - 'A' + 10));
+						charCount++;
+						break;
+					case '\n' : case '\r' :
+						if (!processLineFeed) {
+							throw new IllegalArgumentException("CR/LF inside the string. Use processLineFeed=true"); 
+						}
+						else {
+							continue;
+						}
+					default :
+						if (symbol == terminal) {
+							break loop;
+						}
+						else {
+							throw new IllegalArgumentException("Invalid hex symbol [] at index "+index);
+						}
+				}
+				if ((charCount & 0x01) == 0) {
+					result.write(value);
+					value = 0;
+				}
+			}
+			if (index >= len) {
+				throw new IllegalArgumentException("Terminal char ["+terminal+"] not found inside string");
+			}
+			else {
+				if ((charCount & 0x01) != 0) {
+					result.write(value);
+				}
+				return index + 1;
+			}
+		}
+	}	
+	
 	/**
 	 * <p>Parse enumeration constants from the source</p>
 	 * @param <T> enumeration type

@@ -7,7 +7,8 @@ import java.util.Arrays;
 public enum SQLErrorType {
 	NOT_EXISTS(new ErrorDescriptor(DatabaseType.POSTGRESQL, "42P01", "3F000")),
 	PERMISSION(new ErrorDescriptor(DatabaseType.POSTGRESQL, "42501")),
-	OTHER;
+	OTHER,
+	SUCCESS;
 
 	private final ErrorDescriptor[]	desc;
 	

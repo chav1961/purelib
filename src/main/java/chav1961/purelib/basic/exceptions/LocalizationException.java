@@ -5,9 +5,9 @@ package chav1961.purelib.basic.exceptions;
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.5
  */
-public class LocalizationException extends EnvironmentException {
+public class LocalizationException extends PreparationException {
 	private static final long serialVersionUID = -1213036033104355164L;
 
 	/**

@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Locale;
 
 import javax.swing.ImageIcon;
@@ -31,10 +32,7 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 		this.type = type;
 		this.setName(metadata.getName());
 		this.setActionCommand(metadata.getApplicationPath() != null ? metadata.getApplicationPath().getSchemeSpecificPart() : "action:/"+metadata.getName());
-		try{fillLocalizedStrings();
-		} catch (IOException | LocalizationException e) {
-			e.printStackTrace();
-		}
+		fillLocalizedStrings();
 	}
 
 	@Override
@@ -44,17 +42,14 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-		try{fillLocalizedStrings();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		fillLocalizedStrings();
 	}
 
-	private void fillLocalizedStrings() throws LocalizationException, IOException {
+	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null) {
 			String	keyPrefix = "";
 
-			if (metadata.getOwner() != null) {
+			if (metadata.getOwner() != null && metadata.getApplicationPath() != null) {
 				for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
 					if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
 						keyPrefix = item.getLabelId()+": ";
@@ -66,19 +61,15 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 		}
 		switch (type) {
 			case BOTH			:
-				if (getNodeMetadata().getIcon() != null) {
-					setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
-				}
+				setIcon(loadImageIcon(getNodeMetadata().getIcon()));
 				setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
 				break;
 			case ICON_INLY		:
-				if (getNodeMetadata().getIcon() != null) {
-					setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
-				}
+				setIcon(loadImageIcon(getNodeMetadata().getIcon()));
 				break;
 			case ICON_THEN_TEXT	:
 				if (getNodeMetadata().getIcon() != null) {
-					setIcon(new ImageIcon(getNodeMetadata().getIcon().toURL()));
+					setIcon(loadImageIcon(getNodeMetadata().getIcon()));
 					break;
 				}
 				// break doesn't need!
@@ -87,6 +78,19 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 				break;
 			default:
 				throw new UnsupportedOperationException("LAF type ["+type+"] is not supported yet"); 
+		}
+	}
+	
+	private static ImageIcon loadImageIcon(final URI iconLocation) {
+		if (iconLocation == null) {
+			return null;
+		}
+		else {
+			try {
+				return new ImageIcon(iconLocation.toURL());
+			} catch (IOException exc) {
+				return null;
+			}
 		}
 	}
 }
