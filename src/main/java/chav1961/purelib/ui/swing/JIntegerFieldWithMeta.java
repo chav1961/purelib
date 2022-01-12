@@ -21,6 +21,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -83,13 +84,15 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 					try{SwingUtilities.invokeLater(()->{
 							if (!getValue().equals(currentValue)) {
 								try{monitor.process(MonitorEvent.Saving,metadata,JIntegerFieldWithMeta.this);
-								} catch (ContentException ex) {
+								} catch (ContentException exc) {
+									SwingUtils.getNearestLogger(JIntegerFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 								}
 								prepareFieldColor(currentValue = getValue(), format);
 							}
 						});
 						monitor.process(MonitorEvent.FocusLost,metadata,JIntegerFieldWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JIntegerFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
@@ -98,7 +101,9 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 					currentValue = getText();
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JIntegerFieldWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JIntegerFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 					SwingUtilities.invokeLater(()->{
 						if (getDocument().getLength() > 0) {
@@ -113,12 +118,15 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JIntegerFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JIntegerFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				} finally {
 					JIntegerFieldWithMeta.this.requestFocus();
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

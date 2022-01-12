@@ -20,6 +20,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -73,6 +74,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JEnumFieldWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JEnumFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
@@ -81,17 +83,22 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					currentValue = (Enum<?>) getSelectedItem();
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JEnumFieldWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JEnumFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JEnumFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JEnumFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

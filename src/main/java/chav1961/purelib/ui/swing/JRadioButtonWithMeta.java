@@ -13,6 +13,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -59,6 +60,7 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JRadioButtonWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JRadioButtonWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
@@ -67,17 +69,22 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 					currentValue = isSelected();
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JRadioButtonWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JRadioButtonWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JRadioButtonWithMeta.this)) {
-					assignValueToComponent(currentValue);
-				}
+						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
+					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JRadioButtonWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

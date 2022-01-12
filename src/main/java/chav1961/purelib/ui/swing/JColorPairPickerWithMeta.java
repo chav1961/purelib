@@ -23,6 +23,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -79,23 +80,29 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JColorPairPickerWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JColorPairPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
 					try{monitor.process(MonitorEvent.FocusGained,metadata,JColorPairPickerWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JColorPairPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JColorPairPickerWithMeta.this)) {
-					assignValueToComponent(currentValue);
-				}
+						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
+					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JColorPairPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

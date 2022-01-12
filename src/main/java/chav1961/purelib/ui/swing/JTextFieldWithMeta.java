@@ -20,6 +20,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -65,6 +66,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JTextFieldWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
@@ -72,7 +74,9 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				public void focusGained(final FocusEvent e) {
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JTextFieldWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 					SwingUtilities.invokeLater(()->{
 						if (format.needSelectOnFocus()) {
@@ -84,12 +88,15 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JTextFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				} finally {
 					JTextFieldWithMeta.this.requestFocus();
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

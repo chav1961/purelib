@@ -21,6 +21,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -82,14 +83,15 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 					try{SwingUtilities.invokeLater(()->{
 							if (currentValue != null && !currentValue.equals(getValue()) || currentValue == null) {
 								try{monitor.process(MonitorEvent.Saving,metadata,JNumericFieldWithMeta.this);
-								} catch (ContentException e1) {
-									e1.printStackTrace();
+								} catch (ContentException exc) {
+									SwingUtils.getNearestLogger(JNumericFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 								}
 								prepareFieldColor(currentValue = getValue(), format);
 							}
 						});
 						monitor.process(MonitorEvent.FocusLost,metadata,JNumericFieldWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JNumericFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
@@ -98,7 +100,9 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 					currentValue = getValue();
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JNumericFieldWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JNumericFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 					SwingUtilities.invokeLater(()->{
 						if (getDocument().getLength() > 0) {
@@ -113,12 +117,15 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JNumericFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JNumericFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				} finally {
 					JNumericFieldWithMeta.this.requestFocus();
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

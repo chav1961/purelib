@@ -20,6 +20,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -74,12 +75,14 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 						SwingUtilities.invokeLater(()->{
 							if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
 								try{monitor.process(MonitorEvent.Saving,metadata,JFormattedTextFieldWithMeta.this);
-								} catch (ContentException e1) {
+								} catch (ContentException exc) {
+									SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 								}
 							}
 						});
 						monitor.process(MonitorEvent.FocusLost,metadata,JFormattedTextFieldWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
@@ -87,7 +90,9 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 				public void focusGained(final FocusEvent e) {
 					try{
 						monitor.process(MonitorEvent.FocusGained,metadata,JFormattedTextFieldWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 					SwingUtilities.invokeLater(()->{
 						if (format.needSelectOnFocus()) {
@@ -99,12 +104,15 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JFormattedTextFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				} finally {
 					JFormattedTextFieldWithMeta.this.requestFocus();
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

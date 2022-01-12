@@ -27,6 +27,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
@@ -85,15 +86,17 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JDateFieldWithMeta.this);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JDateFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
 					currentValue = (Date) getValue();
-					try{
-						monitor.process(MonitorEvent.FocusGained,metadata,JDateFieldWithMeta.this);
+					try{monitor.process(MonitorEvent.FocusGained,metadata,JDateFieldWithMeta.this);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
+						SwingUtils.getNearestLogger(JDateFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 					SwingUtilities.invokeLater(()->{
 						if (format.needSelectOnFocus()) {
@@ -105,18 +108,22 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			addActionListener((e)->{
 				try{monitor.process(MonitorEvent.Action,metadata,JDateFieldWithMeta.this,e.getActionCommand());
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JDateFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				closeDropDown();
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JDateFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
+						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JDateFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				} finally {
 					JDateFieldWithMeta.this.requestFocus();
 				}
-			},"rollback-value");
+			}, SwingUtils.ACTION_ROLLBACK);
+			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
 				callSelect.doClick();
 			},"show-dropdown");

@@ -22,6 +22,8 @@ import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
+import java.awt.event.InputMethodEvent;
+import java.awt.event.InputMethodListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -55,6 +57,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -95,6 +98,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
+
+import com.sun.source.doctree.SinceTree;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.PureLibSettings;
@@ -178,6 +183,7 @@ public abstract class SwingUtils {
 	public static final String				ACTION_ACCEPT = "accept";
 	public static final String				ACTION_CLICK = "click";
 	public static final String				ACTION_EXIT = "exit";
+	public static final String				ACTION_ROLLBACK = "rollback-value";
 	public static final String				ACTION_HELP = "help";
 	public static final String				ACTION_CUT = "cut";
 	public static final String				ACTION_COPY = "copy";
@@ -935,6 +941,29 @@ loop:			for (Component comp : children(node)) {
 			component.getActionMap().remove(actionId);
 		}
 	}	
+	
+	/**
+	 * <p></p>
+	 * @param comp
+	 * @param onModified
+	 * @throws NullPointerException
+	 * @since  
+	 */
+	public static void assignModifiedListener(final JComponent comp, final Consumer<InputMethodEvent> onModified) throws NullPointerException {
+		if (comp == null) {
+			throw new NullPointerException("Component can't be null"); 
+		}
+		else if (onModified == null) {
+			throw new NullPointerException("OnModified callback can't be null"); 
+		}
+		else {
+			comp.addInputMethodListener(new InputMethodListener() {
+				@Override public void caretPositionChanged(InputMethodEvent event) {}
+				@Override public void inputMethodTextChanged(InputMethodEvent event) {onModified.accept(event);}
+			});
+		}
+	}
+	
 	
 	/**
 	 * <p>Center main window on the screen</p>
