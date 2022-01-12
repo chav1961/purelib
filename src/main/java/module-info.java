@@ -100,7 +100,8 @@ module chav1961.purelib {
 	provides java.nio.file.spi.FileSystemProvider with chav1961.purelib.fsys.PureLibFileSystemProvider;
 	
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
-	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with chav1961.purelib.ui.swing.useful.renderers.ItemAndSelectionRenderer
+	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with chav1961.purelib.ui.swing.useful.renderers.EnumRenderer
+			, chav1961.purelib.ui.swing.useful.renderers.ItemAndSelectionRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.ReferenceAndCommentRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
 

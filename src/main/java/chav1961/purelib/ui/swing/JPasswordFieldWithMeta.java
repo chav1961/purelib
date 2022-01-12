@@ -91,12 +91,12 @@ public class JPasswordFieldWithMeta extends JPasswordField implements NodeMetada
 					JPasswordFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
 					try{if (monitor.process(MonitorEvent.Validation,metadata,JPasswordFieldWithMeta.this)) {
 							newValue = (char[])getChangedValueFromComponent();
+							getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 							return true;
 						}
 						else {
@@ -221,6 +221,7 @@ public class JPasswordFieldWithMeta extends JPasswordField implements NodeMetada
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JPasswordFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

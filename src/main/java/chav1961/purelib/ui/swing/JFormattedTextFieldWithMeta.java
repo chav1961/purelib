@@ -112,12 +112,12 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 					JFormattedTextFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
 					try{if (monitor.process(MonitorEvent.Validation,metadata,JFormattedTextFieldWithMeta.this)) {
 							newValue = (String)getChangedValueFromComponent();
+							getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 							return true;
 						}
 						else {
@@ -241,6 +241,7 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

@@ -84,7 +84,7 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 					SwingUtils.getNearestLogger(JRadioButtonWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
+			addActionListener((e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -95,12 +95,12 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 				}
 			});
 			
-			if (InternalUtils.checkMandatory(metadata)) {
-				InternalUtils.prepareMandatoryColor(this);
-			}
-			else {
-				InternalUtils.prepareOptionalColor(this);
-			}
+//			if (InternalUtils.checkMandatory(metadata)) {
+//				InternalUtils.prepareMandatoryColor(this);
+//			}
+//			else {
+//				InternalUtils.prepareOptionalColor(this);
+//			}
 			if (metadata.getFormatAssociated() != null) {
 				if (metadata.getFormatAssociated().isReadOnly(false)) {
 					setEnabled(false);
@@ -201,6 +201,7 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = isSelected();
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JRadioButtonWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

@@ -84,7 +84,7 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 					SwingUtils.getNearestLogger(JCheckBoxWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
+			addActionListener((e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -95,12 +95,6 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 				}
 			});
 			
-			if (InternalUtils.checkMandatory(metadata)) {
-				InternalUtils.prepareMandatoryColor(this);
-			}
-			else {
-				InternalUtils.prepareOptionalColor(this);
-			}
 			if (metadata.getFormatAssociated() != null) {
 				if (metadata.getFormatAssociated().isReadOnly(false)) {
 					setEnabled(false);
@@ -206,6 +200,7 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = isSelected();
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JCheckBoxWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

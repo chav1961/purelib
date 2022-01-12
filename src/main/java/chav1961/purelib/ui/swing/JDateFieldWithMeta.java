@@ -22,7 +22,6 @@ import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.DateFormatter;
 import javax.swing.text.DefaultFormatterFactory;
 
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -107,6 +106,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			});
 			addActionListener((e)->{
 				try{monitor.process(MonitorEvent.Action,metadata,JDateFieldWithMeta.this,e.getActionCommand());
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 				} catch (ContentException exc) {
 					SwingUtils.getNearestLogger(JDateFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
@@ -123,7 +123,6 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 					JDateFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
 				callSelect.doClick();
 			},"show-dropdown");
@@ -300,7 +299,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			SwingUtilities.invokeLater(()->dsd.assignValueToComponent(getValueFromComponent()));
 		} catch (LocalizationException  e) {
 			closeDropDown();
-			e.printStackTrace();
+			throw e;
 		}
 	}
 
@@ -308,6 +307,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JDateFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 	

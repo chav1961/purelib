@@ -102,7 +102,6 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 					SwingUtils.getNearestLogger(JColorPairPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -251,8 +250,7 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	
 	private void selectColorF() {
 		try{assignValueToComponent(new ColorPair(chooseColor(localizer,currentValue.getForeground(),true),currentValue.getBackground()));
-		} catch (LocalizationException e) {
-			e.printStackTrace();
+			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
 		}
@@ -260,8 +258,7 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 
 	private void selectColorB() {
 		try{assignValueToComponent(new ColorPair(currentValue.getForeground(),chooseColor(localizer,currentValue.getBackground(),false)));
-		} catch (LocalizationException e) {
-			e.printStackTrace();
+			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
 		}
@@ -271,6 +268,7 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JColorPairPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

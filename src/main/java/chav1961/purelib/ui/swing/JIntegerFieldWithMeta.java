@@ -126,7 +126,6 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 					JIntegerFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -147,6 +146,9 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 						}
 						else if (value instanceof Long) {
 							InternalUtils.setFieldColor(JIntegerFieldWithMeta.this,format,(int)Math.signum(((Long)value).longValue()));
+						}
+						if (validated) {
+							getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 						}
 						return validated;
 					} catch (ContentException e) {
@@ -271,6 +273,7 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JIntegerFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 

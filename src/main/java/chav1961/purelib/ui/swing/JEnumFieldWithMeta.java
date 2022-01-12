@@ -18,6 +18,7 @@ import javax.swing.border.LineBorder;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -98,7 +99,6 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					SwingUtils.getNearestLogger(JEnumFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -108,8 +108,14 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					}
 				}
 			});
+
+			try {
+				setRenderer(SwingUtils.getCellRenderer(metadata, ListCellRenderer.class));
+			} catch (EnvironmentException e) {
+				throw new IllegalArgumentException("No rendered found for ["+metadata.getType().getCanonicalName()+"] in the list");
+			}
 			
-			setRenderer(new ListCellRenderer<Enum<?>>() {
+/*			setRenderer(new ListCellRenderer<Enum<?>>() {
 				@Override
 				public Component getListCellRendererComponent(final JList<? extends Enum<?>> list, final Enum<?> value, final int index, final boolean isSelected, final boolean cellHasFocus) {
 					if (value == null) {
@@ -142,7 +148,8 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					}
 				}
 			});
-			
+*/
+				
 			addActionListener((e)->{
 				if (getSelectedItem() != null && !getSelectedItem().equals(currentValue)) {
 					try{if (monitor.process(MonitorEvent.Validation,metadata,JEnumFieldWithMeta.this)) {
@@ -274,6 +281,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			}
 			currentValue = (Enum<?>) getSelectedItem();
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JEnumFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

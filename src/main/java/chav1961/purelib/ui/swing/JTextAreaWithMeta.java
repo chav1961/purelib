@@ -97,12 +97,12 @@ public class JTextAreaWithMeta extends JTextArea implements NodeMetadataOwner, L
 					JTextAreaWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
 					try{if (monitor.process(MonitorEvent.Validation,metadata,JTextAreaWithMeta.this)) {
 							newValue = (String)getChangedValueFromComponent();
+							getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 							return true;
 						}
 						else {
@@ -244,6 +244,7 @@ public class JTextAreaWithMeta extends JTextArea implements NodeMetadataOwner, L
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JTextAreaWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

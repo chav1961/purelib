@@ -943,29 +943,6 @@ loop:			for (Component comp : children(node)) {
 	}	
 	
 	/**
-	 * <p></p>
-	 * @param comp
-	 * @param onModified
-	 * @throws NullPointerException
-	 * @since  
-	 */
-	public static void assignModifiedListener(final JComponent comp, final Consumer<InputMethodEvent> onModified) throws NullPointerException {
-		if (comp == null) {
-			throw new NullPointerException("Component can't be null"); 
-		}
-		else if (onModified == null) {
-			throw new NullPointerException("OnModified callback can't be null"); 
-		}
-		else {
-			comp.addInputMethodListener(new InputMethodListener() {
-				@Override public void caretPositionChanged(InputMethodEvent event) {}
-				@Override public void inputMethodTextChanged(InputMethodEvent event) {onModified.accept(event);}
-			});
-		}
-	}
-	
-	
-	/**
 	 * <p>Center main window on the screen</p>
 	 * @param frame main window
 	 * @throws NullPointerException if frame is null

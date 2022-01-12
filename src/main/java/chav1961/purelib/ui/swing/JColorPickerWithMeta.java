@@ -101,7 +101,6 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 					SwingUtils.getNearestLogger(JColorPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
@@ -244,8 +243,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	
 	private void selectColor() {
 		try{assignValueToComponent(chooseColor(localizer,currentValue,false));
-		} catch (LocalizationException e) {
-			e.printStackTrace();
+			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
 		}
@@ -255,6 +253,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JColorPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 }

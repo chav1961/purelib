@@ -107,7 +107,6 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 					JFileFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
 				callSelect.doClick();
 			},"show-dropdown");
@@ -329,7 +328,8 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		try{for(String item : JFileSelectionDialog.select((Dialog)null, localizer, (FileSystemInterface)getValueFromComponent(), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
 				return ((FileSystemInterface)getValueFromComponent()).open(item);
 			}
-		} catch (IOException | LocalizationException e) {
+		} catch (IOException exc) {
+			SwingUtils.getNearestLogger(JFileFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
 		} 
 		return null;
 	}
@@ -350,6 +350,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				
 				if (result != null) {
 					assignValueToComponent(result);
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 				}
 			}
 			else if (getValueType().isAssignableFrom(FileKeeper.class)) {
@@ -357,6 +358,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				
 				if (result != null) {
 					assignValueToComponent(result);
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 				}
 			}
 			else {
@@ -364,10 +366,11 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				
 				if (result != null) {
 					assignValueToComponent(result);
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 				}
 			}
-		} catch (HeadlessException | LocalizationException e) {
-			e.printStackTrace();
+		} catch (HeadlessException exc) {
+			SwingUtils.getNearestLogger(JFileFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
 		} finally {
 			requestFocus();
 		}
@@ -377,6 +380,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JFileFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
 		}					
 	}
 }

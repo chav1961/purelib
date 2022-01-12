@@ -125,12 +125,14 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 					JNumericFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignModifiedListener(this, (e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
 					try{final boolean	validated = monitor.process(MonitorEvent.Validation,metadata,JNumericFieldWithMeta.this);
 
+						if (validated) {
+							getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
+						}
 						return validated;
 					} catch (ContentException e) {
 						return false;
@@ -254,6 +256,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JNumericFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
 	
