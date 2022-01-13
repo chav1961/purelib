@@ -47,6 +47,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.model.interfaces.ORMModelMapper;
 import chav1961.purelib.sql.InMemoryLittleBlob;
 import chav1961.purelib.sql.SQLUtils;
+import chav1961.purelib.sql.interfaces.InstanceManager;
 import chav1961.purelib.sql.interfaces.SQLErrorType;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
@@ -66,6 +67,110 @@ public class SQLModelUtils {
 		ASM_WRITER = null;
 	}
 
+	
+	public static <K,I> InstanceManager<K,I> createClassInstanceManagerByModel(final Connection conn, final ContentNodeMetadata clazz, final ContentNodeMetadata table) throws SQLException, NullPointerException {
+		return null;
+	}
+
+	public static <K,I> InstanceManager<K,I> createReadOnlyClassInstanceManagerByModel(final Connection conn, final ContentNodeMetadata clazz, final ContentNodeMetadata table) throws SQLException, NullPointerException {
+		return null;
+	}
+	
+	public static <K,I> InstanceManager<K,I> createMapInstanceManagerByModel(final Connection conn, final ContentNodeMetadata table) throws SQLException, NullPointerException {
+		return null;
+	}
+
+	public static InstanceManager<List<Map.Entry<String, Object>>, Map<String, Object>> createReadOnlyMapInstanceManagerByModel(final Connection conn, final ContentNodeMetadata table) throws SQLException, NullPointerException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null");
+		}
+		else if (table == null || !TableContainer.class.isAssignableFrom(table.getType())) {
+			throw new IllegalArgumentException("Model is null or doesn't reference to TableContainer class");
+		}
+		else {
+			final List<String>	keys = new ArrayList<>(), columns = new ArrayList<>();
+			final Set<String>	names = new HashSet<>();
+			
+			for (ContentNodeMetadata item : table) {
+				if (item.getName().endsWith("/pk")) {
+					keys.add(item.getName().substring(0,item.getName().length()-3));
+				}
+				else if (item.getFormatAssociated() != null && item.getFormatAssociated().isUsedInList()) {
+					columns.add(item.getName());
+					names.add(item.getName());
+				}
+			}
+			
+			return new InstanceManager<List<Map.Entry<String, Object>>, Map<String, Object>>(){
+				@Override
+				public Class<?> getInstanceType() {
+					return Map.class;
+				}
+
+				@Override
+				public Class<?> getKeyType() {
+					return List.class;
+				}
+
+				@Override
+				public boolean isReadOnly() {
+					return true;
+				}
+				
+				@Override
+				public Map<String, Object> newInstance() throws SQLException {
+					return new HashMap<>();
+				}
+
+				@Override
+				public List<Entry<String, Object>> newKey() throws SQLException {
+					throw new SQLException("Attempt to create key for read-only instance manager");
+				}
+
+				@Override
+				public List<Entry<String, Object>> getKey(final Map<String, Object> inst) throws SQLException {
+					final List<Entry<String, Object>> result = new ArrayList<>();
+					
+					for (Entry<String, Object> item : inst.entrySet()) {
+						if (names.contains(item.getKey())) {
+							result.add(item);
+						}
+					}
+					return result;
+				}
+
+				@Override
+				public Map<String, Object> clone(final Map<String, Object> inst) throws SQLException {
+					throw new SQLException("Attempt to clone instance for read-only instance manager");
+				}
+
+				@Override
+				public void loadInstance(final ResultSet rs, final Map<String, Object> inst) throws SQLException {
+					if (rs == null) {
+						throw new NullPointerException("Result set can't be null"); 
+					}
+					else if (inst == null) {
+						throw new NullPointerException("Instance can't be null"); 
+					}
+					else {
+						for (Entry<String, Object> item : inst.entrySet()) {
+							item.setValue(rs.getObject(item.getKey()));
+						}
+					}
+				}
+
+				@Override
+				public void storeInstance(final ResultSet rs, final Map<String, Object> inst) throws SQLException {
+					throw new SQLException("Attempt to store content for read-only instance manager");
+				}
+
+				@Override
+				public void close() throws SQLException {
+				}
+			};
+		}
+	}
+	
 	public static void createDatabaseByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException, NullPointerException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
@@ -22,12 +23,16 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.TableContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.interfaces.RecordFormManager.RecordAction;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.sql.interfaces.InstanceManager;
 
 public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements NodeMetadataOwner, LocaleChangeListener {
 	private static final long 			serialVersionUID = -6707307489832770493L;
+	private static final String			CONFIRM_DELETE_TITLE = "JDataBaseTableWithMeta.confirm.delete.title";
+	private static final String			CONFIRM_DELETE_MESSAGE = "JFileSelectionDialog.confirm.delete.message";
 	
 	private FormManager<K,Inst>			DEFAULT_FORM_MANAGER = new FormManager<>() {
 												@Override
@@ -46,6 +51,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	private final Localizer 			localizer;
 	private final InnerTableModel		model;
 	private FormManager<K,Inst>			mgr = null;
+	private InstanceManager<K,Inst>		instMgr = null;
 	
 	public JDataBaseTableWithMeta(final ContentNodeMetadata meta, final Localizer localizer) throws NullPointerException, IllegalArgumentException {
 		super(buildTableModel(meta, localizer), buildFreezedColumns(meta));
@@ -67,11 +73,81 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 					throw new IllegalArgumentException("No appropriative cell renderer for field ["+item.getName()+"] with type ["+item.getType().getCanonicalName()+"]: "+e.getLocalizedMessage());
 				}
 			}
+			SwingUtils.assignActionKey(this, SwingUtils.KS_INSERT, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_INSERT), SwingUtils.ACTION_INSERT);
+			SwingUtils.assignActionKey(this, SwingUtils.KS_DUPLICATE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DUPLICATE), SwingUtils.ACTION_DUPLICATE);;
+			SwingUtils.assignActionKey(this, SwingUtils.KS_DELETE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DELETE), SwingUtils.ACTION_DELETE);
 			
 			fillLocalizedStrings();
 		}
 	}
 
+	private void manipulate(final int row, final String action) {
+		try{switch (action) {
+				case SwingUtils.ACTION_INSERT 		:
+					insertRow(newRow());
+					break;
+				case SwingUtils.ACTION_DUPLICATE 	:
+					duplicateRow(model.rs.getRow(), loadRow(model.rs.getRow()));
+					break;
+				case SwingUtils.ACTION_DELETE		:
+					if (new JLocalizedOptionPane(localizer).confirm(this, CONFIRM_DELETE_MESSAGE, CONFIRM_DELETE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)  {
+						deleteRow(row);
+					}
+					break;
+				default :
+					throw new UnsupportedOperationException("Action ["+action+"] is not supported yet"); 
+			}
+		} catch (SQLException | FlowException e) {
+			SwingUtils.getNearestLogger(this).message(Severity.error, e,e.getLocalizedMessage());
+		} 
+	}
+
+	protected void insertRow(final Inst content) throws SQLException, FlowException {
+		final int	oldRow = model.rs.getRow();
+	
+		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, null) != RefreshMode.REJECT) {
+			model.rs.moveToInsertRow();
+			instMgr.storeInstance(model.rs, content);
+			model.rs.insertRow();
+			model.rs.moveToCurrentRow();
+			model.fireTableRowsInserted(0, 0);
+		}
+	}
+
+	private void duplicateRow(final int row, final Inst sourceRow) throws SQLException, FlowException {
+		// TODO Auto-generated method stub
+		final int	oldRow = model.rs.getRow();
+		final Inst	duplicatedRow = instMgr.clone(sourceRow);
+		
+		if (mgr == null || mgr.onRecord(RecordAction.DUPLICATE, sourceRow, instMgr.getKey(sourceRow), duplicatedRow, instMgr.getKey(duplicatedRow)) != RefreshMode.REJECT) {
+			model.rs.moveToInsertRow();
+			instMgr.storeInstance(model.rs, duplicatedRow);
+			model.rs.insertRow();
+			model.rs.moveToCurrentRow();
+			model.fireTableRowsInserted(0, 0);
+		}
+	}
+
+	protected void deleteRow(final int row) throws SQLException, FlowException {
+		final int	oldRow = model.rs.getRow();
+	
+		model.rs.absolute(row);
+		if (mgr == null || mgr.onRecord(RecordAction.DELETE, loadRow(row), null, null, null) != RefreshMode.REJECT) {
+			model.rs.deleteRow();
+			model.fireTableRowsDeleted(row, row);
+		}
+		model.rs.absolute(oldRow);
+	}
+
+	
+	protected Inst newRow() throws SQLException {
+		return instMgr.newInstance();
+	}
+	
+	protected Inst loadRow(final int row) throws SQLException {
+		return instMgr.loadInstance(model.rs);
+	}
+	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
@@ -83,10 +159,10 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	}
 
 	public void assignResultSetAndFormManager(final ResultSet rs) throws NullPointerException, IllegalArgumentException, SQLException {
-		assignResultSetAndFormManager(rs, DEFAULT_FORM_MANAGER);
+		assignResultSetAndFormManager(rs, DEFAULT_FORM_MANAGER, null);
 	}	
 	
-	public synchronized void assignResultSetAndFormManager(final ResultSet rs, final FormManager<K, Inst> mgr) throws NullPointerException, IllegalArgumentException, SQLException {
+	public synchronized void assignResultSetAndFormManager(final ResultSet rs, final FormManager<K, Inst> mgr, final InstanceManager<K, Inst> instMgr) throws NullPointerException, IllegalArgumentException, SQLException {
 		if (rs == null) {
 			throw new NullPointerException("Result set can't be null");
 		}
@@ -98,6 +174,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 		else {
 			this.mgr = mgr;
+			this.instMgr = instMgr;
 			
 			model.assignOwnerAndResultSet(this, rs);
 		}

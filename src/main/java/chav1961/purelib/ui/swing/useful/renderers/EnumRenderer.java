@@ -2,12 +2,14 @@ package chav1961.purelib.ui.swing.useful.renderers;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -83,12 +85,15 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 							
 								label.setText(localizer.getValue(res.value()));
 								label.setToolTipText(localizer.getValue(res.tooltip()));
+								if (!res.icon().isEmpty()) {
+									label.setIcon(new ImageIcon(URI.create(res.icon()).toURL()));
+								}
 							}
 							else {
 								label.setText(value.name());
 								label.setToolTipText(value.name());
 							}
-						} catch (NoSuchFieldException | LocalizationException e) {
+						} catch (NoSuchFieldException | LocalizationException | MalformedURLException e) {
 							label.setText(value.name());
 						}
 						return label;
