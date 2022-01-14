@@ -1,9 +1,13 @@
 package chav1961.purelib.ui.swing.useful.renderers;
 
 import java.awt.Component;
+import java.awt.Font;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Set;
 
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
@@ -11,16 +15,17 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 
-public class StringRenderer<R> implements SwingItemRenderer<String, R> {
+public class NumericRenderer<R> implements SwingItemRenderer<Number, R> {
 	private static final Set<Class<?>>	SUPPORTED_RENDERERDS = Set.of(TableCellRenderer.class, ListCellRenderer.class, TreeCellRenderer.class);
 	
-	public StringRenderer() {
+	public NumericRenderer() {
 	}
 
 	@Override
-	public boolean canServe(final Class<String> class2Render, final Class<R> rendererType, final Object... options) {
+	public boolean canServe(Class<Number> class2Render, Class<R> rendererType, Object... options) {
 		if (class2Render == null) {
 			throw new NullPointerException("Class to render descriptor can't be null"); 
 		}
@@ -28,10 +33,13 @@ public class StringRenderer<R> implements SwingItemRenderer<String, R> {
 			throw new NullPointerException("Renderer type can't be null"); 
 		}
 		else if (class2Render.isArray()) {
-			return canServe((Class<String>) class2Render.getComponentType(), rendererType, options);
+			return canServe((Class<Number>) class2Render.getComponentType(), rendererType, options);
+		}
+		else if (class2Render.isPrimitive()) {
+			return canServe((Class<Number>) CompilerUtils.toWrappedClass(class2Render), rendererType, options);
 		}
 		else {
-			return String.class.isAssignableFrom(class2Render) && SUPPORTED_RENDERERDS.contains(rendererType); 
+			return (Number.class.isAssignableFrom(class2Render) || BigInteger.class.isAssignableFrom(class2Render) || BigDecimal.class.isAssignableFrom(class2Render)) && SUPPORTED_RENDERERDS.contains(rendererType); 
 		}
 	}
 
@@ -56,7 +64,12 @@ public class StringRenderer<R> implements SwingItemRenderer<String, R> {
 
 				@Override
 				public Component getTableCellRendererComponent(JTable list, Object value, boolean isSelected, boolean cellHasFocus, int row, int column) {
-					return super.getTableCellRendererComponent(list, value, isSelected, cellHasFocus, row, column);
+					final JLabel	label = (JLabel)super.getTableCellRendererComponent(list, value, isSelected, cellHasFocus, row, column);
+					final Font		labelFont = label.getFont();
+					
+					label.setFont(new Font(labelFont.getName(), labelFont.getStyle() | Font.BOLD, labelFont.getSize()));
+					label.setHorizontalAlignment(JLabel.RIGHT);
+					return label;
 				}
 			};
 		}
@@ -64,4 +77,6 @@ public class StringRenderer<R> implements SwingItemRenderer<String, R> {
 			throw new UnsupportedOperationException("Required cell renderer ["+rendererType+"] is not supported yet");
 		}
 	}
+
+
 }

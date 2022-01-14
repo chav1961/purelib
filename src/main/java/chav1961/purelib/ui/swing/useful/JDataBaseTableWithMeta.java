@@ -3,8 +3,10 @@ package chav1961.purelib.ui.swing.useful;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -18,6 +20,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.TableContainer;
@@ -32,20 +35,7 @@ import chav1961.purelib.sql.interfaces.InstanceManager;
 public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements NodeMetadataOwner, LocaleChangeListener {
 	private static final long 			serialVersionUID = -6707307489832770493L;
 	private static final String			CONFIRM_DELETE_TITLE = "JDataBaseTableWithMeta.confirm.delete.title";
-	private static final String			CONFIRM_DELETE_MESSAGE = "JFileSelectionDialog.confirm.delete.message";
-	
-	private FormManager<K,Inst>			DEFAULT_FORM_MANAGER = new FormManager<>() {
-												@Override
-												public RefreshMode onField(final Inst inst, final K id, final String fieldName, final Object oldValue, final boolean beforeCommit) throws FlowException, LocalizationException {
-													return RefreshMode.DEFAULT;
-												}
-										
-												@Override
-												public LoggerFacade getLogger() {
-													return SwingUtils.getNearestLogger(JDataBaseTableWithMeta.this);
-												}
-											}; 
-	
+	private static final String			CONFIRM_DELETE_MESSAGE = "JDataBaseTableWithMeta.confirm.delete.message";
 	
 	private final ContentNodeMetadata	meta;
 	private final Localizer 			localizer;
@@ -55,7 +45,6 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	
 	public JDataBaseTableWithMeta(final ContentNodeMetadata meta, final Localizer localizer) throws NullPointerException, IllegalArgumentException {
 		super(buildTableModel(meta, localizer), buildFreezedColumns(meta));
-		// TODO Auto-generated constructor stub
 		if (meta == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
@@ -65,10 +54,10 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		else {
 			this.meta = meta;
 			this.localizer = localizer;
-			this.model = (InnerTableModel)getModel();
+			this.model = (InnerTableModel)getSourceModel();
 			
 			for (ContentNodeMetadata item : model.getMetaData()) {
-				try{this.setDefaultRenderer(item.getType(), SwingUtils.getCellRenderer(item, TableCellRenderer.class));
+				try{this.setDefaultRenderer(CompilerUtils.toWrappedClass(item.getType()), SwingUtils.getCellRenderer(item, TableCellRenderer.class));
 				} catch (EnvironmentException e) {
 					throw new IllegalArgumentException("No appropriative cell renderer for field ["+item.getName()+"] with type ["+item.getType().getCanonicalName()+"]: "+e.getLocalizedMessage());
 				}
@@ -81,73 +70,6 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 	}
 
-	private void manipulate(final int row, final String action) {
-		try{switch (action) {
-				case SwingUtils.ACTION_INSERT 		:
-					insertRow(newRow());
-					break;
-				case SwingUtils.ACTION_DUPLICATE 	:
-					duplicateRow(model.rs.getRow(), loadRow(model.rs.getRow()));
-					break;
-				case SwingUtils.ACTION_DELETE		:
-					if (new JLocalizedOptionPane(localizer).confirm(this, CONFIRM_DELETE_MESSAGE, CONFIRM_DELETE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)  {
-						deleteRow(row);
-					}
-					break;
-				default :
-					throw new UnsupportedOperationException("Action ["+action+"] is not supported yet"); 
-			}
-		} catch (SQLException | FlowException e) {
-			SwingUtils.getNearestLogger(this).message(Severity.error, e,e.getLocalizedMessage());
-		} 
-	}
-
-	protected void insertRow(final Inst content) throws SQLException, FlowException {
-		final int	oldRow = model.rs.getRow();
-	
-		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, null) != RefreshMode.REJECT) {
-			model.rs.moveToInsertRow();
-			instMgr.storeInstance(model.rs, content);
-			model.rs.insertRow();
-			model.rs.moveToCurrentRow();
-			model.fireTableRowsInserted(0, 0);
-		}
-	}
-
-	private void duplicateRow(final int row, final Inst sourceRow) throws SQLException, FlowException {
-		// TODO Auto-generated method stub
-		final int	oldRow = model.rs.getRow();
-		final Inst	duplicatedRow = instMgr.clone(sourceRow);
-		
-		if (mgr == null || mgr.onRecord(RecordAction.DUPLICATE, sourceRow, instMgr.getKey(sourceRow), duplicatedRow, instMgr.getKey(duplicatedRow)) != RefreshMode.REJECT) {
-			model.rs.moveToInsertRow();
-			instMgr.storeInstance(model.rs, duplicatedRow);
-			model.rs.insertRow();
-			model.rs.moveToCurrentRow();
-			model.fireTableRowsInserted(0, 0);
-		}
-	}
-
-	protected void deleteRow(final int row) throws SQLException, FlowException {
-		final int	oldRow = model.rs.getRow();
-	
-		model.rs.absolute(row);
-		if (mgr == null || mgr.onRecord(RecordAction.DELETE, loadRow(row), null, null, null) != RefreshMode.REJECT) {
-			model.rs.deleteRow();
-			model.fireTableRowsDeleted(row, row);
-		}
-		model.rs.absolute(oldRow);
-	}
-
-	
-	protected Inst newRow() throws SQLException {
-		return instMgr.newInstance();
-	}
-	
-	protected Inst loadRow(final int row) throws SQLException {
-		return instMgr.loadInstance(model.rs);
-	}
-	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
@@ -158,37 +80,120 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		return meta;
 	}
 
-	public void assignResultSetAndFormManager(final ResultSet rs) throws NullPointerException, IllegalArgumentException, SQLException {
-		assignResultSetAndFormManager(rs, DEFAULT_FORM_MANAGER, null);
-	}	
+	public synchronized void assignResultSet(final ResultSet rs) throws NullPointerException, IllegalArgumentException, SQLException {
+		if (rs == null) {
+			throw new NullPointerException("Result set can't be null");
+		}
+		else if (rs.getFetchDirection() == ResultSet.TYPE_FORWARD_ONLY) {
+			throw new IllegalArgumentException("Result set type is 'TYPE_FORWARD_ONLY'. This type is not supported for this call");
+		}
+		else {
+			this.mgr = null;
+			this.instMgr = null;
+			
+			model.assignOwner(this, rs, null, null);
+		}
+	}
 	
-	public synchronized void assignResultSetAndFormManager(final ResultSet rs, final FormManager<K, Inst> mgr, final InstanceManager<K, Inst> instMgr) throws NullPointerException, IllegalArgumentException, SQLException {
+	public synchronized void assignResultSetAndManagers(final ResultSet rs, final FormManager<K, Inst> mgr, final InstanceManager<K, Inst> instMgr) throws NullPointerException, IllegalArgumentException, SQLException {
 		if (rs == null) {
 			throw new NullPointerException("Result set can't be null");
 		}
 		else if (mgr == null) {
 			throw new NullPointerException("Form manager can't be null");
 		}
-		else if (rs.getFetchDirection() == ResultSet.FETCH_FORWARD) {
-			throw new IllegalArgumentException("Result set type is 'FETCH_FORWARD'. This type is not supported for this call");
+		else if (instMgr == null) {
+			throw new NullPointerException("Instance manager can't be null");
+		}
+		else if (rs.getFetchDirection() == ResultSet.TYPE_FORWARD_ONLY) {
+			throw new IllegalArgumentException("Result set type is 'TYPE_FORWARD_ONLY'. This type is not supported for this call");
 		}
 		else {
 			this.mgr = mgr;
 			this.instMgr = instMgr;
 			
-			model.assignOwnerAndResultSet(this, rs);
+			model.assignOwner(this, rs, mgr, instMgr);
 		}
 	}
 	
-	public synchronized void resetResultSetAndFormManager() {
+	public synchronized void resetResultSetAndManagers() {
 		mgr = null;
-		try{model.assignOwnerAndResultSet(null, null);
-			model.fireTableStructureChanged();
+		try{model.assignOwner(null, null, null, null);
 		} catch (SQLException exc) {
 			SwingUtils.getNearestLogger(this).message(Severity.error, exc.getLocalizedMessage());
 		}
 	}
+
+	protected void insertRow(final Inst content) throws SQLException, FlowException {
+		final int	oldRow = model.desc.rs.getRow();
+		
+		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, instMgr.extractKey(content)) != RefreshMode.REJECT) {
+			model.desc.rs.moveToInsertRow();
+			instMgr.storeInstance(model.desc.rs, content);
+			model.desc.rs.insertRow();
+			model.desc.rs.moveToCurrentRow();
+			model.fireTableDataChanged();
+		}
+	}
+
+	protected void duplicateRow(final int row, final Inst sourceRow) throws SQLException, FlowException {
+		final int	oldRow = model.desc.rs.getRow();
+		final Inst	duplicatedRow = instMgr.clone(sourceRow);
+		
+		if (mgr == null || mgr.onRecord(RecordAction.DUPLICATE, sourceRow, instMgr.extractKey(sourceRow), duplicatedRow, instMgr.extractKey(duplicatedRow)) != RefreshMode.REJECT) {
+			model.desc.rs.moveToInsertRow();
+			instMgr.storeInstance(model.desc.rs, duplicatedRow);
+			model.desc.rs.insertRow();
+			model.desc.rs.moveToCurrentRow();
+			model.fireTableDataChanged();
+		}
+	}
+
+	protected void deleteRow(final int row) throws SQLException, FlowException {
+		final int	oldRow = model.desc.rs.getRow();
+		final Inst	inst = loadRow(row);
 	
+		if (mgr == null || mgr.onRecord(RecordAction.DELETE, inst, instMgr.extractKey(inst), null, null) != RefreshMode.REJECT) {
+			model.desc.rs.deleteRow();
+			model.fireTableRowsDeleted(row, row);
+		}
+		model.desc.rs.absolute(oldRow);
+	}
+	
+	protected Inst newRow() throws SQLException {
+		return instMgr.newInstance();
+	}
+	
+	protected Inst loadRow(final int row) throws SQLException {
+		final Inst	inst = instMgr.newInstance();
+		
+		instMgr.loadInstance(model.desc.rs, inst);
+		return inst;
+	}
+	
+	private void manipulate(final int row, final String action) {
+		if (!model.rsIsReadOnly && instMgr != null) {
+			try{switch (action) {
+					case SwingUtils.ACTION_INSERT 		:
+						insertRow(newRow());
+						break;
+					case SwingUtils.ACTION_DUPLICATE 	:
+						duplicateRow(model.desc.rs.getRow(), loadRow(model.desc.rs.getRow()));
+						break;
+					case SwingUtils.ACTION_DELETE		:
+						if (new JLocalizedOptionPane(localizer).confirm(this, CONFIRM_DELETE_MESSAGE, CONFIRM_DELETE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)  {
+							deleteRow(row);
+						}
+						break;
+					default :
+						throw new UnsupportedOperationException("Action ["+action+"] is not supported yet"); 
+				}
+			} catch (SQLException | FlowException e) {
+				SwingUtils.getNearestLogger(this).message(Severity.error, e,e.getLocalizedMessage());
+			} 
+		}
+	}
+
 	private void fillLocalizedStrings() {
 		
 	}
@@ -202,10 +207,14 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 		else {
 			final List<ContentNodeMetadata>	result = new ArrayList<>();
+			final Set<String>				names = new HashSet<>();
 			
 			for (ContentNodeMetadata item : meta) {
-				if (item.getFormatAssociated() != null && item.getFormatAssociated().isAnchored()) {
+				if (!names.contains(item.getName())) {
+//				if (item.getFormatAssociated() != null && item.getFormatAssociated().isUsedInList()) {
 					result.add(item);
+					names.add(item.getName());
+//				}
 				}
 			}
 			return new InnerTableModel(result.toArray(new ContentNodeMetadata[result.size()]), localizer);
@@ -220,6 +229,12 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 				result.add(item.getName());
 			}
 		}
+		if (result.isEmpty()) {
+			for (ContentNodeMetadata item : meta) {
+				result.add(item.getLabelId());
+				break;
+			}
+		}
 		return result.toArray(new String[result.size()]);
 	}
 	
@@ -228,9 +243,10 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 
 		private final ContentNodeMetadata[]	metadata;
 		private final Localizer				localizer;
-		private ResultSet					rs = null;
+		private volatile ContentDesc		desc = null; 
+		private int							lastRowRead = -1;
+		private Object						lastRow;
 		private boolean						rsIsReadOnly = false;
-		private JComponent					owner = null;
 
 		private InnerTableModel(final ContentNodeMetadata[]	metadata, final Localizer localizer) {
 			this.metadata = metadata;
@@ -239,12 +255,12 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 
 		@Override
 		public int getRowCount() {
-			if (rs == null) {
+			if (desc == null || desc.rs == null) {
 				return 0;
 			}
 			else {
-				try{if (rs.last()) {
-						return rs.getRow();
+				try{if (desc.rs.last()) {
+						return desc.rs.getRow();
 					}
 					else {
 						return 0;
@@ -271,18 +287,23 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 
 		@Override
 		public Class<?> getColumnClass(final int columnIndex) {
-			return metadata[columnIndex].getType();
+			return CompilerUtils.toWrappedClass(metadata[columnIndex].getType());
 		}
 
 		@Override
 		public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-			return rs != null && !rsIsReadOnly && (metadata[columnIndex].getFormatAssociated() == null || !metadata[columnIndex].getFormatAssociated().isReadOnly(true));   
+			return desc.rs != null && !rsIsReadOnly && (metadata[columnIndex].getFormatAssociated() == null || !metadata[columnIndex].getFormatAssociated().isReadOnly(true));   
 		}
 
 		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			try{rs.absolute(rowIndex+1);
-				return rs.getObject(metadata[columnIndex].getName());
+		public Object getValueAt(final int rowIndex, final int columnIndex) {
+			try{if (lastRowRead != rowIndex + 1) {
+					desc.rs.absolute(lastRowRead = rowIndex + 1);
+					if (desc.instMgr != null) {
+						desc.instMgr.loadInstance(desc.rs, lastRow);
+					}
+				}
+				return desc.instMgr != null ? desc.instMgr.get(lastRow, metadata[columnIndex].getName()) : desc.rs.getObject(metadata[columnIndex].getName());
 			} catch (SQLException e) {
 				printError(e);
 				return null;
@@ -290,29 +311,63 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 
 		@Override
-		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-			// TODO Auto-generated method stub
-			
+		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
+			try{if (lastRowRead != rowIndex + 1) {
+					desc.rs.absolute(lastRowRead = rowIndex + 1);
+					desc.instMgr.loadInstance(desc.rs, lastRow);
+				}
+				final Object	oldValue = desc.instMgr.get(lastRow, metadata[columnIndex].getName());
+				
+				desc.instMgr.set(lastRow, metadata[columnIndex].getName(), aValue);
+				if (desc.mgr == null || desc.mgr.onField(lastRow, desc.instMgr.extractKey(lastRow), metadata[columnIndex].getName(), oldValue, true) != RefreshMode.REJECT) {
+					desc.instMgr.storeInstance(desc.rs, lastRow);
+					desc.rs.updateRow();
+					fireTableRowsUpdated(rowIndex, rowIndex);
+				}
+				else {
+					desc.instMgr.set(lastRow, metadata[columnIndex].getName(), oldValue);
+				}
+			} catch (SQLException | FlowException e) {
+				printError(e);
+			}
 		}
 
 		public ContentNodeMetadata[] getMetaData() {
 			return metadata;
 		}
 
-		public void assignOwnerAndResultSet(final JComponent owner, final ResultSet rs) throws SQLException {
-			this.owner = owner;
-			this.rs = rs;
+		public void assignOwner(final JComponent owner, final ResultSet rs, final FormManager mgr, final InstanceManager instMgr) throws SQLException {
+			this.lastRowRead = -1;
+			this.lastRow = instMgr != null ? instMgr.newInstance() : null;
 			this.rsIsReadOnly = rs != null && rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY;
+			this.desc = new ContentDesc(rs, mgr, instMgr, owner);
 			
 			fireTableStructureChanged();
+			fireTableDataChanged();
 		}
 		
-		private void printError(final SQLException exc) {
-			if (owner != null) {
-				SwingUtils.getNearestLogger(owner).message(Severity.error, exc.getLocalizedMessage());
+		private void printError(final Exception exc) {
+			if (desc.owner != null) {
+				SwingUtils.getNearestLogger(desc.owner).message(Severity.error, exc.getLocalizedMessage());
 			}
 			else {
 				PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc.getLocalizedMessage());
+			}
+		}
+		
+		static class ContentDesc {
+			final ResultSet			rs;
+			final FormManager		mgr;
+			final InstanceManager	instMgr;
+			final boolean			rsIsReadOnly;
+			final JComponent		owner;
+			
+			ContentDesc(final ResultSet rs, final FormManager mgr, final InstanceManager instMgr, final JComponent owner) throws SQLException {
+				this.rs = rs;
+				this.mgr = mgr;
+				this.instMgr = instMgr;
+				this.rsIsReadOnly = rs != null && rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY;
+				this.owner = owner;
 			}
 		}
 	}

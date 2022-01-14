@@ -25,7 +25,7 @@ import chav1961.purelib.basic.exceptions.DebuggingException;
  * <p>This class is used in JUnit tests.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public class TestingUtils {
 	public static PrintStream err() {
@@ -45,9 +45,7 @@ public class TestingUtils {
 	 * @throws DebuggingException on any errors
 	 */
 	public static Connection getTestConnection() throws DebuggingException {
-		try{Class.forName(PureLibSettings.instance().getProperty(PureLibSettings.TEST_CONNECTION_DRIVER));
-		
-			final URI			connString = URI.create(PureLibSettings.instance().getProperty(PureLibSettings.TEST_CONNECTION_URI));
+		try{final URI			connString = URI.create(PureLibSettings.instance().getProperty(PureLibSettings.TEST_CONNECTION_URI));
 
 			final Connection	conn = DriverManager.getConnection(connString.toString()
 								,PureLibSettings.instance().getProperty(PureLibSettings.TEST_CONNECTION_USER)
@@ -58,7 +56,7 @@ public class TestingUtils {
 				conn.setSchema(query.get("currentSchema")[0]);
 			}
 			return conn;
-		} catch (ClassNotFoundException | SQLException exc) {
+		} catch (SQLException exc) {
 			throw new DebuggingException("Test connection failed: ["+exc.getClass().getCanonicalName()+"]: "+exc.getLocalizedMessage());
 		}
 	}
@@ -150,9 +148,11 @@ public class TestingUtils {
 				try {
 					stmt.executeUpdate(item);
 				} catch (SQLException exc) {
+					conn.rollback();
 					allOK = false;
 				}
 			}
+			conn.commit();
 			return allOK;
 		} catch (SQLException e) {
 			throw new DebuggingException(e.getLocalizedMessage(),e);

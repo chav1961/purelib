@@ -25,7 +25,7 @@ public class SwingUnitTest {
 	private final Robot		robo;
 	private JComponent		lastFound = null;
 	
-	public SwingUnitTest(final Component root) throws NullPointerException, EnvironmentException {
+	public SwingUnitTest(final Component root) throws NullPointerException, DebuggingException {
 		if (root == null) {
 			throw new NullPointerException("Root component can't be null");
 		}
@@ -47,7 +47,7 @@ public class SwingUnitTest {
 				this.robo = new Robot();
 				this.robo.setAutoWaitForIdle(true);
 			} catch (AWTException e) {
-				throw new EnvironmentException("Can't create robot for the root component: "+e.getLocalizedMessage(),e);
+				throw new DebuggingException("Can't create robot for the root component: "+e.getLocalizedMessage(),e);
 			}
 		}
 	}

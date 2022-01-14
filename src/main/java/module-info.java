@@ -101,6 +101,7 @@ module chav1961.purelib {
 	
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with chav1961.purelib.ui.swing.useful.renderers.EnumRenderer
+			, chav1961.purelib.ui.swing.useful.renderers.NumericRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.ItemAndSelectionRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.ReferenceAndCommentRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.StringRenderer;

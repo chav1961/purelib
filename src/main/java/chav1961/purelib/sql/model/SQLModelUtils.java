@@ -93,7 +93,10 @@ public class SQLModelUtils {
 			
 			for (ContentNodeMetadata item : table) {
 				if (item.getName().endsWith("/pk")) {
-					keys.add(item.getName().substring(0,item.getName().length()-3));
+					final String	temp = item.getName().substring(0,item.getName().length()-3); 
+					
+					keys.add(temp);
+					names.add(temp);
 				}
 				else if (item.getFormatAssociated() != null && item.getFormatAssociated().isUsedInList()) {
 					columns.add(item.getName());
@@ -119,7 +122,12 @@ public class SQLModelUtils {
 				
 				@Override
 				public Map<String, Object> newInstance() throws SQLException {
-					return new HashMap<>();
+					final Map<String, Object>	result = new HashMap<>();
+					
+					for (String item : names) {
+						result.put(item, null);
+					}
+					return result;
 				}
 
 				@Override
@@ -128,15 +136,20 @@ public class SQLModelUtils {
 				}
 
 				@Override
-				public List<Entry<String, Object>> getKey(final Map<String, Object> inst) throws SQLException {
-					final List<Entry<String, Object>> result = new ArrayList<>();
-					
-					for (Entry<String, Object> item : inst.entrySet()) {
-						if (names.contains(item.getKey())) {
-							result.add(item);
-						}
+				public List<Entry<String, Object>> extractKey(final Map<String, Object> inst) throws SQLException {
+					if (inst == null) {
+						throw new NullPointerException("Instance can't be null"); 
 					}
-					return result;
+					else {
+						final List<Entry<String, Object>> result = new ArrayList<>();
+						
+						for (Entry<String, Object> item : inst.entrySet()) {
+							if (names.contains(item.getKey())) {
+								result.add(item);
+							}
+						}
+						return result;
+					}
 				}
 
 				@Override
@@ -166,6 +179,39 @@ public class SQLModelUtils {
 
 				@Override
 				public void close() throws SQLException {
+				}
+
+				@Override
+				public <T> T get(final Map<String, Object> inst, final String name) throws SQLException {
+					if (inst == null) {
+						throw new NullPointerException("Instance can't be null"); 
+					}
+					else if (name == null || name.isEmpty()) {
+						throw new IllegalArgumentException("Name can't be null or empty"); 
+					}
+					else if (!inst.containsKey(name)) {
+						throw new IllegalArgumentException("Name ["+name+"] is missing in the instance content"); 
+					}
+					else {
+						return (T) inst.get(name);
+					}
+				}
+
+				@Override
+				public <T> InstanceManager<List<Entry<String, Object>>, Map<String, Object>> set(final Map<String, Object> inst, final String name, final T value) throws SQLException {
+					if (inst == null) {
+						throw new NullPointerException("Instance can't be null"); 
+					}
+					else if (name == null || name.isEmpty()) {
+						throw new IllegalArgumentException("Name can't be null or empty"); 
+					}
+					else if (!inst.containsKey(name)) {
+						throw new IllegalArgumentException("Name ["+name+"] is missing in the instance content"); 
+					}
+					else {
+						inst.put(name, value);
+						return this;
+					}
 				}
 			};
 		}

@@ -28,6 +28,7 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * left of these is located at row header view in the scroll pane.</p>   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
+ * @lastUpdate 0.0.6
  */
 public class JFreezableTable extends JTable {
 	private static final long 			serialVersionUID = 5593084316211899679L;
@@ -99,7 +100,7 @@ public class JFreezableTable extends JTable {
 			
 			final StringBuilder	sb = new StringBuilder();
 			
-loop:			for (String item : columns2freeze) {
+loop:		for (String item : columns2freeze) {
 				for (int index = 0, maxIndex = model.getColumnCount(); index < maxIndex; index++) {
 					if (item.equals(model.getColumnName(index))) {
 						continue loop; 
@@ -147,6 +148,15 @@ loop:			for (String item : columns2freeze) {
 		if (leftBarExists()) {
 			leftBar.setModel(new LeftTableModel(dataModel,columns2Freeze));
 		}
+	}
+	
+	/**
+	 * <p>Get source table model passed into {@linkplain #setModel(TableModel)} method</p>
+	 * @return source table model. Can't be null
+	 * @since 0.0.6
+	 */
+	public TableModel getSourceModel() {
+		return ((RightTableModel)getModel()).nested;
 	}
 	
 	protected JTable getLeftBar() {
@@ -314,7 +324,7 @@ loop:			for (String item : columns2freeze) {
 				final int		count = nested.getColumnCount();
 				final int[]		columns = new int[freezedColumns.length];
 				
-	loop:			for (int index = 0, cursor = 0; index < count; index++) {
+loop:			for (int index = 0, cursor = 0; index < count; index++) {
 					final String	colName = nested.getColumnName(index);
 					
 					for (String item : freezedColumns) {

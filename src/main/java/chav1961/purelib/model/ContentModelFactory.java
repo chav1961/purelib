@@ -460,6 +460,14 @@ public class ContentModelFactory {
 		}
 		else {
 			final String						schemaAndTable = schema+"."+table; 
+
+			try(final ResultSet	rs = dbDescription.getTables(catalog, schema, table, new String[] {"TABLE"})) {
+				if (!rs.next()) {
+					throw new ContentException("Table ["+schema+'.'+table+"] is missing in the database");
+				}				
+			} catch (SQLException e) {
+				throw new ContentException("Table ["+schema+'.'+table+"]: "+e.getLocalizedMessage(), e);
+			}
 			
 			final MutableContentNodeMetadata	root = new MutableContentNodeMetadata(table
 													, TableContainer.class
