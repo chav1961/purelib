@@ -33,6 +33,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
  *    
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
+ * @lastUpdate 0.0.6
  */
 
 public interface LoggerFacade extends Closeable {
@@ -150,8 +151,11 @@ public interface LoggerFacade extends Closeable {
 	 * @param reducing reducing algorithm to set
 	 * @return self
 	 * @throws NullPointerException when redicing set is null
+	 * @lastUpdate 0.0.6
 	 */
-	LoggerFacade setReducing(Reducing... reducing) throws NullPointerException;
+	default LoggerFacade setReducing(Reducing... reducing) throws NullPointerException {
+		return setReducing(Set.of(reducing));
+	}
 	
 	/**
 	 * <p>Push current reducing algorithms and set them to new values. Uses as pair to {@link #popReducing()}</p>
@@ -168,8 +172,11 @@ public interface LoggerFacade extends Closeable {
 	 * @return self
 	 * @throws NullPointerException when any redicing is null
 	 * @see #popReducing()
+	 * @lastUpdate 0.0.6
 	 */
-	LoggerFacade pushReducing(Reducing... reducing) throws NullPointerException;
+	default LoggerFacade pushReducing(Reducing... reducing) throws NullPointerException {
+		return pushReducing(Set.of(reducing));
+	}
 	
 	/**
 	 * <p>Restore current reducing algorithms from the stack. Uses as pair to {@link #pushReducing(Set)}</p>

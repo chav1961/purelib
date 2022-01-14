@@ -9,16 +9,19 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import chav1961.purelib.basic.exceptions.PreparationException;
-import chav1961.purelib.i18n.AbstractLocalizer;
 
 /**
  * <p>This enumerations contains all locales currently supported by Pure Library</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
+
+@LocaleResourceLocation("i18n:xml:root://chav1961.purelib.i18n.interfaces.SupportedLanguages/chav1961/purelib/i18n/localization.xml")
 public enum SupportedLanguages {
+	@LocaleResource(value="en",tooltip="en.tt")
 	en(Locale.forLanguageTag("en")), 
+	@LocaleResource(value="ru",tooltip="ru.tt")
 	ru(Locale.forLanguageTag("ru"));
 	
 	private final Locale	locale;

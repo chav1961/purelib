@@ -13,9 +13,15 @@ import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,6 +32,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.concurrent.LightWeightListenerList;
@@ -241,7 +248,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							stack.add(0,localPopup);
 						}
 						else if (node instanceof JMenu) {
-							final Menu 	menu = new Menu(translateString(localizer.getValue(meta.getLabelId())));
+							final Menu 	menu = new Menu(translateString(localizer,meta.getLabelId()));
 							
 							if (stack.get(0) instanceof PopupMenu) {
 								((PopupMenu)stack.get(0)).add(menu);
@@ -255,7 +262,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							stack.add(0,menu);
 						}
 						else if (node instanceof JMenuItem) {
-							final MenuItem 	menu = new MenuItem(translateString(localizer.getValue(meta.getLabelId())));
+							final MenuItem 	menu = new MenuItem(translateString(localizer,meta.getLabelId()));
 
 							if (stack.get(0) instanceof PopupMenu) {
 								((PopupMenu)stack.get(0)).add(menu);
@@ -300,7 +307,17 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 	
-	private static String translateString(final String source) {
-		return source;
+	private static String translateString(final Localizer localizer, final String sourceKey) {
+		try{final String val = localizer.getValue(sourceKey);
+		
+			if (CharUtils.isASCIIOnly(val.toCharArray(), 0, val.length())) {
+				return val; 
+			}
+			else {
+				return localizer.getLocalValue(sourceKey, Locale.forLanguageTag("en"));
+			}
+		} catch (LocalizationException exc) {
+			return sourceKey;
+		}
 	}
 }

@@ -65,6 +65,7 @@ public class JDatabaseTableWithMetaTest {
 			ut.await();
 			ut.keys(KeyStroke.getKeyStroke("DOWN"),KeyStroke.getKeyStroke("RIGHT"));
 			
+			ut.await();
 			t.resetResultSetAndManagers();
 			f.setVisible(false);
 		} finally {

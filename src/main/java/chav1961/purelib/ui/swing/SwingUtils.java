@@ -2124,7 +2124,7 @@ loop:			for (Component comp : children(node)) {
 				
 				AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
 					final String						appPath = submenu.getNodeMetadata().getApplicationPath()+"?lang="+lang.name(); 
-					final MutableContentNodeMetadata	md = new MutableContentNodeMetadata(langName, String.class, "./"+langName, PureLibLocalizer.LOCALIZER_SCHEME_URI, lang.name(), null, null, null, URI.create(appPath), lang.getIconURI()) 
+					final MutableContentNodeMetadata	md = new MutableContentNodeMetadata(langName, String.class, "./"+langName, PureLibLocalizer.LOCALIZER_SCHEME_URI, lang.name(), lang.name()+".tt", null, null, URI.create(appPath), lang.getIconURI()) 
 																{{setOwner(node.getOwner());}};
 					final JRadioMenuItemWithMeta		radio = new JRadioMenuItemWithMeta(md);
 						

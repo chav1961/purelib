@@ -8,8 +8,11 @@
 		<key name="testSet4">uri(x.txt)</key>
 		<key name="testSet5">uri(y.txt)</key>
 
+<!-- SupportedLanguages enum keys  -->
 		<key name="en">en</key> 
+		<key name="en.tt">English</key> 
 		<key name="ru">ru</key> 
+		<key name="ru.tt">Russian</key> 
 
 <!-- SwingUtils keys  -->
 		<key name="SwingUtils.unknownAction.title">Unknown action!</key>
@@ -308,6 +311,10 @@
 		<key name="JDBCUtils.validate.notAbsolute">Connection string URI must be absolute (must contain scheme)</key>
 		<key name="JDBCUtils.validate.notJDBC">Connection string URI must have scheme named 'jdbc'</key>
 		<key name="JDBCUtils.validate.subschemeMissing">Connection string URI doesn't contain sub-scheme for the database</key>
+
+<!-- JDataBaseTableWithMeta class localization -->
+		<key name="JDataBaseTableWithMeta.confirm.delete.title">Confirm deletion</key>
+		<key name="JDataBaseTableWithMeta.confirm.delete.message">Are you sure to delete this row?</key>
 		
 	</lang>
 	<lang name="ru">
@@ -319,7 +326,9 @@
 		<key name="testSet5">uri(y.txt)</key>
 
 		<key name="en">en</key> 
+		<key name="en.tt">Английский</key> 
 		<key name="ru">ru</key> 
+		<key name="ru.tt">Русский</key> 
 
 <!-- Ключи класса SwingUtils  -->
 		<key name="SwingUtils.unknownAction.title">Неизвестное действие!</key>
@@ -618,6 +627,10 @@
 		<key name="JDBCUtils.validate.notAbsolute">URI строки соединения должен быть абсолютным (содержать имя схемы)</key>
 		<key name="JDBCUtils.validate.notJDBC">URI строки соединения должен иметь схему 'jdbc'</key>
 		<key name="JDBCUtils.validate.subschemeMissing">URI строки соединения не содержит подсхемы для конккретной базы данных</key>
+
+<!-- Локализация класса JDataBaseTableWithMeta -->
+		<key name="JDataBaseTableWithMeta.confirm.delete.title">Подтвердить удаление</key>
+		<key name="JDataBaseTableWithMeta.confirm.delete.message">Вы действительно хотите удалить эту строку?</key>
 
 	</lang>
 </localization>

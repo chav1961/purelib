@@ -56,16 +56,16 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			this.localizer = localizer;
 			this.model = (InnerTableModel)getSourceModel();
 			
-			for (ContentNodeMetadata item : model.getMetaData()) {
-				try{this.setDefaultRenderer(CompilerUtils.toWrappedClass(item.getType()), SwingUtils.getCellRenderer(item, TableCellRenderer.class));
-				} catch (EnvironmentException e) {
-					throw new IllegalArgumentException("No appropriative cell renderer for field ["+item.getName()+"] with type ["+item.getType().getCanonicalName()+"]: "+e.getLocalizedMessage());
-				}
-			}
+//			for (ContentNodeMetadata item : model.getMetaData()) {
+//				try{this.setDefaultRenderer(CompilerUtils.toWrappedClass(item.getType()), SwingUtils.getCellRenderer(item, TableCellRenderer.class));
+//				} catch (EnvironmentException e) {
+//					throw new IllegalArgumentException("No appropriative cell renderer for field ["+item.getName()+"] with type ["+item.getType().getCanonicalName()+"]: "+e.getLocalizedMessage());
+//				}
+//			}
 			SwingUtils.assignActionKey(this, SwingUtils.KS_INSERT, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_INSERT), SwingUtils.ACTION_INSERT);
 			SwingUtils.assignActionKey(this, SwingUtils.KS_DUPLICATE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DUPLICATE), SwingUtils.ACTION_DUPLICATE);;
 			SwingUtils.assignActionKey(this, SwingUtils.KS_DELETE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DELETE), SwingUtils.ACTION_DELETE);
-			
+			setAutoResizeMode(AUTO_RESIZE_OFF);
 			fillLocalizedStrings();
 		}
 	}

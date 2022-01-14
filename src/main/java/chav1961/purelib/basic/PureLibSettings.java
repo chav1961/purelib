@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URL;
@@ -36,6 +38,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.SpiService;
+import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -47,6 +50,7 @@ import chav1961.purelib.monitoring.MonitoringManager;
 import chav1961.purelib.monitoring.NanoServiceControl;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.content.ResultSetFactory;
+import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.ColorScheme;
 import chav1961.purelib.ui.swing.SwingUtils;
 
@@ -557,17 +561,22 @@ public final class PureLibSettings {
 	 * <p>Get description about Pure Library</p> 
 	 * @return html-typed description. Can't be null
 	 * @since 0.0.5
+	 * @lastUpdate 0.0.6
 	 */
 	public static String aboutPureLib() {
-		try(final InputStream 	is = PureLibSettings.class.getResourceAsStream("about.html");
-			final Reader		rdr = new InputStreamReader(is)) {
+		try(final InputStream 	is = PureLibSettings.class.getResourceAsStream("about.cre");
+			final Reader		rdr = new InputStreamReader(is);
+			final Writer		wr = new StringWriter()) {
 			
-			return Utils.fromResource(rdr);
+			try(final CreoleWriter	cwr = new CreoleWriter(wr, MarkupOutputFormat.XML2HTML)) {
+			
+				Utils.copyStream(rdr, cwr);
+			}
+			return wr.toString();
 		} catch (IOException e) {
 			return "I/O error reading 'about' information";
 		}
 	}
-	
 	
 	private static Color toRGB(final String rgb) {
 		if (!rgb.isEmpty()) {

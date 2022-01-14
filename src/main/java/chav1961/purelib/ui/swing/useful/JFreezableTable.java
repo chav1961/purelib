@@ -10,6 +10,8 @@ import java.awt.event.FocusListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -17,10 +19,16 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.concurrent.LightWeightListenerList;
+import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
  * <p>This class represents a {@linkplain JTable} child, that can <b>freeze</b> some of it's columns. Frozen columns don't scroll horizontally, and lefts
@@ -112,6 +120,7 @@ loop:		for (String item : columns2freeze) {
 				throw new IllegalArgumentException("Freezed coulmns ["+sb.substring(1)+"] are not known in the table model");
 			}
 			else {
+				prepareRenderers(this, model);
 				setModel(model);
 				addHierarchyListener((e)->{
 					if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
@@ -168,7 +177,11 @@ loop:		for (String item : columns2freeze) {
 	}
 
 	protected void createLeftBar(final JScrollPane scroll) {
-		leftBar = new JTable(new LeftTableModel(model,columns2Freeze));
+		final TableModel	leftModel = new LeftTableModel(model,columns2Freeze);
+		
+		leftBar = new JTable(leftModel);
+		prepareRenderers(leftBar, leftModel);
+		
         leftBar.setPreferredScrollableViewportSize(new Dimension(200,0));
 		scroll.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER,leftBar.getTableHeader());
 		scroll.setRowHeaderView(leftBar);
@@ -236,6 +249,21 @@ loop:		for (String item : columns2freeze) {
 		}
 	}
 
+	private static void prepareRenderers(final JTable table, final TableModel model) {
+		final Set<Class<?>>	processed = new HashSet<>();
+		
+		for (int index =  0, maxIndex = model.getColumnCount(); index < maxIndex; index++) {
+			final Class<?>	cl = CompilerUtils.toWrappedClass(model.getColumnClass(index));
+			
+			if (!processed.contains(cl)) {
+				try{table.setDefaultRenderer(cl, SwingUtils.getCellRenderer(cl, new FieldFormat(cl), TableCellRenderer.class));
+				} catch (EnvironmentException e) {
+					throw new IllegalArgumentException("No appropriative cell renderer for field ["+model.getColumnName(index)+"] with type ["+cl.getCanonicalName()+"]: "+e.getLocalizedMessage());
+				}
+			}
+		}
+	}
+	
 	private static abstract class SplittedTableModel implements TableModel {
 		private final LightWeightListenerList<TableModelListener>	ll = new LightWeightListenerList<>(TableModelListener.class);
 		

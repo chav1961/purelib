@@ -2468,6 +2468,15 @@ loop:		for (index = from; index < len; index++) {
 			return count;
 		}
 	}
+
+	public static boolean isASCIIOnly(final char[] source, final int from, final int to) {
+		for (int index = from; index < to; index++) {
+			if (source[index] > 127) {
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	/**
 	 * <p>This class describes LEvenstain distance and editor prescription for two strins.</p>

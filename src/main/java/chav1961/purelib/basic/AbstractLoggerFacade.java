@@ -197,22 +197,6 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 
 	@Override
-	public LoggerFacade setReducing(final Reducing... reducing) throws NullPointerException {
-		if (reducing == null) {
-			throw new NullPointerException("Reducing list can't be null");
-		}
-		else if (Utils.checkArrayContent4Nulls(reducing) >= 0) {
-			throw new NullPointerException("Nulls inside redicung list");
-		}
-		else {
-			final Set<Reducing>	set = new HashSet<>();
-			
-			set.addAll(Arrays.asList(reducing));
-			return setReducing(set);
-		}
-	}
-
-	@Override
 	public LoggerFacade pushReducing(final Set<Reducing> reducing) throws NullPointerException {
 		if (reducing == null) {
 			throw new NullPointerException("Reducing set can't be null");
@@ -223,19 +207,6 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 
-	@Override
-	public LoggerFacade pushReducing(final Reducing... reducing) throws NullPointerException {
-		if (reducing == null) {
-			throw new NullPointerException("Reducing list can't be null");
-		}
-		else {
-			final Set<Reducing>	set = new HashSet<>();
-			
-			set.addAll(Arrays.asList(reducing));
-			return pushReducing(set);
-		}
-	}
-	
 	@Override
 	public LoggerFacade popReducing() {
 		if (stack.size() <= 1) {

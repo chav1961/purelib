@@ -753,7 +753,7 @@ sw:				for(;;) {
 		}
 		else {
 			for (LocaleDescriptor item : LOCALES) {
-				iterator.process(SupportedLanguages.valueOf(item.getLanguage()),item.getDescription(),item.getIcon());
+				iterator.process(SupportedLanguages.valueOf(item.getLanguage()), item.getDescription(), item.getIcon());
 			}
 		}
 	}	

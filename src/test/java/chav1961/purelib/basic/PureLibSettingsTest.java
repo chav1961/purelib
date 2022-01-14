@@ -89,4 +89,8 @@ public class PureLibSettingsTest {
 //		}
 	}
 
+	@Test
+	public void aboutTest() throws IOException, SyntaxException, ContentException {
+		System.err.println(PureLibSettings.aboutPureLib());
+	}	
 }
