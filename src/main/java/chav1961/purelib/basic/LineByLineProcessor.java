@@ -90,7 +90,7 @@ public class LineByLineProcessor implements Closeable {
 		if (gca.length() > 0) {
 			for (int index = off, maxIndex = Math.min(cbuf.length,off+len); index < maxIndex; index++) {
 				if (cbuf[index] == '\n') {
-					gca.append(cbuf,off,index-off+1);
+					gca.append(cbuf,off,index+1);
 					processFromBuilder();
 					if (interruptProcessing) {
 						interruptProcessing = false;

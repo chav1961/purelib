@@ -303,6 +303,7 @@
 
 <!-- Useful classes localization  -->
 		<key name="JCloseButton.tt">Close window</key>
+		<key name="JMultiLineEditor.title">Text editor</key>
 
 <!-- JDBCUtils class localization -->
 		<key name="JDBCUtils.illegal.driver">Archive [%1$s] doesn't contain JDBC driver or driver doesn't support connection string typed [%2$s]</key>
@@ -619,6 +620,7 @@
 
 <!-- Локализация полезных классов -->
 		<key name="JCloseButton.tt">Закрыть окно</key>
+		<key name="JMultiLineEditor.title">Редактор текста</key>
 
 <!-- Локализация класса JDBCUtils -->
 		<key name="JDBCUtils.illegal.driver">Архив [%1$s] не содержит JDBC-драйвера или драйвер не поддерживает строку соединения [%2$s]</key>
