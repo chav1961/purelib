@@ -36,9 +36,9 @@ public interface ContentMetadataInterface {
 	 * <p>This interface describes a node in the model tree. This node implements {@linkplain Iterable} interface to get access for all children with for-each loop</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.4
+	 * @lastUpdate 0.0.6
 	 */
-	public interface ContentNodeMetadata extends Iterable<ContentNodeMetadata> {
+	public interface ContentNodeMetadata extends Iterable<ContentNodeMetadata>, Cloneable {
 		/**
 		 * <p>Get node name</p>
 		 * @return node name. Can't be null or empty

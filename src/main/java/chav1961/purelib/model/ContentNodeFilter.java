@@ -29,7 +29,7 @@ public class ContentNodeFilter implements ContentNodeMetadata {
 	 * @throws NullPointerException when any parameter is null 
 	 */
 	public ContentNodeFilter(final ContentNodeMetadata nested, final BlackAndWhiteListCallback whiteListCallback) throws NullPointerException {
-		this(nested,false,whiteListCallback,(n)->true,false);
+		this(nested,false,whiteListCallback,(n)->false,false);
 	}
 	
 	/**
@@ -216,10 +216,10 @@ public class ContentNodeFilter implements ContentNodeMetadata {
 			if (whiteListCallback.accept(item)) {
 				if (!blackListCallback.accept(item)) {
 					if (inherited) {
-						forContent.add(new ContentNodeFilter(metadata,mutable,whiteListCallback,blackListCallback,inherited));
+						forContent.add(whiteListCallback.convert(blackListCallback.convert(new ContentNodeFilter(metadata,mutable,whiteListCallback,blackListCallback,inherited), inherited, mutable), inherited, mutable));
 					}
 					else {
-						forContent.add(item);
+						forContent.add(whiteListCallback.convert(blackListCallback.convert(item, inherited, mutable), inherited, mutable));
 					}
 				}
 			}

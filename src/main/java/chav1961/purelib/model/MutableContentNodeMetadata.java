@@ -9,7 +9,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
-public class MutableContentNodeMetadata implements ContentNodeMetadata, Cloneable {
+public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private final List<ContentNodeMetadata>	children = new ArrayList<>();
 	private final String				name;
 	private final Class<?>				type;

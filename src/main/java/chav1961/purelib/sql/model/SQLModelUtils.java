@@ -173,7 +173,7 @@ public class SQLModelUtils {
 				}
 
 				@Override
-				public void storeInstance(final ResultSet rs, final Map<String, Object> inst) throws SQLException {
+				public void storeInstance(final ResultSet rs, final Map<String, Object> inst, final boolean update) throws SQLException {
 					throw new SQLException("Attempt to store content for read-only instance manager");
 				}
 

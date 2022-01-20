@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -27,7 +28,6 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
@@ -78,7 +78,7 @@ public class JFreezableTable extends JTable {
 											
 											@Override
 											public void keyPressed(KeyEvent e) {
-												if (e.getKeyCode() == KeyEvent.VK_LEFT && getColumnModel().getSelectedColumns()[0] == 0) {
+												if (e.getKeyCode() == KeyEvent.VK_LEFT && getColumnModel().getSelectedColumnCount() > 0 && getColumnModel().getSelectedColumns()[0] == 0) {
 													leftBar.getColumnModel().getSelectionModel().setSelectionInterval(leftBar.getColumnModel().getColumnCount()-1,leftBar.getColumnModel().getColumnCount()-1);
 													transferFocus = false;
 													leftBar.requestFocusInWindow();
@@ -167,7 +167,7 @@ loop:		for (String item : columns2freeze) {
 	public TableModel getSourceModel() {
 		return ((RightTableModel)getModel()).nested;
 	}
-	
+
 	protected JTable getLeftBar() {
 		return leftBar;
 	}
@@ -180,6 +180,13 @@ loop:		for (String item : columns2freeze) {
 		final TableModel	leftModel = new LeftTableModel(model,columns2Freeze);
 		
 		leftBar = new JTable(leftModel);
+		
+		for (KeyStroke item : getInputMap().keys()) {
+			leftBar.getInputMap().put(item, getInputMap().get(item));
+		}
+		for (Object item : getActionMap().keys()) {
+			leftBar.getActionMap().put(item, getActionMap().get(item));
+		}
 		prepareRenderers(leftBar, leftModel);
 		
         leftBar.setPreferredScrollableViewportSize(new Dimension(200,0));

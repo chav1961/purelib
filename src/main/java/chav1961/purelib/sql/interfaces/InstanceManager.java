@@ -81,9 +81,10 @@ public interface InstanceManager<Key, Inst> extends AutoCloseable {
 	 * <p>Update result set row with instance content.</p>
 	 * @param rs result set to update row. Can't be null
 	 * @param inst instance to update row from. Can't be null
+	 * @param update true if update, false if insert
 	 * @throws SQLException on any errors
 	 */
-	void storeInstance(ResultSet rs, Inst inst) throws SQLException;
+	void storeInstance(ResultSet rs, Inst inst, boolean update) throws SQLException;
 	
 	/**
 	 * <p>Get field value from instance.</p>

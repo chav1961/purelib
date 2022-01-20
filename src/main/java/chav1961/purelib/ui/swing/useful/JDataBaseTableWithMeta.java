@@ -56,12 +56,6 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			this.localizer = localizer;
 			this.model = (InnerTableModel)getSourceModel();
 			
-//			for (ContentNodeMetadata item : model.getMetaData()) {
-//				try{this.setDefaultRenderer(CompilerUtils.toWrappedClass(item.getType()), SwingUtils.getCellRenderer(item, TableCellRenderer.class));
-//				} catch (EnvironmentException e) {
-//					throw new IllegalArgumentException("No appropriative cell renderer for field ["+item.getName()+"] with type ["+item.getType().getCanonicalName()+"]: "+e.getLocalizedMessage());
-//				}
-//			}
 			SwingUtils.assignActionKey(this, SwingUtils.KS_INSERT, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_INSERT), SwingUtils.ACTION_INSERT);
 			SwingUtils.assignActionKey(this, SwingUtils.KS_DUPLICATE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DUPLICATE), SwingUtils.ACTION_DUPLICATE);;
 			SwingUtils.assignActionKey(this, SwingUtils.KS_DELETE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DELETE), SwingUtils.ACTION_DELETE);
@@ -125,11 +119,9 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	}
 
 	protected void insertRow(final Inst content) throws SQLException, FlowException {
-		final int	oldRow = model.desc.rs.getRow();
-		
-		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, instMgr.extractKey(content)) != RefreshMode.REJECT) {
+		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, instMgr.newKey()) != RefreshMode.REJECT) {
 			model.desc.rs.moveToInsertRow();
-			instMgr.storeInstance(model.desc.rs, content);
+			instMgr.storeInstance(model.desc.rs, content, false);
 			model.desc.rs.insertRow();
 			model.desc.rs.moveToCurrentRow();
 			model.fireTableDataChanged();
@@ -137,12 +129,11 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	}
 
 	protected void duplicateRow(final int row, final Inst sourceRow) throws SQLException, FlowException {
-		final int	oldRow = model.desc.rs.getRow();
 		final Inst	duplicatedRow = instMgr.clone(sourceRow);
 		
 		if (mgr == null || mgr.onRecord(RecordAction.DUPLICATE, sourceRow, instMgr.extractKey(sourceRow), duplicatedRow, instMgr.extractKey(duplicatedRow)) != RefreshMode.REJECT) {
 			model.desc.rs.moveToInsertRow();
-			instMgr.storeInstance(model.desc.rs, duplicatedRow);
+			instMgr.storeInstance(model.desc.rs, duplicatedRow, false);
 			model.desc.rs.insertRow();
 			model.desc.rs.moveToCurrentRow();
 			model.fireTableDataChanged();
@@ -150,14 +141,14 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	}
 
 	protected void deleteRow(final int row) throws SQLException, FlowException {
-		final int	oldRow = model.desc.rs.getRow();
+		model.desc.rs.absolute(row);
+		
 		final Inst	inst = loadRow(row);
 	
 		if (mgr == null || mgr.onRecord(RecordAction.DELETE, inst, instMgr.extractKey(inst), null, null) != RefreshMode.REJECT) {
 			model.desc.rs.deleteRow();
-			model.fireTableRowsDeleted(row, row);
+			model.fireTableDataChanged();
 		}
-		model.desc.rs.absolute(oldRow);
 	}
 	
 	protected Inst newRow() throws SQLException {
@@ -178,11 +169,16 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 						insertRow(newRow());
 						break;
 					case SwingUtils.ACTION_DUPLICATE 	:
-						duplicateRow(model.desc.rs.getRow(), loadRow(model.desc.rs.getRow()));
+						if (model.getRowCount() > 0) {
+							model.desc.rs.absolute(row + 1);
+							duplicateRow(model.desc.rs.getRow(), loadRow(model.desc.rs.getRow()));
+						}
 						break;
 					case SwingUtils.ACTION_DELETE		:
-						if (new JLocalizedOptionPane(localizer).confirm(this, CONFIRM_DELETE_MESSAGE, CONFIRM_DELETE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)  {
-							deleteRow(row);
+						if (model.getRowCount() > 0) {
+							if (new JLocalizedOptionPane(localizer).confirm(this, CONFIRM_DELETE_MESSAGE, CONFIRM_DELETE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)  {
+								deleteRow(row + 1);
+							}
 						}
 						break;
 					default :
@@ -244,7 +240,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		private final ContentNodeMetadata[]	metadata;
 		private final Localizer				localizer;
 		private volatile ContentDesc		desc = null; 
-		private int							lastRowRead = -1;
+		private volatile int				lastRowRead = -1;
 		private Object						lastRow;
 		private boolean						rsIsReadOnly = false;
 
@@ -316,16 +312,18 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 					desc.rs.absolute(lastRowRead = rowIndex + 1);
 					desc.instMgr.loadInstance(desc.rs, lastRow);
 				}
-				final Object	oldValue = desc.instMgr.get(lastRow, metadata[columnIndex].getName());
+				final String	fieldName = metadata[columnIndex].getName();
+				final Object	oldValue = desc.instMgr.get(lastRow, fieldName);
 				
-				desc.instMgr.set(lastRow, metadata[columnIndex].getName(), aValue);
+				desc.instMgr.set(lastRow, fieldName, aValue);
 				if (desc.mgr == null || desc.mgr.onField(lastRow, desc.instMgr.extractKey(lastRow), metadata[columnIndex].getName(), oldValue, true) != RefreshMode.REJECT) {
-					desc.instMgr.storeInstance(desc.rs, lastRow);
+					desc.rs.absolute(rowIndex + 1);
+					desc.instMgr.storeInstance(desc.rs, lastRow, true);
 					desc.rs.updateRow();
 					fireTableRowsUpdated(rowIndex, rowIndex);
 				}
 				else {
-					desc.instMgr.set(lastRow, metadata[columnIndex].getName(), oldValue);
+					desc.instMgr.set(lastRow, fieldName, oldValue);
 				}
 			} catch (SQLException | FlowException e) {
 				printError(e);

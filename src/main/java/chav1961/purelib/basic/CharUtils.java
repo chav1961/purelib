@@ -119,7 +119,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.6
  */
 
 public class CharUtils {
@@ -130,6 +130,8 @@ public class CharUtils {
 	public static final int			PREF_ANY = PREF_INT | PREF_LONG | PREF_FLOAT | PREF_DOUBLE;
 	public static final int			MAX_SUBST_DEPTH = 16;
 
+	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
+	private static final String		EMPTY_STRING = "";
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
@@ -1696,6 +1698,7 @@ loop:		for (index = from; index < len; index++) {
 	 * The only functionality it must support is get appropriative string value for string key requested.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.6
 	 */
 	@FunctionalInterface
 	public interface SubstitutionSource {
@@ -1705,6 +1708,53 @@ loop:		for (index = from; index < len; index++) {
 		 * @return value got. Can be null
 		 */
 		String getValue(String key);
+		
+		/**
+		 * <p>Test substitution has the given key</p>
+		 * @param key key to test
+		 * @return true if has
+		 * @since 0.0.6
+		 */
+		default boolean hasKey(String key) {
+			return true;
+		}
+
+		/**
+		 * <p>Build total substitution source from list of sources. It substitute values from the first sequential substitution, that returns true on call
+		 * {@linkplain #hasKey(String)} method. If no one returns true, return value will be empty string</p>   
+		 * @param list list of substitution sources. Can't be null or empty, and can't contains nulls inside
+		 * @return substitution source. Can't be null
+		 * @throws IllegalArgumentException when parameter list is null, empty or contains nulls inside 
+		 * @since 0.0.6
+		 */
+		static SubstitutionSource of(final SubstitutionSource... list) throws IllegalArgumentException {
+			if (list == null || list.length == 0 || Utils.checkArrayContent4Nulls(list) >= 0) {
+				throw new IllegalArgumentException("Substitution list is null, empty or contains nulls inside");
+			}
+			else {
+				return new SubstitutionSource() {
+					@Override
+					public String getValue(final String data) {
+						for (SubstitutionSource item : list) {
+							if (item.hasKey(data)) {
+								return item.getValue(data);
+							}
+						}
+						return EMPTY_STRING;
+					}
+					
+					@Override
+					public boolean hasKey(final String data) {
+						for (SubstitutionSource item : list) {
+							if (item.hasKey(data)) {
+								return true;
+							}
+						}
+						return false;
+					}
+				};
+			}
+		}
 	}
 	
 	/**
@@ -1712,6 +1762,7 @@ loop:		for (index = from; index < len; index++) {
 	 * The only functionality it must support is get appropriative char array value for char array key requested.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.6
 	 */
 	@FunctionalInterface
 	public interface CharSubstitutionSource {
@@ -1723,6 +1774,52 @@ loop:		for (index = from; index < len; index++) {
 		 * @return value got. Can be null
 		 */
 		char[] getValue(char[] data, int from, int to);
+		
+		/**
+		 * <p>Test substitution has the given key</p>
+		 * @return true if has
+		 * @since 0.0.6
+		 */
+		default boolean hasKey(char[] data, int from, int to) {
+			return true;
+		}
+
+		/**
+		 * <p>Build total substitution source from list of sources. It substitute values from the first sequential substitution, that returns true on call
+		 * {@linkplain #hasKey(char[], int, int)} method. If no one returns true, return value will be empty char[]</p>   
+		 * @param list list of substitution sources. Can't be null or empty, and can't contains nulls inside
+		 * @return substitution source. Can't be null
+		 * @throws IllegalArgumentException when parameter list is null, empty or contains nulls inside 
+		 * @since 0.0.6
+		 */
+		static CharSubstitutionSource of(final CharSubstitutionSource... list) throws IllegalArgumentException {
+			if (list == null || list.length == 0 || Utils.checkArrayContent4Nulls(list) >= 0) {
+				throw new IllegalArgumentException("Substitution list is null, empty or contains nulls inside");
+			}
+			else {
+				return new CharSubstitutionSource() {
+					@Override
+					public char[] getValue(final char[] data, final int from, final int to) {
+						for (CharSubstitutionSource item : list) {
+							if (item.hasKey(data, from, to)) {
+								return item.getValue(data, from, to);
+							}
+						}
+						return EMPTY_CHAR_ARRAY;
+					}
+					
+					@Override
+					public boolean hasKey(final char[] data, final int from, final int to) {
+						for (CharSubstitutionSource item : list) {
+							if (item.hasKey(data, from, to)) {
+								return true;
+							}
+						}
+						return false;
+					}
+				};
+			}
+		}
 	}
 	
 	/**
