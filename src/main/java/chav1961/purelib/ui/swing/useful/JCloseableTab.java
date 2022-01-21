@@ -11,7 +11,7 @@ import java.awt.event.MouseListener;
 import java.net.MalformedURLException;
 import java.util.Locale;
 
-import javax.swing.GrayFilter;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -27,6 +27,15 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
 
+/**
+ * <p>This class is a tab label with 'close' icon to use as tab label in the {@linkplain JTabbedPane} component. This tab label can also have a popup menu associated with it. To use 
+ * this class, create JCloseableTab instance, and then call {@linkplain #associate(JTabbedPane, Component)} or {@linkplain #associate(JTabbedPane, Component, JPopupMenu)} methods
+ * before place component into {@linkplain JTabbedPane}. When the 'close' icon will be clicked,  the tab will be removed from the {@linkplain JTabbedPane} automatically. 
+ * If tab removed implements {@linkplain AutoCloseable} interface, the {@linkplain AutoCloseable#close()} method will be called at removing.</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ * @lastUpate 0.0.6
+ */
 public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	private static final long 	serialVersionUID = -5601021193645267745L;
 	
@@ -45,7 +54,12 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	private JPopupMenu			popup = null;
 	private boolean				closeEnable = true;
 
-	public JCloseableTab(final Localizer localizer, final ContentNodeMetadata meta) throws LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param meta label model. Can't be null 
+	 */
+	public JCloseableTab(final Localizer localizer, final ContentNodeMetadata meta) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -68,8 +82,11 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 	
-	
-	public JCloseableTab(final Localizer localizer) throws LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 */
+	public JCloseableTab(final Localizer localizer) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -80,6 +97,13 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param image image at the left part of the label. Can't be null
+	 * @param horizontalAlignment label alignment. See {@linkplain JLabel} constants
+	 * @see JLabel
+	 */
 	public JCloseableTab(final Localizer localizer, final Icon image, final int horizontalAlignment) throws LocalizationException {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
@@ -93,7 +117,13 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 
-	public JCloseableTab(final Localizer localizer, final Icon image) throws LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param image image at the left part of the label. Can't be null
+	 * @see JLabel
+	 */
+	public JCloseableTab(final Localizer localizer, final Icon image) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -105,7 +135,15 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 
-	public JCloseableTab(final Localizer localizer, final String text, final Icon icon, final int horizontalAlignment) throws LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param text text in the label
+	 * @param image image at the left part of the label. Can't be null
+	 * @param horizontalAlignment label alignment. See {@linkplain JLabel} constants
+	 * @see JLabel
+	 */
+	public JCloseableTab(final Localizer localizer, final String text, final Icon image, final int horizontalAlignment) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -113,13 +151,20 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		else {
 			this.localizer = localizer;
 			this.text = text;
-			label.setIcon(icon);
+			label.setIcon(image);
 			label.setHorizontalAlignment(horizontalAlignment);
 			prepare("");
 		}
 	}
 
-	public JCloseableTab(final Localizer localizer, final String text, final int horizontalAlignment) throws LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param text text in the label
+	 * @param horizontalAlignment label alignment. See {@linkplain JLabel} constants
+	 * @see JLabel
+	 */
+	public JCloseableTab(final Localizer localizer, final String text, final int horizontalAlignment) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -132,7 +177,13 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 
-	public JCloseableTab(final Localizer localizer, final String text) throws LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param text text in the label
+	 * @see JLabel
+	 */
+	public JCloseableTab(final Localizer localizer, final String text) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -149,15 +200,21 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		fillLocalizedStrings(oldLocale,newLocale);
 	}
 
+	/**
+	 * <p>Change text in the label</p>
+	 * @param text new text
+	 */
 	public void setText(final String text) {
 		this.text = text;
-		try{if (localizer != null) {
-				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
-			}
-		} catch (LocalizationException e) {
+		if (localizer != null) {
+			fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 		}
 	}
 
+	/**
+	 * <p>Change icon in the label.</p>
+	 * @param icon new icon
+	 */
 	public void setIcon(final Icon icon) {
 		label.setIcon(icon);
 	}
@@ -170,7 +227,12 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			super.setToolTipText(text);
 		}
 	}
-	
+
+	/**
+	 * <p>Associate label with tab component and {@linkplain JTabbedPane} container</p>
+	 * @param container container where tab will be placed. Can't be null
+	 * @param tab tab component will be placed into the container. Can't be null
+	 */
 	public void associate(final JTabbedPane container, final Component tab) {
 		if (container == null) {
 			throw new NullPointerException("Tab container can't be null");
@@ -185,6 +247,12 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 
+	/**
+	 * <p>Associate label and popup menu with tab component and {@linkplain JTabbedPane} container</p>
+	 * @param container container where tab will be placed. Can't be null
+	 * @param tab tab component will be placed into the container. Can't be null
+	 * @param popup popup menu associated. Can't be null.
+	 */
 	public void associate(final JTabbedPane container, final Component tab, final JPopupMenu popup) {
 		if (container == null) {
 			throw new NullPointerException("Tab container can't be null");
@@ -199,18 +267,88 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.container = container;
 			this.tab = tab;
 			this.popup = popup;
-			SwingUtils.assignActionListeners(popup,tab);
 		}
 	}
-	
+
+	/**
+	 * <p>Enable/disable 'close' icon in the tab</p>
+	 * @param enable enable (true) or disable (false) icon
+	 */
 	public void setCloseEnable(final boolean enable) {
 		closeEnable = enable;
 	}
 
+	/**
+	 * <p>Is 'close' icon enabled</p>
+	 * @return true if yes
+	 */
 	public boolean isCloseEnable() {
 		return closeEnable;
 	}
 
+	/**
+	 * <p>Place component into {@linkplain JTabbedPane} and associate {@linkplain JCloseableTab} label with it</p> 
+	 * @param container container to place component into
+	 * @param labelId tab id (see {@linkplain JTabbedPane#addTab(String, Component)}). Can't be null or empty
+	 * @param tab component to place into container. Can't be null
+	 * @param label tab label. Can't be null
+	 * @see JTabbedPane#addTab(String, Component)
+	 * @since 0.0.6
+	 */
+	public static void placeComponentIntoTab(final JTabbedPane container, final String labelId, final Component tab, final JCloseableTab label) {
+		if (container == null) {
+			throw new NullPointerException("Container can't be null");
+		}
+		else if (labelId == null || labelId.isEmpty()) {
+			throw new IllegalArgumentException("Label id can't be null");
+		}
+		else if (tab == null) {
+			throw new NullPointerException("Tab component to add can't be null");
+		}
+		else if (label == null) {
+			throw new NullPointerException("Label can't be null");
+		}
+		else {
+			label.associate(container, tab);
+			container.addTab("",tab);
+			container.setTabComponentAt(container.getTabCount()-1,label);
+			container.setSelectedIndex(container.getTabCount()-1);
+		}
+	}
+
+	/**
+	 * <p>Place component into {@linkplain JTabbedPane} and associate {@linkplain JCloseableTab} label and popup menu with it</p> 
+	 * @param container container to place component into
+	 * @param labelId tab id (see {@linkplain JTabbedPane#addTab(String, Component)}). Can't be null or empty
+	 * @param tab component to place into container. Can't be null
+	 * @param label tab label. Can't be null
+	 * @param menu popup menu associated with label. Can't be null
+	 * @since 0.0.6
+	 */
+	public static void placeComponentIntoTab(final JTabbedPane container, final String labelId, final Component tab, final JCloseableTab label, final JPopupMenu menu) {
+		if (container == null) {
+			throw new NullPointerException("Container can't be null");
+		}
+		else if (labelId == null || labelId.isEmpty()) {
+			throw new IllegalArgumentException("Label id can't be null");
+		}
+		else if (tab == null) {
+			throw new NullPointerException("Tab component to add can't be null");
+		}
+		else if (label == null) {
+			throw new NullPointerException("Label can't be null");
+		}
+		else if (menu == null) {
+			throw new NullPointerException("Popup menu can't be null");
+		}
+		else {
+			label.associate(container, tab, menu);
+			container.addTab("",tab);
+			container.setTabComponentAt(container.getTabCount()-1,label);
+			container.setSelectedIndex(container.getTabCount()-1);
+		}
+	}
+	
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
