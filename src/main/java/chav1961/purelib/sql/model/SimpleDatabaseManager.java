@@ -1,17 +1,39 @@
-package chav1961.purelib.sql;
+package chav1961.purelib.sql.model;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.model.ModelUtils;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.model.SQLModelUtils.ConnectionGetter;
 import chav1961.purelib.sql.model.interfaces.DatabaseManagement;
+import chav1961.purelib.streams.JsonStaxParser;
 
 public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable {
-	private static final String		VERSION_TABLE = "dbVersion";
+	private static final String					VERSION_MODEL_URI = "model.json";
+	private static final ContentNodeMetadata	VERSION_MODEL;
+	private static final String					VERSION_TABLE = "dbversion";
+
+	static {
+		try(final InputStream		is = SimpleDatabaseManager.class.getResourceAsStream(VERSION_MODEL_URI);
+			final Reader			rdr = new InputStreamReader(is);
+			final JsonStaxParser	parser = new JsonStaxParser(null)) {
+
+			parser.next();
+			VERSION_MODEL = ModelUtils.deserializeFromJson(null);
+		} catch (IOException e) {
+			throw new PreparationException("Initialization of SimpleDatabaseManager class failed: "+e.getLocalizedMessage(), e);
+		}
+	}
 	
 	@FunctionalInterface
 	public interface DatabaseManagenetGetter<T extends Comparable<T>> {
@@ -62,7 +84,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 						}
 					}
 					else {
-						try{createDbVersionTable(conn);
+						try{createDbVersionTable(conn, VERSION_MODEL);
 							mgmt.onCreate(model);
 							storeCurrentDbVersion(conn, model, mgmt.modelVersion(model));
 						} catch (SQLException exc) {
@@ -80,7 +102,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		return null;
 	}
 	
-	private static void createDbVersionTable(final Connection conn) throws SQLException {
+	private static void createDbVersionTable(final Connection conn, final ContentNodeMetadata model) throws SQLException {
 		// TODO Auto-generated method stub
 		
 	}
