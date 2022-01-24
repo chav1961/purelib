@@ -7,18 +7,23 @@ import java.io.Reader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.function.Predicate;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.sql.model.SQLModelUtils.ConnectionGetter;
 import chav1961.purelib.sql.model.interfaces.DatabaseManagement;
 import chav1961.purelib.streams.JsonStaxParser;
 
-public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable {
+public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable, NodeMetadataOwner {
 	private static final String					VERSION_MODEL_URI = "model.json";
 	private static final ContentNodeMetadata	VERSION_MODEL;
 	private static final String					VERSION_TABLE = "dbversion";
@@ -36,16 +41,16 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 	
 	@FunctionalInterface
-	public interface DatabaseManagenetGetter<T extends Comparable<T>> {
+	public interface DatabaseManagementGetter<T extends Comparable<T>> {
 		DatabaseManagement<T> getManagementInterface(final Connection conn) throws SQLException;
 	}
 
 	private final LoggerFacade					logger;
 	private final ContentNodeMetadata 			model;
 	private final ConnectionGetter				connGetter;
-	private final DatabaseManagenetGetter<T>	mgmtGetter;
+	private final DatabaseManagementGetter<T>	mgmtGetter;
 	
-	public SimpleDatabaseManager(final LoggerFacade logger, final ContentNodeMetadata model, final ConnectionGetter connGetter, final DatabaseManagenetGetter<T> mgmtGetter) throws SQLException, ContentException {
+	public SimpleDatabaseManager(final LoggerFacade logger, final ContentNodeMetadata model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
 		if (logger == null) {
 			throw new NullPointerException("Logger can't be null"); 
 		}
@@ -72,21 +77,21 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 					
 					if (rs.next()) {
 						final ContentNodeMetadata	oldModel = loadLastDbVersion(conn);
-						final int					result = mgmt.modelVersion(model).compareTo(mgmt.modelVersion(oldModel));
+						final int					result = mgmt.getVersion(model).compareTo(mgmt.getVersion(oldModel));
 						
 						if (result > 0) {
-							mgmt.onUpgrade(mgmt.modelVersion(model), model, mgmt.modelVersion(oldModel), oldModel);
-							storeCurrentDbVersion(conn, model, mgmt.modelVersion(model));
+							mgmt.onUpgrade(mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
+							storeCurrentDbVersion(conn, model, mgmt.getVersion(model));
 						}
 						else if (result < 0) {
-							mgmt.onDowngrade(mgmt.modelVersion(model), model, mgmt.modelVersion(oldModel), oldModel);
-							storeCurrentDbVersion(conn, model, mgmt.modelVersion(model));
+							mgmt.onDowngrade(mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
+							storeCurrentDbVersion(conn, model, mgmt.getVersion(model));
 						}
 					}
 					else {
 						try{createDbVersionTable(conn, VERSION_MODEL);
 							mgmt.onCreate(model);
-							storeCurrentDbVersion(conn, model, mgmt.modelVersion(model));
+							storeCurrentDbVersion(conn, model, mgmt.getVersion(model));
 						} catch (SQLException exc) {
 							removeDbVersionTable(conn);
 						}
@@ -98,8 +103,47 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		}
 	}
 
-	public ConnectionGetter queryConnection() throws SQLException {
+	@Override
+	public void close() throws SQLException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ContentNodeMetadata getNodeMetadata() {
+		return model;
+	}
+	
+	public Connection getConnection() throws SQLException {
 		return null;
+	}
+	
+	public boolean validateDatabase() throws SQLException {
+		return true;
+	}
+	
+	public void backup(final ZipOutputStream zos) {
+		backup(zos, (e)->true);
+	}
+
+	public void backup(final ZipOutputStream zos, final Predicate<ContentNodeMetadata> pred) {
+		backup(zos, pred, ProgressIndicator.DUMMY);
+	}
+
+	public void backup(final ZipOutputStream zos, final Predicate<ContentNodeMetadata> pred, final ProgressIndicator progress) {
+		
+	}
+	
+	public void restore(final ZipInputStream zis) {
+		restore(zis, (e)->true);
+	}
+
+	public void restore(final ZipInputStream zis, final Predicate<ContentNodeMetadata> pred) {
+		restore(zis, pred, ProgressIndicator.DUMMY);
+	}
+
+	public void restore(final ZipInputStream zis, final Predicate<ContentNodeMetadata> pred, final ProgressIndicator progress) {
+		
 	}
 	
 	private static void createDbVersionTable(final Connection conn, final ContentNodeMetadata model) throws SQLException {
@@ -119,12 +163,6 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 
 	private static void removeDbVersionTable(final Connection conn) throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	public void close() throws SQLException {
 		// TODO Auto-generated method stub
 		
 	}
