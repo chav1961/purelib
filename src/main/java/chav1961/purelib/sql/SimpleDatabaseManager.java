@@ -7,8 +7,8 @@ import java.sql.SQLException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.sql.interfaces.DatabaseManagement;
 import chav1961.purelib.sql.model.SQLModelUtils.ConnectionGetter;
+import chav1961.purelib.sql.model.interfaces.DatabaseManagement;
 
 public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable {
 	private static final String		VERSION_TABLE = "dbVersion";

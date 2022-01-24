@@ -1,4 +1,4 @@
-package chav1961.purelib.sql.interfaces;
+package chav1961.purelib.sql.model.interfaces;
 
 import java.sql.SQLException;
 
