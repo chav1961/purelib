@@ -216,7 +216,7 @@ public class SQLModelUtils {
 			};
 		}
 	}
-	
+
 	public static void createDatabaseByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException, NullPointerException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
@@ -224,40 +224,64 @@ public class SQLModelUtils {
 		else if (root == null) {
 			throw new NullPointerException("Root metadata can't be null");
 		}
-		else if (root.getType() == SchemaContainer.class) {
-			createDatabaseSchemaByModel(conn, root);
-			for (ContentNodeMetadata item : root) {
-				createDatabaseByModel(conn, item);
-			}
-		}
-		else if (root.getType() == UniqueIdContainer.class) {
-			createDatabaseSequenceByModel(conn, root);
-		}
-		else if (root.getType() == TableContainer.class) {
-			createDatabaseTableByModel(conn, root);
+		else {
+			createDatabaseByModel(conn, root, root.getName());
 		}
 	}
 	
-	private static void createDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+	public static void createDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException, NullPointerException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null");
+		}
+		else if (root == null) {
+			throw new NullPointerException("Root metadata can't be null");
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema name can't be null or empty");
+		}
+		else if (root.getType() == SchemaContainer.class) {
+			createDatabaseSchemaByModel(conn, root, schema);
+			for (ContentNodeMetadata item : root) {
+				internalCreateDatabaseByModel(conn, item, root.getName());
+			}
+		}
+		else {
+			throw new IllegalArgumentException("Root metadata must have [SchemaContainer] type");
+		}
+	}
+
+	private static void internalCreateDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException, NullPointerException {
+		if (root.getType() == TableContainer.class) {
+			createDatabaseTableByModel(conn, root, schema);
+		}
+		else if (root.getType() == UniqueIdContainer.class) {
+			createDatabaseSequenceByModel(conn, root, schema);
+		}
+		else {
+			throw new IllegalArgumentException("Database metadata must have [TableContainer] or [UniqueIdContainer] types only");
+		}
+	}	
+	
+	private static void createDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate("create schema \""+root.getName()+"\"");
+			stmt.executeUpdate("create schema "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema));
 		} catch (SQLException exc) {
-			System.err.println("State="+exc.getSQLState());
 			throw exc;
 		}
 	}
 
-	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
 		final StringBuilder	sb = new StringBuilder();
 		final List<String>	primaryKeys = new ArrayList<>();
 		char	prefix = '(';
 		
-		sb.append("create table ").append(root.getName());
+		sb.append("create table ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(),schema));
 		
 		for (ContentNodeMetadata item : root) {
 			final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(item.getApplicationPath()));
 			
-			sb.append(prefix).append(item.getName()).append(' ').append(query.containsKey("type") ? query.get("type")[0] : "varchar(100)");
+			sb.append(prefix).append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(),item.getName(),schema))
+				.append(' ').append(query.containsKey("type") ? query.get("type")[0] : "varchar(100)");
 			if (query.containsKey("pkSeq")) {
 				primaryKeys.add(item.getName());
 			}
@@ -271,7 +295,7 @@ public class SQLModelUtils {
 			prefix = '(';
 			sb.append(", primary key ");
 			for (String item : primaryKeys) {
-				sb.append(prefix).append(item);
+				sb.append(prefix).append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(),item,schema));
 				prefix = ',';
 			}
 			sb.append(')');
@@ -284,12 +308,12 @@ public class SQLModelUtils {
 		}
 	}
 
-	private static void createDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+	private static void createDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
 		final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(root.getApplicationPath()));
 		final StringBuilder	sb = new StringBuilder();
 		final long			from, to;
 
-		sb.append("create sequence ").append(root.getName());
+		sb.append("create sequence ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(),schema));
 		if (query.containsKey("step")) {
 			sb.append(" increment by ").append(query.get("step")[0]);
 		}
@@ -308,30 +332,75 @@ public class SQLModelUtils {
 		}
 	}
 
-	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException, NullPointerException {
+	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final boolean removeSchema) throws SQLException, NullPointerException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
 		}
 		else if (root == null) {
 			throw new NullPointerException("Root metadata can't be null");
 		}
+		else {
+			removeDatabaseByModel(conn, root, root.getName(), removeSchema);
+		}
+	}	
+	
+	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final boolean removeSchema) throws SQLException, NullPointerException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null");
+		}
+		else if (root == null) {
+			throw new NullPointerException("Root metadata can't be null");
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema can't be null or empty");
+		}
 		else if (root.getType() == SchemaContainer.class) {
 			for (ContentNodeMetadata item : root) {
-				removeDatabaseByModel(conn, item);
+				internalRemoveDatabaseByModel(conn, item, schema, removeSchema);
 			}
-			removeDatabaseSchemaByModel(conn, root);
+			if (removeSchema) {
+				removeDatabaseSchemaByModel(conn, root, schema);
+			}
 		}
-		else if (root.getType() == UniqueIdContainer.class) {
-			removeDatabaseSequenceByModel(conn, root);
-		}
-		else if (root.getType() == TableContainer.class) {
-			removeDatabaseTableByModel(conn, root);
+		else {
+			throw new IllegalArgumentException("Root metadata must have [SchemaContainer] type");
 		}
 	}
 	
-	private static void removeDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+	public static String buildSelectAllStatementByModel(final Connection conn, final ContentNodeMetadata meta, final String schema) throws SQLException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null"); 
+		}
+		else if (meta == null) {
+			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema can't be null or empty"); 
+		}
+		else if (meta.getType() != TableContainer.class) {
+			throw new IllegalArgumentException("Metadata must have [TableContainer] type"); 
+		}
+		else {
+			return "select * from "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), meta.getName(), schema);
+		}
+	}
+	
+	
+	private static void internalRemoveDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final boolean removeSchema) throws SQLException, NullPointerException {
+		if (root.getType() == UniqueIdContainer.class) {
+			removeDatabaseSequenceByModel(conn, root, schema);
+		}
+		else if (root.getType() == TableContainer.class) {
+			removeDatabaseTableByModel(conn, root, schema);
+		}
+		else {
+			throw new IllegalArgumentException("Database metadata must have [TableContainer] or [UniqueIdContainer] types only");
+		}
+	}
+	
+	private static void removeDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate("drop schema \""+root.getName()+"\" cascade");
+			stmt.executeUpdate("drop schema "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema)+" cascade");
 		} catch (SQLException exc) {
 			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
 				throw exc;
@@ -339,10 +408,10 @@ public class SQLModelUtils {
 		}
 	}
 
-	private static void removeDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+	private static void removeDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
 		final StringBuilder	sb = new StringBuilder();
 		
-		sb.append("drop table ").append(root.getName()).append(" cascade");
+		sb.append("drop table ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema)).append(" cascade");
 		
 		try(final Statement	stmt = conn.createStatement()) {
 			stmt.executeUpdate(sb.toString());
@@ -353,9 +422,9 @@ public class SQLModelUtils {
 		}
 	}
 
-	private static void removeDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException {
+	private static void removeDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate("drop sequence "+root.getName());
+			stmt.executeUpdate("drop sequence "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema));
 		} catch (SQLException exc) {
 			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
 				throw exc;
@@ -829,6 +898,17 @@ public class SQLModelUtils {
 		// TODO Auto-generated method stub
 		
 	}
+
+	private static String replaceSchemaAndEscape(final String quote, final String source, final String newSchema) throws SQLException {
+		final int		dotIndex = source.indexOf('.'); 
+		
+		if (dotIndex > 0) {
+			return quote + newSchema + quote + '.' + quote + source.substring(dotIndex+1) + quote; 
+		}
+		else {
+			return quote + source + quote;
+		}
+	}
 	
 	@FunctionalInterface
 	public interface ConnectionGetter {
@@ -947,7 +1027,7 @@ public class SQLModelUtils {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	static class ORMModelMapperImpl<Key, Data> implements ORMModelMapper<Key, Data> {
 		private final LightWeightRWLockerWrapper	wrapper = new LightWeightRWLockerWrapper();
 		private final String						insertStmt, readStmt, updateStmt, deleteStmt;
