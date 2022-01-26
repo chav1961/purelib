@@ -1016,7 +1016,8 @@ public class SQLUtils {
 		toMap.put(Clob.class,(source)->{return new InMemoryLittleClob(String.valueOf(((Long)source).longValue()));});
 		toMap.put(NClob.class,(source)->{return new InMemoryLittleNClob(String.valueOf(((Long)source).longValue()));});
 		toMap.put(String.class,(source)->{return String.valueOf(((Long)source).longValue());});
-		toMap.put(Date.class,(source)->{return new Date(((Long)source).longValue());});
+		toMap.put(java.util.Date.class,(source)->{return new java.util.Date(((Long)source).longValue());});
+		toMap.put(java.sql.Date.class,(source)->{return new java.sql.Date(((Long)source).longValue());});
 		toMap.put(Time.class,(source)->{return new Time(((Long)source).longValue());});
 		toMap.put(Timestamp.class,(source)->{return new Timestamp(((Long)source).longValue());});
 		toMap.put(Array.class,(source)->{
