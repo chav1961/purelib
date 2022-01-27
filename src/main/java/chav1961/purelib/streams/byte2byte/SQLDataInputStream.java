@@ -227,7 +227,7 @@ public class SQLDataInputStream extends InputStream implements DataInput {
 		if (contentType == Types.CHAR) {
 			final byte[]	buffer = new byte[(int) readBytes(4)];
 			
-			if (nested.read(buffer) < buffer.length) {
+			if (read(buffer) < buffer.length) {
 				throw new EOFException("End of file while reading"); 
 			}
 			else {
@@ -313,7 +313,7 @@ public class SQLDataInputStream extends InputStream implements DataInput {
 		if (contentType == Types.CHAR || contentType == Types.VARCHAR || contentType == Types.LONGVARCHAR || contentType == Types.NVARCHAR || contentType == Types.LONGVARCHAR) {
 			final byte[]	buffer = new byte[(int) readBytes(4)];
 			
-			if (nested.read(buffer) != buffer.length) {
+			if (read(buffer) != buffer.length) {
 				throw new EOFException("EOF while reading string content"); 
 			}
 			else {
@@ -329,7 +329,7 @@ public class SQLDataInputStream extends InputStream implements DataInput {
 		final byte[] buffer = this.temp;
 		
 		synchronized (buffer) {
-			if (nested.read(buffer,0,contentSize) < contentSize) {
+			if (read(buffer,0,contentSize) < contentSize) {
 				throw new EOFException("End of file while reading input stream");
 			}
 			else {
@@ -365,16 +365,24 @@ public class SQLDataInputStream extends InputStream implements DataInput {
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
+	byte[] readRaw() throws IOException {
+		final int		size = (int)readBytes(4);
+		final byte[]	buffer = new byte[size];
+
+		if (read(buffer) < size) {
+			throw new EOFException("End of file while reading input stream");
+		}
+		else {
+			return buffer;
+		}
+	}
+	
 	String readString() throws IOException {
-		final byte[]	buffer = readRaw();
-		
-		return new String(buffer, PureLibSettings.DEFAULT_CONTENT_ENCODING);
+		return new String(readRaw(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
 	}
 	
 	Blob readBlob() throws IOException {
-		final byte[]	buffer = readRaw();
-
-		try{return SQLUtils.convert(Blob.class, buffer);
+		try{return SQLUtils.convert(Blob.class, readRaw());
 		} catch (ContentException e) {
 			throw new IOException(e.getLocalizedMessage(), e);
 		}
@@ -387,18 +395,6 @@ public class SQLDataInputStream extends InputStream implements DataInput {
 		}
 	}
 
-	byte[] readRaw() throws IOException {
-		final int		size = (int)readBytes(4);
-		final byte[]	buffer = new byte[size];
-
-		if (nested.read(buffer) < size) {
-			throw new EOFException("End of file while reading input stream");
-		}
-		else {
-			return buffer;
-		}
-	}
-	
 	Object readSerial() throws IOException {
 		try(final InputStream	is = new ByteArrayInputStream(readRaw());
 			final ObjectInput	ois = new ObjectInputStream(is)) {
@@ -415,9 +411,7 @@ public class SQLDataInputStream extends InputStream implements DataInput {
 	}
 	
 	BigDecimal readBigDecimal() throws IOException {
-		final byte[]	buffer = readRaw();
-		
-		try{return SQLUtils.convert(BigDecimal.class, new String(buffer, PureLibSettings.DEFAULT_CONTENT_ENCODING));
+		try{return SQLUtils.convert(BigDecimal.class, readString());
 		} catch (ContentException e) {
 			throw new IOException(e.getLocalizedMessage(), e);
 		}

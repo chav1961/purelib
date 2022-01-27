@@ -1,5 +1,7 @@
 package chav1961.purelib.sql.model;
 
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,6 +12,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
@@ -27,6 +30,8 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.model.ModelUtils;
+import chav1961.purelib.model.TableContainer;
+import chav1961.purelib.model.UniqueIdContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.sql.interfaces.InstanceManager;
@@ -34,6 +39,7 @@ import chav1961.purelib.sql.model.SQLModelUtils.ConnectionGetter;
 import chav1961.purelib.sql.model.interfaces.DatabaseManagement;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
+import chav1961.purelib.streams.byte2byte.SQLDataOutputStream;
 
 public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable, NodeMetadataOwner {
 	private static final String					VERSION_MODEL_URI = "model.json";
@@ -44,10 +50,10 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	static {
 		try(final InputStream		is = SimpleDatabaseManager.class.getResourceAsStream(VERSION_MODEL_URI);
 			final Reader			rdr = new InputStreamReader(is);
-			final JsonStaxParser	parser = new JsonStaxParser(null)) {
+			final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
 
 			parser.next();
-			VERSION_MODEL = ModelUtils.deserializeFromJson(null);
+			VERSION_MODEL = ModelUtils.deserializeFromJson(parser);
 		} catch (IOException e) {
 			throw new PreparationException("Initialization of SimpleDatabaseManager class failed: "+e.getLocalizedMessage(), e);
 		}
@@ -93,17 +99,17 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 						final int					result = mgmt.getVersion(model).compareTo(mgmt.getVersion(oldModel));
 						
 						if (result > 0) {
-							mgmt.onUpgrade(mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
+							mgmt.onUpgrade(conn, mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
 							storeCurrentDbVersion(conn, VERSION_MODEL, model, model.getName(), mgmt.getVersion(model));
 						}
 						else if (result < 0) {
-							mgmt.onDowngrade(mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
+							mgmt.onDowngrade(conn, mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
 							storeCurrentDbVersion(conn, VERSION_MODEL, model, model.getName(), mgmt.getVersion(model));
 						}
 					}
 					else {
 						try{createDbVersionTable(conn, VERSION_MODEL, model.getName());
-							mgmt.onCreate(model);
+							mgmt.onCreate(conn, model);
 							storeCurrentDbVersion(conn, VERSION_MODEL, model, model.getName(), mgmt.getVersion(model));
 						} catch (SQLException exc) {
 							removeDbVersionTable(conn, model, model.getName());
@@ -119,7 +125,6 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	@Override
 	public void close() throws SQLException {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -128,7 +133,18 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 	
 	public Connection getConnection() throws SQLException {
-		return null;
+		final Connection	conn = connGetter.getConnection();
+		
+		mgmtGetter.getManagementInterface(conn).onOpen(conn, model);
+		return conn;
+	}
+	
+	public ContentNodeMetadata getCurrentDatabaseModel() throws SQLException {
+		return loadLastDbVersion(getConnection(), VERSION_MODEL, model.getName());
+	}
+
+	public DatabaseManagement<T> getManagement() throws SQLException {
+		return mgmtGetter.getManagementInterface(getConnection());
 	}
 	
 	public boolean validateDatabase() throws SQLException {
@@ -146,37 +162,117 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	public void backup(final ZipOutputStream zos, final Predicate<ContentNodeMetadata> pred, final ProgressIndicator progress) throws IOException, SQLException {
 		final ContentNodeMetadata		meta = getNodeMetadata();
 		final String					model = modelToString(meta);
-		final Set<ContentNodeMetadata>	toBackup = new HashSet<>(); 
-		ZipEntry						ze;
+		final Set<ContentNodeMetadata>	toBackup = new HashSet<>();
 		
 		for (ContentNodeMetadata item : meta) {
 			if (pred.test(item)) {
 				toBackup.add(item);
 			}
 		}
-		try {
-			progress.start("", toBackup.size() + 1);
-			ze  = new ZipEntry(PART_MODEL);
-			ze.setMethod(ZipEntry.DEFLATED);
-			zos.putNextEntry(ze);
+		
+		if (!toBackup.isEmpty()) {
+			final Connection			conn = connGetter.getConnection();
 			
-			final Writer	wr = new OutputStreamWriter(zos, PureLibSettings.DEFAULT_CONTENT_ENCODING);
-			
+			progress.start("backup database schema "+meta.getName(), toBackup.size() + 1);
 			try {
-				progress.stage("", 1, 3);
-				Utils.copyStream(null, zos, progress);
-				wr.flush();
+				final ZipEntry 	ze  = new ZipEntry(PART_MODEL);
+				
+				ze.setMethod(ZipEntry.DEFLATED);
+				zos.putNextEntry(ze);
+				
+				final Writer	wr = new OutputStreamWriter(zos, PureLibSettings.DEFAULT_CONTENT_ENCODING);
+				int				step = 1;
+				
+				try {
+					progress.stage("backup model", step++, meta.getChildrenCount()+1);
+					Utils.copyStream(new ByteArrayInputStream(model.getBytes(PureLibSettings.DEFAULT_CONTENT_ENCODING)), zos, progress);
+					wr.flush();
+				} finally {
+					progress.endStage();
+					zos.closeEntry();
+				}
+				
+				for (ContentNodeMetadata item : toBackup) {
+					try {
+						if (item.getType() == UniqueIdContainer.class) {
+							progress.stage("backup "+item.getName(), step++, meta.getChildrenCount()+1);
+							backupSequence(conn, zos, item, progress);
+						}
+						else if (item.getType() == TableContainer.class) {
+							progress.stage("backup "+item.getName(), step++, meta.getChildrenCount()+1, calculateTableSize(conn, item, meta.getName()));
+							backupTable(conn, zos, item, meta.getName(), progress);
+						}
+						else {
+							throw new UnsupportedOperationException(); 
+						}
+					} finally {
+						progress.endStage();
+					}
+				}
 			} finally {
-				progress.endStage();
+				progress.end();
 			}
-		} finally {
-			progress.end();
 		}
-//		
-//		ze.setMethod(ZipEntry.DEFLATED);
-//		zos.putNextEntry(ze);
-//		Utils.copyStream(null, zos, progress);
 	}
+	
+	private void backupSequence(final Connection conn, final ZipOutputStream zos, final ContentNodeMetadata item, ProgressIndicator progress) throws IOException {
+		final ZipEntry	ze = new ZipEntry(item.getName());
+		
+		ze.setMethod(ZipEntry.DEFLATED);
+		zos.putNextEntry(ze);
+		zos.closeEntry();
+	}
+
+	private long calculateTableSize(final Connection conn, final ContentNodeMetadata item, final String schema) throws IOException {
+		try(final Statement		stmt = conn.createStatement();
+			final ResultSet		rs = stmt.executeQuery(SQLModelUtils.buildSelectCountStatementByModel(conn, item, schema))){
+		
+			if (rs.next()) {
+				return rs.getLong(1);
+			}
+			else {
+				return -1;
+			}
+		} catch (SQLException e) {
+			throw new IOException(e.getLocalizedMessage(), e);
+		}
+	}
+	
+	private void backupTable(final Connection conn, final ZipOutputStream zos, final ContentNodeMetadata item, final String schema, final ProgressIndicator progress) throws IOException {
+		final ZipEntry	ze = new ZipEntry(item.getName());
+		
+		ze.setMethod(ZipEntry.DEFLATED);
+		zos.putNextEntry(ze);
+		
+		try(final Statement				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			final ResultSet				rs = stmt.executeQuery(SQLModelUtils.buildSelectAllStatementByModel(conn, item, schema))){
+			final ResultSetMetaData		rsmd = rs.getMetaData();
+			final SQLDataOutputStream	sqlo = new SQLDataOutputStream(zos);
+			final int					columnCount = rsmd.getColumnCount();
+					
+			long				processed = 0;
+		
+			for (int index = 1; index <= columnCount; index++) {
+				sqlo.writeChars(rsmd.getColumnName(index));
+			}
+			sqlo.writeLine();
+			
+			while (rs.next()) {
+				for (int index = 1; index <= columnCount; index++) {
+					sqlo.write(rsmd.getColumnType(index),rs.getObject(index));
+				}
+				sqlo.writeLine();
+				progress.processed(processed++);
+			}
+			sqlo.writeLine();
+			sqlo.flush();
+		} catch (SQLException e) {
+			throw new IOException(e.getLocalizedMessage(), e);
+		} finally {
+			zos.closeEntry();
+		}
+	}
+	
 	
 	public void restore(final ZipInputStream zis) {
 		restore(zis, (e)->true);

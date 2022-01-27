@@ -39,6 +39,7 @@ public class SqlStreamsTest {
 				sqlo.writeByte(123);
 				sqlo.writeChar('z');
 				sqlo.writeChars("test string");
+				sqlo.writeUTF("test string");
 				sqlo.writeDouble(123.456);
 				sqlo.writeFloat(123.456f);
 				sqlo.writeInt(123);
@@ -56,6 +57,7 @@ public class SqlStreamsTest {
 				Assert.assertTrue(sqli.readBoolean());
 				Assert.assertEquals(123, sqli.readByte());
 				Assert.assertEquals('z', sqli.readChar());
+				Assert.assertEquals("test string", sqli.readLine());
 				Assert.assertEquals("test string", sqli.readUTF());
 				Assert.assertEquals(123.456, sqli.readDouble(), 0.0001);
 				Assert.assertEquals(123.456f, sqli.readFloat(), 0.000f);
@@ -99,6 +101,21 @@ public class SqlStreamsTest {
 		identityTest(Types.BLOB, SQLUtils.convert(Blob.class, bin), SQLUtils.convert(Blob.class, bin));
 		identityTest(Types.CLOB, SQLUtils.convert(Clob.class, test), SQLUtils.convert(Clob.class, test));
 		identityTest(Types.NCLOB, SQLUtils.convert(NClob.class, test), SQLUtils.convert(NClob.class, test));
+		
+		identityTest(Types.BOOLEAN, true, true);
+		identityTest(Types.BOOLEAN, null, null);
+		identityTest(Types.TINYINT, (byte)123, (byte)123);
+		identityTest(Types.TINYINT, null, null);
+		identityTest(Types.SMALLINT, (short)123, (short)123);
+		identityTest(Types.SMALLINT, null, null);
+		identityTest(Types.INTEGER, 123, 123);
+		identityTest(Types.INTEGER, null, null);
+		identityTest(Types.BIGINT, 123L, 123L);
+		identityTest(Types.BIGINT, null, null);
+		identityTest(Types.FLOAT, 123.456f, 123.456f);
+		identityTest(Types.FLOAT, null, null);
+		identityTest(Types.DOUBLE, 123.456, 123.456);
+		identityTest(Types.DOUBLE, null, null);
 	}
 
 	@Test

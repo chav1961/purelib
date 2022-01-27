@@ -101,6 +101,7 @@ public class SQLDataOutputStream extends OutputStream implements DataOutput {
 
 	@Override
     public void close() throws IOException {
+    	nested.flush();
     	nested.close();
     }
 
@@ -279,7 +280,7 @@ public class SQLDataOutputStream extends OutputStream implements DataOutput {
 			else {
 				writeBytes(Types.CHAR, 2);
 				writeBytes(buffer.length, 4);
-				nested.write(buffer);
+				write(buffer);
 			}
 		}
 	}
@@ -297,7 +298,7 @@ public class SQLDataOutputStream extends OutputStream implements DataOutput {
 			temp[6] = (byte) (value >> 8);
 			temp[7] = (byte) (value >> 0);
 			
-			nested.write(temp, 8-length, length);
+			write(temp, 8-length, length);
 		}
 	}
 
@@ -306,7 +307,7 @@ public class SQLDataOutputStream extends OutputStream implements DataOutput {
 		
 		writeBytes(sqlType, 2);
 		writeBytes(buffer.length, 4);
-		nested.write(buffer);
+		write(buffer);
 	}
 	
 	private void writeDate(final int sqlType, final Date date) throws IOException {
@@ -317,7 +318,7 @@ public class SQLDataOutputStream extends OutputStream implements DataOutput {
 	private void writeRaw(final int sqlType, final byte[] obj) throws IOException {
 		writeBytes(sqlType, 2);
 		writeBytes(obj.length, 4);
-		nested.write(obj);				
+		write(obj);				
 	}
 
 	private void writeArray(final Array array) {
@@ -336,7 +337,7 @@ public class SQLDataOutputStream extends OutputStream implements DataOutput {
 		}
 		writeBytes(Types.JAVA_OBJECT, 2);
 		writeBytes(content.length, 4);
-		nested.write(content);				
+		write(content);				
 	}
 	
 	private void writeBlob(final Blob blob) throws IOException {
@@ -374,7 +375,7 @@ public class SQLDataOutputStream extends OutputStream implements DataOutput {
 		
 		writeBytes(sqlType, 2);
 		writeBytes(buffer.length, 4);
-		nested.write(buffer);
+		write(buffer);
 	}
 
 	static Convertor getConvertor(final int type) {

@@ -52,6 +52,7 @@ module chav1961.purelib {
 	exports chav1961.purelib.sql.junit;
 	exports chav1961.purelib.sql.junit.interfaces;
 	exports chav1961.purelib.sql.model;
+	exports chav1961.purelib.sql.model.interfaces;
 	exports chav1961.purelib.sql.util;
 	exports chav1961.purelib.streams;
 	exports chav1961.purelib.streams.byte2byte;

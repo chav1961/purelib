@@ -384,6 +384,24 @@ public class SQLModelUtils {
 			return "select * from "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), meta.getName(), schema);
 		}
 	}
+
+	public static String buildSelectCountStatementByModel(final Connection conn, final ContentNodeMetadata meta, final String schema) throws SQLException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null"); 
+		}
+		else if (meta == null) {
+			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema can't be null or empty"); 
+		}
+		else if (meta.getType() != TableContainer.class) {
+			throw new IllegalArgumentException("Metadata must have [TableContainer] type"); 
+		}
+		else {
+			return "select count(*) from "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), meta.getName(), schema);
+		}
+	}
 	
 	
 	private static void internalRemoveDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final boolean removeSchema) throws SQLException, NullPointerException {
