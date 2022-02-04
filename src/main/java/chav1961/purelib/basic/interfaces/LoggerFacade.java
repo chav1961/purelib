@@ -1,9 +1,12 @@
 package chav1961.purelib.basic.interfaces;
 
 import java.io.Closeable;
+import java.net.URI;
 import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
  * <p>This interface is a facade for different loggers. The great problem with loggers is a huge amount of them at now. This Zoo strongly reduces compatibility of the 
@@ -36,8 +39,14 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
  * @lastUpdate 0.0.6
  */
 
-public interface LoggerFacade extends Closeable {
-	static final String		LOGGER_INSTANCE_KEY = "loggerInstance";  
+public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
+	/**
+	 * <p>Logger URI scheme</p>
+	 * @since 0.0.6
+	 */
+	public static final String	LOGGER_SCHEME = "logger";
+	
+	static final String			LOGGER_INSTANCE_KEY = "loggerInstance";  
 	
 	/**
 	 * <p>This enumeration describes message severity. Order of the enumeration constants is important!</p>
@@ -239,4 +248,28 @@ public interface LoggerFacade extends Closeable {
 	 * @see #transaction(String)
 	 */
 	void close();
+	
+	/**
+	 * <p>This class is a factory to get logger facade by it's URI. It implements a 'Factory' template and wraps call to {@linkplain LocalizerFactory#getLocalizer(URI)}</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public final static class Factory {
+		private Factory() {}
+		
+		/**
+		 * <p>Get logger facade by URI.</p> 
+		 * @param loggerUri logger facade URI to get logger for. Can't be null and must have scheme {@value LoggerFacade#LOGGER_SCHEME}
+		 * @return logger facade created
+		 * @throws IllegalArgumentException when logger facade URI is null or doesn't have {@value LoggerFacade#LOGGER_SCHEME} scheme
+		 */
+		public static LoggerFacade newInstance(final URI loggerUri) throws IllegalArgumentException{
+			if (loggerUri == null || !LOGGER_SCHEME.equals(loggerUri.getScheme())) {
+				throw new IllegalArgumentException("Logger facade URI can't be null and must have scheme ["+LOGGER_SCHEME+"]"); 
+			}
+			else {
+				return null;
+			}
+		}
+	}
 }

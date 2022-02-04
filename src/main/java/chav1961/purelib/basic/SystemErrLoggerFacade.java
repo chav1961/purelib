@@ -1,8 +1,10 @@
 package chav1961.purelib.basic;
 
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.Set;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
@@ -14,10 +16,12 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.6
  */
 
 public class SystemErrLoggerFacade extends AbstractLoggerFacade {
+	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":err:/");
+	
 	private final PrintStream	ps;
 
 	public SystemErrLoggerFacade() {
@@ -36,6 +40,26 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 	public SystemErrLoggerFacade(final PrintStream ps,final String mark, final Class<?> root, final Set<Reducing> reducing) {
 		super(mark, root, reducing);
 		this.ps = ps;
+	}
+
+	@Override
+	public boolean canServe(final URI resource) throws NullPointerException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return URIUtils.canServeURI(resource, LOGGER_URI);
+		}
+	}
+
+	@Override
+	public LoggerFacade newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return this;
+		}
 	}
 	
 	@Override

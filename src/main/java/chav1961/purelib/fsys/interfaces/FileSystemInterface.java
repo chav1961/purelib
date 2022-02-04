@@ -9,8 +9,12 @@ import java.io.Writer;
 import java.net.URI;
 import java.util.Map;
 
+import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.fsys.FileSystemFactory;
+import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.interfaces.Localizer;
 
 
 
@@ -71,7 +75,7 @@ import chav1961.purelib.enumerations.ContinueMode;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
 public interface FileSystemInterface extends Cloneable, Closeable, SpiService<FileSystemInterface>, FileSystemLockInterface {
@@ -543,4 +547,29 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @since 0.0.4
 	 */
 	boolean isTheSame(FileSystemInterface another) throws IOException;
+	
+	/**
+	 * <p>This class is a factory to get File system by it's URI. It implements a 'Factory' template and wraps call to {@linkplain FileSystemFactory#createFileSystem(URI)}</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public final static class Factory {
+		private Factory() {}
+
+		/**
+		 * <p>Get localizer by URI.</p> 
+		 * @param fsiUri localizer URI to get File system for. Can'tbe null and must have scheme {@value FileSystemInterface#FILESYSTEM_URI_SCHEME}
+		 * @return file system created
+		 * @throws IllegalArgumentException when file system URI is null or doesn't have {@value FileSystemInterface#FILESYSTEM_URI_SCHEME} scheme
+		 * @throws IOException on any errors on creation file system
+		 */
+		public static FileSystemInterface newInstance(final URI fsiUri) throws IllegalArgumentException, IOException{
+			if (fsiUri == null || !FILESYSTEM_URI_SCHEME.equals(fsiUri.getScheme())) {
+				throw new IllegalArgumentException("Localizer URI can't be null and must have scheme ["+FILESYSTEM_URI_SCHEME+"]"); 
+			}
+			else {
+				return FileSystemFactory.createFileSystem(fsiUri);
+			}
+		}
+	}
 }

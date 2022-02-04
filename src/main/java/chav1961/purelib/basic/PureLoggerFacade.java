@@ -1,8 +1,10 @@
 package chav1961.purelib.basic;
 
+import java.net.URI;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
@@ -13,16 +15,37 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.6
  */
 
 public class PureLoggerFacade extends Logger implements LoggerFacade {
+	public static final URI						LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":pure:/");
 	private final StandardJRELoggerFacade		stdLogger = new StandardJRELoggerFacade(this);
 
 	public PureLoggerFacade(final String name, final String resourceBundleName) {
 		super(name, resourceBundleName);
 	}
 
+	@Override
+	public boolean canServe(final URI resource) throws NullPointerException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return URIUtils.canServeURI(resource, LOGGER_URI);
+		}
+	}
+
+	@Override
+	public LoggerFacade newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return this;
+		}
+	}
+	
 	@Override
 	public LoggerFacade message(final Severity level, final String format, final Object... parameters) {
 		stdLogger.message(level, format, parameters);

@@ -1,9 +1,11 @@
 package chav1961.purelib.basic;
 
+import java.net.URI;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
@@ -19,7 +21,8 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  */
 
 public class StandardJRELoggerFacade extends AbstractLoggerFacade {
-	private final Logger	actualLogger;
+	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":jre:/");
+	private final Logger		actualLogger;
 	
 	public StandardJRELoggerFacade() {
 		super();
@@ -34,6 +37,26 @@ public class StandardJRELoggerFacade extends AbstractLoggerFacade {
 	StandardJRELoggerFacade(final Logger logger) {
 		super();
 		this.actualLogger = logger;
+	}
+	
+	@Override
+	public boolean canServe(final URI resource) throws NullPointerException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return URIUtils.canServeURI(resource, LOGGER_URI);
+		}
+	}
+
+	@Override
+	public LoggerFacade newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return new StandardJRELoggerFacade();
+		}
 	}
 	
 	@Override

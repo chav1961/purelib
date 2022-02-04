@@ -13,6 +13,7 @@ import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 
 /**
@@ -51,7 +52,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see SubstitutableProperties
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	/**
@@ -439,4 +440,29 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 */
 	@Override
 	void close() throws LocalizationException;
+	
+	/**
+	 * <p>This class is a factory to get localizer by it's URI. It implements a 'Factory' template and wraps call to {@linkplain LocalizerFactory#getLocalizer(URI)}</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public final static class Factory {
+		private Factory() {}
+		
+		/**
+		 * <p>Get localizer by URI.</p> 
+		 * @param localizerUri localizer URI to get localizer for. Can't be null and must have scheme {@value Localizer#LOCALIZER_SCHEME}
+		 * @return localizer found
+		 * @throws IllegalArgumentException when localizer URI is null or doesn't have {@value Localizer#LOCALIZER_SCHEME} scheme
+		 * @throws LocalizationException on any errors on creation localizer
+		 */
+		public Localizer newInstance(final URI localizerUri) throws IllegalArgumentException, LocalizationException {
+			if (localizerUri == null || !LOCALIZER_SCHEME.equals(localizerUri.getScheme())) {
+				throw new IllegalArgumentException("Localizer URI can't be null and must have scheme ["+LOCALIZER_SCHEME+"]"); 
+			}
+			else {
+				return LocalizerFactory.getLocalizer(localizerUri);
+			}
+		}
+	}
 }

@@ -5,7 +5,7 @@ package chav1961.purelib.basic.interfaces;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.5
  */
-public interface LoggerFacadeKeeper {
+public interface LoggerFacadeOwner {
 	/**
 	 * <p>Get logger</p>
 	 * @return logger facade instance. Can't be null

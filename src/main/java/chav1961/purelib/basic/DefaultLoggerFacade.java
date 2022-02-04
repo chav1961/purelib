@@ -1,11 +1,13 @@
 package chav1961.purelib.basic;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
@@ -17,10 +19,11 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.6
  */
 
 public class DefaultLoggerFacade extends AbstractLoggerFacade {
+	public static final URI						LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":default:/");
 	private static final Map<Severity,Level>	DECODE = new HashMap<Severity,Level>();  
 	
 	static {
@@ -45,6 +48,26 @@ public class DefaultLoggerFacade extends AbstractLoggerFacade {
 	}
 
 	@Override
+	public boolean canServe(final URI resource) throws NullPointerException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return URIUtils.canServeURI(resource, LOGGER_URI);
+		}
+	}
+
+	@Override
+	public LoggerFacade newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return this;
+		}
+	}
+	
+	@Override
 	protected AbstractLoggerFacade getAbstractLoggerFacade(String mark, Class<?> root) {
 		return new DefaultLoggerFacade(mark, root);
 	}
@@ -58,4 +81,5 @@ public class DefaultLoggerFacade extends AbstractLoggerFacade {
 			logger.log(DECODE.get(level),text);
 		}
 	}
+
 }

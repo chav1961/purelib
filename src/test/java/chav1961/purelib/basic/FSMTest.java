@@ -1,5 +1,7 @@
 package chav1961.purelib.basic;
 
+import java.net.URI;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -7,6 +9,7 @@ import org.junit.experimental.categories.Category;
 import chav1961.purelib.basic.FSM.FSMCallback;
 import chav1961.purelib.basic.StackedFSM.StackAction;
 import chav1961.purelib.basic.StackedFSM.StackedFSMCallback;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.testing.OrdinalTestCategory;
@@ -198,6 +201,16 @@ public class FSMTest {
 	public void debuggingTest() throws FlowException {
 		final StringBuilder		sb = new StringBuilder();
 		final LoggerFacade		lf = new AbstractLoggerFacade(){
+									@Override
+									public boolean canServe(URI resource) throws NullPointerException {
+										return false;
+									}
+						
+									@Override
+									public LoggerFacade newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+										return this;
+									}
+			
 									@Override
 									protected AbstractLoggerFacade getAbstractLoggerFacade(String mark, Class<?> root) {
 										return this;

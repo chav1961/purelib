@@ -1,7 +1,9 @@
 package chav1961.purelib.basic;
 
+import java.net.URI;
 import java.util.Set;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -11,9 +13,11 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * instance. It has a {@linkplain Localizer} associated with it, and always tries to transalate all format strings in the messages with the localizer.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.6
  */
 public class LocalizableLoggerWrapper implements LoggerFacade {
+	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":i18n:/");
+	
 	private final Localizer		localizer;
 	private final LoggerFacade	nested;
 
@@ -33,6 +37,26 @@ public class LocalizableLoggerWrapper implements LoggerFacade {
 		else {
 			this.localizer = localizer;
 			this.nested = nested;
+		}
+	}
+	
+	@Override
+	public boolean canServe(final URI resource) throws NullPointerException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return URIUtils.canServeURI(resource, LOGGER_URI);
+		}
+	}
+
+	@Override
+	public LoggerFacade newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+		if (resource == null) {
+			throw new NullPointerException("Resource URI can't be null"); 
+		}
+		else {
+			return null;
 		}
 	}
 	

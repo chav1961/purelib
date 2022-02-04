@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.LoggerCallbackInterface;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Reducing;
@@ -20,6 +22,16 @@ public class LoggerFacadeTest {
 	@Test
 	public void basicTest() {
 		try(final LoggerFacade	lf = new AbstractLoggerFacade() {
+								@Override
+								public boolean canServe(URI resource) throws NullPointerException {
+									return false;
+								}
+					
+								@Override
+								public LoggerFacade newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+									return this;
+								}
+								
 								@Override
 								protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 								}
@@ -76,6 +88,16 @@ public class LoggerFacadeTest {
 		final Throwable		t = new Throwable();
 		
 		try(final LoggerFacade	lf = new AbstractLoggerFacade() {
+								@Override
+								public boolean canServe(URI resource) throws NullPointerException {
+									return false;
+								}
+					
+								@Override
+								public LoggerFacade newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+									return this;
+								}
+			
 								@Override
 								protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 									Assert.assertEquals(Severity.error,level);
@@ -140,12 +162,31 @@ public class LoggerFacadeTest {
 		
 		try(final LoggerFacade	lf = new AbstractLoggerFacade() {
 								@Override
+								public boolean canServe(URI resource) throws NullPointerException {
+									return false;
+								}
+					
+								@Override
+								public LoggerFacade newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+									return this;
+								}
+			
+								@Override
 								protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 								}
 								
 								@Override
 								protected AbstractLoggerFacade getAbstractLoggerFacade(String mark, Class<?> root) {
 									return new AbstractLoggerFacade(mark,root,new HashSet<>()) {
+										@Override
+										public boolean canServe(URI resource) throws NullPointerException {
+											return false;
+										}
+							
+										@Override
+										public LoggerFacade newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+											return this;
+										}
 										
 										@Override
 										protected void toLogger(Severity level, String text, Throwable throwable) {

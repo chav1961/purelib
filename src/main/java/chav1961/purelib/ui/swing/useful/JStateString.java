@@ -13,6 +13,7 @@ import java.awt.Taskbar;
 import java.awt.Taskbar.Feature;
 import java.awt.Taskbar.State;
 import java.awt.Window;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +41,7 @@ import javax.swing.table.DefaultTableModel;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
@@ -244,6 +246,16 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		}
 	}
 
+	@Override
+	public boolean canServe(final URI resource) throws NullPointerException {
+		return false;
+	}
+
+	@Override
+	public LoggerFacade newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+		return this;
+	}
+	
 	@Override
 	public void localeChanged(Locale oldLocale, Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
@@ -850,6 +862,16 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			super(mark,root, reducing);
 		}
 
+		@Override
+		public boolean canServe(final URI resource) throws NullPointerException {
+			return false;
+		}
+
+		@Override
+		public LoggerFacade newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+			return this;
+		}
+		
 		@Override
 		protected AbstractLoggerFacade getAbstractLoggerFacade(final String mark, final Class<?> root) {
 			return new InternalLoggerFacade(mark,root,getReducing());

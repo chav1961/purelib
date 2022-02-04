@@ -113,7 +113,7 @@ import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.basic.interfaces.LoggerFacadeKeeper;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -1970,8 +1970,8 @@ loop:			for (Component comp : children(node)) {
 			Component	current = component.getParent();
 			
 			while (current != null) {
-				if (current instanceof LoggerFacadeKeeper) {
-					return ((LoggerFacadeKeeper)current).getLogger();
+				if (current instanceof LoggerFacadeOwner) {
+					return ((LoggerFacadeOwner)current).getLogger();
 				}
 				else {
 					current = current.getParent(); 
