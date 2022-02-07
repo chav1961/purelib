@@ -9,10 +9,12 @@ import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 /**
@@ -135,6 +137,7 @@ public class CharUtils {
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
+	private static final SyntaxTreeInterface<String>	VOCABULARY = new AndOrTree<>();
 	
 	/**
 	 * <p>Extract unsigned integer value from the current position of the source data</p>
@@ -2674,6 +2677,71 @@ loop:		for (index = from; index < len; index++) {
 		return new Prescription(D[m][n], opers.toArray(new int[opers.size()][]));
     }
 
+    /**
+     * <p>Replace string with the same content to the same string</p>
+     * @param source string to replace. Null value will return null  
+     * @return string replaced or null
+     * @see String#intern()
+     * @since 0.0.6
+     */
+    public static String buildIdenticalString(final String source) {
+    	if (source == null) {
+    		return null; 
+    	}
+    	else {
+        	return buildIdenticalString(source.toCharArray(), 0, source.length());
+    	}
+    }
+    
+    /**
+     * <p>Replace piece of char with the same content to the same string.</p>
+     * @param source char content. Can't be null
+     * @param from from position on the char content
+     * @param to to position in the char content
+     * @return string built from char content. Can't be null
+     * @throws NullPointerException when source content is null
+     * @throws IllegalArgumentException when from and to arguments out of range
+     * @see String#intern()
+     * @since 0.0.6
+     */
+    public static String buildIdenticalString(final char[] source, final int from, final int to) throws NullPointerException, IllegalArgumentException {
+    	if (source == null) {
+    		throw new NullPointerException("Source chars buffer can't be null"); 
+    	}
+    	else if (from < 0 || from >= source.length) {
+    		throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(source.length-1)); 
+    	}
+    	else if (to < 0 || to >= source.length) {
+    		throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(source.length-1)); 
+    	}
+    	else if (to < from) {
+    		throw new IllegalArgumentException("To position ["+to+"] can't be less than from position ["+from+"]"); 
+    	}
+    	else {
+    		synchronized (VOCABULARY) {
+        		final long	id = VOCABULARY.seekName(source, from, to);
+        		
+        		if (id >= 0) {
+        			return VOCABULARY.getCargo(id);
+        		}
+        		else {
+        			final String	content = new String(source, from, to-from);
+        			
+        			VOCABULARY.placeName(source, from, to, content);
+        			return content;
+        		}
+			}
+    	}
+    }
+    
+    /**
+     * <p>Reset content of identical strings vocabulary</p>
+     * @since 0.0.6
+     */
+    public static void resetIdenticalStringVocabulary() {
+    	VOCABULARY.clear();
+    }
+    
     private static class OrdinalCharSequence implements CharSequence {
     	private final char[]	content;
     	private final int		from;
