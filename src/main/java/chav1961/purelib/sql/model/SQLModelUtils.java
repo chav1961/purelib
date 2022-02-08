@@ -8,7 +8,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,8 +44,8 @@ import chav1961.purelib.model.TableContainer;
 import chav1961.purelib.model.UniqueIdContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ORMModelMapper;
-import chav1961.purelib.sql.InMemoryLittleBlob;
 import chav1961.purelib.sql.SQLUtils;
+import chav1961.purelib.sql.SQLUtils.DbTypeDescriptor;
 import chav1961.purelib.sql.interfaces.InstanceManager;
 import chav1961.purelib.sql.interfaces.SQLErrorType;
 import chav1961.purelib.streams.JsonStaxParser;
@@ -54,6 +53,11 @@ import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
+/**
+ * <p>This class supports database manipulations with model.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.6
+ */
 public class SQLModelUtils {
 	private static final AtomicInteger	AI = new AtomicInteger();
 	private static final AsmWriter		ASM_WRITER;
@@ -217,6 +221,13 @@ public class SQLModelUtils {
 		}
 	}
 
+	/**
+	 * <p>Create database structure by model description.</p>
+	 * @param conn database connection. Can't be null and must have auto commit mode off
+	 * @param root model root. Can't be null 
+	 * @throws SQLException on any database errors
+	 * @throws NullPointerException on any parameter is null
+	 */
 	public static void createDatabaseByModel(final Connection conn, final ContentNodeMetadata root) throws SQLException, NullPointerException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
@@ -225,11 +236,26 @@ public class SQLModelUtils {
 			throw new NullPointerException("Root metadata can't be null");
 		}
 		else {
-			createDatabaseByModel(conn, root, root.getName());
+			final boolean	autoCommitState = conn.getAutoCommit();
+			
+			try{conn.setAutoCommit(false);
+				createDatabaseByModel(conn, root, root.getName());
+			} finally {
+				conn.setAutoCommit(autoCommitState);
+			}
 		}
 	}
 	
-	public static void createDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException, NullPointerException {
+	/**
+	 * <p>Create database structure by model description.</p>
+	 * @param conn database connection. Can't be null and must have auto commit mode off
+	 * @param root model root. Can't be null 
+	 * @param schema schema name. Replaces schema name in the model. Can't be null or empty
+	 * @throws SQLException on any database errors
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IllegalArgumentException when schema name is null or empty
+	 */
+	public static void createDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException, NullPointerException, IllegalArgumentException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
 		}
@@ -240,9 +266,16 @@ public class SQLModelUtils {
 			throw new IllegalArgumentException("Schema name can't be null or empty");
 		}
 		else if (root.getType() == SchemaContainer.class) {
-			createDatabaseSchemaByModel(conn, root, schema);
-			for (ContentNodeMetadata item : root) {
-				internalCreateDatabaseByModel(conn, item, root.getName());
+			final String	oldSchema = conn.getSchema(); 
+			
+			try{createDatabaseSchemaByModel(conn, root, schema);
+				conn.setSchema(schema);
+				
+				for (ContentNodeMetadata item : root) {
+					internalCreateDatabaseByModel(conn, item, schema);
+				}
+			} finally {
+				conn.setSchema(oldSchema);
 			}
 		}
 		else {
@@ -263,25 +296,26 @@ public class SQLModelUtils {
 	}	
 	
 	private static void createDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
-		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate("create schema "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema));
-		} catch (SQLException exc) {
-			throw exc;
+		try(final ResultSet	rs = conn.getMetaData().getSchemas(null, schema)) {
+			if (!rs.next()) {
+				executeSQL(conn, "create schema "+conn.getMetaData().getIdentifierQuoteString()+schema+conn.getMetaData().getIdentifierQuoteString());
+			}
 		}
 	}
 
 	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
-		final StringBuilder	sb = new StringBuilder();
-		final List<String>	primaryKeys = new ArrayList<>();
-		char	prefix = '(';
+		final DbTypeDescriptor[]	dtd = DbTypeDescriptor.load(conn);
+		final StringBuilder			sb = new StringBuilder();
+		final List<String>			primaryKeys = new ArrayList<>();
+		char						prefix = '(';
 		
-		sb.append("create table ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(),schema));
+		sb.append("create table ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema));
 		
 		for (ContentNodeMetadata item : root) {
 			final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(item.getApplicationPath()));
 			
-			sb.append(prefix).append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(),item.getName(),schema))
-				.append(' ').append(query.containsKey("type") ? query.get("type")[0] : "varchar(100)");
+			sb.append(prefix).append(escape(conn.getMetaData().getIdentifierQuoteString(),item.getName()))
+				.append(' ').append(query.containsKey("type") ? SQLUtils.specificTypeNameByCommonTypeName(query.get("type")[0],dtd) : "varchar(100)");
 			if (query.containsKey("pkSeq")) {
 				primaryKeys.add(item.getName());
 			}
@@ -295,17 +329,15 @@ public class SQLModelUtils {
 			prefix = '(';
 			sb.append(", primary key ");
 			for (String item : primaryKeys) {
-				sb.append(prefix).append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(),item,schema));
+				sb.append(prefix).append(escape(conn.getMetaData().getIdentifierQuoteString(),item));
 				prefix = ',';
 			}
 			sb.append(')');
 		}
 		
 		sb.append(')');
-		
-		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate(sb.toString());
-		}
+
+		executeSQL(conn, sb.toString());
 	}
 
 	private static void createDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema) throws SQLException {
@@ -327,9 +359,7 @@ public class SQLModelUtils {
 		}
 		sb.append(" minvalue ").append(from).append(" maxvalue ").append(to);
 		
-		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate(sb.toString());
-		}
+		executeSQL(conn, sb.toString());
 	}
 
 	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final boolean removeSchema) throws SQLException, NullPointerException {
@@ -924,9 +954,23 @@ public class SQLModelUtils {
 			return quote + newSchema + quote + '.' + quote + source.substring(dotIndex+1) + quote; 
 		}
 		else {
-			return quote + source + quote;
+			return quote + newSchema + quote + '.' + quote + source + quote;
 		}
 	}
+	
+	private static String escape(final String quote, final String source) throws SQLException {
+		return quote + source + quote;
+	}
+
+	private static void executeSQL(final Connection conn, final String sql) throws SQLException {
+		try(final Statement	stmt = conn.createStatement()) {
+			
+			stmt.executeUpdate(sql);
+		} catch (SQLException exc) {
+			throw new SQLException((exc.getCause() != null ? exc.getCause().getLocalizedMessage() : exc.getLocalizedMessage()) + "\nStatement: "+sql); 
+		}
+	}
+	
 	
 	@FunctionalInterface
 	public interface ConnectionGetter {

@@ -18,6 +18,7 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.ResultSet;
@@ -44,8 +45,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
-import chav1961.purelib.basic.growablearrays.GrowableCharArray;
-import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -56,7 +55,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
  * @see ContentMetadataInterface.ContentNodeMetadata
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public class SQLUtils {
 	public static final int							UNKNOWN_TYPE = 666;
@@ -426,6 +425,32 @@ public class SQLUtils {
 		}
 	}
 
+	/**
+	 * <p>Convert common type name to the database-specific type name</p>
+	 * @param commonTypeName common type name. Can't be null or empty
+	 * @param specificTypes specific database types (see {@linkplain DbTypeDescriptor#load(Connection)}
+	 * @return converted type name or source type, when available types are missing
+	 * @since 0.0.6
+	 */
+	public static String specificTypeNameByCommonTypeName(final String commonTypeName, final DbTypeDescriptor... specificTypes) {
+		if (commonTypeName == null || commonTypeName.isEmpty()) {
+			throw new IllegalArgumentException("Common SQL type name can't be null or empty"); 
+		}
+		else if (specificTypes == null || Utils.checkArrayContent4Nulls(specificTypes) >= 0) {
+			throw new IllegalArgumentException("Specific types list is null or contains nulls inside"); 
+		}
+		else {
+			final int	type = typeIdByTypeName(commonTypeName);
+			
+			for (DbTypeDescriptor item : specificTypes) {
+				if (item.getDataType() == type) {
+					return item.getName();
+				}
+			}
+			return commonTypeName;
+		}
+	}
+	
 	
 	/**
 	 * <p>Convert object value to the value of given type (class)</p>
@@ -2193,6 +2218,323 @@ public class SQLUtils {
 		});
 		
 		return toMap;
+	}
+
+	/**
+	 * <p>This class is a container for database type descriptor</p>
+	 * @see DatabaseMetaData#getTypeInfo()
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */	
+	public static class DbTypeDescriptor {
+		/**
+		 * <p>This enumeration is a wrapper for 'NULLABLE' type description parameter</p>
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.6
+		 */
+		public static enum Nullable {
+			NoNulls(DatabaseMetaData.typeNoNulls),
+			Nullable(DatabaseMetaData.typeNullable),
+			Unknown(DatabaseMetaData.typeNullableUnknown);
+			
+			private final int	attr;
+			
+			private Nullable(final int attr) {
+				this.attr = attr;
+			}
+			
+			public int getNullableAsInt() {
+				return attr;
+			}
+			
+			public static Nullable valueOf(final int nullable) {
+				switch (nullable) {
+					case DatabaseMetaData.typeNoNulls 			: return NoNulls;
+					case DatabaseMetaData.typeNullable			: return Nullable;
+					case DatabaseMetaData.typeNullableUnknown	: return Unknown;
+					default : throw new IllegalArgumentException("Nullable code ["+nullable+"] is not known"); 
+				}
+			}
+		}
+		
+		/**
+		 * <p>This enumeration is a wrapper for 'SEARCHEABLE' type description parameter</p>
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.6
+		 */
+		public static enum UseInWhere {
+			None(DatabaseMetaData.typePredNone),
+			InLikeOnly(DatabaseMetaData.typePredChar),
+			InBasic(DatabaseMetaData.typePredBasic),
+			Everywhere(DatabaseMetaData.typeSearchable);
+
+			private final int	attr;
+			
+			private UseInWhere(final int attr) {
+				this.attr = attr;
+			}
+			
+			public int getUseInWhereAsInt() {
+				return attr;
+			}
+			
+			public static UseInWhere valueOf(final int useInWhere) {
+				switch (useInWhere) {
+					case DatabaseMetaData.typePredNone 		: return None;
+					case DatabaseMetaData.typePredChar		: return InLikeOnly;
+					case DatabaseMetaData.typePredBasic		: return InBasic;
+					case DatabaseMetaData.typeSearchable	: return Everywhere;
+					default : throw new IllegalArgumentException("UseInWhere code ["+useInWhere+"] is not known"); 
+				}
+			}
+		}
+		
+		private final String		name;
+		private final int			dataType;
+		private final int			precision;
+		private final String		startPrefix, endPrefix;
+		private final String		createParams;
+		private final Nullable		nullable;
+		private final boolean		caseSensitive;
+		private final UseInWhere	useInWhere;
+		private final boolean		unsigned;
+		private final boolean		canBeMoney;
+		private final boolean		autoincrement;
+		private final String		localTypeName;
+		private final int			minScale, maxScale;
+		private final int			precisionRadix;
+		
+		/**
+		 * <p>Constructor of the class</p>
+		 * @param name type name. Can't be null or empty
+		 * @param dataType type from {@linkplain Types}
+		 * @param precision maximum precision for type
+		 * @param startPrefix prefix of the type constant
+		 * @param endPrefix suffix of the type constant
+		 * @param createParams parameters to create type
+		 * @param nullable nullability of the type. Can't be null 
+		 * @param caseSensitive is type case sensitive
+		 * @param useInWhere using type in 'WHERE' clause. Can't be null
+		 * @param unsigned is type unsigned
+		 * @param canBeMoney has type fixed precision
+		 * @param autoincrement can use in autoincrement
+		 * @param localTypeName local type name
+		 * @param minScale minimum size
+		 * @param maxScale maximum size
+		 * @param precisionRadix precision radix (usually 2 or 10)
+		 */
+		public DbTypeDescriptor(final String name, final int dataType, final int precision, final String startPrefix, final String endPrefix,
+				final String createParams, final Nullable nullable, final boolean caseSensitive, final UseInWhere useInWhere, final boolean unsigned, final boolean canBeMoney,
+				final boolean autoincrement, final String localTypeName, final int minScale, final int maxScale, int precisionRadix) {
+			if (name == null || name.isEmpty()) {
+				throw new IllegalArgumentException("Type name can't be null or empty"); 
+			}
+			else if (nullable == null) {
+				throw new NullPointerException("Nullable of the type can't be null"); 
+			}
+			else if (useInWhere == null) {
+				throw new NullPointerException("Use in where of the type can't be null"); 
+			}
+			else {
+				this.name = name;
+				this.dataType = dataType;
+				this.precision = precision;
+				this.startPrefix = startPrefix;
+				this.endPrefix = endPrefix;
+				this.createParams = createParams;
+				this.nullable = nullable;
+				this.caseSensitive = caseSensitive;
+				this.useInWhere = useInWhere;
+				this.unsigned = unsigned;
+				this.canBeMoney = canBeMoney;
+				this.autoincrement = autoincrement;
+				this.localTypeName = localTypeName;
+				this.minScale = minScale;
+				this.maxScale = maxScale;
+				this.precisionRadix = precisionRadix;
+			}
+		}
+
+		private DbTypeDescriptor(final ResultSet rs) throws SQLException {
+			if (rs == null) {
+				throw new NullPointerException("ResultSet can't be null"); 
+			}
+			else {
+				this.name = rs.getString("TYPE_NAME");
+				this.dataType = rs.getInt("DATA_TYPE");
+				this.precision = rs.getInt("PRECISION");
+				this.startPrefix = rs.getString("LITERAL_PREFIX");
+				this.endPrefix = rs.getString("LITERAL_SUFFIX");
+				this.createParams = rs.getString("CREATE_PARAMS");
+				this.nullable = Nullable.valueOf(rs.getInt("NULLABLE"));
+				this.caseSensitive = rs.getBoolean("CASE_SENSITIVE");
+				this.useInWhere = UseInWhere.valueOf(rs.getInt("SEARCHABLE"));
+				this.unsigned = rs.getBoolean("UNSIGNED_ATTRIBUTE");
+				this.canBeMoney = rs.getBoolean("FIXED_PREC_SCALE");
+				this.autoincrement = rs.getBoolean("AUTO_INCREMENT");
+				this.localTypeName = rs.getString("LOCAL_TYPE_NAME");
+				this.minScale = rs.getInt("MINIMUM_SCALE");
+				this.maxScale = rs.getInt("MAXIMUM_SCALE");
+				this.precisionRadix = rs.getInt("NUM_PREC_RADIX");
+			}
+		}
+		
+		public String getName() {
+			return name;
+		}
+
+		public int getDataType() {
+			return dataType;
+		}
+
+		public int getPrecision() {
+			return precision;
+		}
+
+		public String getStartPrefix() {
+			return startPrefix;
+		}
+
+		public String getEndPrefix() {
+			return endPrefix;
+		}
+
+		public String getCreateParams() {
+			return createParams;
+		}
+
+		public Nullable getNullable() {
+			return nullable;
+		}
+
+		public boolean isCaseSensitive() {
+			return caseSensitive;
+		}
+
+		public UseInWhere getUseInWhere() {
+			return useInWhere;
+		}
+		
+		public boolean isUnsigned() {
+			return unsigned;
+		}
+
+		public boolean isCanBeMoney() {
+			return canBeMoney;
+		}
+
+		public boolean isAutoincrement() {
+			return autoincrement;
+		}
+
+		public String getLocalTypeName() {
+			return localTypeName;
+		}
+
+		public int getMinScale() {
+			return minScale;
+		}
+
+		public int getMaxScale() {
+			return maxScale;
+		}
+
+		public int getPrecisionRadix() {
+			return precisionRadix;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (autoincrement ? 1231 : 1237);
+			result = prime * result + (canBeMoney ? 1231 : 1237);
+			result = prime * result + (caseSensitive ? 1231 : 1237);
+			result = prime * result + ((createParams == null) ? 0 : createParams.hashCode());
+			result = prime * result + dataType;
+			result = prime * result + ((endPrefix == null) ? 0 : endPrefix.hashCode());
+			result = prime * result + ((localTypeName == null) ? 0 : localTypeName.hashCode());
+			result = prime * result + maxScale;
+			result = prime * result + minScale;
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			result = prime * result + ((nullable == null) ? 0 : nullable.hashCode());
+			result = prime * result + ((useInWhere == null) ? 0 : useInWhere.hashCode());
+			result = prime * result + precision;
+			result = prime * result + precisionRadix;
+			result = prime * result + ((startPrefix == null) ? 0 : startPrefix.hashCode());
+			result = prime * result + (unsigned ? 1231 : 1237);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			
+			final DbTypeDescriptor other = (DbTypeDescriptor) obj;
+			
+			if (autoincrement != other.autoincrement) return false;
+			if (canBeMoney != other.canBeMoney) return false;
+			if (caseSensitive != other.caseSensitive) return false;
+			if (createParams == null) {
+				if (other.createParams != null) return false;
+			} else if (!createParams.equals(other.createParams)) return false;
+			if (dataType != other.dataType) return false;
+			if (endPrefix == null) {
+				if (other.endPrefix != null) return false;
+			} else if (!endPrefix.equals(other.endPrefix)) return false;
+			if (localTypeName == null) {
+				if (other.localTypeName != null) return false;
+			} else if (!localTypeName.equals(other.localTypeName)) return false;
+			if (maxScale != other.maxScale) return false;
+			if (minScale != other.minScale) return false;
+			if (name == null) {
+				if (other.name != null) return false;
+			} else if (!name.equals(other.name)) return false;
+			if (nullable != other.nullable) return false;
+			if (useInWhere != other.useInWhere) return false;
+			if (precision != other.precision) return false;
+			if (precisionRadix != other.precisionRadix) return false;
+			if (startPrefix == null) {
+				if (other.startPrefix != null) return false;
+			} else if (!startPrefix.equals(other.startPrefix)) return false;
+			if (unsigned != other.unsigned) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "DbTypeDescriptor [name=" + name + ", dataType=" + dataType + ", precision=" + precision
+					+ ", startPrefix=" + startPrefix + ", endPrefix=" + endPrefix + ", createParams=" + createParams
+					+ ", nullable=" + nullable + ", caseSensitive=" + caseSensitive + ", useInWhere=" + useInWhere + ", unsigned=" + unsigned
+					+ ", canBeMoney=" + canBeMoney + ", autoincrement=" + autoincrement + ", localTypeName="
+					+ localTypeName + ", minScale=" + minScale + ", maxScale=" + maxScale + ", precisionRadix="
+					+ precisionRadix + "]";
+		}
+		
+		/**
+		 * <p>Load all database types defined for the given database.</p>
+		 * @param conn database connection. Can't be null
+		 * @return database types. Can't be null or empty array
+		 * @throws SQLException on any database errors
+		 * @throws NullPointerException when connection is null
+		 */
+		public static DbTypeDescriptor[] load(final Connection conn) throws SQLException, NullPointerException {
+			if (conn == null) {
+				throw new NullPointerException("Connection can't be null"); 
+			}
+			else {
+				final List<DbTypeDescriptor>	result = new ArrayList<>();
+				
+				try(final ResultSet	rs = conn.getMetaData().getTypeInfo()) {
+					while (rs.next()) {
+						result.add(new DbTypeDescriptor(rs));
+					}
+					return result.toArray(new DbTypeDescriptor[result.size()]);
+				}
+			}
+		}
 	}
 	
 	private static class JDBCTypeDescriptor {

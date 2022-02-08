@@ -137,11 +137,19 @@ public interface ContentMetadataInterface {
 		int getChildrenCount();
 		
 		/**
-		 * <p>Get child of the ode with the given order index</p> 
+		 * <p>Get child of the node with the given order index</p> 
 		 * @param index index if child 
 		 * @return child. Can't be null
 		 */
 		ContentNodeMetadata getChild(int index);
+
+		/**
+		 * <p>Get child of the mode with the given name</p>
+		 * @param name name to get node for. Can't be null or empty
+		 * @return node found or null (if missing)
+		 * @since 0.0.6
+		 */
+		ContentNodeMetadata getChild(String name);
 		
 		/**
 		 * <p>Get owner of the tree model, inside which the node is</p>

@@ -28,6 +28,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.TableContainer;
@@ -43,9 +44,13 @@ import chav1961.purelib.streams.byte2byte.SQLDataOutputStream;
 
 public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable, NodeMetadataOwner {
 	private static final String					VERSION_MODEL_URI = "model.json";
-	private static final ContentNodeMetadata	VERSION_MODEL;
 	private static final String					VERSION_TABLE = "dbversion";
+	private static final String					VERSION_ID_FIELD = "dbv_Id";
+	private static final String					VERSION_VERSION_FIELD = "dbv_Version";
+	private static final String					VERSION_MODEL_FIELD = "dbv_Model";
+	private static final String					VERSION_CREATED_FIELD = "dbv_Created";
 	private static final String					PART_MODEL = "model";
+	private static final ContentNodeMetadata	VERSION_MODEL;
 
 	static {
 		try(final InputStream		is = SimpleDatabaseManager.class.getResourceAsStream(VERSION_MODEL_URI);
@@ -92,27 +97,47 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 				final LoggerFacade	trans = logger.transaction(this.getClass().getCanonicalName())) {
 
 				final DatabaseManagement<T>	mgmt = mgmtGetter.getManagementInterface(conn);
+				
+				conn.setSchema(VERSION_MODEL.getName());
+				conn.setAutoCommit(false);
+				
 				try(final ResultSet			rs = conn.getMetaData().getTables(null, conn.getSchema(), VERSION_TABLE, new String[]{"TABLE"})) {
 					
 					if (rs.next()) {
-						final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL, model.getName());
-						final int					result = mgmt.getVersion(model).compareTo(mgmt.getVersion(oldModel));
+						trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] found in the database, schema="+conn.getSchema());
+						
+						final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getName());
+						final T						oldVersion = oldModel == null ? mgmt.getInitialVersion() : mgmt.getVersion(oldModel);
+						final T						currentVersion = mgmt.getVersion(model); 
+						final int					result = currentVersion.compareTo(oldVersion);
 						
 						if (result > 0) {
-							mgmt.onUpgrade(conn, mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
-							storeCurrentDbVersion(conn, VERSION_MODEL, model, model.getName(), mgmt.getVersion(model));
+							trans.message(Severity.info, "Current model version ["+currentVersion+"] is newer than database version ["+oldVersion+"], upgrade will be called");
+							mgmt.onUpgrade(conn, currentVersion, model, oldVersion, oldModel);
+							trans.message(Severity.info, "Upgrade to version ["+currentVersion+"] completed");
+							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model, model.getName(), currentVersion);
+							trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
 						}
 						else if (result < 0) {
-							mgmt.onDowngrade(conn, mgmt.getVersion(model), model, mgmt.getVersion(oldModel), oldModel);
-							storeCurrentDbVersion(conn, VERSION_MODEL, model, model.getName(), mgmt.getVersion(model));
+							trans.message(Severity.info, "Current model version ["+currentVersion+"] is older  than database version ["+oldVersion+"], downgrade will be called");
+							mgmt.onDowngrade(conn, currentVersion, model, oldVersion, oldModel);
+							trans.message(Severity.info, "Downgrade to version ["+currentVersion+"] completed");
+							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model, model.getName(), currentVersion);
+							trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
 						}
 					}
 					else {
-						try{createDbVersionTable(conn, VERSION_MODEL, model.getName());
+						try{trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] not found in the database, schema="+conn.getSchema()+". Version infrastructure will be prepared now");
+							createDbVersionTable(conn, VERSION_MODEL, model.getName());
+							trans.message(Severity.info, "Version infrastructure was prepared in the database, schema="+conn.getSchema()+", create model infrastructure will be called now");
 							mgmt.onCreate(conn, model);
-							storeCurrentDbVersion(conn, VERSION_MODEL, model, model.getName(), mgmt.getVersion(model));
+							trans.message(Severity.info, "Create model infrastructure completed, schema="+conn.getSchema()+", version ["+mgmt.getInitialVersion()+"]");
+							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model, model.getName(), mgmt.getVersion(model));
+							trans.message(Severity.info, "Database version stored, version ["+mgmt.getVersion(model)+"]");
 						} catch (SQLException exc) {
+							trans.message(Severity.error, exc, "Exception was detected, database will be rolled back");
 							removeDbVersionTable(conn, model, model.getName());
+							trans.message(Severity.error, exc, "Database rollback completed");
 						}
 					}
 				}
@@ -323,7 +348,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 				}
 			}
 			else {
-				throw new SQLException("Operator ["+select+"]: version table is unexpectable empty"); 
+				return null;
 			}
 		}
 	}
@@ -434,10 +459,10 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		@Override
 		public <T> T get(final VersionRecord inst, final String name) throws SQLException {
 			switch (name) {
-				case "dbv_Id"		: return (T)Long.valueOf(inst.dbv_Id);
-				case "dbv_Version"	: return (T)inst.dbv_Version;
-				case "dbv_Model"	: return (T)inst.dbv_Model;
-				case "dbv_Created"	: return (T)inst.dbv_Created;
+				case VERSION_ID_FIELD		: return (T)Long.valueOf(inst.dbv_Id);
+				case VERSION_VERSION_FIELD	: return (T)inst.dbv_Version;
+				case VERSION_MODEL_FIELD	: return (T)inst.dbv_Model;
+				case VERSION_CREATED_FIELD	: return (T)inst.dbv_Created;
 				default : throw new SQLException("Field name ["+name+"] doesn't exist");
 			}
 		}
@@ -445,16 +470,16 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		@Override
 		public <T> InstanceManager<Long, VersionRecord> set(final VersionRecord inst, final String name, final T value) throws SQLException {
 			switch (name) {
-				case "dbv_Id"		: 
+				case VERSION_ID_FIELD		: 
 					inst.dbv_Id = (Long)value;
 					break;
-				case "dbv_Version"	:
+				case VERSION_VERSION_FIELD	:
 					inst.dbv_Version = (String)value;
 					break;
-				case "dbv_Model"	: 
+				case VERSION_MODEL_FIELD	: 
 					inst.dbv_Model = (String)value;
 					break;
-				case "dbv_Created"	: 
+				case VERSION_CREATED_FIELD	: 
 					inst.dbv_Created = (Date)value;
 					break;
 				default : 

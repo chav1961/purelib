@@ -155,6 +155,21 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	}
 
 	@Override
+	public ContentNodeMetadata getChild(final String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Child name can't be null or empty"); 
+		}
+		else {
+			for (ContentNodeMetadata item : this) {
+				if (name.equals(item.getName())) {
+					return item;
+				}
+			}
+			return null;
+		}
+	}
+	
+	@Override
 	public ContentMetadataInterface getOwner() {
 		if (owner != null) {
 			return owner;

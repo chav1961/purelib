@@ -207,6 +207,32 @@ public class ContentNodeFilter implements ContentNodeMetadata {
 	}
 
 	@Override
+	public ContentNodeMetadata getChild(final String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Item name can'tbe null or empty");
+		}
+		else if (!mutable) {
+			for (ContentNodeMetadata item : children) {
+				if (name.equals(item.getName())) {
+					return item;
+				}
+			}
+			return null;
+		}
+		else {
+			final List<ContentNodeMetadata>	result = new ArrayList<>();
+			
+			buildContent(nested,result);
+			for (ContentNodeMetadata item : result) {
+				if (name.equals(item.getName())) {
+					return item;
+				}
+			}
+			return null;
+		}
+	}
+	
+	@Override
 	public ContentMetadataInterface getOwner() {
 		return nested.getOwner();
 	}
