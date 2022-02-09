@@ -316,6 +316,25 @@
 <!-- JDataBaseTableWithMeta class localization -->
 		<key name="JDataBaseTableWithMeta.confirm.delete.title">Confirm deletion</key>
 		<key name="JDataBaseTableWithMeta.confirm.delete.message">Are you sure to delete this row?</key>
+
+<!-- SimpleDatabaseManager class localization -->
+		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema">Backup scheme (%1$s)</key>
+		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupModel">Backup model</key>
+		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupEntity">Backup entity (%1$s)</key>
+
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.version">Version model</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversionseq">Version model enumerator</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversionseq.tt">Version model enumerator</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion">Version model table</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.tt">Version model table</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id">ID</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id.tt">ID</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version">Version</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version.tt">Version</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model">Model</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model.tt">Model</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created">Created</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created.tt">Created</key>
 		
 	</lang>
 	<lang name="ru">
@@ -633,6 +652,26 @@
 <!-- Локализация класса JDataBaseTableWithMeta -->
 		<key name="JDataBaseTableWithMeta.confirm.delete.title">Подтвердить удаление</key>
 		<key name="JDataBaseTableWithMeta.confirm.delete.message">Вы действительно хотите удалить эту строку?</key>
+
+<!-- Локализация класса SimpleDatabaseManager -->
+		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema">Выгрузка схемы (%1$s)</key>
+		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupModel">Выгрузка модели</key>
+		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupEntity">Выгрузка сущности (%1$s)</key>
+
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.version">Модель версии</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversionseq">Нумератор модели версии</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversionseq.tt">Нумератор модели версии</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion">Таблица модели версии</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.tt">Таблица модели версии</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id">Идентификатор</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id.tt">Идентификатор</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version">Версия</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version.tt">Версия</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model">Модель</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model.tt">Модель</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created">Дата создания</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created.tt">Дата создания</key>
+
 
 	</lang>
 </localization>

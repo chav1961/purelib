@@ -1,9 +1,11 @@
 package chav1961.purelib.sql.model;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class SimpleDottedVersion implements Comparable<SimpleDottedVersion> {
-	private final String[]	parts;
+public class SimpleDottedVersion implements Comparable<SimpleDottedVersion>, Serializable {
+	private static final long 		serialVersionUID = -3748545032045896481L;
+	private final String[]			parts;
 	
 	public SimpleDottedVersion(final String version) {
 		if (version == null || version.isEmpty()) {
@@ -20,7 +22,6 @@ public class SimpleDottedVersion implements Comparable<SimpleDottedVersion> {
 	public String getVersion() {
 		return String.join(".", parts);
 	}
-	
 	
 	@Override
 	public int hashCode() {
@@ -62,6 +63,6 @@ public class SimpleDottedVersion implements Comparable<SimpleDottedVersion> {
 
 	@Override
 	public String toString() {
-		return "SimpleDottedVersion [parts=" + getVersion() + "]";
+		return getVersion();
 	}
 }

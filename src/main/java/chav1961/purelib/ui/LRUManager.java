@@ -1,4 +1,4 @@
-package chav1961.purelib.ui.swing.useful;
+package chav1961.purelib.ui;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import chav1961.purelib.concurrent.LightWeightListenerList;
-import chav1961.purelib.ui.swing.useful.interfaces.LRUPersistence;
+import chav1961.purelib.ui.interfaces.LRUPersistence;
 
 public class LRUManager implements Iterable<String>, AutoCloseable {
 	@FunctionalInterface

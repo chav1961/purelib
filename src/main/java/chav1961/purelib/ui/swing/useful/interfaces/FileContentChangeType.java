@@ -1,7 +1,7 @@
 package chav1961.purelib.ui.swing.useful.interfaces;
 
+import chav1961.purelib.ui.LRUManager;
 import chav1961.purelib.ui.swing.useful.JFileContentManipulator;
-import chav1961.purelib.ui.swing.useful.LRUManager;
 
 /**
  * <p>This enumeration describes type of content change in the {@linkplain JFileContentManipulator} and {@linkplain LRUManager}</p>

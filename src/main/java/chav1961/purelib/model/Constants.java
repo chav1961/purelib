@@ -7,7 +7,7 @@ import java.util.Set;
  * <p>This class contains a set of well-known constants for the model entities</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
 public class Constants {
@@ -35,6 +35,50 @@ public class Constants {
 	public static final String	MODEL_BUILTIN_LAF = "builtin.lookAndFeel";
 	public static final String	MODEL_BUILTIN_LRU = "builtin.lru";
 
+	/**
+	 * <p>This enumeration contains all built-in menu types supported</p>
+	 * @since 0.0.6
+	 */
+	public static enum Builtin {
+		BUILTIN_LANGUAGE(MODEL_BUILTIN_LANGUAGE),
+		BUILTIN_LAF(MODEL_BUILTIN_LAF),
+		BUILTIN_LRU(MODEL_BUILTIN_LRU);
+		
+		private final String	constantName; 
+		
+		private Builtin(final String constantName) {
+			this.constantName = constantName;
+		}
+		
+		/**
+		 * <p>Get constant name associated with the given item</p>
+		 * @return constant name. Can't be null
+		 */
+		public String getConstantName() {
+			return constantName;					
+		}
+		
+		/**
+		 * <p>Convert constant name to one of the builtins</p>
+		 * @param constantName constant name to convert. Can't be null or empty
+		 * @return builtin converted. Can't be null
+		 * @throws IllegalArgumentException when constant name is null, empty or unknown 
+		 */
+		public static Builtin forConstant(final String constantName) throws IllegalArgumentException {
+			if (constantName == null || constantName.isEmpty()) {
+				throw new IllegalArgumentException("Constant name can't be nullor empty"); 
+			}
+			else {
+				for (Builtin item : values()) {
+					if (constantName.equals(item.getConstantName())) {
+						return item;
+					}
+				}
+				throw new NullPointerException("Constant name ["+constantName+"] not found in the builtins"); 
+			}
+		}
+	}
+	
 	static final Set<String>	MODEL_AVAILABLE_BUILTINS = new HashSet<>();
 	
 	static {

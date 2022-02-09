@@ -2,6 +2,8 @@ package chav1961.purelib.ui;
 
 import java.util.Map;
 
+import javax.swing.JComponent;
+
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.ui.interfaces.ErrorProcessing;
@@ -13,10 +15,10 @@ import chav1961.purelib.ui.interfaces.WizardStep;
  * @author Alexander Chernomyrdin aka chav1961
  * @see WizardStep 
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.6
  */
 
-public abstract class AbstractWizardStep<Common,ErrorType extends Enum<?>, Content> implements WizardStep<Common,ErrorType,Content> {
+public abstract class AbstractWizardStep<Common,ErrorType extends Enum<?>, Content extends JComponent> implements WizardStep<Common,ErrorType,Content> {
 	@Override public abstract StepType getStepType();
 	@Override public abstract String getCaption();
 	@Override public abstract Content getContent();

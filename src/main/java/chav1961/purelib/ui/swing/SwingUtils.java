@@ -94,6 +94,8 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeCellEditor;
@@ -125,6 +127,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.Constants.Builtin;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.MutableContentNodeMetadata;
@@ -132,9 +135,11 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.streams.StreamsUtil;
+import chav1961.purelib.ui.LRUManager;
 import chav1961.purelib.ui.interfaces.ActionFormManager;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
+import chav1961.purelib.ui.interfaces.LRUManagerOwner;
 import chav1961.purelib.ui.interfaces.ReferenceAndComment;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
@@ -1226,7 +1231,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws NullPointerException when entity reference is null
 	 */
 	public static ActionListener buildAnnotatedActionListener(final Object entity, final FailedActionListenerCallback onUnknown) throws IllegalArgumentException, NullPointerException {
-		return buildAnnotatedActionListener(entity, onUnknown, PureLibSettings.CURRENT_LOGGER);
+		return buildAnnotatedActionListener(entity, onUnknown, entity instanceof Component ? SwingUtils.getNearestLogger((Component)entity) : PureLibSettings.CURRENT_LOGGER);
 	}
 
 	/**
@@ -1336,9 +1341,10 @@ loop:			for (Component comp : children(node)) {
 							new ActionListener() {
 								@Override
 								public void actionPerformed(final ActionEvent e) {
-									listener.actionPerformed(new ActionEvent(e.getSource(), e.getID(), 
-														preprocess.process(e.getActionCommand(), node
-																, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null, listener
+									listener.actionPerformed(new ActionEvent(e.getSource(), e.getID() 
+														, preprocess.process(e.getActionCommand(), node
+														, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null
+														, listener
 														), e.getWhen(), e.getModifiers())
 									);
 								}
@@ -1961,23 +1967,52 @@ loop:			for (Component comp : children(node)) {
 	 * @param component component to get logger for
 	 * @return logger found or standard Pure Library logger if not found
 	 * @since 0.0.5
+	 * @lastUpdate 0.0.6
 	 */
-	public static LoggerFacade getNearestLogger(final JComponent component) {
+	public static LoggerFacade getNearestLogger(final Component component) {
+		return getNearestOwner(component, LoggerFacade.class, PureLibSettings.CURRENT_LOGGER);
+	}
+
+	/**
+	 * <p>Get nearest owner in the swing tree</p>
+	 * @param <T> owner type
+	 * @param component current component. Can't be null
+	 * @param ownerClass owner class awaited. Can't be null
+	 * @return owner found or null if missing
+	 * @since 0.0.6
+	 */
+	public static <T> T getNearestOwner(final Component component, final Class<T> ownerClass) {
+		return getNearestOwner(component, ownerClass, null);
+	}	
+	
+	/**
+	 * <p>Get nearest owner in the swing tree</p>
+	 * @param <T> owner type
+	 * @param component current component. Can't be null
+	 * @param ownerClass owner class awaited. Can't be null
+	 * @param defaultOwner default owner value when not found (can be null)
+	 * @return owner found or default owner if missing
+	 * @since 0.0.6
+	 */
+	public static <T> T getNearestOwner(final Component component, final Class<T> ownerClass, final T defaultOwner) {
 		if (component == null) {
 			throw new NullPointerException("Component can't be null");
+		}
+		else if (ownerClass == null) {
+			throw new NullPointerException("Owner class can't be null");
 		}
 		else {
 			Component	current = component.getParent();
 			
 			while (current != null) {
-				if (current instanceof LoggerFacadeOwner) {
-					return ((LoggerFacadeOwner)current).getLogger();
+				if (ownerClass.isAssignableFrom(current.getClass())) {
+					return (T)current;
 				}
 				else {
 					current = current.getParent(); 
 				}
 			}
-			return PureLibSettings.CURRENT_LOGGER;
+			return defaultOwner;
 		}
 	}
 	
@@ -2060,7 +2095,40 @@ loop:			for (Component comp : children(node)) {
 				bar.add(menu);
 				break;
 			case BUILTIN_SUBMENU :
-				bar.add(createBuiltinSubmenu(node));
+				switch (Builtin.forConstant(node.getName())) {
+					case BUILTIN_LAF		:
+						bar.add(createBuiltinSubmenu(node));
+						break;
+					case BUILTIN_LANGUAGE	:
+						bar.add(createBuiltinSubmenu(node));
+						break;
+					case BUILTIN_LRU		:
+						final JMenu				lruMenu = createBuiltinSubmenu(node); 
+						final ComponentListener	l = new ComponentListener() {
+														@Override public void componentResized(ComponentEvent e) {}
+														@Override public void componentMoved(ComponentEvent e) {}
+														@Override public void componentHidden(ComponentEvent e) {}
+														
+														@Override
+														public void componentShown(ComponentEvent e) {
+															final LRUManagerOwner	owner = SwingUtils.getNearestOwner(bar, LRUManagerOwner.class);
+															
+															if (owner != null) {
+																final LRUManager	mgr = owner.getLRUManager();
+																
+																fillLruSubmenu(lruMenu, mgr);
+																mgr.addLRUManagerListener((m, op, s)->fillLruSubmenu(lruMenu, m));
+															}
+															bar.removeComponentListener(this);
+														}
+													};
+													
+						bar.add(lruMenu);
+						bar.addComponentListener(l);
+						break;
+					default:
+						throw new UnsupportedOperationException("Builtin type ["+Builtin.forConstant(node.getName())+"] is not supported yet");
+				}
 				break;
 			default : throw new UnsupportedOperationException("Navigation node type ["+getNavigationNodeType(node)+"] is not supported yet");
 		}
@@ -2084,7 +2152,40 @@ loop:			for (Component comp : children(node)) {
 				popup.add(submenu);
 				break;
 			case BUILTIN_SUBMENU :
-				popup.add(createBuiltinSubmenu(node));
+				switch (Builtin.forConstant(node.getName())) {
+					case BUILTIN_LAF		:
+						popup.add(createBuiltinSubmenu(node));
+						break;
+					case BUILTIN_LANGUAGE	:
+						popup.add(createBuiltinSubmenu(node));
+						break;
+					case BUILTIN_LRU		:
+						final JMenu				lruMenu = createBuiltinSubmenu(node); 
+						final ComponentListener	l = new ComponentListener() {
+														@Override public void componentResized(ComponentEvent e) {}
+														@Override public void componentMoved(ComponentEvent e) {}
+														@Override public void componentHidden(ComponentEvent e) {}
+														
+														@Override
+														public void componentShown(ComponentEvent e) {
+															final LRUManagerOwner	owner = SwingUtils.getNearestOwner(popup, LRUManagerOwner.class);
+															
+															if (owner != null) {
+																final LRUManager	mgr = owner.getLRUManager();
+																
+																fillLruSubmenu(lruMenu, mgr);
+																mgr.addLRUManagerListener((m, op, s)->fillLruSubmenu(lruMenu, m));
+															}
+															popup.removeComponentListener(this);
+														}
+													};
+													
+						popup.add(lruMenu);
+						popup.addComponentListener(l);
+						break;
+					default:
+						throw new UnsupportedOperationException("Builtin type ["+Builtin.forConstant(node.getName())+"] is not supported yet");
+				}
 				break;
 			default : throw new UnsupportedOperationException("Navigation node type ["+getNavigationNodeType(node)+"] is not supported yet");
 		}
@@ -2108,34 +2209,50 @@ loop:			for (Component comp : children(node)) {
 				menu.add(submenu);
 				break;
 			case BUILTIN_SUBMENU :
-				menu.add(createBuiltinSubmenu(node));
+				switch (Builtin.forConstant(node.getName())) {
+					case BUILTIN_LAF		:
+						menu.add(createBuiltinSubmenu(node));
+						break;
+					case BUILTIN_LANGUAGE	:
+						menu.add(createBuiltinSubmenu(node));
+						break;
+					case BUILTIN_LRU		:
+						final JMenu				lruMenu = createBuiltinSubmenu(node); 
+						final ComponentListener	l = new ComponentListener() {
+														@Override public void componentResized(ComponentEvent e) {}
+														@Override public void componentMoved(ComponentEvent e) {}
+														@Override public void componentHidden(ComponentEvent e) {}
+														
+														@Override
+														public void componentShown(ComponentEvent e) {
+															final LRUManagerOwner	owner = SwingUtils.getNearestOwner(menu, LRUManagerOwner.class);
+															
+															if (owner != null) {
+																final LRUManager	mgr = owner.getLRUManager();
+																
+																fillLruSubmenu(lruMenu, mgr);
+																mgr.addLRUManagerListener((m, op, s)->fillLruSubmenu(lruMenu, m));
+															}
+															menu.removeComponentListener(this);
+														}
+													};
+													
+						menu.add(lruMenu);
+						menu.addComponentListener(l);
+						break;
+					default:
+						throw new UnsupportedOperationException("Builtin type ["+Builtin.forConstant(node.getName())+"] is not supported yet");
+				}
 				break;
 			default : throw new UnsupportedOperationException("Navigation node type ["+getNavigationNodeType(node)+"] is not supported yet");
 		}
 	}
-	
+
 	private static JMenu createBuiltinSubmenu(final ContentNodeMetadata node) {
 		final JMenuWithMeta	submenu = new JMenuWithMeta(node);
 
-		switch (node.getName()) {
-			case Constants.MODEL_BUILTIN_LANGUAGE	:
-				final String		currentLang = Locale.getDefault().getLanguage();
-				final ButtonGroup	langGroup = new ButtonGroup();
-				
-				AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
-					final String						appPath = submenu.getNodeMetadata().getApplicationPath()+"?lang="+lang.name(); 
-					final MutableContentNodeMetadata	md = new MutableContentNodeMetadata(langName, String.class, "./"+langName, PureLibLocalizer.LOCALIZER_SCHEME_URI, lang.name(), lang.name()+".tt", null, null, URI.create(appPath), lang.getIconURI()) 
-																{{setOwner(node.getOwner());}};
-					final JRadioMenuItemWithMeta		radio = new JRadioMenuItemWithMeta(md);
-						
-					if (currentLang.equals(lang.toString())) {	// Mark current lang
-						radio.setSelected(true);
-					}
-					langGroup.add(radio);
-					submenu.add(radio);
-				});
-				break;
-			case Constants.MODEL_BUILTIN_LAF	:
+		switch (Builtin.forConstant(node.getName())) {
+			case BUILTIN_LAF	:
 				final String		currentLafDesc = UIManager.getLookAndFeel().getName();
 				final ButtonGroup	lafGroup = new ButtonGroup();
 				
@@ -2155,7 +2272,24 @@ loop:			for (Component comp : children(node)) {
 					}
 				}
 				break;
-			case Constants.MODEL_BUILTIN_LRU	:
+			case BUILTIN_LANGUAGE	:
+				final String		currentLang = Locale.getDefault().getLanguage();
+				final ButtonGroup	langGroup = new ButtonGroup();
+				
+				AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
+					final String						appPath = submenu.getNodeMetadata().getApplicationPath()+"?lang="+lang.name(); 
+					final MutableContentNodeMetadata	md = new MutableContentNodeMetadata(langName, String.class, "./"+langName, PureLibLocalizer.LOCALIZER_SCHEME_URI, lang.name(), lang.name()+".tt", null, null, URI.create(appPath), lang.getIconURI()) 
+																{{setOwner(node.getOwner());}};
+					final JRadioMenuItemWithMeta		radio = new JRadioMenuItemWithMeta(md);
+						
+					if (currentLang.equals(lang.toString())) {	// Mark current lang
+						radio.setSelected(true);
+					}
+					langGroup.add(radio);
+					submenu.add(radio);
+				});
+				break;
+			case BUILTIN_LRU	:
 				submenu.setEnabled(false);
 				break;
 			default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");

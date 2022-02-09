@@ -43,6 +43,10 @@ import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.byte2byte.SQLDataOutputStream;
 
 public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable, NodeMetadataOwner {
+	private static final String					MSG_BACKUP_DATABASE_SCHEMA = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema";
+	private static final String					MSG_BACKUP_MODEL = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupModel";
+	private static final String					MSG_BACKUP_ENTITY = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupEntity";
+	
 	private static final String					VERSION_MODEL_URI = "model.json";
 	private static final String					VERSION_TABLE = "dbversion";
 	private static final String					VERSION_ID_FIELD = "dbv_Id";
@@ -198,7 +202,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		if (!toBackup.isEmpty()) {
 			final Connection			conn = connGetter.getConnection();
 			
-			progress.start("backup database schema "+meta.getName(), toBackup.size() + 1);
+			progress.start(PureLibSettings.PURELIB_LOCALIZER.getValue(MSG_BACKUP_DATABASE_SCHEMA, meta.getName()), toBackup.size() + 1);
 			try {
 				final ZipEntry 	ze  = new ZipEntry(PART_MODEL);
 				
@@ -209,7 +213,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 				int				step = 1;
 				
 				try {
-					progress.stage("backup model", step++, meta.getChildrenCount()+1);
+					progress.stage(PureLibSettings.PURELIB_LOCALIZER.getValue(MSG_BACKUP_MODEL), step++, meta.getChildrenCount()+1);
 					Utils.copyStream(new ByteArrayInputStream(model.getBytes(PureLibSettings.DEFAULT_CONTENT_ENCODING)), zos, progress);
 					wr.flush();
 				} finally {
@@ -220,11 +224,11 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 				for (ContentNodeMetadata item : toBackup) {
 					try {
 						if (item.getType() == UniqueIdContainer.class) {
-							progress.stage("backup "+item.getName(), step++, meta.getChildrenCount()+1);
+							progress.stage(PureLibSettings.PURELIB_LOCALIZER.getValue(MSG_BACKUP_ENTITY, item.getName()), step++, meta.getChildrenCount()+1);
 							backupSequence(conn, zos, item, progress);
 						}
 						else if (item.getType() == TableContainer.class) {
-							progress.stage("backup "+item.getName(), step++, meta.getChildrenCount()+1, calculateTableSize(conn, item, meta.getName()));
+							progress.stage(PureLibSettings.PURELIB_LOCALIZER.getValue(MSG_BACKUP_ENTITY, item.getName()), step++, meta.getChildrenCount()+1, calculateTableSize(conn, item, meta.getName()));
 							backupTable(conn, zos, item, meta.getName(), progress);
 						}
 						else {

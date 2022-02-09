@@ -1,4 +1,4 @@
-package chav1961.purelib.ui.swing.useful.interfaces;
+package chav1961.purelib.ui.interfaces;
 
 import java.io.IOException;
 import java.util.ArrayList;

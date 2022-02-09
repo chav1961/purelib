@@ -27,9 +27,9 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.interfaces.LRUPersistence;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeListener;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeType;
-import chav1961.purelib.ui.swing.useful.interfaces.LRUPersistence;
 
 /**
  * <p>This class is used to support opening/editing/saving any content in the Swing applications. It implements very popular
