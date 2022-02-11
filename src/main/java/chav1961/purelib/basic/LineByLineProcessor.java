@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.io.Closeable;
+import java.io.Flushable;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -29,10 +30,10 @@ import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.5
  */
 
-public class LineByLineProcessor implements Closeable {
+public class LineByLineProcessor implements Closeable, Flushable {
 	private final List<DataStack>				pushes = new ArrayList<>();
 	private final GrowableCharArray<?>			gca = new GrowableCharArray<>(true);
 	private final LineByLineProcessorCallback	callback;
@@ -52,6 +53,19 @@ public class LineByLineProcessor implements Closeable {
 		else {
 			this.callback = callback;
 		}		
+	}
+
+	@Override
+	public void flush() throws IOException {
+		if (gca.length() > 0) {
+			if (gca.charAt(gca.length()-1) != '\n') {
+				gca.append('\n');
+			}
+			try{processFromBuilder();
+			} catch (SyntaxException e) {
+				throw new IOException(e);
+			}
+		}
 	}
 	
 	@Override
@@ -186,15 +200,7 @@ public class LineByLineProcessor implements Closeable {
 	}
 
 	private void closeWriting() throws IOException, SyntaxException {
-		if (gca.length() > 0) {
-			if (gca.charAt(gca.length()-1) != '\n') {
-				gca.append('\n');
-			}
-			try{processFromBuilder();
-			} catch (SyntaxException e) {
-				throw new IOException(e);
-			}
-		}
+		flush();
 		callback.terminateProcessing();
 	}
 	
