@@ -12,10 +12,12 @@ import java.util.Map;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.streams.char2char.AbstractPreprocessingReader.IncludeCallback;
 
 /**
@@ -169,19 +171,7 @@ public abstract class AbstractPreprocessingReader extends Reader {
 	protected static final long			ENABLED_OUTPUT_MASK = 0xFFFFFFFFFFFFFFFFL;
 	protected static final char[]		NL = {'\n'};
 
-	private static final Map<Class<?>,Class<?>>	WRAPPERS = new HashMap<>();
-	
-	static {
-		WRAPPERS.put(boolean.class,Boolean.class);
-		WRAPPERS.put(byte.class,Byte.class);
-		WRAPPERS.put(char.class,Character.class);
-		WRAPPERS.put(double.class,Double.class);
-		WRAPPERS.put(float.class,Float.class);
-		WRAPPERS.put(int.class,Integer.class);
-		WRAPPERS.put(long.class,Long.class);
-		WRAPPERS.put(short.class,Short.class);
-	}
-	
+	protected final SyntaxTreeInterface<char[]>	definitions = new AndOrTree<>();
 	private volatile Reader					nestedReader;
 	private final Map<String,Object>		varsAndOptions;
 	private final int						bufferSize;
@@ -192,7 +182,6 @@ public abstract class AbstractPreprocessingReader extends Reader {
 	private final boolean					recursiveSubstitution;
 	private final ErrorProcessingCallback	errCallback;
 	private final IncludeCallback			includeCallback;	
-	private final SyntaxTreeInterface<char[]>	definitions = new AndOrTree<>();
 	private final LineByLineProcessor		lblp = new LineByLineProcessor((displacement,lineNo,data,from,length)->{internalProcessLine(displacement,lineNo,data,from,length);}); 
 
 	private volatile AbstractPreprocessingReader	delegate = null;
@@ -405,11 +394,14 @@ public abstract class AbstractPreprocessingReader extends Reader {
 			if (returned == null) {
 				return defaultValue;
 			}
-			else if (!returnedType.isAssignableFrom(returned.getClass()) && !(WRAPPERS.containsKey(returnedType) && WRAPPERS.get(returnedType).isAssignableFrom(returned.getClass()))) {
-				throw new IllegalArgumentException("Uncompatible types for ["+optionName+"] option: awaited is ["+returnedType+"] awaited, but current is ["+returned.getClass()+"]"); 
-			}
 			else {
-				return (T)returned;
+				try{return SQLUtils.convert(returnedType, returned);
+				} catch (ContentException e) {
+					try{getErrorProcessingCallback().processWarning(0, "options::"+optionName, e.getLocalizedMessage());
+					} catch (SyntaxException e1) {
+					}
+					return defaultValue;
+				}
 			}
 		}
 	}
