@@ -163,6 +163,18 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			return seekName(content,0,content.length);
 		}
 	}
+
+	@Override
+	public long seekNameI(final String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Name to seek can't be null or empty");
+		}
+		else {
+			final char[]	content = UnsafedUtils.getStringContent(name);
+			
+			return seekNameI(content,0,content.length);
+		}
+	}
 	
 	@Override
 	public long seekName(final char[] source, final int from, final int to) {
@@ -187,6 +199,30 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		}
 	}
 
+	@Override
+	public long seekNameI(final char[] source, final int from, final int to) {
+		final int	len;
+		
+		if (source == null || (len = source.length) == 0) {
+			throw new IllegalArgumentException("Source array can't be null or empty");
+		}
+		else if (from < 0 || from > len) {
+			throw new IllegalArgumentException("'from' location ["+from+"] outside the range 0.."+len);
+		}
+		else if (to < 0 || to > len) {
+			throw new IllegalArgumentException("'to' location ["+to+"] outside the range 0.."+len);
+		}
+		else if (to <= from) {
+			throw new IllegalArgumentException("'to' location ["+to+"] not greater than 'from' ["+from+"]");
+		}
+		else {
+			final TermNode	node = (TermNode) seekNameInternalIgnoreCase(root,source,from,to,forPosition);
+
+			return node == null ? -forPosition[0]-1 : node.id;
+		}
+	}
+	
+	
 	@Override
 	public boolean contains(final long id) {
 		if (id < 0) {
@@ -718,6 +754,89 @@ seek:	while (root != null && from < to) {
 		}
 	}
 
+	private static Node seekNameInternalIgnoreCase(Node root, final char[] source, int from, final int to, final int[] forPosition) {
+		char	temp[], symbol, midVal;
+		int		index, maxIndex, low, high, mid;
+		
+seek:	while (root != null && from < to) {
+			switch (root.type) {
+				case TYPE_OR 	:
+					symbol = Character.toUpperCase(source[from]);
+					temp = ((OrNode)root).chars;
+					maxIndex = ((OrNode)root).filled;
+
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = Character.toUpperCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							root = ((OrNode)root).children[mid];
+							continue seek;
+			            }
+			        }
+					symbol = Character.toLowerCase(source[from]);
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = Character.toLowerCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							root = ((OrNode)root).children[mid];
+							continue seek;
+			            }
+			        }
+					root = null;
+					break seek;
+				case TYPE_AND 	:
+					temp = ((AndNode)root).chars;
+					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
+						if (Character.toUpperCase(temp[index]) != Character.toUpperCase(source[from]) && Character.toLowerCase(temp[index]) != Character.toLowerCase(source[from])) {
+							root = null;
+							break seek;
+						}
+					}
+					if (index < maxIndex) {
+						root = null;
+						break seek;
+					}
+					else {
+						root = ((AndNode)root).child;
+					}
+					break;
+				case TYPE_TERM	:
+					if (from == to) {
+						break seek;
+					}
+					else {
+						root = ((TermNode)root).child;
+					}
+					break;
+			}
+		}
+		forPosition[0] = from;
+		if (from == to) {
+			if (root instanceof TermNode) {
+				return root;
+			}
+			else if ((root instanceof OrNode) && ((OrNode)root).chars[0] == '\0') {
+				return ((AndNode)((OrNode)root).children[0]).child;
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	private boolean walk(final Node root, final char[] place, final int from, final Walker<T> callback) {
 		if (root != null) {

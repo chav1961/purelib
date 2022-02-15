@@ -19,7 +19,7 @@ import chav1961.purelib.basic.OrdinalSyntaxTree;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.6
  */
 
 public interface SyntaxTreeInterface<T> {
@@ -132,11 +132,33 @@ public interface SyntaxTreeInterface<T> {
 	long seekName(char[] value, int from, int to);
 
 	/**
+	 * <p>Seek name ignoring case and return it's id</p>
+	 * @param value name value to seek
+	 * @param from from name index
+	 * @param to to name index
+	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1)
+	 * @since 0.0.6 
+	 */
+	default long seekNameI(char[] value, int from, int to) {
+		return seekName(value, from, to);
+	}
+	
+	/**
 	 * <p>Seek name and return it's id</p>
 	 * @param name name to seek
 	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1) 
 	 */
 	long seekName(String name);
+
+	/**
+	 * <p>Seek name ignoring case and return it's id</p>
+	 * @param name name to seek
+	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1) 
+	 * @since 0.0.6 
+	 */
+	default long seekNameI(String name) {
+		return seekName(name);
+	}
 	
 	/**
 	 * <p>Remove name from the tree</p>

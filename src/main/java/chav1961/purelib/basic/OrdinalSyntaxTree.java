@@ -16,11 +16,12 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @lastUpdate 0.0.6
  */
 public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 	private static final int					RANGE_STEP = 64;
 	
-	private final TreeMap<String,Node<Cargo>>	map = new TreeMap<>();
+	private final TreeMap<String,Node<Cargo>>	map;
 	@SuppressWarnings("rawtypes")
 	private final LongIdMap<Node>				invMap = new LongIdMap<Node>(Node.class);
 	private final long							step;
@@ -32,6 +33,10 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 	}
 	
 	public OrdinalSyntaxTree(final long initialId, final long step) {
+		this(initialId, step, false);
+	}
+
+	public OrdinalSyntaxTree(final long initialId, final long step, final boolean ignoreCase) {
 		if (initialId <= 0) {
 			throw new IllegalArgumentException("'initialId' ["+initialId+"] need be positive");
 		}
@@ -39,6 +44,7 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 			throw new IllegalArgumentException("'step' ["+step+"] out of range 1.."+RANGE_STEP);
 		}
 		else {
+			this.map = ignoreCase ? new TreeMap<>(String.CASE_INSENSITIVE_ORDER) : new TreeMap<>();
 			this.actualId = initialId;
 			this.step = step;
 		}
