@@ -10,9 +10,15 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.cdb.interfaces.RuleBasedParser;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 /**
@@ -27,7 +33,7 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
 public class CompilerUtils {
@@ -1115,7 +1121,37 @@ public class CompilerUtils {
 			}
 		}
 	}
+
 	
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content) throws SyntaxException {
+		return buildRuleBasedParser(clazz, content, new AndOrTree<>(1,1));
+	}
+
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content, SimpleURLClassLoader loader) throws SyntaxException {
+		return buildRuleBasedParser(clazz, content, loader);
+	}
+	
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names) throws SyntaxException {
+		return buildRuleBasedParser(clazz, content, new AndOrTree<>(1,1), PureLibSettings.INTERNAL_LOADER);
+	}
+
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names, final SimpleURLClassLoader loader) throws SyntaxException {
+		if (clazz == null) {
+			throw new NullPointerException("Node type class can't be null");
+		}
+		else if (content == null || content.isEmpty()) {
+			throw new IllegalArgumentException("Content string can't be null");
+		}
+		else if (names == null) {
+			throw new NullPointerException("Syntax node tree can't be null");
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Class loader can't be null");
+		}
+		else {
+			return InternalUtils.buildRuleBasedParser(clazz, content, names, loader);
+		}
+	}
 	
 	private static void walkInterfaceFields(final Class<?> clazz, final FieldWalker walker, final boolean recursive, final Pattern pattern, final Class<?>[] availableTypes) {
 		for (Field item : clazz.getDeclaredFields()) {
