@@ -1,0 +1,138 @@
+; -------------------------------------------------------------------------
+
+printImports	.macro
+		import	chav1961.purelib.basic.interfaces.SyntaxTreeInterface
+		import	chav1961.purelib.cdb.interfaces.RuleBasedParser
+		import	chav1961.purelib.cdb.AbstractBNFParser protected
+		.mend
+
+; -------------------------------------------------------------------------
+
+beginClassDeclaration	.macro className:str=
+&className	.class	public extends chav1961.purelib.cdb.AbstractBNFParser implements chav1961.purelib.cdb.interfaces.RuleBasedParser  
+		.mend
+
+; -------------------------------------------------------------------------
+
+declareSequenceField	.macro className:str=,fieldName:str=
+&fieldName	.field		char[] private static final
+		.mend
+
+; -------------------------------------------------------------------------
+
+beforeClinit	.macro	className:str=
+&className		.method	void static
+				.stack	optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+
+clinitPrepareSequence	.macro	className:str=,fieldName:str=,value:str=
+		ldc				"&value"
+		invokevirtual	java.lang.String.toCharArray()[C
+		putstatic		&className..&fieldName
+		.mend
+
+; -------------------------------------------------------------------------
+
+afterClinit	.macro className:str=
+		return
+&className		.end
+		.mend
+; -------------------------------------------------------------------------
+
+prepareConstructor	.macro className:str=
+&className		.method		void public
+clazz			.parameter	java.lang.Class final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+				.stack	optimistic
+				ldc				this
+				dup
+				invokespecial	chav1961.purelib.cdb.AbstractBNFParser.<init>(Ljava/lang/Class;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface)V
+				return
+&className		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareCharTestMethod	.macro className:str=,fieldValue:int=,methodName:str=
+&methodName		.method		boolean private static
+content			.parameter	char[] final
+from			.parameter	int final
+				.stack		optimistic
+				aload		content
+				iload		from
+				acload
+				ldc			&fieldVaue
+				ifeq		trueLabel
+				ldc			0
+				iret
+trueLabel:		ldc			1				
+				iret
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareCharSkipMethod	.macro className:str=,fieldValue:int=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int final
+				.stack		optimistic
+				return
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareCharParseMethod	.macro className:str=,fieldValue:int=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int final
+				.stack		optimistic
+				return
+&methodName		.end
+		.mend
+
+
+; -------------------------------------------------------------------------
+
+prepareSequenceTestMethod	.macro className:str=,fieldName:str=,methodName:str=
+&methodName		.method	void private static
+				.stack	optimistic
+				return
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareSequenceSkipMethod	.macro className:str=,fieldName:str=,methodName:str=
+&methodName		.method	void private static
+				.stack	optimistic
+				return
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareSequenceParseMethod	.macro className:str=,fieldName:str=,methodName:str=
+&methodName		.method	void private static
+				.stack	optimistic
+				return
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+preparePublicParse	.macro className:str=
+&className.1	.method	void private static
+				.stack	optimistic
+				return
+&className.1	.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+endClassDeclaration	.macro className:str=
+&className		.end
+		.mend

@@ -16,7 +16,7 @@ import chav1961.purelib.enumerations.NodeEnterMode;
  * @author Alexander Chernomyrdin aka chav1961
  * @see SyntaxNode
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.6
  */
 public class SyntaxNodeUtils {
 	private SyntaxNodeUtils() {}
@@ -26,12 +26,13 @@ public class SyntaxNodeUtils {
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @see SyntaxNode
 	 * @since 0.0.3
+	 * @lastUpdate 0.0.6
 	 * @param <Type> node type
 	 * @param <Clazz> node class (usually {@linkplain SyntaxNode}
 	 */
 	@FunctionalInterface
-	public interface WalkCallback<Type extends Enum<?>,Clazz extends SyntaxNode<Type,Clazz>> {
-		ContinueMode process(final NodeEnterMode mode, final SyntaxNode<Type,Clazz> node);
+	public interface WalkCallback<Type extends Enum<?>> {
+		ContinueMode process(final NodeEnterMode mode, final SyntaxNode<Type,?> node);
 	}
 	
 	/**
@@ -43,7 +44,7 @@ public class SyntaxNodeUtils {
 	 * @return false if walking was stopped, true otherwise
 	 * @see SyntaxNode
 	 */
-	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkDown(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
+	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkDown(final SyntaxNode<T,Clazz> node, final WalkCallback<T> callback) {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null"); 
 		}
@@ -64,7 +65,7 @@ public class SyntaxNodeUtils {
 	 * @return false if walking was stopped, true otherwise
 	 * @see SyntaxNode
 	 */
-	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkUp(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
+	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean walkUp(final SyntaxNode<T,Clazz> node, final WalkCallback<T> callback) {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null"); 
 		}
@@ -88,7 +89,7 @@ public class SyntaxNodeUtils {
 	 * @return true if all DNFs were processed, false otherwise
 	 * @throws NullPointerException on any parameter is null
 	 */
-	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean buildDNF(final SyntaxNode<T,Clazz> node, final T orNode, final T andNode, final T notNode, final WalkCallback<T,Clazz> callback) throws NullPointerException {
+	public static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> boolean buildDNF(final SyntaxNode<T,Clazz> node, final T orNode, final T andNode, final T notNode, final WalkCallback<T> callback) throws NullPointerException {
 		if (node == null) {
 			throw new NullPointerException("Node to build DNF for can't be null"); 
 		}
@@ -213,7 +214,7 @@ public class SyntaxNodeUtils {
 		return null;
 	}
 	
-	private static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> ContinueMode walkDownInternal(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
+	private static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> ContinueMode walkDownInternal(final SyntaxNode<T,Clazz> node, final WalkCallback<T> callback) {
 		ContinueMode	rc;
 		
 		switch (rc = callback.process(NodeEnterMode.ENTER,node)) {
@@ -242,7 +243,7 @@ loop:			for (Clazz item : node.children) {
 		}
 	}
 
-	private static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> ContinueMode walkUpInternal(final SyntaxNode<T,Clazz> node, final WalkCallback<T,Clazz> callback) {
+	private static <T extends Enum<?>,Clazz extends SyntaxNode<T,Clazz>> ContinueMode walkUpInternal(final SyntaxNode<T,Clazz> node, final WalkCallback<T> callback) {
 		ContinueMode	rc;
 		
 		switch (rc = callback.process(NodeEnterMode.ENTER,node)) {

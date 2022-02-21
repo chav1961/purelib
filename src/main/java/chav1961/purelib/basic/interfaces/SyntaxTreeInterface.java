@@ -24,6 +24,36 @@ import chav1961.purelib.basic.OrdinalSyntaxTree;
 
 public interface SyntaxTreeInterface<T> {
 	/**
+	 * <p>Dummy interface implementation.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public static final SyntaxTreeInterface DUMMY = new SyntaxTreeInterface() {
+														@Override public long placeName(char[] value, int from, int to, Object cargo) {return -1;}
+														@Override public long placeOrChangeName(char[] value, int from, int to, Object cargo) {return -1;}
+														@Override public long placeName(String name, Object cargo) {return -1;}
+														@Override public long placeOrChangeName(String name, Object cargo) {return -1;}
+														@Override public long placeName(char[] value, int from, int to, long id, Object cargo) {return -1;}
+														@Override public long placeOrChangeName(char[] source, int from, int to, long id, Object cargo) {return -1;}
+														@Override public long placeName(String name, long id, Object cargo) {return -1;}
+														@Override public long placeOrChangeName(String name, long id, Object cargo) {return -1;}
+														@Override public long seekName(char[] value, int from, int to) {return -1;}
+														@Override public long seekName(String name) {return -1;}
+														@Override public boolean removeName(long id) {return false;}
+														@Override public Object getCargo(long id) {return null;}
+														@Override public void setCargo(long id, Object cargo) {}
+														@Override public boolean contains(long id) {return false;}
+														@Override public int getNameLength(long id) {return 0;}
+														@Override public String getName(long id) {return "";}
+														@Override public int getName(long id, char[] target, int from) {return 0;}
+														@Override public int compareNames(long first, long second) {return 0;}
+														@Override public void walk(Walker walker) {}
+														@Override public long size() {return 0;}
+														@Override public void clear() {}
+													}; 
+	
+	
+	/**
 	 * <p>This interface describes processing all terminal nodes in the tree.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1

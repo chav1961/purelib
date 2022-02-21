@@ -879,7 +879,7 @@ public class UnsafedCharUtils {
 				result[1] = index - 1;
 				return index + 1;
 			}
-			else if ((source[index] == '\\' || source[index] == '\n')&& checkEscaping) {
+			else if ((source[index] == '\\' || source[index] == '\n') && checkEscaping) {
 				result[0] = from;
 				result[1] = index - 1;
 				return -index;
