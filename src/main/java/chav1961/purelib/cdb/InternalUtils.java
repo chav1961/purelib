@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -15,6 +16,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
@@ -26,20 +28,18 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.InternalUtils.Lexema.LexType;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
+import chav1961.purelib.cdb.intern.Predefines;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.StylePropertiesSupported.Keyword;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 class InternalUtils {
-	private static final char		EOF = '\uFFFF';
+	private static final char			EOF = '\uFFFF';
 	
 	private static final SyntaxTreeInterface<Predefines>	PREDEFINED = new AndOrTree<>(1,1);
-	private static final AsmWriter	AW;
-	
-	static enum Predefines {
-		Empty, Name, FixedNumber, FloatNumber, QuotedString, DoubleQuotedString
-	}
+	private static final AsmWriter		AW;
+	private static final AtomicInteger	AI = new AtomicInteger();
 	
 	static enum EntityType {
 		Root, Rule, Char, Sequence, Name, Predefined, Option, Repeat, Switch, Case  
@@ -50,7 +50,7 @@ class InternalUtils {
 			PREDEFINED.placeName(item.name(), item);
 		}
 		
-		try{AW = new AsmWriter(new ByteArrayOutputStream(), new PrintWriter(System.err));
+		try{AW = new AsmWriter(new ByteArrayOutputStream(), new PrintWriter(System.out));
 		
 			try(final InputStream	is = InternalUtils.class.getResourceAsStream("ruleBasedParserMacros.txt");
 				final Reader		rdr = new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING)) {
@@ -62,7 +62,7 @@ class InternalUtils {
 		}
 	}
 	
-	static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String rule, final SyntaxTreeInterface<Cargo> names, final SimpleURLClassLoader loader) throws SyntaxException {
+	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String rule, final SyntaxTreeInterface<Cargo> names, final SimpleURLClassLoader loader) throws SyntaxException {
 		final char[]									content = CharUtils.terminateAndConvert2CharArray(rule, EOF);
 		final SyntaxTreeInterface<NodeType>				items = new AndOrTree<>(1,1);
 		final Lexema									lex = new Lexema();
@@ -84,7 +84,7 @@ class InternalUtils {
 		root.value = 0;
 		root.children = rules.toArray(new SyntaxNode[rules.size()]);
 		
-		return null;
+		return buildRuleBasedParserClass(className, root, items, loader);
 	}
 	
 	
@@ -376,8 +376,8 @@ loop:	for (;;) {
 		}
 	}
 
-	static <NodeType extends Enum<?>, Cargo> void buildRuleProcessing(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException  {
-		final IdentityHashMap<SyntaxNode<EntityType, ?>, String[]>		baseLevelProc = new IdentityHashMap<>();
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessing(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException  {
+		final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods>		baseLevelProc = new IdentityHashMap<>();
 		int[]		uniqueNumer = new int[] {0};
 		
 		SyntaxNodeUtils.walkDown(root, (mode, node)->{
@@ -386,35 +386,35 @@ loop:	for (;;) {
 				
 				switch (node.type) {
 					case Char		:
-						baseLevelProc.put(node, new String[] {"char"+uniqueId, "testChar"+uniqueId, "skipChar"+uniqueId, "parseChar"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("char"+uniqueId, "testChar"+uniqueId, "skipChar"+uniqueId, "parseChar"+uniqueId));
 						break;
 					case Sequence	:
-						baseLevelProc.put(node, new String[] {"sequence"+uniqueId, "testSequence"+uniqueId, "skipSequence"+uniqueId, "parseSequence"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("sequence"+uniqueId, "testSequence"+uniqueId, "skipSequence"+uniqueId, "parseSequence"+uniqueId));
 						break;
 					case Predefined	:
-						baseLevelProc.put(node, new String[] {"predefined"+((Predefines)node.cargo).name()+uniqueId, "testPredefined"+((Predefines)node.cargo).name()+uniqueId, "skipPredefined"+((Predefines)node.cargo).name()+uniqueId, "parsePredefined"+((Predefines)node.cargo).name()+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("predefined"+((Predefines)node.cargo).name()+uniqueId, "testPredefined"+((Predefines)node.cargo).name()+uniqueId, "skipPredefined"+((Predefines)node.cargo).name()+uniqueId, "parsePredefined"+((Predefines)node.cargo).name()+uniqueId));
 						uniqueNumer[0]++;
 						break;
 					case Case		:
-						baseLevelProc.put(node, new String[] {"case"+uniqueId, "testCase"+uniqueId, "skipCase"+uniqueId, "parseCase"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("case"+uniqueId, "testCase"+uniqueId, "skipCase"+uniqueId, "parseCase"+uniqueId));
 						break;
 					case Name		:
-						baseLevelProc.put(node, new String[] {"name"+((Predefines)node.cargo).name()+uniqueId, "testName"+((Predefines)node.cargo).name()+uniqueId, "skipName"+((Predefines)node.cargo).name()+uniqueId, "parseName"+((Predefines)node.cargo).name()+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("name"+((Predefines)node.cargo).name()+uniqueId, "testName"+((Predefines)node.cargo).name()+uniqueId, "skipName"+((Predefines)node.cargo).name()+uniqueId, "parseName"+((Predefines)node.cargo).name()+uniqueId));
 						break;
 					case Option		:
-						baseLevelProc.put(node, new String[] {"option"+uniqueId, "testOption"+uniqueId, "skipOption"+uniqueId, "parseOption"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("option"+uniqueId, "testOption"+uniqueId, "skipOption"+uniqueId, "parseOption"+uniqueId));
 						break;
 					case Repeat		:
-						baseLevelProc.put(node, new String[] {"repeat"+uniqueId, "testRepeat"+uniqueId, "skipRepeat"+uniqueId, "parseRepeat"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("repeat"+uniqueId, "testRepeat"+uniqueId, "skipRepeat"+uniqueId, "parseRepeat"+uniqueId));
 						break;
 					case Root		:
-						baseLevelProc.put(node, new String[] {"root"+uniqueId, "testRoot"+uniqueId, "skipRoot"+uniqueId, "parseRoot"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("root"+uniqueId, "testRoot"+uniqueId, "skipRoot"+uniqueId, "parseRoot"+uniqueId));
 						break;
 					case Rule		:
-						baseLevelProc.put(node, new String[] {"rule"+uniqueId, "testRule"+uniqueId, "skipRule"+uniqueId, "parseRule"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("rule"+uniqueId, "testRule"+uniqueId, "skipRule"+uniqueId, "parseRule"+uniqueId));
 						break;
 					case Switch		:
-						baseLevelProc.put(node, new String[] {"switch"+uniqueId, "testSwitch"+uniqueId, "skipSwitch"+uniqueId, "parseSwitch"+uniqueId});
+						baseLevelProc.put(node, new FieldAndMethods("switch"+uniqueId, "testSwitch"+uniqueId, "skipSwitch"+uniqueId, "parseSwitch"+uniqueId));
 						break;
 					default:
 						break;
@@ -425,19 +425,21 @@ loop:	for (;;) {
 
 		wr.write(" printImports\n");
 		buildPuleProcessingClass(className, root, keywords, wr);
-		for (Entry<SyntaxNode<EntityType, ?>, String[]> item : baseLevelProc.entrySet()) {
+		for (Entry<SyntaxNode<EntityType, ?>, FieldAndMethods> item : baseLevelProc.entrySet()) {
 			buildRuleProcessingFields(className, root, item.getKey(), item.getValue(), keywords, wr);
 		}
 		wr.write(" beforeClinit className=\""+className+"\"\n");
-		for (Entry<SyntaxNode<EntityType, ?>, String[]> item : baseLevelProc.entrySet()) {
+		for (Entry<SyntaxNode<EntityType, ?>, FieldAndMethods> item : baseLevelProc.entrySet()) {
 			buildRuleProcessingClinit(className, root, item.getKey(), item.getValue(), keywords, wr);
 		}
 		wr.write(" afterClinit className=\""+className+"\"\n");
-		buildPuleProcessingConstructor(className, root, keywords, wr);
-		for (Entry<SyntaxNode<EntityType, ?>, String[]> item : baseLevelProc.entrySet()) {
-			buildRuleProcessingMethods(className, root, item.getKey(), item.getValue(), keywords, wr);
-		}
-		buildRuleProcessingPublics(className, root, keywords, wr);
+		buildRuleProcessingConstructor(className, root, keywords, wr);
+		
+		buildRuleProcessingTestMethods(className, root, baseLevelProc, keywords, wr);
+		buildRuleProcessingSkipMethods(className, root, baseLevelProc, keywords, wr);
+		buildRuleProcessingParseMethods(className, root, baseLevelProc, keywords, wr);
+		
+		buildRuleProcessingPublics(className, root, baseLevelProc, keywords, wr);
 		buildRuleProcessingTail(className, root, keywords, wr);
 	}
 
@@ -447,51 +449,66 @@ loop:	for (;;) {
 		wr.write(" beginClassDeclaration className=\""+className+"\"\n");
 	}
 
-	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingFields(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?> item, final String[] names, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingFields(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?> item, final FieldAndMethods names, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		// TODO Auto-generated method stub
 		if (item.type == EntityType.Sequence) {
-			wr.write(" declareSequenceField className=\""+className+"\",fieldName=\""+1+"\"\n");
+			wr.write(" declareSequenceField className=\""+className+"\",fieldName=\""+names.field+"\"\n");
 		}
 	}
 
-	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingClinit(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?> item, final String[] names, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingClinit(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?> item, final FieldAndMethods names, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		// TODO Auto-generated method stub
 		if (item.type == EntityType.Sequence) {
-			wr.write(" clinitPrepareSequence className=\""+className+"\",fieldName=\""+1+"\",value=\""+new String((char[])item.cargo)+"\"\n");
+			wr.write(" clinitPrepareSequence className=\""+className+"\",fieldName=\""+names.field+"\",value=\""+new String((char[])item.cargo)+"\"\n");
 		}
 	}
 
-	private static <NodeType extends Enum<?>, Cargo>  void buildPuleProcessingConstructor(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+	private static <NodeType extends Enum<?>, Cargo>  void buildRuleProcessingConstructor(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		// TODO Auto-generated method stub
 		wr.write(" prepareConstructor className=\""+className+"\"\n");
 	}
 
-	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?> item, final String[] names, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingTestMethods(final String className, final SyntaxNode<EntityType, ?> root, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		// TODO Auto-generated method stub
-		switch (item.type) {
+		final FieldAndMethods	names = map.get(root);
+		
+		switch (root.type) {
 			case Case		:
 				break;
 			case Char		:
-				wr.write(" prepareCharTestMethod className=\""+className+"\",fieldValue="+item.value+",methodName=\""+names[1]+"\"\n");
-				wr.write(" prepareCharSkipMethod className=\""+className+"\",fieldValue="+item.value+",methodName=\""+names[2]+"\"\n");
-				wr.write(" prepareCharParseMethod className=\""+className+"\",fieldValue="+item.value+",methodName=\""+names[3]+"\"\n");
+				wr.write(" prepareCharTestMethod className=\""+className+"\",fieldValue="+root.value+",methodName=\""+names.testMethod+"\"\n");
 				break;
 			case Name		:
+				wr.write(" prepareNameTestMethod className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\"\n");
 				break;
 			case Option		:
 				break;
 			case Predefined	:
+				wr.write(" preparePredefinedTestMethod className=\""+className+"\",name=\""+((Predefines)root.cargo).name()+"\",methodName=\""+names.testMethod+"\"\n");
 				break;
 			case Repeat		:
 				break;
 			case Root		:
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					buildRuleProcessingTestMethods(className, child, map, keywords, wr);
+				}
 				break;
 			case Rule		:
+				final int	uniqueRule = AI.incrementAndGet();
+
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					buildRuleProcessingTestMethods(className, child, map, keywords, wr);
+				}
+				
+				wr.write(" prepareRuleTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\",label="+uniqueRule+"\n");
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					wr.write(" prepareRuleTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\",label="+uniqueRule+"\n");
+				}
+				wr.write(" prepareRuleTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\",label="+uniqueRule+"\n");
+
 				break;
 			case Sequence	:
-				wr.write(" prepareSequenceTestMethod className=\""+className+"\",fieldName=\""+names[0]+"\",methodName=\""+names[1]+"\"\n");
-				wr.write(" prepareSequenceSkipMethod className=\""+className+"\",fieldName=\""+names[0]+"\",methodName=\""+names[2]+"\"\n");
-				wr.write(" prepareSequenceParseMethod className=\""+className+"\",fieldName=\""+names[0]+"\",methodName=\""+names[3]+"\"\n");
+				wr.write(" prepareSequenceTestMethod className=\""+className+"\",fieldName=\""+names.field+"\",methodName=\""+names.testMethod+"\"\n");
 				break;
 			case Switch		:
 				break;
@@ -500,14 +517,121 @@ loop:	for (;;) {
 		}
 	}
 
-	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingPublics(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingSkipMethods(final String className, final SyntaxNode<EntityType, ?> root, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		// TODO Auto-generated method stub
+		final FieldAndMethods	names = map.get(root);
+		
+		switch (root.type) {
+			case Case		:
+				break;
+			case Char		:
+				wr.write(" prepareCharSkipMethod className=\""+className+"\",fieldValue="+root.value+",methodName=\""+names.skipMethod+"\"\n");
+				break;
+			case Name		:
+				wr.write(" prepareNameSkipMethod className=\""+className+"\",name="+root.value+",methodName=\""+names.skipMethod+"\"\n");
+				break;
+			case Option		:
+				break;
+			case Predefined	:
+				wr.write(" preparePredefinedSkipMethod className=\""+className+"\",name=\""+((Predefines)root.cargo).name()+"\",methodName=\""+names.skipMethod+"\"\n");
+				break;
+			case Repeat		:
+				break;
+			case Root		:
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					buildRuleProcessingSkipMethods(className, child, map, keywords, wr);
+				}
+				break;
+			case Rule		:
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					buildRuleProcessingSkipMethods(className, child, map, keywords, wr);
+				}
+				
+				wr.write(" prepareRuleSkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\",label="+1+"\n");
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					wr.write(" prepareRuleSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\",label="+1+"\n");
+				}
+				wr.write(" prepareRuleSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\",label="+1+"\n");
+				break;
+			case Sequence	:
+				wr.write(" prepareSequenceSkipMethod className=\""+className+"\",fieldName=\""+names.field+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
+				break;
+			case Switch		:
+				break;
+			default:
+				break;
+		}
+	}
+
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingParseMethods(final String className, final SyntaxNode<EntityType, ?> root, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+		// TODO Auto-generated method stub
+		final FieldAndMethods	names = map.get(root);
+		
+		switch (root.type) {
+			case Case		:
+				break;
+			case Char		:
+				wr.write(" prepareCharParseMethod className=\""+className+"\",fieldValue="+root.value+",methodName=\""+names.parseMethod+"\"\n");
+				break;
+			case Name		:
+				wr.write(" prepareNameParseMethod className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\"\n");
+				break;
+			case Option		:
+				break;
+			case Predefined	:
+				wr.write(" preparePredefinedParseMethod className=\""+className+"\",name=\""+((Predefines)root.cargo).name()+"\",methodName=\""+names.parseMethod+"\"\n");
+				break;
+			case Repeat		:
+				break;
+			case Root		:
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					buildRuleProcessingParseMethods(className, child, map, keywords, wr);
+				}
+				break;
+			case Rule		:
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					buildRuleProcessingParseMethods(className, child, map, keywords, wr);
+				}
+				
+				wr.write(" prepareRuleParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",label="+1+"\n");
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					wr.write(" prepareRuleParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",label="+1+"\n");
+				}
+				wr.write(" prepareRuleParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",label="+1+"\n");
+				break;
+			case Sequence	:
+				wr.write(" prepareSequenceParseMethod className=\""+className+"\",fieldName=\""+names.field+"\",methodName=\""+names.parseMethod+"\"\n");
+				break;
+			case Switch		:
+				break;
+			default:
+				break;
+		}
+	}
+	
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingPublics(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+		// TODO Auto-generated method stub
+		wr.write(" preparePublicSkip className=\""+className+"\",testMethod=\""+map.get(root.children[0]).testMethod+"\",skipMethod=\""+map.get(root.children[0]).skipMethod+"\"\n");
 		wr.write(" preparePublicParse className=\""+className+"\"\n");
 	}
 
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingTail(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		// TODO Auto-generated method stub
 		wr.write(" endClassDeclaration className=\""+className+"\"\n");
+	}
+
+	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParserClass(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> items, final SimpleURLClassLoader loader) throws SyntaxException {
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			
+			try(final AsmWriter			wr = AW.clone(baos)) {
+				
+				buildRuleProcessing(className, new SyntaxNode<>(0, 0, EntityType.Root, 0, null, root), items, wr);
+			}
+			
+			return (Class<RuleBasedParser<NodeType, Cargo>>) loader.createClass(className, baos.toByteArray());
+		} catch (IOException e) {
+			throw new SyntaxException(0, 0, e.getLocalizedMessage());
+		}
 	}
 	
 	static class Lexema {
@@ -519,5 +643,24 @@ loop:	for (;;) {
 		Predefines	predefine;
 		long		keyword;
 		char[]		sequence;
+	}
+	
+	private static class FieldAndMethods {
+		private final String	field;
+		private final String	testMethod;
+		private final String	skipMethod;
+		private final String	parseMethod;
+		
+		private FieldAndMethods(String field, String testMethod, String skipMethod, String parseMethod) {
+			this.field = field;
+			this.testMethod = testMethod;
+			this.skipMethod = skipMethod;
+			this.parseMethod = parseMethod;
+		}
+
+		@Override
+		public String toString() {
+			return "FieldAndMethods [field=" + field + ", testMethod=" + testMethod + ", skipMethod=" + skipMethod + ", parseMethod=" + parseMethod + "]";
+		}
 	}
 }

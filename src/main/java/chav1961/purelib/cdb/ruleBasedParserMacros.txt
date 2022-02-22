@@ -1,9 +1,12 @@
 ; -------------------------------------------------------------------------
 
 printImports	.macro
-		import	chav1961.purelib.basic.interfaces.SyntaxTreeInterface
-		import	chav1961.purelib.cdb.interfaces.RuleBasedParser
-		import	chav1961.purelib.cdb.AbstractBNFParser protected
+		.import	chav1961.purelib.basic.interfaces.SyntaxTreeInterface
+		.import	chav1961.purelib.basic.CharUtils
+		.import	chav1961.purelib.cdb.SyntaxNode
+		.import	chav1961.purelib.cdb.interfaces.RuleBasedParser
+		.import	chav1961.purelib.cdb.AbstractBNFParser protected
+		.import	chav1961.purelib.cdb.intern.Predefines
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -30,7 +33,7 @@ beforeClinit	.macro	className:str=
 clinitPrepareSequence	.macro	className:str=,fieldName:str=,value:str=
 		ldc				"&value"
 		invokevirtual	java.lang.String.toCharArray()[C
-		putstatic		&className..&fieldName
+		putstatic		&fieldName
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -46,29 +49,44 @@ prepareConstructor	.macro className:str=
 clazz			.parameter	java.lang.Class final
 keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
 				.stack	optimistic
-				ldc				this
+				aload		this
 				dup
-				invokespecial	chav1961.purelib.cdb.AbstractBNFParser.<init>(Ljava/lang/Class;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface)V
+				aload		clazz
+				aload		keywords
+				invokespecial	chav1961.purelib.cdb.AbstractBNFParser.<init>(Ljava/lang/Class;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;)V
 				return
 &className		.end
 		.mend
 
 ; -------------------------------------------------------------------------
 
+skipBlank		.macro
+				aload	content
+				iload	from
+				ldc		1
+				invokestatic chav1961.purelib.basic.CharUtils.skipBlank([CIZ)I
+				istore	from	
+		.mend
+
+; -------------------------------------------------------------------------
+
+; -------------------------------------------------------------------------
+
 prepareCharTestMethod	.macro className:str=,fieldValue:int=,methodName:str=
 &methodName		.method		boolean private static
 content			.parameter	char[] final
-from			.parameter	int final
+from			.parameter	int
 				.stack		optimistic
+				skipBlank
 				aload		content
 				iload		from
-				acload
-				ldc			&fieldVaue
-				ifeq		trueLabel
+				caload
+				ldc			&fieldValue
+				if_icmpeq	trueLabel
 				ldc			0
-				iret
+				ireturn
 trueLabel:		ldc			1				
-				iret
+				ireturn
 &methodName		.end
 		.mend
 
@@ -77,9 +95,22 @@ trueLabel:		ldc			1
 prepareCharSkipMethod	.macro className:str=,fieldValue:int=,methodName:str=
 &methodName		.method		int private static
 content			.parameter	char[] final
-from			.parameter	int final
+from			.parameter	int
 				.stack		optimistic
-				return
+				skipBlank
+				aload		content
+				iload		from
+				caload
+				ldc			&fieldValue
+				if_icmpeq	trueLabel
+				iload		from
+				ldc			" missing character (&fieldValue)"
+				getstatic	chav1961.purelib.cdb.AbstractBNFParser.EMPTY_PARAMETERS
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.throwSyntaxException(ILjava/lang/String;[Ljava/lang/Object;)V
+trueLabel:		iload		from
+				ldc			1
+				iadd				
+				ireturn
 &methodName		.end
 		.mend
 
@@ -88,9 +119,22 @@ from			.parameter	int final
 prepareCharParseMethod	.macro className:str=,fieldValue:int=,methodName:str=
 &methodName		.method		int private static
 content			.parameter	char[] final
-from			.parameter	int final
+from			.parameter	int
 				.stack		optimistic
-				return
+				skipBlank
+				aload		content
+				iload		from
+				caload
+				ldc			&fieldValue
+				ifeq		trueLabel
+				iload		from
+				ldc			" missing character (&fieldValue)"
+				getstatic	chav1961.purelib.cdb.AbstractBNFParser.EMPTY_PARAMETERS
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.throwSyntaxException(ILjava/lang/String;[Ljava/lang/Object;)V
+trueLabel:		iload		from
+				ldc			1
+				iadd				
+				ireturn
 &methodName		.end
 		.mend
 
@@ -98,18 +142,40 @@ from			.parameter	int final
 ; -------------------------------------------------------------------------
 
 prepareSequenceTestMethod	.macro className:str=,fieldName:str=,methodName:str=
-&methodName		.method	void private static
+&methodName		.method	boolean private static
+content			.parameter	char[] final
+from			.parameter	int
 				.stack	optimistic
-				return
+				skipBlank
+				aload		content
+				iload		from
+				getstatic	&fieldName		
+				invokestatic	chav1961.purelib.basic.CharUtils.compare([CI[C)Z
+				ireturn
 &methodName		.end
 		.mend
 
 ; -------------------------------------------------------------------------
 
-prepareSequenceSkipMethod	.macro className:str=,fieldName:str=,methodName:str=
-&methodName		.method	void private static
+prepareSequenceSkipMethod	.macro className:str=,fieldName:str=,methodName:str=,testMethodName:str=
+&methodName		.method	int private static
+content			.parameter	char[] final
+from			.parameter	int
 				.stack	optimistic
-				return
+				skipBlank
+				aload		content
+				iload		from
+				invokestatic	&testMethodName([CI)Z
+				ifne		trueLabel
+				iload		from
+				ldc			" missing sequence (&fieldName)"
+				getstatic	chav1961.purelib.cdb.AbstractBNFParser.EMPTY_PARAMETERS
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.throwSyntaxException(ILjava/lang/String;[Ljava/lang/Object;)V
+trueLabel:		getstatic	&fieldName
+				arraylength
+				iload		from
+				iadd				
+				ireturn
 &methodName		.end
 		.mend
 
@@ -124,11 +190,226 @@ prepareSequenceParseMethod	.macro className:str=,fieldName:str=,methodName:str=
 
 ; -------------------------------------------------------------------------
 
-preparePublicParse	.macro className:str=
-&className.1	.method	void private static
-				.stack	optimistic
+prepareNameTestMethod .macro className:str=,name:int=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+				.stack		optimistic
+				aload		content
+				iload		from
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined&name([CI)Z
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameSkipMethod .macro className:str=,name:int=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+				.stack		optimistic
+				aload		content
+				iload		from
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined&name([CI)Z
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameParseMethod .macro className:str=,name:int=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+				.stack		optimistic
+				aload		content
+				iload		from
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined&name([CI)Z
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+preparePredefinedTestMethod .macro className:str=,name:str=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+				.stack		optimistic
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&name
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)Z
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+preparePredefinedSkipMethod .macro className:str=,name:str=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+				.stack		optimistic
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&name
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)Z
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+preparePredefinedParseMethod .macro className:str=,name:str=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+				.stack		optimistic
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&name
+				aload		root
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.parsePredefined([CILchav1961/purelib/cdb/intern/Predefines;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleTestMethodStart .macro className:str=,methodName:str=,label:int=
+&methodName		.method		boolean private static
+content			.parameter	char[] final
+from			.parameter	int
+				.stack		optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleTestMethodItem .macro className:str=,methodName:str=,skipMethodName:str=,label:int=
+				aload		content
+				iload		from
+				invokestatic	&methodName([CI)Z
+				ifeq		falseLabel&label
+				aload		content
+				iload		from
+				invokestatic	&skipMethodName([CI)I
+				istore		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleTestMethodEnd .macro className:str=,methodName:str=,label:int=
+				ldc			1
+				ireturn
+falseLabel&label:
+				ldc			0
+				ireturn				
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleSkipMethodStart .macro className:str=,testMethodName:str=,methodName:str=,label:int=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+				.stack		optimistic
+				aload		content
+				iload		from
+				invokestatic	&testMethodName([CI)Z
+				ifeq		falseLabel
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleSkipMethodItem .macro className:str=,methodName:str=,label:int=
+				aload		content
+				iload		from
+				invokestatic	&methodName([CI)I
+				istore		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleSkipMethodEnd .macro className:str=,methodName:str=,label:int=
+falseLabel:		iload		from
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+
+prepareRuleParseMethodStart .macro className:str=,methodName:str=,label:int=
+&methodName		.method		void private static
+				.stack		optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleParseMethodItem .macro className:str=,methodName:str=,label:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRuleParseMethodEnd .macro className:str=,methodName:str=,label:int=
 				return
-&className.1	.end
+&methodName		.end				
+		.mend
+
+; -------------------------------------------------------------------------
+
+preparePublicSkip	.macro className:str=,testMethod:str=,skipMethod:str=
+skipInternal	.method	int protected
+content			.parameter	char[] final
+from			.parameter	int
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+				.stack	optimistic
+				skipBlank
+				aload		content
+				iload		from
+				invokestatic	&testMethod([CI)Z
+				ifeq		falseLabel
+				aload		content
+				iload		from
+				invokestatic	&skipMethod([CI)I
+				istore		from
+falseLabel:		iload		from
+				ireturn
+skipInternal	.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+preparePublicParse	.macro className:str=
+parseInternal	.method	int protected
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+				.stack	optimistic
+				ldc			1
+				iload		from
+				iadd
+				ireturn
+parseInternal	.end
 		.mend
 
 ; -------------------------------------------------------------------------

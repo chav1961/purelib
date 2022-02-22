@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import org.junit.Assert;
@@ -13,12 +15,15 @@ import org.junit.Test;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.InternalUtils.EntityType;
 import chav1961.purelib.cdb.InternalUtils.Lexema;
-import chav1961.purelib.cdb.InternalUtils.Predefines;
 import chav1961.purelib.cdb.InternalUtils.Lexema.LexType;
+import chav1961.purelib.cdb.interfaces.RuleBasedParser;
+import chav1961.purelib.cdb.intern.Predefines;
 
 public class InternalUtilsTest {
 	private static final SyntaxTreeInterface<TestType>	tt = new AndOrTree<>(1,1);
@@ -149,8 +154,11 @@ public class InternalUtilsTest {
 	}
 
 	@Test
-	public void builderTest() throws SyntaxException, IOException {
-		System.err.println(parseAndBuild("<Test1>::='1'"));
+	public void builderSkipTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+//		skipTest("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
+//		skipTest("<Test1>::='123'", " 123 \n", 4, "23\n", 0);
+		skipTest("<Test1>::='123''4'", " 123 4\n", 6, "123 5\n", 0);
+		skipTest("<Test1>::='1''234'", " 1 234\n", 6, "123 5\n", 0);
 	}	
 	
 	private String parseAndPrint(final String source) throws SyntaxException, IOException {
@@ -165,7 +173,7 @@ public class InternalUtilsTest {
 		return wr.toString();
 	}
 
-	private String parseAndBuild(final String source) throws SyntaxException, IOException {
+	private <Cargo> Class<RuleBasedParser<TestType, Cargo>> parseAndBuild(final String source) throws SyntaxException, IOException {
 		final SyntaxNode<EntityType, SyntaxNode>	root = new SyntaxNode<>(0, 0, EntityType.Root, 0, null);
 		final char[]	content = CharUtils.terminateAndConvert2CharArray(source, '\uFFFF'); 
 		final int[]		temp = new int[2];
@@ -173,7 +181,31 @@ public class InternalUtilsTest {
 		final Writer	wr = new StringWriter();
 		
 		Assert.assertEquals(content.length-1, InternalUtils.parse(content, InternalUtils.next(content, 0, tt, temp, lex), tt, temp, lex, root));
-		InternalUtils.buildRuleProcessing("MyClass", root, tt, wr);
-		return wr.toString();
+		return InternalUtils.buildRuleBasedParserClass("MyClass"+System.currentTimeMillis(), root, tt, PureLibSettings.INTERNAL_LOADER);
+	}
+	
+	
+	private void skipTest(final String rule, final String trueString, final int whereTrue, final String falseString, final int whereFalse) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		SyntaxTreeInterface<Object>					sti = new AndOrTree<>();
+		Class<RuleBasedParser<TestType, Object>>	cl;
+		RuleBasedParser<TestType, Object>			obj; 
+		
+		cl = parseAndBuild(rule); 
+		obj = cl.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, sti); 
+		
+//		Method	m1 = cl.getDeclaredMethod("testRule1", char[].class, int.class);
+//		m1.setAccessible(true);
+//		System.out.println("Test char: "+m1.invoke(null, "123 4\n".toCharArray(),0));
+//
+//		Method	m2 = cl.getDeclaredMethod("skipRule1", char[].class, int.class);
+//		m2.setAccessible(true);
+//		System.out.println("Skip char: "+m2.invoke(null, "123 4\n".toCharArray(),0));
+		
+		Assert.assertEquals(whereTrue, obj.skip(trueString.toCharArray(), 0));
+
+		try{obj.skip(falseString.toCharArray(), 0);
+		} catch (SyntaxException exc) {
+			Assert.assertEquals(whereFalse, exc.getCol());
+		}
 	}
 }

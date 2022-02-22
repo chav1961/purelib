@@ -14,11 +14,7 @@ import chav1961.purelib.cdb.SyntaxNode;
 public interface RuleBasedParser<NodeType extends Enum<?>, Cargo> {
 	SyntaxTreeInterface<Cargo> getNamesTree();
 	
-	default int skip(char [] content, int from) throws SyntaxException {
-		return skip(content, from, getNamesTree());
-	}
-	
-	int skip(char [] content, int from, SyntaxTreeInterface<Cargo> names) throws SyntaxException;
+	int skip(char [] content, int from) throws SyntaxException;
 	
 	default int parse(char [] content, int from, SyntaxNode<NodeType, SyntaxNode> root) throws SyntaxException {
 		return parse(content, from, getNamesTree(), root);

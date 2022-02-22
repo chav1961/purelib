@@ -3,6 +3,7 @@ package chav1961.purelib.cdb;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -1123,19 +1124,19 @@ public class CompilerUtils {
 	}
 
 	
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content) throws SyntaxException {
-		return buildRuleBasedParser(clazz, content, new AndOrTree<>(1,1));
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content) throws SyntaxException {
+		return buildRuleBasedParser(className, clazz, content, new AndOrTree<>(1,1));
 	}
 
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content, SimpleURLClassLoader loader) throws SyntaxException {
-		return buildRuleBasedParser(clazz, content, loader);
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content, SimpleURLClassLoader loader) throws SyntaxException {
+		return buildRuleBasedParser(className, clazz, content, loader);
 	}
 	
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names) throws SyntaxException {
-		return buildRuleBasedParser(clazz, content, new AndOrTree<>(1,1), PureLibSettings.INTERNAL_LOADER);
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names) throws SyntaxException {
+		return buildRuleBasedParser(className, clazz, content, new AndOrTree<>(1,1), PureLibSettings.INTERNAL_LOADER);
 	}
 
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names, final SimpleURLClassLoader loader) throws SyntaxException {
+	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names, final SimpleURLClassLoader loader) throws SyntaxException {
 		if (clazz == null) {
 			throw new NullPointerException("Node type class can't be null");
 		}
@@ -1149,7 +1150,10 @@ public class CompilerUtils {
 			throw new NullPointerException("Class loader can't be null");
 		}
 		else {
-			return InternalUtils.buildRuleBasedParser(clazz, content, names, loader);
+			try{return InternalUtils.buildRuleBasedParser(className, clazz, content, names, loader).getConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw new SyntaxException(0, 0, e.getLocalizedMessage(), e);
+			}
 		}
 	}
 	

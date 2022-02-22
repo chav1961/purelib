@@ -950,7 +950,9 @@ class LineParser implements LineByLineProcessorCallback {
 
 								if (desc.checkedTypes != null && desc.checkedTypes.length > 0) {
 									if (!methodDescriptor.getBody().getStackAndVarRepo().compareStack(desc.checkedTypes)) {
-										throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command!"); 
+										if (!methodDescriptor.getBody().getStackAndVarRepo().compareStack(desc.checkedTypes)) {
+											throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command!");
+										}
 									}
 								}								
 								
@@ -2572,6 +2574,8 @@ class LineParser implements LineByLineProcessorCallback {
 				while ((result[1] = InternalUtils.methodSignature2Stack(signature,forMethodTypes)) < 0) {
 					forMethodTypes = Arrays.copyOf(forMethodTypes,2*forMethodTypes.length);
 				}
+				argsLengthAndRetSignature[0] = result[1];
+				argsLengthAndRetSignature[1] = checkType;
 			}
 			else {
 				throw new ContentException("Missing method signature!");
