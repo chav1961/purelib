@@ -29,6 +29,7 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 		this.clazz = clazz;
 		this.keywords = keywords;
 		this.dummy = new SyntaxNode<>(0,0,clazz.getEnumConstants()[0],0,null);
+		Predefines.DoubleQuotedString.allowUnnamedModuleAccess(this.getClass().getModule());
 	}
 
 	protected abstract <NodeType extends Enum<?>, Cargo> int parseInternal(final char[] content, int from, final SyntaxTreeInterface<Cargo> names, final SyntaxTreeInterface<NodeType> keywords, final SyntaxNode<NodeType, SyntaxNode> root) throws SyntaxException;
@@ -63,10 +64,10 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 		throw new SyntaxException(0, col, message);
 	}
 	
-	protected static boolean testPredefined(final char[] content, int from, final Predefines predefinedName, final int[] tempInt, final long[] tempLong) {
+	protected static boolean testPredefined(final char[] content, int from, final Predefines predefinedType, final int[] tempInt, final long[] tempLong) {
 		from = CharUtils.skipBlank(content, from, true);
 		
-		switch (predefinedName) {
+		switch (predefinedType) {
 			case DoubleQuotedString	:
 				if (content[from] == '\"') {
 					try{CharUtils.parseString(content, from, '\"', NULL_APPENDABLE);
@@ -96,14 +97,38 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 					return false;
 				}
 			default :
-				throw new UnsupportedOperationException("Predefine type ["+predefinedName+"] is not supported yet"); 
+				throw new UnsupportedOperationException("Predefine type ["+predefinedType+"] is not supported yet"); 
 		}
 	}
 
-	protected static int skipPredefined(final char[] content, int from, final Predefines predefinedType, final int[] tempInt, final long[] tempLong) {
+	protected static int skipPredefined(final char[] content, int from, final Predefines predefinedType, final int[] tempInt, final long[] tempLong) throws SyntaxException {
+		final long[]	forNumbers = new long[2];
+		final int[]		forNames = new int[2];
+		
+		from = CharUtils.skipBlank(content, from, true);
+		
 		if (testPredefined(content, from, predefinedType, tempInt, tempLong)) {
-			final int[]	forNames = new int[2];
-			from = CharUtils.parseName(content, from, forNames);
+			switch (predefinedType) {
+				case DoubleQuotedString	:
+					from = CharUtils.parseString(content, from + 1, '\"', NULL_APPENDABLE);
+					break;
+				case Empty				:
+					break;
+				case FixedNumber		:
+					from = CharUtils.parseNumber(content, from, forNumbers, CharUtils.PREF_INT | CharUtils.PREF_LONG , false);
+					break;
+				case FloatNumber		:
+					from = CharUtils.parseNumber(content, from, forNumbers, CharUtils.PREF_ANY , false);
+					break;
+				case Name				:
+					from = CharUtils.parseName(content, from, forNames);
+					break;
+				case QuotedString		:
+					from = CharUtils.parseString(content, from + 1, '\'', NULL_APPENDABLE);
+					break;
+				default:
+					throw new UnsupportedOperationException("Predefine type ["+predefinedType+"] is not supported yet"); 
+			}			
 		}
 		return from;
 	}

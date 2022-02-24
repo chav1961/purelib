@@ -94,6 +94,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final int						DIR_SOURCE = 19;
 	private static final int						DIR_LINE = 20;
 	private static final int						DIR_VARTABLE = 21;
+	private static final int						DIR_FORWARD = 22;
 	
 	private static final int						OPTION_PUBLIC = 101;
 	private static final int						OPTION_FINAL = 102;
@@ -198,6 +199,7 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticDirective(DIR_SOURCE,m,".source");
 		placeStaticDirective(DIR_LINE,m,".line");
 		placeStaticDirective(DIR_VARTABLE,m,".vartable");
+		placeStaticDirective(DIR_FORWARD,m,".forward");
 		
 		placeStaticDirective(OPTION_PUBLIC,new DirectiveOption(Constants.ACC_PUBLIC),Constants.ACC_PUBLIC_NAME);
 		placeStaticDirective(OPTION_FINAL,new DirectiveOption(Constants.ACC_FINAL),Constants.ACC_FINAL_NAME);
@@ -868,6 +870,10 @@ class LineParser implements LineByLineProcessorCallback {
 						case DIR_VARTABLE	:
 							checkLabel(id,false);
 							processVarTableDir(lineNo,data,InternalUtils.skipBlank(data,start),end);
+							break;
+						case DIR_FORWARD	:
+							checkLabel(id,true);
+							processForwardDir(lineNo,id,data,InternalUtils.skipBlank(data,start),end);
 							break;
 						case DIR_SOURCE	:
 							checkLabel(id,false);
@@ -1721,6 +1727,15 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			addVarTable = true;
 		}
+	}
+	
+	private void processForwardDir(final int lineNo, final long labelId, final char[] data, int start, final int end) throws ContentException, IOException {
+		final int	from = start;
+		
+		start = skipSignature(data, start);
+		final long	signatureId = tree.placeOrChangeName(data, from, start, new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+		
+		cc.addForward(labelId, signatureId);
 	}
 	
 	private void processSourceDir(final char[] data, int start, final int end) throws ContentException {

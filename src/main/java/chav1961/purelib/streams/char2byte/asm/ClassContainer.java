@@ -23,6 +23,7 @@ class ClassContainer implements Closeable {
 	private final InOutGrowableByteArray		interfGba = new InOutGrowableByteArray(false); 
 	private final InOutGrowableByteArray		fieldsGba = new InOutGrowableByteArray(false); 
 	private final List<MethodDescriptor>		methods = new ArrayList<>();
+	private final List<long[]>					forwards = new ArrayList<>();
 	
 	private short	classModifiers = 0, thisId = 0, superId = 0, interfCount = 0, fieldCount = 0;
 	private short	currentMajor = Constants.MAJOR_1_7, currentMinor = Constants.MINOR_1_7;
@@ -130,6 +131,15 @@ class ClassContainer implements Closeable {
 		methodBodyAwait = false;
 	}
 
+	void addForward(final long methodId, final long typeId) {
+		for (long[] item : forwards) {
+			if (item[0] == methodId && item[1] == typeId) {
+				return;
+			}
+		}
+		forwards.add(new long[] {methodId, typeId});
+	}
+	
 	void dump(final OutputStream os) throws IOException, ContentException {
 		if (methodBodyAwait) {
 			throw new IllegalStateException("Last call to addMethodDescription(...) not commited with addMethodBody(...)!");
