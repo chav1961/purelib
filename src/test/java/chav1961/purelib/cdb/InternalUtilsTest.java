@@ -110,7 +110,9 @@ public class InternalUtilsTest {
 	@Test
 	public void parserTest() throws SyntaxException, IOException {
 		Assert.assertEquals("<Test1> ::= '1' \r\n", parseAndPrint("<Test1>::='1'"));
+		Assert.assertEquals("<Test1> ::= '1' :<Test2> \r\n", parseAndPrint("<Test1>::='1':<Test2>"));
 		Assert.assertEquals("<Test1> ::= \"123\" \r\n", parseAndPrint("<Test1>::='123'"));
+		Assert.assertEquals("<Test1> ::= \"123\" :<Test2> \r\n", parseAndPrint("<Test1>::='123':<Test2>"));
 		Assert.assertEquals("<Test1> ::= <Test2> \r\n", parseAndPrint("<Test1>::=<Test2>"));
 		Assert.assertEquals("<Test1> ::= @Empty \r\n", parseAndPrint("<Test1>::=@Empty"));
 		Assert.assertEquals("<Test1> ::= <Test2> <Test3> \r\n", parseAndPrint("<Test1>::=<Test2><Test3>"));
@@ -149,7 +151,9 @@ public class InternalUtilsTest {
 	@Test
 	public void buildSkipTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		skipTest("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
+		skipTest("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
 		skipTest("<Test1>::='123'", " 123 \n", 4, "23\n", 0);
+		skipTest("<Test1>::='123':<Test2>", " 123 \n", 4, "23\n", 0);
 		skipTest("<Test1>::='123''4'", " 123 4\n", 6, "123 5\n", 0);
 		skipTest("<Test1>::='1''234'", " 1 234\n", 6, "123 5\n", 0);
 		skipTest("<Test1>::=('1''234')", " 1 234\n", 6, "123 5\n", 0);
@@ -166,6 +170,48 @@ public class InternalUtilsTest {
 
 	@Test
 	public void buildParseTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		SyntaxNode<TestType,SyntaxNode> node;
+		
+		node = parseTest("<Test1>::='1'", " 1 \n", 2, " 2\n");
+		Assert.assertNull(node.type);
+		node = parseTest("<Test1>::='123'", " 123 \n", 4, "23\n");
+		Assert.assertNull(node.type);
+		
+		node = parseTest("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n");
+		Assert.assertEquals(TestType.Test2, node.type);
+		node = parseTest("<Test1>::='123':<Test2>", " 123 \n", 4, "23\n");
+		Assert.assertEquals(TestType.Test2, node.type);
+		
+		node = parseTest("<Test1>::=@FixedNumber", " 12\n", 3, " 12 3\n");
+		Assert.assertEquals(Predefines.FixedNumber, node.type);
+		Assert.assertEquals(12, node.value);
+
+		node = parseTest("<Test1>::=@FloatNumber", " 12\n", 3, " 12 3\n");
+		Assert.assertEquals(Predefines.FloatNumber, node.type);
+		Assert.assertEquals(12, Double.longBitsToDouble(node.value),0.0001);
+		
+		node = parseTest("<Test1>::=@Name", " assa\n", 5, " 12 3\n");
+		Assert.assertEquals(Predefines.Name, node.type);
+		Assert.assertEquals(1, node.value);
+
+		node = parseTest("<Test1>::=@QuotedString", " \'assa\'\n", 7, " 12 3\n");
+		Assert.assertEquals(Predefines.QuotedString, node.type);
+		Assert.assertEquals("assa", new String((char[])node.cargo));
+
+		node = parseTest("<Test1>::=@DoubleQuotedString", " \"assa\"\n", 7, " 12 3\n");
+		Assert.assertEquals(Predefines.DoubleQuotedString, node.type);
+		Assert.assertEquals("assa", new String((char[])node.cargo));
+
+		node = parseTest("<Test1>::=@Empty", " \"assa\"\n", 1, " 12 3\n");
+		Assert.assertEquals(Predefines.Empty, node.type);
+		
+		node = parseTest("<Test1>::=@FixedNumber@Name", " 12assa\n", 7, " 12 3\n");
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(Predefines.FixedNumber, node.children[0].type);
+		Assert.assertEquals(12, node.children[0].value);
+		Assert.assertEquals(Predefines.Name, node.children[1].type);
+		Assert.assertEquals(1, node.children[1].value);
+		
 	}	
 	
 	private String parseAndPrint(final String source) throws SyntaxException, IOException {
@@ -215,6 +261,20 @@ public class InternalUtilsTest {
 		} catch (SyntaxException exc) {
 			Assert.assertEquals(whereFalse, exc.getCol());
 		}
+	}
+
+	private SyntaxNode<TestType,SyntaxNode> parseTest(final String rule, final String trueString, final int whereTrue, final String falseString) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		Class<RuleBasedParser<TestType, Object>>	cl = parseAndBuild(rule);
+		RuleBasedParser<TestType, Object>			obj = cl.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, tt);
+		SyntaxNode<TestType,SyntaxNode>				root = new SyntaxNode<>(0,0,TestType.Test1,0,null);
+		
+		root.type = null; // Important!
+		Assert.assertEquals(whereTrue, obj.parse(trueString.toCharArray(), 0, root));
+
+		try{obj.parse(falseString.toCharArray(), 0, root);
+		} catch (SyntaxException exc) {
+		}
+		return root;
 	}
 
 }

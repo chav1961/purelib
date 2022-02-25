@@ -248,7 +248,7 @@ class InternalUtils {
 					else {
 						result[0] = new ConstantNode(false);
 					}
-					return from + FALSE.length - 1;
+					return from + FALSE.length;
 				}
 				else if (UnsafedCharUtils.uncheckedCompare(data,from,TRUE,0,TRUE.length)) {
 					if (convert2PreferredType) {
@@ -265,7 +265,7 @@ class InternalUtils {
 					else {
 						result[0] = new ConstantNode(true);
 					}
-					return from + TRUE.length - 1;
+					return from + TRUE.length;
 				}
 				else if (treatUnknownAsString) {
 					final int	start = from;

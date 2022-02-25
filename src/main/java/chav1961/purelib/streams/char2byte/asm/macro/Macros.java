@@ -838,6 +838,7 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 		
 		try{exec.exec(cmd.getDeclarations(),gca);
 		} catch (CalculationException exc) {
+			final MacroCommand		cmd1 = parseCall(lineNo,data,from,length);
 			exc.printStackTrace();
 			throw new IOException("Macro "+new String(cmd.getName())+": "+exc.getLocalizedMessage()); 
 		}

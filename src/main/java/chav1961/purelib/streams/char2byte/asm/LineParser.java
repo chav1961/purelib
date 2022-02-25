@@ -2135,7 +2135,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private void processValueShortIndex2Command(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		final long		forResult[] = longArray;
 		StackChanges	changes = null;
-		int				sign = 1;
+		long			sign = 1;
 		short			displ;
 
 		try{if (data[start] == '-') {
@@ -2152,7 +2152,7 @@ class LineParser implements LineByLineProcessorCallback {
 				changes = StackChanges.pushLong;
 			}
 			else {
-				throw new ContentException("Illegal numeric constant size (only long and double are available here)");
+				throw new ContentException("Illegal numeric constant size (only long and double are available here). Add length modifier (nnnL, nnnD) to the constant if required");
 			}
 			if (displ < 0 || displ > 2*Short.MAX_VALUE) {
 				throw new ContentException("Calculated value ["+displ+"] is too long for short index");

@@ -42,7 +42,45 @@ class InternalUtils {
 	private static final AtomicInteger	AI = new AtomicInteger();
 	
 	static enum EntityType {
-		Root, Rule, Char, Sequence, Name, Predefined, Option, Repeat, Switch, Case  
+		Root(true, true, true, true), 
+		Rule(true, true, true, true),
+		Char(true, true, true, false), 
+		Sequence(true, true, true, false),
+		Name(true, true, true, false),
+		Predefined(true, true, true, true),
+		Option(true, true, true, true),
+		Repeat(true, true, true, true),
+		Switch(true, true, true, true),
+		Case(true, true, true, true),
+		Detected(false, false, true, true);
+		
+		private final boolean 	createTestMethod;
+		private final boolean 	createSkipMethod;
+		private final boolean 	createParseMethod;
+		private final boolean 	createNode;
+		
+		EntityType(final boolean createTestMethod, final boolean createSkipMethod, final boolean createParseMethod, final boolean createNode) {
+			this.createTestMethod = createTestMethod;
+			this.createSkipMethod = createSkipMethod;
+			this.createParseMethod = createParseMethod;
+			this.createNode = createNode;
+		}
+		
+		public boolean needCreateTestMethod() {
+			return createTestMethod;
+		}
+
+		public boolean needCreateSkipMethod() {
+			return createSkipMethod;
+		}
+
+		public boolean needCreateParseMethod() {
+			return createParseMethod;
+		}
+
+		public boolean needCreateNode() {
+			return createNode;
+		}
 	}
 	
 	static {
@@ -127,7 +165,7 @@ class InternalUtils {
 				}
 			}
 			else {
-				throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Missng '::=' in the rule"); 
+				throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Missing '::=' in the rule"); 
 			}
 		}
 		else {
@@ -252,6 +290,16 @@ loop:	for (;;) {
 				case Char	:
 					list.add(new SyntaxNode<>(0, from, EntityType.Char, lex.keyword, null));
 					from = next(content, from, keywords, temp, lex);
+					if (lex.type == LexType.Colon) {
+						from = next(content, from, keywords, temp, lex);
+						if (lex.type == LexType.Name) {
+							list.add(new SyntaxNode<>(0, from, EntityType.Detected, lex.keyword, null));
+							from = next(content, from, keywords, temp, lex);
+						}
+						else {
+							throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Missing name after ':'"); 
+						}
+					}
 					break;
 				case Name	:
 					list.add(new SyntaxNode<>(0, from, EntityType.Name, lex.keyword, null));
@@ -320,6 +368,16 @@ loop:	for (;;) {
 				case Sequence:
 					list.add(new SyntaxNode<>(0, from, EntityType.Sequence, 0, lex.sequence));
 					from = next(content, from, keywords, temp, lex);
+					if (lex.type == LexType.Colon) {
+						from = next(content, from, keywords, temp, lex);
+						if (lex.type == LexType.Name) {
+							list.add(new SyntaxNode<>(0, from, EntityType.Detected, lex.keyword, null));
+							from = next(content, from, keywords, temp, lex);
+						}
+						else {
+							throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Missing name after ':'"); 
+						}
+					}
 					break;
 				default		:
 					break loop;
@@ -336,6 +394,9 @@ loop:	for (;;) {
 				break;
 			case Name		:
 				wr.write("<"+(keywords.getName(root.value))+"> ");
+				break;
+			case Detected	:
+				wr.write(":<"+(keywords.getName(root.value))+"> ");
 				break;
 			case Option		:
 				wr.write("[");
@@ -433,8 +494,11 @@ loop:	for (;;) {
 					case Switch		:
 						baseLevelProc.put(node, new FieldAndMethods("switch"+uniqueId, "testSwitch"+uniqueId, "skipSwitch"+uniqueId, "parseSwitch"+uniqueId));
 						break;
-					default:
+					case Detected	:
+						baseLevelProc.put(node, new FieldAndMethods("detected"+uniqueId, "testDetected"+uniqueId, "skipDetected"+uniqueId, "parseDetected"+uniqueId));
 						break;
+					default:
+						throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
 				}
 			}
 			return ContinueMode.CONTINUE;
@@ -493,19 +557,25 @@ inside:	switch (root.type) {
 			case Case		:
 				wr.write(" prepareCaseTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareCaseTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateTestMethod()) {
+						wr.write(" prepareCaseTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareCaseTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 
 				wr.write(" prepareCaseSkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareCaseSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateSkipMethod()) {
+						wr.write(" prepareCaseSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareCaseSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 
 				wr.write(" prepareCaseParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareCaseParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\"\n");
+					if (child.type.needCreateParseMethod()) {
+						wr.write(" prepareCaseParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareCaseParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
 				break;
@@ -529,19 +599,25 @@ inside:	switch (root.type) {
 			case Option		:
 				wr.write(" prepareOptionTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareOptionTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateTestMethod()) {
+						wr.write(" prepareOptionTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareOptionTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 
 				wr.write(" prepareOptionSkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareOptionSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateSkipMethod()) {
+						wr.write(" prepareOptionSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareOptionSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 				
 				wr.write(" prepareOptionParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareOptionParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+					if (child.type.needCreateParseMethod()) {
+						wr.write(" prepareOptionParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareOptionParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
 				break;
@@ -553,77 +629,96 @@ inside:	switch (root.type) {
 			case Repeat		:
 				wr.write(" prepareRepeatTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareRepeatTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateTestMethod()) {
+						wr.write(" prepareRepeatTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareRepeatTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 
 				wr.write(" prepareRepeatSkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareRepeatSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateSkipMethod()) {
+						wr.write(" prepareRepeatSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareRepeatSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 				
 				wr.write(" prepareRepeatParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareRepeatParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+					if (child.type.needCreateParseMethod()) {
+						wr.write(" prepareRepeatParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareRepeatParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
 				break;
 			case Root		:
 				wr.write(" prepareSkipInternal className=\""+className+"\",testMethod=\""+map.get(root.children[0]).testMethod+"\",skipMethod=\""+map.get(root.children[0]).skipMethod+"\"\n");
-				wr.write(" prepareParseInternal className=\""+className+"\",testMethod=\""+map.get(root.children[0]).testMethod+"\",skipMethod=\""+map.get(root.children[0]).skipMethod+"\"\n");
+				wr.write(" prepareParseInternal className=\""+className+"\",testMethod=\""+map.get(root.children[0]).testMethod+"\",parseMethod=\""+map.get(root.children[0]).parseMethod+"\"\n");
 				break;
 			case Rule		:
 				wr.write(" prepareRuleTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareRuleTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateTestMethod()) {
+						wr.write(" prepareRuleTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareRuleTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				
 				wr.write(" prepareRuleSkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareRuleSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					if (child.type.needCreateSkipMethod()) {
+						wr.write(" prepareRuleSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareRuleSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 				
-				wr.write(" prepareRuleParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
+				wr.write(" prepareRuleParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareRuleParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+					if (child.type.needCreateParseMethod()) {
+						wr.write(" prepareRuleParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
+					}					
 				}
-				wr.write(" prepareRuleParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
+				wr.write(" prepareRuleParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+",keyword="+root.value+"\n");
 				break;
 			case Sequence	:
 				wr.write(" prepareSequenceTestMethod className=\""+className+"\",fieldName=\""+names.field+"\",methodName=\""+names.testMethod+"\"\n");
 				wr.write(" prepareSequenceSkipMethod className=\""+className+"\",fieldName=\""+names.field+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
-				wr.write(" prepareSequenceParseMethod className=\""+className+"\",fieldName=\""+names.field+"\",methodName=\""+names.parseMethod+"\"\n");
+				wr.write(" prepareSequenceParseMethod className=\""+className+"\",fieldName=\""+names.field+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				break;
 			case Switch		:
 				wr.write(" prepareSwitchTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareSwitchTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+					if (child.type.needCreateTestMethod()) {
+						wr.write(" prepareSwitchTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareSwitchTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				
 				wr.write(" prepareSwitchSkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareSwitchSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\",testMethodName=\""+map.get(child).testMethod+"\"\n");
+					if (child.type.needCreateSkipMethod()) {
+						wr.write(" prepareSwitchSkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\",testMethodName=\""+map.get(child).testMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareSwitchSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 
 				wr.write(" prepareSwitchParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
-					wr.write(" prepareSwitchParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",testMethodName=\""+map.get(child).testMethod+"\"\n");
+					if (child.type.needCreateParseMethod()) {
+						wr.write(" prepareSwitchParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",testMethodName=\""+map.get(child).testMethod+"\"\n");
+					}
 				}
 				wr.write(" prepareSwitchParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
+				break;
+			case Detected	:
+				wr.write(" prepareDetectedParseMethod className=\""+className+"\",methodName=\""+names.parseMethod+"\",item="+root.value+"\n");
 				break;
 			default:
 				throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
 		}
 	}	
 	
-	
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingTail(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
-		// TODO Auto-generated method stub
 		wr.write(" endClassDeclaration className=\""+className+"\"\n");
 	}
 
