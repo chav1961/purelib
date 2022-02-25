@@ -211,7 +211,23 @@ public class InternalUtilsTest {
 		Assert.assertEquals(12, node.children[0].value);
 		Assert.assertEquals(Predefines.Name, node.children[1].type);
 		Assert.assertEquals(1, node.children[1].value);
-		
+
+		node = parseTest("<Test1>::='1':<Test2>['2':<Test3>]'3':<Test4>", " 123\n", 4, " 143\n");
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test3, node.children[1].type);
+		Assert.assertEquals(TestType.Test4, node.children[2].type);
+
+		node = parseTest("<Test1>::='1':<Test2>['2':<Test3>]'3':<Test4>", " 13\n", 3, " 143\n");
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test4, node.children[1].type);
+
+		node = parseTest("<Test1>::='1':<Test2>['2':<Test3>'3':<Test1>]'4':<Test4>", " 1234\n", 5, " 143\n");
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test4, node.children[1].type);
+		Assert.assertEquals(TestType.Test4, node.children[2].type);
 	}	
 	
 	private String parseAndPrint(final String source) throws SyntaxException, IOException {

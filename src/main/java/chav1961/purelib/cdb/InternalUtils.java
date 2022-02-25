@@ -613,13 +613,13 @@ inside:	switch (root.type) {
 				}
 				wr.write(" prepareOptionSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 				
-				wr.write(" prepareOptionParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
+				wr.write(" prepareOptionParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
 					if (child.type.needCreateParseMethod()) {
-						wr.write(" prepareOptionParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+						wr.write(" prepareOptionParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 					}
 				}
-				wr.write(" prepareOptionParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
+				wr.write(" prepareOptionParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+",keyword=-1\n");
 				break;
 			case Predefined	:
 				wr.write(" preparePredefinedTestMethod className=\""+className+"\",name=\""+((Predefines)root.cargo).name()+"\",methodName=\""+names.testMethod+"\"\n");
