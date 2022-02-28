@@ -13,10 +13,10 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.cdb.InternalUtils.EntityType;
 import chav1961.purelib.cdb.InternalUtils.Lexema;
 import chav1961.purelib.cdb.InternalUtils.Lexema.LexType;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
+import chav1961.purelib.cdb.intern.EntityType;
 import chav1961.purelib.cdb.intern.Predefines;
 
 public class InternalUtilsTest {
@@ -28,7 +28,7 @@ public class InternalUtilsTest {
 	
 	static {
 		for(TestType item : TestType.values()) {
-			tt.placeName(item.name(), item);
+			tt.placeName(item.name(), item.ordinal(), item);
 		}
 	}
 	
@@ -172,6 +172,7 @@ public class InternalUtilsTest {
 	public void buildParseTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		SyntaxNode<TestType,SyntaxNode> node;
 		
+		// Constants
 		node = parseTest("<Test1>::='1'", " 1 \n", 2, " 2\n");
 		Assert.assertNull(node.type);
 		node = parseTest("<Test1>::='123'", " 123 \n", 4, "23\n");
@@ -182,6 +183,7 @@ public class InternalUtilsTest {
 		node = parseTest("<Test1>::='123':<Test2>", " 123 \n", 4, "23\n");
 		Assert.assertEquals(TestType.Test2, node.type);
 		
+		// Predefines
 		node = parseTest("<Test1>::=@FixedNumber", " 12\n", 3, " 12 3\n");
 		Assert.assertEquals(Predefines.FixedNumber, node.type);
 		Assert.assertEquals(12, node.value);
@@ -212,22 +214,67 @@ public class InternalUtilsTest {
 		Assert.assertEquals(Predefines.Name, node.children[1].type);
 		Assert.assertEquals(1, node.children[1].value);
 
+		// Options
 		node = parseTest("<Test1>::='1':<Test2>['2':<Test3>]'3':<Test4>", " 123\n", 4, " 143\n");
+		printSyntaxNode(node);
 		Assert.assertEquals(TestType.Test1, node.type);
 		Assert.assertEquals(TestType.Test2, node.children[0].type);
 		Assert.assertEquals(TestType.Test3, node.children[1].type);
 		Assert.assertEquals(TestType.Test4, node.children[2].type);
 
 		node = parseTest("<Test1>::='1':<Test2>['2':<Test3>]'3':<Test4>", " 13\n", 3, " 143\n");
+		printSyntaxNode(node);
 		Assert.assertEquals(TestType.Test1, node.type);
 		Assert.assertEquals(TestType.Test2, node.children[0].type);
 		Assert.assertEquals(TestType.Test4, node.children[1].type);
 
 		node = parseTest("<Test1>::='1':<Test2>['2':<Test3>'3':<Test1>]'4':<Test4>", " 1234\n", 5, " 143\n");
+		printSyntaxNode(node);
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test3, node.children[1].type);
+		Assert.assertEquals(TestType.Test1, node.children[2].type);
+		Assert.assertEquals(TestType.Test4, node.children[3].type);
+		
+		// Repeats
+		node = parseTest("<Test1>::=('1':<Test2>',')...'2':<Test3>", " 1,2\n", 4, " 1,3,2\n");
+		printSyntaxNode(node);
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test3, node.children[1].type);
+
+		node = parseTest("<Test1>::=('1':<Test2>',')...'2':<Test3>", " 1,1,2\n", 6, " 1,3,2\n");
+		printSyntaxNode(node);
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test2, node.children[1].type);
+		Assert.assertEquals(TestType.Test3, node.children[2].type);
+
+		// Alternatives
+		node = parseTest("<Test1>::='1':<Test2>{'2':<Test3>|'3':<Test4>|@Empty}'4':<Test1>", " 124\n", 4, " 132\n");
+		printSyntaxNode(node);
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test3, node.children[1].type);
+		Assert.assertEquals(TestType.Test1, node.children[2].type);
+	
+		node = parseTest("<Test1>::='1':<Test2>{'2':<Test3>|'3':<Test4>|@Empty}'4':<Test1>", " 134\n", 4, " 132\n");
+		printSyntaxNode(node);
 		Assert.assertEquals(TestType.Test1, node.type);
 		Assert.assertEquals(TestType.Test2, node.children[0].type);
 		Assert.assertEquals(TestType.Test4, node.children[1].type);
-		Assert.assertEquals(TestType.Test4, node.children[2].type);
+		Assert.assertEquals(TestType.Test1, node.children[2].type);
+		
+		node = parseTest("<Test1>::='1':<Test2>{'2':<Test3>|'3':<Test4>|@Empty}'4':<Test1>", " 14\n", 3, " 132\n");
+		printSyntaxNode(node);
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(Predefines.Empty, node.children[1].type);
+		Assert.assertEquals(TestType.Test1, node.children[2].type);
+		
+		// Complex test
+		node = totalParseTest("<Test1>::=<Test2> <Test3> \r\n<Test2>::='1':<Test4>\r\n<Test3>::='2':<Test1>\r\n", " 12\n", 3, " 13\n");
+		printSyntaxNode(node);
 	}	
 	
 	private String parseAndPrint(final String source) throws SyntaxException, IOException {
@@ -281,16 +328,55 @@ public class InternalUtilsTest {
 
 	private SyntaxNode<TestType,SyntaxNode> parseTest(final String rule, final String trueString, final int whereTrue, final String falseString) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		Class<RuleBasedParser<TestType, Object>>	cl = parseAndBuild(rule);
-		RuleBasedParser<TestType, Object>			obj = cl.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, tt);
+		RuleBasedParser<TestType, Object>			obj = cl.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, new AndOrTree<>());
 		SyntaxNode<TestType,SyntaxNode>				root = new SyntaxNode<>(0,0,TestType.Test1,0,null);
 		
 		root.type = null; // Important!
 		Assert.assertEquals(whereTrue, obj.parse(trueString.toCharArray(), 0, root));
 
-		try{obj.parse(falseString.toCharArray(), 0, root);
-		} catch (SyntaxException exc) {
-		}
+//		try{obj.parse(falseString.toCharArray(), 0, root);
+//		} catch (SyntaxException exc) {
+//		}
 		return root;
 	}
 
+	private SyntaxNode<TestType,SyntaxNode> totalParseTest(final String rule, final String trueString, final int whereTrue, final String falseString) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		SyntaxTreeInterface<Object>					sti = new AndOrTree<>();
+		Class<RuleBasedParser<TestType, Object>>	rbpc = InternalUtils.buildRuleBasedParser("MyClass"+System.currentTimeMillis(), TestType.class, rule, sti, PureLibSettings.INTERNAL_LOADER); 
+		RuleBasedParser<TestType, Object>			obj = rbpc.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, sti); 
+		SyntaxNode<TestType,SyntaxNode>				root = new SyntaxNode<>(0,0,TestType.Test1,0,null);
+		
+		root.type = null; // Important!
+		Assert.assertEquals(whereTrue, obj.parse(trueString.toCharArray(), 0, root));
+
+//		try{obj.parse(falseString.toCharArray(), 0, root);
+//		} catch (SyntaxException exc) {
+//		}
+		return root;
+	}
+	
+	private void printSyntaxNode(final SyntaxNode node) {
+		printSyntaxNode("",node);
+	}
+	
+	private void printSyntaxNode(final String prefix, final SyntaxNode node) {
+		if (node != null) {
+			System.err.print(prefix+">");
+			if (node.type != null) {
+				System.err.print(node.type);
+			}
+			if (node.value != 0) {
+				System.err.print(" value="+node.value);
+			}
+			if (node.cargo != null) {
+				System.err.print(" cargo="+node.cargo);
+			}
+			System.err.println();
+			if (node.children != null) {
+				for (SyntaxNode item : node.children) {
+					printSyntaxNode(prefix+"  ", item);
+				}
+			}
+		}
+	}
 }

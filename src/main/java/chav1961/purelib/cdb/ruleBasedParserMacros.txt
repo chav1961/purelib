@@ -10,6 +10,7 @@ printImports	.macro
 		.import	chav1961.purelib.cdb.AbstractBNFParser protected
 		.import	chav1961.purelib.cdb.intern.Predefines
 		.import	chav1961.purelib.cdb.intern.BNFParserStack
+		.import	java.lang.Integer
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -61,12 +62,12 @@ afterClinit	.macro className:str=
 prepareConstructor	.macro className:str=
 &className		.method		void public
 clazz			.parameter	java.lang.Class final
-keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+names			.parameter 	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
 				.stack	optimistic
 				aload		this
 				dup
 				aload		clazz
-				aload		keywords
+				aload		names
 				invokespecial	chav1961.purelib.cdb.AbstractBNFParser.<init>(Ljava/lang/Class;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;)V
 				return
 &className		.end
@@ -93,6 +94,7 @@ checkpoint		.macro	type:str,message:str="obj="
 ; -------------------------------------------------------------------------
 
 duplicateSyntaxNode	.macro
+				getstatic	chav1961.purelib.cdb.AbstractBNFParser.TEMPLATE	
 				invokevirtual	chav1961.purelib.cdb.SyntaxNode.clone()Ljava/lang/Object;
 				checkcast	chav1961.purelib.cdb.SyntaxNode
 				dup
@@ -113,7 +115,31 @@ throwSyntaxException	.macro	message:str
 
 ; -------------------------------------------------------------------------
 
-processChildren .macro	keyword:int=
+processRootType .macro	keyword:int=
+					aload	root
+					.if	keyword>=0
+						aload		keywords
+						ldc2_w		&keyword.L
+						invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
+						checkcast	java.lang.Enum
+					.else
+						aconst_null
+					.endif
+					putfield	chav1961.purelib.cdb.SyntaxNode.type
+		.mend
+
+; -------------------------------------------------------------------------
+
+processEntityType .macro	keyword:int=
+					aload	root
+					ldc		&keyword
+					invokestatic chav1961.purelib.cdb.AbstractBNFParser.extractEntityType(I)Ljava/lang/Enum;	
+					putfield	chav1961.purelib.cdb.SyntaxNode.type
+		.mend
+
+; -------------------------------------------------------------------------
+
+processChildren .macro	mode:str,keyword:int=
 					aload	stack
 					invokevirtual chav1961.purelib.cdb.intern.BNFParserStack.pop()[Lchav1961/purelib/cdb/SyntaxNode;
 					dup
@@ -124,23 +150,19 @@ processChildren .macro	keyword:int=
 					ldc		1
 					if_icmpne	store
 					aload	root
-					checkpoint "chav1961.purelib.cdb.SyntaxNode",message="move keyword[&keyword]="
 					invokestatic chav1961.purelib.cdb.AbstractBNFParser.moveContent2Root([Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/SyntaxNode;)V 
 					goto	exitChildren
 store:				aload	root
 					swap
 					putfield	chav1961.purelib.cdb.SyntaxNode.children
-					aload	root
-					.if	keyword>=0
-						checkpoint "chav1961.purelib.cdb.SyntaxNode",message="store to root keyword[&keyword]="
-						aload	keywords
-						ldc2_w		&keyword.L
-						invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
-						checkcast	java.lang.Enum
-					.else
-						aconst_null
-					.endif
-					putfield	chav1961.purelib.cdb.SyntaxNode.type
+					.choise	mode
+						.of "rule"
+							processRootType		keyword=&keyword
+						.of "option"
+							processEntityType	keyword=&keyword
+						.otherwise
+							.error "unknown mode [&mode]"
+					.endchoise
 					goto	exitChildren
 skipStore:			pop2					
 exitChildren:					
@@ -333,16 +355,22 @@ prepareNameParseMethod .macro className:str=,name:int=,methodName:str=,reference
 &methodName		.method		int private static
 content			.parameter	char[] final
 from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
 root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final 
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
 				aload		content
 				iload		from
+				aload		names
+				aload		keywords
 				aload		root
+				aload		stack
 				aload		tempInt
 				aload		tempLong
-				invokestatic &referenceMethodName([CILchav1961/purelib/cdb/SyntaxNode;[I[J)I
+				invokestatic	&referenceMethodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
 				ireturn
 &methodName		.end
 		.mend
@@ -527,10 +555,10 @@ prepareOptionParseMethodItem  .macro className:str=,methodName:str=,makeChildren
 				iload		from
 				aload		names
 				aload		keywords
-				aload		root
 				.if			makeChildren
 					duplicateSyntaxNode
-					checkpoint "chav1961.purelib.cdb.SyntaxNode",message="duplicate option "	
+				.else	
+					aload		root
 				.endif
 				aload		stack
 				aload		tempInt
@@ -543,7 +571,7 @@ prepareOptionParseMethodItem  .macro className:str=,methodName:str=,makeChildren
 
 prepareOptionParseMethodEnd   .macro className:str=,methodName:str=,keyword:int=,makeChildren:bool=
 				.if			makeChildren
-					processChildren	keyword=&keyword
+					processChildren	"option",keyword=&keyword
 				.endif
 falseLabel:		iload		from
 				ireturn
@@ -627,38 +655,64 @@ falseLabel:		iload		from
 
 ; -------------------------------------------------------------------------
 
-prepareRepeatParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=
+prepareRepeatParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
 &methodName		.method		int private static
 content			.parameter	char[] final
 from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
-				.stack		optimistic
+				.stack	optimistic
 				aload		content
 				iload		from
 				aload		tempInt
 				aload		tempLong
-				invokestatic	&testMethodName.Optional([CI[I[J)Z
+				invokestatic	&testMethodName([CI[I[J)Z
 				ifeq		falseLabel
+				.if			makeChildren
+					aload		stack
+					invokevirtual	chav1961.purelib.cdb.intern.BNFParserStack.push()V
+				.endif
+repeat:				
 		.mend
 
 ; -------------------------------------------------------------------------
 
-prepareRepeatParseMethodItem  .macro className:str=,methodName:str=
+prepareRepeatParseMethodItem  .macro className:str=,methodName:str=,makeChildren:bool=
 				aload		content
 				iload		from
+				aload		names
+				aload		keywords
+				.if			makeChildren
+					duplicateSyntaxNode
+				.else	
+					aload		root
+				.endif
+				aload		stack
 				aload		tempInt
 				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
 				istore		from
 		.mend
 
 ; -------------------------------------------------------------------------
 
-prepareRepeatParseMethodEnd   .macro className:str=,methodName:str=
+prepareRepeatParseMethodEnd   .macro className:str=,methodName:str=,testMethodName:str=,keyword:int=,makeChildren:bool=
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName([CI[I[J)Z
+				ifne		repeat
+				.if			makeChildren
+					processChildren	"option",keyword=&keyword
+				.endif
 falseLabel:		iload		from
 				ireturn
-&methodName		.end
+&methodName		.end				
 		.mend
 
 
@@ -671,6 +725,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				skipBlank
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -745,6 +800,10 @@ prepareSwitchParseMethodStart .macro className:str=,methodName:str=,testMethodNa
 &methodName		.method		int private static
 content			.parameter	char[] final
 from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
@@ -753,7 +812,9 @@ tempLong		.parameter	long[] final
 				aload		tempInt
 				aload		tempLong
 				invokestatic	&testMethodName([CI[I[J)Z
-				ifeq		falseLabel
+				ifne		trueLabel
+				throwSyntaxException "No switch alternatives were detected"
+trueLabel:				
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -769,10 +830,15 @@ localLabel		.set		uniqueG()
 				ifeq		falseLabel&localLabel
 				aload		content
 				iload		from
+				aload		names
+				aload		keywords
+				aload		root
+				aload		stack
 				aload		tempInt
 				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
-				goto		exit
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
+				istore		from
+				goto		falseLabel
 falseLabel&localLabel:				
 		.mend
 
@@ -780,7 +846,7 @@ falseLabel&localLabel:
 
 prepareSwitchParseMethodEnd   .macro className:str=,methodName:str=
 falseLabel:		iload		from
-exit:			ireturn
+				ireturn
 &methodName		.end
 		.mend
 
@@ -793,6 +859,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				skipBlank
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -861,10 +928,14 @@ falseLabel:		iload		from
 
 ; -------------------------------------------------------------------------
 
-prepareCaseParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=
+prepareCaseParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
 &methodName		.method		int private static
 content			.parameter	char[] final
 from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
@@ -874,22 +945,37 @@ tempLong		.parameter	long[] final
 				aload		tempLong
 				invokestatic	&testMethodName([CI[I[J)Z
 				ifeq		falseLabel
+				.if			makeChildren
+					aload		stack
+					invokevirtual	chav1961.purelib.cdb.intern.BNFParserStack.push()V
+				.endif						
 		.mend
 
 ; -------------------------------------------------------------------------
 
-prepareCaseParseMethodItem  .macro className:str=,methodName:str=
+prepareCaseParseMethodItem  .macro className:str=,methodName:str=,makeChildren:bool=
 				aload		content
 				iload		from
+				aload		names
+				aload		keywords
+				.if			makeChildren
+					duplicateSyntaxNode
+				.else	
+					aload		root
+				.endif
+				aload		stack
 				aload		tempInt
 				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
 				istore		from
 		.mend
 
 ; -------------------------------------------------------------------------
 
-prepareCaseParseMethodEnd   .macro className:str=,methodName:str=
+prepareCaseParseMethodEnd   .macro className:str=,methodName:str=,keyword:int=,makeChildren:bool=
+				.if			makeChildren
+					processChildren	"option",keyword=&keyword
+				.endif
 falseLabel:		iload		from
 				ireturn
 &methodName		.end
@@ -1003,10 +1089,10 @@ prepareRuleParseMethodItem .macro className:str=,methodName:str=,makeChildren:bo
 				iload		from
 				aload		names
 				aload		keywords
-				aload		root
 				.if			makeChildren
 					duplicateSyntaxNode
-					checkpoint "chav1961.purelib.cdb.SyntaxNode",message="duplicate rule "	
+				.else	
+					aload		root
 				.endif
 				aload		stack
 				aload		tempInt
@@ -1019,7 +1105,7 @@ prepareRuleParseMethodItem .macro className:str=,methodName:str=,makeChildren:bo
 
 prepareRuleParseMethodEnd .macro className:str=,methodName:str=,keyword:int=,makeChildren:bool=
 				.if			makeChildren
-					processChildren	keyword=&keyword
+					processChildren	"rule",keyword=&keyword
 				.endif
 exit:			iload		from
 				ireturn
@@ -1044,6 +1130,7 @@ tempLong		.parameter	long[] final
 				ldc2_w		&item.L
 				invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
 				checkcast	java.lang.Enum
+				checkpoint	"java.lang.Enum",message="Store Detected type: "
 				putfield	chav1961.purelib.cdb.SyntaxNode.type
 				iload		from
 				ireturn

@@ -2006,8 +2006,10 @@ class FuncToIntNode extends FuncNode {
 												@Override
 												public long calculate(ExpressionNode[] list) throws CalculationException {
 													switch (list[0].getValueType()) {
-														case INTEGER	: return list[0].getLong();
-														case REAL		: return (long)list[0].getDouble(); 
+														case INTEGER	: 
+															return list[0].getLong();
+														case REAL		: 
+															return (long)list[0].getDouble(); 
 														case STRING		: 
 															try {
 																UnsafedCharUtils.uncheckedParseLong(list[0].getString(),0,temp,true);
@@ -2033,8 +2035,10 @@ class FuncToRealNode extends FuncNode {
 												@Override
 												public double calculate(final ExpressionNode[] list) throws CalculationException {
 													switch (list[0].getValueType()) {
-														case INTEGER	: return list[0].getLong();
-														case REAL		: return list[0].getDouble(); 
+														case INTEGER	: 
+															return list[0].getLong();
+														case REAL		: 
+															return list[0].getDouble(); 
 														case STRING		: 
 															try{
 																UnsafedCharUtils.uncheckedParseDouble(list[0].getString(),0,temp,true);
@@ -2042,8 +2046,10 @@ class FuncToRealNode extends FuncNode {
 															} catch (SyntaxException e) {
 																throw new CalculationException("Error converting string to double: "+e.getLocalizedMessage());
 															}
-														case BOOLEAN	: throw new CalculationException("Boolean value can't be converted to real!");
-														default : throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
+														case BOOLEAN	: 
+															throw new CalculationException("Boolean value can't be converted to real!");
+														default : 
+															throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
 													}
 												}
 											};
@@ -2081,8 +2087,10 @@ class FuncToBooleanNode extends FuncNode {
 													@Override
 													public boolean calculate(final ExpressionNode[] list) throws CalculationException {
 														switch (list[0].getValueType()) {
-															case INTEGER	: throw new CalculationException("Integer value can't be converted to boolean!");
-															case REAL		: throw new CalculationException("Real value can't be converted to boolean!");
+															case INTEGER	: 
+																throw new CalculationException("Integer value can't be converted to boolean!");
+															case REAL		: 
+																throw new CalculationException("Real value can't be converted to boolean!");
 															case STRING		: 
 																if (UnsafedCharUtils.uncheckedCompare(list[0].getString(),0,PURE_TRUE,0,PURE_TRUE.length)) {
 																	return true;
@@ -2093,8 +2101,10 @@ class FuncToBooleanNode extends FuncNode {
 																else {
 																	throw new CalculationException("String content ["+new String(list[0].getString())+"] is not a valid boolean value!");
 																}
-															case BOOLEAN	: return list[0].getBoolean();
-															default : throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
+															case BOOLEAN	: 
+																return list[0].getBoolean();
+															default : 
+																throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
 														}
 													}
 												};
@@ -2110,8 +2120,10 @@ class FuncExistsNode extends FuncNode {
 													public boolean calculate(final ExpressionNode[] list) throws CalculationException {
 														if (list.length > 0) {
 															switch (list[0].getType()) {
-																case KEY_PARAMETER : case POSITIONAL_PARAMETER : case LOCAL_VARIABLE : return ((AssignableExpressionNode)list[0]).hasValue(); 
-																default : return true;
+																case KEY_PARAMETER : case POSITIONAL_PARAMETER : case LOCAL_VARIABLE : 
+																	return ((AssignableExpressionNode)list[0]).hasValue(); 
+																default : 
+																	return true;
 															}
 														}
 														else {
@@ -2131,8 +2143,10 @@ class FuncLenNode extends FuncNode {
 													public long calculate(final ExpressionNode[] list) throws CalculationException {
 														if (list.length > 0) {
 															switch (list[0].getType()) {
-																case KEY_PARAMETER : case POSITIONAL_PARAMETER : case LOCAL_VARIABLE : return ((AssignableExpressionNode)list[0]).getSize(); 
-																default : return -1L;
+																case KEY_PARAMETER : case POSITIONAL_PARAMETER : case LOCAL_VARIABLE : 
+																	return ((AssignableExpressionNode)list[0]).getSize(); 
+																default : 
+																	return -1L;
 															}
 														}
 														else {
@@ -2172,6 +2186,29 @@ class FuncToListNode extends FuncNode {
 												};
 
 	FuncToListNode() {
-		super(ExpressionNodeOperator.F_TO_LIST,ExpressionNodeValue.STRING,callback);
+		super(ExpressionNodeOperator.F_TO_LIST, ExpressionNodeValue.STRING, callback);
+	}
+}
+
+class FuncEnvironmentNode extends FuncNode {
+	private static final StringCallback	callback = new StringCallback() {
+													@Override
+													public char[] calculate(final ExpressionNode[] list) throws CalculationException {
+														if (list.length > 0) {
+															switch (list[0].getValueType()) {
+																case STRING : 
+																	return  MacroExecutor.environment(((AssignableExpressionNode)list[0]).getString()); 
+																default : 
+																	throw new CalculationException("Parameter to 'environment(...)' function must be string!");
+															}
+														}
+														else {
+															throw new CalculationException("Function 'environment(...)' must contain exactly one parameter in the parameter list!");
+														}
+													}
+												};
+
+	FuncEnvironmentNode() {
+		super(ExpressionNodeOperator.F_ENVIRONMENT,ExpressionNodeValue.STRING,callback);
 	}
 }

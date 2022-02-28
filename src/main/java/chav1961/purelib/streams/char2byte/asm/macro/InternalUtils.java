@@ -44,6 +44,7 @@ class InternalUtils {
 	private static final int		FUNC_STR = 5;
 	private static final int		FUNC_BOOL = 6;
 	private static final int		FUNC_LEN = 7;
+	private static final int		FUNC_ENVIRONMENT = 8;
 	
 	static {
 		FUNCTIONS.placeName("uniqueL",FUNC_UNIQUEL,new FuncDecription(ExpressionNodeOperator.F_UL,0,ExpressionNodeValue.INTEGER));
@@ -54,6 +55,7 @@ class InternalUtils {
 		FUNCTIONS.placeName("str",FUNC_STR,new FuncDecription(ExpressionNodeOperator.F_TO_STR,1,ExpressionNodeValue.STRING));
 		FUNCTIONS.placeName("bool",FUNC_BOOL,new FuncDecription(ExpressionNodeOperator.F_TO_BOOL,1,ExpressionNodeValue.BOOLEAN));
 		FUNCTIONS.placeName("len",FUNC_LEN,new FuncDecription(ExpressionNodeOperator.F_LEN,1,ExpressionNodeValue.INTEGER));
+		FUNCTIONS.placeName("environment",FUNC_ENVIRONMENT,new FuncDecription(ExpressionNodeOperator.F_ENVIRONMENT,1,ExpressionNodeValue.STRING));
 	}
 	
 	static int skipBlank(final char[] data, int from) {
@@ -798,12 +800,13 @@ class InternalUtils {
 			final FuncNode	node;
 			
 			switch (desc.operator) {
-				case F_EXISTS 	: node = new FuncExistsNode(); break;
-				case F_TO_INT 	: node = new FuncToIntNode(); break;
-				case F_TO_REAL	: node = new FuncToRealNode(); break;
-				case F_TO_STR	: node = new FuncToStringNode(); break;
-				case F_TO_BOOL	: node = new FuncToBooleanNode(); break;
-				case F_LEN		: node = new FuncLenNode(); break;
+				case F_EXISTS 		: node = new FuncExistsNode(); break;
+				case F_TO_INT 		: node = new FuncToIntNode(); break;
+				case F_TO_REAL		: node = new FuncToRealNode(); break;
+				case F_TO_STR		: node = new FuncToStringNode(); break;
+				case F_TO_BOOL		: node = new FuncToBooleanNode(); break;
+				case F_LEN			: node = new FuncLenNode(); break;
+				case F_ENVIRONMENT	: node = new FuncEnvironmentNode(); break;
 				default 	: throw new UnsupportedOperationException("Internal error!");
 			}
 			

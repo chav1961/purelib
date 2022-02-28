@@ -1,16 +1,26 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
 public enum ExpressionNodeOperator {
-	OR, AND, NOT,
-	EQ, NE, GE, GT, LE, LT,
-	TERNARY,
-	CAT,
-	ADD, SUB, 
-	MUL, DIV, MOD,
-	NEG,
-	ARR_GET,
-	F_UG, F_UL, F_EXISTS, 
-	F_TO_INT, F_TO_REAL, F_TO_STR, F_TO_BOOL,
-	F_TO_LIST,
-	F_LEN
+	OR(true), AND(true), NOT(true),
+	EQ(true), NE(true), GE(true), GT(true), LE(true), LT(true),
+	TERNARY(true),
+	CAT(true),
+	ADD(true), SUB(true), 
+	MUL(true), DIV(true), MOD(true),
+	NEG(true),
+	ARR_GET(true),
+	F_UG(false), F_UL(false), F_ENVIRONMENT(false), F_EXISTS(true), 
+	F_TO_INT(true), F_TO_REAL(true), F_TO_STR(true), F_TO_BOOL(true),
+	F_TO_LIST(true),
+	F_LEN(true);
+	
+	private final boolean inDeterministic;
+	
+	private ExpressionNodeOperator(final boolean inDeterministic) {
+		this.inDeterministic = inDeterministic;				
+	}
+	
+	public boolean isDeterministic() {
+		return inDeterministic;
+	}
 }

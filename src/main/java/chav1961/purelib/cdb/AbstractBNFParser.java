@@ -10,28 +10,35 @@ import chav1961.purelib.basic.interfaces.CharByCharAppendable;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
 import chav1961.purelib.cdb.intern.BNFParserStack;
+import chav1961.purelib.cdb.intern.EntityType;
 import chav1961.purelib.cdb.intern.Predefines;
 
 public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> implements RuleBasedParser<NodeType, Cargo>, Cloneable {
 	protected static final Object[]					EMPTY_PARAMETERS = new Object[0];
+	protected static final SyntaxNode				TEMPLATE = new SyntaxNode(0, 0, EntityType.Root, 0, null);
 	private static final Appendable					NULL_APPENDABLE = new Appendable() {
 														@Override public Appendable append(CharSequence csq, int start, int end) throws IOException {return this;}
 														@Override public Appendable append(char c) throws IOException {return this;}
 														@Override public Appendable append(CharSequence csq) throws IOException {return this;}
 													};
 	
+	static {
+		TEMPLATE.type = null;
+	}
+	
 	protected final int[]							tempInt = new int[2];
 	protected final long[]							tempLong = new long[2];
 	protected final BNFParserStack<NodeType>		stack = new BNFParserStack<>();
 	
 	private final Class<NodeType>					clazz;
-	private final SyntaxTreeInterface<NodeType>		keywords;
-	private final SyntaxTreeInterface<Cargo>		names = new AndOrTree<>();
+	private final SyntaxTreeInterface<NodeType>		keywords = new AndOrTree<>(1,1);
+	private final SyntaxTreeInterface<Cargo>		names;
 	private final SyntaxNode<NodeType, SyntaxNode> 	dummy;
 	
-	protected AbstractBNFParser(final Class<NodeType> clazz, final SyntaxTreeInterface<NodeType> keywords) {
+	protected AbstractBNFParser(final Class<NodeType> clazz,final SyntaxTreeInterface<Cargo> names) {
 		this.clazz = clazz;
-		this.keywords = keywords;
+		InternalUtils.prepareKeywordsTree(clazz, keywords);
+		this.names = names;
 		this.dummy = new SyntaxNode<>(0,0,clazz.getEnumConstants()[0],0,null);
 		Predefines.DoubleQuotedString.allowUnnamedModuleAccess(this.getClass().getModule());
 		stack.allowUnnamedModuleAccess(this.getClass().getModule());
@@ -202,6 +209,10 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 		to.value = fromNode.value;
 		to.cargo = fromNode.cargo;
 		to.children = fromNode.children;
+	}
+	
+	protected static Enum<?> extractEntityType(final int entityId) {
+		return EntityType.values()[entityId];
 	}
 	
 	protected static Object checkpoint(final Object obj, final String message) {	// Debugging inside the bytecode

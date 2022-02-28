@@ -28,6 +28,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.InternalUtils.Lexema.LexType;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
+import chav1961.purelib.cdb.intern.EntityType;
 import chav1961.purelib.cdb.intern.Predefines;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
@@ -40,48 +41,6 @@ class InternalUtils {
 	private static final SyntaxTreeInterface<Predefines>	PREDEFINED = new AndOrTree<>(1,1);
 	private static final AsmWriter		AW;
 	private static final AtomicInteger	AI = new AtomicInteger();
-	
-	static enum EntityType {
-		Root(true, true, true, true), 
-		Rule(true, true, true, true),
-		Char(true, true, true, false), 
-		Sequence(true, true, true, false),
-		Name(true, true, true, false),
-		Predefined(true, true, true, true),
-		Option(true, true, true, true),
-		Repeat(true, true, true, true),
-		Switch(true, true, true, true),
-		Case(true, true, true, true),
-		Detected(false, false, true, true);
-		
-		private final boolean 	createTestMethod;
-		private final boolean 	createSkipMethod;
-		private final boolean 	createParseMethod;
-		private final boolean 	createNode;
-		
-		EntityType(final boolean createTestMethod, final boolean createSkipMethod, final boolean createParseMethod, final boolean createNode) {
-			this.createTestMethod = createTestMethod;
-			this.createSkipMethod = createSkipMethod;
-			this.createParseMethod = createParseMethod;
-			this.createNode = createNode;
-		}
-		
-		public boolean needCreateTestMethod() {
-			return createTestMethod;
-		}
-
-		public boolean needCreateSkipMethod() {
-			return createSkipMethod;
-		}
-
-		public boolean needCreateParseMethod() {
-			return createParseMethod;
-		}
-
-		public boolean needCreateNode() {
-			return createNode;
-		}
-	}
 	
 	static {
 		for(Predefines item : Predefines.values()) {
@@ -107,15 +66,13 @@ class InternalUtils {
 		final int[]										temp = new int[2];
 		final SyntaxNode<EntityType, SyntaxNode>		root = new SyntaxNode<>(0, 0, EntityType.Root, 0, null);
 		final List<SyntaxNode<EntityType, SyntaxNode>>	rules = new ArrayList<>();
-		
-		for(NodeType item : clazz.getEnumConstants()) {
-			items.placeName(item.name(), item);
-		}
+
+		prepareKeywordsTree(clazz, items);
 		
 		int from = next(content, 0, items, temp, lex); 
 		
 		while (lex.type != Lexema.LexType.EOF) {
-			final SyntaxNode<EntityType, SyntaxNode>	clone = (SyntaxNode<EntityType, SyntaxNode>)root.clone(); 
+			final SyntaxNode<EntityType, SyntaxNode>	clone = (SyntaxNode<EntityType, SyntaxNode>)AbstractBNFParser.TEMPLATE.clone(); 
 			
 			from = parse(content, from, items, temp, lex, clone);
 			rules.add(clone);
@@ -310,7 +267,7 @@ loop:	for (;;) {
 					if (lex.type == LexType.Repeat) {
 						subtree.col = from;
 						subtree.type = EntityType.Repeat;
-						subtree.value = 0;
+						subtree.value = subtree.type.ordinal();
 						subtree.cargo = null;
 						list.add(subtree);
 						from = next(content, from, keywords, temp, lex);
@@ -328,7 +285,7 @@ loop:	for (;;) {
 					if (lex.type == LexType.CloseB) {
 						subtree.col = from;
 						subtree.type = EntityType.Option;
-						subtree.value = 0;
+						subtree.value = subtree.type.ordinal();
 						subtree.cargo = null;
 						list.add(subtree);
 						from = next(content, from, keywords, temp, lex);
@@ -342,7 +299,7 @@ loop:	for (;;) {
 					do {from = parseRight(content, next(content, from, keywords, temp, lex), keywords, temp, lex, subtree = (SyntaxNode<EntityType, SyntaxNode>) root.clone());
 						subtree.type = EntityType.Case;
 						subtree.col = from;
-						subtree.value = 0;
+						subtree.value = subtree.type.ordinal();
 						subtree.cargo = null;
 						alters.add(subtree);
 					} while(lex.type == LexType.Alter);
@@ -351,7 +308,7 @@ loop:	for (;;) {
 						subtree = (SyntaxNode<EntityType, SyntaxNode>) root.clone();
 						subtree.col = from;
 						subtree.type = EntityType.Switch;
-						subtree.value = 0;
+						subtree.value = subtree.type.ordinal();
 						subtree.cargo = null;
 						subtree.children = alters.toArray(new SyntaxNode[alters.size()]);
 						list.add(subtree);
@@ -571,13 +528,13 @@ inside:	switch (root.type) {
 				}
 				wr.write(" prepareCaseSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 
-				wr.write(" prepareCaseParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
+				wr.write(" prepareCaseParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
 					if (child.type.needCreateParseMethod()) {
-						wr.write(" prepareCaseParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\"\n");
+						wr.write(" prepareCaseParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 					}
 				}
-				wr.write(" prepareCaseParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
+				wr.write(" prepareCaseParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+",keyword="+root.value+"\n");
 				break;
 			case Char		:
 				wr.write(" prepareCharTestMethod className=\""+className+"\",fieldValue="+root.value+",methodName=\""+names.testMethod+"\"\n");
@@ -586,7 +543,7 @@ inside:	switch (root.type) {
 				break;
 			case Name		:
 				for (SyntaxNode<EntityType, ?> item : children) {
-					if (item.value == root.value) {
+					if (item != root && item.value == root.value) {	// Skip self reference
 						final FieldAndMethods	references = map.get(item);
 						
 						wr.write(" prepareNameTestMethod className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\",referenceMethodName=\""+references.testMethod+"\"\n");
@@ -619,7 +576,7 @@ inside:	switch (root.type) {
 						wr.write(" prepareOptionParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 					}
 				}
-				wr.write(" prepareOptionParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+",keyword=-1\n");
+				wr.write(" prepareOptionParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+",keyword="+root.value+"\n");
 				break;
 			case Predefined	:
 				wr.write(" preparePredefinedTestMethod className=\""+className+"\",name=\""+((Predefines)root.cargo).name()+"\",methodName=\""+names.testMethod+"\"\n");
@@ -643,17 +600,19 @@ inside:	switch (root.type) {
 				}
 				wr.write(" prepareRepeatSkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
 				
-				wr.write(" prepareRepeatParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
+				wr.write(" prepareRepeatParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {
 					if (child.type.needCreateParseMethod()) {
-						wr.write(" prepareRepeatParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\"\n");
+						wr.write(" prepareRepeatParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
 					}
 				}
-				wr.write(" prepareRepeatParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\"\n");
+				wr.write(" prepareRepeatParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+",keyword="+root.value+",testMethodName=\""+names.testMethod+"\"\n");
 				break;
 			case Root		:
-				wr.write(" prepareSkipInternal className=\""+className+"\",testMethod=\""+map.get(root.children[0]).testMethod+"\",skipMethod=\""+map.get(root.children[0]).skipMethod+"\"\n");
-				wr.write(" prepareParseInternal className=\""+className+"\",testMethod=\""+map.get(root.children[0]).testMethod+"\",parseMethod=\""+map.get(root.children[0]).parseMethod+"\"\n");
+				final FieldAndMethods	first = map.get(root.children[0]);
+				
+				wr.write(" prepareSkipInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\",skipMethod=\""+first.skipMethod+"\"\n");
+				wr.write(" prepareParseInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\",parseMethod=\""+first.parseMethod+"\"\n");
 				break;
 			case Rule		:
 				wr.write(" prepareRuleTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
@@ -733,6 +692,12 @@ inside:	switch (root.type) {
 			return (Class<RuleBasedParser<NodeType, Cargo>>) loader.createClass(className, baos.toByteArray());
 		} catch (IOException e) {
 			throw new SyntaxException(0, 0, e.getLocalizedMessage());
+		}
+	}
+
+	static <NodeType extends Enum<?>> void prepareKeywordsTree(final Class<NodeType> nodeType, final SyntaxTreeInterface<NodeType> tree) {
+		for(NodeType item : nodeType.getEnumConstants()) {
+			tree.placeName(item.name(), item.ordinal(), item);
 		}
 	}
 	

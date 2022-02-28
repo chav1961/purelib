@@ -184,4 +184,11 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 	public static void throwException(final Throwable exc) throws Throwable {
 		throw exc;
 	}
+	
+	public static char[] environment(final char[] varName) {
+		final String	env = new String(varName);
+		final String	val = System.getProperties().containsKey(env) ? System.getProperty(env) : System.getenv().containsKey(env) ? System.getenv(env) : "";
+
+		return val.toCharArray();
+	}
 }

@@ -75,6 +75,7 @@ public class MacroCompiler {
 	private static final Method		ME_VALUE_EXISTS;
 	private static final Method		ME_TO_BOOLEAN;
 	private static final Method		ME_SPLIT;
+	private static final Method		ME_ENVIRONMENT;
 
 	private static final Method		GCA_APPEND;
 
@@ -109,6 +110,7 @@ public class MacroCompiler {
 			ME_VALUE_EXISTS = macroExecutorClass.getMethod("valueExists",AssignableExpressionNodeInterface.class);
 			ME_TO_BOOLEAN = macroExecutorClass.getMethod("toBoolean",char[].class); 
 			ME_SPLIT = macroExecutorClass.getMethod("split",char[].class,char[].class);
+			ME_ENVIRONMENT = macroExecutorClass.getMethod("environment",char[].class);
 			
 			
 			@SuppressWarnings("rawtypes")
@@ -710,7 +712,7 @@ public class MacroCompiler {
 							case F_EXISTS	:
 								if (((FuncExistsNode)node).operands.get(0) instanceof AssignableExpressionNode) {
 									repo.append(writer,"	aload_1\n");
-									repo.append(writer,(" ldc "+((AssignableExpressionNode)((FuncExistsNode)node).operands.get(0)).getSequentialNumber()+"\n"));
+									repo.append(writer,("    ldc "+((AssignableExpressionNode)((FuncExistsNode)node).operands.get(0)).getSequentialNumber()+"\n"));
 									repo.append(writer,"	aaload\n");
 									repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_VALUE_EXISTS)+"\n");
 
@@ -840,6 +842,21 @@ public class MacroCompiler {
 									default : throw new UnsupportedOperationException("Data type ["+((FuncToStringNode)node).operands.get(0).getValueType()+"] is not supported yet");
 								}
 								break;
+							case F_ENVIRONMENT	:
+								if ((((FuncEnvironmentNode)node).operands.size() == 1) && (((FuncEnvironmentNode)node).operands.get(0).getString() != null)) {
+									compileExpression(((FuncEnvironmentNode)node).operands.get(0),storage,repo,current,writer,trueLabel,falseLabel);
+									switch (((FuncEnvironmentNode)node).operands.get(0).getValueType()) {
+										case STRING		:
+											repo.append(writer,"	"+CompilerUtils.buildMethodCall(ME_ENVIRONMENT)+"\n");
+											break;
+										default : 
+											throw new CalculationException("Calling 'environment(...)' is not applicable for data type ["+((FuncEnvironmentNode)node).operands.get(0).getValueType()+"]");
+									}
+								}
+								else {
+									throw new CalculationException("Function environment(...) call must contain exactly one parameter!");
+								}
+								break;
 							default : throw new UnsupportedOperationException("Expression operator ["+((OperatorListNode)node).getOperator()+"] is not supported yet");						
 						}
 					}
@@ -859,11 +876,8 @@ public class MacroCompiler {
 						return false;
 					}
 				}
-				if ((node instanceof FuncNode) && ((FuncNode)node).getOperator() == ExpressionNodeOperator.F_UL) {
-					return false;	// indeterministic function uniqueL()
-				}
-				else if ((node instanceof FuncNode) && ((FuncNode)node).getOperator() == ExpressionNodeOperator.F_UG) {
-					return false;	// indeterministic function uniqueG()
+				if ((node instanceof FuncNode) && !((FuncNode)node).getOperator().isDeterministic()) {
+					return false;	// indeterministic function (for example uniqueL())
 				}
 				else {
 					return true;
