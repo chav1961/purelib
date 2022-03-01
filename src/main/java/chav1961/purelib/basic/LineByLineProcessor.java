@@ -195,7 +195,9 @@ public class LineByLineProcessor implements Closeable, Flushable {
 			
 			closeWriting();			
 			lineNo = item.lineNo; 
-			write(item.content,0,item.content.length);
+			if (item.content.length > 0) {
+				write(item.content, 0, item.content.length);
+			}
 		}
 	}
 

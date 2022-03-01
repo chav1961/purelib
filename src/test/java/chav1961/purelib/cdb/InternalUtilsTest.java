@@ -315,7 +315,7 @@ public class InternalUtilsTest {
 
 	private void totalSkipTest(final String rule, final String trueString, final int whereTrue, final String falseString, final int whereFalse) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		SyntaxTreeInterface<Object>					sti = new AndOrTree<>();
-		Class<RuleBasedParser<TestType, Object>>	rbpc = InternalUtils.buildRuleBasedParser("MyClass"+System.currentTimeMillis(), TestType.class, rule, sti, PureLibSettings.INTERNAL_LOADER); 
+		Class<RuleBasedParser<TestType, Object>>	rbpc = InternalUtils.buildRuleBasedParser("MyClass"+System.currentTimeMillis(), TestType.class, rule, PureLibSettings.INTERNAL_LOADER); 
 		RuleBasedParser<TestType, Object>			obj = rbpc.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, sti); 
 
 		Assert.assertEquals(whereTrue, obj.skip(trueString.toCharArray(), 0));
@@ -342,7 +342,7 @@ public class InternalUtilsTest {
 
 	private SyntaxNode<TestType,SyntaxNode> totalParseTest(final String rule, final String trueString, final int whereTrue, final String falseString) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		SyntaxTreeInterface<Object>					sti = new AndOrTree<>();
-		Class<RuleBasedParser<TestType, Object>>	rbpc = InternalUtils.buildRuleBasedParser("MyClass"+System.currentTimeMillis(), TestType.class, rule, sti, PureLibSettings.INTERNAL_LOADER); 
+		Class<RuleBasedParser<TestType, Object>>	rbpc = InternalUtils.buildRuleBasedParser("MyClass"+System.currentTimeMillis(), TestType.class, rule, PureLibSettings.INTERNAL_LOADER); 
 		RuleBasedParser<TestType, Object>			obj = rbpc.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, sti); 
 		SyntaxNode<TestType,SyntaxNode>				root = new SyntaxNode<>(0,0,TestType.Test1,0,null);
 		

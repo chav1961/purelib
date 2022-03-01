@@ -52,12 +52,12 @@ import chav1961.purelib.streams.char2char.AbstractPreprocessingReader.IncludeCal
  * <p>To make control for the preprocessor, you can use a set of key-value pairs:</p>
  * <ul>
  * <li>{@link #BUFFER_SIZE} - size of the input buffer (default is 8192)</li>    
- * <li>{@link #HIDING_METHOD} - method of hiding lines, excluding on the preprocessor stage (see {@link #hidingMethod} enumeration)</li>    
- * <li>{@link #INLINE_SUBSTITUTION} - <b>true</b> means substitute of the preprocessor variable's values in the input stream</li>
- * <li>{@link #RECURSIVE_SUBSTITUTION} - <b>true</b> means processing of the values substituted earlier</li>
- * <li>{@link #IGNORE_CASE} - <b>true</b> ignores case of preprocessor commands and variables</li>
+ * <li>{@link #HIDING_METHOD} - method of hiding lines, excluding on the preprocessor stage (see {@linkplain AbstractPreprocessingReader.HidingMethod} enumeration, default is {@linkplain AbstractPreprocessingReader.HidingMethod#EXCLUDE})</li>    
+ * <li>{@link #INLINE_SUBSTITUTION} - <b>true</b> means substitute of the preprocessor variable's values in the input stream (default is false)</li>
+ * <li>{@link #RECURSIVE_SUBSTITUTION} - <b>true</b> means processing of the values substituted earlier (default is false)</li>
+ * <li>{@link #IGNORE_CASE} - <b>true</b> ignores case of preprocessor commands and variables (default is false)</li>
  * <li>{@link #ERROR_PROCESSING_CALLBACK} - an interface to process errors &amp; warnings detected. Default throws an {@link java.io.IOException} on errors and ignores warnings</li>
- * <li>{@link #COMMENT_SEQUENCE} - a list of comment sequences, splitted by \n and \t chars.</li>
+ * <li>{@link #COMMENT_SEQUENCE} - a list of comment sequences, splitted by \n and \t chars. Defaults are missing</li>
  * </ul>    
  * <p>Example of the comment sequence for Java language is:</p>
  * <code>//\n/*\t*&#47;</code>

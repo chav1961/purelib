@@ -2,7 +2,10 @@
 ;		Print imports for the class generated 
 ; -------------------------------------------------------------------------
 
-printImports	.macro
+printImports	.macro	package:str=
+		.if		exists(package)
+			.package	&package
+		.endif
 		.import	chav1961.purelib.basic.interfaces.SyntaxTreeInterface
 		.import	chav1961.purelib.basic.CharUtils
 		.import	chav1961.purelib.cdb.SyntaxNode

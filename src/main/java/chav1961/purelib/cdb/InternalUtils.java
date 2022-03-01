@@ -59,7 +59,7 @@ class InternalUtils {
 		}
 	}
 	
-	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String rule, final SyntaxTreeInterface<Cargo> names, final SimpleURLClassLoader loader) throws SyntaxException {
+	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String rule, final SimpleURLClassLoader loader) throws SyntaxException {
 		final char[]									content = CharUtils.terminateAndConvert2CharArray(rule, EOF);
 		final SyntaxTreeInterface<NodeType>				items = new AndOrTree<>(1,1);
 		final Lexema									lex = new Lexema();
@@ -90,7 +90,13 @@ class InternalUtils {
 			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 				try(final AsmWriter			wr = AW.clone(baos)) {
 					
-					buildRuleProcessing(className, root, items, wr);
+					if (className.contains(".")) {
+						final int	lastDot = className.lastIndexOf('.');
+						buildRuleProcessing(className.substring(0, lastDot), className.substring(lastDot + 1), root, items, wr);
+					}
+					else {
+						buildRuleProcessing("", className, root, items, wr);
+					}
 				}
 				return (Class<RuleBasedParser<NodeType, Cargo>>) loader.createClass(className, baos.toByteArray());
 			} catch (IOException e) {
@@ -411,7 +417,7 @@ loop:	for (;;) {
 		}
 	}
 
-	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessing(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException  {
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessing(final String packageName, final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException  {
 		final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods>		baseLevelProc = new IdentityHashMap<>();
 		int[]		uniqueNumer = new int[] {0};
 		
@@ -461,7 +467,12 @@ loop:	for (;;) {
 			return ContinueMode.CONTINUE;
 		});
 
-		wr.write(" printImports\n");
+		if (packageName.isEmpty()) {
+			wr.write(" printImports\n");
+		}
+		else {
+			wr.write(" printImports package=\""+packageName+"\"\n");
+		}
 		buildPuleProcessingClass(className, root, keywords, wr);
 		for (Entry<SyntaxNode<EntityType, ?>, FieldAndMethods> item : baseLevelProc.entrySet()) {
 			buildRuleProcessingFields(className, root, item.getKey(), item.getValue(), keywords, wr);
@@ -686,7 +697,7 @@ inside:	switch (root.type) {
 			
 			try(final AsmWriter			wr = AW.clone(baos)) {
 				
-				buildRuleProcessing(className, new SyntaxNode<>(0, 0, EntityType.Root, 0, null, root), items, wr);
+				buildRuleProcessing("", className, new SyntaxNode<>(0, 0, EntityType.Root, 0, null, root), items, wr);
 			}
 			
 			return (Class<RuleBasedParser<NodeType, Cargo>>) loader.createClass(className, baos.toByteArray());

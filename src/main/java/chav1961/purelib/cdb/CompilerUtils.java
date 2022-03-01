@@ -39,6 +39,20 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
 
 public class CompilerUtils {
 	/**
+	 * <p>This interface is a marker for any type of parameter</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.5
+	 */
+	public interface AnyType {}
+	
+	/**
+	 * <p>This interface is a marker for a list of any type of parameter</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.5
+	 */
+	public interface AnyTypeList {}
+	
+	/**
 	 * <p>This class is a reference class</p>
 	 */
 	public static final int		CLASSTYPE_REFERENCE = 0;
@@ -1123,37 +1137,51 @@ public class CompilerUtils {
 		}
 	}
 
-	
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content) throws SyntaxException {
-		return buildRuleBasedParser(className, clazz, content, new AndOrTree<>(1,1));
+	/**
+	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class<NodeType>, SyntaxTreeInterface<Cargo>) to instantiate it</p> 
+	 * @param <NodeType> type of syntax node tree items. Must be enumeration
+	 * @param <Cargo> content of the {@linkplain SyntaxTreeInterface} tree
+	 * @param className class name to build. Can contain package. Can't be null or empty
+	 * @param clazz NodeType class. Can't be null
+	 * @param content rules descriptor (see {@linkplain RuleBasedParser} description
+	 * @return class built. Can't be null or empty
+	 * @throws SyntaxException in any syntax error in the rules
+	 * @throws NullPointerException on any parameter is null  
+	 * @throws IllegalArgumentException on any string parameter is null or empty
+	 * @see RuleBasedParser
+	 * @since 0.0.6
+	 */
+	public static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParserClass(final String className, final Class<NodeType> clazz, final String content) throws SyntaxException, NullPointerException, IllegalArgumentException {
+		return buildRuleBasedParserClass(className, clazz, content, PureLibSettings.INTERNAL_LOADER);
 	}
 
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content, SimpleURLClassLoader loader) throws SyntaxException {
-		return buildRuleBasedParser(className, clazz, content, loader);
-	}
-	
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names) throws SyntaxException {
-		return buildRuleBasedParser(className, clazz, content, new AndOrTree<>(1,1), PureLibSettings.INTERNAL_LOADER);
-	}
-
-	public static <NodeType extends Enum<?>, Cargo> RuleBasedParser<NodeType, Cargo> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String content, final SyntaxTreeInterface<Cargo> names, final SimpleURLClassLoader loader) throws SyntaxException {
+	/**
+	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class<NodeType>, SyntaxTreeInterface<Cargo>) to instantiate it</p> 
+	 * @param <NodeType> type of syntax node tree items. Must be enumeration
+	 * @param <Cargo> content of the {@linkplain SyntaxTreeInterface} tree
+	 * @param className class name to build. Can contain package. Can't be null or empty
+	 * @param clazz NodeType class. Can't be null
+	 * @param content rules descriptor (see {@linkplain RuleBasedParser} description
+	 * @param loader loader to load class built into. Can't be null
+	 * @return class built. Can't be null or empty
+	 * @throws SyntaxException in any syntax error in the rules
+	 * @throws NullPointerException on any parameter is null  
+	 * @throws IllegalArgumentException on any string parameter is null or empty
+	 * @see RuleBasedParser
+	 * @since 0.0.6
+	 */
+	public static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParserClass(final String className, final Class<NodeType> clazz, final String content, final SimpleURLClassLoader loader) throws SyntaxException, NullPointerException, IllegalArgumentException {
 		if (clazz == null) {
 			throw new NullPointerException("Node type class can't be null");
 		}
 		else if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content string can't be null");
 		}
-		else if (names == null) {
-			throw new NullPointerException("Syntax node tree can't be null");
-		}
 		else if (loader == null) {
 			throw new NullPointerException("Class loader can't be null");
 		}
 		else {
-			try{return InternalUtils.buildRuleBasedParser(className, clazz, content, names, loader).getConstructor().newInstance();
-			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-				throw new SyntaxException(0, 0, e.getLocalizedMessage(), e);
-			}
+			return InternalUtils.buildRuleBasedParser(className, clazz, content, loader);
 		}
 	}
 	
@@ -1295,17 +1323,4 @@ public class CompilerUtils {
 		}
 	}
 
-	/**
-	 * <p>This interface is a marker for any type of parameter</p>
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.5
-	 */
-	public interface AnyType {}
-	
-	/**
-	 * <p>This interface is a marker for a list of any type of parameter</p>
-	 * @author Alexander Chernomyrdin aka chav1961
-	 * @since 0.0.5
-	 */
-	public interface AnyTypeList {}
 }
