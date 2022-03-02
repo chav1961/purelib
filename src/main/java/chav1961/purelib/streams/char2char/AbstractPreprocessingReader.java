@@ -406,7 +406,7 @@ public abstract class AbstractPreprocessingReader extends Reader {
 		}
 	}
 
-	protected void substitute(final char[] data, final int from, final int length) {	// This method is used to reduce stringbuilder operations
+	protected void substitute(final char[] data, final int from, final int length) throws SyntaxException {	// This method is used to reduce stringbuilder operations
 		int		end;
 		
 		for (int index = from, to = from + length; index < to; index++) {
