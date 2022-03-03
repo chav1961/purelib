@@ -96,6 +96,34 @@ checkpoint		.macro	type:str,message:str="obj="
 
 ; -------------------------------------------------------------------------
 
+trace			.macro	checkpoint:str,print:bool=false,top:bool=false
+label			.local	int
+label			.set	uniqueG()
+				.if		print
+					aload	content
+					checkpoint	"java.lang.Object",message="&checkpoint, content="
+					pop
+					iload	from
+					invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
+					checkpoint	"java.lang.Object",message="From="
+					pop
+					.if	top
+						dup
+						ifeq	next&label
+						aconst_null
+						checkpoint	"java.lang.Object",message="TRUE "
+						pop
+						goto	pass&label
+next&label:				aconst_null
+						checkpoint	"java.lang.Object",message="FALSE "
+						pop
+pass&label:						
+					.endif
+				.endif
+		.mend
+
+; -------------------------------------------------------------------------
+
 duplicateSyntaxNode	.macro
 				getstatic	chav1961.purelib.cdb.AbstractBNFParser.TEMPLATE	
 				invokevirtual	chav1961.purelib.cdb.SyntaxNode.clone()Ljava/lang/Object;
@@ -181,14 +209,17 @@ tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
 				skipBlank
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				caload
 				ldc			&fieldValue
 				if_icmpeq	trueLabel
+				trace		"After &methodName false"				
 				ldc			0
 				ireturn
-trueLabel:		ldc			1				
+trueLabel:		trace		"After &methodName true"				
+				ldc			1				
 				ireturn
 &methodName		.end
 		.mend
@@ -203,6 +234,7 @@ tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
 				skipBlank
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				caload
@@ -212,6 +244,7 @@ tempLong		.parameter	long[] final
 trueLabel:		iload		from
 				ldc			1
 				iadd				
+				trace		"After &methodName"				
 				ireturn
 &methodName		.end
 		.mend
@@ -254,10 +287,12 @@ tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack	optimistic
 				skipBlank
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				getstatic	&fieldName		
 				invokestatic	chav1961.purelib.basic.CharUtils.compare([CI[C)Z
+				trace		"After &methodName",top=true				
 				ireturn
 &methodName		.end
 		.mend
@@ -272,6 +307,7 @@ tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack	optimistic
 				skipBlank
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				aload		tempInt
@@ -283,6 +319,7 @@ trueLabel:		getstatic	&fieldName
 				arraylength
 				iload		from
 				iadd				
+				trace		"After &methodName"				
 				ireturn
 &methodName		.end
 		.mend
@@ -325,11 +362,13 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				aload		tempInt
 				aload		tempLong
 				invokestatic &referenceMethodName([CI[I[J)Z
+				trace		"After &methodName",top=true				
 				ireturn
 &methodName		.end
 		.mend
@@ -343,11 +382,13 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				aload		tempInt
 				aload		tempLong
 				invokestatic &referenceMethodName([CI[I[J)I
+				trace		"After &methodName"				
 				ireturn
 &methodName		.end
 		.mend
@@ -387,12 +428,14 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				getstatic	chav1961.purelib.cdb.intern.Predefines.&name
 				aload		tempInt
 				aload		tempLong
 				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)Z
+				trace		"After &methodName",top=true				
 				ireturn
 &methodName		.end
 		.mend
@@ -406,12 +449,14 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				getstatic	chav1961.purelib.cdb.intern.Predefines.&name
 				aload		tempInt
 				aload		tempLong
 				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
+				trace		"After &methodName"				
 				ireturn
 &methodName		.end
 		.mend
@@ -460,6 +505,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -482,9 +528,10 @@ prepareOptionTestMethodItem  .macro className:str=,methodName:str=,skipMethodNam
 ; -------------------------------------------------------------------------
 
 prepareOptionTestMethodEnd   .macro className:str=,methodName:str=
+				trace		"After &methodName true"				
 				ldc			1
 				ireturn
-falseLabel:
+falseLabel:		trace		"After &methodName false"				
 				ldc			0
 				ireturn				
 &methodName.Optional	.end
@@ -499,6 +546,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				aload		tempInt
@@ -521,7 +569,9 @@ prepareOptionSkipMethodItem  .macro className:str=,methodName:str=
 ; -------------------------------------------------------------------------
 
 prepareOptionSkipMethodEnd   .macro className:str=,methodName:str=
+				trace		"After &methodName optional"				
 falseLabel:		iload		from
+				trace		"After &methodName total"				
 				ireturn
 &methodName		.end
 		.mend
@@ -590,6 +640,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -612,9 +663,11 @@ prepareRepeatTestMethodItem  .macro className:str=,methodName:str=,skipMethodNam
 ; -------------------------------------------------------------------------
 
 prepareRepeatTestMethodEnd   .macro className:str=,methodName:str=
+				trace		"After &methodName true"				
 				ldc			1
 				ireturn
-falseLabel:		ldc			0
+falseLabel:		trace		"After &methodName false"				
+				ldc			0
 				ireturn				
 &methodName		.end
 		.mend
@@ -628,6 +681,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 again:			aload		content
 				iload		from
 				aload		tempInt
@@ -652,6 +706,7 @@ prepareRepeatSkipMethodItem  .macro className:str=,methodName:str=
 prepareRepeatSkipMethodEnd   .macro className:str=,methodName:str=
 				goto		again
 falseLabel:		iload		from
+				trace		"After &methodName"				
 				ireturn
 &methodName		.end
 		.mend
@@ -729,6 +784,7 @@ tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
 				skipBlank
+				trace		"Before &methodName"				
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -745,9 +801,11 @@ prepareSwitchTestMethodItem  .macro className:str=,methodName:str=
 ; -------------------------------------------------------------------------
 
 prepareSwitchTestMethodEnd   .macro className:str=,methodName:str=
+				trace		"After &methodName false"				
 				ldc			0
 				ireturn
-trueLabel:		ldc			1
+trueLabel:		trace		"After &methodName true"				
+				ldc			1
 				ireturn				
 &methodName		.end
 		.mend
@@ -761,6 +819,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				aload		tempInt
@@ -793,7 +852,10 @@ falseLabel&localLabel:
 
 prepareSwitchSkipMethodEnd   .macro className:str=,methodName:str=
 falseLabel:		iload		from
-exit:			ireturn
+				trace		"After &methodName switch"				
+exit:			
+				trace		"After &methodName total"				
+				ireturn
 &methodName		.end
 		.mend
 
@@ -863,6 +925,7 @@ tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
 				skipBlank
+				trace		"Before &methodName"				
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -885,9 +948,11 @@ prepareCaseTestMethodItem  .macro className:str=,methodName:str=,skipMethodName:
 ; -------------------------------------------------------------------------
 
 prepareCaseTestMethodEnd   .macro className:str=,methodName:str=
+				trace		"After &methodName true"				
 				ldc			1
 				ireturn
-falseLabel:		ldc			0
+falseLabel:		trace		"After &methodName false"				
+				ldc			0
 				ireturn				
 &methodName		.end
 		.mend
@@ -901,6 +966,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				aload		tempInt
@@ -923,7 +989,9 @@ prepareCaseSkipMethodItem  .macro className:str=,methodName:str=
 ; -------------------------------------------------------------------------
 
 prepareCaseSkipMethodEnd   .macro className:str=,methodName:str=
+				trace		"After &methodName case"				
 falseLabel:		iload		from
+				trace		"After &methodName total"				
 				ireturn
 &methodName		.end
 		.mend
@@ -993,6 +1061,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -1015,9 +1084,11 @@ prepareRuleTestMethodItem .macro className:str=,methodName:str=,skipMethodName:s
 ; -------------------------------------------------------------------------
 
 prepareRuleTestMethodEnd .macro className:str=,methodName:str=
+				trace		"After &methodName true"				
 				ldc			1
 				ireturn
-falseLabel:		ldc			0
+falseLabel:		trace		"After &methodName false"				
+				ldc			0
 				ireturn				
 &methodName		.end
 		.mend
@@ -1031,6 +1102,7 @@ from			.parameter	int
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack		optimistic
+				trace		"Before &methodName"				
 				aload		content
 				iload		from
 				aload		tempInt
@@ -1053,7 +1125,9 @@ prepareRuleSkipMethodItem .macro className:str=,methodName:str=
 ; -------------------------------------------------------------------------
 
 prepareRuleSkipMethodEnd .macro className:str=,methodName:str=
+				trace		"After &methodName rule" 				
 falseLabel:		iload		from
+				trace		"After &methodName total"				
 				ireturn
 &methodName		.end
 		.mend

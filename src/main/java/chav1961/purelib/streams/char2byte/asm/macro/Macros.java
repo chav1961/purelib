@@ -13,6 +13,7 @@ import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.enumerations.StylePropertiesSupported.Keyword;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
 
 // 			Syntax of the macros:
@@ -370,7 +371,7 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 									}
 								}
 								else {
-									throw new SyntaxException(lineNo,from-begin,".local declaration doesn't have legal name"); 
+									throw new SyntaxException(lineNo,from-begin,".local declaration doesn't have legal type name"); 
 								}
 							}
 						}
@@ -838,8 +839,8 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 		
 		try{exec.exec(cmd.getDeclarations(),gca);
 		} catch (CalculationException exc) {
-			final MacroCommand		cmd1 = parseCall(lineNo,data,from,length);
-			exc.printStackTrace();
+//			final MacroCommand		cmd1 = parseCall(lineNo,data,from,length);
+//			exc.printStackTrace();
 			throw new IOException("Macro "+new String(cmd.getName())+": "+exc.getLocalizedMessage()); 
 		}
 		return gca.getReader();
@@ -946,6 +947,16 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 			throw new SyntaxException(lineNo,from,exc.getLocalizedMessage(),exc); 
 		}
 		
+		for (AssignableExpressionNode item : cmd.getDeclarations()) {	// Defaults for key parameters
+			if (item.getType() == ExpressionNodeType.KEY_PARAMETER) {
+				if (!((KeyParameter)item).hasValue()) {
+					try{((KeyParameter)item).assignDefaultValue();
+					} catch (CalculationException e) {
+						throw new IOException(e.getLocalizedMessage(), e);
+					}
+				}
+			}
+		}
 		return cmd;
 	}
 	

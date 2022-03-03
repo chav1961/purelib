@@ -33,7 +33,8 @@ class ClassDescriptionRepo {
 	private static final String					KIND_CONSTRUCTOR = "constructor";
 
 	private static final Class<?>[]				PRELOADED_CLASSES = new Class<?>[]{boolean.class,byte.class,char.class,double.class,float.class,int.class,long.class,short.class,void.class,
-													Object.class,String.class,Throwable.class,Exception.class,Enum.class,Annotation.class,Class.class,
+													Object.class,String.class,StringBuilder.class,Throwable.class,Exception.class,Enum.class,Annotation.class,Class.class,
+													Byte.class,Boolean.class,Character.class,Double.class,Float.class,Integer.class,Long.class,Short.class,Void.class,Number.class,         
 													CallSite.class,MethodHandle.class,MethodHandles.Lookup.class,MethodType.class
 												};
 

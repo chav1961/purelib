@@ -1,0 +1,18 @@
+parms		.macro	p1:int,p2:real,p3:str,p4:bool,p5:int,p6:real,p7:str,p8:bool,p9:int=10,p10:real=20.0,p11:str="test",p12a:bool=false,p12b:bool=true
+			ldc 	"p1=&p1,p2=&p2,p3=&p3,p4=&p4,p5=&p5,p6=&p6,p7=&p7,p8=&p8,p9=&p9,p10=&p10,p11=&p11,p12a=&p12a,p12b=&p12b"
+			.mend
+			.package	chav1961.purelib.streams.char2byte.asm
+			.import		chav1961.purelib.streams.char2byte.asm.TestInterface
+MacroTestP	.class		public implements chav1961.purelib.streams.char2byte.asm.TestInterface
+MacroTestP	.method		void public 
+			.stack	1
+			aload_0
+			invokespecial	java.lang.Object.Object()V
+			return
+MacroTestP	.end
+call		.method		java.lang.String public
+			.stack	3
+			parms	1,2.0,"3",true,10,20.0,"30",false
+			areturn		
+call		.end
+MacroTestP	.end

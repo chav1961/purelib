@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URL;
 
@@ -21,26 +22,39 @@ import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
 public class MacroProcessingTest {
-	static boolean alreadyTested = false;
-	
-	@Test
-	public void test() throws ContentException, IOException, InstantiationException, IllegalAccessException {
-		if (!alreadyTested) {	// Protections aginst repeatable tests with the same ClassLoader
-			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
-				try(final InputStream		is = this.getClass().getResourceAsStream("source.txt");
-					final Reader			rdr = new InputStreamReader(is);
-					final AsmWriter			asm = new AsmWriter(baos)) {
-					
-					Utils.copyStream(rdr,asm);
-				}
+//	@Test
+	public void simpleTest() throws ContentException, IOException, InstantiationException, IllegalAccessException {
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final InputStream		is = this.getClass().getResourceAsStream("source.txt");
+				final Reader			rdr = new InputStreamReader(is);
+				final AsmWriter			asm = new AsmWriter(baos)) {
 				
-				@SuppressWarnings("unchecked")
-				final Class<TestInterface>	cl = (Class<TestInterface>) new SimpleURLClassLoader(new URL[0]).createClass("chav1961.purelib.streams.char2byte.asm.MacroTest",baos.toByteArray());
-				final TestInterface			inst = cl.newInstance();
-				
-				Assert.assertEquals(inst.sub(20,15),5);
-				alreadyTested = true;
+				Utils.copyStream(rdr,asm);
 			}
+			
+			@SuppressWarnings("unchecked")
+			final Class<TestInterface>	cl = (Class<TestInterface>) new SimpleURLClassLoader(new URL[0]).createClass("chav1961.purelib.streams.char2byte.asm.MacroTest",baos.toByteArray());
+			final TestInterface			inst = cl.newInstance();
+			
+			Assert.assertEquals(inst.sub(20,15),5);
+		}
+	}
+
+	@Test
+	public void parameterTest() throws ContentException, IOException, InstantiationException, IllegalAccessException {
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final InputStream		is = this.getClass().getResourceAsStream("parameters.txt");
+				final Reader			rdr = new InputStreamReader(is);
+				final AsmWriter			asm = new AsmWriter(baos,new PrintWriter(System.err))) {
+				
+				Utils.copyStream(rdr,asm);
+			}
+			
+			@SuppressWarnings("unchecked")
+			final Class<TestInterface>	cl = (Class<TestInterface>) new SimpleURLClassLoader(new URL[0]).createClass("chav1961.purelib.streams.char2byte.asm.MacroTestP",baos.toByteArray());
+			final TestInterface			inst = cl.newInstance();
+			
+			Assert.assertEquals("p1=1,p2=2.0,p3=3,p4=true,p5=10,p6=20.0,p7=30,p8=false,p9=10,p10=20.0,p11=test,p12a=false,p12b=true",inst.call());
 		}
 	}
 }

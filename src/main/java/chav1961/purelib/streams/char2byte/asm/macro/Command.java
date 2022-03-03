@@ -44,6 +44,9 @@ class MacroCommand extends Command implements Cloneable {
 	private boolean						committed = false;
 
 	MacroCommand(final char[] name) {
+		if ("parms".equals(new String(name))) {
+			System.err.println("PARMS:  ");
+		}
 		this.name = name;
 	}
 	
@@ -129,7 +132,7 @@ class MacroCommand extends Command implements Cloneable {
 			for (int index = 0; index <= current; index++) {
 				final char[] name = memory[index].getName();
 				
-				if (UnsafedCharUtils.uncheckedCompare(item.getName(),0,name,0,name.length)) {
+				if (item.getName().length == name.length && UnsafedCharUtils.uncheckedCompare(item.getName(),0,name,0,name.length)) {
 					throw new SyntaxException(0,0,"Duplicate parameter or local variable name ["+new String(item.getName())+"]"); 
 				}
 			}
@@ -145,7 +148,7 @@ class MacroCommand extends Command implements Cloneable {
 		for (int index = 0; index <= current; index++) {
 			final char[] name = memory[index].getName();
 			
-			if (UnsafedCharUtils.uncheckedCompare(data,0,name,0,name.length)) {
+			if (data.length == name.length && UnsafedCharUtils.uncheckedCompare(data,0,name,0,name.length)) {
 				 return memory[index];
 			}
 		}

@@ -216,7 +216,42 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	}
 	
 	protected static Object checkpoint(final Object obj, final String message) {	// Debugging inside the bytecode
-		System.err.println(message+obj);
+		if (obj != null && obj.getClass().isArray()) {
+			switch (CompilerUtils.defineClassType(obj.getClass().getComponentType())) {
+				case CompilerUtils.CLASSTYPE_BOOLEAN 	:
+					System.err.println(message+Arrays.toString((boolean[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_BYTE		:
+					System.err.println(message+Arrays.toString((byte[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_CHAR		:
+					System.err.println(message+Arrays.toString((char[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
+					System.err.println(message+Arrays.toString((double[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_FLOAT		:
+					System.err.println(message+Arrays.toString((float[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_INT		:
+					System.err.println(message+Arrays.toString((int[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_LONG		:
+					System.err.println(message+Arrays.toString((long[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_SHORT		:
+					System.err.println(message+Arrays.toString((short[])obj));
+					break;
+				case CompilerUtils.CLASSTYPE_REFERENCE	:
+					System.err.println(message+Arrays.deepToString((Object[])obj));
+					break;
+				default : 
+					System.err.println(message+obj);
+			}
+		}
+		else {
+			System.err.println(message+obj);
+		}
 		return obj;
 	}
 }

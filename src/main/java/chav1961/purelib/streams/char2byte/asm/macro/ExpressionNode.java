@@ -674,19 +674,48 @@ class KeyParameter extends AssignableExpressionNode {
 	private final char[]				name;
 	private final ExpressionNodeValue	valueType;
 	private final ExpressionNode		defaultValue;
-	private ExpressionNode				currentValue;
+	private ExpressionNode				currentValue = null;
 	
-	KeyParameter(final char[] name, final ExpressionNodeValue valueType) {
-		this(name,valueType,null);
-	}
-
-	KeyParameter(final char[] name, final ExpressionNodeValue valueType, final ExpressionNode initialValue) {
+	KeyParameter(final char[] name, final ExpressionNodeValue valueType) throws SyntaxException {
 		this.name = name;
 		this.valueType = valueType;
-		this.defaultValue = this.currentValue = initialValue;
+		this.defaultValue = null;
+	}
+
+	KeyParameter(final char[] name, final ExpressionNodeValue valueType, final ExpressionNode initialValue) throws SyntaxException {
+		this.name = name;
+		this.valueType = valueType;
+		this.defaultValue = calcValue(valueType, initialValue);
 	}
 	
+	private KeyParameter(final KeyParameter another) throws SyntaxException {
+		this.name = another.name;
+		this.valueType = another.valueType;
+		this.defaultValue = another.defaultValue;
+	}
+	
+	private ConstantNode calcValue(final ExpressionNodeValue valueType, final ExpressionNode initialValue) throws SyntaxException {
+		if (initialValue != null) {
+			try{switch (valueType) {
+					case BOOLEAN	: return new ConstantNode(initialValue.getBoolean());
+					case INTEGER	: return new ConstantNode(initialValue.getLong());
+					case REAL		: return new ConstantNode(initialValue.getDouble());
+					case STRING		: return new ConstantNode(initialValue.getString());
+					default			: return new ConstantNode(valueType, initialValue);
+				}
+			} catch (CalculationException e) {
+				throw new SyntaxException(0, 0, "Key parameters ["+new String(name)+"] - error calculating default value ("+e.getLocalizedMessage()+")",e);
+			} 
+		}
+		else {
+			return null;
+		}
+	}
 
+	public void assignDefaultValue() throws CalculationException {
+		assign(defaultValue);
+	}
+	
 	@Override
 	public char[] getName() {
 		return name;
@@ -694,7 +723,10 @@ class KeyParameter extends AssignableExpressionNode {
 	
 	@Override
 	public KeyParameter clone() {
-		return new KeyParameter(name,valueType,defaultValue);
+		try{return new KeyParameter(this);
+		} catch (SyntaxException e) {
+			return null;
+		}
 	}
 
 	@Override

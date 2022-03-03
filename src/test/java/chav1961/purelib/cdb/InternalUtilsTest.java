@@ -11,6 +11,7 @@ import org.junit.Test;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.InternalUtils.Lexema;
@@ -275,6 +276,21 @@ public class InternalUtilsTest {
 		// Complex test
 		node = totalParseTest("<Test1>::=<Test2> <Test3> \r\n<Test2>::='1':<Test4>\r\n<Test3>::='2':<Test1>\r\n", " 12\n", 3, " 13\n");
 		printSyntaxNode(node);
+	}	
+
+	
+	@Test
+	public void complexTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		final SyntaxTreeInterface<Object>				tree = new AndOrTree<>();
+		final SyntaxTreeInterface<Object>				names = new AndOrTree<>();
+		final RuleBasedParser<TestExpression, Object>	rbp = CompilerUtils.buildRuleBasedParserClass("MyClass", TestExpression.class, Utils.fromResource(this.getClass().getResource("expression.txt")))
+																.getConstructor(Class.class,SyntaxTreeInterface.class).newInstance(TestExpression.class, tree);
+		final SyntaxNode<TestExpression,SyntaxNode> 	root = new SyntaxNode<>(0,0,TestExpression.Rule,0,null);
+		final String									test = ".not.-2*3+4#-3.or.3.and.4 1";
+		final char[]									content = CharUtils.terminateAndConvert2CharArray(test, '\n');
+		
+		Assert.assertEquals(test.length()-2, rbp.skip(content, 0));
+//		Assert.assertEquals(1, rbp.parse(content, 0, names, root));
 	}	
 	
 	private String parseAndPrint(final String source) throws SyntaxException, IOException {

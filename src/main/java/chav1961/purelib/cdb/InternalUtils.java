@@ -194,7 +194,7 @@ class InternalUtils {
 					return from;
 				}
 				else {
-					throw new SyntaxException(SyntaxException.toRow(content, start), SyntaxException.toCol(content, start), "Unknown predefined name ["+new String(content, temp[0], temp[1] - temp[0])+"]"); 
+					throw new SyntaxException(SyntaxException.toRow(content, start), SyntaxException.toCol(content, start), "Unknown predefined name ["+new String(content, temp[0], temp[1] - temp[0] + 1)+"]"); 
 				}
 			case '<' :
 				from = CharUtils.parseName(content, from + 1, temp);
@@ -208,7 +208,7 @@ class InternalUtils {
 						return from + 1;
 					}
 					else {
-						throw new SyntaxException(SyntaxException.toRow(content, start), SyntaxException.toCol(content, start), "Unknown predefined name ["+new String(content, temp[0], temp[1] - temp[0])+"]"); 
+						throw new SyntaxException(SyntaxException.toRow(content, start), SyntaxException.toCol(content, start), "Unknown predefined name ["+new String(content, temp[0], temp[1] - temp[0] + 1)+"]"); 
 					}
 				}
 				else {
