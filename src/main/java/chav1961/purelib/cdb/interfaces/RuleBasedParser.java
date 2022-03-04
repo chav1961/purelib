@@ -16,7 +16,8 @@ import chav1961.purelib.cdb.intern.Predefines;
  * <li>@Name - predefined syntax constructs (see below)</li>
  * <li>{?|?|?} - alternatives. One of this must presents in the input content</li>
  * <li>[?] - options. This one can or can not presents in the input content</li>
- * <li>(?)... - repeats. This one can presents in the input content at least one time</li>
+ * <li>(?)* - repeats. This one can or can not presents in the input content many times</li>
+ * <li>(?)+ - mandatory repeats. This one can presents in the input content at least one time</li>
  * <li>&lt;Name&gt; - reference to another rule in the rule set</b></li>
  * <li>'content':&lt;Name&gt; - marker. Creates a special <i>marker</i> node in the in the syntax tree, if the given sequence presents in the input content</li>
  * </ul>
@@ -40,6 +41,8 @@ public interface RuleBasedParser<NodeType extends Enum<?>, Cargo> {
 	 * @return Syntax tree with names. Can't be null
 	 */
 	SyntaxTreeInterface<Cargo> getNamesTree();
+
+	boolean test(char [] content, int from) throws SyntaxException;
 	
 	/**
 	 * <p>Skip input content according to rules (for example, skip 'arithmetic expression').</p> 

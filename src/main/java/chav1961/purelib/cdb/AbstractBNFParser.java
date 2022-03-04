@@ -44,8 +44,9 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 		stack.allowUnnamedModuleAccess(this.getClass().getModule());
 	}
 
-	protected abstract <NodeType extends Enum<?>, Cargo> int parseInternal(final char[] content, int from, final SyntaxTreeInterface<Cargo> names, final SyntaxTreeInterface<NodeType> keywords, final SyntaxNode<NodeType, SyntaxNode> root) throws SyntaxException;
+	protected abstract <NodeType extends Enum<?>, Cargo> boolean testInternal(final char[] content, int from, final SyntaxTreeInterface<NodeType> keywords) throws SyntaxException;
 	protected abstract <NodeType extends Enum<?>, Cargo> int skipInternal(final char[] content, int from, final SyntaxTreeInterface<NodeType> keywords) throws SyntaxException;
+	protected abstract <NodeType extends Enum<?>, Cargo> int parseInternal(final char[] content, int from, final SyntaxTreeInterface<Cargo> names, final SyntaxTreeInterface<NodeType> keywords, final SyntaxNode<NodeType, SyntaxNode> root) throws SyntaxException;
 	
 	@Override
 	public SyntaxTreeInterface<Cargo> getNamesTree() {
@@ -53,10 +54,15 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	}
 
 	@Override
+	public boolean test(final char[] content, int from) throws SyntaxException {
+		return testInternal(content, from, keywords);
+	}
+
+	@Override
 	public int skip(final char[] content, int from) throws SyntaxException {
 		return skipInternal(content, from, keywords);
 	}
-
+	
 	@Override
 	public int parse(final char[] content, int from, final SyntaxTreeInterface<Cargo> names) throws SyntaxException {
 		return parseInternal(content, from, names, keywords, (SyntaxNode<NodeType, SyntaxNode>)dummy.clone());

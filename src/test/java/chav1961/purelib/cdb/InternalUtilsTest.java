@@ -1,6 +1,7 @@
 package chav1961.purelib.cdb;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
@@ -35,7 +36,7 @@ public class InternalUtilsTest {
 	
 	@Test
 	public void lexemaTest() throws SyntaxException {
-		final char[]	content = CharUtils.terminateAndConvert2CharArray("([{|}]))...:::=@Empty<Test1>'123''4'\r\n", '\uFFFF');
+		final char[]	content = CharUtils.terminateAndConvert2CharArray("([{|}]))*)+:::=@Empty<Test1>'123''4'\r\n", '\uFFFF');
 		final int[]		temp = new int[2];
 		final Lexema	lex = new Lexema();
 		
@@ -55,8 +56,10 @@ public class InternalUtilsTest {
 		Assert.assertEquals(LexType.CloseB, lex.type);
 		Assert.assertEquals(7, position = InternalUtils.next(content, position, tt, temp, lex));
 		Assert.assertEquals(LexType.Close, lex.type);
-		Assert.assertEquals(11, position = InternalUtils.next(content, position, tt, temp, lex));
+		Assert.assertEquals(9, position = InternalUtils.next(content, position, tt, temp, lex));
 		Assert.assertEquals(LexType.Repeat, lex.type);
+		Assert.assertEquals(11, position = InternalUtils.next(content, position, tt, temp, lex));
+		Assert.assertEquals(LexType.Repeat1, lex.type);
 		Assert.assertEquals(12, position = InternalUtils.next(content, position, tt, temp, lex));
 		Assert.assertEquals(LexType.Colon, lex.type);
 		Assert.assertEquals(15, position = InternalUtils.next(content, position, tt, temp, lex));
@@ -120,8 +123,9 @@ public class InternalUtilsTest {
 		Assert.assertEquals("<Test1> ::= <Test2> [<Test3> ] \r\n", parseAndPrint("<Test1>::=<Test2>[<Test3>]"));
 		Assert.assertEquals("<Test1> ::= <Test2> [<Test3> ] <Test4> \r\n", parseAndPrint("<Test1>::=<Test2>[<Test3>]<Test4>"));
 		Assert.assertEquals("<Test1> ::= {<Test2> | <Test3> } \r\n", parseAndPrint("<Test1>::={<Test2>|<Test3>}"));
+		Assert.assertEquals("<Test1> ::= <Test1> {<Test2> | <Test3> } <Test4> \r\n", parseAndPrint("<Test1>::=<Test1>{<Test2>|<Test3>}<Test4>"));
 		Assert.assertEquals("<Test1> ::= <Test2> <Test3> \r\n", parseAndPrint("<Test1>::=(<Test2><Test3>)"));
-		Assert.assertEquals("<Test1> ::= (<Test2> <Test3> )... \r\n", parseAndPrint("<Test1>::=(<Test2><Test3>)..."));
+		Assert.assertEquals("<Test1> ::= (<Test2> <Test3> )* \r\n", parseAndPrint("<Test1>::=(<Test2><Test3>)*"));
 		
 		try{parseAndPrint("'1'::='2'");
 			Assert.fail("Mandatory exception was not detected (missing name at the left)");
@@ -136,7 +140,7 @@ public class InternalUtilsTest {
 		} catch (SyntaxException exc) { 
 		}
 		try{parseAndPrint("<Test1>::=(<Test2>");
-			Assert.fail("Mandatory exception was not detected (missing ')' or ')...')");
+			Assert.fail("Mandatory exception was not detected (missing ')', ')+' ')*')");
 		} catch (SyntaxException exc) {
 		}
 		try{parseAndPrint("<Test1>::={<Test2>|");
@@ -164,9 +168,11 @@ public class InternalUtilsTest {
 		skipTest("<Test1>::='1'{'2'|'3'|'4'}'5'", " 145\n", 4, " 143\n", 1);
 		skipTest("<Test1>::='1'{'2'|'3'|'4'}'5'", " 125\n", 4, " 143\n", 1);
 		skipTest("<Test1>::='1'{'2'|'3'|'4'|@Empty}'5'", " 15\n", 3, " 143\n", 1);
-		skipTest("<Test1>::=('1'',')...'2'", " 1,1,2\n", 6, " 1,3,2\n", 1);
+		skipTest("<Test1>::=('1'',')*'2'", " 1,1,2\n", 6, " 1,3,2\n", 1);
 		
 		totalSkipTest("<Test1>::=<Test2>\n<Test2>::='1'", " 1\n", 2, " 2\n", 1);
+
+		totalSkipTest("<Test1>::=<Test2>{'+'|'-'}<Test2>\n<Test2>::='1'", " 1+1\n", 4, " 2\n", 1);
 	}	
 
 	@Test
@@ -238,19 +244,41 @@ public class InternalUtilsTest {
 		Assert.assertEquals(TestType.Test4, node.children[3].type);
 		
 		// Repeats
-		node = parseTest("<Test1>::=('1':<Test2>',')...'2':<Test3>", " 1,2\n", 4, " 1,3,2\n");
+		node = parseTest("<Test1>::=('1':<Test2>',')+'2':<Test3>", " 1,2\n", 4, " 1,3,2\n");
 		printSyntaxNode(node);
 		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(2, node.children.length);
 		Assert.assertEquals(TestType.Test2, node.children[0].type);
 		Assert.assertEquals(TestType.Test3, node.children[1].type);
 
-		node = parseTest("<Test1>::=('1':<Test2>',')...'2':<Test3>", " 1,1,2\n", 6, " 1,3,2\n");
+		node = parseTest("<Test1>::=('1':<Test2>',')+'2':<Test3>", " 1,1,2\n", 6, " 1,3,2\n");
 		printSyntaxNode(node);
 		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(3, node.children.length);
 		Assert.assertEquals(TestType.Test2, node.children[0].type);
 		Assert.assertEquals(TestType.Test2, node.children[1].type);
 		Assert.assertEquals(TestType.Test3, node.children[2].type);
 
+		try {parseTest("<Test1>::=('1':<Test2>',')+'2':<Test3>", " 2\n", 6, " 1,3,2\n");
+			Assert.fail("Mandatory exception was not detected (at least one '1,' required)");
+		} catch (SyntaxException exc) {
+		}
+		
+		node = parseTest("<Test1>::=('1':<Test2>',')*'2':<Test3>", " 1,2\n", 4, " 1,3,2\n");
+		printSyntaxNode(node);
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(2, node.children.length);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test3, node.children[1].type);
+
+		node = parseTest("<Test1>::=('1':<Test2>',')*'2':<Test3>", " 1,1,2\n", 6, " 1,3,2\n");
+		printSyntaxNode(node);
+		Assert.assertEquals(TestType.Test1, node.type);
+		Assert.assertEquals(3, node.children.length);
+		Assert.assertEquals(TestType.Test2, node.children[0].type);
+		Assert.assertEquals(TestType.Test2, node.children[1].type);
+		Assert.assertEquals(TestType.Test3, node.children[2].type);
+		
 		// Alternatives
 		node = parseTest("<Test1>::='1':<Test2>{'2':<Test3>|'3':<Test4>|@Empty}'4':<Test1>", " 124\n", 4, " 132\n");
 		printSyntaxNode(node);
@@ -289,8 +317,9 @@ public class InternalUtilsTest {
 		final String									test = ".not.-2*3+4#-3.or.3.and.4 1";
 		final char[]									content = CharUtils.terminateAndConvert2CharArray(test, '\n');
 		
+		Assert.assertTrue(rbp.test(content, 0));
 		Assert.assertEquals(test.length()-2, rbp.skip(content, 0));
-//		Assert.assertEquals(1, rbp.parse(content, 0, names, root));
+		Assert.assertEquals(1, rbp.parse(content, 0, names, root));
 	}	
 	
 	private String parseAndPrint(final String source) throws SyntaxException, IOException {
@@ -313,6 +342,9 @@ public class InternalUtilsTest {
 		final Writer	wr = new StringWriter();
 		
 		Assert.assertEquals(content.length-1, InternalUtils.parse(content, InternalUtils.next(content, 0, tt, temp, lex), tt, temp, lex, root));
+		InternalUtils.printTree(root, tt, new PrintWriter(System.err));
+		
+		
 		return InternalUtils.buildRuleBasedParserClass("MyClass"+System.currentTimeMillis(), root, tt, PureLibSettings.INTERNAL_LOADER);
 	}
 	

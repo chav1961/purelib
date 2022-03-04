@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -478,6 +479,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private int[]										forMethodTypes = new int[16];
 	private boolean 									needStackMapRecord = false;
 	private short										stackSize4CurrentMethod = 0;
+	private int											lineParserDepth = 0, currentLineNo, nestedLineNo, methodLineNo; 
 	
 	LineParser(final ClassLoader owner, final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
 		this(owner,cc,cdr,macros,loader,null);
@@ -510,11 +512,17 @@ class LineParser implements LineByLineProcessorCallback {
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 
+		if (++lineParserDepth <= 1) {
+			currentLineNo = lineNo;
+		}
+		nestedLineNo = lineNo;		
+		
 		if (diagnostics != null && !PureLibSettings.instance().getProperty(PureLibSettings.SUPPRESS_PRINT_ASSEMBLER,boolean.class,"true")) {
 			diagnostics.write("\t"+new String(data,from,len));
 		}
 		
-		try{if (state == ParserState.insideMacros) {	// Redirect macros code into macros
+		try{
+			if (state == ParserState.insideMacros) {	// Redirect macros code into macros
 				currentMacros.processLine(displacement,lineNo,data,from,len);
 				if (currentMacros.isPrepared()) {
 					final String	macroName = new String(currentMacros.getName());
@@ -772,6 +780,7 @@ class LineParser implements LineByLineProcessorCallback {
 								case insideClassMethod :
 									processStackDir(data,InternalUtils.skipBlank(data,start));
 									state = ParserState.insideClassBody;
+									methodLineNo = 0;
 									break;
 								case insideClassBody :
 								case insideBegin :
@@ -949,8 +958,8 @@ class LineParser implements LineByLineProcessorCallback {
 							if (opCode >= 0) {
 								final CommandDescriptor	desc = staticCommandTree.getCargo(opCode);
 								
-								if (addLines2Class) {
-									methodDescriptor.addLineNoRecord(lineNo);
+								if (addLines2Class && !addLines2ClassManually) {
+									methodDescriptor.addLineNoRecord(methodLineNo++);
 								}
 								start = InternalUtils.skipBlank(data,start);
 
@@ -1026,6 +1035,8 @@ class LineParser implements LineByLineProcessorCallback {
 			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo,start-from,new String(data,from,len)+exc.getMessage(),exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
+		} finally {
+			lineParserDepth--;
 		}
 	}
 
@@ -1745,13 +1756,9 @@ class LineParser implements LineByLineProcessorCallback {
 			start = skipQuoted(data,start+1,'\"');
 			skip2line(data,start+1);
 			
-			final String	ref = new String(data,from+1,start-from);
-			URL		refUrl;
+			final String	ref = new String(data,from+1,start-from-1);
+			final URI		refUrl = URI.create(ref);
 			
-			try{refUrl = new URL(ref);
-			} catch (MalformedURLException exc) {
-				refUrl = this.getClass().getResource(ref);
-			}
 			if (refUrl == null) {
 				throw new ContentException("Resource URL ["+ref+"] is missing or malformed!");
 			}

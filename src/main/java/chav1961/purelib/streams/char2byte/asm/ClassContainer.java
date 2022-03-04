@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ class ClassContainer implements Closeable {
 	private short	currentMajor = Constants.MAJOR_1_7, currentMinor = Constants.MINOR_1_7;
 	private long	joinedClassName = 0, constantValueId;
 	private boolean methodBodyAwait = false;
-	private URL		sourceRef = null;
+	private URI		sourceRef = null;
 	
 	public ClassContainer() {
 		tree.placeName("long",null);			// To use in LocalVarTable descriptors
@@ -104,7 +105,7 @@ class ClassContainer implements Closeable {
 		fieldCount++;
 	}
 	
-	void setSourceAttribute(final URL source) {
+	void setSourceAttribute(final URI source) {
 		sourceRef = source;
 	}
 	
@@ -152,7 +153,7 @@ class ClassContainer implements Closeable {
 		
 		if (sourceRef != null) {
 			attr_sourcefile = ccr.asUTF(tree.placeName("SourceFile",null));
-			attr_sourcefile_text = ccr.asUTF(tree.placeName(sourceRef.toExternalForm(),null));
+			attr_sourcefile_text = ccr.asUTF(tree.placeName(sourceRef.toString(),null));
 		}		
 		
 		final InOutGrowableByteArray	result = new InOutGrowableByteArray(false); 

@@ -176,9 +176,13 @@ class InternalUtils {
 					return from + 1;
 				}
 			case ')' :
-				if (content[from + 1] == '.' && content[from + 2] == '.' && content[from + 3] == '.') {
+				if (content[from + 1] == '*') {
 					lex.type = Lexema.LexType.Repeat;
-					return from + 4;
+					return from + 2;
+				}
+				else if (content[from + 1] == '+') {
+					lex.type = Lexema.LexType.Repeat1;
+					return from + 2;
 				}
 				else {
 					lex.type = Lexema.LexType.Close;
@@ -273,6 +277,14 @@ loop:	for (;;) {
 					if (lex.type == LexType.Repeat) {
 						subtree.col = from;
 						subtree.type = EntityType.Repeat;
+						subtree.value = subtree.type.ordinal();
+						subtree.cargo = null;
+						list.add(subtree);
+						from = next(content, from, keywords, temp, lex);
+					}
+					else if (lex.type == LexType.Repeat1) {
+						subtree.col = from;
+						subtree.type = EntityType.Repeat1;
 						subtree.value = subtree.type.ordinal();
 						subtree.cargo = null;
 						list.add(subtree);
@@ -378,7 +390,14 @@ loop:	for (;;) {
 				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
 					printTree(item, keywords, wr);
 				}
-				wr.write(")... ");
+				wr.write(")* ");
+				break;
+			case Repeat1		:
+				wr.write("(");
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					printTree(item, keywords, wr);
+				}
+				wr.write(")+ ");
 				break;
 			case Root		:
 				wr.write("=== Rules : \r\n");
@@ -447,6 +466,9 @@ loop:	for (;;) {
 						break;
 					case Repeat		:
 						baseLevelProc.put(node, new FieldAndMethods("repeat"+uniqueId, "testRepeat"+uniqueId, "skipRepeat"+uniqueId, "parseRepeat"+uniqueId));
+						break;
+					case Repeat1	:
+						baseLevelProc.put(node, new FieldAndMethods("repeat1"+uniqueId, "testRepeat1"+uniqueId, "skipRepeat1"+uniqueId, "parseRepeat1"+uniqueId));
 						break;
 					case Root		:
 						baseLevelProc.put(node, new FieldAndMethods("root"+uniqueId, "testRoot"+uniqueId, "skipRoot"+uniqueId, "parseRoot"+uniqueId));
@@ -619,9 +641,35 @@ inside:	switch (root.type) {
 				}
 				wr.write(" prepareRepeatParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+",keyword="+root.value+",testMethodName=\""+names.testMethod+"\"\n");
 				break;
+			case Repeat1	:
+				wr.write(" prepareRepeat1TestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					if (child.type.needCreateTestMethod()) {
+						wr.write(" prepareRepeat1TestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+					}
+				}
+				wr.write(" prepareRepeat1TestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
+
+				wr.write(" prepareRepeat1SkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\"\n");
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					if (child.type.needCreateSkipMethod()) {
+						wr.write(" prepareRepeat1SkipMethodItem className=\""+className+"\",methodName=\""+map.get(child).skipMethod+"\"\n");
+					}
+				}
+				wr.write(" prepareRepeat1SkipMethodEnd className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
+				
+				wr.write(" prepareRepeat1ParseMethodStart className=\""+className+"\",methodName=\""+names.parseMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
+				for (SyntaxNode<EntityType, ?> child : root.children) {
+					if (child.type.needCreateParseMethod()) {
+						wr.write(" prepareRepeat1ParseMethodItem className=\""+className+"\",methodName=\""+map.get(child).parseMethod+"\",makeChildren="+(root.children.length > 1)+"\n");
+					}
+				}
+				wr.write(" prepareRepeat1ParseMethodEnd className=\""+className+"\",methodName=\""+names.parseMethod+"\",testMethodName=\""+names.testMethod+"\",makeChildren="+(root.children.length > 1)+",keyword="+root.value+",testMethodName=\""+names.testMethod+"\"\n");
+				break;
 			case Root		:
 				final FieldAndMethods	first = map.get(root.children[0]);
 				
+				wr.write(" prepareTestInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\"\n");
 				wr.write(" prepareSkipInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\",skipMethod=\""+first.skipMethod+"\"\n");
 				wr.write(" prepareParseInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\",parseMethod=\""+first.parseMethod+"\"\n");
 				break;
@@ -714,7 +762,7 @@ inside:	switch (root.type) {
 	
 	static class Lexema {
 		static enum LexType {
-			Name, Predefined, Open, Close, OpenB, CloseB, OpenF, CloseF, Alter, Ergo, Char, Sequence, Colon, Repeat, NL, EOF 
+			Name, Predefined, Open, Close, OpenB, CloseB, OpenF, CloseF, Alter, Ergo, Char, Sequence, Colon, Repeat, Repeat1, NL, EOF 
 		}
 		
 		LexType		type;

@@ -24,7 +24,6 @@ public class BNFParserStack<NodeType extends Enum<?>> implements ModuleAccessor 
 	}
 	
 	public void push() {
-		System.err.println("Stack push");
 		stack.add(0, new ArrayList<>());
 	}
 	
@@ -33,7 +32,6 @@ public class BNFParserStack<NodeType extends Enum<?>> implements ModuleAccessor 
 			throw new NullPointerException("Entity to add can't be null"); 
 		}
 		else {
-			System.err.println("Stack add: "+entity);
 			printSyntaxNode(entity);
 			stack.get(0).add(entity);
 		}
@@ -53,27 +51,22 @@ public class BNFParserStack<NodeType extends Enum<?>> implements ModuleAccessor 
 				}
 			}
 	
-			System.err.println("Before stack pop...");
 			if (count > 0) {
 				final SyntaxNode[]	returned = new SyntaxNode[count]; 
 				
 				count = 0;
 				for (SyntaxNode item : result) {
 					if (item.type != null) {
-						System.err.println("Stack extract: "+item);
 						count = fillStackContent(returned,count,item);
 						printSyntaxNode(item);
 					}
 					else {
-						System.err.println("Stack skip: "+item);
 						printSyntaxNode(item);
 					}
 				}
-				System.err.println("Stack pop: "+Arrays.toString(returned));
 				return returned;
 			}
 			else {
-				System.err.println("Stack pop empty...");
 				return EMPTY_ARRAY;
 			}
 		}

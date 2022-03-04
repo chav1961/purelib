@@ -9,6 +9,7 @@ public enum EntityType {
 	Predefined(true, true, true, true),
 	Option(true, true, true, true),
 	Repeat(true, true, true, true),
+	Repeat1(true, true, true, true),
 	Switch(true, true, true, true),
 	Case(true, true, true, true),
 	Detected(false, false, true, true);

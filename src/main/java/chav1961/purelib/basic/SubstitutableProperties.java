@@ -4,11 +4,14 @@ package chav1961.purelib.basic;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -53,7 +56,7 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
@@ -61,6 +64,17 @@ public class SubstitutableProperties extends Properties {
 	private static final String	MESSAGE_FILE_IS_DIRECTORY = "SubstitutableProperties.isdirectory";
 	private static final String	MESSAGE_FILE_CANNOT_READ = "SubstitutableProperties.cannottread";
 	private static final String	MESSAGE_FILE_IO_ERROR = "SubstitutableProperties.ioerror";
+
+	/**
+	 * <p>This interface describes formats of the input content for {@linkplain SubstitutableProperties#load(InputStream, Format)} and {@linkplain SubstitutableProperties#load(Reader, Format)} methods</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public static enum Format {
+		Ordinal, 
+		XML, 
+		WindowsStyled
+	}
 	
 	private static enum Conversions {
 		STRING,	INTWRAPPER, LONGWRAPPER, FLOATWRAPPER, DOUBLEWRAPPER, BOOLEANWRAPPER,
@@ -308,6 +322,80 @@ public class SubstitutableProperties extends Properties {
 	}
 	
 	
+	@Override
+	public void load(final InputStream is) throws IOException {
+		load(is,Format.Ordinal);
+	}
+
+	@Override
+	public void load(final Reader rdr) throws IOException {
+		load(rdr,Format.Ordinal);
+	}
+	
+	/**
+	 * <p>Load content from input stream with the format typed</p>
+	 * @param is input stream to load content from. Can't be null
+	 * @param format input stream format. Can't be null
+	 * @throws NullPointerException on any argument is null
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.6
+	 */
+	public void load(final InputStream is, final Format format) throws NullPointerException, IOException {
+		if (is == null) {
+			throw new NullPointerException("Input stream can't be null"); 
+		}
+		else if (format == null) {
+			throw new NullPointerException("Format can't be null"); 
+		}
+		else {
+			switch (format) {
+				case Ordinal			:
+					super.load(is);
+					break;
+				case WindowsStyled		:
+					load(new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING), format);
+					break;
+				case XML				:
+					loadFromXML(is);
+					break;
+				default:
+					throw new UnsupportedOperationException("Format ["+format+"] is not supported yet"); 
+			}
+		}
+	}
+
+	/**
+	 * <p>Load content from reader with the format typed. Don't use this method with {@linkplain Format#XML} </p>
+	 * @param rdr reader to load content from. Can't be null
+	 * @param format reader content format. Can't be null
+	 * @throws NullPointerException on any argument is null
+	 * @throws IllegalArgumentException on format value is {@linkplain Format#XML} 
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.6
+	 */
+	public void load(final Reader rdr, final Format format) throws NullPointerException, IllegalArgumentException, IOException {
+		if (rdr == null) {
+			throw new NullPointerException("Reader can't be null"); 
+		}
+		else if (format == null) {
+			throw new NullPointerException("Format can't be null"); 
+		}
+		else {
+			switch (format) {
+				case Ordinal			:
+					super.load(rdr);
+					break;
+				case WindowsStyled		:
+					loadWindowsStyled(rdr);
+					break;
+				case XML				:
+					throw new IllegalArgumentException("Format ["+format+"] is not supported for reader. Use load(InputStream,Format) method instead"); 
+				default	:
+					throw new UnsupportedOperationException("Format ["+format+"] is not supported yet"); 
+			}
+		}
+	}
+
 	/**
 	 * <p>Convert value content to type awaited</p> 
 	 * @param <T> converted instance type
@@ -423,6 +511,30 @@ public class SubstitutableProperties extends Properties {
 		}
 		else {
 			return System.getenv().get(key);
+		}
+	}
+
+	private void loadWindowsStyled(final Reader rdr) throws IOException{
+		final BufferedReader	brdr = new BufferedReader(rdr);
+		String					section = "[]", line;
+		
+		while ((line = brdr.readLine()) != null) {
+			line = line.trim();
+			if (!line.isEmpty() && line.charAt(0) != '#') {
+				if (line.charAt(0) == '[') {
+					section = line;
+				}
+				else {
+					final int	equalSign = line.indexOf('=');
+					
+					if (equalSign > 0) {
+						final StringBuilder	sb = new StringBuilder();
+						
+						CharUtils.parseString(CharUtils.terminateAndConvert2CharArray(line.substring(equalSign + 1),'\n'), 0, '\n', sb);
+						setProperty(section+'.'+line.substring(0, equalSign).trim(), sb.toString());
+					}
+				}
+			}
 		}
 	}
 	

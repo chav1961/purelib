@@ -1,9 +1,9 @@
-<Rule>::=[(<OrItem>'.or.')...]<OrItem>
-<OrItem>::=[(<AndItem>'.and.')...]<AndItem>
+<Rule>::=<OrItem>[('.or.'<OrItem>)*]
+<OrItem>::=<AndItem>[('.and.'<AndItem>)*]
 <AndItem>::=['.not.']<NotItem>
 <NotItem>::=<ComparisonPart>
-<ComparisonPart>::=[(<AddPart>'#')...]<AddPart>
-<AddPart>::=[(<MulPart>{'+'|'-'})...]<MulPart>
-<MulPart>::=[(<NegPart>{'**'|'*'|'/'})...]<NegPart>
+<ComparisonPart>::=<AddPart>[('#'<AddPart>)*]
+<AddPart>::=<MulPart>[({'+'|'-'}<MulPart>)*]
+<MulPart>::=<NegPart>[({'**'|'*'|'/'}<NegPart>)*]
 <NegPart>::=[{'+'|'-'}]<Term>
 <Term>::={@FixedNumber}
