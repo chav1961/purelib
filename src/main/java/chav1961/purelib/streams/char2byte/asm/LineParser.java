@@ -479,7 +479,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private int[]										forMethodTypes = new int[16];
 	private boolean 									needStackMapRecord = false;
 	private short										stackSize4CurrentMethod = 0;
-	private int											lineParserDepth = 0, currentLineNo, nestedLineNo, methodLineNo; 
+	private int											methodLineNo; 
 	
 	LineParser(final ClassLoader owner, final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
 		this(owner,cc,cdr,macros,loader,null);
@@ -512,11 +512,6 @@ class LineParser implements LineByLineProcessorCallback {
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 
-		if (++lineParserDepth <= 1) {
-			currentLineNo = lineNo;
-		}
-		nestedLineNo = lineNo;		
-		
 		if (diagnostics != null && !PureLibSettings.instance().getProperty(PureLibSettings.SUPPRESS_PRINT_ASSEMBLER,boolean.class,"true")) {
 			diagnostics.write("\t"+new String(data,from,len));
 		}
@@ -1035,8 +1030,6 @@ class LineParser implements LineByLineProcessorCallback {
 			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo,start-from,new String(data,from,len)+exc.getMessage(),exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
-		} finally {
-			lineParserDepth--;
 		}
 	}
 

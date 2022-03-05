@@ -505,7 +505,11 @@ loop:	for (;;) {
 		}
 		wr.write(" afterClinit className=\""+className+"\"\n");
 		buildRuleProcessingConstructor(className, root, keywords, wr);
-		buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
+		for (SyntaxNode item : root.children) {
+			buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
+		}
+//		buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
+		buildRuleProcessingRoot(className, root, keywords, baseLevelProc, wr);
 		buildRuleProcessingTail(className, root, keywords, wr);
 	}
 
@@ -535,6 +539,34 @@ loop:	for (;;) {
 	}
 
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
+
+		for (SyntaxNode<EntityType, ?> child : root.children) {
+			final FieldAndMethods	names = map.get(child);
+			
+			wr.write(" prepareNameTestMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\"\n");
+			buildTestRuleProcessingMethods(className, root, children, map, keywords, wr);
+			wr.write(" prepareNameTestMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\"\n");
+
+			wr.write(" prepareNameSkipMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.skipMethod+"\"\n");
+			buildSkipRuleProcessingMethods(className, root, children, map, keywords, wr);
+			wr.write(" prepareNameSkipMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.skipMethod+"\"\n");
+			
+			wr.write(" prepareNameParseMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\"\n");
+			buildParseRuleProcessingMethods(className, root, children, map, keywords, wr);
+			wr.write(" prepareNameParseMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\"\n");
+		}
+	}	
+
+	private static <NodeType extends Enum<?>, Cargo> void buildTestRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
+	}
+	
+	private static <NodeType extends Enum<?>, Cargo> void buildSkipRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
+	}
+	
+	private static <NodeType extends Enum<?>, Cargo> void buildParseRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
+	}	
+	
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingMethods1(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
 		final FieldAndMethods	names = map.get(root);
 
 		if (root.children != null) {
@@ -735,6 +767,14 @@ inside:	switch (root.type) {
 				throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
 		}
 	}	
+
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingRoot(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final Writer wr) throws IOException {
+		final FieldAndMethods	first = map.get(root.children[0]);
+		
+		wr.write(" prepareTestInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\"\n");
+		wr.write(" prepareSkipInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\",skipMethod=\""+first.skipMethod+"\"\n");
+		wr.write(" prepareParseInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\",parseMethod=\""+first.parseMethod+"\"\n");
+	}
 	
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingTail(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		wr.write(" endClassDeclaration className=\""+className+"\"\n");
