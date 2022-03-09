@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.util.Set;
 
@@ -23,6 +24,7 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":err:/");
 	
 	private final PrintStream	ps;
+	private final PrintWriter	pw;
 
 	public SystemErrLoggerFacade() {
 		this(System.err);
@@ -31,17 +33,31 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 	public SystemErrLoggerFacade(final PrintStream ps) {
 		super();
 		this.ps = ps;
+		this.pw = new PrintWriter(ps);
+	}
+
+	public SystemErrLoggerFacade(final PrintWriter pw) {
+		super();
+		this.ps = null;
+		this.pw = pw;
 	}
 	
 	public SystemErrLoggerFacade(final String mark, final Class<?> root, final Set<Reducing> reducing) {
 		this(System.err,mark, root, reducing);
 	}
 
-	public SystemErrLoggerFacade(final PrintStream ps,final String mark, final Class<?> root, final Set<Reducing> reducing) {
+	public SystemErrLoggerFacade(final PrintStream ps, final String mark, final Class<?> root, final Set<Reducing> reducing) {
 		super(mark, root, reducing);
 		this.ps = ps;
+		this.pw = new PrintWriter(ps);
 	}
 
+	public SystemErrLoggerFacade(final PrintWriter pw, final String mark, final Class<?> root, final Set<Reducing> reducing) {
+		super(mark, root, reducing);
+		this.ps = null;
+		this.pw = pw;
+	}
+	
 	@Override
 	public boolean canServe(final URI resource) throws NullPointerException {
 		if (resource == null) {
@@ -70,7 +86,7 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 	@Override
 	protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 		if (level != Severity.tooltip) {
-			ps.println("System.err.logger["+level+"]: "+text);
+			pw.println("System.err.logger["+level+"]: "+text);
 			if (throwable != null) {
 				throwable.printStackTrace(ps);
 			}
