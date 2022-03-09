@@ -9,6 +9,7 @@ import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 
 public abstract class MacroExecutor implements MacroExecutorInterface {
 	static final char[]				TRUE_CONTENT = "true".toCharArray();
+	static final char[]				EMPTY_CONTENT = new char[0];
 	
 	public final char[]				stringResource;
 	protected final long[]			longResult = new long[1]; 
@@ -80,7 +81,7 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 		char				prefix = '{';
 		
 		for (char[] item : value) {
-			sb.append(prefix).append('\"').append(item).append('\"');
+			sb.append(prefix).append('\"').append(item != null ? item : EMPTY_CONTENT).append('\"');
 			prefix=',';
 		}
 		if (sb.length() == 0) {

@@ -39,10 +39,10 @@ public class InternalUtilsTest {
 		Assert.assertEquals(InternalUtils.parseConstant(" -789.05f ".toCharArray(),0,false,false,null,result),9);
 		Assert.assertEquals(result[0].getDouble(),new ConstantNode(-789.05).getDouble(),0.0001);
 		
-		Assert.assertEquals(InternalUtils.parseConstant(" true ".toCharArray(),0,false,false,null,result),4);
+		Assert.assertEquals(InternalUtils.parseConstant(" true ".toCharArray(),0,false,false,null,result),5);
 		Assert.assertEquals(result[0],new ConstantNode(true));
 
-		Assert.assertEquals(InternalUtils.parseConstant(" false ".toCharArray(),0,false,false,null,result),5);
+		Assert.assertEquals(InternalUtils.parseConstant(" false ".toCharArray(),0,false,false,null,result),6);
 		Assert.assertEquals(result[0],new ConstantNode(false));
 		
 		try{InternalUtils.parseConstant(" tygydym ".toCharArray(),0,false,false,null,result);

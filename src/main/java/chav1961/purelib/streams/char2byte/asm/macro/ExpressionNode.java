@@ -121,7 +121,7 @@ class ConstantNode extends ExpressionNode {
 		this.booleanArrayValue = value;
 	}
 
-	ConstantNode(final ExpressionNodeValue valueType, final ExpressionNode... values) throws CalculationException {
+	ConstantNode(final ExpressionNodeValue valueType, final int size) throws CalculationException {
 		this.valueType = valueType; 
 		this.longValue = 0;
 		this.doubleValue = 0;
@@ -134,31 +134,100 @@ class ConstantNode extends ExpressionNode {
 		
 		switch (valueType) {
 			case BOOLEAN_ARRAY	:
-				this.booleanArrayValue = new boolean[values.length];
+				this.booleanArrayValue = new boolean[size];
+				break;
+			case INTEGER_ARRAY	:
+				this.longArrayValue = new long[size];
+				break;
+			case REAL_ARRAY		:
+				this.doubleArrayValue = new double[size];
+				break;
+			case STRING_ARRAY	:
+				this.stringArrayValue = new char[size][];
+				break;
+			default :
+				throw new CalculationException("Illegal value type ["+valueType+"] to assign content");
+		}
+	}
+	
+	ConstantNode(final ExpressionNodeValue valueType, final ExpressionNode... values) throws CalculationException {
+		this.valueType = valueType; 
+		this.longValue = 0;
+		this.doubleValue = 0;
+		this.stringValue = null;
+		this.booleanValue = false;
+		this.longArrayValue = null;
+		this.doubleArrayValue = null;
+		this.stringArrayValue = null;
+		this.booleanArrayValue = null;
+		
+		int	count = 0, to = 0;
+		
+		for (ExpressionNode item : values) {
+			if (item.getValueType().isArray()) {
+				count += item.getSize();
+			}
+			else {
+				count++;
+			}
+		}
+		
+		
+		switch (valueType) {
+			case BOOLEAN_ARRAY	:
+				this.booleanArrayValue = new boolean[count];
 				
-				for (int index = 0; index < values.length; index++) {
-					this.booleanArrayValue[index] = values[index].getBoolean();
+				for (ExpressionNode item : values) {
+					if (item.getValueType().isArray()) {
+						for(int index = 0, maxIndex = item.getSize(); index < maxIndex; index++, to++) {
+							booleanArrayValue[to] = FuncToBooleanNode.callback.calculate(((ConstantNode)item).extract(index));
+						}
+					}
+					else {
+						booleanArrayValue[to++] = FuncToBooleanNode.callback.calculate(item);
+					}
 				}
 				break;
 			case INTEGER_ARRAY	:
-				this.longArrayValue = new long[values.length];
+				this.longArrayValue = new long[count];
 				
-				for (int index = 0; index < values.length; index++) {
-					this.longArrayValue[index] = values[index].getLong();
+				for (ExpressionNode item : values) {
+					if (item.getValueType().isArray()) {
+						for(int index = 0, maxIndex = item.getSize(); index < maxIndex; index++, to++) {
+							longArrayValue[to] = FuncToIntNode.callback.calculate(((ConstantNode)item).extract(index));
+						}
+					}
+					else {
+						longArrayValue[to++] = FuncToIntNode.callback.calculate(item);
+					}
 				}
 				break;
 			case REAL_ARRAY		:
-				this.doubleArrayValue = new double[values.length];
+				this.doubleArrayValue = new double[count];
 				
-				for (int index = 0; index < values.length; index++) {
-					this.doubleArrayValue[index] = values[index].getDouble();
+				for (ExpressionNode item : values) {
+					if (item.getValueType().isArray()) {
+						for(int index = 0, maxIndex = item.getSize(); index < maxIndex; index++, to++) {
+							doubleArrayValue[to] = FuncToRealNode.callback.calculate(((ConstantNode)item).extract(index));
+						}
+					}
+					else {
+						doubleArrayValue[to++] = FuncToRealNode.callback.calculate(item);
+					}
 				}
 				break;
 			case STRING_ARRAY	:
-				this.stringArrayValue = new char[values.length][];
+				this.stringArrayValue = new char[count][];
 				
-				for (int index = 0; index < values.length; index++) {
-					this.stringArrayValue[index] = values[index].getString();
+				for (ExpressionNode item : values) {
+					if (item.getValueType().isArray()) {
+						for(int index = 0, maxIndex = item.getSize(); index < maxIndex; index++, to++) {
+							stringArrayValue[to] = FuncToStringNode.callback.calculate(((ConstantNode)item).extract(index));
+						}
+					}
+					else {
+						stringArrayValue[to++] = FuncToStringNode.callback.calculate(item);
+					}
 				}
 				break;
 			default :
@@ -377,6 +446,21 @@ class ConstantNode extends ExpressionNode {
 		return true;
 	}
 
+	private ExpressionNode extract(final int index) throws CalculationException {
+		if (getValueType().isArray()) {
+			switch (getValueType()) {
+				case BOOLEAN_ARRAY	: return new ConstantNode(getBoolean(index));
+				case INTEGER_ARRAY	: return new ConstantNode(getLong(index));
+				case REAL_ARRAY		: return new ConstantNode(getDouble(index));
+				case STRING_ARRAY	: return new ConstantNode(getString(index));
+				default	: throw new UnsupportedOperationException("Value type ["+getValueType()+"] is not supported yet"); 
+			}
+		}
+		else {
+			throw new UnsupportedOperationException("Current value is not an array");
+		}
+	}
+	
 	private int toInt(final long index) throws CalculationException {
 		if (index < 0) {
 			throw new CalculationException("Negative index value ["+index+"] to get array element"); 
@@ -697,11 +781,39 @@ class KeyParameter extends AssignableExpressionNode {
 	private ConstantNode calcValue(final ExpressionNodeValue valueType, final ExpressionNode initialValue) throws SyntaxException {
 		if (initialValue != null) {
 			try{switch (valueType) {
-					case BOOLEAN	: return new ConstantNode(initialValue.getBoolean());
-					case INTEGER	: return new ConstantNode(initialValue.getLong());
-					case REAL		: return new ConstantNode(initialValue.getDouble());
-					case STRING		: return new ConstantNode(initialValue.getString());
-					default			: return new ConstantNode(valueType, initialValue);
+					case BOOLEAN		: return new ConstantNode(FuncToBooleanNode.callback.calculate(initialValue));
+					case INTEGER		: return new ConstantNode(FuncToIntNode.callback.calculate(initialValue));
+					case REAL			: return new ConstantNode(FuncToRealNode.callback.calculate(initialValue));
+					case STRING			: return new ConstantNode(FuncToStringNode.callback.calculate(initialValue));
+					case BOOLEAN_ARRAY	:
+						if (initialValue.getValueType().isArray()) {
+							return new ConstantNode(valueType, initialValue);
+						}
+						else {
+							return new ConstantNode(valueType, initialValue);
+						}
+					case INTEGER_ARRAY	:
+						if (initialValue.getValueType().isArray()) {
+							return new ConstantNode(valueType, initialValue);
+						}
+						else {
+							return new ConstantNode(valueType, initialValue);
+						}
+					case REAL_ARRAY		:
+						if (initialValue.getValueType().isArray()) {
+							return new ConstantNode(valueType, initialValue);
+						}
+						else {
+							return new ConstantNode(valueType, initialValue);
+						}
+					case STRING_ARRAY	:
+						if (initialValue.getValueType().isArray()) {
+							return new ConstantNode(valueType, initialValue);
+						}
+						else {
+							return new ConstantNode(valueType, initialValue);
+						}
+					default				: return new ConstantNode(valueType, initialValue);
 				}
 			} catch (CalculationException e) {
 				throw new SyntaxException(0, 0, "Key parameters ["+new String(name)+"] - error calculating default value ("+e.getLocalizedMessage()+")",e);
@@ -840,22 +952,22 @@ class KeyParameter extends AssignableExpressionNode {
 	
 	@Override public ExpressionNodeType getType() {return ExpressionNodeType.KEY_PARAMETER;}
 	@Override public ExpressionNodeValue getValueType() {return valueType;}
-	@Override public long getLong() throws CalculationException {return currentValue.getLong();}
-	@Override public double getDouble() throws CalculationException {return currentValue.getDouble();}
-	@Override public char[] getString() throws CalculationException {return currentValue.getString();}
-	@Override public boolean getBoolean() throws CalculationException {return currentValue.getBoolean();}
-	@Override public boolean hasValue() {return currentValue != null;}
+	@Override public long getLong() throws CalculationException {return currentValue != null ? currentValue.getLong() : defaultValue.getLong();}
+	@Override public double getDouble() throws CalculationException {return currentValue != null ? currentValue.getDouble() : defaultValue.getDouble();}
+	@Override public char[] getString() throws CalculationException {return currentValue != null ? currentValue.getString() : defaultValue.getString();}
+	@Override public boolean getBoolean() throws CalculationException {return currentValue != null ? currentValue.getBoolean(): defaultValue.getBoolean();}
+	@Override public boolean hasValue() {return currentValue != null || defaultValue != null;}
 
-	@Override public long getLong(final long index) throws CalculationException {return currentValue.getLong(index);}
-	@Override public double getDouble(final long index) throws CalculationException {return currentValue.getDouble(index);}
-	@Override public char[] getString(final long index) throws CalculationException {return currentValue.getString(index);}
-	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue.getBoolean(index);}
-	@Override public boolean hasValue(final long index) {return currentValue != null;}
+	@Override public long getLong(final long index) throws CalculationException {return currentValue != null ? currentValue.getLong(index) : defaultValue.getLong(index);}
+	@Override public double getDouble(final long index) throws CalculationException {return currentValue != null ? currentValue.getDouble(index) : defaultValue.getDouble(index);}
+	@Override public char[] getString(final long index) throws CalculationException {return currentValue != null ? currentValue.getString(index) : defaultValue.getString(index);}
+	@Override public boolean getBoolean(final long index) throws CalculationException {return currentValue != null ? currentValue.getBoolean(index) : defaultValue.getBoolean(index);}
+	@Override public boolean hasValue(final long index) {return currentValue != null || defaultValue != null;}
 
-	@Override public long[] getLongContent() throws CalculationException {return currentValue.getLongContent();}
-	@Override public double[] getDoubleContent() throws CalculationException {return currentValue.getDoubleContent();}
-	@Override public char[][] getStringContent() throws CalculationException {return currentValue.getStringContent();}
-	@Override public boolean[] getBooleanContent() throws CalculationException {return currentValue.getBooleanContent();}
+	@Override public long[] getLongContent() throws CalculationException {return currentValue != null ? currentValue.getLongContent() : defaultValue.getLongContent();}
+	@Override public double[] getDoubleContent() throws CalculationException {return currentValue != null ? currentValue.getDoubleContent() : defaultValue.getDoubleContent();}
+	@Override public char[][] getStringContent() throws CalculationException {return currentValue != null ? currentValue.getStringContent() : defaultValue.getStringContent();}
+	@Override public boolean[] getBooleanContent() throws CalculationException {return currentValue != null ? currentValue.getBooleanContent() : defaultValue.getBooleanContent();}
 	
 	@Override
 	public String toString() {
@@ -1880,42 +1992,42 @@ class CatNode extends OperatorListNode {
 class FuncNode extends OperatorListNode {
 	@FunctionalInterface
 	interface IntegerCallback {
-		long calculate(ExpressionNode[] list) throws CalculationException;
+		long calculate(ExpressionNode... list) throws CalculationException;
 	}
 	
 	@FunctionalInterface
 	interface RealCallback {
-		double calculate(ExpressionNode[] list) throws CalculationException;
+		double calculate(ExpressionNode... list) throws CalculationException;
 	}
 	
 	@FunctionalInterface
 	interface StringCallback {
-		char[] calculate(ExpressionNode[] list) throws CalculationException;
+		char[] calculate(ExpressionNode... list) throws CalculationException;
 	}
 	
 	@FunctionalInterface
 	interface BoolCallback {
-		boolean calculate(ExpressionNode[] list) throws CalculationException;
+		boolean calculate(ExpressionNode... list) throws CalculationException;
 	}
 
 	@FunctionalInterface
 	interface IntegerArrayCallback {
-		long[] calculate(ExpressionNode[] list) throws CalculationException;
+		long[] calculate(ExpressionNode... list) throws CalculationException;
 	}
 	
 	@FunctionalInterface
 	interface RealArrayCallback {
-		double[] calculate(ExpressionNode[] list) throws CalculationException;
+		double[] calculate(ExpressionNode... list) throws CalculationException;
 	}
 	
 	@FunctionalInterface
 	interface StringArrayCallback {
-		char[][] calculate(ExpressionNode[] list) throws CalculationException;
+		char[][] calculate(ExpressionNode... list) throws CalculationException;
 	}
 	
 	@FunctionalInterface
 	interface BoolArrayCallback {
-		boolean[] calculate(ExpressionNode[] list) throws CalculationException;
+		boolean[] calculate(ExpressionNode... list) throws CalculationException;
 	}
 	
 	private final Object	callback;
@@ -2032,7 +2144,7 @@ class FuncNode extends OperatorListNode {
 }
 
 class FuncToIntNode extends FuncNode {
-	private static final IntegerCallback	callback = new IntegerCallback() {
+	static final IntegerCallback		callback = new IntegerCallback() {
 												private final long[]	temp = new long[1];
 												
 												@Override
@@ -2061,7 +2173,7 @@ class FuncToIntNode extends FuncNode {
 }
 
 class FuncToRealNode extends FuncNode {
-	private static final RealCallback	callback = new RealCallback() {
+	static final RealCallback			callback = new RealCallback() {
 												private final double[]	temp = new double[1];
 												
 												@Override
@@ -2094,7 +2206,7 @@ class FuncToRealNode extends FuncNode {
 class FuncToStringNode extends FuncNode {
 	private static final char[]			PURE_FALSE = "false".toCharArray();
 	private static final char[]			PURE_TRUE = "true".toCharArray();
-	private static final StringCallback	callback = new StringCallback() {
+	static final StringCallback			callback = new StringCallback() {
 													@Override
 													public char[] calculate(final ExpressionNode[] list) throws CalculationException {
 														switch (list[0].getValueType()) {
@@ -2115,7 +2227,7 @@ class FuncToStringNode extends FuncNode {
 class FuncToBooleanNode extends FuncNode {
 	private static final char[]			PURE_FALSE = "false".toCharArray();
 	private static final char[]			PURE_TRUE = "true".toCharArray();
-	private static final BoolCallback	callback = new BoolCallback() {
+	static final BoolCallback			callback = new BoolCallback() {
 													@Override
 													public boolean calculate(final ExpressionNode[] list) throws CalculationException {
 														switch (list[0].getValueType()) {

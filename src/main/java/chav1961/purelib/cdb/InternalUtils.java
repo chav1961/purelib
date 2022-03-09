@@ -291,7 +291,9 @@ loop:	for (;;) {
 						from = next(content, from, keywords, temp, lex);
 					}
 					else if (lex.type == LexType.Close) {
-						list.addAll((Collection<? extends SyntaxNode<EntityType, SyntaxNode>>) Arrays.asList(subtree.children));
+						for (SyntaxNode item : subtree.children) {
+							list.add(item);
+						}
 						from = next(content, from, keywords, temp, lex);
 					}
 					else {

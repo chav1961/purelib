@@ -315,7 +315,7 @@ class InternalUtils {
 				from = skipBlank(data,from+1);
 				
 				if (data[from] == '}') {
-					result[0] = new ConstantNode(convert2PreferredType ? preferredType : ExpressionNodeValue.STRING_ARRAY);
+					result[0] = new ConstantNode(convert2PreferredType ? preferredType : ExpressionNodeValue.STRING_ARRAY, 0);
 					return from + 1;
 				}
 				else {
@@ -329,7 +329,7 @@ class InternalUtils {
 				if (data[from] == '}') {
 					result[0] = new ConstantNode(itemList.isEmpty() ? (convert2PreferredType ? preferredType : ExpressionNodeValue.STRING_ARRAY) 
 												: ExpressionNodeValue.arrayByType(itemList.get(0).getValueType())
-												, itemList.toArray(new ExpressionNode[itemList.size()]));
+												, itemList.size());
 					from++;
 				}
 				else {
