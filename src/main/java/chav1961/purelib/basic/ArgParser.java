@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import chav1961.purelib.basic.exceptions.CommandLineParametersException;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -49,6 +51,8 @@ import chav1961.purelib.sql.SQLUtils;
  * <li>{linkplain URIArg} - {@linkplain URI} argument</li>
  * <li>{linkplain StringListArg} - list of string argument(s)</li>
  * <li>{linkplain ConfigArg} - configuration source argument</li>
+ * <li>{linkplain SwitchArg} - configuration source argument</li>
+ * <li>{linkplain PatternArg} - pattern source argument</li>
  * </ul>
  * <p>Any of these arguments can be declared as positional or key-value argument. Positional arguments must be declared before key-value arguments.
  * Positional argument has name to access to it, but doesn't require the name to be typed in the command string. Key-value argument also has a name and the name
@@ -806,6 +810,47 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 
+	
+	protected static class PatternArg extends StringArg {
+		public PatternArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
+			super(name, isMandatory, isPositional, helpDescriptor);
+		}
+
+		public PatternArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
+			super(name, false, isPositional, helpDescriptor);
+		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
+			if (Pattern.class.isAssignableFrom(awaited)) {
+				validate(value);
+				return (T)Pattern.compile(value);
+			}
+			else {
+				return super.getValue(value,awaited);
+			}
+		}
+
+		@Override
+		public void validate(final String value) throws CommandLineParametersException {
+			if (value == null || value.isEmpty()) {
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
+			}
+			else {
+				try{Pattern.compile(value);
+				} catch (PatternSyntaxException exc) {
+					throw new CommandLineParametersException("Argument ["+getName()+"], value ["+value+"]: invalid syntax ("+exc.getLocalizedMessage()+")");
+				}
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "PatternArg [defaults=" + Arrays.toString(getDefaultValue()) + ", toString()=" + super.toString() + "]";
+		}
+	}
+	
 	protected static class URIArg extends AbstractArg {
 		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
 		
