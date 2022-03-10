@@ -20,7 +20,7 @@ import java.util.Hashtable;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public class URIUtils {
 	/**
@@ -513,6 +513,7 @@ public class URIUtils {
 	 * @return 'self' URI built
 	 * @throws NullPointerException when content is null
 	 * @see chav1961.purelib.new.self.Handler
+	 * @since 0.0.6
 	 */
 	public static URI convert2selfURI(final String path, final byte[] content) throws NullPointerException {
 		if (content == null) {
@@ -545,6 +546,7 @@ public class URIUtils {
 	 * @throws NullPointerException when content is null
 	 * @throws IllegalArgumentException when encoding is null, empty or unknown
 	 * @see chav1961.purelib.new.self.Handler
+	 * @since 0.0.6
 	 */
 	public static URI convert2selfURI(final String path, final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {
 		if (content == null) {
