@@ -503,11 +503,23 @@ public class URIUtils {
 	 * @see chav1961.purelib.new.self.Handler
 	 */
 	public static URI convert2selfURI(final byte[] content) throws NullPointerException {
+		return convert2selfURI("/", content);
+	}
+
+	/**
+	 * <p>Build 'self' URI from content</p>
+	 * @param path path to add into URI
+	 * @param content content to build 'self' URI for
+	 * @return 'self' URI built
+	 * @throws NullPointerException when content is null
+	 * @see chav1961.purelib.new.self.Handler
+	 */
+	public static URI convert2selfURI(final String path, final byte[] content) throws NullPointerException {
 		if (content == null) {
 			throw new NullPointerException("Content for URI can't be null");
 		}
 		else {
-			return URI.create("self:/#"+new String(Base64.getEncoder().encode(content)));
+			return URI.create("self:"+path+'#'+new String(Base64.getEncoder().encode(content)));
 		}
 	}
 	
@@ -521,6 +533,20 @@ public class URIUtils {
 	 * @see chav1961.purelib.new.self.Handler
 	 */
 	public static URI convert2selfURI(final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {
+		return convert2selfURI("/", content, charSet);
+	}
+
+	/**
+	 * <p>Build 'self' URI from content</p>
+	 * @param path path to add into URI
+	 * @param content content to build 'self' URI for
+	 * @param charSet character set for the content to use 
+	 * @return 'self' URI built with '?encoding=ZZZ' query string
+	 * @throws NullPointerException when content is null
+	 * @throws IllegalArgumentException when encoding is null, empty or unknown
+	 * @see chav1961.purelib.new.self.Handler
+	 */
+	public static URI convert2selfURI(final String path, final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {
 		if (content == null) {
 			throw new NullPointerException("Content for URI can't be null");
 		}
@@ -529,7 +555,7 @@ public class URIUtils {
 		}
 		else {
 			try {
-				return URI.create("self:/#"+new String(Base64.getEncoder().encode(new String(content).getBytes(charSet)))+"?encoding="+charSet);
+				return URI.create("self:"+path+'#'+new String(Base64.getEncoder().encode(new String(content).getBytes(charSet)))+"?encoding="+charSet);
 			} catch (UnsupportedEncodingException e) {
 				throw new IllegalArgumentException(e.getLocalizedMessage(),e);
 			}
