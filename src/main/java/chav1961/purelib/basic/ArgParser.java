@@ -817,7 +817,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		public PatternArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
-			super(name, false, isPositional, helpDescriptor);
+			super(name, isPositional, helpDescriptor, defaultValue);
 		}
 		
 		@SuppressWarnings("unchecked")
