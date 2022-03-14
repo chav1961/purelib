@@ -1,11 +1,15 @@
 package chav1961.purelib.basic;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.Properties;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 public class SubstitutablePropertiesTest {
 	@Test
-	public void test() {
+	public void test() throws IOException {
 		final SubstitutableProperties	props = new SubstitutableProperties(Utils.mkProps("key1","value1","key2","${key3}","key3","value3")), another = new SubstitutableProperties();
 
 		Assert.assertTrue(props.containsKey("key1"));
@@ -18,7 +22,11 @@ public class SubstitutablePropertiesTest {
 		Assert.assertTrue(props.theSame(props));
 		Assert.assertFalse(props.theSame(another));
 		
-		try{new SubstitutableProperties(null);
+		try{new SubstitutableProperties((Properties)null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{new SubstitutableProperties((URI)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}

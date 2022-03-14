@@ -8,7 +8,9 @@ import java.lang.ref.WeakReference;
 import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -131,6 +133,11 @@ public class CharUtils {
 	public static final int			PREF_DOUBLE = 8;
 	public static final int			PREF_ANY = PREF_INT | PREF_LONG | PREF_FLOAT | PREF_DOUBLE;
 	public static final int			MAX_SUBST_DEPTH = 16;
+	public static final Appendable	NULL_APPENDABLE = new Appendable() {
+										@Override public Appendable append(CharSequence csq, int start, int end) throws IOException {return this;}
+										@Override public Appendable append(char c) throws IOException {return this;}
+										@Override public Appendable append(CharSequence csq) throws IOException {return this;}
+									}; 
 
 	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	private static final String		EMPTY_STRING = "";
@@ -2579,7 +2586,7 @@ loop:		for (index = from; index < len; index++) {
 	}
 	
 	/**
-	 * <p>This class describes LEvenstain distance and editor prescription for two strins.</p>
+	 * <p>This class describes Levenstain distance and editor prescription for two strins.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 */
     public static class Prescription {
@@ -2616,67 +2623,167 @@ loop:		for (index = from; index < len; index++) {
 	
 	/**
 	 * <P>Calculate Levenstain distance and editor prescription for two strings</p> 
-	 * @param str1 string to calculate difference for
-	 * @param str2 string to use as template
-	 * @return prescription list and LEvenstain distance. Can't be null
+	 * @param str1 string to calculate difference for. Can't be null
+	 * @param str2 string to use as template. Can't be null
+	 * @return prescription list and Levenstain distance. Can't be null
+	 * @throws NullPointerException on any argument is null
 	 * @see https://ru.wikibooks.org/wiki/%D0%A0%D0%B5%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D0%B8_%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D0%BE%D0%B2/%D0%A0%D0%B5%D0%B4%D0%B0%D0%BA%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B5_%D0%BF%D1%80%D0%B5%D0%B4%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5
 	 * @since 0.0.4
 	 */
-    public static Prescription calcLevenstain(final char[] str1, final char[] str2) {
-		final int 		m = str1.length, n = str2.length;
-		final int[][] 	D = new int[m + 1][n + 1];
-		final char[][] 	P = new char[m + 1][n + 1];
-	
-		for (int i = 0; i <= m; i++) {
-			D[i][0] = i;
-			P[i][0] = 'D';
-		}
-		for (int i = 0; i <= n; i++) {
-			D[0][i] = i;
-			P[0][i] = 'I';
-		}
-	
-		for (int i = 1; i <= m; i++) {
-	            for (int j = 1; j <= n; j++) {
-	                final int cost = str1[i - 1] != str2[j - 1] ? 1 : 0;
-	
-	                if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
-	                    D[i][j] = D[i][j - 1] + 1;
-	                    P[i][j] = 'I';
-	                }
-	                else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
-	                    D[i][j] = D[i - 1][j] + 1;
-	                    P[i][j] = 'D';
-	                }
-	                else {
-	                    D[i][j] = D[i - 1][j - 1] + cost;
-	                    P[i][j] = (cost == 1) ? 'R' : 'M';
-	                }
-	            }
-	        }
-	
-		final List<int[]> opers = new ArrayList<>();
-		int i = m, j = n;
-	        
-		do {char c = P[i][j];
-	            if(c == 'R' || c == 'M') {
-	                opers.add(0,new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j});
-	                i --;
-	                j --;
-	            }
-	            else if(c == 'D') {
-	                opers.add(0,new int[]{Prescription.LEV_DELETE,i,j});
-	                i --;
-	            }
-	            else {
-	                opers.add(0,new int[]{Prescription.LEV_INSERT,i,j});
-	                j --;
-	            }
-		} while((i != 0) || (j != 0));
-	        
-		return new Prescription(D[m][n], opers.toArray(new int[opers.size()][]));
+    public static Prescription calcLevenstain(final char[] str1, final char[] str2) throws NullPointerException {
+    	if (str1 == null) {
+    		throw new NullPointerException("Str1 array can't be null");
+    	}
+    	else  if (str2 == null) {
+    		throw new NullPointerException("Str1 array can't be null");
+    	}
+    	else {
+			final int 		m = str1.length, n = str2.length;
+			final int[][] 	D = new int[m + 1][n + 1];
+			final char[][] 	P = new char[m + 1][n + 1];
+		
+			for (int i = 0; i <= m; i++) {
+				D[i][0] = i;
+				P[i][0] = 'D';
+			}
+			for (int i = 0; i <= n; i++) {
+				D[0][i] = i;
+				P[0][i] = 'I';
+			}
+		
+			for (int i = 1; i <= m; i++) {
+		            for (int j = 1; j <= n; j++) {
+		                final int cost = str1[i - 1] != str2[j - 1] ? 1 : 0;
+		
+		                if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
+		                    D[i][j] = D[i][j - 1] + 1;
+		                    P[i][j] = 'I';
+		                }
+		                else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
+		                    D[i][j] = D[i - 1][j] + 1;
+		                    P[i][j] = 'D';
+		                }
+		                else {
+		                    D[i][j] = D[i - 1][j - 1] + cost;
+		                    P[i][j] = (cost == 1) ? 'R' : 'M';
+		                }
+		            }
+		        }
+		
+			final List<int[]> opers = new ArrayList<>();
+			int i = m, j = n;
+		        
+			do {char c = P[i][j];
+		            if(c == 'R' || c == 'M') {
+		                opers.add(0,new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j});
+		                i --;
+		                j --;
+		            }
+		            else if(c == 'D') {
+		                opers.add(0,new int[]{Prescription.LEV_DELETE,i,j});
+		                i --;
+		            }
+		            else {
+		                opers.add(0,new int[]{Prescription.LEV_INSERT,i,j});
+		                j --;
+		            }
+			} while((i != 0) || (j != 0));
+		        
+			return new Prescription(D[m][n], opers.toArray(new int[opers.size()][]));
+    	}
     }
 
+    /**
+     * <p>Calculate Levenstain distance and editor prescription for two object arrays</p>
+     * @param <T> Object nature
+     * @param obj1 array to calculate difference for. Can't be null
+     * @param obj2 array to use as template. Can't be null
+	 * @return prescription list and Levenstain distance. Can't be null
+	 * @throws NullPointerException on any argument is null
+	 * @see #calcLevenstain(char[], char[])
+	 * @since 0.0.6
+     */
+    public static <T> Prescription calcLevenstain(final T[] obj1, final T[] obj2) throws NullPointerException {
+    	return calcLevenstain(obj1, obj2, (o1,o2)->Objects.equals(obj1, obj2) ? 0 : 1);
+    }
+
+    /**
+     * <p>Calculate Levenstain distance and editor prescription for two object arrays</p>
+     * @param <T> Object nature
+     * @param obj1 array to calculate difference for. Can't be null
+     * @param obj2 array to use as template. Can't be null
+     * @param comp comparator to compare objects. Can't be null
+	 * @return prescription list and Levenstain distance. Can't be null
+     * @throws NullPointerException
+	 * @see #calcLevenstain(char[], char[])
+	 * @since 0.0.6
+     */
+    public static <T> Prescription calcLevenstain(final T[] obj1, final T[] obj2, final Comparator<T> comp) throws NullPointerException {
+    	if (obj1 == null) {
+    		throw new NullPointerException("Obj1 array can't be null");
+    	}
+    	else if (obj2 == null) {
+    		throw new NullPointerException("Obj2 array can't be null");
+    	}
+    	else  if (comp == null) {
+    		throw new NullPointerException("Comparator can't be null");
+    	}
+    	else {
+			final int 		m = obj1.length, n = obj2.length;
+			final int[][] 	D = new int[m + 1][n + 1];
+			final char[][] 	P = new char[m + 1][n + 1];
+		
+			for (int i = 0; i <= m; i++) {
+				D[i][0] = i;
+				P[i][0] = 'D';
+			}
+			for (int i = 0; i <= n; i++) {
+				D[0][i] = i;
+				P[0][i] = 'I';
+			}
+		
+			for (int i = 1; i <= m; i++) {
+		            for (int j = 1; j <= n; j++) {
+		                final int cost = comp.compare(obj1[i - 1], obj2[j - 1]) != 0 ? 1 : 0;
+		
+		                if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
+		                    D[i][j] = D[i][j - 1] + 1;
+		                    P[i][j] = 'I';
+		                }
+		                else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
+		                    D[i][j] = D[i - 1][j] + 1;
+		                    P[i][j] = 'D';
+		                }
+		                else {
+		                    D[i][j] = D[i - 1][j - 1] + cost;
+		                    P[i][j] = (cost == 1) ? 'R' : 'M';
+		                }
+		            }
+		        }
+		
+			final List<int[]> opers = new ArrayList<>();
+			int i = m, j = n;
+		        
+			do {char c = P[i][j];
+		            if(c == 'R' || c == 'M') {
+		                opers.add(0,new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j});
+		                i --;
+		                j --;
+		            }
+		            else if(c == 'D') {
+		                opers.add(0,new int[]{Prescription.LEV_DELETE,i,j});
+		                i --;
+		            }
+		            else {
+		                opers.add(0,new int[]{Prescription.LEV_INSERT,i,j});
+		                j --;
+		            }
+			} while((i != 0) || (j != 0));
+		        
+			return new Prescription(D[m][n], opers.toArray(new int[opers.size()][]));
+    	}
+    }
+    
     /**
      * <p>Replace string with the same content to the same string</p>
      * @param source string to replace. Null value will return null  

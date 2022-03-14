@@ -887,8 +887,12 @@ public class UnsafedCharUtils {
 		}
 		throw new IllegalArgumentException("Unterminated string in the "+(index-from+1)+"-th char of the string");
 	}
-	
+
 	public static int uncheckedParseString(final char[] source, final int from, final char terminal, final Appendable result) throws IOException {
+		return uncheckedParseString(source, from, terminal, result, true);
+	}
+	
+	public static int uncheckedParseString(final char[] source, final int from, final char terminal, final Appendable result, final boolean stopOnEOL) throws IOException {
 		final int		len = source.length;
 		
 		int		index;
@@ -899,6 +903,9 @@ public class UnsafedCharUtils {
 					result.append(source[moveIndex]);
 				}
 				return index + 1;
+			}
+			else if (stopOnEOL && (source[index] == '\r' || source[index] == '\n')) {
+				throw new IllegalArgumentException("Newline inside string at "+(index-from+1));
 			}
 			else if (source[index] == '\\') {
 				for (int moveIndex = from; moveIndex < index;  moveIndex++) {

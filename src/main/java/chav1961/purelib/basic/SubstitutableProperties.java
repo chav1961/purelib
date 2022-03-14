@@ -24,6 +24,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.print.DocFlavor.INPUT_STREAM;
+
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.concurrent.LightWeightListenerList;
@@ -109,6 +111,17 @@ public class SubstitutableProperties extends Properties {
 
 	private final Properties	defaults;
 	private final LightWeightListenerList<PropertyChangeListener>	listeners = new LightWeightListenerList<>(PropertyChangeListener.class);
+
+	/**
+	 * <p>Constructor if the class</p>
+	 * @param content URI to load content from. Can't be null
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.6
+	 */
+	public SubstitutableProperties(final URI content) throws IOException {
+		this(loadFromUri(content));
+	}
+	
 	
 	/**
 	 * <p>Constructor if the class</p>
@@ -548,5 +561,19 @@ public class SubstitutableProperties extends Properties {
 			result.add(item.getKey().toString());
 		}
 		return result;
+	}
+
+	private static Properties loadFromUri(final URI content) throws IOException {
+		if (content == null) {
+			throw new NullPointerException("URI to load content from can't be null"); 
+		}
+		else {
+			final Properties	props = new Properties();
+			
+			try (final InputStream	is = content.toURL().openStream()) {
+				props.load(is);
+			}
+			return props;
+		}
 	}
 }
