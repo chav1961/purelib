@@ -2,10 +2,12 @@ package chav1961.purelib.basic;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
- * 
- *
+ * <p>This class implements {@linkplain CharSequence} interface on char array.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.6
  */
 public class CharArrayPiece implements Cloneable, Serializable, Comparable<CharArrayPiece>, CharSequence {
 	private static final long 	serialVersionUID = -2886853514513677359L;
@@ -14,23 +16,45 @@ public class CharArrayPiece implements Cloneable, Serializable, Comparable<CharA
 	private final int			from, to, hash;
 	private final boolean		copy;
 
-	public CharArrayPiece(final String source) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param source array content. Can't be null
+	 * @throws NullPointerException on source is null
+	 */
+	public CharArrayPiece(final String source) throws NullPointerException {
 		this(source.toCharArray(), 0, source.length(), true);
 	}
 	
-	public CharArrayPiece(final char[] source, final int from, final int to) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param source char array content. Can't be null.
+	 * @param from start piece inside the array.
+	 * @param to end piece inside the array
+	 * @throws NullPointerException on source is null
+	 * @throws IllegalArgumentException on from or to index out of array bounds
+	 */
+	public CharArrayPiece(final char[] source, final int from, final int to) throws NullPointerException, IllegalArgumentException {
 		this(source, from, to, false);
 	}
 	
-	public CharArrayPiece(final char[] source, final int from, final int to, final boolean copy) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param source char array content. Can't be null.
+	 * @param from start piece inside the array.
+	 * @param to end piece inside the array
+	 * @param copy copy piece content into internal array instead of direct access to source array
+	 * @throws NullPointerException on source is null
+	 * @throws IllegalArgumentException on from or to index out of array bounds
+	 */
+	public CharArrayPiece(final char[] source, final int from, final int to, final boolean copy) throws NullPointerException, IllegalArgumentException {
 		if (source == null) {
 			throw new NullPointerException("Source content can't be null"); 
 		}
 		else if (from < 0 || from >= source.length) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(source.length - 1)); 
 		}
-		else if (to < 0 || to >= source.length) {
-			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(source.length - 1)); 
+		else if (to < 0 || to > source.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(source.length)); 
 		}
 		else if (to < from) {
 			throw new IllegalArgumentException("To position ["+to+"] can't be less than from position ["+from+"]"); 
@@ -118,8 +142,11 @@ public class CharArrayPiece implements Cloneable, Serializable, Comparable<CharA
 		
 		final CharArrayPiece other = (CharArrayPiece) obj;
 
-		if (other.length() != this.length()) {
+		if (this.length() != other.length()) {
 			return false;
+		}
+		else if (this.copy && other.copy) {
+			return this.hash == other.hash;
 		}
 		else {
 			return compareToInternal(other.content, other.from, other.to) == 0;
@@ -131,15 +158,24 @@ public class CharArrayPiece implements Cloneable, Serializable, Comparable<CharA
 		return "CharArrayPiece [content=" + new String(content, from, to-from) + "]";
 	}
 	
-	public int compareTo(final char[] content, final int from, final int to) {
+	/**
+	 * <p>Compare array piece content with another content</p>
+	 * @param content content to compare. Can't be null
+	 * @param from start piece inside the array.
+	 * @param to end piece inside the array
+	 * @return see {@linkplain Comparator} description
+	 * @throws NullPointerException on content is null
+	 * @throws IllegalArgumentException on from or to index out of array bounds
+	 */
+	public int compareTo(final char[] content, final int from, final int to) throws NullPointerException, IllegalArgumentException {
 		if (content == null) {
 			throw new NullPointerException("Source content can't be null"); 
 		}
 		else if (from < 0 || from >= content.length) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length - 1)); 
 		}
-		else if (to < 0 || to >= content.length) {
-			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(content.length - 1)); 
+		else if (to < 0 || to > content.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(content.length)); 
 		}
 		else if (to < from) {
 			throw new IllegalArgumentException("To position ["+to+"] can't be less than from position ["+from+"]"); 
@@ -154,11 +190,11 @@ public class CharArrayPiece implements Cloneable, Serializable, Comparable<CharA
 		final int		rightDispl = from, leftDispl = this.from;
 		
 		for (int index = 0, maxIndex = Math.min(to - from, this.to - this.from), delta; index < maxIndex; index++) {
-			if ((delta = right[rightDispl + index] - left[leftDispl + index]) != 0) {
+			if ((delta = left[leftDispl + index] - right[rightDispl + index]) != 0) {
 				return delta;
 			}
 		}
-		return (to-from) - (this.to-this.from);
+		return length() - (to-from);
 	}
 	
 	private int hashCodeInternal() {

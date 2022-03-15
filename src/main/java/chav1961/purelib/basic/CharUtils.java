@@ -137,8 +137,28 @@ public class CharUtils {
 										@Override public Appendable append(CharSequence csq, int start, int end) throws IOException {return this;}
 										@Override public Appendable append(char c) throws IOException {return this;}
 										@Override public Appendable append(CharSequence csq) throws IOException {return this;}
-									}; 
-
+									};
+									
+	private static final Comparator<Object>	EQUALS_OBJECT_COMPARATOR = (o1,o2)->{
+										return Objects.equals(o1, o2) ? 0 : 1;
+									};
+	private static final Comparator<String>	EQUALS_STRING_COMPARATOR = (o1,o2)->{
+										if (o1 == o2) {
+											return 0;
+										}
+										else if (o1 == null) {
+											return 1;
+										}
+										else if (o2 == null) {
+											return -1;
+										}
+										else if (o1.hashCode() == o2.hashCode()) {
+											return 0;
+										}
+										else {
+											return o1.compareTo(o2);
+										}
+									};
 	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	private static final String		EMPTY_STRING = "";
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
@@ -2704,7 +2724,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @since 0.0.6
      */
     public static <T> Prescription calcLevenstain(final T[] obj1, final T[] obj2) throws NullPointerException {
-    	return calcLevenstain(obj1, obj2, (o1,o2)->Objects.equals(obj1, obj2) ? 0 : 1);
+    	return calcLevenstain(obj1, obj2, (Comparator<T>)(obj1 instanceof String[] ? EQUALS_STRING_COMPARATOR : EQUALS_OBJECT_COMPARATOR));
     }
 
     /**
