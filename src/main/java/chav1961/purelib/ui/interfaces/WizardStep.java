@@ -34,6 +34,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	/**
 	 * <p>This enumeration describes the step type. It can be:</p>
 	 * <ul>
+	 * <li>THE_ONLY - initial and terminal step. No any other steps will be presented in the wizard</li>
 	 * <li>INITIAL - any step from which wizard starts. At least one INITIAL wizard step must present in any wizard</li>
 	 * <li>TERM_SUCCESS - any terminal step with successful finishing. At least one TERM_SUCCESS wizard step must present in any wizard</li>
 	 * <li>TERM_FAILURE - any terminal step with failure.</li>
@@ -42,9 +43,10 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	 * </ul>
 	 * @author chav1961
 	 * @since 0.0.2
+	 * @lastUpdate 0.0.6
 	 */
 	public enum StepType {
-		INITIAL, TERM_SUCCESS, TERM_FAILURE, ORDINAL, PROCESSING
+		THE_ONLY, INITIAL, TERM_SUCCESS, TERM_FAILURE, ORDINAL, PROCESSING
 	}
 
 	/**
