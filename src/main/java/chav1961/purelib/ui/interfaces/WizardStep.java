@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.interfaces;
 
+import java.awt.Component;
 import java.util.Map;
 
 import chav1961.purelib.basic.exceptions.FlowException;
@@ -27,10 +28,10 @@ import chav1961.purelib.basic.exceptions.PreparationException;
  * @param <Content> content type of the wizard step (for example, usually JComponent for the Swing application)
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
-public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
+public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Component> {
 	/**
 	 * <p>This enumeration describes the step type. It can be:</p>
 	 * <ul>
@@ -46,7 +47,35 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content> {
 	 * @lastUpdate 0.0.6
 	 */
 	public enum StepType {
-		THE_ONLY, INITIAL, TERM_SUCCESS, TERM_FAILURE, ORDINAL, PROCESSING
+		THE_ONLY(true, true), 
+		INITIAL(true, false),
+		TERM_SUCCESS(false, true),
+		TERM_FAILURE(false, true),
+		ORDINAL(false, false),
+		PROCESSING(false, false);
+		
+		private final boolean	isInitial, isFinal;
+		
+		private StepType(final boolean isInitial, final boolean isFinal) {
+			this.isInitial = isInitial;
+			this.isFinal = isFinal;
+		}
+		
+		/**
+		 * <p>Is the step initial</p>
+		 * @return true if yes
+		 */
+		public boolean isInitial() {
+			return isInitial;
+		}
+
+		/**
+		 * <p>Is the step final</p>
+		 * @return true if yes
+		 */
+		public boolean isFinal() {
+			return isInitial;
+		}
 	}
 
 	/**

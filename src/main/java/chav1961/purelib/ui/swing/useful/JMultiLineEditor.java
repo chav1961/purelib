@@ -63,7 +63,7 @@ public class JMultiLineEditor {
 	public boolean show(final JFrame parent) {
 		if (readOnly || toolbar == null) {
 			final JScrollPane	scroll = new JScrollPane(pane);
-			final JDialogContainer<Object,Enum<?>,Object>	dialog = new JDialogContainer<Object,Enum<?>,Object>(localizer, parent, KEY_EDITOR_TITLE, scroll);
+			final JDialogContainer<Object,Enum<?>,Component>	dialog = new JDialogContainer<Object,Enum<?>,Component>(localizer, parent, KEY_EDITOR_TITLE, scroll);
 
 			if (dialog.showDialog()) {
 				scroll.remove(pane);
@@ -81,7 +81,7 @@ public class JMultiLineEditor {
 			panel.add(toolbar, BorderLayout.NORTH);
 			panel.add(scroll, BorderLayout.CENTER);
 			
-			final JDialogContainer<Object,Enum<?>,Object>	dialog = new JDialogContainer<Object,Enum<?>,Object>(localizer, parent, KEY_EDITOR_TITLE, scroll);
+			final JDialogContainer<Object,Enum<?>,Component>	dialog = new JDialogContainer<Object,Enum<?>,Component>(localizer, parent, KEY_EDITOR_TITLE, scroll);
 
 			if (dialog.showDialog()) {
 				scroll.remove(pane);

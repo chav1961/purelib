@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.interfaces;
 
+import java.awt.Component;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
@@ -42,7 +43,7 @@ public interface UIServer extends Closeable, SpiService<UIServer> {
 	
 	void setNavigator(ContentMetadataInterface model, NavigatorStyle style, NavigationCallback callback) throws ContentException, IOException;
 	<T> void ask(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<Object,T> formMgr, Completed<T> completed) throws ContentException, LocalizationException, IOException;
-	<T,E extends Enum<?>> void wizard(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<Object,T> formMgr, Completed<T> completed, @SuppressWarnings("unchecked") WizardStep<T,E,Object>... steps) throws ContentException, FlowException, IOException;
+	<T,E extends Enum<?>> void wizard(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<Object,T> formMgr, Completed<T> completed, @SuppressWarnings("unchecked") WizardStep<T,E,Component>... steps) throws ContentException, FlowException, IOException;
 	void browse(InputStreamGetter content, MimeType contentType, Completed<?> completed) throws ContentException, IOException;
 	void edit(InputStreamGetter source, OutputStreamGetter target, MimeType contentType, Completed<?> completed) throws ContentException, IOException;
 	<K,T> void showAndEdit(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<K,T> formMgr, ShowStyle style, Completed<T> completed) throws ContentException, IOException;

@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.Component;
 import java.io.IOException;
 import java.net.URI;
 
@@ -75,7 +76,7 @@ public class SwingUIServerImpl implements UIServer {
 	}
 
 	@Override
-	public <T, E extends Enum<?>> void wizard(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<Object, T> formMgr, Completed<T> completed, WizardStep<T, E, Object>... steps) throws ContentException, FlowException, IOException {
+	public <T, E extends Enum<?>> void wizard(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<Object, T> formMgr, Completed<T> completed, WizardStep<T, E, Component>... steps) throws ContentException, FlowException, IOException {
 		// TODO Auto-generated method stub
 		
 	}

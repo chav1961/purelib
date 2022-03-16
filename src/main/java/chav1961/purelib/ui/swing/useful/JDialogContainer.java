@@ -22,6 +22,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -49,7 +50,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @since 0.0.4
  * @lastUpdate 0.0.5
  */
-public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends JDialog implements LocaleChangeListener {
+public class JDialogContainer<Common,ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener {
 	private static final long 	serialVersionUID = 8956769935164098957L;
 	private static final String	OK_TEXT = "OK";
 	private static final String	CANCEL_TEXT = "CANCEL";
@@ -253,7 +254,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		}
 		else {
 			this.parent = parent;
-			this.inner = null;
+			this.inner = new JPanel(new BorderLayout());
 			this.isWizard = true;
 			this.isModal = ModalityType.DOCUMENT_MODAL;
 			this.localizer = localizer;
@@ -294,7 +295,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 		}
 		else {
 			this.parent = parent;
-			this.inner = null;
+			this.inner = new JPanel(new BorderLayout());
 			this.isWizard = true;
 			this.isModal = ModalityType.DOCUMENT_MODAL;
 			this.localizer = localizer;
@@ -379,7 +380,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			localizer.addLocaleChangeListener(this);
 			temporary.clear();
 			if (isWizard) {
-				try{prepareCurrentComponent();
+				try{prepareCurrentComponent(currentStep);
 				} catch (LocalizationException | FlowException exc) {
 					state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
 				}
@@ -428,8 +429,8 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 
 	protected void next() throws LocalizationException, FlowException {
 		if (steps[stepIndexById(currentStep)].validate(common, temporary, err)) {
-			if (steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_FAILURE || steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_SUCCESS) {
-				if (steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_SUCCESS) {
+			if (steps[stepIndexById(currentStep)].getStepType().isFinal()) {
+				if (steps[stepIndexById(currentStep)].getStepType() != StepType.TERM_FAILURE) {
 					ok();
 				}
 			}
@@ -448,8 +449,8 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 	
 	protected void refreshButtons() {
 		if (isWizard) {
-			prevButton.setEnabled(steps[stepIndexById(currentStep)].getStepType() != StepType.INITIAL);
-			if (steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_FAILURE || steps[stepIndexById(currentStep)].getStepType() == StepType.TERM_SUCCESS) {
+			prevButton.setEnabled(!steps[stepIndexById(currentStep)].getStepType().isInitial());
+			if (steps[stepIndexById(currentStep)].getStepType().isFinal()) {
 				try{nextButton.setText(localizer.getValue(FINISH_TEXT));
 					nextButton.setToolTipText(localizer.getValue(FINISH_TEXT_TT));
 				} catch (LocalizationException | IllegalArgumentException exc) {
@@ -521,42 +522,52 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			south.add(bottom);
 			south.add(state);
 
-			final Set<String>	stepIds = new HashSet<>();
-			boolean		hasInitial = false, hasTerminal = false;
-			
-			for (WizardStep<Common, ErrorType, Content> item : steps) {
-				if (item.getStepType() == StepType.INITIAL) {
-					hasInitial = true;
-					initialStep = currentStep = item.getStepId();
-				}
-				else if (item.getStepType() == StepType.TERM_SUCCESS || item.getStepType() == StepType.TERM_FAILURE) {
-					hasTerminal = true;
-				}
-				if (item.getStepId() == null || item.getStepId().isEmpty()) {
-					throw new IllegalArgumentException("Null or empty step id in the wizard step list"); 
-				}
-				else if (stepIds.contains(item.getStepId())) {
-					throw new IllegalArgumentException("Duplicate step id ["+item.getStepId()+"] in the wizard step list"); 
+			if (steps.length == 1) {
+				if (steps[0].getStepType() == StepType.THE_ONLY) {
+					initialStep = currentStep = steps[0].getStepId();
 				}
 				else {
-					stepIds.add(item.getStepId());
+					throw new IllegalArgumentException("Only ["+StepType.THE_ONLY+"] step type can be used when step list length == 1"); 
 				}
 			}
-			if (!hasInitial) {
-				throw new IllegalArgumentException("Wizard steps don't contain initial step"); 
-			}
-			else if (!hasTerminal) {
-				throw new IllegalArgumentException("Wizard steps don't contain any terminal steps"); 
-			}
-			final Object	centerId = stepById(initialStep).getContent();
-			
-			if (!(centerId instanceof Component)) {
-				throw new IllegalArgumentException("Wizard step content for step id ["+initialStep+"] is not a Swing component"); 
-			}
 			else {
-				getContentPane().add(currentComponent = (Component)centerId,BorderLayout.CENTER);
-				refreshButtons();
+				
+				final Set<String>	stepIds = new HashSet<>();
+				boolean		hasInitial = false, hasTerminal = false;
+				
+				for (WizardStep<Common, ErrorType, Content> item : steps) {
+					if (item.getStepType() == StepType.INITIAL) {
+						hasInitial = true;
+						initialStep = currentStep = item.getStepId();
+					}
+					else if (item.getStepType() == StepType.TERM_SUCCESS || item.getStepType() == StepType.TERM_FAILURE) {
+						hasTerminal = true;
+					}
+					if (item.getStepId() == null || item.getStepId().isEmpty()) {
+						throw new IllegalArgumentException("Null or empty step id in the wizard step list"); 
+					}
+					else if (stepIds.contains(item.getStepId())) {
+						throw new IllegalArgumentException("Duplicate step id ["+item.getStepId()+"] in the wizard step list"); 
+					}
+					else {
+						stepIds.add(item.getStepId());
+					}
+				}
+				if (!hasInitial) {
+					throw new IllegalArgumentException("Wizard steps don't contain initial step"); 
+				}
+				else if (!hasTerminal) {
+					throw new IllegalArgumentException("Wizard steps don't contain any terminal steps"); 
+				}
 			}
+			
+			getContentPane().add(inner, BorderLayout.CENTER);
+			
+			getContentPane().add(new JLabel(localizer.getValue(steps[stepIndexById(initialStep)].getDescription()), JLabel.CENTER), BorderLayout.NORTH);
+			currentComponent = stepById(initialStep).getContent();
+			inner.add(new JLabel(localizer.getValue(steps[stepIndexById(initialStep)].getHelpId())), BorderLayout.NORTH);
+			inner.add(currentComponent, BorderLayout.CENTER);
+			refreshButtons();
 			
 			SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{
 				final String	help = steps[stepIndexById(currentStep)].getHelpId();
@@ -580,12 +591,13 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			}, SwingUtils.ACTION_HELP);
 			SwingUtils.centerMainWindow(this,0.5f);
 			
-			final JPanel		historyPanel = new JPanel(new GridLayout(1,1));
+			final JPanel		historyPanel = new JPanel(new BorderLayout());
+			
 			
 			history.push(stepById(initialStep).getStepType(),stepById(initialStep).getCaption());
 			historyPanel.setPreferredSize(new Dimension(200,0));
-			historyPanel.setBorder(new EmptyBorder(50, 10, 10, 10));
-			historyPanel.add(history);
+			historyPanel.setBorder(new EmptyBorder(20, 10, 10, 10));
+			historyPanel.add(history, BorderLayout.CENTER);
 			
 			getContentPane().add(historyPanel,BorderLayout.WEST);
 			getContentPane().add(south,BorderLayout.SOUTH);
@@ -631,19 +643,22 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content> extends
 			processingThread.setDaemon(true);
 			prevButton.setEnabled(false);
 			nextButton.setEnabled(false);
-			prepareCurrentComponent();
+			prepareCurrentComponent(currentStep);
 			processingThread.start();
 		}
 		else {
-			prepareCurrentComponent();
+			prepareCurrentComponent(currentStep);
 		}
 	}
 
-	private void prepareCurrentComponent() throws LocalizationException, FlowException {
-		captionId = steps[stepIndexById(currentStep)].getCaption();
+	private void prepareCurrentComponent(final String step) throws LocalizationException, FlowException {
+		captionId = steps[stepIndexById(step)].getCaption();
 		fillLocalizedStrings();
-		steps[stepIndexById(currentStep)].beforeShow(common,temporary,err);
-		getContentPane().add(currentComponent = (Component)steps[stepIndexById(currentStep)].getContent(),BorderLayout.CENTER);
+		steps[stepIndexById(step)].beforeShow(common,temporary,err);
+		currentComponent = steps[stepIndexById(step)].getContent();
+		getContentPane().add(new JLabel(localizer.getValue(steps[stepIndexById(step)].getDescription()), JLabel.CENTER), BorderLayout.NORTH);
+		inner.add(new JLabel(localizer.getValue(steps[stepIndexById(step)].getHelpId())), BorderLayout.NORTH);
+		inner.add(currentComponent, BorderLayout.CENTER);
 	}
 	
 	private WizardStep<Common, ErrorType, Content> stepById(final String stepId) {

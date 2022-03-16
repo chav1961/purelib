@@ -456,7 +456,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 		 * @throws IllegalArgumentException when localizer URI is null or doesn't have {@value Localizer#LOCALIZER_SCHEME} scheme
 		 * @throws LocalizationException on any errors on creation localizer
 		 */
-		public Localizer newInstance(final URI localizerUri) throws IllegalArgumentException, LocalizationException {
+		public static Localizer newInstance(final URI localizerUri) throws IllegalArgumentException, LocalizationException {
 			if (localizerUri == null || !LOCALIZER_SCHEME.equals(localizerUri.getScheme())) {
 				throw new IllegalArgumentException("Localizer URI can't be null and must have scheme ["+LOCALIZER_SCHEME+"]"); 
 			}
