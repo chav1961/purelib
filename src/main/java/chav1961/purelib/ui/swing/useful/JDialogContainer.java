@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
+import javax.swing.text.PlainDocument;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
@@ -347,7 +348,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content extends 
 				item.prepare(common,temporary);
 			}
 			this.result = false;
-			pack();
+//			pack();
 			setVisible(true);
 			dispose();
 			for (WizardStep<Common, ErrorType, Content> item : steps) {
@@ -367,7 +368,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content extends 
 			
 			this.result = false;
 			
-			pack();
+//			pack();
 			setVisible(true);
 			dispose();
 			return this.result;

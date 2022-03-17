@@ -64,7 +64,7 @@ public class ItemAndSelectionRenderer<T, R> implements SwingItemRenderer<ItemAnd
 						if (!nestedRenderers.containsKey(cl)) {
 							try{nestedRenderers.put(cl, SwingUtils.getCellRenderer(cl, null, ListCellRenderer.class));
 							} catch (EnvironmentException e) {
-								nestedRenderers.put(cl, (ListCellRenderer) new StringRenderer().getRenderer(String.class, ListCellRenderer.class));							
+								nestedRenderers.put(cl, (ListCellRenderer) new StringRenderer().getRenderer(ListCellRenderer.class));							
 							}
 						}
 						label = (JLabel) nestedRenderers.get(cl).getListCellRendererComponent(list, sel.getItem(), index, isSelected, cellHasFocus);
@@ -75,6 +75,7 @@ public class ItemAndSelectionRenderer<T, R> implements SwingItemRenderer<ItemAnd
 					final JCheckBox			box = new JCheckBox();
 					final JPanel			panel = new JPanel(new BorderLayout());
 					
+					box.setOpaque(false);
 					panel.add(box, BorderLayout.WEST);
 					panel.add(label, BorderLayout.CENTER);
 					box.setSelected(sel.isSelected());

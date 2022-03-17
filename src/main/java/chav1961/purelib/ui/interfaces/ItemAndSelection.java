@@ -13,7 +13,7 @@ public interface ItemAndSelection<T> {
 	boolean isSelected();
 	void setSelected(boolean selected);
 	T getItem();
-	void setItem(T item);
+	default void setItem(T item) {}
 	
 	static <T> ItemAndSelection<T>[] of(final T... content) {
 		if (content == null || Utils.checkArrayContent4Nulls(content) >= 0) {

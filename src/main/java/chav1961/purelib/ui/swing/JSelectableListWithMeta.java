@@ -1,6 +1,8 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.BorderLayout;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.swing.DefaultListModel;
+import javax.swing.InputVerifier;
+import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -28,6 +32,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -43,21 +48,28 @@ import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
+import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JList<T> implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
 	private static final long serialVersionUID = 8688598119389158690L;
 
 	private final ContentNodeMetadata	metadata;
+	private final JComponentMonitor 	monitor;
 	private final Localizer				localizer;
 	private final InnerTableModel<T>	model = new InnerTableModel<>();
+	private T[]							currentValue = null;
 	private boolean						invalid = false;
 	
 	public JSelectableListWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws NullPointerException, IllegalArgumentException, LocalizationException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
+		else if (monitor == null) {
+			throw new NullPointerException("Component monitor can't be null");
+		}
 		else {
 			this.metadata = metadata;
+			this.monitor = monitor;
 			this.localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
 			prepareSelectedList(metadata);
 			fillLocalizedStrings();
@@ -252,6 +264,48 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 		else {
 			InternalUtils.prepareOptionalColor(this);
 		}
+		
+		InternalUtils.addComponentListener(this,()->callLoad(monitor));
+		addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(final FocusEvent e) {
+				try{monitor.process(MonitorEvent.FocusLost,metadata,JSelectableListWithMeta.this);
+				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JSelectableListWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+				}					
+			}
+			
+			@Override
+			public void focusGained(final FocusEvent e) {
+				currentValue = model.getValue();
+				try{
+					monitor.process(MonitorEvent.FocusGained,metadata,JSelectableListWithMeta.this);
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
+				} catch (ContentException exc) {
+					SwingUtils.getNearestLogger(JSelectableListWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+				}					
+			}
+		});
+		SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+			try{if (monitor.process(MonitorEvent.Rollback,metadata,JSelectableListWithMeta.this)) {
+					assignValueToComponent(currentValue);
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
+				}
+			} catch (ContentException exc) {
+				SwingUtils.getNearestLogger(JSelectableListWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+			}
+		}, SwingUtils.ACTION_ROLLBACK);
+		setInputVerifier(new InputVerifier() {
+			@Override
+			public boolean verify(final JComponent input) {
+				try{return monitor.process(MonitorEvent.Validation,metadata,JSelectableListWithMeta.this);
+				} catch (ContentException e) {
+					return false;
+				}
+			}
+		});
+		
+		
 		try {
 			setCellRenderer(SwingUtils.getCellRenderer(meta, ListCellRenderer.class));
 		} catch (EnvironmentException e) {
@@ -273,6 +327,12 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 		// TODO Auto-generated method stub
 	}
 
+	private void callLoad(final JComponentMonitor monitor) {
+		try{monitor.process(MonitorEvent.Loading,metadata,JSelectableListWithMeta.this);
+		} catch (ContentException exc) {
+			SwingUtils.getNearestLogger(JSelectableListWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+		}					
+	}
 	
 	private static class InnerTableModel<T extends ItemAndSelection<T>> extends DefaultTableModel {
 		private static final long 	serialVersionUID = 1L;
@@ -338,6 +398,10 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 				default : throw new UnsupportedOperationException(); 
 			}
 			fireTableCellUpdated(rowIndex, columnIndex);
+		}
+
+		public T[] getValue() {
+			return content;
 		}
 		
 		public void setValue(final T[] content) {
