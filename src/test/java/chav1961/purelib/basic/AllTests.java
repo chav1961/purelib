@@ -17,7 +17,7 @@ import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepoTest;
 		PureLibSettingsTest.class, TemporaryStoreTest.class,
 		SubstitutablePropertiesTest.class, XMLUtilsTest.class,
 		UnsafedUtilsTest.class, URIUtilsTest.class, CSSUtilsTest.class,
-		MimeTypeTest.class})
+		MimeTypeTest.class, DirectoryListenerTest.class})
 public class AllTests {
 
 }

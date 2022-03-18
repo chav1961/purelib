@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -129,6 +130,48 @@ public class Utils {
 	}
 	
 	private Utils() {
+	}
+
+	/**
+	 * <p>Copy one file stream to another</p>
+	 * @param fis file to copy from. Can't be null
+	 * @param fos file to copy to. Can't be null
+	 * @return length transferred (in bytes)
+	 * @throws IOException if any I/O exception was thrown
+	 * @throws NullPointerException when any problems with parameters
+	 * @since 0.0.6
+	 */
+	public static long copyStream(final File fis, final File fos) throws IOException, NullPointerException {
+		return Math.abs(copyStream(fis, fos, ProgressIndicator.DUMMY));
+	}
+	
+	/**
+	 * <p>Copy one file stream to another</p>
+	 * @param fis file to copy from. Can't be null
+	 * @param fos file to copy to. Can't be null
+	 * @param progress progress indicator to use. Can't be null
+	 * @return length transferred (in bytes)
+	 * @throws IOException if any I/O exception was thrown
+	 * @throws NullPointerException when any problems with parameters
+	 * @since 0.0.6
+	 */
+	public static long copyStream(final File fis, final File fos, final ProgressIndicator progress) throws IOException, NullPointerException {
+		if (fis == null) {
+			throw new NullPointerException("Input stream can't be null");
+		}
+		else if (fos == null) {
+			throw new NullPointerException("Output stream can't be null");
+		}
+		else if (progress == null) {
+			throw new NullPointerException("Progress indicator can't be null");
+		}
+		else {
+			try(final InputStream	is = new FileInputStream(fis);
+				final OutputStream	os = new FileOutputStream(fos)) {
+				
+				return copyStream(is, os, progress);
+			}
+		}
 	}
 	
 	/**
