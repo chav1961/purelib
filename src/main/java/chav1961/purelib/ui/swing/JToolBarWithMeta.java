@@ -16,6 +16,10 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 
 
 /**
@@ -24,12 +28,13 @@ import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
  * @since 0.0.3
  * @lastUpdate 0.0.5
  */
-public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener {
+public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = 366031204608808220L;
 	private static final String	NAVIGATION_NODE = "./"+Constants.MODEL_NAVIGATION_NODE_PREFIX; 
 	private static final String	NAVIGATION_LEAF = "./"+Constants.MODEL_NAVIGATION_LEAF_PREFIX; 
 	private static final URI	SEPARATOR = URI.create("./navigation.separator"); 
 	
+	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final UIItemState			state;
 
@@ -128,6 +133,36 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 		}
 		for (ContentNodeMetadata item : node) {
 			fireContentChanged(item);
+		}
+	}
+
+	@Override
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
+		
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
 		}
 	}
 	

@@ -27,16 +27,21 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
-public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 
 	private static final Class<?>[]		VALID_CLASSES = {String.class, URL.class, URI.class};
 	private static final int			TRIANGLE_WIDTH = 10;
 	
+	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private String						currentValue, newValue;
 	private boolean						invalid = false;
@@ -213,20 +218,60 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 
 	@Override
-	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
 		
-		if (getNodeMetadata().getFormatAssociated() != null && getNodeMetadata().getFormatAssociated().hasLocalEditor()) {
-			final Graphics2D	g2d = (Graphics2D)g;
-			final Color			oldColor = g2d.getColor();
-			final int[]			x = new int[] {getWidth(), getWidth(), getWidth() - TRIANGLE_WIDTH};
-			final int[]			y = new int[] {getHeight() - TRIANGLE_WIDTH, getHeight(), getHeight()};
-			
-			g2d.setColor(Color.BLUE);
-			g2d.fillPolygon(x, y, x.length);
-			g2d.setColor(oldColor);
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
 		}
 	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
+		}
+	}
+	
+	@Override
+	public void setEditable(boolean b) {
+		final boolean old = isEditable();
+		
+		super.setEditable(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.MODIFIABLE, b);
+		}
+	}
+	
+//	@Override
+//	protected void paintComponent(Graphics g) {
+//		super.paintComponent(g);
+//		
+//		if (getNodeMetadata().getFormatAssociated() != null && getNodeMetadata().getFormatAssociated().hasLocalEditor()) {
+//			final Graphics2D	g2d = (Graphics2D)g;
+//			final Color			oldColor = g2d.getColor();
+//			final int[]			x = new int[] {getWidth(), getWidth(), getWidth() - TRIANGLE_WIDTH};
+//			final int[]			y = new int[] {getHeight() - TRIANGLE_WIDTH, getHeight(), getHeight()};
+//			
+//			g2d.setColor(Color.BLUE);
+//			g2d.fillPolygon(x, y, x.length);
+//			g2d.setColor(oldColor);
+//		}
+//	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 

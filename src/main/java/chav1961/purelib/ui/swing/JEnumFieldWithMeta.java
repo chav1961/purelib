@@ -29,15 +29,20 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
-public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
 	private static final Class<?>[]		VALID_CLASSES = {Enum.class};
 	
+	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final Class<Enum<?>>		clazz;
 	private Enum<?>						currentValue;
@@ -263,6 +268,46 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 	@Override
 	public boolean isInvalid() {
 		return invalid;
+	}
+	
+	@Override
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
+		
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
+		}
+	}
+	
+	@Override
+	public void setEditable(boolean b) {
+		final boolean old = isEditable();
+		
+		super.setEditable(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.MODIFIABLE, b);
+		}
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {

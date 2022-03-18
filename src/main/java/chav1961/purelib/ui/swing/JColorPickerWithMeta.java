@@ -29,12 +29,16 @@ import chav1961.purelib.json.ColorKeeper;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
 
-public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = -4542351534072177624L;
 
 	public static final String 			COLOR_NAME = "color";
@@ -42,6 +46,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
 	private static final Class<?>[]		VALID_CLASSES = {Color.class, ColorKeeper.class};
 
+	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final Localizer 			localizer;
 	private final JButton				callSelect = new JButton("...");
@@ -217,6 +222,36 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	@Override
 	public ContentNodeMetadata getNodeMetadata() {
 		return metadata;
+	}
+
+	@Override
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
+		
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
+		}
 	}
 	
 	@Override

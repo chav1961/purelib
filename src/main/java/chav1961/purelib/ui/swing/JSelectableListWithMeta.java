@@ -46,13 +46,18 @@ import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
-public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JList<T> implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JList<T> implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long serialVersionUID = 8688598119389158690L;
 
+	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final Localizer				localizer;
 	private final InnerTableModel<T>	model = new InnerTableModel<>();
@@ -193,6 +198,36 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 		return invalid;
 	}
 
+	@Override
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
+		
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
+		}
+	}
+	
 	private void prepareSelectedList(final ContentNodeMetadata meta, final JComponentMonitor monitor) {
 		final InnerListModel<T>	listModel = new InnerListModel<T>();
 		

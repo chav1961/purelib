@@ -18,14 +18,19 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
-public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = -3207016216489833670L;
 	private static final Class<?>[]		VALID_CLASSES = {Boolean.class,boolean.class};
 	
+	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final Localizer				localizer;
 	private boolean						currentValue, invalid = false;
@@ -188,6 +193,46 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 	@Override
 	public boolean isInvalid() {
 		return invalid;
+	}
+
+	@Override
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
+		
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
+		}
+	}
+	
+	@Override
+	public void setSelected(boolean b) {
+		final boolean old = isSelected();
+		
+		super.setSelected(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.SELECTED, b);
+		}
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {

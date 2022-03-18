@@ -12,16 +12,21 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 
-class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener {
+class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener, BooleanPropChangeListenerSource {
 	private static final long serialVersionUID = 366031204608808220L;
 	
 	protected enum LAFType {
 		TEXT_ONLY, ICON_INLY, BOTH, ICON_THEN_TEXT
 	}
 	
-	private final ContentNodeMetadata	metadata;
-	private final JInternalButtonWithMeta.LAFType				type;
+	private final BooleanPropChangeListenerRepo		repo = new BooleanPropChangeListenerRepo();
+	private final ContentNodeMetadata				metadata;
+	private final JInternalButtonWithMeta.LAFType	type;
 
 	JInternalButtonWithMeta(final ContentNodeMetadata metadata) {
 		this(metadata,LAFType.BOTH);
@@ -45,6 +50,46 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 		fillLocalizedStrings();
 	}
 
+	@Override
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
+		
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
+		}
+	}
+	
+	@Override
+	public void setSelected(boolean b) {
+		final boolean old = isSelected();
+		
+		super.setSelected(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.SELECTED, b);
+		}
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null) {
 			String	keyPrefix = "";

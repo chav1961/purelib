@@ -34,19 +34,24 @@ import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.inner.InternalConstants;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
+import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
 
-public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface {
+public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = 8167088888478756141L;
 
 	public static final String 			CHOOSER_NAME = "chooser";
 	
 	private static final Class<?>[]		VALID_CLASSES = {File.class, FileSystemInterface.class, FileKeeper.class};
 	
+	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final JButton				callSelect = new JButton(InternalConstants.ICON_FOLDER);
 	private final Class<?>				contentClass;
@@ -293,6 +298,46 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	@Override
 	public boolean isInvalid() {
 		return invalid;
+	}
+	
+	@Override
+	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.addBooleanPropChangeListener(listener);
+	}
+
+	@Override
+	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
+		repo.removeBooleanPropChangeListener(listener);
+	}
+	
+	@Override
+	public void setVisible(final boolean aFlag) {
+		final boolean old = isVisible();
+		
+		super.setVisible(aFlag);
+		if (repo != null && aFlag != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
+		}
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		final boolean old = isEnabled();
+		
+		super.setEnabled(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
+		}
+	}
+	
+	@Override
+	public void setEditable(boolean b) {
+		final boolean old = isEditable();
+		
+		super.setEditable(b);
+		if (repo != null && b != old) {
+			repo.fireBooleanPropChange(this, EventChangeType.MODIFIABLE, b);
+		}
 	}
 	
 	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
