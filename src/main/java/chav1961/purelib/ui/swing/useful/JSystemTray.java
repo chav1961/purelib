@@ -52,6 +52,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 	private final String		toolTip;
 	private final JPopupMenu	popup;
 	private final TrayIcon		icon;
+	private final boolean		onlyEn;
 	
 	public JSystemTray(final Localizer localizer, final String applicationName, final URI image) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
@@ -74,6 +75,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 			this.popup = null;
 			this.icon = new TrayIcon(this.image);
 			this.icon.addActionListener((e)->fireAction(e));
+			this.onlyEn = false;
 			fillLocalizedStrings();
 			
 			try{SystemTray.getSystemTray().add(icon);
@@ -110,6 +112,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 			this.popup = null;
 			this.icon = new TrayIcon(this.image);
 			this.icon.addActionListener((e)->fireAction(e));
+			this.onlyEn = false;
 			fillLocalizedStrings();
 			
 			try{SystemTray.getSystemTray().add(icon);
@@ -119,7 +122,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 	
-	public JSystemTray(final Localizer localizer, final String applicationName, final URI image, final String tooltip, final JPopupMenu menu) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+	public JSystemTray(final Localizer localizer, final String applicationName, final URI image, final String tooltip, final JPopupMenu menu, final boolean onlyEn) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -149,6 +152,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 			this.popup = menu;
 			this.icon = new TrayIcon(this.image);
 			this.icon.addActionListener((e)->fireAction(e));
+			this.onlyEn = onlyEn;
 			fillLocalizedStrings();
 			
 			try{SystemTray.getSystemTray().add(icon);
@@ -238,7 +242,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		if (popup != null) {
 			final PopupMenu	localPopup = new PopupMenu();
 			
-			jMenu2Menu(popup,localPopup,(e)->{((JMenuItem)SwingUtils.findComponentByName(popup,e.getActionCommand())).doClick();});
+			jMenu2Menu(popup,localPopup,(e)->{((JMenuItem)SwingUtils.findComponentByName(popup,e.getActionCommand())).doClick();},onlyEn);
 			icon.setPopupMenu(localPopup);
 		}
 		if (toolTip != null) {
@@ -246,7 +250,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 
-	private void jMenu2Menu(final JPopupMenu popup, final PopupMenu localPopup, final ActionListener listener) {
+	private void jMenu2Menu(final JPopupMenu popup, final PopupMenu localPopup, final ActionListener listener, boolean onlyEn2) {
 		final List<MenuComponent>	stack = new ArrayList<>();
 		
 		SwingUtils.walkDown(popup,(mode,node)->{
@@ -259,7 +263,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							stack.add(0,localPopup);
 						}
 						else if (node instanceof JMenu) {
-							final Menu 	menu = new Menu(translateString(localizer,meta.getLabelId()));
+							final Menu 	menu = new Menu(translateString(localizer, meta.getLabelId(), onlyEn));
 							
 							if (stack.get(0) instanceof PopupMenu) {
 								((PopupMenu)stack.get(0)).add(menu);
@@ -273,7 +277,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							stack.add(0,menu);
 						}
 						else if (node instanceof JMenuItem) {
-							final MenuItem 	menu = new MenuItem(translateString(localizer,meta.getLabelId()));
+							final MenuItem 	menu = new MenuItem(translateString(localizer, meta.getLabelId(), onlyEn));
 
 							if (stack.get(0) instanceof PopupMenu) {
 								((PopupMenu)stack.get(0)).add(menu);
@@ -318,14 +322,14 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 	
-	private static String translateString(final Localizer localizer, final String sourceKey) {
+	private static String translateString(final Localizer localizer, final String sourceKey, final boolean onlyEn) {
 		try{final String val = localizer.getValue(sourceKey);
 		
 			if (CharUtils.isASCIIOnly(val.toCharArray(), 0, val.length())) {
 				return val; 
 			}
 			else {
-				return localizer.getLocalValue(sourceKey, Locale.forLanguageTag("en"));
+				return localizer.getLocalValue(sourceKey, onlyEn ? Locale.forLanguageTag("en") : Locale.getDefault());
 			}
 		} catch (LocalizationException exc) {
 			return sourceKey;
