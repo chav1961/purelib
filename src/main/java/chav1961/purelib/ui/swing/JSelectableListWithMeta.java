@@ -54,7 +54,6 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 	private static final long serialVersionUID = 8688598119389158690L;
 
 	private final ContentNodeMetadata	metadata;
-	private final JComponentMonitor 	monitor;
 	private final Localizer				localizer;
 	private final InnerTableModel<T>	model = new InnerTableModel<>();
 	private T[]							currentValue = null;
@@ -69,9 +68,8 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 		}
 		else {
 			this.metadata = metadata;
-			this.monitor = monitor;
 			this.localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
-			prepareSelectedList(metadata);
+			prepareSelectedList(metadata, monitor);
 			fillLocalizedStrings();
 		}
 	}
@@ -195,7 +193,7 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 		return invalid;
 	}
 
-	private void prepareSelectedList(final ContentNodeMetadata meta) {
+	private void prepareSelectedList(final ContentNodeMetadata meta, final JComponentMonitor monitor) {
 		final InnerListModel<T>	listModel = new InnerListModel<T>();
 		
 		setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);

@@ -76,6 +76,7 @@ public class ItemAndSelectionRenderer<T, R> implements SwingItemRenderer<ItemAnd
 					final JPanel			panel = new JPanel(new BorderLayout());
 					
 					box.setOpaque(false);
+					panel.setBackground(label.getBackground());
 					panel.add(box, BorderLayout.WEST);
 					panel.add(label, BorderLayout.CENTER);
 					box.setSelected(sel.isSelected());
