@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,6 +67,7 @@ import javax.swing.ButtonModel;
 import javax.swing.FocusManager;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
@@ -2080,7 +2082,7 @@ loop:			for (Component comp : children(node)) {
 	static void toMenuEntity(final ContentNodeMetadata node, final JMenuBar bar) throws NullPointerException, IllegalArgumentException{
 		switch (getNavigationNodeType(node)) {
 			case ITEM	:
-				bar.add(new JMenuItemWithMeta(node));
+				bar.add(createMenuItem(node));
 				break;
 			case SEPARATOR	:
 				bar.add(new JSeparator());
@@ -2302,7 +2304,25 @@ loop:			for (Component comp : children(node)) {
 			return new JRadioMenuItemWithMeta(node);
 		}
 		else {
-			return new JMenuItemWithMeta(node);
+			if (node.getApplicationPath() != null) {
+				final String	query = URIUtils.extractQueryFromURI(node.getApplicationPath());
+				
+				if (query != null && !query.isEmpty()) {
+					final Hashtable<String, String[]>	queryItems = URIUtils.parseQuery(query);
+					final JCheckBoxMenuItemWithMeta		miwm = new JCheckBoxMenuItemWithMeta(node); 
+					
+					if (queryItems.containsKey("checked")) {
+						miwm.setSelected(Boolean.valueOf(queryItems.get("checked")[0]));
+					}
+					return miwm;
+				}
+				else {
+					return new JMenuItemWithMeta(node);
+				}
+			}
+			else {
+				return new JMenuItemWithMeta(node);
+			}
 		}
 	}	
 	
@@ -2493,6 +2513,53 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	private static class JCheckBoxMenuItemWithMeta extends JCheckBoxMenuItem implements NodeMetadataOwner, LocaleChangeListener {
+		private static final long serialVersionUID = -1731094524456032387L;
+
+		private final ContentNodeMetadata	metadata;
+		
+		private JCheckBoxMenuItemWithMeta(final ContentNodeMetadata metadata) {
+			this.metadata = metadata;
+			this.setName(metadata.getName());
+			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());
+			for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(metadata.getApplicationPath())) {
+				if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+					this.setAccelerator(KeyStroke.getKeyStroke(item.getLabelId()));
+					break;
+				}
+			}
+			
+			try{
+				fillLocalizedStrings();
+				if (metadata.getIcon() != null) {
+					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+				}
+			} catch (IOException | LocalizationException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return metadata;
+		}
+
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			try{fillLocalizedStrings();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void fillLocalizedStrings() throws LocalizationException, IOException {
+			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
+			if (getNodeMetadata().getTooltipId() != null) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			}
+		}
+	}
+	
 	private static class JRadioMenuItemWithMeta extends JRadioButtonMenuItem implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = -1731094524456032387L;
 

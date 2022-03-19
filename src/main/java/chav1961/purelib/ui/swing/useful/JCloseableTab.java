@@ -48,6 +48,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	private final Localizer		localizer;
 	private final JLabel		label = new JLabel();
 	private final JLabel		crosser = new JLabel(GRAY_ICON);
+	private final boolean		closeButtonVisible;
 	private String				text, tooltip;
 	private JTabbedPane 		container = null;
 	private Component 			tab = null;
@@ -60,6 +61,17 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	 * @param meta label model. Can't be null 
 	 */
 	public JCloseableTab(final Localizer localizer, final ContentNodeMetadata meta) {
+		this(localizer, meta, true);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param meta label model. Can't be null 
+	 * @param closeButtonVisible is close button visible 
+	 * @since 0.0.6
+	 */
+	public JCloseableTab(final Localizer localizer, final ContentNodeMetadata meta, final boolean closeButtonVisible) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -71,6 +83,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.localizer = localizer;
 			this.text = meta.getLabelId();
 			this.tooltip = meta.getTooltipId();
+			this.closeButtonVisible = closeButtonVisible;
 			if (meta.getIcon() != null) {
 				try{
 					label.setIcon(new ImageIcon(meta.getIcon().toURL()));
@@ -87,12 +100,23 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	 * @param localizer localizer to use for tab text. Can't be null
 	 */
 	public JCloseableTab(final Localizer localizer) {
+		this(localizer, true);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param closeButtonVisible is close button visible 
+	 * @since 0.0.6
+	 */
+	public JCloseableTab(final Localizer localizer, final boolean closeButtonVisible) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
 		else {
 			this.localizer = localizer;
+			this.closeButtonVisible = closeButtonVisible;
 			prepare("");
 		}
 	}
@@ -105,6 +129,19 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	 * @see JLabel
 	 */
 	public JCloseableTab(final Localizer localizer, final Icon image, final int horizontalAlignment) throws LocalizationException {
+		this(localizer, image, horizontalAlignment, true);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param image image at the left part of the label. Can't be null
+	 * @param horizontalAlignment label alignment. See {@linkplain JLabel} constants
+	 * @param closeButtonVisible is close button visible 
+	 * @see JLabel
+	 * @since 0.0.6
+	 */
+	public JCloseableTab(final Localizer localizer, final Icon image, final int horizontalAlignment, final boolean closeButtonVisible) throws LocalizationException {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -113,6 +150,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.localizer = localizer;
 			label.setIcon(image);
 			label.setHorizontalAlignment(horizontalAlignment);
+			this.closeButtonVisible = closeButtonVisible;
 			prepare("");
 		}
 	}
@@ -124,12 +162,25 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	 * @see JLabel
 	 */
 	public JCloseableTab(final Localizer localizer, final Icon image) {
+		this(localizer, image, true);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param image image at the left part of the label. Can't be null
+	 * @param closeButtonVisible is close button visible 
+	 * @see JLabel
+	 * @since 0.0.6
+	 */
+	public JCloseableTab(final Localizer localizer, final Icon image, final boolean closeButtonVisible) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
 		else {
 			this.localizer = localizer;
+			this.closeButtonVisible = closeButtonVisible;
 			label.setIcon(image);
 			prepare("");
 		}
@@ -144,6 +195,20 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	 * @see JLabel
 	 */
 	public JCloseableTab(final Localizer localizer, final String text, final Icon image, final int horizontalAlignment) {
+		this(localizer, text, image, horizontalAlignment, true);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param text text in the label
+	 * @param image image at the left part of the label. Can't be null
+	 * @param horizontalAlignment label alignment. See {@linkplain JLabel} constants
+	 * @param closeButtonVisible is close button visible 
+	 * @see JLabel
+	 * @since 0.0.6
+	 */
+	public JCloseableTab(final Localizer localizer, final String text, final Icon image, final int horizontalAlignment, final boolean closeButtonVisible) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -153,6 +218,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			this.text = text;
 			label.setIcon(image);
 			label.setHorizontalAlignment(horizontalAlignment);
+			this.closeButtonVisible = closeButtonVisible;
 			prepare("");
 		}
 	}
@@ -165,6 +231,19 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	 * @see JLabel
 	 */
 	public JCloseableTab(final Localizer localizer, final String text, final int horizontalAlignment) {
+		this(localizer, text, horizontalAlignment, true);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param text text in the label
+	 * @param horizontalAlignment label alignment. See {@linkplain JLabel} constants
+	 * @param closeButtonVisible is close button visible 
+	 * @see JLabel
+	 * @since 0.0.6
+	 */
+	public JCloseableTab(final Localizer localizer, final String text, final int horizontalAlignment, final boolean closeButtonVisible) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -172,6 +251,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		else {
 			this.localizer = localizer;
 			this.text = text;
+			this.closeButtonVisible = closeButtonVisible;
 			label.setHorizontalAlignment(horizontalAlignment);
 			prepare("");
 		}
@@ -184,6 +264,18 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	 * @see JLabel
 	 */
 	public JCloseableTab(final Localizer localizer, final String text) {
+		this(localizer, text, true);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use for tab text. Can't be null
+	 * @param text text in the label
+	 * @param closeButtonVisible is close button visible 
+	 * @see JLabel
+	 * @since 0.0.6
+	 */
+	public JCloseableTab(final Localizer localizer, final String text, final boolean closeButtonVisible) {
 		super(new BorderLayout(2,2));
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
@@ -191,6 +283,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		else {
 			this.localizer = localizer;
 			this.text = text;
+			this.closeButtonVisible = closeButtonVisible;
 			prepare("");
 		}
 	}
@@ -384,6 +477,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		final Font	oldFont = getFont(); 
 		
 		label.setFocusable(true);
+		crosser.setVisible(closeButtonVisible);
 		crosser.setFocusable(true);
 		setOpaque(false);
 		label.addMouseListener(new MouseListener() {

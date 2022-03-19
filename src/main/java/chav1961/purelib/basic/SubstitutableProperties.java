@@ -23,8 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-
-import javax.print.DocFlavor.INPUT_STREAM;
+import java.util.UUID;
 
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -81,7 +80,7 @@ public class SubstitutableProperties extends Properties {
 	private static enum Conversions {
 		STRING,	INTWRAPPER, LONGWRAPPER, FLOATWRAPPER, DOUBLEWRAPPER, BOOLEANWRAPPER,
 		BIGINTEGER, BIGDECIMAL,
-		FILE, INPUTSTREAM, URL, URI, COLOR, CHARARRAY
+		FILE, INPUTSTREAM, URL, URI, UUID, COLOR, CHARARRAY
 	}
 
 	private static final Map<Class<?>,Class<?>>		WRAPPER = new HashMap<Class<?>,Class<?>>(){private static final long serialVersionUID = 1L;
@@ -107,6 +106,7 @@ public class SubstitutableProperties extends Properties {
 								put(URI.class,Conversions.URI);
 								put(Color.class,Conversions.COLOR);
 								put(char[].class,Conversions.CHARARRAY);
+								put(UUID.class,Conversions.UUID);
 								}};
 
 	private final Properties	defaults;
@@ -469,6 +469,8 @@ public class SubstitutableProperties extends Properties {
 						return awaited.cast(PureLibSettings.colorByName(value,null));
 					case CHARARRAY		:
 						return awaited.cast(value == null ? null : value.toCharArray());
+					case UUID			:
+						return awaited.cast(value == null ? null : UUID.fromString(value));
 					default :
 						throw new UnsupportedOperationException("Conversion to ["+awaited+"] is not implemented yet");
 				}		

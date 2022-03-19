@@ -2,6 +2,8 @@ package chav1961.purelib.ui.swing.useful;
 
 
 import java.awt.AWTException;
+import java.awt.CheckboxMenuItem;
+import java.awt.Component;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Menu;
@@ -22,13 +24,17 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 
 import javax.imageio.ImageIO;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
@@ -38,11 +44,15 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.BooleanPropChangeEvent;
 import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
+import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 
 public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeListener, AutoCloseable {
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
@@ -53,6 +63,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 	private final JPopupMenu	popup;
 	private final TrayIcon		icon;
 	private final boolean		onlyEn;
+	private final IdentityHashMap<JComponent,ListenerDescriptor>	map = new IdentityHashMap<>();
 	
 	public JSystemTray(final Localizer localizer, final String applicationName, final URI image) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
@@ -175,6 +186,14 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
+		SwingUtils.walkDown(popup, (mode, node)->{
+			if (mode == NodeEnterMode.ENTER) {
+				if (node instanceof LocaleChangeListener) {
+					((LocaleChangeListener)node).localeChanged(oldLocale, newLocale);
+				}
+			}
+			return ContinueMode.CONTINUE;
+		});
 	}
 
 	@Override
@@ -263,7 +282,8 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							stack.add(0,localPopup);
 						}
 						else if (node instanceof JMenu) {
-							final Menu 	menu = new Menu(translateString(localizer, meta.getLabelId(), onlyEn));
+							final Menu 					menu = new Menu(translateString(localizer, meta.getLabelId(), onlyEn));
+							final ListenerDescriptor	ld = new ListenerDescriptor((JComponent)node,localizer,menu,onlyEn);  
 							
 							if (stack.get(0) instanceof PopupMenu) {
 								((PopupMenu)stack.get(0)).add(menu);
@@ -275,9 +295,14 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 								((PopupMenu)stack.get(0)).add(menu);
 							}
 							stack.add(0,menu);
+							if (node instanceof BooleanPropChangeListenerSource) {
+								((BooleanPropChangeListenerSource)node).addBooleanPropChangeListener(ld);
+							}
+							localizer.addLocaleChangeListener(ld);
 						}
-						else if (node instanceof JMenuItem) {
-							final MenuItem 	menu = new MenuItem(translateString(localizer, meta.getLabelId(), onlyEn));
+						else if ((node instanceof JCheckBoxMenuItem) || (node instanceof JRadioButtonMenuItem)) {
+							final CheckboxMenuItem 		menu = new CheckboxMenuItem(translateString(localizer, meta.getLabelId(), onlyEn));
+							final ListenerDescriptor	ld = new ListenerDescriptor((JComponent)node,localizer,menu,onlyEn);  
 
 							if (stack.get(0) instanceof PopupMenu) {
 								((PopupMenu)stack.get(0)).add(menu);
@@ -290,6 +315,31 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							}
 							menu.addActionListener(listener);
 							menu.setActionCommand(node.getName());
+							menu.setState(((JMenuItem)node).isSelected());
+							if (node instanceof BooleanPropChangeListenerSource) {
+								((BooleanPropChangeListenerSource)node).addBooleanPropChangeListener(ld);
+							}
+							localizer.addLocaleChangeListener(ld);
+						}
+						else if (node instanceof JMenuItem) {
+							final MenuItem 				menu = new MenuItem(translateString(localizer, meta.getLabelId(), onlyEn));
+							final ListenerDescriptor	ld = new ListenerDescriptor((JComponent)node,localizer,menu,onlyEn);  
+
+							if (stack.get(0) instanceof PopupMenu) {
+								((PopupMenu)stack.get(0)).add(menu);
+							}
+							else if (stack.get(0) instanceof Menu) {
+								((Menu)stack.get(0)).add(menu);
+							}
+							else {
+								((PopupMenu)stack.get(0)).add(menu);
+							}
+							menu.addActionListener(listener);
+							menu.setActionCommand(node.getName());
+							if (node instanceof BooleanPropChangeListenerSource) {
+								((BooleanPropChangeListenerSource)node).addBooleanPropChangeListener(ld);
+							}
+							localizer.addLocaleChangeListener(ld);
 						}
 						else if (node instanceof JSeparator) {
 							if (stack.get(0) instanceof Menu) {
@@ -333,6 +383,56 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 			}
 		} catch (LocalizationException exc) {
 			return sourceKey;
+		}
+	}
+	
+	private static class ListenerDescriptor implements BooleanPropChangeListener, LocaleChangeListener {
+		private final JComponent	swingComponent;
+		private final Localizer		localizer; 
+		private final Object		awtComponent;
+		private final boolean		onlyEn;
+		
+		public ListenerDescriptor(JComponent swingComponent, Localizer localizer, Object awtComponent, boolean onlyEn) {
+			this.swingComponent = swingComponent;
+			this.localizer = localizer;
+			this.awtComponent = awtComponent;
+			this.onlyEn = onlyEn;
+		}
+
+		@Override
+		public void booleanPropChange(final BooleanPropChangeEvent event) {
+			switch (event.getEventChangeType()) {
+				case SELECTED	:
+					if (awtComponent instanceof CheckboxMenuItem) {
+						((CheckboxMenuItem)awtComponent).setState(event.getNewValue());
+					}
+					break;
+				case ENABLED : case VISIBILE :
+					if (awtComponent instanceof MenuItem) {
+						((MenuItem)awtComponent).setEnabled(event.getNewValue());
+					}
+					else if (awtComponent instanceof PopupMenu) {
+						((PopupMenu)awtComponent).setEnabled(event.getNewValue());
+					}
+					break;
+				default:
+					throw new UnsupportedOperationException("Event change type ["+event.getEventChangeType()+"] is ot supported yet");
+			}
+		}
+
+		@Override
+		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+			if (swingComponent instanceof NodeMetadataOwner) {
+				final ContentNodeMetadata 	meta = ((NodeMetadataOwner)swingComponent).getNodeMetadata();
+				final String				text = translateString(localizer, meta.getLabelId(), onlyEn);
+				
+				if (awtComponent instanceof MenuItem) {
+					((MenuItem)awtComponent).setLabel(text);
+				}
+				else if (awtComponent instanceof PopupMenu) {
+					((PopupMenu)awtComponent).setLabel(text);
+				}
+			}
 		}
 	}
 }

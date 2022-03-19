@@ -95,6 +95,8 @@ public class ContentModelFactory {
 	private static final String			XML_ATTR_ACTION = "action";
 	private static final String			XML_ATTR_KEYSET = "keyset";
 	private static final String			XML_ATTR_GROUP = "group";	
+	private static final String			XML_ATTR_CHECKABLE = "checkable";	
+	private static final String			XML_ATTR_CHECKED = "checked";	
 	private static final String			XML_ATTR_ICON = "icon";
 
 	/**
@@ -878,7 +880,18 @@ public class ContentModelFactory {
 				final String	itemHelp = getAttribute(document,XML_ATTR_HELP);
 				final String	itemAction = getAttribute(document,XML_ATTR_ACTION);
 				final String	groupAction = getAttribute(document,XML_ATTR_GROUP);
+				final String	checkableAction = getAttribute(document,XML_ATTR_CHECKABLE);
+				final String	checkedAction = getAttribute(document,XML_ATTR_CHECKED);
 				final String	itemIcon = getAttribute(document,XML_ATTR_ICON);
+
+				final StringBuilder	sb = new StringBuilder();
+				
+				if (checkableAction != null) {
+					sb.append("&checkable=").append(checkableAction);
+				}
+				if (checkedAction != null) {
+					sb.append("&checked=").append(checkedAction);
+				}
 				
 				child = new MutableContentNodeMetadata(itemName
 						, String.class
@@ -888,7 +901,10 @@ public class ContentModelFactory {
 						, itemTooltip 
 						, itemHelp
 						, null
-						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction+(groupAction != null ? "#"+groupAction : ""))
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction
+									+(groupAction != null ? "#"+groupAction : "")
+									+ (!sb.isEmpty() ? '?'+sb.substring(1) : "")
+									)
 						, itemIcon == null || itemIcon.isEmpty() ? null : URI.create(itemIcon));
 				break;
 			case XML_TAG_APP_ITEM_REF	:

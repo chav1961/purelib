@@ -92,6 +92,8 @@
 		<xs:attribute name="name" type="xs:string" use="optional" />
 		<xs:attribute name="caption" type="xs:string" use="required" />
 		<xs:attribute name="enabled" type="xs:boolean" use="optional" />
+		<xs:attribute name="checkable" type="xs:boolean" use="optional" />
+		<xs:attribute name="checked" type="xs:boolean" use="optional" />
 		<xs:attribute name="action" type="xs:string" use="required" />
 		<xs:attribute name="tooltip" type="xs:string" use="required" />
 		<xs:attribute name="help" type="xs:string" use="optional" />
