@@ -176,14 +176,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 
 	private static final MimeType[]		CREOLE_DETECTED = new MimeType[] {PureLibSettings.MIME_CREOLE_TEXT};
 	private static final MimeType[]		HTML_DETECTED = new MimeType[] {PureLibSettings.MIME_HTML_TEXT};
-	private static final Set<String>	LOCALHOST_ALIASES = new HashSet<>(); 
-	
-	static {
-		LOCALHOST_ALIASES.add("localhost");
-		LOCALHOST_ALIASES.add("127.0.0.1");
-		LOCALHOST_ALIASES.add("view-localhost");
-		LOCALHOST_ALIASES.add("0:0:0:0:0:0:0:1");
-	}
 	
 	public interface NanoServiceEnvironment {
 		Connection getConnection() throws SQLException;
@@ -480,7 +472,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	public void handle(final NanoServiceEnvironment env,final InetSocketAddress remoteAddress, final QueryType queryType, final URI requestUri, final Map<String,List<String>> requestHeaders, final InputStream requestBody, final Map<String,List<String>> responseHeaders, final OutputStream responseBody) throws IOException {
 		final String	remoteHost = remoteAddress.getHostName();
 		
-		if (localhostOnly && !LOCALHOST_ALIASES.contains(remoteHost)) {
+		if (localhostOnly && !remoteAddress.getAddress().isLoopbackAddress()) {
 			env.fail(HttpURLConnection.HTTP_FORBIDDEN,"Illegal source address ["+remoteHost+"], only localhost addresses are currently available");
 		}
 		else if (!paused) {
