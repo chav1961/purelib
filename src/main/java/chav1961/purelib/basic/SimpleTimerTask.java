@@ -3,6 +3,8 @@ package chav1961.purelib.basic;
 import java.util.Date;
 import java.util.TimerTask;
 
+import chav1961.purelib.basic.interfaces.Maintenable;
+
 /**
  * <p>This class is a simple extension of {@linkplain TimerTask} to use it in lambda-styles calls.</p>
  * @author Alexander Chernomyrdin aka chav1961
@@ -125,5 +127,18 @@ public class SimpleTimerTask extends TimerTask {
 		
 		PureLibSettings.COMMON_MAINTENANCE_TIMER.scheduleAtFixedRate(stt, time, period);
 		return stt;
+	}
+	
+	
+	public static <T> SimpleTimerTask startMaintenance(final Maintenable<T> maintenable, final T content) {
+		if (maintenable == null) {
+			throw new NullPointerException("Maintenable can't be null");
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content can't be null");
+		}
+		else {
+			return start(()->maintenable.maintenance(content), maintenable.getMaintenancePeriod(), maintenable.getMaintenancePeriod());
+		}
 	}
 }
