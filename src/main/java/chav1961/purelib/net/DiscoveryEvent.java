@@ -2,7 +2,7 @@ package chav1961.purelib.net;
 
 import java.util.EventObject;
 
-import chav1961.purelib.net.AbstractDiscovery.DiscoveryEventType;
+import chav1961.purelib.net.interfaces.DiscoveryEventType;
 import chav1961.purelib.net.interfaces.MediaItemDescriptor;
 
 public class DiscoveryEvent extends EventObject {

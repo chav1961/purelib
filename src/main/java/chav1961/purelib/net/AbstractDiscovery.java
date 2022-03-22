@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -17,6 +16,7 @@ import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.interfaces.Maintenable;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.concurrent.interfaces.ExecutionControl;
+import chav1961.purelib.net.interfaces.DiscoveryEventType;
 import chav1961.purelib.net.interfaces.DiscoveryListener;
 import chav1961.purelib.net.interfaces.MediaAdapter;
 import chav1961.purelib.net.interfaces.MediaDescriptor;
@@ -24,30 +24,7 @@ import chav1961.purelib.net.interfaces.MediaItemDescriptor;
 
 public abstract class AbstractDiscovery <Broadcast extends Serializable, Query extends Serializable> implements Closeable, ExecutionControl, Maintenable<Object> {
 	public static final int		DEFAULT_RECORD_SIZE = 1024;
-	public static final int		DEFAULT_DISCOVERY_PERIOD = 30;
-	
-	public static enum DiscoveryEventType {
-		START(false),
-		PING(false),
-		PONG(true),
-		PAUSED(false),
-		RESUMED(false),
-		GET_STATE(false),
-		STATE(true),
-		QUERY_INFO(true),
-		INFO(true),
-		STOP(false);
-		
-		private final boolean	checkRandom;
-		
-		DiscoveryEventType(final boolean checkRandom) {
-			this.checkRandom = checkRandom;
-		}
-		
-		public boolean needCheckRandom() {
-			return checkRandom;
-		}
-	}
+	public static final int		DEFAULT_DISCOVERY_PERIOD = 30 * 1000;
 	
 	private final LightWeightListenerList<DiscoveryListener>	listeners = new LightWeightListenerList<>(DiscoveryListener.class);
 	private final MediaAdapter				adapter;
@@ -81,22 +58,22 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 	protected abstract Query getQueryInfo();
 
 	@Override
-	public void start() throws IOException {
+	public synchronized void start() throws IOException {
 		if (isStarted()) {
 			throw new IllegalStateException("Discovery already started");
 		}
 		else {
-			started = true;
+			stt = SimpleTimerTask.startMaintenance(this, this);
 			listener = new Thread(()->receiveLoop());
 			listener.setDaemon(true);
 			listener.start();
 			sendBroadcast(DiscoveryEventType.START, mediaDesc);
-			stt = SimpleTimerTask.startMaintenance(this, this);
+			started = true;	// order of the assignment is important
 		}
 	}
 
 	@Override
-	public void suspend() throws IOException {
+	public synchronized void suspend() throws IOException {
 		if (!isStarted()) {
 			throw new IllegalStateException("Discovery is not started");
 		}
@@ -104,13 +81,13 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 			throw new IllegalStateException("Discovery already suspended");
 		}
 		else {
-			sendBroadcast(DiscoveryEventType.PAUSED, mediaDesc);
-			suspended = true;
+			suspended = true;	// order of the assignment is important
+			sendBroadcast(DiscoveryEventType.SUSPENDED, mediaDesc);
 		}
 	}
 
 	@Override
-	public void resume() throws IOException {
+	public synchronized void resume() throws IOException {
 		if (!isStarted()) {
 			throw new IllegalStateException("Discovery is not started");
 		}
@@ -119,32 +96,32 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 		}
 		else {
 			sendBroadcast(DiscoveryEventType.RESUMED, mediaDesc);
-			suspended = false;
+			suspended = false;	// order of the assignment is important
 		}
 	}
 
 	@Override
-	public void stop() throws IOException {
+	public synchronized void stop() throws IOException {
 		if (!isStarted()) {
 			throw new IllegalStateException("Discovery already stopped");
 		}
 		else {
+			started = false;	// order of the assignment is important
 			stt.cancel();
 			stt = null;
-			listener.stop();
+			listener.interrupt();
 			listener = null;
 			sendBroadcast(DiscoveryEventType.STOP, mediaDesc);
-			started = false;
 		}
 	}
 
 	@Override
-	public boolean isStarted() {
+	public synchronized boolean isStarted() {
 		return started;
 	}
 
 	@Override
-	public boolean isSuspended() {
+	public synchronized boolean isSuspended() {
 		return suspended;
 	}
 	
@@ -172,12 +149,16 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 	}
 	
 	@Override
-	public void close() throws IOException {
+	public synchronized void close() throws IOException {
 		if (isStarted()) {
 			stop();
 		}
 	}
 
+	public MediaAdapter getMediaAdapter() {
+		return adapter;
+	}
+	
 	protected void sendBroadcast(final DiscoveryEventType type, final MediaDescriptor desc) throws IOException {
 		final DiscoveryRecord<Broadcast>	record = new DiscoveryRecord<>(type, -1, getBroadcastInfo());
 		final long		currentTime = System.currentTimeMillis();
@@ -186,35 +167,36 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 		for (MediaItemDescriptor item : desc.forAllItems()) {
 			final TimeoutCache		tc = new TimeoutCache(currentTime + 1000 * item.getTimeout(), record.random);  
 	        
-			adapter.sendPackage(item, content);
+			adapter.sendPackage(item, content, true);
 			cache.add(tc);
 		}
 	}
 
-	protected <T> void sendPackage(final DiscoveryEventType type, final MediaItemDescriptor item, T content) throws IOException {
+	protected <T extends Serializable> void sendPackage(final DiscoveryEventType type, final MediaItemDescriptor item, T content) throws IOException {
 		sendPackage(type, item, Math.random(), content);
 	}
 	
-	protected <T> void sendPackage(final DiscoveryEventType type, final MediaItemDescriptor item, double random, T query) throws IOException {
-		final DiscoveryRecord<T>	record = new DiscoveryRecord<>(type, -1, random, query);
+	protected <T extends Serializable> void sendPackage(final DiscoveryEventType type, final MediaItemDescriptor item, double random, T query) throws IOException {
+		final DiscoveryRecord<T>	record = new DiscoveryRecord<>(type, random, query);
 		final byte[]				content = serialize(record);
-		final TimeoutCache			tc = new TimeoutCache(System.currentTimeMillis() + 1000 * item.getTimeout(), record.random);  
-
-		adapter.sendPackage(item, content);
-		cache.add(tc);
+		
+		if (type.needCheckTimestamp()) {
+			cache.add(new TimeoutCache(System.currentTimeMillis() + 1000 * item.getTimeout(), record.random));
+		}
+		adapter.sendPackage(item, content, false);
 	}
 	
 	protected void receiveRecord(final MediaItemDescriptor desc) throws IOException {
 		final MediaItemDescriptor	rcv = adapter.receivePackage(desc, buffer);
 		final DiscoveryRecord<?>	rec = deserialize(buffer);
 		
-		if (rec.type.needCheckRandom()) {
+		if (rec.type.needCheckRandom() || rec.type.needCheckRandom()) {
 			final long	currentTime = System.currentTimeMillis();
 			
-			for (int index = cache.size(); index >= 0; index--) {
+			for (int index = cache.size() - 1; index >= 0; index--) {
 				final TimeoutCache		tc = cache.get(index);
 				
-				if (rec.random == tc.random) {
+				if (rec.random == tc.random || !rec.type.needCheckRandom()) {
 					if (currentTime > tc.timeout) {
 						cache.remove(index);
 					}
@@ -237,8 +219,8 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 			case STATE		:
 				processState(desc, (Neighbour)rec.info);
 				break;
-			case PAUSED		:
-				final DiscoveryEvent	dePaused = new DiscoveryEvent(DiscoveryEventType.RESUMED, desc, this);
+			case SUSPENDED		:
+				final DiscoveryEvent	dePaused = new DiscoveryEvent(DiscoveryEventType.SUSPENDED, desc, rec.info);
 				
 				synchronized (neighbours) {
 					for (Neighbour item : neighbours) {
@@ -272,7 +254,7 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 				listeners.fireEvent((l)->l.processEvent(deInfo));
 				break;
 			case RESUMED	:
-				final DiscoveryEvent	deResumed = new DiscoveryEvent(DiscoveryEventType.RESUMED, desc, this);
+				final DiscoveryEvent	deResumed = new DiscoveryEvent(DiscoveryEventType.RESUMED, desc, rec.info);
 				
 				synchronized (neighbours) {
 					for (Neighbour item : neighbours) {
@@ -300,10 +282,10 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 				listeners.fireEvent((l)->l.processEvent(deStart));
 				break;
 			case STOP		:
-				final DiscoveryEvent	deStop = new DiscoveryEvent(DiscoveryEventType.STOP, desc, this);
+				final DiscoveryEvent	deStop = new DiscoveryEvent(DiscoveryEventType.STOP, desc, rec.info);
 				
 				synchronized (neighbours) {
-					for (int index = neighbours.size(); index >= 0;index--) {
+					for (int index = neighbours.size() - 1; index >= 0;index--) {
 						final Neighbour	item = neighbours.get(index);
 						
 						if (item.desc.equals(desc)) {
@@ -327,27 +309,31 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 		synchronized (neighbours) {
 			for (Neighbour item : neighbours) {
 				if (item.desc.equals(desc)) {
-					if (item.paused != state.paused || item.available != state.available) {
-						final DiscoveryEvent	de = new DiscoveryEvent(DiscoveryEventType.STATE, desc, state);
-						
-						item.paused = state.paused;
-						item.available = state.available;
-						listeners.fireEvent((l)->l.processEvent(de));
-						return;
-					}
+					final DiscoveryEvent	de = new DiscoveryEvent(DiscoveryEventType.STATE, desc, "available="+state.available+",suspended="+state.paused);
+					
+					item.paused = state.paused;
+					item.available = state.available;
+					listeners.fireEvent((l)->l.processEvent(de));
+					return;
 				}
 			}
 		}
 	}
 
+	private synchronized void stopInternal() {
+		if (isStarted()) {
+			try{stop();
+			} catch (IOException e) {
+			}
+		}
+	}
+	
 	private void receiveLoop() {
-		try{while (isStarted()) {
+		try{while (!Thread.interrupted() && isStarted()) {
 				receiveRecord(adapter.getDescriptor());
 			}
-		} catch (IOException | ThreadDeath e) {
-			try{stop();
-			} catch (IOException e1) {
-			}
+		} catch (IOException e) {
+			stopInternal();
 		}
 	}
 
@@ -374,75 +360,26 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 		}
 	}
 
-	public static class InetAddressDescriptor {
-		public InetAddress	address;
-		public final int	port;
-		public final int	timeout;
+	protected static class DiscoveryRecord<T extends Serializable> implements Serializable {
+		private static final long serialVersionUID = 471593204403273250L;
+
+		private final DiscoveryEventType	type;
+		private final double				random;
+		private final T						info;
 		
-		public InetAddressDescriptor(final InetAddress address, final int port, final int timeout) {
-			if (address == null) {
-				throw new NullPointerException("Address can't be null"); 
-			}
-			else if (port < 0 || port >= Short.MAX_VALUE) {
-				throw new IllegalArgumentException("Port number ["+port+"] out of range 0.."+Short.MAX_VALUE); 
-			}
-			else if (timeout <= 0) {
-				throw new IllegalArgumentException("Timeout ["+timeout+"] must be positive"); 
-			}
-			else {
-				this.address = address;
-				this.port = port;
-				this.timeout = timeout;
-			}
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((address == null) ? 0 : address.hashCode());
-			result = prime * result + port;
-			result = prime * result + timeout;
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) return true;
-			if (obj == null) return false;
-			if (getClass() != obj.getClass()) return false;
-			InetAddressDescriptor other = (InetAddressDescriptor) obj;
-			if (address == null) {
-				if (other.address != null) return false;
-			} else if (!address.equals(other.address)) return false;
-			if (port != other.port) return false;
-			if (timeout != other.timeout) return false;
-			return true;
+		public DiscoveryRecord(final DiscoveryEventType	type, final T info) {
+			this(type, Math.random(), info);
+		}		
+		
+		public DiscoveryRecord(final DiscoveryEventType	type, final double random, final T info) {
+			this.type = type;
+			this.random = random;					
+			this.info = info;
 		}
 
 		@Override
 		public String toString() {
-			return "InetAddressDescriptor [address=" + address + ", port=" + port + ", timeout=" + timeout + "]";
-		}
-	}
-	
-	protected static class DiscoveryRecord<T> implements Serializable {
-		private static final long serialVersionUID = 471593204403273250L;
-
-		private final DiscoveryEventType	type;
-		private final int					answerPort;
-		private final double				random;
-		private final T						info;
-		
-		public DiscoveryRecord(final DiscoveryEventType	type, final int answerPort, final T info) {
-			this(type, answerPort, Math.random(), info);
-		}		
-		
-		public DiscoveryRecord(final DiscoveryEventType	type, final int answerPort, final double random, final T info) {
-			this.type = type;
-			this.answerPort = answerPort;
-			this.random = random;					
-			this.info = info;
+			return "DiscoveryRecord [type=" + type + ", random=" + random + ", info=" + info + "]";
 		}
 	}
 

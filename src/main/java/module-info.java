@@ -44,6 +44,7 @@ module chav1961.purelib {
 	exports chav1961.purelib.nanoservice;
 	exports chav1961.purelib.nanoservice.interfaces;
 	exports chav1961.purelib.net;
+	exports chav1961.purelib.net.interfaces;
 	exports chav1961.purelib.net.fsys;
 	exports chav1961.purelib.net.root;
 	exports chav1961.purelib.net.self;
