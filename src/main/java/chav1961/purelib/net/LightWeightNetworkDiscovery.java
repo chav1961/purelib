@@ -23,6 +23,11 @@ import chav1961.purelib.net.interfaces.MediaItemDescriptor;
 public abstract class LightWeightNetworkDiscovery<Broadcast extends Serializable, Query extends Serializable> extends AbstractDiscovery<Broadcast, Query> {
 	public static final int		DEFAULT_RECORD_SIZE = 1024;
 	public static final int		DEFAULT_DISCOVERY_PERIOD = 30;
+
+	@FunctionalInterface
+	public interface InetAddressWalker {
+		void process(final InetAddressDescriptor desc, boolean isSuspended);
+	}
 	
 	@FunctionalInterface
 	public interface PortBroadcastGenerator {
@@ -88,6 +93,15 @@ public abstract class LightWeightNetworkDiscovery<Broadcast extends Serializable
 	protected abstract Broadcast getBroadcastInfo();
 	protected abstract Query getQueryInfo();
 
+	protected void walk(final InetAddressWalker walker) {
+		if (walker == null) {
+			throw new NullPointerException("Walker can't be null");
+		}
+		else {
+			walk((MediaItemDescriptor item, boolean state)->walker.process(new InetAddressDescriptor(((MediaItemDescriptorImpl)item).addr, ((MediaItemDescriptorImpl)item).port, ((MediaItemDescriptorImpl)item).timeout), state));
+		}
+	}
+	
 	public static Iterable<BroadcastNetworkInterface> getAvailableNetworkInterfaces() throws SocketException {
 		final List<BroadcastNetworkInterface>	result = new ArrayList<>();
 		

@@ -25,6 +25,11 @@ import chav1961.purelib.net.interfaces.MediaItemDescriptor;
 public abstract class AbstractDiscovery <Broadcast extends Serializable, Query extends Serializable> implements Closeable, ExecutionControl, Maintenable<Object> {
 	public static final int		DEFAULT_RECORD_SIZE = 1024;
 	public static final int		DEFAULT_DISCOVERY_PERIOD = 30 * 1000;
+
+	@FunctionalInterface
+	protected interface DiscoveryItemsWalker<T extends MediaItemDescriptor> {
+		void process(T desc, boolean isSuspended);
+	}
 	
 	private final LightWeightListenerList<DiscoveryListener>	listeners = new LightWeightListenerList<>(DiscoveryListener.class);
 	private final MediaAdapter				adapter;
@@ -157,6 +162,21 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 
 	public MediaAdapter getMediaAdapter() {
 		return adapter;
+	}
+	
+	protected <T extends MediaItemDescriptor> void walk(final DiscoveryItemsWalker<T> walker) {
+		if (walker == null) {
+			throw new NullPointerException("Walker can'tbew null");
+		}
+		else {
+			synchronized(neighbours) {
+				for (Neighbour item : neighbours) {
+					if (item.available) {
+						walker.process((T)item.desc, item.paused);
+					}
+				}
+			}
+		}
 	}
 	
 	protected void sendBroadcast(final DiscoveryEventType type, final MediaDescriptor desc) throws IOException {
