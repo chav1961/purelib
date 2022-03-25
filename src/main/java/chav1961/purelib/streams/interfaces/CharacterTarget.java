@@ -8,9 +8,9 @@ import chav1961.purelib.basic.exceptions.PrintingException;
  * @see chav1961.purelib.streams.chartarget
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @lastUpdate 0.0.6
  */
-public interface CharacterTarget {
+public interface CharacterTarget extends Appendable {
 	/**
 	 * <p>Put symbol into the target</p>
 	 * @param symbol symbol to put

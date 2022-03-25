@@ -1,5 +1,7 @@
 package chav1961.purelib.streams.chartarget;
 
+import java.io.IOException;
+
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
@@ -9,8 +11,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
- *
+ * @lastUpdate 0.0.6
  */
 public class StringBuilderCharTarget implements CharacterTarget {
 	private final StringBuilder target;
@@ -82,6 +83,41 @@ public class StringBuilderCharTarget implements CharacterTarget {
 			target.append(source,from, to);
 			written += to - from;
 			return this;
+		}
+	}
+
+	@Override
+	public Appendable append(final CharSequence csq) throws IOException {
+		if (csq == null) {
+			throw new NullPointerException("Sequence toadd can't be null");
+		}
+		else {
+			return append(csq, 0, csq.length());
+		}
+	}
+
+	@Override
+	public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
+		if (csq == null) {
+			throw new NullPointerException("Sequence toadd can't be null");
+		}
+		else {
+			try{for(int index=start; index < end; index++) {
+						put(csq.charAt(index));
+				}
+				return this;
+			} catch (PrintingException e) {
+				throw new IOException(e.getLocalizedMessage(), e);
+			}
+		}
+	}
+
+	@Override
+	public Appendable append(char c) throws IOException {
+		try{put(c);
+			return this;
+		} catch (PrintingException e) {
+			throw new IOException(e.getLocalizedMessage(), e); 
 		}
 	}
 	
