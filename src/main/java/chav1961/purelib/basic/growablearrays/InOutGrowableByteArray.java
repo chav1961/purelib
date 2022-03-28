@@ -405,10 +405,10 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		else if (off < 0 || off >= b.length) {
 			throw new IllegalArgumentException("Offset ["+off+"] out of range. Valig range is 0.."+(b.length));
 		}
-		else if (len < 0 || len >= b.length) {
+		else if (len < 0 || len > b.length) {
 			throw new IllegalArgumentException("Length ["+len+"] out of range. Valig range is 0.."+(b.length));
 		}
-		else if (off + len < 0 || off + len >= b.length) {
+		else if (off + len < 0 || off + len > b.length) {
 			throw new IllegalArgumentException("Offset + length ["+(off+len)+"] out of range. Valig range is 0.."+(b.length-1));
 		}
 		else {

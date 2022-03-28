@@ -191,8 +191,10 @@ class ClassConstantsRepo implements Closeable {
 	}
 
 	int dump(final InOutGrowableByteArray os) throws IOException {
-		os.write(iogba.toPlain().toArray(),0,iogba.length());
-		return iogba.length();
+		final byte[] content = iogba.extract();
+		
+		os.write(content,0,content.length);
+		return content.length;
 	}
 	
 	private short nextVal() throws ContentException {

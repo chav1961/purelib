@@ -565,7 +565,7 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 		 */
 		public static FileSystemInterface newInstance(final URI fsiUri) throws IllegalArgumentException, IOException{
 			if (fsiUri == null || !FILESYSTEM_URI_SCHEME.equals(fsiUri.getScheme())) {
-				throw new IllegalArgumentException("Localizer URI can't be null and must have scheme ["+FILESYSTEM_URI_SCHEME+"]"); 
+				throw new IllegalArgumentException("Filesystem URI can't be null and must have scheme ["+FILESYSTEM_URI_SCHEME+"]"); 
 			}
 			else {
 				return FileSystemFactory.createFileSystem(fsiUri);

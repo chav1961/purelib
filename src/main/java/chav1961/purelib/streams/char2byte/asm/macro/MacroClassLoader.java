@@ -3,6 +3,7 @@ package chav1961.purelib.streams.char2byte.asm.macro;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.MalformedURLException;
@@ -66,7 +67,7 @@ public class MacroClassLoader extends URLClassLoader {
 				try(final Reader	rdr = asmContent.getReader();
 					final Writer	wr = diagnostics != null ? new AsmWriter(baos,diagnostics) : new AsmWriter(baos)) {
 				
-					Utils.copyStream(rdr,wr);
+					Utils.copyStream(rdr, wr);
 				}
 				
 				diag("Define macro class ["+className+"]...");
