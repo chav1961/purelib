@@ -469,7 +469,11 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("'id' ["+id+"] need be non-negtive");
 		}
 		else {
+			
+			System.err.println("PLACE: "+new String(source,from,to-from)+",id="+id);
+			
 			final TermNode	node = (TermNode) placeNameInternal(source,from,to);
+			System.err.println("PLACED: id="+node.id+",createId="+createId+",refreshCargo="+refreshCargo);
 			
 			if (to-from > maxNameLength) {
 				maxNameLength = to - from;
@@ -489,11 +493,12 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			if (refreshCargo || node.cargo == null) {
 				node.cargo = cargo;
 			}
+			System.err.println("PLACED: total id="+node.id);
 			return node.id;
 		}
 	}
 	
-	private Node placeNameInternal(final char[] source, int from, final int to) {
+	private synchronized Node placeNameInternal(final char[] source, int from, final int to) {
 		Node		root = this.root, prev = null, newChain;
 		AndNode		chain1, chain2, chain3;
 		OrNode		chainOr;
@@ -504,11 +509,11 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 seek:	for(;;) {
 			switch (root.type) {
 				case TYPE_OR 	:
-					try{
-					symbol = source[from];
-					} catch (ArrayIndexOutOfBoundsException exc) {
-						symbol = 0;
-					}
+//					try{
+						symbol = from >= source.length ? 0 : source[from];
+//					} catch (ArrayIndexOutOfBoundsException exc) {
+//						symbol = 0;
+//					}
 					temp = ((OrNode)root).chars;
 					maxIndex = ((OrNode)root).filled;
 					

@@ -139,6 +139,7 @@ class MethodBody extends AbstractMethodBody {
 		}
 		labelRequired = false;
 		labels.add(new ItemDescriptor(id,getPC()));
+		System.err.println("Label add: "+tree.getName(id)+",id="+id);
 	}
 
 	@Override
@@ -160,6 +161,7 @@ class MethodBody extends AbstractMethodBody {
 			}
 		}
 		brunches.add(new ItemDescriptor(labelId,address,placement,shortBranch));
+		System.err.println("Brunch add: "+tree.getName(labelId)+",id="+labelId);
 	}
 	
 	@Override
@@ -216,8 +218,17 @@ class MethodBody extends AbstractMethodBody {
 		StringBuilder	sb = null;
 		
 		Arrays.sort(labelsArray,COMPARATOR);
+		for (ItemDescriptor item : labelsArray) {
+			System.err.println("Label=["+tree.getName(item.id)+"],id="+item.id);
+		}
+		
+		
 loop:	for (ItemDescriptor item : brunches) {
 			if (item.id != 0) {
+				if (item.id == 1905) {
+					int x = 10;
+				}
+				System.err.println("Brunch=["+tree.getName(item.id)+"],item="+item.id);
 				int low = 0, high = labelsArray.length - 1, mid, delta;
 
 				while (low <= high) {
