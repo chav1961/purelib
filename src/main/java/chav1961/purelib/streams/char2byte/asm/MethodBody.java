@@ -222,12 +222,8 @@ class MethodBody extends AbstractMethodBody {
 			System.err.println("Label=["+tree.getName(item.id)+"],id="+item.id);
 		}
 		
-		
 loop:	for (ItemDescriptor item : brunches) {
 			if (item.id != 0) {
-				if (item.id == 1905) {
-					int x = 10;
-				}
 				System.err.println("Brunch=["+tree.getName(item.id)+"],item="+item.id);
 				int low = 0, high = labelsArray.length - 1, mid, delta;
 

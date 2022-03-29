@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -468,6 +469,8 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		amount = 0;
 	}
 
+	private static final Set<String> SS = Set.of("skip1","skip2","skip3","skip4","skip5"); 
+	
 	private long placeName(final char[] source, final int from, final int to, final long id, final T cargo, final boolean createId, final boolean refreshCargo) {
 		final int	len;
 		
@@ -492,17 +495,34 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 //				pw.println("PLACE: "+new String(source,from,to-from)+",id="+id);
 //				print(root,pw,"");
 //			}
+			final String	s = new String(source,from,to-from);
 			
 			if (to < source.length && source[to] < ' ') {
-				System.err.println("ADD <"+new String(source,from,to-from)+">");
+				System.err.println("ADD <"+s+"> "+size());
 			}
 			else if (source[to-1] < ' ') {
-				System.err.println("ADD++ <"+new String(source,from,to-from)+">");
+				System.err.println("ADD++ <"+s+"> "+size());
+			}
+			else {
+				System.err.println("ADD-- <"+s+"> "+size());
 			}
 			
-			final TermNode	node = (TermNode) placeNameInternal(source,from,to);
-//			if (print) {
-//				pw.println("PLACED: id="+node.id+",createId="+createId+",refreshCargo="+refreshCargo);
+			if (SS.contains(s)) {
+//				final PrintWriter pw = new PrintWriter(System.err); 
+//				print(root,pw,"");
+//				pw.flush();
+			}
+			
+			final TermNode	node = (TermNode) placeNameInternal(source,from,to,SS.contains(s));
+
+//			if (SS.contains(s)) {
+//				final PrintWriter pw = new PrintWriter(System.err); 
+//				print(root,pw,"");
+//				pw.flush();
+//			}
+			
+			//			if (print) {
+				System.err.println("PLACED: id="+node.id+",createId="+createId+",refreshCargo="+refreshCargo);
 //			}
 			
 			if (to-from > maxNameLength) {
@@ -531,7 +551,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		}
 	}
 	
-	private Node placeNameInternal(final char[] source, int from, final int to) {
+	private Node placeNameInternal(final char[] source, int from, final int to, final boolean print) {
 		Node		root = this.root, prev = null, newChain;
 		AndNode		chain1, chain2, chain3;
 		OrNode		chainOr;
@@ -549,6 +569,12 @@ seek:	for(;;) {
 //					}
 					temp = ((OrNode)root).chars;
 					maxIndex = ((OrNode)root).filled;
+					if (print) {
+						if (symbol == ':' || symbol < ' ') {
+							int x = 0;
+						}
+						System.err.println("Root: OR {"+symbol+"} for "+Arrays.toString(temp));
+					}
 					
 			        low = 0;	high = maxIndex - 1;
 			        while (low <= high) {	// Binary search
@@ -561,6 +587,9 @@ seek:	for(;;) {
 			            else {
 							prev = root;
 							root = ((OrNode)root).children[prevIndex = mid];
+							if (print) {
+								System.err.println("Root: OR found at "+mid);
+							}
 							continue seek;
 			            }
 			        }
@@ -589,13 +618,23 @@ seek:	for(;;) {
 					((OrNode)root).children[mid] = newChain = createAndTail(source,from,to);
 					newChain.parent = root;
 					((OrNode)root).filled++;
+
+					if (print) {
+						System.err.println("Root: OR expand ");
+					}
 					
 					return ((AndNode)newChain).child;
 				case TYPE_AND 	:
 					temp = ((AndNode)root).chars;
+					if (print) {
+						System.err.println("Root: And for "+Arrays.toString(temp));
+					}
 					for (index = 0, maxIndex = temp.length; from < to && index < maxIndex; index++, from++) {
 						if (temp[index] != source[from]) {	// And strings are different
 							if (index == 0) {				// OR node will be in the beginning
+								if (print) {
+									System.err.println("Root: And +0");
+								}
 								chainOr = new OrNode();
 								chainOr.filled = 2;
 								chainOr.parent = root.parent;
@@ -628,6 +667,9 @@ seek:	for(;;) {
 								root = chainOr;
 							}
 							else {	// Need cutting strings
+								if (print) {
+									System.err.println("Root: And +1");
+								}
 								chain1 = new AndNode(index);
 								System.arraycopy(((AndNode)root).chars,0,chain1.chars,0,index);
 								chain1.parent = root.parent;
@@ -675,6 +717,9 @@ seek:	for(;;) {
 						}
 					}
 					if (from == to && index < maxIndex) {	// Need cutting strings and insert term inside 
+						if (print) {
+							System.err.println("Root: And +2");
+						}
 						chain1 = new AndNode(index);
 						System.arraycopy(((AndNode)root).chars,0,chain1.chars,0,index);
 						chain1.parent = root.parent;
@@ -698,27 +743,44 @@ seek:	for(;;) {
 						return chainTerm;
 					}
 					else if (((AndNode)root).child == null) {
+						if (print) {
+							System.err.println("Root: And +3");
+						}
 						return ((AndNode)root).child = new TermNode(root,null);
 					}
 					else {
 						prev = root;
 						root = ((AndNode)root).child;
 					}
+					if (print) {
+						System.err.println("Root: And +4");
+					}
 					break;
 				case TYPE_TERM	:
 					if (from == to) {
+						if (print) {
+							System.err.println("Term: 1");
+						}
 						return root;
 					}
 					else if (((TermNode)root).child == null) {
 						((TermNode)root).child = newChain = createAndTail(source,from,to);
 						newChain.parent = root;
+						if (print) {
+							System.err.println("Term: 2");
+						}
 						return ((AndNode)newChain).child;
 					}
 					else {
 						prev = root; 
 						root = ((TermNode)root).child;
 					}
+					if (print) {
+						System.err.println("Term: 3");
+					}
 					break;
+				default			:
+					throw new UnsupportedOperationException();
 			}
 		}
 	}
@@ -880,8 +942,10 @@ seek:	while (root != null && from < to) {
 			ps.print(prefix);
 			switch (root.type) {
 				case TYPE_OR 	:
-					ps.println("OR: "+Arrays.toString(Arrays.copyOf(((OrNode)root).chars, ((OrNode)root).filled)));
+					ps.println("OR: "+Arrays.toString(((OrNode)root).chars)+" "+((OrNode)root).filled);
 					for (int index = 0, maxIndex = ((OrNode)root).filled; index < maxIndex; index++) {
+						ps.print(prefix);
+						ps.println("*OR: {"+((OrNode)root).chars[index]+"}");
 						print(((OrNode)root).children[index], ps, prefix+"  ");
 					}
 					break;
@@ -894,6 +958,7 @@ seek:	while (root != null && from < to) {
 					print(((TermNode)root).child, ps, prefix+"  ");
 					break;
 				default:
+					ps.println("ANother!!!");
 			}
 		}
 	}	
