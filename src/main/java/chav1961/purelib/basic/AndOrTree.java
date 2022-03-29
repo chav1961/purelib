@@ -1,7 +1,12 @@
 package chav1961.purelib.basic;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.Arrays;
 
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedUtils;
 
@@ -55,6 +60,19 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	private static final int	TYPE_TERM = 2;
 	private static final int	RANGE_ALLOCATE = 8;
 	private static final int	RANGE_STEP = 64;
+	
+//	private static final OutputStream	os; 
+//	private static final PrintWriter	pw;
+//	public static boolean print = false; 
+//	
+//	static {
+//		try {
+//			os = new FileOutputStream("c:/tmp/z.txt",true);
+//			pw = new PrintWriter(os);
+//		} catch (FileNotFoundException e) {
+//			throw new PreparationException(e); 
+//		}
+//	}
 	
 	private final long			step;
 	private final int[]			forPosition = new int[1];
@@ -470,10 +488,22 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		}
 		else {
 			
-			System.err.println("PLACE: "+new String(source,from,to-from)+",id="+id);
+//			if (print) {
+//				pw.println("PLACE: "+new String(source,from,to-from)+",id="+id);
+//				print(root,pw,"");
+//			}
+			
+			if (to < source.length && source[to] < ' ') {
+				System.err.println("ADD <"+new String(source,from,to-from)+">");
+			}
+			else if (source[to-1] < ' ') {
+				System.err.println("ADD++ <"+new String(source,from,to-from)+">");
+			}
 			
 			final TermNode	node = (TermNode) placeNameInternal(source,from,to);
-			System.err.println("PLACED: id="+node.id+",createId="+createId+",refreshCargo="+refreshCargo);
+//			if (print) {
+//				pw.println("PLACED: id="+node.id+",createId="+createId+",refreshCargo="+refreshCargo);
+//			}
 			
 			if (to-from > maxNameLength) {
 				maxNameLength = to - from;
@@ -493,12 +523,15 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			if (refreshCargo || node.cargo == null) {
 				node.cargo = cargo;
 			}
-			System.err.println("PLACED: total id="+node.id);
+//			if (print) {
+//				pw.println("PLACED: total id="+node.id);
+//				pw.flush();
+//			}
 			return node.id;
 		}
 	}
 	
-	private synchronized Node placeNameInternal(final char[] source, int from, final int to) {
+	private Node placeNameInternal(final char[] source, int from, final int to) {
 		Node		root = this.root, prev = null, newChain;
 		AndNode		chain1, chain2, chain3;
 		OrNode		chainOr;
@@ -841,6 +874,29 @@ seek:	while (root != null && from < to) {
 			return null;
 		}
 	}
+
+	protected void print(final Node root, final PrintWriter ps, final String prefix) {
+		if (root != null) {
+			ps.print(prefix);
+			switch (root.type) {
+				case TYPE_OR 	:
+					ps.println("OR: "+Arrays.toString(Arrays.copyOf(((OrNode)root).chars, ((OrNode)root).filled)));
+					for (int index = 0, maxIndex = ((OrNode)root).filled; index < maxIndex; index++) {
+						print(((OrNode)root).children[index], ps, prefix+"  ");
+					}
+					break;
+				case TYPE_AND 	:
+					ps.println("AND: "+Arrays.toString(((AndNode)root).chars));
+					print(((AndNode)root).child, ps, prefix+"  ");
+					break;
+				case TYPE_TERM	:
+					ps.println("TERM: "+((TermNode)root).id+", child "+(((TermNode)root).child != null ? "presents" : "missing"));
+					print(((TermNode)root).child, ps, prefix+"  ");
+					break;
+				default:
+			}
+		}
+	}	
 	
 	@SuppressWarnings("unchecked")
 	private boolean walk(final Node root, final char[] place, final int from, final Walker<T> callback) {
