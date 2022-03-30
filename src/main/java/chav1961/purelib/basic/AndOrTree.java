@@ -469,8 +469,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		amount = 0;
 	}
 
-	private static final Set<String> SS = Set.of("skip1","skip2","skip3","skip4","skip5"); 
-	
 	private long placeName(final char[] source, final int from, final int to, final long id, final T cargo, final boolean createId, final boolean refreshCargo) {
 		final int	len;
 		
@@ -490,40 +488,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("'id' ["+id+"] need be non-negtive");
 		}
 		else {
-			
-//			if (print) {
-//				pw.println("PLACE: "+new String(source,from,to-from)+",id="+id);
-//				print(root,pw,"");
-//			}
-			final String	s = new String(source,from,to-from);
-			
-			if (to < source.length && source[to] < ' ') {
-				System.err.println("ADD <"+s+"> "+size());
-			}
-			else if (source[to-1] < ' ') {
-				System.err.println("ADD++ <"+s+"> "+size());
-			}
-			else {
-				System.err.println("ADD-- <"+s+"> "+size());
-			}
-			
-			if (SS.contains(s)) {
-//				final PrintWriter pw = new PrintWriter(System.err); 
-//				print(root,pw,"");
-//				pw.flush();
-			}
-			
-			final TermNode	node = (TermNode) placeNameInternal(source,from,to,SS.contains(s));
-
-//			if (SS.contains(s)) {
-//				final PrintWriter pw = new PrintWriter(System.err); 
-//				print(root,pw,"");
-//				pw.flush();
-//			}
-			
-			//			if (print) {
-				System.err.println("PLACED: id="+node.id+",createId="+createId+",refreshCargo="+refreshCargo);
-//			}
+			final TermNode	node = (TermNode) placeNameInternal(source,from,to,false);
 			
 			if (to-from > maxNameLength) {
 				maxNameLength = to - from;
@@ -543,10 +508,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			if (refreshCargo || node.cargo == null) {
 				node.cargo = cargo;
 			}
-//			if (print) {
-//				pw.println("PLACED: total id="+node.id);
-//				pw.flush();
-//			}
 			return node.id;
 		}
 	}
@@ -557,15 +518,21 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		OrNode		chainOr;
 		TermNode	chainTerm;
 		char		temp[], symbol, midVal;
-		int			index, maxIndex, prevIndex = 0, low, high, mid = 0, len;
+		int			index, maxIndex, prevIndex = 0, low, high, mid = 0, len, theEnd = Math.min(source.length, to);
 		
 seek:	for(;;) {
 			switch (root.type) {
 				case TYPE_OR 	:
 //					try{
-						symbol = from >= source.length ? 0 : source[from];
+						symbol = from >= theEnd ? 0 : source[from];
 //					} catch (ArrayIndexOutOfBoundsException exc) {
 //						symbol = 0;
+//					}
+//					if (symbol == ':' || symbol < ' ') {
+//						final PrintWriter pw = new PrintWriter(System.err);
+//						print(pw);
+//						pw.flush();
+//						int x = 0;
 //					}
 					temp = ((OrNode)root).chars;
 					maxIndex = ((OrNode)root).filled;
@@ -937,6 +904,10 @@ seek:	while (root != null && from < to) {
 		}
 	}
 
+	public void print(final PrintWriter ps) {
+		print(this.root,ps,"");
+	}
+	
 	protected void print(final Node root, final PrintWriter ps, final String prefix) {
 		if (root != null) {
 			ps.print(prefix);

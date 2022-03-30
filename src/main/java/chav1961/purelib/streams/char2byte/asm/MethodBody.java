@@ -2,11 +2,13 @@ package chav1961.purelib.streams.char2byte.asm;
 
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
@@ -269,6 +271,10 @@ loop:	for (ItemDescriptor item : brunches) {
 		}
 		if (sb != null) {
 			final String	clazz = tree.getName(className), method = tree.getName(methodName);
+			
+			final PrintWriter	pw = new PrintWriter(System.err);
+			((AndOrTree)tree).print(pw);
+			pw.flush();
 			
 			throw new ContentException("Class ["+clazz+"], method ["+method+"] - unresolved jumps: labels {"+sb.toString()+"} are not defined in the method body!");
 		}

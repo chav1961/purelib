@@ -51,6 +51,18 @@ public class SyntaxTreeTest {
 
 	@Category(OrdinalTestCategory.class)
 	@Test
+	public void specialTest() {
+		final SyntaxTreeInterface<String>	sti = new AndOrTree<>();
+		final long	id1 = sti.placeOrChangeName("skip20_1", "skip20_1");
+		final long	id2 = sti.placeOrChangeName("skip20_2", "skip20_2");
+		final long	id3 = sti.placeOrChangeName("skip2", "skip2");
+		final long	id4 = sti.placeOrChangeName("skip2", "skip2");
+		
+		Assert.assertEquals(id3, id4);
+	}	
+	
+	@Category(OrdinalTestCategory.class)
+	@Test
 	public void extendedFunctionalityTest() {
 		extendedFunctionalityTest(new AndOrTree<Object>());
 		extendedFunctionalityTest(new OrdinalSyntaxTree<Object>());
