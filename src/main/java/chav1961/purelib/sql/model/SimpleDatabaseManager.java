@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,6 +39,7 @@ import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.sql.interfaces.InstanceManager;
 import chav1961.purelib.sql.model.SQLModelUtils.ConnectionGetter;
 import chav1961.purelib.sql.model.interfaces.DatabaseManagement;
+import chav1961.purelib.sql.model.interfaces.DatabaseModelManagement;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.byte2byte.SQLDataOutputStream;
@@ -74,11 +76,26 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 
 	private final LoggerFacade					logger;
-	private final ContentNodeMetadata 			model;
+	private final DatabaseModelManagement<T>	modelMgmt;
 	private final ConnectionGetter				connGetter;
 	private final DatabaseManagementGetter<T>	mgmtGetter;
-	
+
 	public SimpleDatabaseManager(final LoggerFacade logger, final ContentNodeMetadata model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
+		this(logger, new DatabaseModelManagement<T>() {
+			private final DatabaseModelContent<T>	content = new DatabaseModelContent<T>() {
+														@Override public T getVersion() {return (T)"0";}
+														@Override public ContentNodeMetadata getModel() {return model;}
+													};
+													
+			@Override public int size() {return 1;}
+			@Override public T getVersion(int versionNumber) {return content.getVersion();}
+			@Override public ContentNodeMetadata getModel(int versionNumber) {return content.getModel();}
+			@Override public Iterable<DatabaseModelContent<T>> allAscending() {return Arrays.asList(content);}
+			@Override public Iterable<DatabaseModelContent<T>> allDescending() {return Arrays.asList(content);}
+		} ,connGetter, mgmtGetter);
+	}	
+	
+	public SimpleDatabaseManager(final LoggerFacade logger, final DatabaseModelManagement<T> model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
 		if (logger == null) {
 			throw new NullPointerException("Logger can't be null"); 
 		}
@@ -93,7 +110,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		}
 		else {
 			this.logger = logger;
-			this.model = model;
+			this.modelMgmt = model;
 			this.connGetter = connGetter;
 			this.mgmtGetter = mgmtGetter;
 			
@@ -110,37 +127,37 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 					if (rs.next()) {
 						trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] found in the database, schema="+conn.getSchema());
 						
-						final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getName());
+						final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheLastModel().getName());
 						final T						oldVersion = oldModel == null ? mgmt.getInitialVersion() : mgmt.getVersion(oldModel);
-						final T						currentVersion = mgmt.getVersion(model); 
+						final T						currentVersion = model.getTheLastVersion(); 
 						final int					result = currentVersion.compareTo(oldVersion);
 						
 						if (result > 0) {
 							trans.message(Severity.info, "Current model version ["+currentVersion+"] is newer than database version ["+oldVersion+"], upgrade will be called");
-							mgmt.onUpgrade(conn, currentVersion, model, oldVersion, oldModel);
+							mgmt.onUpgrade(conn, currentVersion, model.getTheLastModel(), oldVersion, oldModel);
 							trans.message(Severity.info, "Upgrade to version ["+currentVersion+"] completed");
-							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model, model.getName(), currentVersion);
+							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheLastModel(), model.getTheLastModel().getName(), currentVersion);
 							trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
 						}
 						else if (result < 0) {
 							trans.message(Severity.info, "Current model version ["+currentVersion+"] is older  than database version ["+oldVersion+"], downgrade will be called");
-							mgmt.onDowngrade(conn, currentVersion, model, oldVersion, oldModel);
+							mgmt.onDowngrade(conn, currentVersion, model.getTheLastModel(), oldVersion, oldModel);
 							trans.message(Severity.info, "Downgrade to version ["+currentVersion+"] completed");
-							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model, model.getName(), currentVersion);
+							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheLastModel(), model.getTheLastModel().getName(), currentVersion);
 							trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
 						}
 					}
 					else {
 						try{trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] not found in the database, schema="+conn.getSchema()+". Version infrastructure will be prepared now");
-							createDbVersionTable(conn, VERSION_MODEL, model.getName());
+							createDbVersionTable(conn, VERSION_MODEL, model.getTheLastModel().getName());
 							trans.message(Severity.info, "Version infrastructure was prepared in the database, schema="+conn.getSchema()+", create model infrastructure will be called now");
-							mgmt.onCreate(conn, model);
+							mgmt.onCreate(conn, model.getTheLastModel());
 							trans.message(Severity.info, "Create model infrastructure completed, schema="+conn.getSchema()+", version ["+mgmt.getInitialVersion()+"]");
-							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model, model.getName(), mgmt.getVersion(model));
-							trans.message(Severity.info, "Database version stored, version ["+mgmt.getVersion(model)+"]");
+							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheLastModel(), model.getTheLastModel().getName(), model.getTheLastVersion());
+							trans.message(Severity.info, "Database version stored, version ["+model.getTheLastVersion()+"]");
 						} catch (SQLException exc) {
 							trans.message(Severity.error, exc, "Exception was detected, database will be rolled back");
-							removeDbVersionTable(conn, model, model.getName());
+							removeDbVersionTable(conn, model.getTheLastModel(), model.getTheLastModel().getName());
 							trans.message(Severity.error, exc, "Database rollback completed");
 						}
 					}
@@ -158,18 +175,18 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 
 	@Override
 	public ContentNodeMetadata getNodeMetadata() {
-		return model;
+		return modelMgmt.getTheLastModel();
 	}
 	
 	public Connection getConnection() throws SQLException {
 		final Connection	conn = connGetter.getConnection();
 		
-		mgmtGetter.getManagementInterface(conn).onOpen(conn, model);
+		mgmtGetter.getManagementInterface(conn).onOpen(conn, modelMgmt.getTheLastModel());
 		return conn;
 	}
 	
 	public ContentNodeMetadata getCurrentDatabaseModel() throws SQLException {
-		return loadLastDbVersion(getConnection(), VERSION_MODEL, model.getName());
+		return loadLastDbVersion(getConnection(), VERSION_MODEL, modelMgmt.getTheLastModel().getName());
 	}
 
 	public DatabaseManagement<T> getManagement() throws SQLException {
