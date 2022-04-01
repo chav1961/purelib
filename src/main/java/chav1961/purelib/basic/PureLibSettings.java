@@ -4,23 +4,31 @@ package chav1961.purelib.basic;
 import java.awt.Color;
 import java.awt.datatransfer.DataFlavor;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -68,7 +76,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
 public final class PureLibSettings {
@@ -577,6 +585,26 @@ public final class PureLibSettings {
 			return "I/O error reading 'about' information";
 		}
 	}
+
+	public static void preloadNatives(final URI nativesRoot) throws IOException {
+		preloadNatives(nativesRoot, (s)->true);
+	}
+	
+	public static void preloadNatives(final URI nativesRoot, final Predicate<String> tester) throws IOException {
+		if (nativesRoot == null) {
+			throw new NullPointerException("Natives root can't be null");
+		}
+		else if (tester == null) {
+			throw new NullPointerException("Tester predicate can't be null");
+		}
+		else {
+			try(final InputStream		is = nativesRoot.toURL().openStream();
+				final ZipInputStream	zis = new ZipInputStream(is)) {
+				
+				NativeLoader.loadLibraries(zis, tester);
+			}
+		}
+	}
 	
 	private static Color toRGB(final String rgb) {
 		if (!rgb.isEmpty()) {
@@ -676,6 +704,163 @@ public final class PureLibSettings {
 		@Override
 		public String toString() {
 			return "WellKnownSchemaImpl [schemaName=" + schemaName + ", description=" + description + ", factoryClass=" + factoryClass + ", supportsSpi=" + supportsSpi + "]";
+		}
+	}
+	
+	// @see https://github.com/scijava/native-lib-loader
+	private static class NativeLoader {
+		private enum SystemType {
+			UNKNOWN(""), 
+			LINUX_32("linux_32/"), 
+			LINUX_64("linux_64/"), 
+			LINUX_ARM("linux_arm/"), 
+			LINUX_ARM64("linux_arm64/"), 
+			WINDOWS_32("windows_32/"), 
+			WINDOWS_64("windows_64/"), 
+			WINDOWS_ARM64("windows_arm64/"), 
+			OSX_32("osx_32/"), 
+			OSX_64("osx_32/"), 
+			OSX_PPC("osx_ppc/"), 
+			OSX_ARM64("osx_arm64/"), 
+			AIX_32("aix_32/"), 
+			AIX_64("aix_64/");
+			
+			private final String	subdir;
+			
+			private SystemType(final String subdir) {
+				this.subdir = subdir;
+			}
+			
+			String getSubdir(){
+				return subdir;
+			}
+		}
+		
+		private enum ProcType {
+			UNKNOWN, 
+			INTEL_32, 
+			INTEL_64, 
+			PPC, 
+			PPC_64, 
+			ARM, 
+			AARCH_64;
+		}
+
+		static void loadLibraries(final ZipInputStream zis,final Predicate<String> tester) throws IOException{
+			final ProcType		proc = getProcessor();
+			final SystemType	sys = getSystemType(proc);
+			
+			if (proc == ProcType.UNKNOWN || sys == SystemType.UNKNOWN) {
+				throw new IOException("Processor/architecture of your computer was not detected correctly"); 
+			}
+			else {
+				final File		tmpDir = new File(System.getProperty("java.io.tmpdir")); 
+				ZipEntry		ze;
+				
+				while ((ze = zis.getNextEntry()) != null) {
+					if (ze.getName().startsWith(sys.getSubdir())) {
+						final String	name = new File(ze.getName()).getName();
+						
+						if (tester.test(name)) {
+							final File	temp = File.createTempFile("native", ".bin", tmpDir);
+							
+							temp.deleteOnExit();
+							try(final OutputStream	os = new FileOutputStream(temp)) {
+								Utils.copyStream(zis, os);
+							}
+							System.load(temp.getAbsolutePath());
+						}
+					}
+				}
+			}
+			
+		}
+		
+		private static ProcType getProcessor() {
+			final String 	arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
+			ProcType 		processor = ProcType.UNKNOWN;
+
+			if (arch.contains("arm")) {
+				processor = ProcType.ARM;
+			}
+			else if (arch.contains("aarch64")) {
+				processor = ProcType.AARCH_64;
+			}
+			else if (arch.contains("ppc")) {
+				processor = arch.contains("64") ? ProcType.PPC_64 : ProcType.PPC;
+			}
+			else if (arch.contains("86") || arch.contains("amd")) {
+				processor = arch.contains("64") ? ProcType.INTEL_64 : ProcType.INTEL_32;
+			}
+			return processor;
+		}
+		
+		public static SystemType getSystemType(final ProcType processor) {
+			final String 	name = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+			SystemType		architecture = SystemType.UNKNOWN;
+			
+			if (ProcType.UNKNOWN != processor) {
+				if (name.contains("nix") || name.contains("nux")) {
+					switch (processor) {
+						case INTEL_32 :
+							architecture = SystemType.LINUX_32;
+							break;
+						case INTEL_64 :
+							architecture = SystemType.LINUX_64;
+							break;
+						case ARM :
+							architecture = SystemType.LINUX_ARM;
+							break;
+						case AARCH_64 :
+							architecture = SystemType.LINUX_ARM64;
+							break;
+						default :
+					}
+				}
+				else if (name.contains("aix")) {
+					switch (processor) {
+						case PPC :
+							architecture = SystemType.AIX_32;
+							break;
+						case PPC_64 :
+							architecture = SystemType.AIX_64;
+							break;
+						default :
+					}
+				}
+				else if (name.contains("win")) {
+					switch (processor) {
+						case INTEL_32 :
+							architecture = SystemType.WINDOWS_32;
+							break;
+						case INTEL_64 :
+							architecture = SystemType.WINDOWS_64;
+							break;
+						case AARCH_64 :
+							architecture = SystemType.WINDOWS_ARM64;
+							break;
+						default :
+					}
+				}
+				else if (name.contains("mac")) {
+					switch (processor) {
+						case INTEL_32 :
+							architecture = SystemType.OSX_32;
+							break;
+						case INTEL_64 :
+							architecture = SystemType.OSX_64;
+							break;
+						case AARCH_64 :
+							architecture = SystemType.OSX_ARM64;
+							break;
+						case PPC :
+							architecture = SystemType.OSX_PPC;
+							break;
+						default :
+					}
+				}
+			}
+			return architecture;
 		}
 	}
 }
