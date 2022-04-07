@@ -9,7 +9,7 @@ module chav1961.purelib {
 	requires transitive java.scripting;
 	requires java.xml;
 	requires java.logging;
-	requires jdk.jdi;
+	requires transitive jdk.jdi;
 	requires jdk.unsupported;
 	requires transitive java.sql;
 	requires transitive java.rmi;
