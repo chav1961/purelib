@@ -2,7 +2,9 @@ package chav1961.purelib.cdb;
 
 import java.util.Iterator;
 
+import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.event.Event;
+import com.sun.jdi.request.EventRequest;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.cdb.interfaces.SignatureKeeper;
@@ -23,6 +25,7 @@ public class FieldWatcher extends Abstract2LevelDebugWatcher<MonitorWatcher> imp
 	}	
 	
 	public FieldWatcher(final String fieldSignature) {
+		super(MonitorWatcher.class);
 		if (fieldSignature == null || fieldSignature.isEmpty()) {
 			throw new IllegalArgumentException("Field signature can't be null or empty");
 		}
@@ -70,4 +73,30 @@ public class FieldWatcher extends Abstract2LevelDebugWatcher<MonitorWatcher> imp
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	protected void prepareEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void enableEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void disableEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void unprepareEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
 }

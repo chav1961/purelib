@@ -1,34 +1,41 @@
 package chav1961.purelib.cdb;
 
+
 import chav1961.purelib.cdb.interfaces.DebugWatcher;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.concurrent.LightWeightListenerList.LightWeightListenerCallback;
 
-import java.util.function.Consumer;
-
 import com.sun.jdi.request.EventRequest;
+import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.event.Event;
 
 abstract class AbstractDebugWatcher implements DebugWatcher {
+	static enum ContentChangeType {
+		CONTENT_ADDED,
+		CONTENT_REMOVED;
+	}
+
+	@FunctionalInterface
 	interface ContentChangeListener {
-		enum ChangeType {
-			CONTENT_ADDED,
-			CONTENT_REMOVED;
-		}
-		
-		void process(DebugWatcher owner, ChangeType type, DebugWatcher item);
+		void process(DebugWatcher owner, ContentChangeType type, DebugWatcher item);
 	}
-	
-	protected enum WatcherState {
-		PREPARED,
-		BOUNDED,
+
+	static enum StateChangeType {
+		STARTED,
 		SUSPENDED,
-		TERMINATED;
+		RESUMED,
+		STOPPED;
+	}
+
+	@FunctionalInterface
+	interface StateChangeListener {
+		void process(StateChangeType type, DebugWatcher item);
 	}
 	
-	private final LightWeightListenerList<ContentChangeListener>	listeners = new LightWeightListenerList<>(ContentChangeListener.class);  	
+	private final LightWeightListenerList<ContentChangeListener>	contentListeners = new LightWeightListenerList<>(ContentChangeListener.class);  	
+	private final LightWeightListenerList<StateChangeListener>		stateListeners = new LightWeightListenerList<>(StateChangeListener.class);  	
 	private boolean			started = false;
 	private boolean			suspended = false;
-	private WatcherState	state = WatcherState.PREPARED;
 	private AbstractDebugWatcher	parent = null; 
 	private EventRequest	request = null;
 	
@@ -44,7 +51,11 @@ abstract class AbstractDebugWatcher implements DebugWatcher {
 		}
 	}
 
-	protected abstract <T extends com.sun.jdi.event.Event> void processEvent(T event);
+	abstract <T extends Event> void processEvent(T event);
+	abstract void prepareEventRequests(final VirtualMachine vm);
+	abstract void enableEventRequests(final VirtualMachine vm);
+	abstract void disableEventRequests(final VirtualMachine vm);
+	abstract void unprepareEventRequests(final VirtualMachine vm);
 	
 	@Override
 	public void start() throws Exception {
@@ -53,6 +64,7 @@ abstract class AbstractDebugWatcher implements DebugWatcher {
 		}
 		else {
 			started = true;
+			fireStateChangeEvent((l)->l.process(StateChangeType.STARTED, this));
 		}
 	}
 
@@ -66,9 +78,7 @@ abstract class AbstractDebugWatcher implements DebugWatcher {
 		}
 		else {
 			suspended = true;
-			if (getEventRequest() != null) {
-				getEventRequest().disable();
-			}
+			fireStateChangeEvent((l)->l.process(StateChangeType.SUSPENDED, this));
 		}
 	}
 
@@ -82,9 +92,7 @@ abstract class AbstractDebugWatcher implements DebugWatcher {
 		}
 		else {
 			suspended = false;
-			if (getEventRequest() != null) {
-				getEventRequest().enable();
-			}
+			fireStateChangeEvent((l)->l.process(StateChangeType.RESUMED, this));
 		}
 	}
 
@@ -94,10 +102,8 @@ abstract class AbstractDebugWatcher implements DebugWatcher {
 			throw new IllegalStateException("Entity was not started yet"); 
 		}
 		else {
-			if (getEventRequest() != null) {
-				getEventRequest().disable();
-			}
 			started = false;
+			fireStateChangeEvent((l)->l.process(StateChangeType.STOPPED, this));
 		}
 	}
 
@@ -121,19 +127,6 @@ abstract class AbstractDebugWatcher implements DebugWatcher {
 		}
 	}
 	
-	protected WatcherState getState() {
-		return state;
-	}
-	
-	protected void setState(final WatcherState state) {
-		if (state == null) {
-			this.state = state;
-		}
-		else {
-			this.state = state;
-		}
-	}
-	
 	protected void setParent(final AbstractDebugWatcher parent) {
 		if (parent == null) {
 			throw new NullPointerException("Parent ref can't be null"); 
@@ -150,24 +143,28 @@ abstract class AbstractDebugWatcher implements DebugWatcher {
 	protected AbstractDebugWatcher getParent() {
 		return parent;
 	}
-	
-	protected <T extends EventRequest> void associateEventRequest(final T request) {
-		this.request = this.request;
-	}
-	
-	protected <T extends EventRequest> T getEventRequest() {
-		return (T) request;
-	}
-	
+
 	void addContentChangeListener(final ContentChangeListener listener) {
-		listeners.addListener(listener);
+		contentListeners.addListener(listener);
 	}
 
 	void removeContentChangeListener(final ContentChangeListener listener) {
-		listeners.removeListener(listener);
+		contentListeners.removeListener(listener);
 	}
 	
-	void fireEvent(final LightWeightListenerCallback<ContentChangeListener> callback) {
-		listeners.fireEvent(callback);
+	void fireContentChangeEvent(final LightWeightListenerCallback<ContentChangeListener> callback) {
+		contentListeners.fireEvent(callback);
+	}
+
+	void addStateChangeListener(final StateChangeListener listener) {
+		stateListeners.addListener(listener);
+	}
+
+	void removeStateChangeListener(final StateChangeListener listener) {
+		stateListeners.removeListener(listener);
+	}
+	
+	void fireStateChangeEvent(final LightWeightListenerCallback<StateChangeListener> callback) {
+		stateListeners.fireEvent(callback);
 	}
 }

@@ -2,7 +2,9 @@ package chav1961.purelib.cdb;
 
 import java.util.Iterator;
 
+import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.event.Event;
+import com.sun.jdi.request.EventRequest;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.cdb.interfaces.SignatureKeeper;
@@ -23,6 +25,7 @@ public class MethodWatcher extends Abstract2LevelDebugWatcher<BreakpointWatcher>
 	}
 	
 	public MethodWatcher(final String methodSignature) {
+		super(BreakpointWatcher.class);
 		if (methodSignature == null || methodSignature.isEmpty()) {
 			throw new IllegalArgumentException("Method signature can't be null or empty");
 		}
@@ -70,5 +73,30 @@ public class MethodWatcher extends Abstract2LevelDebugWatcher<BreakpointWatcher>
 		
 	}
 
+	@Override
+	protected void prepareEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void enableEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void disableEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void unprepareEventRequests(VirtualMachine vm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
 	
 }

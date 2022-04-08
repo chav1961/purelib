@@ -1,19 +1,21 @@
 package chav1961.purelib.cdb;
 
-import java.util.Iterator;
-
 import com.sun.jdi.ThreadReference;
-import com.sun.jdi.event.VMStartEvent;
 
+import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.event.VMStartEvent;
+import com.sun.jdi.event.Event;
 import chav1961.purelib.cdb.VMWatcher.VMEventProcessor.EventType;
 
 import com.sun.jdi.event.VMDeathEvent;
+import com.sun.jdi.request.VMDeathRequest;
 
 public class VMWatcher extends Abstract2LevelDebugWatcher<ThreadWatcher> {
 	@FunctionalInterface
 	public static interface VMEventProcessor  {
 		public enum EventType {
 			START,
+			DISCONNECT,
 			TERMINATE;
 		}
 		
@@ -21,8 +23,10 @@ public class VMWatcher extends Abstract2LevelDebugWatcher<ThreadWatcher> {
 	}
 	
 	private final VMEventProcessor	proc;
+	private VMDeathRequest			vmd = null;
 	
 	public VMWatcher(final VMEventProcessor proc) {
+		super(ThreadWatcher.class);
 		if (proc == null) {
 			throw new NullPointerException("Thread event processor can't be null");
 		}
@@ -32,25 +36,7 @@ public class VMWatcher extends Abstract2LevelDebugWatcher<ThreadWatcher> {
 	}
 
 	@Override
-	public Iterator<ThreadWatcher> iterator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addWatcher(ThreadWatcher watcher) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void removeWatcher(ThreadWatcher watcher) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	protected <T extends com.sun.jdi.event.Event> void processEvent(T event) {
+	<T extends Event> void processEvent(T event) {
 		if (isStarted() && !isSuspended()) {
 			if (event instanceof VMStartEvent) {
 				proc.process(EventType.START, ((VMStartEvent)event).thread());
@@ -61,4 +47,23 @@ public class VMWatcher extends Abstract2LevelDebugWatcher<ThreadWatcher> {
 		}
 	}
 
+	@Override
+	void prepareEventRequests(final VirtualMachine vm) {
+		vmd = vm.eventRequestManager().createVMDeathRequest();
+	}
+
+	@Override
+	void enableEventRequests(final VirtualMachine vm) {
+		vmd.enable();
+	}
+
+	@Override
+	void disableEventRequests(final VirtualMachine vm) {
+		vmd.disable();
+	}
+
+	@Override
+	void unprepareEventRequests(final VirtualMachine vm) {
+		vm.eventRequestManager().deleteEventRequest(vmd);
+	}
 }
