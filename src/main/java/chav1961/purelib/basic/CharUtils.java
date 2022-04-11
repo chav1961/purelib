@@ -2293,6 +2293,26 @@ loop:		for (index = from; index < len; index++) {
 							index--;
 							temp[start++] = (char)hex;
 							break;
+						case 'U' 	:
+							int	hexLong = 0;
+							
+							index += 2;
+							while (index < maxIndex && ((currentChar = content.charAt(index)) >= '0' && currentChar <= '9' || currentChar >= 'a' && currentChar <= 'f' || currentChar >= 'A' && currentChar <= 'F') ) {
+								if (currentChar >= '0' && currentChar <= '9') {
+									hexLong = 16 * hexLong + currentChar - '0';
+								}
+								else if (currentChar >= 'a' && currentChar <= 'f') {
+									hexLong = 16 * hexLong + currentChar - 'a' + 10;
+								}
+								else {
+									hexLong = 16 * hexLong + currentChar - 'A' + 10;
+								}
+								index++;
+							}
+							index--;
+							temp[start++] = Character.highSurrogate(hexLong);
+							temp[start++] = Character.lowSurrogate(hexLong);
+							break;
 						default :
 							throw new IllegalArgumentException("Wrong escape sequence at position ["+index+"]");
  					}

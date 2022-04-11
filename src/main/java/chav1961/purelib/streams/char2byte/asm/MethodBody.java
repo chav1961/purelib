@@ -141,7 +141,6 @@ class MethodBody extends AbstractMethodBody {
 		}
 		labelRequired = false;
 		labels.add(new ItemDescriptor(id,getPC()));
-		System.err.println("Label add: "+tree.getName(id)+",id="+id);
 	}
 
 	@Override
@@ -163,7 +162,6 @@ class MethodBody extends AbstractMethodBody {
 			}
 		}
 		brunches.add(new ItemDescriptor(labelId,address,placement,shortBranch));
-		System.err.println("Brunch add: "+tree.getName(labelId)+",id="+labelId);
 	}
 	
 	@Override
@@ -220,13 +218,9 @@ class MethodBody extends AbstractMethodBody {
 		StringBuilder	sb = null;
 		
 		Arrays.sort(labelsArray,COMPARATOR);
-		for (ItemDescriptor item : labelsArray) {
-			System.err.println("Label=["+tree.getName(item.id)+"],id="+item.id);
-		}
 		
 loop:	for (ItemDescriptor item : brunches) {
 			if (item.id != 0) {
-				System.err.println("Brunch=["+tree.getName(item.id)+"],item="+item.id);
 				int low = 0, high = labelsArray.length - 1, mid, delta;
 
 				while (low <= high) {
@@ -272,9 +266,9 @@ loop:	for (ItemDescriptor item : brunches) {
 		if (sb != null) {
 			final String	clazz = tree.getName(className), method = tree.getName(methodName);
 			
-			final PrintWriter	pw = new PrintWriter(System.err);
-			((AndOrTree)tree).print(pw);
-			pw.flush();
+//			final PrintWriter	pw = new PrintWriter(System.err);
+//			((AndOrTree)tree).print(pw);
+//			pw.flush();
 			
 			throw new ContentException("Class ["+clazz+"], method ["+method+"] - unresolved jumps: labels {"+sb.toString()+"} are not defined in the method body!");
 		}

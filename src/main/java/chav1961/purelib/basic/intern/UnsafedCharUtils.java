@@ -36,6 +36,7 @@ public class UnsafedCharUtils {
 
 	private static final int		OCT_ESCAPE_SIZE = 3;
 	private static final int		U_ESCAPE_SIZE = 4;
+	private static final int		U_ESCAPE8_SIZE = 8;
 //	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 //	private static final char		WILDCARD_ANY_SEQ = '*';
 //	private static final char		WILDCARD_ANY_CHAR = '?';
@@ -956,6 +957,33 @@ public class UnsafedCharUtils {
 								}
 								result.append((char)hexVal);
 								index += U_ESCAPE_SIZE;
+							}
+							break;
+						case 'U' 	:
+							if (index + 4 >= len - U_ESCAPE8_SIZE) {
+								throw new IllegalArgumentException("Escape \\UXXXXXXXX sequence at the "+(index-from+1)+"-th char is too short");
+							}
+							else {
+								int		hexVal = 0;
+								char	symbol;
+								
+								for (int chars = index + 2; chars < index + 2 + U_ESCAPE8_SIZE; chars++) {
+									if ((symbol = source[chars]) >= '0' && symbol <= '9') {
+										hexVal = (hexVal << 4) + symbol - '0';
+									}
+									else if (symbol >= 'a' && symbol <= 'f') {
+										hexVal = (hexVal << 4) + symbol - 'a' + 10;
+									}
+									else if (symbol >= 'A' && symbol <= 'F') {
+										hexVal = (hexVal << 4) + symbol - 'A' + 10;
+									}
+									else {
+										throw new IllegalArgumentException("Escape \\UXXXXXXXX sequence at the "+(index-from+1)+"-th char has illegal hex value ("+source[index]+")");
+									}
+								}
+								result.append(Character.highSurrogate(hexVal));
+								result.append(Character.lowSurrogate(hexVal));
+								index += U_ESCAPE8_SIZE;
 							}
 							break;
 						default : throw new IllegalArgumentException("Illegal escape sequence at the "+(index-from+1)+"-th char of the string ("+source[index]+")");

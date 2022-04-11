@@ -1,9 +1,13 @@
 package chav1961.purelib.sql;
 
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.sql.interfaces.RawAndOrTreeInterface;
 
 public class MappedAndOrTree implements RawAndOrTreeInterface  {
-	public MappedAndOrTree() {
+	public MappedAndOrTree(final LoggerFacade logger, final FileChannel channel) {
 		
 	}
 	
@@ -35,5 +39,13 @@ public class MappedAndOrTree implements RawAndOrTreeInterface  {
 	public long removeContent(byte[] content, int from, int length) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	
+	private long allocate(final long size) throws IOException {
+		return 0;
+	}
+	
+	private void free(final long address, final long size) throws IOException {
+		
 	}
 }

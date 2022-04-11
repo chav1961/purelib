@@ -44,9 +44,6 @@ class MacroCommand extends Command implements Cloneable {
 	private boolean						committed = false;
 
 	MacroCommand(final char[] name) {
-		if ("parms".equals(new String(name))) {
-			System.err.println("PARMS:  ");
-		}
 		this.name = name;
 	}
 	

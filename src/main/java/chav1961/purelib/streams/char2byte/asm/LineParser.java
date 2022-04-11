@@ -561,7 +561,6 @@ class LineParser implements LineByLineProcessorCallback {
 						case insideClassBody :
 						case insideBegin :
 							putLabel(id);
-							System.err.println("Put label: "+tree.getName(id)+",id="+id+",source="+new String(data, startName,endName-startName));
 							break;
 						default :
 							throw new ContentException("Branch label outside the method body!");
@@ -2668,7 +2667,6 @@ class LineParser implements LineByLineProcessorCallback {
 		final int	startName = start, endName = start = skipSimpleName(data,start);
 		
 		result[0] = cc.getNameTree().placeOrChangeName(data,startName,endName,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
-		System.err.println("Calc branch: "+cc.getNameTree().getName(result[0])+",id="+result[0]+",source="+new String(data,startName,endName-startName));
 		return start;
 	}
 	
