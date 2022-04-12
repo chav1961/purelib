@@ -1,19 +1,22 @@
 package chav1961.purelib.io;
 
+import java.io.Closeable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.Flushable;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.charset.Charset;
+import java.util.function.Consumer;
 
 import chav1961.purelib.basic.PureLibSettings;
 
-public class MappedDataInputOutput implements DataInput, DataOutput, Flushable {
+public class MappedDataInputOutput implements DataInput, DataOutput, Flushable, Closeable {
 	private final MappedByteBuffer	delegate;
 	private final Charset			charset;
+	private final Consumer<MappedDataInputOutput>	closeConsumer;
 	
-	public MappedDataInputOutput(final MappedByteBuffer delegate, final Charset charset) {
+	public MappedDataInputOutput(final MappedByteBuffer delegate, final Charset charset, final Consumer<MappedDataInputOutput> closeConsumer) {
 		if (delegate == null) {
 			throw new NullPointerException("Buffer delegate can't be null"); 
 		}
@@ -23,6 +26,7 @@ public class MappedDataInputOutput implements DataInput, DataOutput, Flushable {
 		else {
 			this.delegate = delegate;
 			this.charset = charset;
+			this.closeConsumer = closeConsumer;
 		}
 	}
 
@@ -33,6 +37,12 @@ public class MappedDataInputOutput implements DataInput, DataOutput, Flushable {
 	@Override
 	public void flush() throws IOException {
 		delegate.force();
+	}
+
+	@Override
+	public void close() throws IOException {
+		flush();
+		closeConsumer.accept(this);
 	}
 	
 	@Override
@@ -223,4 +233,5 @@ public class MappedDataInputOutput implements DataInput, DataOutput, Flushable {
 			write(content);
 		}
 	}
+
 }
