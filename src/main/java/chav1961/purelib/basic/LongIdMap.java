@@ -13,7 +13,7 @@ import java.util.Arrays;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @lastUpdate 0.0.6
  */
 public class LongIdMap<T> {
 	private static final int	RANGE_STEP = 64;
@@ -21,6 +21,11 @@ public class LongIdMap<T> {
 	private final Class<T>		contentType;
 	private T[][][][]			content;
 	private long				maxValue = 0;
+	
+	@FunctionalInterface
+	public static interface WalkCallback<T> {
+		void process(long id, T content);
+	}
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -171,6 +176,19 @@ public class LongIdMap<T> {
 			remove(index);
 		}
 		maxValue = 0;
+	}
+
+	public void walk(final WalkCallback<T> callback) {
+		if (callback == null) {
+			throw new NullPointerException("Walk callback can't be null"); 
+		}
+		else {
+			for (long id = 0; id < maxValue(); id++) {
+				if (contains(id)) {
+					callback.process(id, get(id));
+				}
+			}
+		}
 	}
 	
 	@Override

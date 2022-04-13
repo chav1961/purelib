@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
@@ -25,6 +26,7 @@ import chav1961.purelib.io.interfaces.RawMemoryInterface;
 public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flushable, LoggerFacadeOwner {
 	private static final int	TOP_MAGIC = 0xFFEFCDED;
 	private static final int	CLUSTER_MAGIC = 0xFFEFCDDE;
+	private static final int	AREA_HEADER_MAGIC = 0xFFEFCD00;
 	
 	private final LoggerFacade						logger;
 	private final RandomAccessFile					raf; 
@@ -32,8 +34,7 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 	private final Charset							charset;
 	private final TopRecord							top;
 	private final LightWeightRWLockerWrapper		clusterWrapper = new LightWeightRWLockerWrapper();
-	private final List<ClusterRecordAndLocation>	clusters = new ArrayList<>();
-	private volatile long 							lastRemovedCluster = -1;
+	private final LongIdMap<ClusterRecordAndLocation>	clusters = new LongIdMap<>(ClusterRecordAndLocation.class);
 	
 	public MappedMemoryManager(final LoggerFacade logger, final File file, final Charset charset) throws IOException {
 		if (logger == null) {
@@ -105,7 +106,7 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 	public long createMemoryCluster(final long clusterSize, final long clusterDelta, final int maxPiece) throws IOException {
 		final long		ref = top.freeRefHigh-ClusterRecord.sizeOf();
 		
-		try(final Locker l = clusterWrapper.lock(false)) {
+		try(final Locker l = getLocker(false)) {
 			if (top.clusterRef == 0) {
 				try(final MappedDataInputOutput	mdioCluster = getMap(ref, ClusterRecord.sizeOf());
 					final MappedDataInputOutput	mdioTop = getMap(0, TopRecord.sizeOf())) {
@@ -116,16 +117,18 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 					top.clusterRef = ref;
 					top.freeRefHigh = ref;
 					TopRecord.store(top, mdioTop);
-					clusters.add(new ClusterRecordAndLocation(cr, ref));
-					return clusters.size()-1;
+					clusters.put(0, new ClusterRecordAndLocation(cr, ref));
+					return 0;
 				}
 			}
 			else {
 				try(final MappedDataInputOutput	mdioCluster = getMap(ref, ClusterRecord.sizeOf());
 					final MappedDataInputOutput	mdioClusterOld = getMap(getLastClusterRef(), ClusterRecord.sizeOf());
-					final MappedDataInputOutput	mdioTop = getMap(clusters.size(), TopRecord.sizeOf())) {
+					final MappedDataInputOutput	mdioTop = getMap(0, TopRecord.sizeOf())) {
 					
-					final ClusterRecord	cr = new ClusterRecord(newClusterId(), clusterSize, clusterDelta, maxPiece);
+					final long			clusterId = newClusterId();
+					
+					final ClusterRecord	cr = new ClusterRecord(clusterId, clusterSize, clusterDelta, maxPiece);
 					final ClusterRecord	crOld = getLastCluster();
 					
 					ClusterRecord.store(cr, mdioCluster);
@@ -135,8 +138,8 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 					top.clusterRef = ref;
 					top.freeRefHigh = ref;
 					TopRecord.store(top, mdioTop);
-					clusters.add(new ClusterRecordAndLocation(cr, ref));
-					return clusters.size()-1;
+					clusters.put(clusterId, new ClusterRecordAndLocation(cr, ref));
+					return clusterId;
 				}
 			}
 		} finally {
@@ -146,22 +149,48 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 
 	@Override
 	public void dropMemoryCluster(final long clusterId) throws IOException {
-		// TODO Auto-generated method stub
-		lastRemovedCluster = clusterId;
+		try(final Locker l = getLocker(false)) {
+			if (!clusters.contains(clusterId)) {
+				throw new IOException("Attempt to remove non-existent cluster ["+clusterId+"]"); 
+			}
+			else {
+				final ClusterRecordAndLocation	crl = clusters.remove(clusterId);
+				
+				clusters.walk((id,rec)->{
+					if (rec.record.prevClusterLocation == crl.location) {
+						rec.record.prevClusterLocation = crl.record.prevClusterLocation;
+						
+						try(final MappedDataInputOutput	mdioCluster = getMap(rec.location, ClusterRecord.sizeOf());
+							final MappedDataInputOutput	mdioTop = getMap(0, TopRecord.sizeOf())) {
+							
+							ClusterRecord.store(rec.record, mdioCluster);
+							if (top.clusterRef == crl.location) {
+								top.clusterRef = crl.record.prevClusterLocation;
+								TopRecord.store(top, mdioTop);
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			}
+		}
 	}
 
 	@Override
-	public long allocate(long clusterId, long size) throws IOException {
+	public RawMemoryClusterInterface useMemoryCluster(final long clusterId) throws IOException {
 		// TODO Auto-generated method stub
-		return 0;
+		return null;
+	}
+	
+	protected Locker getLocker(final boolean lockMode) {
+		return clusterWrapper.lock(lockMode);
 	}
 
-	@Override
-	public void free(long clusterId, long address, long size) throws IOException {
-		// TODO Auto-generated method stub
-		
+	protected Locker getLocker(final long lockerId, final boolean lockMode) {
+		return clusterWrapper.lock(lockMode);
 	}
-
+	
 	public static void prepareMemory(final File	file, final long size) throws IOException {
 		try(final OutputStream		os = new FileOutputStream(file);
 			final DataOutputStream	dos = new DataOutputStream(os)) {
@@ -186,21 +215,14 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 			try(final MappedDataInputOutput	mdioCluster = getMap(ref, ClusterRecord.sizeOf())) {
 				final ClusterRecord			clr = ClusterRecord.load(mdioCluster);
 				
-				clusters.add(new ClusterRecordAndLocation(clr, ref));
+				clusters.put(clr.clusterId, new ClusterRecordAndLocation(clr, ref));
 				ref = clr.prevClusterLocation;
 			}
 		} while (ref != 0);  
 	}
 
 	private long newClusterId() {
-		long	clusterId = 0;
-		
-		for (ClusterRecordAndLocation item : clusters) {
-			if (item.record.clusterId > clusterId) {
-				clusterId = item.record.clusterId; 
-			}
-		}
-		return Math.max(clusterId, lastRemovedCluster + 1);
+		return clusters.firstFree();
 	}
 	
 	private MappedDataInputOutput getMap(final long address, final long size) throws IOException {
@@ -208,23 +230,28 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 	}
 
 	private ClusterRecord getLastCluster() {
-		for (ClusterRecordAndLocation item: clusters) {
-			if (item.record.prevClusterLocation == 0) {
-				return item.record;
-			}
-		}
-		throw new IllegalArgumentException();
+		return getLastClusterDesc().record;
 	}
 
 	private long getLastClusterRef() {
-		for (ClusterRecordAndLocation item: clusters) {
-			if (item.record.prevClusterLocation == 0) {
-				return item.location;
-			}
-		}
-		throw new IllegalArgumentException();
+		return getLastClusterDesc().location;
 	}
 
+	private ClusterRecordAndLocation getLastClusterDesc() {
+		final ClusterRecordAndLocation[]	result = new ClusterRecordAndLocation[1];
+		
+		clusters.walk((id,item)->{
+			if (item.record.prevClusterLocation == 0) {
+				result[0] = item;
+			}
+		});
+		if (result[0] != null) {
+			throw new IllegalArgumentException();
+		}
+		else {
+			return result[0]; 
+		}
+	}
 	
 	private static interface RecordInterface {
 		long size();
@@ -355,6 +382,126 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 		@Override
 		public String toString() {
 			return "ClusterRecordAndLocation [record=" + record + ", location=" + location + "]";
+		}
+	}
+	
+	private static class AreaRecordHeader implements RecordInterface {
+		final int	magic = AREA_HEADER_MAGIC;
+		long		nextRecordHeader;
+		long		contentSize;
+		long		freeContentDispl;
+		long		usedChainDispl;
+		long		freeChainDispl;
+
+		public AreaRecordHeader(long contentSize) {
+			this(0, contentSize, sizeOf(), 0, 0);
+		}
+		
+		public AreaRecordHeader(long nextRecordHeader, long contentSize, long freeContentDispl, long usedChainDispl, long freeChainDispl) {
+			this.nextRecordHeader = nextRecordHeader;
+			this.contentSize = contentSize;
+			this.freeContentDispl = freeContentDispl;
+			this.usedChainDispl = usedChainDispl;
+			this.freeChainDispl = freeChainDispl;
+		}
+		
+		@Override
+		public long size() {
+			return sizeOf();
+		}
+
+		@Override
+		public String toString() {
+			return "AreaRecordHeader [magic=" + magic + ", nextRecordHeader=" + nextRecordHeader + ", contentSize="
+					+ contentSize + ", freeContentDispl=" + freeContentDispl + ", usedChainDispl=" + usedChainDispl
+					+ ", freeChainDispl=" + freeChainDispl + "]";
+		}
+
+		static int sizeOf() {
+			return 44;
+		}
+
+		static AreaRecordHeader load(final DataInput in) throws IOException {
+			final int	magic = in.readInt();
+			
+			if (magic != AREA_HEADER_MAGIC) {
+				throw new IOException("Illegal magic ["+magic+"] for area header, must be ["+AREA_HEADER_MAGIC+"]"); 
+			}
+			else {
+				return new AreaRecordHeader(in.readLong(), in.readLong(), in.readLong(), in.readLong(),in.readLong());
+			}
+		}
+
+		static void store(final AreaRecordHeader rec, final DataOutput out) throws IOException {
+			out.writeInt(rec.magic);
+			out.writeLong(rec.nextRecordHeader);
+			out.writeLong(rec.contentSize);
+			out.writeLong(rec.freeContentDispl);
+			out.writeLong(rec.usedChainDispl);
+			out.writeLong(rec.freeChainDispl);
+		}
+	}
+
+	private static class AreaRecordBefore implements RecordInterface {
+		long		contentSize;	// sign < 0 - free 
+		long		contentNextDispl;
+		
+		public AreaRecordBefore(final long contentSize, final long contentNextDispl) {
+			this.contentSize = contentSize;
+			this.contentNextDispl = contentNextDispl;
+		}
+		
+		@Override
+		public long size() {
+			return sizeOf();
+		}
+		
+		@Override
+		public String toString() {
+			return "AreaRecordBefore [contentSize=" + contentSize + ", contentNextDispl=" + contentNextDispl + "]";
+		}
+
+		static int sizeOf() {
+			return 16;
+		}
+
+		static AreaRecordBefore load(final DataInput in) throws IOException {
+			return new AreaRecordBefore(in.readLong(), in.readLong());
+		}
+
+		static void store(final AreaRecordBefore rec, final DataOutput out) throws IOException {
+			out.writeLong(rec.contentSize);
+			out.writeLong(rec.contentNextDispl);
+		}
+	}
+
+	private static class AreaRecordAfter implements RecordInterface {
+		long		contentSize;	// sign < 0 - free 
+		
+		public AreaRecordAfter(final long contentSize) {
+			this.contentSize = contentSize;
+		}
+		
+		@Override
+		public long size() {
+			return sizeOf();
+		}
+
+		@Override
+		public String toString() {
+			return "AreaRecordAfter [contentSize=" + contentSize + "]";
+		}
+
+		static int sizeOf() {
+			return 8;
+		}
+
+		static AreaRecordAfter load(final DataInput in) throws IOException {
+			return new AreaRecordAfter(in.readLong());
+		}
+
+		static void store(final AreaRecordAfter rec, final DataOutput out) throws IOException {
+			out.writeLong(rec.contentSize);
 		}
 	}
 }
