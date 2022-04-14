@@ -48,10 +48,10 @@ import chav1961.purelib.model.UniqueIdContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ORMModelMapper;
 import chav1961.purelib.sql.SQLUtils;
-import chav1961.purelib.sql.SQLUtils.DbTypeDescriptor;
 import chav1961.purelib.sql.interfaces.InstanceManager;
 import chav1961.purelib.sql.interfaces.SQLErrorType;
 import chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter;
+import chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter.StandardExceptions;
 import chav1961.purelib.sql.model.internal.DefaultDatabaseModelAdapter;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
@@ -64,11 +64,11 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * @since 0.0.6
  */
 public class SQLModelUtils {
-	private static DatabaseModelAdapter	DEFAULT_MODEL_ADAPTER = new DefaultDatabaseModelAdapter();
-	private static final AtomicInteger	AI = new AtomicInteger();
-	private static final AsmWriter		ASM_WRITER;
-	private static final Set<String>	LOBS = Set.of("BLOB", "CLOB", "NCLOB", "BYTEA");
-	private static final Pattern		PART_PATTERN = Pattern.compile("([^\\.]+)\\.([^@]+)@(.*)");
+	private static final DatabaseModelAdapter	DEFAULT_MODEL_ADAPTER = new DefaultDatabaseModelAdapter();
+	private static final AtomicInteger			AI = new AtomicInteger();
+	private static final AsmWriter				ASM_WRITER;
+	private static final Set<String>			LOBS = Set.of("BLOB", "CLOB", "NCLOB", "BYTEA");
+	private static final Pattern				PART_PATTERN = Pattern.compile("([^\\.]+)\\.([^@]+)@(.*)");
 	private static final Map<String, JsonValueType>	TYPES = Utils.mkMap("VARCHAR", JsonValueType.STRING,
 																		"TEXT", JsonValueType.STRING,
 																		"BIGINT", JsonValueType.INTEGER);
@@ -223,6 +223,11 @@ public class SQLModelUtils {
 						return this;
 					}
 				}
+
+				@Override
+				public void storeInstance(PreparedStatement ps, Map<String, Object> inst, boolean update) throws SQLException {
+					throw new SQLException("Attempt to store content for read-only instance manager");
+				}
 			};
 		}
 	}
@@ -276,8 +281,10 @@ public class SQLModelUtils {
 			
 			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
 			
-				createDatabaseSchemaByModel(conn, root, schema, adapter);
-				conn.setSchema(schema);
+				if (adapter.isSchemaSupported()) {
+					createDatabaseSchemaByModel(conn, root, schema, adapter);
+					conn.setSchema(schema);
+				}
 				
 				for (ContentNodeMetadata item : root) {
 					internalCreateDatabaseByModel(conn, item, schema, adapter);
@@ -298,7 +305,9 @@ public class SQLModelUtils {
 			createDatabaseTableByModel(conn, root, schema, adapter);
 		}
 		else if (root.getType() == UniqueIdContainer.class) {
-			createDatabaseSequenceByModel(conn, root, schema, adapter);
+			if (adapter.isSequenceSupported()) {
+				createDatabaseSequenceByModel(conn, root, schema, adapter);
+			}
 		}
 		else {
 			throw new IllegalArgumentException("Database metadata must have [TableContainer] or [UniqueIdContainer] types only");
@@ -314,62 +323,17 @@ public class SQLModelUtils {
 	}
 
 	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
-		final DbTypeDescriptor[]	dtd = DbTypeDescriptor.load(conn);
-		final StringBuilder			sb = new StringBuilder();
-		final List<String>			primaryKeys = new ArrayList<>();
-		char						prefix = '(';
-		
-		sb.append("create table ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema));
-		
-		for (ContentNodeMetadata item : root) {
-			final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(item.getApplicationPath()));
-			
-			sb.append(prefix).append(escape(conn.getMetaData().getIdentifierQuoteString(),item.getName()))
-				.append(' ').append(query.containsKey("type") ? SQLUtils.specificTypeNameByCommonTypeName(query.get("type")[0],dtd) : "varchar(100)");
-			if (query.containsKey("pkSeq")) {
-				primaryKeys.add(item.getName());
-			}
-			else if (item.getFormatAssociated().isMandatory()) {
-				sb.append(" not null ");
-			}
-			prefix = ',';
+		try{executeSQL(conn, adapter.createTable(root));
+		} catch (SyntaxException e) {
+			throw new SQLException(e); 
 		}
-		
-		if (!primaryKeys.isEmpty()) {
-			prefix = '(';
-			sb.append(", primary key ");
-			for (String item : primaryKeys) {
-				sb.append(prefix).append(escape(conn.getMetaData().getIdentifierQuoteString(),item));
-				prefix = ',';
-			}
-			sb.append(')');
-		}
-		
-		sb.append(')');
-
-		executeSQL(conn, sb.toString());
 	}
 
 	private static void createDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
-		final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(root.getApplicationPath()));
-		final StringBuilder	sb = new StringBuilder();
-		final long			from, to;
-
-		sb.append("create sequence ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(),schema));
-		if (query.containsKey("step")) {
-			sb.append(" increment by ").append(query.get("step")[0]);
+		try{executeSQL(conn, adapter.createSequence(root));
+		} catch (SyntaxException  e) {
+			throw new SQLException(e); 
 		}
-		if (query.containsKey("type")) {
-			from = 1;
-			to = Long.MAX_VALUE;
-		}
-		else {
-			from = 1;
-			to = Long.MAX_VALUE;
-		}
-		sb.append(" minvalue ").append(from).append(" maxvalue ").append(to);
-		
-		executeSQL(conn, sb.toString());
 	}
 
 	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final boolean removeSchema) throws SQLException, NullPointerException {
@@ -400,7 +364,7 @@ public class SQLModelUtils {
 				for (ContentNodeMetadata item : root) {
 					internalRemoveDatabaseByModel(conn, item, schema, removeSchema, adapter);
 				}
-				if (removeSchema) {
+				if (removeSchema && adapter.isSchemaSupported()) {
 					removeDatabaseSchemaByModel(conn, root, schema, adapter);
 				}
 			} catch (EnvironmentException e) {
@@ -426,7 +390,13 @@ public class SQLModelUtils {
 			throw new IllegalArgumentException("Metadata must have [TableContainer] type"); 
 		}
 		else {
-			return "select * from "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), meta.getName(), schema);
+			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
+			
+				return "select * from "+adapter.getTableName(meta);
+			
+			} catch (EnvironmentException | SyntaxException e) {
+				throw new SQLException(e); 
+			}
 		}
 	}
 
@@ -444,13 +414,49 @@ public class SQLModelUtils {
 			throw new IllegalArgumentException("Metadata must have [TableContainer] type"); 
 		}
 		else {
-			return "select count(*) from "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), meta.getName(), schema);
+			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
+			
+				return "select count(*) from "+adapter.getTableName(meta);
+			
+			} catch (EnvironmentException | SyntaxException e) {
+				throw new SQLException(e); 
+			}
 		}
 	}
 	
+	public static String buildInsertValuesStatementByModel(final Connection conn, final ContentNodeMetadata meta, final String schema) throws SQLException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null"); 
+		}
+		else if (meta == null) {
+			throw new NullPointerException("Metadata can't be null"); 
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema can't be null or empty"); 
+		}
+		else if (meta.getType() != TableContainer.class) {
+			throw new IllegalArgumentException("Metadata must have [TableContainer] type"); 
+		}
+		else {
+			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
+				final StringBuilder			sb = new StringBuilder(), sbVal = new StringBuilder();
+				String	prefix = "(";
+			
+				sb.append("insert into ").append(adapter.getTableName(meta));
+				for (ContentNodeMetadata item : meta) {
+					sb.append(prefix).append(adapter.getColumnName(item));
+					sbVal.append(prefix).append('?');
+					prefix = ",";
+				}
+				return sb.append(") values ").append(sbVal).append(')').toString();
+			} catch (EnvironmentException | SyntaxException e) {
+				throw new SQLException(e); 
+			}
+		}
+	}
 	
 	private static void internalRemoveDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final boolean removeSchema, final DatabaseModelAdapter adapter) throws SQLException, NullPointerException {
-		if (root.getType() == UniqueIdContainer.class) {
+		if (root.getType() == UniqueIdContainer.class && adapter.isSequenceSupported()) {
 			removeDatabaseSequenceByModel(conn, root, schema, adapter);
 		}
 		else if (root.getType() == TableContainer.class) {
@@ -463,35 +469,39 @@ public class SQLModelUtils {
 	
 	private static void removeDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate("drop schema "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema)+" cascade");
+			stmt.executeUpdate(adapter.dropSchema(root));
 		} catch (SQLException exc) {
-			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
+			if (adapter.getExceptionType(exc) != StandardExceptions.NO_OBJECT_FOUND) {
 				throw exc;
 			}
+		} catch (SyntaxException e) {
+			throw new SQLException(e);
 		}
 	}
 
 	private static void removeDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
-		final StringBuilder	sb = new StringBuilder();
-		
-		sb.append("drop table ").append(replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema)).append(" cascade");
-		
 		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate(sb.toString());
+
+			stmt.executeUpdate(adapter.dropTable(root));
 		} catch (SQLException exc) {
-			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
+			if (adapter.getExceptionType(exc) != StandardExceptions.NO_OBJECT_FOUND) {
 				throw exc;
 			}
+		} catch (SyntaxException e) {
+			throw new SQLException(e); 
 		}
 	}
 
 	private static void removeDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate("drop sequence "+replaceSchemaAndEscape(conn.getMetaData().getIdentifierQuoteString(), root.getName(), schema));
+			
+			stmt.executeUpdate(adapter.dropSequence(root));
 		} catch (SQLException exc) {
-			if (SQLErrorType.valueOf(conn, exc) != SQLErrorType.NOT_EXISTS) {
+			if (adapter.getExceptionType(exc) != StandardExceptions.NO_OBJECT_FOUND) {
 				throw exc;
 			}
+		} catch (SyntaxException e) {
+			throw new SQLException(e); 
 		}
 	}
 	
@@ -519,7 +529,9 @@ public class SQLModelUtils {
 		else if (root.getType() == UniqueIdContainer.class) {
 			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
 				
-				backupDatabaseSequenceByModel(conn, root, os, adapter);
+				if (adapter.isSequenceSupported()) {
+					backupDatabaseSequenceByModel(conn, root, os, adapter);
+				}
 			} catch (EnvironmentException e) {
 				throw new SQLException(e);
 			}

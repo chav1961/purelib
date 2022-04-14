@@ -255,7 +255,7 @@ public class NanoServiceFactoryTest {
 	public void methodDescriptorTest() throws IOException {
 		final MethodExecutor	executor = new MethodExecutor() {
 									@Override
-									public int execute(final QueryType type, final char[] path, final char[] query, final Map<String,List<String>> requestHeaders, final Map<String,List<String>> responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
+									public int execute(final QueryType type, final char[] path, final char[] query, final Headers requestHeaders, final Headers responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
 										return 0;
 									}
 								};

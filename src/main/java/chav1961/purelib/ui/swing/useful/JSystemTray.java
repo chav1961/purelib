@@ -166,7 +166,8 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 			this.onlyEn = onlyEn;
 			fillLocalizedStrings();
 			
-			try{SystemTray.getSystemTray().add(icon);
+			try{
+				SystemTray.getSystemTray().add(icon);
 			} catch (AWTException e) {
 				throw new EnvironmentException("Tray icon placing failure: "+e.getLocalizedMessage()); 
 			}
@@ -198,7 +199,9 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 
 	@Override
 	public void close() throws RuntimeException {
-		SystemTray.getSystemTray().remove(icon);
+		if (!isInTransaction()) {
+			SystemTray.getSystemTray().remove(icon);
+		}
 	}
 
 	public void addActionListener(final ActionListener l) {
@@ -221,7 +224,32 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 
 	@Override
 	protected AbstractLoggerFacade getAbstractLoggerFacade(final String mark, final Class<?> root) {
-		return this;
+		return new AbstractLoggerFacade() {
+			private final List<TransactionMessage>	list = new ArrayList<>();
+			
+			@Override public LoggerFacade newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {return JSystemTray.this.newInstance(resource);}
+			@Override public boolean canServe(URI resource) throws NullPointerException {return JSystemTray.this.canServe(resource);}
+			@Override protected AbstractLoggerFacade getAbstractLoggerFacade(String mark, Class<?> root) {return JSystemTray.this.getAbstractLoggerFacade(mark, root);}
+			
+			@Override 
+			protected void toLogger(Severity level, String text, Throwable throwable) {
+				list.add(new TransactionMessage(level, text, throwable));
+			}
+			
+			@Override
+			public void rollback() {
+				super.rollback();
+				list.clear();
+			}
+			
+			@Override
+			public void close() {
+				for (TransactionMessage item : list) {
+					JSystemTray.this.toLogger(item.level, item.text, item.exception);
+				}
+				super.close();
+			}
+		};
 	}
 
 	@Override

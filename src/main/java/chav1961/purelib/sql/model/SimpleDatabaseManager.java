@@ -11,6 +11,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -80,21 +81,21 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	private final ConnectionGetter				connGetter;
 	private final DatabaseManagementGetter<T>	mgmtGetter;
 
-	public SimpleDatabaseManager(final LoggerFacade logger, final ContentNodeMetadata model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
-		this(logger, new DatabaseModelManagement<T>() {
-			private final DatabaseModelContent<T>	content = new DatabaseModelContent<T>() {
-														@Override public T getVersion() {return (T)"0";}
-														@Override public ContentNodeMetadata getModel() {return model;}
-													};
-													
-			@Override public int size() {return 1;}
-			@Override public T getVersion(int versionNumber) {return content.getVersion();}
-			@Override public ContentNodeMetadata getModel(int versionNumber) {return content.getModel();}
-			@Override public Iterable<DatabaseModelContent<T>> allAscending() {return Arrays.asList(content);}
-			@Override public Iterable<DatabaseModelContent<T>> allDescending() {return Arrays.asList(content);}
-		} ,connGetter, mgmtGetter);
-	}	
-	
+//	public SimpleDatabaseManager(final LoggerFacade logger, final ContentNodeMetadata model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
+//		this(logger, new DatabaseModelManagement<T>() {
+//			private final DatabaseModelContent<T>	content = new DatabaseModelContent<T>() {
+//														@Override public T getVersion() {return null;/*(T)"0";*/}
+//														@Override public ContentNodeMetadata getModel() {return model;}
+//													};
+//													
+//			@Override public int size() {return 1;}
+//			@Override public T getVersion(int versionNumber) {return content.getVersion();}
+//			@Override public ContentNodeMetadata getModel(int versionNumber) {return content.getModel();}
+//			@Override public Iterable<DatabaseModelContent<T>> allAscending() {return Arrays.asList(content);}
+//			@Override public Iterable<DatabaseModelContent<T>> allDescending() {return Arrays.asList(content);}
+//		} ,connGetter, mgmtGetter);
+//	}	
+//	
 	public SimpleDatabaseManager(final LoggerFacade logger, final DatabaseModelManagement<T> model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
 		if (logger == null) {
 			throw new NullPointerException("Logger can't be null"); 
@@ -130,7 +131,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 						final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheLastModel().getName());
 						final T						oldVersion = oldModel == null ? mgmt.getInitialVersion() : mgmt.getVersion(oldModel);
 						final T						currentVersion = model.getTheLastVersion(); 
-						final int					result = currentVersion.compareTo(oldVersion);
+						final int					result = currentVersion != null ? currentVersion.compareTo(oldVersion) : -1;
 						
 						if (result > 0) {
 							trans.message(Severity.info, "Current model version ["+currentVersion+"] is newer than database version ["+oldVersion+"], upgrade will be called");
@@ -349,13 +350,13 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 
 	private static ContentNodeMetadata loadLastDbVersion(final Connection conn, final ContentNodeMetadata versionModel, final String schema) throws SQLException {
-		final String	select = SQLModelUtils.buildSelectAllStatementByModel(conn, versionModel, schema);
+		final String	select = SQLModelUtils.buildSelectAllStatementByModel(conn, versionModel, schema)+" order by 1 desc";
 		
-		try(final Statement					stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+		try(final Statement					stmt = conn.createStatement();
 			final ResultSet					rs = stmt.executeQuery(select);
 			final VersionInstanceManager	vim = new VersionInstanceManager()) {
 		
-			if (rs.last()) {
+			if (rs.next()) {
 				final VersionRecord			vr = vim.newInstance();
 				
 				vim.loadInstance(rs, vr);
@@ -376,22 +377,41 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 
 	
 	private static <T extends Comparable<T>> void storeCurrentDbVersion(final Connection conn, final ContentNodeMetadata versionModel, final ContentNodeMetadata model, final String schema, final T modelVersion) throws SQLException {
-		final String	select = SQLModelUtils.buildSelectAllStatementByModel(conn, versionModel, schema);
-		
-		try(final Statement					stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			final ResultSet					rs = stmt.executeQuery(select);
-			final VersionInstanceManager	vim = new VersionInstanceManager()) {
-			final VersionRecord				vr = vim.newInstance();
-			
-			vr.dbv_Id = vim.newKey();
-			vr.dbv_Version = modelVersion.toString();
-			vr.dbv_Model = modelToString(model);
-			vr.dbv_Created = new Date(System.currentTimeMillis());
+		if (conn.getMetaData().supportsResultSetConcurrency(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			final String	select = SQLModelUtils.buildSelectAllStatementByModel(conn, versionModel, schema);
 
-			rs.moveToInsertRow();
-			vim.storeInstance(rs, vr, false);
-			rs.insertRow();
-			conn.commit();
+			try(final Statement					stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				final ResultSet					rs = stmt.executeQuery(select);
+				final VersionInstanceManager	vim = new VersionInstanceManager()) {
+				final VersionRecord				vr = vim.newInstance();
+				
+				vr.dbv_Id = vim.newKey();
+				vr.dbv_Version = modelVersion.toString();
+				vr.dbv_Model = modelToString(model);
+				vr.dbv_Created = new Date(System.currentTimeMillis());
+
+				rs.moveToInsertRow();
+				vim.storeInstance(rs, vr, false);
+				rs.insertRow();
+				conn.commit();
+			}
+		}
+		else {
+			final String	insert = SQLModelUtils.buildInsertValuesStatementByModel(conn, versionModel, schema);
+
+			try(final PreparedStatement			ps = conn.prepareStatement(insert);
+				final VersionInstanceManager	vim = new VersionInstanceManager()) {
+				final VersionRecord				vr = vim.newInstance();
+				
+				vr.dbv_Id = vim.newKey();
+				vr.dbv_Version = modelVersion != null ? modelVersion.toString() : "";
+				vr.dbv_Model = modelToString(model);
+				vr.dbv_Created = new Date(System.currentTimeMillis());
+
+				vim.storeInstance(ps, vr, false);
+				ps.executeUpdate();
+				conn.commit();
+			}
 		}
 	}
 
@@ -477,6 +497,22 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			rs.updateDate(4, new java.sql.Date(inst.dbv_Created.getTime()));
 		}
 
+		@Override
+		public void storeInstance(PreparedStatement ps, VersionRecord inst, boolean update) throws SQLException {
+			if (!update) {
+				ps.setLong(1, inst.dbv_Id);
+				ps.setString(2, inst.dbv_Version);
+				ps.setString(3, inst.dbv_Model);
+				ps.setDate(4, new java.sql.Date(inst.dbv_Created.getTime()));
+			}
+			else {
+				ps.setString(1, inst.dbv_Version);
+				ps.setString(2, inst.dbv_Model);
+				ps.setDate(3, new java.sql.Date(inst.dbv_Created.getTime()));
+				ps.setLong(4, inst.dbv_Id);
+			}
+		}
+		
 		@Override
 		public <T> T get(final VersionRecord inst, final String name) throws SQLException {
 			switch (name) {

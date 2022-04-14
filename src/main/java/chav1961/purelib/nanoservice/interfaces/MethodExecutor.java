@@ -1,6 +1,7 @@
 package chav1961.purelib.nanoservice.interfaces;
 
 import java.io.IOException;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -10,6 +11,8 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
+
+import com.sun.net.httpserver.Headers;
 
 /**
  * <p>This interface is an internal interface for {@linkplain NanoServiceFactory} implementation. When any pluggable processing class was installed into Nano service,
@@ -36,5 +39,5 @@ public interface MethodExecutor {
 	 * @throws FlowException on any flow errors
 	 * @throws EnvironmentException in any environment errors
 	 */
-	int execute(QueryType type, char[] path, char[] query, Map<String,List<String>> requestHeaders, Map<String,List<String>> responseHeaders, InputStream is, OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException;
+	int execute(QueryType type, char[] path, char[] query, Headers requestHeaders, Headers responseHeaders, InputStream is, OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException;
 }

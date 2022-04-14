@@ -34,7 +34,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */ 
 
 public abstract class AbstractLoggerFacade implements LoggerFacade {
@@ -61,7 +61,6 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 	
-	
 	public AbstractLoggerFacade() {
 		this.inTransaction = false;
 		this.transactionRoot = null;
@@ -83,7 +82,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	public void close() {
 		if (messages != null) {
 			for (TransactionMessage item : messages) {
-				toLogger(item.level,item.text,item.exception);
+				toLogger(item.level, item.text, item.exception);
 			}
 			messages.clear();
 		}
@@ -247,7 +246,6 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 	
-	
 	@Override
 	public void rollback() {
 		if (messages != null) {
@@ -255,6 +253,10 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 
+	protected boolean isInTransaction() {
+		return inTransaction;
+	}
+	
 	private void send(final Severity level, final String text) {
 		if (inTransaction) {
 			messages.add(new TransactionMessage(level, text));
@@ -342,18 +344,19 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		return exception;
 	}
 	
-	private static class TransactionMessage {
-		final Severity 	level;
-		final String	text;
-		final Throwable	exception;
+	protected static class TransactionMessage {
+		public final long		timestamp = System.currentTimeMillis();  
+		public final Severity 	level;
+		public final String		text;
+		public final Throwable	exception;
 		
-		TransactionMessage(final Severity level, final String text, final Throwable exception) {
+		public TransactionMessage(final Severity level, final String text, final Throwable exception) {
 			this.level = level;
 			this.text = text;
 			this.exception = exception;
 		}
 		
-		TransactionMessage(final Severity level, final String text) {
+		public TransactionMessage(final Severity level, final String text) {
 			this.level = level;
 			this.text = text;
 			this.exception = null;
@@ -361,7 +364,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 
 		@Override
 		public String toString() {
-			return "TransactionMessage [level=" + level + ", text=" + text + ", exception=" + exception + "]";
+			return "TransactionMessage [timestamp=" + timestamp + ", level=" + level + ", text=" + text + ", exception=" + exception + "]";
 		}
 	}
 	

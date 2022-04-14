@@ -1,5 +1,6 @@
 package chav1961.purelib.sql.interfaces;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -85,6 +86,15 @@ public interface InstanceManager<Key, Inst> extends AutoCloseable {
 	 * @throws SQLException on any errors
 	 */
 	void storeInstance(ResultSet rs, Inst inst, boolean update) throws SQLException;
+
+	/**
+	 * <p>Insert or update prepared statement with instance content.</p>
+	 * @param psprepared statement to insert or update row. Can'tbe null
+	 * @param inst instance to update row from. Can't be null
+	 * @param update true if update, false if insert
+	 * @throws SQLException on any errors
+	 */
+	void storeInstance(PreparedStatement ps, Inst inst, boolean update) throws SQLException;
 	
 	/**
 	 * <p>Get field value from instance.</p>

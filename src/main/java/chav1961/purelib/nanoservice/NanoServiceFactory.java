@@ -317,7 +317,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					try(final InputStream	is = NanoServiceFactory.class.getResourceAsStream(MACROS_CONTENT);
 						final Reader		rdr = new InputStreamReader(is,"UTF-8")) {
 						
-						writer = new AsmWriter(new ByteArrayOutputStream(),new OutputStreamWriter(System.err));
+						writer = new AsmWriter(new ByteArrayOutputStream(), new OutputStreamWriter(System.err));
 						Utils.copyStream(rdr,writer);
 					}
 					
@@ -469,7 +469,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		}
 	}
 	
-	public void handle(final NanoServiceEnvironment env,final InetSocketAddress remoteAddress, final QueryType queryType, final URI requestUri, final Map<String,List<String>> requestHeaders, final InputStream requestBody, final Map<String,List<String>> responseHeaders, final OutputStream responseBody) throws IOException {
+	public void handle(final NanoServiceEnvironment env,final InetSocketAddress remoteAddress, final QueryType queryType, final URI requestUri, final Headers requestHeaders, final InputStream requestBody, final Headers responseHeaders, final OutputStream responseBody) throws IOException {
 		final String	remoteHost = remoteAddress.getHostName();
 		
 		if (localhostOnly && !remoteAddress.getAddress().isLoopbackAddress()) {
@@ -550,8 +550,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								rc = me.execute(QueryType.GET
 											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
 											, query != null ? query.toCharArray() : null
-											, requestHeaders
-											, responseHeaders
+											, (Headers)requestHeaders
+											, (Headers)responseHeaders
 											, null
 											, os);
 							}
@@ -986,10 +986,12 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			}
 			
 			if (desc != null) {
-				try{final String	fromMimeString = requestHeaders.get(HEAD_CONTENT_TYPE).get(0),
-									toMimeString = requestHeaders.get(HEAD_ACCEPT).get(0);
-					final MimeType	fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM,
-									toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
+				try{final List<String>	from = requestHeaders.get(HEAD_CONTENT_TYPE);
+					final String		fromMimeString = from !=null ? from.get(0) : PureLibSettings.MIME_OCTET_STREAM.toString();
+					final List<String>	to = requestHeaders.get(HEAD_ACCEPT);
+					final String		toMimeString = to != null ? to.get(0) : PureLibSettings.MIME_OCTET_STREAM.toString();
+					final MimeType		fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM,
+										toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
 					
 					for (MethodDescriptor item : desc.methods) {
 						if (item.isAppicable(qType,charPath,prefixLen,fromMime,toMime)) {
@@ -1135,7 +1137,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		else {
 			return new MethodExecutor(){
 				@Override
-				public int execute(final QueryType type, final char[] path, final char[] query, final Map<String, List<String>> requestHeaders, final Map<String, List<String>> responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
+				public int execute(final QueryType type, final char[] path, final char[] query, final Headers requestHeaders, final Headers responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException {
 					if (type == null) {
 						throw new NullPointerException("Query type to process can't be null");
 					}
@@ -2370,7 +2372,7 @@ loop:		for (; index < maxIndex && from < maxFrom; index++) {
 		}
 
 		@Override
-		public int execute(final QueryType type, final char[] path, final char[] query, final Map<String, List<String>> requestHeaders, final Map<String,List<String>> responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException { 
+		public int execute(final QueryType type, final char[] path, final char[] query, final Headers requestHeaders, final Headers responseHeaders, final InputStream is, final OutputStream os) throws IOException, ContentException, FlowException, EnvironmentException { 
 			try{final StringBuilder sbRequest = new StringBuilder(), sbResponse = new StringBuilder();  
 			
 				responseHeaders.put(HEAD_CONTENT_TYPE, Arrays.asList(new MimeType("text", "html").toString()));

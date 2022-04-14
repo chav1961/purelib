@@ -18,7 +18,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.model.interfaces.DatabaseModelManagement;
 
-public class SimpleDatabaseModelManagement implements DatabaseModelManagement<SimpleDottedVersion>{
+public class SimpleDatabaseModelManagement implements DatabaseModelManagement<SimpleDottedVersion> {
 	private final VersionAndModel[]	content, inversContent;
 	
 	public SimpleDatabaseModelManagement(final URI... jsonModels) throws EnvironmentException {
