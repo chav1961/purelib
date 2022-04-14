@@ -112,4 +112,9 @@ module chav1961.purelib {
 	uses chav1961.purelib.basic.interfaces.LoggerFacade;
 	
 	uses java.sql.Driver;
+	
+	uses chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter;
+	provides chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter with chav1961.purelib.sql.model.internal.PostgreSQLDatabaseModelAdapter
+			, chav1961.purelib.sql.model.internal.SqliteDatabaseModelAdapter
+			, chav1961.purelib.sql.model.internal.DefaultDatabaseModelAdapter;
 }

@@ -1,0 +1,3 @@
+chav1961.purelib.sql.model.internal.PostgreSQLDatabaseModelAdapter
+chav1961.purelib.sql.model.internal.SqliteDatabaseModelAdapter
+chav1961.purelib.sql.model.internal.DefaultDatabaseModelAdapter

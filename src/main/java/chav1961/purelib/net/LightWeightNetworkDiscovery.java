@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import chav1961.purelib.basic.SequenceIterator;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.net.interfaces.DiscoveryListener;
 import chav1961.purelib.net.interfaces.MediaAdapter;
@@ -32,6 +33,25 @@ public abstract class LightWeightNetworkDiscovery<Broadcast extends Serializable
 	@FunctionalInterface
 	public interface PortBroadcastGenerator {
 		Iterable<InetAddressDescriptor> enumPorts();
+
+		public static PortBroadcastGenerator of(final PortBroadcastGenerator... items) {
+			return new PortBroadcastGenerator() {
+				@Override
+				public Iterable<InetAddressDescriptor> enumPorts() {
+					final List<Iterator<InetAddressDescriptor>>	list = new ArrayList<>();
+					
+					for (PortBroadcastGenerator item : items) {
+						list.add(item.enumPorts().iterator());
+					}
+					return new Iterable<InetAddressDescriptor>() {
+						@Override
+						public Iterator<InetAddressDescriptor> iterator() {
+							return new SequenceIterator<InetAddressDescriptor>(list.toArray(new Iterator[list.size()]));
+						}
+					};
+				}
+			};
+		}		
 		
 		public static PortBroadcastGenerator of(final InetAddress addr, final int port, final int timeout) {
 			if (addr == null) {
