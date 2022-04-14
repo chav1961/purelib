@@ -15,6 +15,8 @@ import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -289,7 +291,10 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		if (popup != null) {
 			final PopupMenu	localPopup = new PopupMenu();
 			
-			jMenu2Menu(popup,localPopup,(e)->{((JMenuItem)SwingUtils.findComponentByName(popup,e.getActionCommand())).doClick();},onlyEn);
+			jMenu2Menu(popup,localPopup
+					,(e)->((JMenuItem)SwingUtils.findComponentByName(popup,e.getActionCommand())).doClick()
+					,(e)->((JCheckBoxMenuItem)SwingUtils.findComponentByName(popup,((CheckboxMenuItem)e.getSource()).getActionCommand())).doClick()
+					,onlyEn);
 			icon.setPopupMenu(localPopup);
 		}
 		if (toolTip != null) {
@@ -297,7 +302,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 
-	private void jMenu2Menu(final JPopupMenu popup, final PopupMenu localPopup, final ActionListener listener, boolean onlyEn2) {
+	private void jMenu2Menu(final JPopupMenu popup, final PopupMenu localPopup, final ActionListener actionListener, final ItemListener itemListener, boolean onlyEn2) {
 		final List<MenuComponent>	stack = new ArrayList<>();
 		
 		SwingUtils.walkDown(popup,(mode,node)->{
@@ -341,7 +346,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							else {
 								((PopupMenu)stack.get(0)).add(menu);
 							}
-							menu.addActionListener(listener);
+							menu.addItemListener(itemListener);
 							menu.setActionCommand(node.getName());
 							menu.setState(((JMenuItem)node).isSelected());
 							if (node instanceof BooleanPropChangeListenerSource) {
@@ -362,7 +367,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 							else {
 								((PopupMenu)stack.get(0)).add(menu);
 							}
-							menu.addActionListener(listener);
+							menu.addActionListener(actionListener);
 							menu.setActionCommand(node.getName());
 							if (node instanceof BooleanPropChangeListenerSource) {
 								((BooleanPropChangeListenerSource)node).addBooleanPropChangeListener(ld);
