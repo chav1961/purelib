@@ -90,7 +90,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and similar). You must close this form yourself, if required</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
 public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter, LoggerFacadeOwner {
@@ -328,6 +328,38 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 				}
 				
 				buttonPanel.add(messages);
+
+				this.monitor = new FormMonitor<T>(localizer,formMgr.getLogger(),instance,formMgr,accessors,tooltipsOnFocus) {
+					@Override
+					protected JComponentInterface findComponentByName(final URI uiPath) throws ContentException {
+						return (JComponentInterface)SwingUtils.findComponentByName(AutoBuiltForm.this, uiPath.toString());
+					}
+					
+					@Override
+					protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
+						return AutoBuiltForm.this.processExit(metadata, component, parameters);
+					}
+					
+					@Override
+					protected RefreshMode processRefreshMode(final RefreshMode mode, final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
+						switch (mode) {
+							case EXIT : case NONE : 
+								break;
+							case FIELD_ONLY : case DEFAULT :
+								if (component instanceof JComponent) {
+									processComponentState((JComponent)component, metadata);
+								}
+								break;
+							case REJECT : case RECORD_ONLY : case TOTAL :
+								if (component instanceof JComponent) {
+									processContainerState(mdi.getRoot());
+								}
+								break;
+							default : throw new UnsupportedOperationException("Refresh mode ["+mode+"] is not supported yet"); 
+						}
+						return mode;
+					};
+				};
 				
 				FormManagedUtils.parseModel4Form(logger,mdi,localizer,instance.getClass(),this,new FormManagerParserCallback() {
 					boolean	firstFocused = false;
@@ -392,37 +424,6 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 					}
 				}, loader);
 				
-				this.monitor = new FormMonitor<T>(localizer,formMgr.getLogger(),instance,formMgr,accessors,tooltipsOnFocus) {
-									@Override
-									protected JComponentInterface findComponentByName(final URI uiPath) throws ContentException {
-										return (JComponentInterface)SwingUtils.findComponentByName(AutoBuiltForm.this, uiPath.toString());
-									}
-									
-									@Override
-									protected boolean processExit(final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) {
-										return AutoBuiltForm.this.processExit(metadata, component, parameters);
-									}
-									
-									@Override
-									protected RefreshMode processRefreshMode(final RefreshMode mode, final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
-										switch (mode) {
-											case EXIT : case NONE : 
-												break;
-											case FIELD_ONLY : case DEFAULT :
-												if (component instanceof JComponent) {
-													processComponentState((JComponent)component, metadata);
-												}
-												break;
-											case REJECT : case RECORD_ONLY : case TOTAL :
-												if (component instanceof JComponent) {
-													processContainerState(mdi.getRoot());
-												}
-												break;
-											default : throw new UnsupportedOperationException("Refresh mode ["+mode+"] is not supported yet"); 
-										}
-										return mode;
-									};
-								};
 
 				if (!outputFocused.isEmpty()) {
 					setFocusTraversalPolicy(new ABFFocusTraversalPolicy(ordinalFocused, outputFocused));

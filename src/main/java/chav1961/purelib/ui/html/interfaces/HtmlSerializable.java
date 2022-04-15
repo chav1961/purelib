@@ -6,7 +6,7 @@ import java.io.Writer;
 import chav1961.purelib.json.JsonNode;
 
 public interface HtmlSerializable {
+	boolean refreshRequires();
 	void serialize(Writer writer) throws IOException;
-	
 	void processRequest(final JsonNode request, final Writer response) throws IOException; 
 }

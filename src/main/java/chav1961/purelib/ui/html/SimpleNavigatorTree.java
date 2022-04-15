@@ -69,6 +69,12 @@ public class SimpleNavigatorTree<Session> implements LocaleChangeListener, Sessi
 	}
 
 	@Override
+	public boolean refreshRequires() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	@Override
 	public void serialize(final Writer writer) throws IOException {
 		// TODO Auto-generated method stub
 		if (parent != null) {

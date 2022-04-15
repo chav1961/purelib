@@ -59,7 +59,6 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 	
 	@Override
 	public boolean process(final MonitorEvent event, final ContentNodeMetadata metadata, final JComponentInterface component, final Object... parameters) throws ContentException {
-		System.err.println("Event="+event+",meta="+metadata.getName());
 		switch (event) {
 			case Action:
 				if (metadata.getApplicationPath().toString().contains("().")) {

@@ -61,6 +61,12 @@ public class ApplicationFrame<Session> implements LocaleChangeListener, SessionS
 	}
 
 	@Override
+	public boolean refreshRequires() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	@Override
 	public void serialize(final Writer writer) throws IOException {
 		// TODO Auto-generated method stub
 		
@@ -112,4 +118,5 @@ public class ApplicationFrame<Session> implements LocaleChangeListener, SessionS
 		// TODO Auto-generated method stub
 		
 	}
+
 }
