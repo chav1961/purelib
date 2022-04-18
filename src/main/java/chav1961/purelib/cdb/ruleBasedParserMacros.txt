@@ -1452,3 +1452,222 @@ parseInternal	.end
 endClassDeclaration	.macro className:str=
 &className		.end
 		.mend
+
+		
+; -------------------------------------------------------------------------
+; -------------------------------------------------------------------------
+		
+prepareNameTestMethodStart		.macro className:str=,name:int=,methodName:str=
+&methodName		.method			boolean public static
+content			.parameter		char[] final
+from			.parameter		int
+tempInt			.parameter		int[] final
+tempLong		.parameter		long[] final
+				.stack			optimistic
+		.mend
+		
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodChar		.macro	value:int=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				skipBlank
+				aload			content
+				iload			from
+				caload
+				ldc				&value
+		.if	falseJump != ""
+				if_icmpne		&falseJump
+				iinc			from,1
+			.if trueJump != ""
+				goto			&trueJump
+			.endif
+		.elseif trueJump != ""
+				if_icmpeq		charLabel&label
+				iinc			from,1
+				goto			&trueJump
+charLabel&label:				
+		.else			 	
+				.error			"Neither true nor false jump was defined"
+		.endif
+		.mend		
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodSequence	.macro	fieldName:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				skipBlank
+				aload			content
+				iload			from
+				getstatic		&fieldName
+				invokestatic	chav1961.purelib.basic.CharUtils.compare([CI[C)Z
+		.if	falseJump != ""				
+				ifeq			&falseJump
+				iload			from
+				getstatic		&fieldName
+				arraylength
+				iadd
+				istore			from				
+			.if trueJump != ""
+				goto			&trueJump
+			.endif
+		.elseif trueJump != ""
+				ifne			sequenceLabel&label
+				iload			from
+				getstatic		&fieldName
+				arraylength
+				iadd
+				istore			from				
+				goto			&trueJump
+sequenceLabel&label:				
+		.else			 	
+				.error			"Neither true nor false jump was defined"
+		.endif
+		.mend		
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodPredefined .macro	predefinedName:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				skipBlank
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)Z
+		.if	falseJump != ""				
+				ifeq		&falseJump
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
+				istore		from
+			.if trueJump != ""
+				goto		&trueJump
+			.endif
+		.elseif trueJump != ""
+				ifne		predefinedLabel&label
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
+				istore		from
+				goto		&trueJump
+predefinedLabel&label:				
+		.else			 	
+				.error		"Neither true nor false jump was defined"
+		.endif
+		.mend		
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodOptionStart	.macro
+				iload		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodOptionEnd		.macro trueLabel:str="",falseLabel:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+		.if trueLabel != ""
+&trueLabel:		pop
+			.if trueJump != ""
+				goto		&trueJump
+&falseLabel:	istore		from
+			.else
+				goto		skipOption&label
+&falseLabel:	istore		from
+			.endif
+		.else
+				pop
+			.if trueJump != ""
+				goto		&trueJump
+&falseLabel:	istore		from
+			.else
+				goto		skipOption&label
+&falseLabel:	istore		from
+			.endif
+		.endif
+skipOption&label:		
+		.mend
+
+; -------------------------------------------------------------------------
+
+
+prepareNameTestMethodSwitchEnd	.macro trueLabel:str="",trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+		.if trueLabel != ""
+			.if	trueJump != ""
+&trueLabel:		goto	&trueJump
+			.else
+&trueLabel:			
+			.endif
+		.else
+			.if	trueJump != ""
+				goto	&trueJump
+			.endif
+		.endif
+		.mend
+
+; -------------------------------------------------------------------------
+		
+prepareNameTestMethodEnd		.macro className:str=,name:int=,methodName:str=
+				ldc				1
+				ireturn
+falseLabel:		ldc				0				
+				ireturn
+&methodName		.end
+		.mend		
+		
+; -------------------------------------------------------------------------
+		
+prepareNameSkipMethodStart		.macro className:str=,name:int=,methodName:str=
+&methodName		.method			int public static
+content			.parameter		char[] final
+from			.parameter		int
+tempInt			.parameter		int[] final
+tempLong		.parameter		long[] final
+				.stack			optimistic
+		.mend
+		
+; -------------------------------------------------------------------------
+		
+prepareNameSkipMethodEnd		.macro className:str=,name:int=,methodName:str=
+				iload			from
+				ireturn
+&methodName		.end
+		.mend		
+				
+; -------------------------------------------------------------------------
+		
+prepareNameParseMethodStart		.macro className:str=,name:int=,methodName:str=
+&methodName		.method			int public static
+content			.parameter		char[] final
+from			.parameter		int
+names			.parameter		chav1961.purelib.basic.interfaces.SyntaxTreeInterface
+root			.parameter		chav1961.purelib.cdb.SyntaxNode
+				.stack			optimistic
+		.mend
+		
+; -------------------------------------------------------------------------
+		
+prepareNameParseMethodEnd		.macro className:str=,name:int=,methodName:str=
+				iload			from
+				ireturn
+&methodName		.end
+		.mend		
+								
