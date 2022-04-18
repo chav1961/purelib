@@ -497,7 +497,7 @@ loop:	for (;;) {
 		else {
 			wr.write(" printImports package=\""+packageName+"\"\n");
 		}
-		buildPuleProcessingClass(className, root, keywords, wr);
+		buildRuleProcessingClass(className, root, keywords, wr);
 		for (Entry<SyntaxNode<EntityType, ?>, FieldAndMethods> item : baseLevelProc.entrySet()) {
 			buildRuleProcessingFields(className, root, item.getKey(), item.getValue(), keywords, wr);
 		}
@@ -516,7 +516,7 @@ loop:	for (;;) {
 	}
 
 
-	private static <NodeType extends Enum<?>, Cargo> void buildPuleProcessingClass(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingClass(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		// TODO Auto-generated method stub
 		wr.write(" beginClassDeclaration className=\""+className+"\"\n");
 	}
@@ -541,12 +541,13 @@ loop:	for (;;) {
 	}
 
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
-
+		final int[]	unique =new int[] {1};
+		
 		for (SyntaxNode<EntityType, ?> child : root.children) {
 			final FieldAndMethods	names = map.get(child);
 			
 			wr.write(" prepareNameTestMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\"\n");
-			buildTestRuleProcessingMethods(className, root, children, map, keywords, wr);
+			buildTestRuleProcessingMethods(className, child, child.children, map, keywords, wr, "", "falseLabel", unique);
 			wr.write(" prepareNameTestMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\"\n");
 
 			wr.write(" prepareNameSkipMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.skipMethod+"\"\n");
@@ -559,7 +560,105 @@ loop:	for (;;) {
 		}
 	}	
 
-	private static <NodeType extends Enum<?>, Cargo> void buildTestRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
+	private static <NodeType extends Enum<?>, Cargo> void buildTestRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr, final String trueLabel, final String falseLabel, final int[] unique) throws IOException, SyntaxException {
+		
+		if (root.getType().isCollection()) {
+			for (SyntaxNode<EntityType, ?> child : root.children) {
+				if (!child.getType().isCollection()) {
+					buildTestRuleProcessingMethods(className, child, child.children, map, keywords, wr, trueLabel, falseLabel, unique);
+				}
+				else {
+					final FieldAndMethods	names = map.get(child);
+					
+					switch (child.getType()) {
+						case Case		:
+							buildTestRuleProcessingMethods(className, child, child.children, map, keywords, wr, trueLabel, falseLabel, unique);
+							break;
+						case Name		:
+							break;
+						case Option		:
+							final String	trueOption = trueLabel.isEmpty() ? "" : "trueOption"+unique[0], falseOption = "falseOption"+unique[0];
+							
+							unique[0]++;
+							wr.write(" prepareNameTestMethodOptionStart \n");
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildTestRuleProcessingMethods(className, option, option.children, map, keywords, wr, trueOption, falseOption, unique);
+							}					
+							if (trueLabel.isEmpty()) {
+								wr.write(" prepareNameTestMethodOptionEnd falseLabel=\""+falseOption+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							else {
+								wr.write(" prepareNameTestMethodOptionEnd trueLabel=\""+trueOption+"\",falseLabel=\""+falseOption+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							break;
+						case Repeat		:
+							break;
+						case Repeat1	:
+							break;
+						case Root		:
+							break;
+						case Rule		:
+							break;
+						case Switch		:
+							final String	trueSwitch = trueLabel.isEmpty() ? "trueSwitch"+unique[0] : trueLabel;
+							String	falseSwitch = "false"+unique[0];
+							
+							unique[0]++;
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildTestRuleProcessingMethods(className, option, option.children, map, keywords, wr, trueSwitch, falseSwitch, unique);
+								wr.write(falseSwitch+":\n");
+								unique[0]++;
+								falseSwitch = "false"+unique[0];
+							}					
+							if (trueLabel.isEmpty()) {
+								wr.write(" prepareNameTestMethodSwitchEnd trueLabel=\""+trueSwitch+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							else {
+								wr.write(" prepareNameTestMethodSwitchEnd trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							break;
+						case Detected	:
+							break;
+						default:
+							throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
+					}
+				}
+			}		
+		}
+		else {
+			final FieldAndMethods	names = map.get(root);
+			
+			switch (root.getType()) {
+				case Case		:
+					break;
+				case Char		:
+					wr.write(" prepareNameTestMethodChar value="+root.value+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					break;
+				case Name		:
+					break;
+				case Predefined	:
+					wr.write(" prepareNameTestMethodPredefined predefinedName=\""+((Predefines)root.cargo).name()+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					break;
+				case Repeat		:
+					break;
+				case Repeat1	:
+					break;
+				case Root		:
+					break;
+				case Rule		:
+					break;
+				case Sequence	:
+					wr.write(" prepareNameTestMethodSequence fieldName=\""+names.field+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					break;
+				case Switch		:
+					break;
+				case Detected	:
+					break;
+				default:
+					throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
+			}
+		}
+		
 	}
 	
 	private static <NodeType extends Enum<?>, Cargo> void buildSkipRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
@@ -792,6 +891,7 @@ inside:	switch (root.type) {
 			
 			return (Class<RuleBasedParser<NodeType, Cargo>>) loader.createClass(className, baos.toByteArray());
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new SyntaxException(0, 0, e.getLocalizedMessage());
 		}
 	}

@@ -379,7 +379,7 @@ class InternalUtils {
 		try{result[0] = parseExpression(order,data,pos,macro); 
 			return pos[0];
 		} catch (IllegalArgumentException exc) {
-//			exc.printStackTrace();
+			exc.printStackTrace();
 			throw new SyntaxException(lineNo,pos[0]-begin,exc.getLocalizedMessage()); 
 		}
 	}
@@ -724,10 +724,10 @@ class InternalUtils {
 								}
 							}
 							else {
-								if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],FALSE,0,FALSE.length)) {
+								if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],FALSE,0,FALSE.length) && !Character.isJavaIdentifierPart(data[bounds[0]+FALSE.length])) {
 									return new ConstantNode(false);
 								}
-								else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],TRUE,0,TRUE.length)) {
+								else if (UnsafedCharUtils.uncheckedCompare(data,bounds[0],TRUE,0,TRUE.length)  && !Character.isJavaIdentifierPart(data[bounds[0]+TRUE.length])) {
 									return new ConstantNode(true);
 								}
 								else {

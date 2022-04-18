@@ -81,21 +81,6 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	private final ConnectionGetter				connGetter;
 	private final DatabaseManagementGetter<T>	mgmtGetter;
 
-//	public SimpleDatabaseManager(final LoggerFacade logger, final ContentNodeMetadata model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
-//		this(logger, new DatabaseModelManagement<T>() {
-//			private final DatabaseModelContent<T>	content = new DatabaseModelContent<T>() {
-//														@Override public T getVersion() {return null;/*(T)"0";*/}
-//														@Override public ContentNodeMetadata getModel() {return model;}
-//													};
-//													
-//			@Override public int size() {return 1;}
-//			@Override public T getVersion(int versionNumber) {return content.getVersion();}
-//			@Override public ContentNodeMetadata getModel(int versionNumber) {return content.getModel();}
-//			@Override public Iterable<DatabaseModelContent<T>> allAscending() {return Arrays.asList(content);}
-//			@Override public Iterable<DatabaseModelContent<T>> allDescending() {return Arrays.asList(content);}
-//		} ,connGetter, mgmtGetter);
-//	}	
-//	
 	public SimpleDatabaseManager(final LoggerFacade logger, final DatabaseModelManagement<T> model, final ConnectionGetter connGetter, final DatabaseManagementGetter<T> mgmtGetter) throws SQLException, ContentException {
 		if (logger == null) {
 			throw new NullPointerException("Logger can't be null"); 

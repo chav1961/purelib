@@ -1024,7 +1024,7 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 			}
 		} catch (SyntaxException exc) {
-//			exc.printStackTrace();
+			exc.printStackTrace();
 			throw new IOException(exc.getLocalizedMessage(),exc);
 		} catch (ContentException exc) {
 			exc.printStackTrace();
@@ -1902,6 +1902,9 @@ class LineParser implements LineByLineProcessorCallback {
 		if (data[start] == ',') {
 			start = calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.additional,forValue);
 		}
+		else {
+			throw new ContentException("Second mandatory parameter is missing");
+		}
 
 		if (forIndex[0] > methodDescriptor.getLocalFrameSize()) {
 			throw new ContentException("Calculated address value ["+forIndex[0]+"] is outside the method local frame size ["+methodDescriptor.getLocalFrameSize()+"]");
@@ -1916,7 +1919,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		if (forValue[0] < Byte.MIN_VALUE || forValue[0] >= 256) {
 			if (!expandAddress) {
-				throw new ContentException("Calculated value value ["+forValue[0]+"] occupies more than 1 byte! Use 'wide' command for those values");
+				throw new ContentException("Calculated value ["+forValue[0]+"] occupies more than 1 byte! Use 'wide' command for those values");
 			}
 			else {
 				needExpand = true;
