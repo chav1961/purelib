@@ -111,7 +111,7 @@ public abstract class LightWeightNetworkDiscovery<Broadcast extends Serializable
 	}
 
 	protected abstract Broadcast getBroadcastInfo();
-	protected abstract Query getQueryInfo();
+	protected abstract Query getQueryInfo(final Query request);
 
 	protected void walk(final InetAddressWalker walker) {
 		if (walker == null) {
@@ -214,7 +214,7 @@ public abstract class LightWeightNetworkDiscovery<Broadcast extends Serializable
 		}
 	}
 	
-	static class MediaItemDescriptorImpl implements MediaItemDescriptor {
+	public static class MediaItemDescriptorImpl implements MediaItemDescriptor {
 		private static final long serialVersionUID = -5341870551839274512L;
 		
 		private final InetAddress	addr;

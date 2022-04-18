@@ -108,7 +108,7 @@ class PseudoLightWeightDiscovery extends LightWeightNetworkDiscovery<String,Stri
 	}
 
 	@Override
-	protected String getQueryInfo() {
+	protected String getQueryInfo(final String request) {
 		return "query";
 	}
 }

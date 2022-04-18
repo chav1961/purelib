@@ -60,7 +60,7 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 	}
 
 	protected abstract Broadcast getBroadcastInfo();
-	protected abstract Query getQueryInfo();
+	protected abstract Query getQueryInfo(final Query request);
 
 	@Override
 	public synchronized void start() throws IOException {
@@ -163,6 +163,10 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 	public MediaAdapter getMediaAdapter() {
 		return adapter;
 	}
+
+	public MediaDescriptor getMediaDescriptor() {
+		return mediaDesc;
+	}
 	
 	protected <T extends MediaItemDescriptor> void walk(final DiscoveryItemsWalker<T> walker) {
 		if (walker == null) {
@@ -209,7 +213,7 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 	protected void receiveRecord(final MediaItemDescriptor desc) throws IOException {
 		final MediaItemDescriptor	rcv = adapter.receivePackage(desc, buffer);
 		final DiscoveryRecord<?>	rec = deserialize(buffer);
-		
+
 		if (rec.type.needCheckRandom() || rec.type.needCheckRandom()) {
 			final long	currentTime = System.currentTimeMillis();
 			
@@ -266,7 +270,7 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 				}
 				break;
 			case QUERY_INFO	:
-				sendPackage(DiscoveryEventType.INFO, desc, 0, getQueryInfo());
+				sendPackage(DiscoveryEventType.INFO, desc, 0, getQueryInfo((Query)rec.info));
 				break;
 			case INFO		:
 				final DiscoveryEvent	deInfo = new DiscoveryEvent(DiscoveryEventType.INFO, desc, rec.info);

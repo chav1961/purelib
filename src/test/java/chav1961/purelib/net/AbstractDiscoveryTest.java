@@ -190,7 +190,7 @@ class PseudoAbstractDiscovery extends AbstractDiscovery<String, String> {
 	}
 
 	@Override
-	protected String getQueryInfo() {
+	protected String getQueryInfo(final String request) {
 		return "query "+id;
 	}
 }
