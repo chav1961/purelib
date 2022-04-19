@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.AndOrTree;
@@ -439,14 +441,19 @@ loop:	for (;;) {
 	}
 
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessing(final String packageName, final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException  {
+		final Set<SyntaxNode<EntityType, ?>>									callLinks = new HashSet<>();
 		final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods>		baseLevelProc = new IdentityHashMap<>();
 		int[]		uniqueNumer = new int[] {0};
+		
+		for (SyntaxNode<EntityType, ?> item : root.children) {
+			callLinks.add(item);
+		}
 		
 		SyntaxNodeUtils.walkDown(root, (mode, node)->{
 			if (mode == NodeEnterMode.ENTER) {
 				final int	uniqueId = uniqueNumer[0]++;
 				
-				switch (node.type) {
+L:				switch (node.type) {
 					case Char		:
 						baseLevelProc.put(node, new FieldAndMethods("char"+uniqueId, "testChar"+uniqueId, "skipChar"+uniqueId, "parseChar"+uniqueId));
 						break;
@@ -461,8 +468,14 @@ loop:	for (;;) {
 						baseLevelProc.put(node, new FieldAndMethods("case"+uniqueId, "testCase"+uniqueId, "skipCase"+uniqueId, "parseCase"+uniqueId));
 						break;
 					case Name		:
-						baseLevelProc.put(node, new FieldAndMethods("name"+keywords.getName(node.value)+uniqueId, "testName"+keywords.getName(node.value)+uniqueId, "skipName"+keywords.getName(node.value)+uniqueId, "parseName"+keywords.getName(node.value)+uniqueId));
-						break;
+//						baseLevelProc.put(node, new FieldAndMethods("name"+keywords.getName(node.value)+uniqueId, "testName"+keywords.getName(node.value)+uniqueId, "skipName"+keywords.getName(node.value)+uniqueId, "parseName"+keywords.getName(node.value)+uniqueId));
+						for (SyntaxNode<EntityType, ?> item : callLinks) {
+							if (node.value == item.value) {
+								baseLevelProc.put(node, new FieldAndMethods("rule"+keywords.getName(node.value), "testRule"+keywords.getName(node.value), "skipRule"+keywords.getName(node.value), "parseRule"+keywords.getName(node.value)));
+								break L;
+							}
+						}
+						throw new IllegalArgumentException(); 
 					case Option		:
 						baseLevelProc.put(node, new FieldAndMethods("option"+uniqueId, "testOption"+uniqueId, "skipOption"+uniqueId, "parseOption"+uniqueId));
 						break;
@@ -476,7 +489,7 @@ loop:	for (;;) {
 						baseLevelProc.put(node, new FieldAndMethods("root"+uniqueId, "testRoot"+uniqueId, "skipRoot"+uniqueId, "parseRoot"+uniqueId));
 						break;
 					case Rule		:
-						baseLevelProc.put(node, new FieldAndMethods("rule"+uniqueId, "testRule"+uniqueId, "skipRule"+uniqueId, "parseRule"+uniqueId));
+						baseLevelProc.put(node, new FieldAndMethods("rule"+keywords.getName(node.value), "testRule"+keywords.getName(node.value), "skipRule"+keywords.getName(node.value), "parseRule"+keywords.getName(node.value)));
 						break;
 					case Switch		:
 						baseLevelProc.put(node, new FieldAndMethods("switch"+uniqueId, "testSwitch"+uniqueId, "skipSwitch"+uniqueId, "parseSwitch"+uniqueId));
@@ -507,9 +520,9 @@ loop:	for (;;) {
 		}
 		wr.write(" afterClinit className=\""+className+"\"\n");
 		buildRuleProcessingConstructor(className, root, keywords, wr);
-		for (SyntaxNode item : root.children) {
+//		for (SyntaxNode item : root.children) {
 			buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
-		}
+//		}
 //		buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
 		buildRuleProcessingRoot(className, root, keywords, baseLevelProc, wr);
 		buildRuleProcessingTail(className, root, keywords, wr);
@@ -546,35 +559,32 @@ loop:	for (;;) {
 		for (SyntaxNode<EntityType, ?> child : root.children) {
 			final FieldAndMethods	names = map.get(child);
 			
-			wr.write(" prepareNameTestMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\"\n");
-			buildTestRuleProcessingMethods(className, child, child.children, map, keywords, wr, "", "falseLabel", unique);
-			wr.write(" prepareNameTestMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.testMethod+"\"\n");
+			wr.write(" prepareNameTestMethodStart className=\""+className+"\",name="+root.value+",methodName=\"_"+names.testMethod+"\"\n");
+			buildTestRuleProcessingMethods(className, child, map, keywords, wr, "", "falseLabel", unique);
+			wr.write(" prepareNameTestMethodEnd className=\""+className+"\",name="+root.value+",methodName=\"_"+names.testMethod+"\"\n");
 
-			wr.write(" prepareNameSkipMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.skipMethod+"\"\n");
-			buildSkipRuleProcessingMethods(className, root, children, map, keywords, wr);
-			wr.write(" prepareNameSkipMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.skipMethod+"\"\n");
+			wr.write(" prepareNameSkipMethodStart className=\""+className+"\",name="+root.value+",methodName=\"_"+names.skipMethod+"\"\n");
+			buildTestRuleProcessingMethods(className, child, map, keywords, wr, "", "falseLabel", unique);
+			wr.write(" prepareNameSkipMethodEnd className=\""+className+"\",name="+root.value+",methodName=\"_"+names.skipMethod+"\"\n");
 			
 			wr.write(" prepareNameParseMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\"\n");
-			buildParseRuleProcessingMethods(className, root, children, map, keywords, wr);
+			buildParseRuleProcessingMethods(className, root, map, keywords, wr, "", "falseLabel", unique);
 			wr.write(" prepareNameParseMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\"\n");
 		}
 	}	
 
-	private static <NodeType extends Enum<?>, Cargo> void buildTestRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr, final String trueLabel, final String falseLabel, final int[] unique) throws IOException, SyntaxException {
-		
+	private static <NodeType extends Enum<?>, Cargo> void buildTestRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr, final String trueLabel, final String falseLabel, final int[] unique) throws IOException, SyntaxException {
 		if (root.getType().isCollection()) {
 			for (SyntaxNode<EntityType, ?> child : root.children) {
 				if (!child.getType().isCollection()) {
-					buildTestRuleProcessingMethods(className, child, child.children, map, keywords, wr, trueLabel, falseLabel, unique);
+					buildTestRuleProcessingMethods(className, child, map, keywords, wr, trueLabel, falseLabel, unique);
 				}
 				else {
 					final FieldAndMethods	names = map.get(child);
 					
 					switch (child.getType()) {
 						case Case		:
-							buildTestRuleProcessingMethods(className, child, child.children, map, keywords, wr, trueLabel, falseLabel, unique);
-							break;
-						case Name		:
+							buildTestRuleProcessingMethods(className, child, map, keywords, wr, trueLabel, falseLabel, unique);
 							break;
 						case Option		:
 							final String	trueOption = trueLabel.isEmpty() ? "" : "trueOption"+unique[0], falseOption = "falseOption"+unique[0];
@@ -582,7 +592,7 @@ loop:	for (;;) {
 							unique[0]++;
 							wr.write(" prepareNameTestMethodOptionStart \n");
 							for (SyntaxNode<EntityType, ?> option : child.children) {
-								buildTestRuleProcessingMethods(className, option, option.children, map, keywords, wr, trueOption, falseOption, unique);
+								buildTestRuleProcessingMethods(className, option, map, keywords, wr, trueOption, falseOption, unique);
 							}					
 							if (trueLabel.isEmpty()) {
 								wr.write(" prepareNameTestMethodOptionEnd falseLabel=\""+falseOption+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
@@ -592,12 +602,24 @@ loop:	for (;;) {
 							}
 							break;
 						case Repeat		:
+							final String	trueRepeat = "trueRepeat"+unique[0], falseRepeat = "falseRepeat"+unique[0];
+							
+							unique[0]++;
+							wr.write(" prepareNameTestMethodRepeatStart trueLabel=\""+trueRepeat+"\"\n");
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildTestRuleProcessingMethods(className, option, map, keywords, wr, "", falseRepeat, unique);
+							}					
+							wr.write(" prepareNameTestMethodRepeatEnd trueLabel=\""+trueRepeat+"\",falseLabel=\""+falseRepeat+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 							break;
 						case Repeat1	:
-							break;
-						case Root		:
-							break;
-						case Rule		:
+							final String	true1Repeat = "trueRepeat"+unique[0], false1Repeat = "falseRepeat"+unique[0];
+							
+							unique[0]++;
+							wr.write(" prepareNameTestMethodRepeat1Start trueLabel=\""+true1Repeat+"\"\n");
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildTestRuleProcessingMethods(className, option, map, keywords, wr, "", false1Repeat, unique);
+							}					
+							wr.write(" prepareNameTestMethodRepeat1End trueLabel=\""+true1Repeat+"\",falseLabel=\""+false1Repeat+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 							break;
 						case Switch		:
 							final String	trueSwitch = trueLabel.isEmpty() ? "trueSwitch"+unique[0] : trueLabel;
@@ -605,7 +627,7 @@ loop:	for (;;) {
 							
 							unique[0]++;
 							for (SyntaxNode<EntityType, ?> option : child.children) {
-								buildTestRuleProcessingMethods(className, option, option.children, map, keywords, wr, trueSwitch, falseSwitch, unique);
+								buildTestRuleProcessingMethods(className, option, map, keywords, wr, trueSwitch, falseSwitch, unique);
 								wr.write(falseSwitch+":\n");
 								unique[0]++;
 								falseSwitch = "false"+unique[0];
@@ -629,28 +651,17 @@ loop:	for (;;) {
 			final FieldAndMethods	names = map.get(root);
 			
 			switch (root.getType()) {
-				case Case		:
-					break;
 				case Char		:
 					wr.write(" prepareNameTestMethodChar value="+root.value+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 					break;
 				case Name		:
+					wr.write(" prepareNameTestMethodRule methodName=\"_"+names.testMethod+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 					break;
 				case Predefined	:
 					wr.write(" prepareNameTestMethodPredefined predefinedName=\""+((Predefines)root.cargo).name()+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 					break;
-				case Repeat		:
-					break;
-				case Repeat1	:
-					break;
-				case Root		:
-					break;
-				case Rule		:
-					break;
 				case Sequence	:
 					wr.write(" prepareNameTestMethodSequence fieldName=\""+names.field+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
-					break;
-				case Switch		:
 					break;
 				case Detected	:
 					break;
@@ -658,13 +669,104 @@ loop:	for (;;) {
 					throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
 			}
 		}
-		
 	}
 	
-	private static <NodeType extends Enum<?>, Cargo> void buildSkipRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
-	}
-	
-	private static <NodeType extends Enum<?>, Cargo> void buildParseRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
+	private static <NodeType extends Enum<?>, Cargo> void buildParseRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr, final String trueLabel, final String falseLabel, final int[] unique) throws IOException, SyntaxException {
+		if (root.getType().isCollection()) {
+			for (SyntaxNode<EntityType, ?> child : root.children) {
+				if (!child.getType().isCollection()) {
+					buildParseRuleProcessingMethods(className, child, map, keywords, wr, trueLabel, falseLabel, unique);
+				}
+				else {
+					final FieldAndMethods	names = map.get(child);
+					
+					switch (child.getType()) {
+						case Case		:
+							buildParseRuleProcessingMethods(className, child, map, keywords, wr, trueLabel, falseLabel, unique);
+							break;
+						case Option		:
+							final String	trueOption = trueLabel.isEmpty() ? "" : "trueOption"+unique[0], falseOption = "falseOption"+unique[0];
+							
+							unique[0]++;
+							wr.write(" prepareNameTestMethodOptionStart \n");
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildParseRuleProcessingMethods(className, option, map, keywords, wr, trueOption, falseOption, unique);
+							}					
+							if (trueLabel.isEmpty()) {
+								wr.write(" prepareNameTestMethodOptionEnd falseLabel=\""+falseOption+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							else {
+								wr.write(" prepareNameTestMethodOptionEnd trueLabel=\""+trueOption+"\",falseLabel=\""+falseOption+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							break;
+						case Repeat		:
+							final String	trueRepeat = "trueRepeat"+unique[0], falseRepeat = "falseRepeat"+unique[0];
+							
+							unique[0]++;
+							wr.write(" prepareNameTestMethodRepeatStart trueLabel=\""+trueRepeat+"\"\n");
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildParseRuleProcessingMethods(className, option, map, keywords, wr, "", falseRepeat, unique);
+							}					
+							wr.write(" prepareNameTestMethodRepeatEnd trueLabel=\""+trueRepeat+"\",falseLabel=\""+falseRepeat+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							break;
+						case Repeat1	:
+							final String	true1Repeat = "trueRepeat"+unique[0], false1Repeat = "falseRepeat"+unique[0];
+							
+							unique[0]++;
+							wr.write(" prepareNameTestMethodRepeat1Start trueLabel=\""+true1Repeat+"\"\n");
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildParseRuleProcessingMethods(className, option, map, keywords, wr, "", false1Repeat, unique);
+							}					
+							wr.write(" prepareNameTestMethodRepeat1End trueLabel=\""+true1Repeat+"\",falseLabel=\""+false1Repeat+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							break;
+						case Switch		:
+							final String	trueSwitch = trueLabel.isEmpty() ? "trueSwitch"+unique[0] : trueLabel;
+							String	falseSwitch = "false"+unique[0];
+							
+							unique[0]++;
+							for (SyntaxNode<EntityType, ?> option : child.children) {
+								buildParseRuleProcessingMethods(className, option, map, keywords, wr, trueSwitch, falseSwitch, unique);
+								wr.write(falseSwitch+":\n");
+								unique[0]++;
+								falseSwitch = "false"+unique[0];
+							}					
+							if (trueLabel.isEmpty()) {
+								wr.write(" prepareNameTestMethodSwitchEnd trueLabel=\""+trueSwitch+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							else {
+								wr.write(" prepareNameTestMethodSwitchEnd trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+							}
+							break;
+						case Detected	:
+							break;
+						default:
+							throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
+					}
+				}
+			}		
+		}
+		else {
+			final FieldAndMethods	names = map.get(root);
+			
+			switch (root.getType()) {
+				case Char		:
+					wr.write(" prepareNameTestMethodChar value="+root.value+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					break;
+				case Name		:
+					wr.write(" prepareNameTestMethodRule methodName=\"_"+names.testMethod+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					break;
+				case Predefined	:
+					wr.write(" prepareNameTestMethodPredefined predefinedName=\""+((Predefines)root.cargo).name()+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					break;
+				case Sequence	:
+					wr.write(" prepareNameTestMethodSequence fieldName=\""+names.field+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					break;
+				case Detected	:
+					break;
+				default:
+					throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
+			}
+		}
 	}	
 	
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingMethods1(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
@@ -807,13 +909,13 @@ inside:	switch (root.type) {
 				wr.write(" prepareParseInternal className=\""+className+"\",testMethod=\""+first.testMethod+"\",parseMethod=\""+first.parseMethod+"\"\n");
 				break;
 			case Rule		:
-				wr.write(" prepareRuleTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
-				for (SyntaxNode<EntityType, ?> child : root.children) {
-					if (child.type.needCreateTestMethod()) {
-						wr.write(" prepareRuleTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
-					}
-				}
-				wr.write(" prepareRuleTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
+//				wr.write(" prepareRuleTestMethodStart className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
+//				for (SyntaxNode<EntityType, ?> child : root.children) {
+//					if (child.type.needCreateTestMethod()) {
+//						wr.write(" prepareRuleTestMethodItem className=\""+className+"\",methodName=\""+map.get(child).testMethod+"\",skipMethodName=\""+map.get(child).skipMethod+"\"\n");
+//					}
+//				}
+//				wr.write(" prepareRuleTestMethodEnd className=\""+className+"\",methodName=\""+names.testMethod+"\"\n");
 				
 				wr.write(" prepareRuleSkipMethodStart className=\""+className+"\",methodName=\""+names.skipMethod+"\",testMethodName=\""+names.testMethod+"\"\n");
 				for (SyntaxNode<EntityType, ?> child : root.children) {

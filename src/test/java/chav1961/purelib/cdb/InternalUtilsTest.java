@@ -169,6 +169,7 @@ public class InternalUtilsTest {
 		testTest("<Test1>::='1'{'2'|'3'|'4'}'5'", " 125\n", 4, " 143\n", 1);
 		testTest("<Test1>::='1'{'2'|'3'|'4'|@Empty}'5'", " 15\n", 3, " 143\n", 1);
 		testTest("<Test1>::=('1'',')*'2'", " 1,1,2\n", 6, " 1,3,2\n", 1);
+		testTest("<Test1>::=('1'',')+'2'", " 1,1,2\n", 6, " 3,2\n", 1);
 		
 		totalTestTest("<Test1>::=<Test2>\n<Test2>::='1'", " 1\n", 2, " 2\n", 1);
 
@@ -181,16 +182,17 @@ public class InternalUtilsTest {
 		skipTest("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
 		skipTest("<Test1>::='123'", " 123 \n", 4, "23\n", 0);
 		skipTest("<Test1>::='123':<Test2>", " 123 \n", 4, "23\n", 0);
-		skipTest("<Test1>::='123''4'", " 123 4\n", 6, "123 5\n", 0);
-		skipTest("<Test1>::='1''234'", " 1 234\n", 6, "123 5\n", 0);
-		skipTest("<Test1>::=('1''234')", " 1 234\n", 6, "123 5\n", 0);
-		skipTest("<Test1>::=@FixedNumber@Name", " 12assa\n", 7, " 12 3\n", 0);
-		skipTest("<Test1>::='1'['2']'3'", " 123\n", 4, " 143\n", 1);
-		skipTest("<Test1>::='1'['2']'3'", " 13\n", 3, " 143\n", 1);
-		skipTest("<Test1>::='1'{'2'|'3'|'4'}'5'", " 145\n", 4, " 143\n", 1);
-		skipTest("<Test1>::='1'{'2'|'3'|'4'}'5'", " 125\n", 4, " 143\n", 1);
-		skipTest("<Test1>::='1'{'2'|'3'|'4'|@Empty}'5'", " 15\n", 3, " 143\n", 1);
-		skipTest("<Test1>::=('1'',')*'2'", " 1,1,2\n", 6, " 1,3,2\n", 1);
+		skipTest("<Test1>::='123''4'", " 123 4\n", 6, "123 5\n", 4);
+		skipTest("<Test1>::='1''234'", " 1 234\n", 6, "123 5\n", 1);
+		skipTest("<Test1>::=('1''234')", " 1 234\n", 6, "123 5\n", 1);
+		skipTest("<Test1>::=@FixedNumber@Name", " 12assa\n", 7, " 12 3\n", 4);
+		skipTest("<Test1>::='1'['2']'3'", " 123\n", 4, " 143\n", 2);
+		skipTest("<Test1>::='1'['2']'3'", " 13\n", 3, " 143\n", 2);
+		skipTest("<Test1>::='1'{'2'|'3'|'4'}'5'", " 145\n", 4, " 143\n", 3);
+		skipTest("<Test1>::='1'{'2'|'3'|'4'}'5'", " 125\n", 4, " 143\n", 3);
+		skipTest("<Test1>::='1'{'2'|'3'|'4'|@Empty}'5'", " 15\n", 3, " 143\n", 3);
+		skipTest("<Test1>::=('1'',')*'2'", " 1,1,2\n", 6, " 1,3,2\n", 3);
+		skipTest("<Test1>::=('1'',')+'2'", " 1,1,2\n", 6, " 1,3,2\n", 3);
 		
 		totalSkipTest("<Test1>::=<Test2>\n<Test2>::='1'", " 1\n", 2, " 2\n", 1);
 
@@ -385,7 +387,7 @@ public class InternalUtilsTest {
 		RuleBasedParser<TestType, Object>			obj = rbpc.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, sti); 
 
 		Assert.assertTrue(obj.test(trueString.toCharArray(), 0));
-		Assert.assertFalse(obj.test(trueString.toCharArray(), 0));
+		Assert.assertFalse(obj.test(falseString.toCharArray(), 0));
 	}
 	
 	private void skipTest(final String rule, final String trueString, final int whereTrue, final String falseString, final int whereFalse) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {

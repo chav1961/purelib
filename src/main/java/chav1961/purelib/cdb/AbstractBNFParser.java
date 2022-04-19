@@ -84,9 +84,9 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 		final char[]	pointer = new char[piece.length];
 		
 		Arrays.fill(pointer,' ');
-		pointer[col] = '^';
+		pointer[Math.min(col, pointer.length-1)] = '^';
 		
-		throw new SyntaxException(SyntaxException.toRow(content, col), SyntaxException.toCol(content, col), message+"\n"+new String(piece)+"\n"+new String(pointer));
+		throw new SyntaxException(SyntaxException.toRow(content, Math.min(content.length-1,col)), SyntaxException.toCol(content, Math.min(content.length-1,col)), message+"\n"+new String(piece)+"\n"+new String(pointer));
 	}
 	
 	protected static boolean testPredefined(final char[] content, int from, final Predefines predefinedType, final int[] tempInt, final long[] tempLong) {
