@@ -56,6 +56,22 @@ public class URIUtils {
 		}
 	}
 	
+	public static URI extractSchemeAndSubscheme(final URI uri) {
+		if (uri == null || !uri.isAbsolute()) {
+			throw new IllegalArgumentException("URI ["+uri+"] can't be null and must be absolute"); 
+		}
+		else {
+			final String	scheme = uri.getScheme(), subScheme = URI.create(uri.getSchemeSpecificPart()).getScheme();
+			
+			if (scheme == null || subScheme == null) {
+				throw new IllegalArgumentException("URI ["+uri+"] must contain at least scheme and subscheme!"); 
+			}
+			else {
+				return URI.create(scheme+':'+subScheme+":/");
+			}
+		}
+	}
+	
 	/**
 	 * <p>Load bytes from the given URI.</p>
 	 * @param uri uri to load bytes from

@@ -391,9 +391,8 @@ public class SQLModelUtils {
 		}
 		else {
 			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
-			
+
 				return "select * from "+adapter.getTableName(meta);
-			
 			} catch (EnvironmentException | SyntaxException e) {
 				throw new SQLException(e); 
 			}
@@ -1204,8 +1203,10 @@ public class SQLModelUtils {
 	}
 
 	static DatabaseModelAdapter getModelAdapter(final URI resource) throws EnvironmentException {
+		final URI	schemeAndSubscheme = URIUtils.extractSchemeAndSubscheme(resource);
+		
 		for (DatabaseModelAdapter item : ServiceLoader.load(DatabaseModelAdapter.class)) {
-			if (item.canServe(resource) && !(item instanceof DefaultDatabaseModelAdapter)) {
+			if (item.canServe(schemeAndSubscheme) && !(item instanceof DefaultDatabaseModelAdapter)) {
 				return item.newInstance(resource);
 			}
 		}
