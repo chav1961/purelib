@@ -7,13 +7,12 @@ import java.util.Hashtable;
 import java.util.List;
 
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.sql.SQLUtils.DbTypeDescriptor;
 import chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter;
-import chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter.StandardExceptions;
 
 public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 	public static final String	POSTGRES_SUBSCHEMA = "postgresql";
