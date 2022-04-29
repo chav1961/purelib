@@ -16,7 +16,7 @@ import chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter;
 import chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter.StandardExceptions;
 
 public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
-	public static final String	POSTGRES_SUBSCHEMA = "postgres";
+	public static final String	POSTGRES_SUBSCHEMA = "postgresql";
 	private static final URI	POSTGRES_URI = URI.create(MODEL_ADAPTER_SCHEMA+':'+POSTGRES_SUBSCHEMA+":/");
 	
 	public PostgreSQLDatabaseModelAdapter() {
@@ -38,39 +38,44 @@ public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
-	public String createSchema(ContentNodeMetadata meta) throws SyntaxException {
-		return "create schema "+DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(),meta.getName());
+	public String createSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
+		final String	currentSchema = schema == null || schema.isEmpty() ? meta.getName() : schema;
+		
+		return "create schema "+DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), currentSchema);
 	}
 
 	@Override
-	public String dropSchema(ContentNodeMetadata meta) throws SyntaxException {
-		return "drop schema "+DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), meta.getName())+" cascade";
+	public String dropSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
+		final String	currentSchema = schema == null || schema.isEmpty() ? meta.getName() : schema;
+		
+		return "drop schema "+DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), currentSchema)+" cascade";
 	}
 
 	@Override
-	public String getSchemaName(ContentNodeMetadata meta) throws SyntaxException {
-		return null;
+	public String getSchemaName(ContentNodeMetadata meta, final String schema) throws SyntaxException {
+		return schema == null || schema.isEmpty() ? meta.getName() : schema;
 	}
 
 	@Override
-	public String describeColumn(ContentNodeMetadata meta) throws SyntaxException {
+	public String describeColumn(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String getColumnName(ContentNodeMetadata meta) throws SyntaxException {
+	public String getColumnName(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), meta.getName());
 	}
 
 	@Override
-	public String createTable(ContentNodeMetadata meta) throws SyntaxException {
+	public String createTable(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		final DbTypeDescriptor[]	dtd =new DbTypeDescriptor[0];// DbTypeDescriptor.load(conn);
+		final String 				currentSchema = schema == null || schema.isEmpty() ? meta.getParent().getName() : schema;
 		final StringBuilder			sb = new StringBuilder();
 		final List<String>			primaryKeys = new ArrayList<>();
 		char						prefix = '(';
 		
-		sb.append("create table ").append(getTableName(meta));
+		sb.append("create table ").append(getTableName(meta, currentSchema));
 		
 		for (ContentNodeMetadata item : meta) {
 			final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(item.getApplicationPath()));
@@ -101,25 +106,28 @@ public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
-	public String dropTable(final ContentNodeMetadata meta) throws SyntaxException {
+	public String dropTable(final ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		final StringBuilder	sb = new StringBuilder();
 		
-		sb.append("drop table ").append(getTableName(meta)).append(" cascade");
+		sb.append("drop table ").append(getTableName(meta, schema)).append(" cascade");
 		return sb.toString();
 	}
 
 	@Override
-	public String getTableName(ContentNodeMetadata meta) throws SyntaxException {
-		return DefaultDatabaseModelAdapter.replaceSchemaAndEscape(getStartQuote(), getEndQuote(), meta.getName(), meta.getParent().getName());
+	public String getTableName(ContentNodeMetadata meta, final String schema) throws SyntaxException {
+		final String 	currentSchema = schema == null || schema.isEmpty() ? meta.getParent().getName() : schema;
+		
+		return DefaultDatabaseModelAdapter.replaceSchemaAndEscape(getStartQuote(), getEndQuote(), meta.getName(), currentSchema);
 	}
 
 	@Override
-	public String createSequence(ContentNodeMetadata meta) throws SyntaxException {
+	public String createSequence(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(meta.getApplicationPath()));
+		final String 		currentSchema = schema == null || schema.isEmpty() ? meta.getParent().getName() : schema;
 		final StringBuilder	sb = new StringBuilder();
 		long				from, to;	
 		
-		sb.append("create sequence ").append(DefaultDatabaseModelAdapter.replaceSchemaAndEscape(getStartQuote(), getEndQuote(), meta.getName(), meta.getParent().getName()));
+		sb.append("create sequence ").append(DefaultDatabaseModelAdapter.replaceSchemaAndEscape(getStartQuote(), getEndQuote(), meta.getName(), currentSchema));
 		if (query.containsKey("step")) {
 			sb.append(" increment by ").append(query.get("step")[0]);
 		}
@@ -137,13 +145,17 @@ public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
-	public String dropSequence(ContentNodeMetadata meta) throws SyntaxException {
-		return "drop sequence "+DefaultDatabaseModelAdapter.replaceSchemaAndEscape(getStartQuote(), getEndQuote(), meta.getName(), meta.getParent().getName());
+	public String dropSequence(ContentNodeMetadata meta, final String schema) throws SyntaxException {
+		final String 	currentSchema = schema == null || schema.isEmpty() ? meta.getParent().getName() : schema;
+		
+		return "drop sequence "+DefaultDatabaseModelAdapter.replaceSchemaAndEscape(getStartQuote(), getEndQuote(), meta.getName(), currentSchema);
 	}
 
 	@Override
-	public String getSequenceName(ContentNodeMetadata meta) throws SyntaxException {
-		return meta.getName();
+	public String getSequenceName(ContentNodeMetadata meta, final String schema) throws SyntaxException {
+		final String 	currentSchema = schema == null || schema.isEmpty() ? meta.getParent().getName() : schema;
+		
+		return DefaultDatabaseModelAdapter.replaceSchemaAndEscape(getStartQuote(), getEndQuote(), meta.getName(), currentSchema);
 	}
 
 	@Override

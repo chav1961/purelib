@@ -323,14 +323,14 @@ public class SQLModelUtils {
 	}
 
 	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
-		try{executeSQL(conn, adapter.createTable(root));
+		try{executeSQL(conn, adapter.createTable(root, schema));
 		} catch (SyntaxException e) {
 			throw new SQLException(e); 
 		}
 	}
 
 	private static void createDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
-		try{executeSQL(conn, adapter.createSequence(root));
+		try{executeSQL(conn, adapter.createSequence(root, schema));
 		} catch (SyntaxException  e) {
 			throw new SQLException(e); 
 		}
@@ -375,6 +375,33 @@ public class SQLModelUtils {
 			throw new IllegalArgumentException("Root metadata must have [SchemaContainer] type");
 		}
 	}
+
+	public static <Version extends Comparable<Version>> Version extractVersionFromModel(final ContentNodeMetadata model, final Version defaultVersion) throws NullPointerException, IllegalArgumentException {
+		if (model == null) {
+			throw new NullPointerException("Model can'tbe null");
+		}
+		else if (model.getType() == SchemaContainer.class) {
+			final URI		appUri = model.getApplicationPath();
+			final String	query = URIUtils.extractQueryFromURI(appUri);
+			
+			if (query != null && !query.isEmpty()) {
+				final Hashtable<String,String[]>	content = URIUtils.parseQuery(query);
+				
+				if (content.containsKey("version")) {
+					return (Version) new SimpleDottedVersion(content.get("verison")[0]);
+				}
+				else {
+					return defaultVersion;
+				}
+			}
+			else {
+				return defaultVersion;
+			}
+		}
+		else {
+			throw new IllegalArgumentException("Invalid model: root must have ["+SchemaContainer.class+"] type, not ["+model.getType()+"]"); 
+		}
+	}
 	
 	public static String buildSelectAllStatementByModel(final Connection conn, final ContentNodeMetadata meta, final String schema) throws SQLException {
 		if (conn == null) {
@@ -392,7 +419,7 @@ public class SQLModelUtils {
 		else {
 			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
 			
-				return "select * from "+adapter.getTableName(meta);
+				return "select * from "+adapter.getTableName(meta, schema);
 			
 			} catch (EnvironmentException | SyntaxException e) {
 				throw new SQLException(e); 
@@ -416,7 +443,7 @@ public class SQLModelUtils {
 		else {
 			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
 			
-				return "select count(*) from "+adapter.getTableName(meta);
+				return "select count(*) from "+adapter.getTableName(meta, schema);
 			
 			} catch (EnvironmentException | SyntaxException e) {
 				throw new SQLException(e); 
@@ -442,9 +469,9 @@ public class SQLModelUtils {
 				final StringBuilder			sb = new StringBuilder(), sbVal = new StringBuilder();
 				String	prefix = "(";
 			
-				sb.append("insert into ").append(adapter.getTableName(meta));
+				sb.append("insert into ").append(adapter.getTableName(meta, schema));
 				for (ContentNodeMetadata item : meta) {
-					sb.append(prefix).append(adapter.getColumnName(item));
+					sb.append(prefix).append(adapter.getColumnName(item, schema));
 					sbVal.append(prefix).append('?');
 					prefix = ",";
 				}
@@ -456,8 +483,10 @@ public class SQLModelUtils {
 	}
 	
 	private static void internalRemoveDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final boolean removeSchema, final DatabaseModelAdapter adapter) throws SQLException, NullPointerException {
-		if (root.getType() == UniqueIdContainer.class && adapter.isSequenceSupported()) {
-			removeDatabaseSequenceByModel(conn, root, schema, adapter);
+		if (root.getType() == UniqueIdContainer.class) {
+			if (adapter.isSequenceSupported()) {
+				removeDatabaseSequenceByModel(conn, root, schema, adapter);
+			}
 		}
 		else if (root.getType() == TableContainer.class) {
 			removeDatabaseTableByModel(conn, root, schema, adapter);
@@ -469,7 +498,7 @@ public class SQLModelUtils {
 	
 	private static void removeDatabaseSchemaByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
-			stmt.executeUpdate(adapter.dropSchema(root));
+			stmt.executeUpdate(adapter.dropSchema(root, schema));
 		} catch (SQLException exc) {
 			if (adapter.getExceptionType(exc) != StandardExceptions.NO_OBJECT_FOUND) {
 				throw exc;
@@ -482,7 +511,7 @@ public class SQLModelUtils {
 	private static void removeDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
 
-			stmt.executeUpdate(adapter.dropTable(root));
+			stmt.executeUpdate(adapter.dropTable(root, schema));
 		} catch (SQLException exc) {
 			if (adapter.getExceptionType(exc) != StandardExceptions.NO_OBJECT_FOUND) {
 				throw exc;
@@ -495,7 +524,7 @@ public class SQLModelUtils {
 	private static void removeDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
 		try(final Statement	stmt = conn.createStatement()) {
 			
-			stmt.executeUpdate(adapter.dropSequence(root));
+			stmt.executeUpdate(adapter.dropSequence(root, schema));
 		} catch (SQLException exc) {
 			if (adapter.getExceptionType(exc) != StandardExceptions.NO_OBJECT_FOUND) {
 				throw exc;

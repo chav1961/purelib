@@ -142,9 +142,10 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 							storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheLastModel(), model.getTheLastModel().getName(), model.getTheLastVersion());
 							trans.message(Severity.info, "Database version stored, version ["+model.getTheLastVersion()+"]");
 						} catch (SQLException exc) {
+							exc.printStackTrace();
 							trans.message(Severity.error, exc, "Exception was detected, database will be rolled back");
 							removeDbVersionTable(conn, model.getTheLastModel(), model.getTheLastModel().getName());
-							trans.message(Severity.error, exc, "Database rollback completed");
+							trans.message(Severity.info, exc, "Database rollback completed");
 						}
 					}
 				}

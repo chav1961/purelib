@@ -34,6 +34,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
@@ -96,8 +97,8 @@ public abstract class AbstractLocalizer implements Localizer {
 															}
 														};
 	
-	private final List<LocaleChangeListener>		listeners = new ArrayList<>();
-	private final SyntaxTreeInterface<LocaleParametersGetter>	associations = new OrdinalSyntaxTree<>();	
+	private final LightWeightListenerList<LocaleChangeListener>		listeners = new LightWeightListenerList<>(LocaleChangeListener.class);
+	private final SyntaxTreeInterface<LocaleParametersGetter>		associations = new OrdinalSyntaxTree<>();	
 	private LocaleDescriptor						currentDesc = new LocaleDescriptorImpl(Locale.getDefault(),SupportedLanguages.valueOf(Locale.getDefault().getLanguage()),"",new ImageIcon());
 	private Localizer								parent = null;
 	private LocalizerNode							node = new LocalizerNode(this);
@@ -136,13 +137,7 @@ public abstract class AbstractLocalizer implements Localizer {
 					for (Localizer entity : set) {
 						entity.setCurrentLocale(newLocale);
 					}
-					synchronized(listeners) {
-						listeners.forEach((listener)->{
-							try {listener.localeChanged(oldLocale, newLocale);
-							} catch (LocalizationException e) {
-							}
-						});
-					}
+					listeners.fireEvent((listener)->listener.localeChanged(oldLocale, newLocale));
 					return this;
 				}
 			}
@@ -610,9 +605,7 @@ loop:		do {if (cursor.child != null) {
 			throw new NullPointerException("Listener to add can't be null");
 		}
 		else {
-			synchronized(listeners) {
-				listeners.add(listener);
-			}
+			listeners.addListener(listener);
 			return this;
 		}
 	}
@@ -623,9 +616,7 @@ loop:		do {if (cursor.child != null) {
 			throw new NullPointerException("Listener to add can't be null");
 		}
 		else {
-			synchronized(listeners) {
-				listeners.remove(listener);
-			}
+			listeners.removeListener(listener);
 			return this;
 		}
 	}

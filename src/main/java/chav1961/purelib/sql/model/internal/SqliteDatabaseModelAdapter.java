@@ -38,39 +38,39 @@ public class SqliteDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
-	public String createSchema(ContentNodeMetadata meta) throws SyntaxException {
+	public String createSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
 
 	@Override
-	public String dropSchema(ContentNodeMetadata meta) throws SyntaxException {
+	public String dropSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
 
 	@Override
-	public String getSchemaName(ContentNodeMetadata meta) throws SyntaxException {
+	public String getSchemaName(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
 
 	@Override
-	public String describeColumn(ContentNodeMetadata meta) throws SyntaxException {
+	public String describeColumn(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String getColumnName(final ContentNodeMetadata meta) throws SyntaxException {
+	public String getColumnName(final ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), meta.getName());
 	}
 
 	@Override
-	public String createTable(ContentNodeMetadata meta) throws SyntaxException {
+	public String createTable(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		final DbTypeDescriptor[]	dtd =new DbTypeDescriptor[0];// DbTypeDescriptor.load(conn);
 		final StringBuilder			sb = new StringBuilder();
 		final List<String>			primaryKeys = new ArrayList<>();
 		char						prefix = '(';
 		
-		sb.append("create table ").append(getTableName(meta));
+		sb.append("create table ").append(getTableName(meta, schema));
 		
 		for (ContentNodeMetadata item : meta) {
 			final Hashtable<String, String[]> 	query = URIUtils.parseQuery(URIUtils.extractQueryFromURI(item.getApplicationPath()));
@@ -101,30 +101,30 @@ public class SqliteDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
-	public String dropTable(final ContentNodeMetadata meta) throws SyntaxException {
+	public String dropTable(final ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		final StringBuilder	sb = new StringBuilder();
 		
-		sb.append("drop table ").append(getTableName(meta));
+		sb.append("drop table ").append(getTableName(meta, schema));
 		return sb.toString();
 	}
 
 	@Override
-	public String getTableName(final ContentNodeMetadata meta) throws SyntaxException {
+	public String getTableName(final ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), meta.getName());
 	}
 
 	@Override
-	public String createSequence(ContentNodeMetadata meta) throws SyntaxException {
+	public String createSequence(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
 
 	@Override
-	public String dropSequence(ContentNodeMetadata meta) throws SyntaxException {
+	public String dropSequence(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
 
 	@Override
-	public String getSequenceName(ContentNodeMetadata meta) throws SyntaxException {
+	public String getSequenceName(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
 

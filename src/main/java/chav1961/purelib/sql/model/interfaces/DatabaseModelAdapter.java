@@ -14,17 +14,17 @@ public interface DatabaseModelAdapter extends SpiService<DatabaseModelAdapter> {
 		NO_OBJECT_FOUND;
 	}
 
-	String createSchema(ContentNodeMetadata meta) throws SyntaxException;
-	String dropSchema(ContentNodeMetadata meta) throws SyntaxException;
-	String getSchemaName(ContentNodeMetadata meta) throws SyntaxException;
-	String describeColumn(ContentNodeMetadata meta) throws SyntaxException;
-	String getColumnName(ContentNodeMetadata meta) throws SyntaxException;
-	String createTable(ContentNodeMetadata meta) throws SyntaxException;
-	String dropTable(ContentNodeMetadata meta) throws SyntaxException;
-	String getTableName(ContentNodeMetadata meta) throws SyntaxException;
-	String createSequence(ContentNodeMetadata meta) throws SyntaxException;
-	String dropSequence(ContentNodeMetadata meta) throws SyntaxException;
-	String getSequenceName(ContentNodeMetadata meta) throws SyntaxException;
+	String createSchema(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String dropSchema(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String getSchemaName(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String describeColumn(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String getColumnName(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String createTable(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String dropTable(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String getTableName(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String createSequence(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String dropSequence(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String getSequenceName(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	
 	boolean isSchemaSupported();
 	boolean isSequenceSupported();
