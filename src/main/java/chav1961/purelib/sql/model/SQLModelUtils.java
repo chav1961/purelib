@@ -418,14 +418,8 @@ public class SQLModelUtils {
 		}
 		else {
 			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
-<<<<<<< HEAD
 			
 				return "select * from "+adapter.getTableName(meta, schema);
-			
-=======
-
-				return "select * from "+adapter.getTableName(meta);
->>>>>>> branch 'master' of https://github.com/chav1961/purelib.git
 			} catch (EnvironmentException | SyntaxException e) {
 				throw new SQLException(e); 
 			}
