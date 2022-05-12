@@ -418,7 +418,6 @@ public class SQLModelUtils {
 		}
 		else {
 			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
-			
 				return "select * from "+adapter.getTableName(meta, schema);
 			} catch (EnvironmentException | SyntaxException e) {
 				throw new SQLException(e); 
