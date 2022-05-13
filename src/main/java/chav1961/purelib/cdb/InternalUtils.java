@@ -468,7 +468,6 @@ L:				switch (node.type) {
 						baseLevelProc.put(node, new FieldAndMethods("case"+uniqueId, "testCase"+uniqueId, "skipCase"+uniqueId, "parseCase"+uniqueId));
 						break;
 					case Name		:
-//						baseLevelProc.put(node, new FieldAndMethods("name"+keywords.getName(node.value)+uniqueId, "testName"+keywords.getName(node.value)+uniqueId, "skipName"+keywords.getName(node.value)+uniqueId, "parseName"+keywords.getName(node.value)+uniqueId));
 						for (SyntaxNode<EntityType, ?> item : callLinks) {
 							if (node.value == item.value) {
 								baseLevelProc.put(node, new FieldAndMethods("rule"+keywords.getName(node.value), "testRule"+keywords.getName(node.value), "skipRule"+keywords.getName(node.value), "parseRule"+keywords.getName(node.value)));
@@ -520,10 +519,7 @@ L:				switch (node.type) {
 		}
 		wr.write(" afterClinit className=\""+className+"\"\n");
 		buildRuleProcessingConstructor(className, root, keywords, wr);
-//		for (SyntaxNode item : root.children) {
-			buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
-//		}
-//		buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
+		buildRuleProcessingMethods(className, root, root.children, baseLevelProc, keywords, wr);
 		buildRuleProcessingRoot(className, root, keywords, baseLevelProc, wr);
 		buildRuleProcessingTail(className, root, keywords, wr);
 	}
@@ -554,7 +550,7 @@ L:				switch (node.type) {
 	}
 
 	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessingMethods(final String className, final SyntaxNode<EntityType, ?> root, final SyntaxNode<EntityType, ?>[] children, final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods> map, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException {
-		final int[]	unique =new int[] {1};
+		final int[]	unique = new int[] {1};
 		
 		for (SyntaxNode<EntityType, ?> child : root.children) {
 			final FieldAndMethods	names = map.get(child);
@@ -642,7 +638,7 @@ L:				switch (node.type) {
 						case Detected	:
 							break;
 						default:
-							throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
+							throw new UnsupportedOperationException("Node type ["+child.getType()+"] is not supported yet");
 					}
 				}
 			}		
@@ -738,9 +734,13 @@ L:				switch (node.type) {
 							}
 							break;
 						case Detected	:
+							wr.write(" prepareNameParseMethodDetector className=\""+className+"\",methodName=\""+names.parseMethod+"\",item="+root.value+"\n");
+							break;
+						case Rule :
+							buildParseRuleProcessingMethods(className, child, map, keywords, wr, trueLabel, falseLabel, unique);
 							break;
 						default:
-							throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
+							throw new UnsupportedOperationException("Node type ["+child.getType()+"] is not supported yet");
 					}
 				}
 			}		
@@ -753,15 +753,16 @@ L:				switch (node.type) {
 					wr.write(" prepareNameTestMethodChar value="+root.value+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 					break;
 				case Name		:
-					wr.write(" prepareNameTestMethodRule methodName=\"_"+names.testMethod+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					wr.write(" prepareNameParseMethodRule methodName=\"_"+names.parseMethod+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 					break;
 				case Predefined	:
-					wr.write(" prepareNameTestMethodPredefined predefinedName=\""+((Predefines)root.cargo).name()+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
+					wr.write(" prepareNameParseMethodPredefined predefinedName=\""+((Predefines)root.cargo).name()+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 					break;
 				case Sequence	:
 					wr.write(" prepareNameTestMethodSequence fieldName=\""+names.field+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
 					break;
 				case Detected	:
+					wr.write(" prepareNameParseMethodDetector className=\""+className+"\",methodName=\""+names.parseMethod+"\",item="+root.value+"\n");
 					break;
 				default:
 					throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");

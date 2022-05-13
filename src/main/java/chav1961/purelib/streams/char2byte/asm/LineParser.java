@@ -479,7 +479,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private int[]										forMethodTypes = new int[16];
 	private boolean 									needStackMapRecord = false;
 	private short										stackSize4CurrentMethod = 0;
-	private int											methodLineNo; 
+	private int											methodLineNo;
+	private int											nestingDepth = 0;
 	
 	LineParser(final ClassLoader owner, final ClassContainer cc, final ClassDescriptionRepo cdr, final SyntaxTreeInterface<Macros> macros, final MacroClassLoader loader) throws IOException, ContentException {
 		this(owner,cc,cdr,macros,loader,null);
@@ -518,12 +519,13 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		try{
 			if (state == ParserState.insideMacros) {	// Redirect macros code into macros
-				currentMacros.processLine(displacement,lineNo,data,from,len);
+			    currentMacros.processLine(displacement,lineNo,data,from,len);
+				
 				if (currentMacros.isPrepared()) {
 					final String	macroName = new String(currentMacros.getName());
 					
 					if (macros.seekName(macroName) >= 0) {
-						throw new ContentException("Duplicate macros ["+macroName+"] in the input stream");
+						throw new SyntaxException(lineNo, 0, "Duplicate macros ["+macroName+"] in the input stream");
 					}
 					else {
 						final GrowableCharArray<?>	writer = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
@@ -533,7 +535,7 @@ class LineParser implements LineByLineProcessorCallback {
 							currentMacros.compile(loader.createClass(className,writer).getConstructor(char[].class).newInstance(stringRepo.extract()));
 							macros.placeOrChangeName(macroName,currentMacros);
 						} catch (CalculationException | InstantiationException | RuntimeException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-							throw new ContentException(e.getLocalizedMessage(),e); 
+							throw new SyntaxException(lineNo, 0, e.getLocalizedMessage(),e); 
 						}
 						state = ParserState.beforePackage;
 						currentMacros = null;
@@ -550,7 +552,7 @@ class LineParser implements LineByLineProcessorCallback {
 				startName = start;
 				endName = start = skipSimpleName(data,start);
 				if (endName == startName) {
-					throw new SyntaxException(lineNo,0,"Illegal label/entity name");
+					throw new SyntaxException(lineNo, 0, "Illegal label/entity name");
 				}
 				
 				id = tree.placeOrChangeName(data,startName,endName,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
@@ -563,7 +565,7 @@ class LineParser implements LineByLineProcessorCallback {
 							putLabel(id);
 							break;
 						default :
-							throw new ContentException("Branch label outside the method body!");
+							throw new SyntaxException(lineNo, 0, "Branch label outside the method body!");
 					}
 					start++;
 					id = -1;
@@ -586,9 +588,9 @@ class LineParser implements LineByLineProcessorCallback {
 									state = ParserState.insideClass;
 									break;
 								case afterClass :
-									throw new ContentException("Second class directive in the same stream. Use separate streams for each class/interface!");
+									throw new SyntaxException(lineNo, 0, "Second class directive in the same stream. Use separate streams for each class/interface!");
 								default :
-									throw new ContentException("Nested class directive!");
+									throw new SyntaxException(lineNo, 0, "Nested class directive!");
 							}						
 							break;
 						case DIR_INTERFACE:
@@ -600,9 +602,9 @@ class LineParser implements LineByLineProcessorCallback {
 									state = ParserState.insideInterface;
 									break;
 								case afterClass :
-									throw new ContentException("Second interface directive in the same stream. Use separate streams for each class/interface!");
+									throw new SyntaxException(lineNo, 0, "Second interface directive in the same stream. Use separate streams for each class/interface!");
 								default :
-									throw new ContentException("Nested interface directive!");
+									throw new SyntaxException(lineNo, 0, "Nested interface directive!");
 							}						
 							break;
 						case DIR_FIELD	:
@@ -617,9 +619,9 @@ class LineParser implements LineByLineProcessorCallback {
 								case beforePackage :
 								case beforeImport :
 								case afterClass :
-									throw new ContentException("Field directive outside the class/interface!");
+									throw new SyntaxException(lineNo, 0, "Field directive outside the class/interface!");
 								default :
-									throw new ContentException("Field directive inside the method!");
+									throw new SyntaxException(lineNo, 0, "Field directive inside the method!");
 							}
 							break;
 						case DIR_METHOD	:
@@ -636,9 +638,9 @@ class LineParser implements LineByLineProcessorCallback {
 								case beforePackage :
 								case beforeImport :
 								case afterClass :
-									throw new ContentException("Method directive outside the class/interface!");
+									throw new SyntaxException(lineNo, 0, "Method directive outside the class/interface!");
 								default :
-									throw new ContentException("Nested method directive!");
+									throw new SyntaxException(lineNo, 0, "Nested method directive!");
 							}
 							break;
 						case DIR_PARAMETER	:
@@ -650,7 +652,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processParameterDir(id,data,InternalUtils.skipBlank(data,start));
 									break;
 								default :
-									throw new ContentException("Parameter directive is used outside the method description!");
+									throw new SyntaxException(lineNo, 0, "Parameter directive is used outside the method description!");
 							}
 							break;
 						case DIR_VAR	:
@@ -661,7 +663,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processVarDir(id,data,InternalUtils.skipBlank(data,start));
 									break;
 								default :
-									throw new ContentException("Var directive is used outside the method description!");
+									throw new SyntaxException(lineNo, 0, "Var directive is used outside the method description!");
 							}
 							break;
 						case DIR_BEGIN	:
@@ -680,7 +682,7 @@ class LineParser implements LineByLineProcessorCallback {
 									methodDescriptor.getBody().getStackAndVarRepo().startVarFrame();
 									break;
 								default :
-									throw new ContentException("Begin directive is valid in the method body only!");
+									throw new SyntaxException(lineNo, 0, "Begin directive is valid in the method body only!");
 							}
 							break;
 						case DIR_END	:
@@ -689,7 +691,7 @@ class LineParser implements LineByLineProcessorCallback {
 								case insideInterface :
 									checkLabel(id,true);
 									if (id != classNameId) {
-										throw new ContentException("End directive closes class description, but it's label ["+tree.getName(id)+"] is differ from class name ["+tree.getName(classNameId)+"]");
+										throw new SyntaxException(lineNo, 0, "End directive closes class description, but it's label ["+tree.getName(id)+"] is differ from class name ["+tree.getName(classNameId)+"]");
 									}
 									else {
 										state = ParserState.afterClass;
@@ -698,7 +700,7 @@ class LineParser implements LineByLineProcessorCallback {
 								case insideClassAbstractMethod :
 									checkLabel(id,true);
 									if (id != methodNameId) {
-										throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+										throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 									}
 									else {
 										methodDescriptor.complete();
@@ -707,14 +709,14 @@ class LineParser implements LineByLineProcessorCallback {
 									}
 									break;
 								case insideClassMethod :
-									throw new ContentException("Class method body is not defined!");
+									throw new SyntaxException(lineNo, 0, "Class method body is not defined!");
 								case insideClassBody :
 									checkLabel(id,true);
 									if (id != methodNameId && id != classNameId) {
-										throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+										throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 									}
 									else if (!areTryBlocksClosed()) {
-										throw new ContentException("Unclosed try blocks inside the method body ["+tree.getName(methodNameId)+"]");
+										throw new SyntaxException(lineNo, 0, "Unclosed try blocks inside the method body ["+tree.getName(methodNameId)+"]");
 									}
 									else {
 										methodDescriptor.complete();
@@ -725,7 +727,7 @@ class LineParser implements LineByLineProcessorCallback {
 								case insideInterfaceAbstractMethod :
 									checkLabel(id,true);
 									if (id != methodNameId) {
-										throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+										throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 									}
 									else {
 										methodDescriptor.complete();
@@ -745,7 +747,7 @@ class LineParser implements LineByLineProcessorCallback {
 										state = beforeBegin;
 										checkLabel(id,true);
 										if (id != methodNameId) {
-											throw new ContentException("End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
+											throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 										}
 										else {
 											methodDescriptor.complete();
@@ -765,7 +767,7 @@ class LineParser implements LineByLineProcessorCallback {
 									markLabelRequired(true);
 									break;
 								default :
-									throw new ContentException("End directive out of context!");
+									throw new SyntaxException(lineNo, 0, "End directive out of context!");
 							}
 							skip2line(data,start);
 							break;
@@ -779,9 +781,9 @@ class LineParser implements LineByLineProcessorCallback {
 									break;
 								case insideClassBody :
 								case insideBegin :
-									throw new ContentException("Duplicate Stack directive detected!");
+									throw new SyntaxException(lineNo, 0, "Duplicate Stack directive detected!");
 								default :
-									throw new ContentException("Stack directive is used outside the method description!");
+									throw new SyntaxException(lineNo, 0, "Stack directive is used outside the method description!");
 							}
 							break;
 						case DIR_PACKAGE:
@@ -792,9 +794,9 @@ class LineParser implements LineByLineProcessorCallback {
 									state = ParserState.beforeImport;
 									break;
 								case beforeImport :
-									throw new ContentException("Duplicate package directive!");
+									throw new SyntaxException(lineNo, 0, "Duplicate package directive!");
 								default :
-									throw new ContentException("Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
+									throw new SyntaxException(lineNo, 0, "Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
 							}
 							break;
 						case DIR_IMPORT:
@@ -805,7 +807,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processImportDir(data,InternalUtils.skipBlank(data,start));
 									break;
 								default :
-									throw new ContentException("Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
+									throw new SyntaxException(lineNo, 0, "Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
 							}
 							break;
 						case DIR_INCLUDE:
@@ -819,7 +821,7 @@ class LineParser implements LineByLineProcessorCallback {
 									pushTryBlock();
 									break;
 								default :
-									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
 							}
 							break;
 						case DIR_CATCH	:
@@ -829,7 +831,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processCatch(data,InternalUtils.skipBlank(data,start),end);
 									break;
 								default :
-									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
 							}
 							break;
 						case DIR_END_TRY	:
@@ -839,7 +841,7 @@ class LineParser implements LineByLineProcessorCallback {
 									popTryBlock(lineNo);
 									break;
 								default :
-									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
 							}
 							break;
 						case DIR_MACRO	:
@@ -850,7 +852,7 @@ class LineParser implements LineByLineProcessorCallback {
 									currentMacros.processLine(displacement,lineNo,data,from,len);
 									break;
 								default :
-									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used before package description only");
+									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used before package description only");
 							}
 							break;
 						case DIR_DEFAULT:
@@ -860,7 +862,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processJumps(data,InternalUtils.skipBlank(data,start),end,false);
 									break;
 								default :
-									throw new ContentException("Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside loowkuswitch/tableswitch command body only");
+									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside loowkuswitch/tableswitch command body only");
 							}
 							break;
 						case DIR_VERSION	:
@@ -884,7 +886,7 @@ class LineParser implements LineByLineProcessorCallback {
 							processSourceDir(data,InternalUtils.skipBlank(data,start),end);
 							break;
 						default :
-							throw new ContentException("Unknown directive : "+new String(data,startDir-1,endDir-startDir+1));
+							throw new SyntaxException(lineNo, 0, "Unknown directive : "+new String(data,startDir-1,endDir-startDir+1));
 					}
 					break;
 				case '*' :
@@ -898,11 +900,11 @@ class LineParser implements LineByLineProcessorCallback {
 								case CMD_STORE	: processStoreAuto(data,InternalUtils.skipBlank(data,start)); break;
 								case CMD_EVAL	: processEvalAuto(data,InternalUtils.skipBlank(data,start)); break;
 								case CMD_CALL	: processCallAuto(data,InternalUtils.skipBlank(data,start)); break;
-								default : throw new ContentException("Unknown automation : "+new String(data,startDir-1,endDir-startDir+1));
+								default : throw new SyntaxException(lineNo, 0, "Unknown automation : "+new String(data,startDir-1,endDir-startDir+1));
 							}
 							break;
 						default :
-							throw new ContentException("Automation can be used on the method body only!");
+							throw new SyntaxException(lineNo, 0, "Automation can be used on the method body only!");
 					}
 					break;
 				case '\r' : case '\n':
@@ -914,6 +916,7 @@ class LineParser implements LineByLineProcessorCallback {
 					if (possiblyMacroEnd > possiblyMacroStart && (macroId = macros.seekName(data,possiblyMacroStart,possiblyMacroEnd)) >= 0) {	// Process macro call
 						final Macros	m = macros.getCargo(macroId);
 						
+						nestingDepth++;
 						try(final LineByLineProcessor	lbl = new LineByLineProcessor(diagnostics != null && PureLibSettings.instance().getProperty(PureLibSettings.PRINT_EXPANDED_MACROS,boolean.class,"false") 
 																? new LineByLineProcessorCallback(){
 																		@Override
@@ -930,13 +933,22 @@ class LineParser implements LineByLineProcessorCallback {
 							final Reader	rdr = m.processCall(lineNo,data,possiblyMacroEnd,len-(possiblyMacroEnd-from)+1)) {
 
 							lbl.write(rdr);
-						}
-						catch (IOException | SyntaxException exc) {
+						} catch (SyntaxException exc) {
+							if (diagnostics != null) {
+								diagnostics.flush();
+							}
+							throw new SyntaxException(lineNo, 0, "Error in ["+new String(m.getName())+"] macros: "+exc.getLocalizedMessage(), exc); 
+						} catch (IOException exc) {
 							if (diagnostics != null) {
 								diagnostics.flush();
 							}
 							exc.printStackTrace();
+						} catch (Exception exc) {
+							throw exc;
+						} finally {
+							nestingDepth--;
 						}
+						
 						return;
 					}
 					
@@ -946,7 +958,7 @@ class LineParser implements LineByLineProcessorCallback {
 							endDir = start = skipSimpleName(data,start);
 							
 							if (startDir == endDir) {
-								throw new ContentException("Unknown command");
+								throw new SyntaxException(lineNo, 0, "Unknown command");
 							}
 							final long	opCode = staticCommandTree.seekName(data,startDir,endDir);
 		
@@ -993,12 +1005,14 @@ class LineParser implements LineByLineProcessorCallback {
 										prepareSwitchCommand((byte)opCode,desc.stackChanges);
 										state = ParserState.insideMethodTable; 
 										break;
-									case restricted				: throw new ContentException("Restricted command in the input stream!");
-									default : throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
+									case restricted				: 
+										throw new SyntaxException(lineNo, 0, "Restricted command in the input stream!");
+									default : 
+										throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
 								}
 							}
 							else {
-								throw new ContentException("Unknown command : "+new String(data,startDir,endDir-startDir));
+								throw new SyntaxException(lineNo, 0, "Unknown command : "+new String(data,startDir,endDir-startDir));
 							}
 							break;
 						case insideMethodLookup : 
@@ -1025,7 +1039,8 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		} catch (SyntaxException exc) {
 			exc.printStackTrace();
-			throw new IOException(exc.getLocalizedMessage(),exc);
+			final SyntaxException	synt = new SyntaxException(lineNo,start-from,new String(data,from,len)+exc.getMessage(),exc);
+			throw new IOException(synt.getLocalizedMessage(),synt);
 		} catch (ContentException exc) {
 			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo,start-from,new String(data,from,len)+exc.getMessage(),exc);

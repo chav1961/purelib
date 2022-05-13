@@ -155,7 +155,7 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 		return from;
 	}
 
-	protected static int parsePredefined(final char[] content, int from, final Predefines predefinedType, final SyntaxTreeInterface names, final SyntaxNode node, final int[] tempInt, final long[] tempLong) throws SyntaxException {
+	protected static int parsePredefined(final char[] content, int from, final Predefines predefinedType, final SyntaxTreeInterface<?> names, final SyntaxNode<Predefines,?> node, final int[] tempInt, final long[] tempLong) throws SyntaxException {
 		from = CharUtils.skipBlank(content, from, true);
 		
 		if (testPredefined(content, from, predefinedType, tempInt, tempLong)) {
