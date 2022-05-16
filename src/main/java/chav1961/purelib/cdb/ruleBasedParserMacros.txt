@@ -2,7 +2,7 @@
 ;		Print imports for the class generated 
 ; -------------------------------------------------------------------------
 
-printImports	.macro	package:str=
+printImports	.macro	package:str=,ruleEnum:str=
 		.if		exists(package)
 			.package	&package
 		.endif
@@ -14,6 +14,7 @@ printImports	.macro	package:str=
 		.import	chav1961.purelib.cdb.intern.Predefines
 		.import	chav1961.purelib.cdb.intern.BNFParserStack
 		.import	java.lang.Integer
+		.import	&ruleEnum
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -1042,12 +1043,14 @@ stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack
 tempInt			.parameter	int[] final
 tempLong		.parameter	long[] final
 				.stack	optimistic
-				aload		root
+tempRule		.var		java.lang.Enum				
 				aload		keywords
 				ldc2_w		&item.L
 				invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
 				checkcast	java.lang.Enum
-				checkpoint	"java.lang.Enum",message="Store Detected type: "
+				astore		tempRule
+				duplicateRootNode				
+				aload		tempRule
 				putfield	chav1961.purelib.cdb.SyntaxNode.type
 				iload		from
 				ireturn
@@ -1429,7 +1432,7 @@ falseLabel:		throwSyntaxException	"parse error"
 				
 ; -------------------------------------------------------------------------
 		
-prepareNameParseMethodStart		.macro className:str=,name:int=,methodName:str=
+prepareNameParseMethodStart		.macro className:str=,name:int=,methodName:str=,ruleClass:str=,ruleField:str=
 &methodName		.method			int public static
 content			.parameter		char[] final
 from			.parameter		int
@@ -1440,6 +1443,9 @@ tempInt			.parameter		int[] final
 tempLong		.parameter		long[] final
 				.stack			optimistic
 tempFrom		.var			int
+tempRule		.var			java.lang.Enum
+				getstatic		&ruleClass..&ruleField
+				astore			tempRule
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -1452,7 +1458,7 @@ label			.set	uniqueG()
 				iload			from
 				aload			names
 				aload			keywords
-				aload			root
+				duplicateRootNode
 				aload			tempInt
 				aload			tempLong
 				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
@@ -1493,7 +1499,7 @@ label			.set	uniqueG()
 				iload		from
 				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
 				aload		names
-				aload		root
+				duplicateRootNode
 				aload		tempInt
 				aload		tempLong
 				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.parsePredefined([CILchav1961/purelib/cdb/intern/Predefines;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
@@ -1507,7 +1513,7 @@ label			.set	uniqueG()
 				iload		from
 				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
 				aload		names
-				aload		root
+				duplicateRootNode
 				aload		tempInt
 				aload		tempLong
 				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.parsePredefined([CILchav1961/purelib/cdb/intern/Predefines;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
@@ -1522,7 +1528,7 @@ predefinedLabel&label:
 ; -------------------------------------------------------------------------
 
 prepareNameParseMethodDetector	.macro className:str=,methodName:str=,item:int=
-				aload		root
+				duplicateRootNode
 				aload		keywords
 				ldc2_w		&item.L
 				invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
@@ -1541,4 +1547,13 @@ falseLabel:		throwSyntaxException	"parse error"
 &methodName		.end
 		.mend		
 
-								
+; -------------------------------------------------------------------------
+
+duplicateRootNode	.macro
+				aload		root
+				aload		tempRule
+				invokestatic chav1961.purelib.cdb.AbstractBNFParser.cloneNode(Lchav1961/purelib/cdb/SyntaxNode;Ljava/lang/Enum;)Lchav1961/purelib/cdb/SyntaxNode;
+		.mend
+
+; -------------------------------------------------------------------------
+							

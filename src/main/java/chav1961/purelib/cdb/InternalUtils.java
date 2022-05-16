@@ -66,7 +66,7 @@ class InternalUtils {
 		final SyntaxTreeInterface<NodeType>				items = new AndOrTree<>(1,1);
 		final Lexema									lex = new Lexema();
 		final int[]										temp = new int[2];
-		final SyntaxNode<EntityType, SyntaxNode>		root = new SyntaxNode<>(0, 0, EntityType.Root, 0, null);
+		final SyntaxNode<EntityType, SyntaxNode>		root = (SyntaxNode<EntityType, SyntaxNode>) AbstractBNFParser.TEMPLATE.clone();
 		final List<SyntaxNode<EntityType, SyntaxNode>>	rules = new ArrayList<>();
 
 		prepareKeywordsTree(clazz, items);
@@ -94,10 +94,10 @@ class InternalUtils {
 					
 					if (className.contains(".")) {
 						final int	lastDot = className.lastIndexOf('.');
-						buildRuleProcessing(className.substring(0, lastDot), className.substring(lastDot + 1), root, items, wr);
+						buildRuleProcessing(className.substring(0, lastDot), className.substring(lastDot + 1), clazz, root, items, wr);
 					}
 					else {
-						buildRuleProcessing("", className, root, items, wr);
+						buildRuleProcessing("", className, clazz, root, items, wr);
 					}
 				}
 				return (Class<RuleBasedParser<NodeType, Cargo>>) loader.createClass(className, baos.toByteArray());
@@ -122,7 +122,7 @@ class InternalUtils {
 					}
 					root.type = EntityType.Rule;
 					root.value = left;
-					root.cargo = null;
+					root.cargo = keywords.getCargo(root.value);
 					return from;
 				}
 				else {
@@ -440,7 +440,7 @@ loop:	for (;;) {
 		}
 	}
 
-	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessing(final String packageName, final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException  {
+	private static <NodeType extends Enum<?>, Cargo> void buildRuleProcessing(final String packageName, final String className, final Class<NodeType> clazz, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException, SyntaxException  {
 		final Set<SyntaxNode<EntityType, ?>>									callLinks = new HashSet<>();
 		final IdentityHashMap<SyntaxNode<EntityType, ?>, FieldAndMethods>		baseLevelProc = new IdentityHashMap<>();
 		int[]		uniqueNumer = new int[] {0};
@@ -504,10 +504,10 @@ L:				switch (node.type) {
 		});
 
 		if (packageName.isEmpty()) {
-			wr.write(" printImports\n");
+			wr.write(" printImports ruleEnum=\""+CompilerUtils.buildClassPath(clazz)+"\"\n");
 		}
 		else {
-			wr.write(" printImports package=\""+packageName+"\"\n");
+			wr.write(" printImports package=\""+packageName+"\",ruleEnum=\""+CompilerUtils.buildClassPath(clazz)+"\"\n");
 		}
 		buildRuleProcessingClass(className, root, keywords, wr);
 		for (Entry<SyntaxNode<EntityType, ?>, FieldAndMethods> item : baseLevelProc.entrySet()) {
@@ -563,7 +563,7 @@ L:				switch (node.type) {
 			buildTestRuleProcessingMethods(className, child, map, keywords, wr, "", "falseLabel", unique);
 			wr.write(" prepareNameSkipMethodEnd className=\""+className+"\",name="+root.value+",methodName=\"_"+names.skipMethod+"\"\n");
 			
-			wr.write(" prepareNameParseMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\"\n");
+			wr.write(" prepareNameParseMethodStart className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\",ruleClass=\""+CompilerUtils.buildClassPath(child.cargo.getClass())+"\",ruleField=\""+keywords.getName(child.value)+"\"\n");
 			buildParseRuleProcessingMethods(className, root, map, keywords, wr, "", "falseLabel", unique);
 			wr.write(" prepareNameParseMethodEnd className=\""+className+"\",name="+root.value+",methodName=\""+names.parseMethod+"\"\n");
 		}
@@ -984,12 +984,12 @@ inside:	switch (root.type) {
 		wr.write(" endClassDeclaration className=\""+className+"\"\n");
 	}
 
-	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParserClass(final String className, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> items, final SimpleURLClassLoader loader) throws SyntaxException {
+	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParserClass(final String className, final Class<NodeType> clazz, final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> items, final SimpleURLClassLoader loader) throws SyntaxException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
 			
 			try(final AsmWriter			wr = AW.clone(baos)) {
 				
-				buildRuleProcessing("", className, new SyntaxNode<>(0, 0, EntityType.Root, 0, null, root), items, wr);
+				buildRuleProcessing("", className, clazz, new SyntaxNode<>(0, 0, EntityType.Root, 0, null, root), items, wr);
 			}
 			
 			return (Class<RuleBasedParser<NodeType, Cargo>>) loader.createClass(className, baos.toByteArray());

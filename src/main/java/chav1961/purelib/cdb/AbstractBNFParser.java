@@ -217,6 +217,30 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 		to.children = fromNode.children;
 	}
 	
+	protected static <NodeType extends Enum<?>> SyntaxNode cloneNode(final SyntaxNode root, final NodeType type) {
+		if (root.getType() == null || root.getType() == EntityType.Root) {
+			return root;
+		}
+		else if (root.children == null || root.children.length == 0) {
+			final SyntaxNode	oldNode = (SyntaxNode) root.clone(), newNode = (SyntaxNode) TEMPLATE.clone(); 
+			
+			root.type = type;
+			root.value = 0;
+			root.cargo = null;
+			root.children = new SyntaxNode[] {oldNode, newNode};
+			
+			return newNode;
+		}
+		else {
+			final SyntaxNode	newNode = (SyntaxNode) TEMPLATE.clone();
+			
+			root.children = Arrays.copyOf(root.children, root.children.length + 1);
+			root.children[root.children.length - 1] = newNode;
+			
+			return newNode;
+		}
+	}
+	
 	protected static Enum<?> extractEntityType(final int entityId) {
 		return EntityType.values()[entityId];
 	}

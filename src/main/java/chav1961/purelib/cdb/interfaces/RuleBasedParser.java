@@ -1,6 +1,7 @@
 package chav1961.purelib.cdb.interfaces;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.cdb.intern.Predefines;
