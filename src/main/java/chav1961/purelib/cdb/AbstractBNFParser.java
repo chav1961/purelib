@@ -33,13 +33,17 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	private final Class<NodeType>					clazz;
 	private final SyntaxTreeInterface<NodeType>		keywords = new AndOrTree<>(1,1);
 	private final SyntaxTreeInterface<Cargo>		names;
-	private final SyntaxNode<NodeType, SyntaxNode> 	dummy;
+	private final boolean							ingoreCase;
+
+	protected AbstractBNFParser(final Class<NodeType> clazz, final SyntaxTreeInterface<Cargo> names) {
+		this(clazz, names, false);
+	}
 	
-	protected AbstractBNFParser(final Class<NodeType> clazz,final SyntaxTreeInterface<Cargo> names) {
+	protected AbstractBNFParser(final Class<NodeType> clazz, final SyntaxTreeInterface<Cargo> names, final boolean ignoreCase) {
 		this.clazz = clazz;
 		InternalUtils.prepareKeywordsTree(clazz, keywords);
 		this.names = names;
-		this.dummy = new SyntaxNode<>(0,0,clazz.getEnumConstants()[0],0,null);
+		this.ingoreCase = ignoreCase;
 		Predefines.DoubleQuotedString.allowUnnamedModuleAccess(this.getClass().getModule());
 		stack.allowUnnamedModuleAccess(this.getClass().getModule());
 	}
@@ -65,7 +69,7 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	
 	@Override
 	public int parse(final char[] content, int from, final SyntaxTreeInterface<Cargo> names) throws SyntaxException {
-		return parseInternal(content, from, names, keywords, (SyntaxNode<NodeType, SyntaxNode>)dummy.clone());
+		return parseInternal(content, from, names, keywords, (SyntaxNode<NodeType, SyntaxNode>)TEMPLATE.clone());
 	}
 
 	@Override
@@ -76,6 +80,14 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		return super.clone();
+	}
+	
+	protected static int skipBlank(final char[] content, final int from) {
+		return CharUtils.skipBlank(content, from, true);
+	}
+
+	protected static boolean compareSequence(final char[] content, final int from, final char[] template, final boolean ignoreCase) {
+		return CharUtils.compare(content, from, template);
 	}
 	
 	protected static void throwSyntaxException(final char[] content, final int col, final String message, final Object[] parameters) throws SyntaxException {
@@ -90,7 +102,7 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	}
 	
 	protected static boolean testPredefined(final char[] content, int from, final Predefines predefinedType, final int[] tempInt, final long[] tempLong) {
-		from = CharUtils.skipBlank(content, from, true);
+		from = skipBlank(content, from);
 		
 		switch (predefinedType) {
 			case DoubleQuotedString	:
@@ -127,7 +139,7 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	}
 
 	protected static int skipPredefined(final char[] content, int from, final Predefines predefinedType, final int[] tempInt, final long[] tempLong) throws SyntaxException {
-		from = CharUtils.skipBlank(content, from, true);
+		from = skipBlank(content, from);
 		
 		if (testPredefined(content, from, predefinedType, tempInt, tempLong)) {
 			switch (predefinedType) {
@@ -156,7 +168,7 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	}
 
 	protected static int parsePredefined(final char[] content, int from, final Predefines predefinedType, final SyntaxTreeInterface<?> names, final SyntaxNode<Predefines,?> node, final int[] tempInt, final long[] tempLong) throws SyntaxException {
-		from = CharUtils.skipBlank(content, from, true);
+		from = skipBlank(content, from);
 		
 		if (testPredefined(content, from, predefinedType, tempInt, tempLong)) {
 			switch (predefinedType) {
@@ -283,5 +295,16 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 			System.err.println(message+obj);
 		}
 		return obj;
+	}
+	
+	protected static void traceExecution(final String message, final char[] content, final int col) {
+		final int		from = Math.max(0, col - 10), to = Math.min(content.length, col + 10), pos = col < 10 ? col : 10;
+		final char[]	piece = Arrays.copyOfRange(content, from, to);
+		final char[]	pointer = new char[piece.length];
+		
+		Arrays.fill(pointer,' ');
+		pointer[Math.min(col, pointer.length-1)] = '^';
+		
+		System.err.println("Point["+col+"]="+message+", char=["+((int)content[col])+"]\n"+new String(piece)+"\n"+new String(pointer));
 	}
 }

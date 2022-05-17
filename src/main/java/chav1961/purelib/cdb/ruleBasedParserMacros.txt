@@ -84,45 +84,17 @@ names			.parameter 	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
 skipBlank		.macro
 				aload	content
 				iload	from
-				ldc		1
-				invokestatic chav1961.purelib.basic.CharUtils.skipBlank([CIZ)I
-				istore	from	
+				invokestatic chav1961.purelib.cdb.AbstractBNFParser.skipBlank([CI)I
+				istore	from
 		.mend
 
 ; -------------------------------------------------------------------------
 
-checkpoint		.macro	type:str,message:str="obj="
-				ldc			"&message"
-				invokestatic chav1961.purelib.cdb.AbstractBNFParser.checkpoint(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-				checkcast	&type
-		.mend
-
-; -------------------------------------------------------------------------
-
-trace			.macro	checkpoint:str,print:bool=true,top:bool=false
-label			.local	int
-label			.set	uniqueG()
-				.if		print
-					aload	content
-					checkpoint	"java.lang.Object",message="&checkpoint, content="
-					pop
-					iload	from
-					invokestatic	java.lang.Integer.valueOf(I)Ljava/lang/Integer;
-					checkpoint	"java.lang.Object",message="From="
-					pop
-					.if	top
-						dup
-						ifeq	next&label
-						aconst_null
-						checkpoint	"java.lang.Object",message="TRUE "
-						pop
-						goto	pass&label
-next&label:				aconst_null
-						checkpoint	"java.lang.Object",message="FALSE "
-						pop
-pass&label:						
-					.endif
-				.endif
+traceExecution	.macro		name:str
+				ldc			"&name"
+				aload		content
+				iload		from
+				invokestatic chav1961.purelib.cdb.AbstractBNFParser.traceExecution(Ljava/lang/String;[CI)V
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -204,31 +176,6 @@ exitChildren:
 
 ; -------------------------------------------------------------------------
 
-prepareCharSkipMethod	.macro className:str=,fieldValue:int=,methodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				skipBlank
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				caload
-				ldc			&fieldValue
-				if_icmpeq	trueLabel
-				throwSyntaxException " missing character (&fieldValue)"
-trueLabel:		iload		from
-				ldc			1
-				iadd				
-				trace		"After &methodName"				
-				ireturn
-&methodName		.end
-		.mend
-
-; -------------------------------------------------------------------------
-
 prepareCharParseMethod	.macro className:str=,fieldValue:int=,methodName:str=
 &methodName		.method		int private static
 content			.parameter	char[] final
@@ -254,33 +201,6 @@ trueLabel:		iload		from
 &methodName		.end
 		.mend
 
-
-; -------------------------------------------------------------------------
-
-prepareSequenceSkipMethod	.macro className:str=,fieldName:str=,methodName:str=,testMethodName:str=
-&methodName		.method	int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack	optimistic
-				skipBlank
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName([CI[I[J)Z
-				ifne		trueLabel
-				throwSyntaxException "missing sequence (&fieldName)"
-trueLabel:		getstatic	&fieldName
-				arraylength
-				iload		from
-				iadd				
-				trace		"After &methodName"				
-				ireturn
-&methodName		.end
-		.mend
 
 ; -------------------------------------------------------------------------
 
@@ -313,26 +233,6 @@ trueLabel:		getstatic	&fieldName
 
 ; -------------------------------------------------------------------------
 
-prepareNameSkipMethod .macro className:str=,name:int=,methodName:str=,referenceMethodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic &referenceMethodName([CI[I[J)I
-				trace		"After &methodName"				
-				ireturn
-&methodName		.end
-		.mend
-
-; -------------------------------------------------------------------------
-
 prepareNameParseMethod .macro className:str=,name:int=,methodName:str=,referenceMethodName:str=
 &methodName		.method		int private static
 content			.parameter	char[] final
@@ -359,27 +259,6 @@ tempLong		.parameter	long[] final
 
 ; -------------------------------------------------------------------------
 
-preparePredefinedSkipMethod .macro className:str=,name:str=,methodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				getstatic	chav1961.purelib.cdb.intern.Predefines.&name
-				aload		tempInt
-				aload		tempLong
-				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
-				trace		"After &methodName"				
-				ireturn
-&methodName		.end
-		.mend
-
-; -------------------------------------------------------------------------
-
 preparePredefinedParseMethod .macro className:str=,name:str=,methodName:str=
 &methodName		.method		int private static
 content			.parameter	char[] final
@@ -399,45 +278,6 @@ tempLong		.parameter	long[] final
 				aload		tempInt
 				aload		tempLong
 				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.parsePredefined([CILchav1961/purelib/cdb/intern/Predefines;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
-				ireturn
-&methodName		.end
-		.mend
-
-; -------------------------------------------------------------------------
-		
-prepareOptionSkipMethodStart .macro className:str=,methodName:str=,testMethodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName.Optional([CI[I[J)Z
-				ifeq		falseLabel
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareOptionSkipMethodItem  .macro className:str=,methodName:str=
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
-				istore		from
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareOptionSkipMethodEnd   .macro className:str=,methodName:str=
-				trace		"After &methodName optional"				
-falseLabel:		iload		from
-				trace		"After &methodName total"				
 				ireturn
 &methodName		.end
 		.mend
@@ -495,46 +335,6 @@ prepareOptionParseMethodEnd   .macro className:str=,methodName:str=,keyword:int=
 falseLabel:		iload		from
 				ireturn
 &methodName		.end				
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRepeatSkipMethodStart .macro className:str=,methodName:str=,testMethodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-again:			skipBlank
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName.Repeated([CI[I[J)Z
-				ifeq		falseLabel
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRepeatSkipMethodItem  .macro className:str=,methodName:str=
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
-				istore		from
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRepeatSkipMethodEnd   .macro className:str=,methodName:str=
-				goto		again
-falseLabel:		iload		from
-				trace		"After &methodName"				
-				ireturn
-&methodName		.end
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -597,47 +397,6 @@ falseLabel:
 
 ; -------------------------------------------------------------------------
 
-
-prepareRepeat1SkipMethodStart .macro className:str=,methodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-again:			
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRepeat1SkipMethodItem  .macro className:str=,methodName:str=
-				skipBlank
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
-				istore		from
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRepeat1SkipMethodEnd   .macro className:str=,methodName:str=,testMethodName:str=
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName([CI[I[J)Z
-				ifne		again
-				iload		from
-				trace		"After &methodName"				
-				ireturn
-&methodName		.end
-		.mend
-
-; -------------------------------------------------------------------------
-
 prepareRepeat1ParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
 &methodName		.method		int private static
 content			.parameter	char[] final
@@ -691,55 +450,6 @@ prepareRepeat1ParseMethodEnd   .macro className:str=,methodName:str=,testMethodN
 				iload		from
 				ireturn
 &methodName		.end				
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareSwitchSkipMethodStart .macro className:str=,methodName:str=,testMethodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName([CI[I[J)Z
-				ifeq		falseLabel
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareSwitchSkipMethodItem  .macro className:str=,methodName:str=,testMethodName:str=
-localLabel		.local		int
-localLabel		.set		uniqueG()
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName([CI[I[J)Z
-				ifeq		falseLabel&localLabel
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
-				goto		exit
-falseLabel&localLabel:				
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareSwitchSkipMethodEnd   .macro className:str=,methodName:str=
-falseLabel:		iload		from
-				trace		"After &methodName switch"				
-exit:			
-				trace		"After &methodName total"				
-				ireturn
-&methodName		.end
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -800,46 +510,6 @@ falseLabel:		iload		from
 
 ; -------------------------------------------------------------------------
 
-prepareCaseSkipMethodStart .macro className:str=,methodName:str=,testMethodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName([CI[I[J)Z
-				ifeq		falseLabel
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareCaseSkipMethodItem  .macro className:str=,methodName:str=
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
-				istore		from
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareCaseSkipMethodEnd   .macro className:str=,methodName:str=
-				trace		"After &methodName case"				
-falseLabel:		iload		from
-				trace		"After &methodName total"				
-				ireturn
-&methodName		.end
-		.mend
-
-
-; -------------------------------------------------------------------------
-
 prepareCaseParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
 &methodName		.method		int private static
 content			.parameter	char[] final
@@ -895,143 +565,6 @@ falseLabel:		iload		from
 
 ; -------------------------------------------------------------------------
 
-prepareRuleTestMethodStart .macro className:str=,methodName:str=
-&methodName		.method		boolean private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleTestMethodItem .macro className:str=,methodName:str=,skipMethodName:str=
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CI[I[J)Z
-				ifeq		falseLabel
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&skipMethodName([CI[I[J)I
-				istore		from
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleTestMethodEnd .macro className:str=,methodName:str=
-				trace		"After &methodName true"				
-				ldc			1
-				ireturn
-falseLabel:		trace		"After &methodName false"				
-				ldc			0
-				ireturn				
-&methodName		.end
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleSkipMethodStart .macro className:str=,testMethodName:str=,methodName:str=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack		optimistic
-				trace		"Before &methodName"				
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName([CI[I[J)Z
-				ifeq		falseLabel
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleSkipMethodItem .macro className:str=,methodName:str=
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CI[I[J)I
-				istore		from
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleSkipMethodEnd .macro className:str=,methodName:str=
-				trace		"After &methodName rule" 				
-falseLabel:		iload		from
-				trace		"After &methodName total"				
-				ireturn
-&methodName		.end
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
-&methodName		.method		int private static
-content			.parameter	char[] final
-from			.parameter	int
-names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
-keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
-root			.parameter	chav1961.purelib.cdb.SyntaxNode final
-stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
-tempInt			.parameter	int[] final
-tempLong		.parameter	long[] final
-				.stack	optimistic
-				aload		content
-				iload		from
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&testMethodName([CI[I[J)Z
-				ifne		trueLabel
-				throwSyntaxException "parse illegal"
-trueLabel:		
-				.if			makeChildren
-					aload		stack
-					invokevirtual	chav1961.purelib.cdb.intern.BNFParserStack.push()V
-				.endif						
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleParseMethodItem .macro className:str=,methodName:str=,makeChildren:bool=
-				aload		content
-				iload		from
-				aload		names
-				aload		keywords
-				.if			makeChildren
-					duplicateSyntaxNode
-				.else	
-					aload		root
-				.endif
-				aload		stack
-				aload		tempInt
-				aload		tempLong
-				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
-				istore		from
-		.mend
-
-; -------------------------------------------------------------------------
-
-prepareRuleParseMethodEnd .macro className:str=,methodName:str=,keyword:int=,makeChildren:bool=
-				.if			makeChildren
-					processChildren	"rule",keyword=&keyword
-				.endif
-exit:			iload		from
-				ireturn
-&methodName		.end				
-		.mend
-
-; -------------------------------------------------------------------------
-
 prepareDetectedParseMethod .macro className:str=,methodName:str=,item:int=
 &methodName		.method		int private static
 content			.parameter	char[] final
@@ -1072,7 +605,7 @@ keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
 				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
 				aload		this
 				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
-				invokestatic	_&testMethod([CI[I[J)Z
+				invokestatic	&testMethod([CI[I[J)Z
 				ireturn
 testInternal	.end
 		.mend
@@ -1092,7 +625,7 @@ keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
 				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
 				aload		this
 				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
-				invokestatic	_&testMethod([CI[I[J)Z
+				invokestatic	&testMethod([CI[I[J)Z
 				ifeq		falseLabel
 				aload		this
 				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
@@ -1156,23 +689,32 @@ tempLong		.parameter		long[] final
 
 ; -------------------------------------------------------------------------
 
-prepareNameTestMethodChar		.macro	value:int=,trueJump:str=,falseJump:str=
+prepareNameTestMethodChar		.macro	value:int=,trueJump:str=,falseJump:str=,addTrace:bool=false
 label			.local	int
 label			.set	uniqueG()
 
 				skipBlank
+		.if addTrace
+				traceExecution	"Test char [&value]"
+		.endif
 				aload			content
 				iload			from
 				caload
 				ldc				&value
 		.if	falseJump != ""
 				if_icmpne		&falseJump
+			.if addTrace
+				traceExecution	"Char [&value] found"
+			.endif
 				iinc			from,1
 			.if trueJump != ""
 				goto			&trueJump
 			.endif
 		.elseif trueJump != ""
-				if_icmpeq		charLabel&label
+				if_icmpne		charLabel&label
+			.if addTrace
+				traceExecution	"Char [&value] found"
+			.endif
 				iinc			from,1
 				goto			&trueJump
 charLabel&label:				
@@ -1183,27 +725,37 @@ charLabel&label:
 
 ; -------------------------------------------------------------------------
 
-prepareNameTestMethodSequence	.macro	fieldName:str=,trueJump:str=,falseJump:str=
+prepareNameTestMethodSequence	.macro	fieldName:str=,trueJump:str=,falseJump:str=,addTrace:bool=false
 label			.local	int
 label			.set	uniqueG()
 
 				skipBlank
+		.if addTrace
+				traceExecution	"Test sequence &fieldName"
+		.endif				
 				aload			content
 				iload			from
 				getstatic		&fieldName
-				invokestatic	chav1961.purelib.basic.CharUtils.compare([CI[C)Z
+				ldc				0
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.compareSequence([CI[CZ)Z
 		.if	falseJump != ""				
 				ifeq			&falseJump
+			.if addTrace
+				traceExecution	"Sequence &fieldName found"
+			.endif				
 				iload			from
 				getstatic		&fieldName
 				arraylength
 				iadd
-				istore			from				
+				istore			from
 			.if trueJump != ""
 				goto			&trueJump
 			.endif
 		.elseif trueJump != ""
 				ifne			sequenceLabel&label
+			.if addTrace
+				traceExecution	"Sequence &fieldName found"
+			.endif				
 				iload			from
 				getstatic		&fieldName
 				arraylength
@@ -1218,11 +770,14 @@ sequenceLabel&label:
 
 ; -------------------------------------------------------------------------
 
-prepareNameTestMethodPredefined .macro	predefinedName:str=,trueJump:str=,falseJump:str=
+prepareNameTestMethodPredefined .macro	predefinedName:str=,trueJump:str=,falseJump:str=,addTrace:bool=false
 label			.local	int
 label			.set	uniqueG()
 
 				skipBlank
+		.if addTrace
+				traceExecution	"Test predefined [&predefinedName]"
+		.endif
 				aload		content
 				iload		from
 				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
@@ -1237,18 +792,24 @@ label			.set	uniqueG()
 				aload		tempInt
 				aload		tempLong
 				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
+			.if addTrace
+				traceExecution	"Predefined [&predefinedName] found"
+			.endif
 				istore		from
 			.if trueJump != ""
 				goto		&trueJump
 			.endif
 		.elseif trueJump != ""
-				ifne		predefinedLabel&label
+				ifeq		predefinedLabel&label
 				aload		content
 				iload		from
 				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
 				aload		tempInt
 				aload		tempLong
 				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
+			.if addTrace
+				traceExecution	"Predefined [&predefinedName] found"
+			.endif
 				istore		from
 				goto		&trueJump
 predefinedLabel&label:				
@@ -1297,16 +858,18 @@ prepareNameTestMethodSwitchEnd	.macro trueLabel:str="",trueJump:str=,falseJump:s
 label			.local	int
 label			.set	uniqueG()
 
-		.if trueLabel != ""
-			.if	trueJump != ""
-&trueLabel:		goto	&trueJump
-			.else
-&trueLabel:			
-			.endif
+		.if falseJump != ""
+				goto	&falseJump
 		.else
-			.if	trueJump != ""
-				goto	&trueJump
-			.endif
+				goto	testSwitch&label
+		.endif
+		.if	trueJump != ""
+&trueLabel:		goto	&trueJump
+		.else
+&trueLabel:			
+		.endif
+		.if falseJump == ""
+testSwitch&label:
 		.endif
 		.mend
 

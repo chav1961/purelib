@@ -1171,6 +1171,26 @@ public class CompilerUtils {
 	 * @since 0.0.6
 	 */
 	public static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParserClass(final String className, final Class<NodeType> clazz, final String content, final SimpleURLClassLoader loader) throws SyntaxException, NullPointerException, IllegalArgumentException {
+		return buildRuleBasedParserClass(className, clazz, content, loader, false);
+	}		
+	
+	/**
+	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class<NodeType>, SyntaxTreeInterface<Cargo>) to instantiate it</p> 
+	 * @param <NodeType> type of syntax node tree items. Must be enumeration
+	 * @param <Cargo> content of the {@linkplain SyntaxTreeInterface} tree
+	 * @param className class name to build. Can contain package. Can't be null or empty
+	 * @param clazz NodeType class. Can't be null
+	 * @param content rules descriptor (see {@linkplain RuleBasedParser} description
+	 * @param loader loader to load class built into. Can't be null
+	 * @param addTrace add debugging trace into class generated
+	 * @return class built. Can't be null or empty
+	 * @throws SyntaxException in any syntax error in the rules
+	 * @throws NullPointerException on any parameter is null  
+	 * @throws IllegalArgumentException on any string parameter is null or empty
+	 * @see RuleBasedParser
+	 * @since 0.0.6
+	 */
+	public static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParserClass(final String className, final Class<NodeType> clazz, final String content, final SimpleURLClassLoader loader, final boolean addTrace) throws SyntaxException, NullPointerException, IllegalArgumentException {
 		if (clazz == null) {
 			throw new NullPointerException("Node type class can't be null");
 		}
@@ -1181,7 +1201,7 @@ public class CompilerUtils {
 			throw new NullPointerException("Class loader can't be null");
 		}
 		else {
-			return InternalUtils.buildRuleBasedParser(className, clazz, content, loader);
+			return InternalUtils.buildRuleBasedParser(className, clazz, content, loader, addTrace);
 		}
 	}
 	

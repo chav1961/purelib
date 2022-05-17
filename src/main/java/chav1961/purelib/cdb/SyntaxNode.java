@@ -1,5 +1,7 @@
 package chav1961.purelib.cdb;
 
+import java.util.Arrays;
+
 /**
  * <p>This class is a general syntax tree node in the Pure Library. It uses almost everywhere in the Pure Library classes.</p>
  * <p>This class contains:</p>
@@ -128,5 +130,10 @@ public class SyntaxNode<Type extends Enum<?>,Clazz extends SyntaxNode> implement
 	 */
 	public Type getType() {
 		return type;
+	}
+
+	@Override
+	public String toString() {
+		return "SyntaxNode [row=" + row + ", col=" + col + ", type=" + type + ", value=" + value + ", cargo=" + cargo + ", parent=" + parent + ", children=" + Arrays.toString(children) + "]";
 	}
 }

@@ -124,7 +124,7 @@ class MethodBody extends AbstractMethodBody {
 		
 		if (labelRequired) {	// Current stack state is invalid, need use saved state
 			if (stack == null) {
-				throw new ContentException("Unpredictable program stack state: no forward brunches to the given mandatory label were registered earlier");
+				throw new ContentException("Unknown program stack state: no forward brunches to the given mandatory label ["+tree.getName(id)+"] were registered earlier");
 			}
 			else {
 				getStackAndVarRepo().loadStackSnapshot(currentSnapshot = stack.snapshot);
@@ -132,7 +132,7 @@ class MethodBody extends AbstractMethodBody {
 		}
 		if (stack != null) {
 			if (!stack.snapshot.equals(currentSnapshot)) {
-				throw new ContentException("Illegal forward brunch: current program stack content at the label differ with awaited program stack content at brunch point. "+prepareStackMismatchMessage(stack.snapshot,currentSnapshot)
+				throw new ContentException("Illegal forward brunch: current program stack content at the label ["+tree.getName(id)+"] differ with awaited program stack content at brunch point. "+prepareStackMismatchMessage(stack.snapshot,currentSnapshot)
 										+" Forward branch is located at "+stack.brunchId+" displacement of your method code");
 			}
 		}
