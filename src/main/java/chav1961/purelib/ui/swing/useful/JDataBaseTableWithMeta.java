@@ -213,7 +213,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 //				}
 				}
 			}
-			return new InnerTableModel(result.toArray(new ContentNodeMetadata[result.size()]), localizer);
+			return new InnerTableModel(meta, result.toArray(new ContentNodeMetadata[result.size()]), localizer);
 		}
 	}
 	
@@ -227,16 +227,17 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 		if (result.isEmpty()) {
 			for (ContentNodeMetadata item : meta) {
-				result.add(item.getLabelId());
+				result.add(item.getName());
 				break;
 			}
 		}
 		return result.toArray(new String[result.size()]);
 	}
 	
-	private static class InnerTableModel extends DefaultTableModel {
+	private static class InnerTableModel extends DefaultTableModel implements NodeMetadataOwner {
 		private static final long serialVersionUID = 4821572920544412802L;
 
+		private final ContentNodeMetadata	owner;
 		private final ContentNodeMetadata[]	metadata;
 		private final Localizer				localizer;
 		private volatile ContentDesc		desc = null; 
@@ -244,11 +245,47 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		private Object						lastRow;
 		private boolean						rsIsReadOnly = false;
 
-		private InnerTableModel(final ContentNodeMetadata[]	metadata, final Localizer localizer) {
+		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[]	metadata, final Localizer localizer) {
+			this.owner = owner;
 			this.metadata = metadata;
 			this.localizer = localizer;
 		}
 
+		@Override
+		public ContentNodeMetadata getNodeMetadata() {
+			return owner;
+		}
+
+		@Override
+		public boolean hasNodeMetadata(final String childName) {
+			if (childName == null || childName.isEmpty()) {
+				throw new IllegalArgumentException("Child name can't be null or empty");
+			}
+			else {
+				for (ContentNodeMetadata item : metadata) {
+					if (childName.equals(item.getName())) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}		
+		
+		@Override
+		public ContentNodeMetadata getNodeMetadata(final String childName) {
+			if (childName == null || childName.isEmpty()) {
+				throw new IllegalArgumentException("Child name can't be null or empty");
+			}
+			else {
+				for (ContentNodeMetadata item : metadata) {
+					if (childName.equals(item.getName())) {
+						return item;
+					}
+				}
+				throw new IllegalArgumentException("Child name ["+childName+"] not found in he model");
+			}
+		}
+		
 		@Override
 		public int getRowCount() {
 			if (desc == null || desc.rs == null) {

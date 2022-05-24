@@ -6,7 +6,19 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 public interface NodeMetadataOwner {
 	ContentNodeMetadata getNodeMetadata();
 	
+	default boolean hasNodeMetadata(int x, int y) {
+		return true;
+	}
+	
 	default ContentNodeMetadata getNodeMetadata(int x, int y) {
+		return getNodeMetadata();
+	}
+
+	default boolean hasNodeMetadata(String childName) {
+		return true;
+	}
+	
+	default ContentNodeMetadata getNodeMetadata(String childName) {
 		return getNodeMetadata();
 	}
 }

@@ -9,21 +9,21 @@ import chav1961.purelib.streams.interfaces.CharacterSource;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @lastUpdate 0.0.6
  *
  */
 public class StringCharSource implements CharacterSource {
-	private final String	source;
-	private final int		from, len;
-	private boolean			backed = false;
-	private int				actual, actualRow, actualCol;
-	private char			last = ' ';
+	private final CharSequence	source;
+	private final int			from, len;
+	private boolean				backed = false;
+	private int					actual, actualRow, actualCol;
+	private char				last = ' ';
 
 	/**
 	 * <p>Constructor if the class
 	 * @param source source string
 	 */
-	public StringCharSource(final String source) {
+	public StringCharSource(final CharSequence source) {
 		this(source,0);
 	}
 
@@ -32,7 +32,7 @@ public class StringCharSource implements CharacterSource {
 	 * @param source source string
 	 * @param from starting position inside the string
 	 */
-	public StringCharSource(final String source, final int from) {
+	public StringCharSource(final CharSequence source, final int from) {
 		int		len = 0;
 		
 		if (source == null || source.isEmpty()) {

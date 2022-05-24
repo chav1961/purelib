@@ -28,6 +28,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
@@ -108,13 +109,12 @@ public class JFreezableTable extends JTable {
 			
 			final StringBuilder	sb = new StringBuilder();
 			
-loop:		for (String item : columns2freeze) {
-				for (int index = 0, maxIndex = model.getColumnCount(); index < maxIndex; index++) {
-					if (item.equals(model.getColumnName(index))) {
-						continue loop; 
+			if (model instanceof NodeMetadataOwner) {
+				for (String item : columns2freeze) {
+					if (!((NodeMetadataOwner)model).hasNodeMetadata(item)) {
+						sb.append(',').append(item);
 					}
 				}
-				sb.append(',').append(item);
 			}
 			if (sb.length() > 0) {
 				throw new IllegalArgumentException("Freezed coulmns ["+sb.substring(1)+"] are not known in the table model");
@@ -388,15 +388,17 @@ loop:			for (int index = 0, cursor = 0; index < count; index++) {
 				final int		count = nested.getColumnCount();
 				final int[]		columns = new int[count - freezedColumns.length];
 				
-	loop:			for (int index = 0, cursor = 0; index < count; index++) {
+loop:			for (int index = 0, cursor = 0; index < count; index++) {
 					final String	colName = nested.getColumnName(index);
 					
-					for (String item : freezedColumns) {
-						if (colName.equals(item)) {
-							continue loop;
+					if (!colName.isEmpty()) {
+						for (String item : freezedColumns) {
+							if (colName.equals(item)) {
+								continue loop;
+							}
 						}
+						columns[cursor++] = index;
 					}
-					columns[cursor++] = index;
 				}
 				columnIndices = columns;
 			}

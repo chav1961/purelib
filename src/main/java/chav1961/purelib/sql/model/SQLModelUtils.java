@@ -69,6 +69,7 @@ public class SQLModelUtils {
 	private static final AsmWriter				ASM_WRITER;
 	private static final Set<String>			LOBS = Set.of("BLOB", "CLOB", "NCLOB", "BYTEA");
 	private static final Pattern				PART_PATTERN = Pattern.compile("([^\\.]+)\\.([^@]+)@(.*)");
+	private static final String					VERSION_KEY = "version";
 	private static final Map<String, JsonValueType>	TYPES = Utils.mkMap("VARCHAR", JsonValueType.STRING,
 																		"TEXT", JsonValueType.STRING,
 																		"BIGINT", JsonValueType.INTEGER);
@@ -387,8 +388,8 @@ public class SQLModelUtils {
 			if (query != null && !query.isEmpty()) {
 				final Hashtable<String,String[]>	content = URIUtils.parseQuery(query);
 				
-				if (content.containsKey("version")) {
-					return (Version) new SimpleDottedVersion(content.get("verison")[0]);
+				if (content.containsKey(VERSION_KEY)) {
+					return (Version) new SimpleDottedVersion(content.get(VERSION_KEY)[0]);
 				}
 				else {
 					return defaultVersion;
