@@ -91,18 +91,15 @@ public class JFreezableTable extends JTable {
 	 * <p>Constructor of the class</p> 
 	 * @param model table model to use
 	 * @param columns2freeze list of column names to freeze
-	 * @throws NullPointerException when any parameters are null
-	 * @throws IllegalArgumentException when some column name 
+	 * @throws NullPointerException when table model is null
+	 * @throws IllegalArgumentException when columns are null or contains null or empty columns inside 
 	 */
 	public JFreezableTable(final TableModel model, final String... columns2freeze) throws NullPointerException, IllegalArgumentException {
 		if (model == null) {
 			throw new NullPointerException("Table model can't be null");
 		}
-		else if (columns2freeze == null) {
-			throw new NullPointerException("Freezed columns list can't be null");
-		}
-		else if (Utils.checkArrayContent4Nulls(columns2freeze) >= 0) {
-			throw new NullPointerException("Some items in the freezed columns list are null");
+		else if (columns2freeze == null || Utils.checkArrayContent4Nulls(columns2freeze, true) >= 0) {
+			throw new IllegalArgumentException("Freezed columns are null or contains nulls or empties inside");
 		}
 		else {
 			this.columns2Freeze = columns2freeze;
@@ -130,7 +127,7 @@ public class JFreezableTable extends JTable {
 							parent = parent.getParent();
 						}
 						
-						if (parent instanceof JScrollPane) {
+						if ((parent instanceof JScrollPane) && columns2freeze.length > 0) {
 							createLeftBar((JScrollPane)parent);
 						}
 						else {

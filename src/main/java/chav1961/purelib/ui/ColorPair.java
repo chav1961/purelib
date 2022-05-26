@@ -13,6 +13,14 @@ import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
+/**
+ * <p>This class is a keeper for two colors (usually foreground and background color). This class can be serialized and also supports {@linkplain JsonSerializable} interface</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see Serializable
+ * @see JsonSerializable
+ * @since 0.0.5
+ * @lastUpdate 0.0.6
+ */
 public class ColorPair implements Serializable, JsonSerializable {
 	private static final long serialVersionUID = 869188177438346062L;
 	
@@ -21,7 +29,13 @@ public class ColorPair implements Serializable, JsonSerializable {
 	
 	private Color	foreground, background;
 	
-	public ColorPair(final Color foreground, final Color background) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param foreground foreground color. Can't be null
+	 * @param background background color. Can't be null
+	 * @throws NullPointerException on any parameter is null
+	 */
+	public ColorPair(final Color foreground, final Color background) throws NullPointerException {
 		if (foreground == null) {
 			throw new NullPointerException("Foreground color can't be null");
 		}
@@ -34,6 +48,13 @@ public class ColorPair implements Serializable, JsonSerializable {
 		}
 	}
 	
+	/**
+	 * <p>Constructor of the class.</p> 
+	 * @param val string descriptor of the pair. Can't be null or empty and must have '{'&lt;foreground&gt;','&lt;background&gt;'}' format
+	 * @throws IllegalArgumentException parameter is null or empty
+	 * @throws SyntaxException on any syntax errors 
+	 * @see PureLibSettings#colorByName(String, Color)
+	 */
 	public ColorPair(final String val) throws SyntaxException, IllegalArgumentException {		
 		if (val == null || val.isEmpty()) {
 			throw new IllegalArgumentException("String value can't be null or empty");
@@ -47,15 +68,28 @@ public class ColorPair implements Serializable, JsonSerializable {
 		}
 	}
 
+	/**
+	 * <p>Get foreground color</p>
+	 * @return foreground color. Can't be null
+	 */
 	public Color getForeground() {
 		return foreground;
 	}
 
+	/**
+	 * <p>Get background color</p>
+	 * @return background color. Can't be null
+	 */
 	public Color getBackground() {
 		return background;
 	}
 	
-	public void setForeground(final Color foreground) {
+	/**
+	 * <p>Set foreground color.</p> 
+	 * @param foreground foreground color. Can't be null
+	 * @throws NullPointerException when parameter is null
+	 */
+	public void setForeground(final Color foreground) throws NullPointerException {
 		if (foreground == null) {
 			throw new NullPointerException("Foreground color can't be null");
 		}
@@ -64,7 +98,12 @@ public class ColorPair implements Serializable, JsonSerializable {
 		}
 	}
 
-	public void setBackground(final Color background) {
+	/**
+	 * <p>Set background color</p>
+	 * @param background background color. Can't be null
+	 * @throws NullPointerException when parameter is null
+	 */
+	public void setBackground(final Color background) throws NullPointerException {
 		if (background == null) {
 			throw new NullPointerException("Background color can't be null");
 		}
@@ -74,7 +113,7 @@ public class ColorPair implements Serializable, JsonSerializable {
 	}
 
 	@Override
-	public void fromJson(final JsonStaxParser parser) throws SyntaxException, IOException {
+	public void fromJson(final JsonStaxParser parser) throws SyntaxException, IOException, NullPointerException {
 		if (parser == null) {
 			throw new NullPointerException("JSON parser can't be null");
 		}
@@ -130,7 +169,7 @@ loop:			for (JsonStaxParserLexType item : parser) {
 	}
 
 	@Override
-	public void toJson(final JsonStaxPrinter printer) throws PrintingException, IOException {
+	public void toJson(final JsonStaxPrinter printer) throws PrintingException, IOException, NullPointerException {
 		if (printer == null) {
 			throw new NullPointerException("JSON printer can't be null"); 
 		}

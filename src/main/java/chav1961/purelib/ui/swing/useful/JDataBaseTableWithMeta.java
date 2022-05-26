@@ -1,5 +1,7 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -118,6 +120,10 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 	}
 
+	public void resizeColumns() {
+		resizeColumns(model);
+	}
+	
 	protected void insertRow(final Inst content) throws SQLException, FlowException {
 		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, instMgr.newKey()) != RefreshMode.REJECT) {
 			model.desc.rs.moveToInsertRow();
@@ -190,10 +196,37 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 	}
 
+	private void resizeColumns(final InnerTableModel model) {
+		final int[]	sizes = new int[model.getColumnCount()];
+		
+		int	totalSize = 0, index = 0;
+		
+		for (String name : model.getMetadataChildrenNames()) {
+			final ContentNodeMetadata	meta = model.getNodeMetadata(name);
+			
+			if (meta.getFormatAssociated() != null && meta.getFormatAssociated().getLength() > 0) {
+				sizes[index] = meta.getFormatAssociated().getLength(); 
+				totalSize += sizes[index++];
+			}
+			else {
+				totalSize += sizes[index++] = 10;
+			}
+		}
+		System.err.println("Width="+getWidth()+", size"+getSize());
+		final float	scale = 1.0f * getWidth() / totalSize;
+		
+		for (int col = 0, maxCol = getColumnModel().getColumnCount(); col < maxCol; col++) {
+			final int	currentWidth = (int) (scale * sizes[col]);
+			
+			System.err.println("Current width="+currentWidth);
+			getColumnModel().getColumn(col).setPreferredWidth(currentWidth);
+		}
+	}
+
 	private void fillLocalizedStrings() {
 		
 	}
-	
+
 	static TableModel buildTableModel(final ContentNodeMetadata meta, final Localizer localizer) {
 		if (meta == null) {
 			throw new NullPointerException("Metadata can't be null"); 
@@ -207,10 +240,10 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			
 			for (ContentNodeMetadata item : meta) {
 				if (!names.contains(item.getName())) {
-//				if (item.getFormatAssociated() != null && item.getFormatAssociated().isUsedInList()) {
-					result.add(item);
-					names.add(item.getName());
-//				}
+					if (item.getFormatAssociated() != null && item.getFormatAssociated().isUsedInList()) {
+						result.add(item);
+						names.add(item.getName());
+					}
 				}
 			}
 			return new InnerTableModel(meta, result.toArray(new ContentNodeMetadata[result.size()]), localizer);
@@ -223,12 +256,6 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		for (ContentNodeMetadata item : meta) {
 			if (item.getFormatAssociated() != null && item.getFormatAssociated().isAnchored()) {
 				result.add(item.getName());
-			}
-		}
-		if (result.isEmpty()) {
-			for (ContentNodeMetadata item : meta) {
-				result.add(item.getName());
-				break;
 			}
 		}
 		return result.toArray(new String[result.size()]);
@@ -284,6 +311,17 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 				}
 				throw new IllegalArgumentException("Child name ["+childName+"] not found in he model");
 			}
+		}
+		
+		@Override
+		public String[] getMetadataChildrenNames() {
+			final String[]	result = new String[metadata.length];
+			int	index = 0;
+			
+			for (ContentNodeMetadata item : metadata) {
+				result[index++] = item.getName();
+			}
+			return result;
 		}
 		
 		@Override

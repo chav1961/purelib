@@ -21,4 +21,8 @@ public interface NodeMetadataOwner {
 	default ContentNodeMetadata getNodeMetadata(String childName) {
 		return getNodeMetadata();
 	}
+	
+	default String[] getMetadataChildrenNames() {
+		return new String[0];
+	}
 }
