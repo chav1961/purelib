@@ -1,11 +1,23 @@
 package chav1961.purelib.ui;
 
 import java.awt.Color;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.basic.exceptions.PrintingException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.streams.JsonStaxParser;
+import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -43,6 +55,40 @@ public class ColorPairTest {
 		try{cp1.setBackground(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
+		}
+	}
+	
+	@Test
+	public void serializationTest() throws IOException, PrintingException, SyntaxException {
+		final ColorPair	from = new ColorPair(Color.GREEN, Color.BLUE), to = new ColorPair(Color.BLACK, Color.WHITE);
+		
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final Writer			wr = new OutputStreamWriter(baos);
+				final JsonStaxPrinter	prn = new JsonStaxPrinter(wr)) {
+				
+				from.toJson(prn);
+				prn.flush();
+				
+				try{from.toJson(null);
+					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+				} catch (NullPointerException exc) {
+				}
+			}
+			
+			try(final ByteArrayInputStream	bais = new ByteArrayInputStream(baos.toByteArray());
+				final Reader				rdr = new InputStreamReader(bais);
+				final JsonStaxParser		parser = new JsonStaxParser(rdr)) {
+				
+				parser.next();
+				to.fromJson(parser);
+				
+				try{to.fromJson(null);
+					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+				} catch (NullPointerException exc) {
+				}
+			}
+			
+			Assert.assertEquals(from, to);
 		}
 	}
 }

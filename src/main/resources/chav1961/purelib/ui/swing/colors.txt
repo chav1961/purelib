@@ -1,9 +1,7 @@
 black	#000000
 Black	#000000
-black	#000000
-Black 	#000000
-Black 	#000000
-Black 	#000000
+red	#FF0000
+RED	#FF0000
 gray0	#000000
 grey0	#000000
 navy	#000080
@@ -28,10 +26,6 @@ MediumBlue 	#0000CD
 blue2	#0000EE
 blue	#0000FF
 Blue	#0000FF
-blue	#0000FF
-Blue 	#0000FF
-Blue 	#0000FF
-Blue 	#0000FF
 blue1	#0000FF
 dark green	#006400
 DarkGreen	#006400
@@ -39,16 +33,10 @@ DarkGreen 	#006400
 DarkGreen 	#006400
 DarkGreen 	#006400
 DeepSkyBlue4	#00688B
-Green	#008000
-green	#008000
-Green 	#008000
-Green 	#008000
-Green 	#008000
+Green	#00FF00
+green	#00FF00
 Teal	#008080
 teal	#008080
-Teal 	#008080
-Teal 	#008080
-Teal 	#008080
 turquoise4	#00868B
 green4	#008B00
 SpringGreen4	#008B45
