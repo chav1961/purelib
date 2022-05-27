@@ -21,7 +21,7 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * @since 0.0.5
  * @lastUpdate 0.0.6
  */
-public class ColorPair implements Serializable, JsonSerializable {
+public class ColorPair implements Serializable, JsonSerializable<ColorPair> {
 	private static final long serialVersionUID = 869188177438346062L;
 	
 	public static final String	F_FOREGROUND = "foreground"; 
@@ -176,6 +176,17 @@ loop:			for (JsonStaxParserLexType item : parser) {
 		else {
 			printer.startObject().name(F_FOREGROUND).value(PureLibSettings.nameByColor(foreground, "black"))
 				.splitter().name(F_BACKGROUND).value(PureLibSettings.nameByColor(background, "black")).endObject();
+		}
+	}
+	
+	@Override
+	public void assignFrom(final ColorPair other) throws NullPointerException {
+		if (other == null) {
+			throw new NullPointerException("Other entity can't be null");
+		}
+		else {
+			setForeground(other.getForeground());
+			setBackground(other.getBackground());
 		}
 	}
 	

@@ -12,7 +12,7 @@ import chav1961.purelib.streams.JsonStaxPrinter;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
  */
-public interface JsonSerializable {
+public interface JsonSerializable<Any> {
 	/**
 	 * <p>Load object state from JSON</p>
 	 * @param parser parser to load state from. Can't be null
@@ -28,4 +28,10 @@ public interface JsonSerializable {
 	 * @throws IOException on any I/O errors
 	 */
 	void toJson(JsonStaxPrinter printer) throws PrintingException, IOException;
+	
+	/**
+	 * <p>Assign inner content from other entity</p>
+	 * @param other other entity. Can't be null.
+	 */
+	default void assignFrom(Any other) {}
 }
