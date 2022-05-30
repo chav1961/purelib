@@ -2,6 +2,8 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -57,7 +59,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			this.meta = meta;
 			this.localizer = localizer;
 			this.model = (InnerTableModel)getSourceModel();
-			
+
 			SwingUtils.assignActionKey(this, SwingUtils.KS_INSERT, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_INSERT), SwingUtils.ACTION_INSERT);
 			SwingUtils.assignActionKey(this, SwingUtils.KS_DUPLICATE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DUPLICATE), SwingUtils.ACTION_DUPLICATE);;
 			SwingUtils.assignActionKey(this, SwingUtils.KS_DELETE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DELETE), SwingUtils.ACTION_DELETE);
@@ -326,20 +328,20 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		
 		@Override
 		public int getRowCount() {
-			if (desc == null || desc.rs == null) {
-				return 0;
-			}
-			else {
-				try{if (desc.rs.last()) {
-						return desc.rs.getRow();
-					}
-					else {
-						return 0;
-					}
-				} catch (SQLException e) {
-					printError(e);
+			try{if (desc == null || desc.rs == null || desc.rs.isClosed()) {
 					return 0;
 				}
+				else {
+					if (desc.rs.last()) {
+							return desc.rs.getRow();
+						}
+						else {
+							return 0;
+						}
+				}
+			} catch (SQLException e) {
+				printError(e);
+				return 0;
 			}
 		}
 
