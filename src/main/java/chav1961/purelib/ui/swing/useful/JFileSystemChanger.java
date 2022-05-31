@@ -244,7 +244,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	 * @throws ContentException on any content errors
 	 * @throws IOException on any I/O errors
 	 */
-	public static URI ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, SyntaxException, ContentException, IOException {
+	public static URI ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?,?> form) throws LocalizationException, SyntaxException, ContentException, IOException {
 		return askInternal(window,new JDialog(window,true), localizer);
 	}
 

@@ -93,7 +93,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * @lastUpdate 0.0.6
  */
 
-public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter, LoggerFacadeOwner {
+public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter, LoggerFacadeOwner {
 	private static final long 				serialVersionUID = 4920624779261769348L;
 	private static final Module[]			EMPTY_MODULES = new Module[0];
 	
@@ -109,7 +109,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	private final LoggerFacade				logger;
 	private final JPanel					childPanel;
 	private final JLabel					leftIconLabel;
-	private final FormManager<Object,T>		formManager;
+	private final FormManager<K,T>			formManager;
 	private final FormMonitor<T>			monitor;
 	private final ContentMetadataInterface	mdi;
 	private final UIItemState				itemState;
@@ -134,7 +134,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<K,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, loader, instance, formMgr, 1);
 	}
 
@@ -153,7 +153,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws ContentException errors in class or fields annotations
 	 * @since 0.0.5
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<K,T> formMgr, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, loader, instance, formMgr, 1, itemState);
 	}
 	
@@ -171,7 +171,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<K,T> formMgr, final int columns) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, null, instance, formMgr, columns, false);
 	}
 
@@ -192,7 +192,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws ContentException errors in class or fields annotations
 	 * @since 0.0.5
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<Object,T> formMgr, final int columns, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final T instance, final FormManager<K,T> formMgr, final int columns, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, null, instance, formMgr, columns, false, itemState);
 	}
 	
@@ -210,7 +210,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<K,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, leftIcon, instance, formMgr, 1, false);
 	}
 
@@ -230,7 +230,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws ContentException errors in class or fields annotations
 	 * @since 0.0.5
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<K,T> formMgr, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, PureLibSettings.CURRENT_LOGGER, loader, leftIcon, instance, formMgr, 1, false, itemState);
 	}
 	
@@ -251,7 +251,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException errors in localizer
 	 * @throws ContentException errors in class or fields annotations
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<K,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		this(mdi, localizer, logger, loader, leftIcon, instance, formMgr, numberOfBars, tooltipsOnFocus, (node)->AvailableAndVisible.DEFAULT);
 	}	
 	
@@ -274,7 +274,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws ContentException errors in class or fields annotations
 	 * @since 0.0.5
 	 */
-	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<Object,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final URL leftIcon, final T instance, final FormManager<K,T> formMgr, final int numberOfBars, final boolean tooltipsOnFocus, final UIItemState itemState) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
 		if (mdi == null) {
 			throw new NullPointerException("Metadata interface can't be null");
 		}
@@ -518,7 +518,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * <p>Get form manager associated with the form</p>
 	 * @return form manager associated. Can't be null
 	 */
-	public FormManager<Object,T> getFormManagerAssociated() {
+	public FormManager<K,T> getFormManagerAssociated() {
 		return formManager;
 	}
 	
@@ -766,7 +766,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException on any localization problems
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
-	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, IllegalArgumentException {
+	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?,?> form) throws LocalizationException, IllegalArgumentException {
 		return askInternal(window,new JDialog(window,true), localizer, form, DUMMY_OK_AND_CANCEL);
 	}
 
@@ -779,7 +779,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException on any localization problems
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
-	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?> form) throws LocalizationException, IllegalArgumentException {
+	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?,?> form) throws LocalizationException, IllegalArgumentException {
 		return askInternal(window,new JDialog(window,true), localizer, form, DUMMY_OK_AND_CANCEL);
 	}
 
@@ -793,7 +793,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException on any localization problems
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
-	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
+	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
 		return askInternal(window,new JDialog(window,true), localizer, form, okAndCancel);
 	}
 
@@ -807,11 +807,11 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	 * @throws LocalizationException on any localization problems
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
-	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
+	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
 		return askInternal(window,new JDialog(window,true), localizer, form, okAndCancel);
 	}
 
-	static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer, final AutoBuiltForm<?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
+	static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
 		if (okAndCancel.length > 2) {
 			throw new IllegalArgumentException("Ok and cancel URI array length is too long. Only 0..2 are available");
 		}
@@ -911,7 +911,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 		}
 	}
 
-	private static void makeActionListener(final AutoBuiltForm<?> form, final ContentMetadataInterface mdi, final URI appPath, final ActionListener listener, final boolean add) {
+	private static void makeActionListener(final AutoBuiltForm<?,?> form, final ContentMetadataInterface mdi, final URI appPath, final ActionListener listener, final boolean add) {
 		final boolean[]	result = new boolean[]{false};
 		
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
@@ -992,7 +992,7 @@ public class AutoBuiltForm<T> extends JPanel implements LocaleChangeListener, Au
 	    }
 	}
 	
-	private static boolean finalValidation(final AutoBuiltForm<?> form) {
+	private static boolean finalValidation(final AutoBuiltForm<?,?> form) {
 		return SwingUtils.walkDown(form, (mode,node)->{
 			if (mode == NodeEnterMode.ENTER && (node instanceof NodeMetadataOwner) && (node instanceof JComponentInterface)) {
 				final ContentNodeMetadata	meta = ((NodeMetadataOwner)node).getNodeMetadata();

@@ -69,9 +69,9 @@ public class SwingUIServerImpl implements UIServer {
 	}
 
 	@Override
-	public <T> void ask(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<Object, T> formMgr, Completed<T> completed) throws ContentException, IOException, LocalizationException, NullPointerException, IllegalArgumentException {
+	public <K, T> void ask(Localizer localizer, ContentMetadataInterface model, T instance, FormManager<K, T> formMgr, Completed<T> completed) throws ContentException, IOException, LocalizationException, NullPointerException, IllegalArgumentException {
 		// TODO Auto-generated method stub
-		final AutoBuiltForm<T>	form = new AutoBuiltForm<T>(model,localizer,PureLibSettings.INTERNAL_LOADER,instance,formMgr);
+		final AutoBuiltForm<T,K>	form = new AutoBuiltForm<T,K>(model,localizer,PureLibSettings.INTERNAL_LOADER,instance,formMgr);
 		
 	}
 

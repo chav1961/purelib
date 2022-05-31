@@ -505,7 +505,7 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 	private boolean edit(final ReferenceAndComment rac) {
 		try{final ReferenceAndCommentEditor	rce = new ReferenceAndCommentEditor(SwingUtils.getNearestLogger(this));
 		
-			try(final AutoBuiltForm<ReferenceAndCommentEditor>	abf = new AutoBuiltForm<ReferenceAndCommentEditor>(editorModel,localizer,PureLibSettings.INTERNAL_LOADER,rce,rce)) {
+			try(final AutoBuiltForm<ReferenceAndCommentEditor,Object>	abf = new AutoBuiltForm<ReferenceAndCommentEditor,Object>(editorModel,localizer,PureLibSettings.INTERNAL_LOADER,rce,rce)) {
 				
 				for (Module m : abf.getUnnamedModules()) {
 					rce.getClass().getModule().addExports(rce.getClass().getPackageName(),m);

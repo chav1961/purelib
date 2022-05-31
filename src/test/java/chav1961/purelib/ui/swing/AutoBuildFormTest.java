@@ -63,7 +63,7 @@ public class AutoBuildFormTest {
 		final ContentMetadataInterface			mdi = ContentModelFactory.forAnnotatedClass(pd.getClass());
 		final ActionListener					al = (e)->{callListener = true;};
 		
-		try(final AutoBuiltForm<PseudoData>		abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.INTERNAL_LOADER,pd,fm)) {
+		try(final AutoBuiltForm<PseudoData,?>	abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.INTERNAL_LOADER,pd,fm)) {
 			
 			Assert.assertEquals(mdi,abf.getContentModel());
 			Assert.assertEquals(fm,abf.getFormManagerAssociated());
@@ -103,27 +103,27 @@ public class AutoBuildFormTest {
 			throw t;
 		}
 
-		try{new AutoBuiltForm<PseudoData>(null,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,1,true);
+		try{new AutoBuiltForm<PseudoData,Object>(null,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,1,true);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new AutoBuiltForm<PseudoData>(mdi,null,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,1,true);
+		try{new AutoBuiltForm<PseudoData,Object>(mdi,null,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,1,true);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new AutoBuiltForm<PseudoData>(mdi,PureLibSettings.PURELIB_LOCALIZER,null,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,1,true);
+		try{new AutoBuiltForm<PseudoData,Object>(mdi,PureLibSettings.PURELIB_LOCALIZER,null,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,1,true);
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new AutoBuiltForm<PseudoData>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),null,fm,1,true);
+		try{new AutoBuiltForm<PseudoData,Object>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),null,fm,1,true);
 			Assert.fail("Mandatory exception was not detected (null 5-th argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new AutoBuiltForm<PseudoData>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,null,1,true);
+		try{new AutoBuiltForm<PseudoData,Object>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,null,1,true);
 			Assert.fail("Mandatory exception was not detected (null 6-th argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new AutoBuiltForm<PseudoData>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,0,true);
+		try{new AutoBuiltForm<PseudoData,Object>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.CURRENT_LOGGER,PureLibSettings.INTERNAL_LOADER,new URL("file:./"),pd,fm,0,true);
 			Assert.fail("Mandatory exception was not detected (illegal 7-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -157,7 +157,7 @@ public class AutoBuildFormTest {
 		pd.file = new File("./"); 
 		pd.text = "text"; 
 		
-		try(final AutoBuiltForm<PseudoData>		abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.INTERNAL_LOADER,pd,fm)) {
+		try(final AutoBuiltForm<PseudoData,?>	abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.INTERNAL_LOADER,pd,fm)) {
 			
 			root.getContentPane().add(abf);
 			root.setVisible(true);
@@ -193,7 +193,7 @@ public class AutoBuildFormTest {
 		pd.file = new File("./"); 
 		pd.text = "text"; 
 		
-		try(final AutoBuiltForm<PseudoData>		abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.INTERNAL_LOADER,pd,fm)) {
+		try(final AutoBuiltForm<PseudoData,?>	abf = new AutoBuiltForm<>(mdi,PureLibSettings.PURELIB_LOCALIZER,PureLibSettings.INTERNAL_LOADER,pd,fm)) {
 			
 			callUI(abf,new URI[0],URI.create(AutoBuiltForm.DEFAULT_OK_BUTTON_NAME));
 			callUI(abf,new URI[]{URI.create("app:action:/PseudoData.calculate")},URI.create("ui:/chav1961.purelib.ui.swing.PseudoData/./PseudoData.calculate"));
@@ -201,7 +201,7 @@ public class AutoBuildFormTest {
 		}
 	}
 
-	private static void callUI(final AutoBuiltForm<PseudoData> abf, final URI[] buttons, final URI click) throws InterruptedException, EnvironmentException {
+	private static void callUI(final AutoBuiltForm<PseudoData,?> abf, final URI[] buttons, final URI click) throws InterruptedException, EnvironmentException {
 		final CountDownLatch	cdl = new CountDownLatch(1);	// Protection against infinite wait in the test
 		final Thread			t = new Thread(()->{
 									JDialog	frame = null;
