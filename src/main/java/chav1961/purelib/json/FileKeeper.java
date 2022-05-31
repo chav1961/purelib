@@ -9,7 +9,6 @@ public class FileKeeper implements Serializable {
 	private String	fileURI = "./";
 	
 	public FileKeeper() {
-		
 	}
 
 	public FileKeeper(final String fileURI) {

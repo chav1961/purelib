@@ -529,6 +529,9 @@ loop:			for (Component comp : children(node)) {
 						throw new UnsupportedOperationException("Content type ["+content+"] for metadata ["+metadata.getName()+"] is not supported yet");
 					}
 					break;
+				case ImageContent	:
+					result = new JImageContainerWithMeta(metadata,localizer,monitor);
+					break;
 				case Unclassified	:
 				case NestedContent	:
 				case TimestampContent	:

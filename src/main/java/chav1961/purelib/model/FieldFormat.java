@@ -1,6 +1,7 @@
 package chav1961.purelib.model;
 
 import java.awt.Color;
+import java.awt.Image;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -48,6 +49,7 @@ public class FieldFormat {
 		ColorPairContent,
 		ArrayContent,
 		NestedContent,
+		ImageContent,
 		Unclassified
 	} 
 	
@@ -636,6 +638,9 @@ public class FieldFormat {
 				}
 				else if (ColorPair.class.isAssignableFrom(clazz)) {
 					return ContentType.ColorPairContent;
+				}
+				else if (Image.class.isAssignableFrom(clazz)) {
+					return ContentType.ImageContent;
 				}
 				else  {
 					return ContentType.Unclassified;
