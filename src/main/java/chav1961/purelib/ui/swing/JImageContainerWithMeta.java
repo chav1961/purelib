@@ -7,16 +7,30 @@ import java.awt.Graphics2D;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import javax.imageio.ImageIO;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.TransferHandler;
+import javax.swing.TransferHandler.TransferSupport;
+import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -44,7 +58,7 @@ import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
 public class JImageContainerWithMeta extends JComponent implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = -4542351534072177624L;
 
-	public static final String 			COLOR_NAME = "color";
+	public static final String 			IMAGE_NAME = "image";
 	
 	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
 	private static final Class<?>[]		VALID_CLASSES = {Image.class, ImageKeeper.class};
@@ -53,6 +67,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final ContentNodeMetadata	metadata;
 	private final Localizer 			localizer;
 	private final JButton				callSelect = new JButton("...");
+	private File						lastFile = new File("./");
 	private Image						currentValue = null, newValue = null;
 	private boolean						invalid = false;
 	
@@ -72,6 +87,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		else {
 			this.metadata = metadata;
 			this.localizer = localizer;
+			setFocusable(true);
 			
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
@@ -126,10 +142,14 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			callSelect.addActionListener((e)->{selectImage();});
 			new ComponentKeepedBorder(0,callSelect).install(this);
 			setPreferredSize(new Dimension(2*callSelect.getPreferredSize().width,callSelect.getPreferredSize().height));
+
+			SwingUtils.assignActionKey(this, SwingUtils.KS_COPY, (e)->copyContent(), "copy");
+			SwingUtils.assignActionKey(this, SwingUtils.KS_PASTE, (e)->pasteContent(), "paste");
 			
 			setName(name);
-			callSelect.setName(name+'/'+COLOR_NAME);
+			callSelect.setName(name+'/'+IMAGE_NAME);
 			InternalUtils.registerAdvancedTooptip(this);
+			setTransferHandler(new ImageAndFileTransferHandler(this));
 			fillLocalizedStrings();
 		}
 	}
@@ -248,8 +268,71 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		g2d.drawImage(image, 0, 0, image.getHeight(null), image.getWidth(null), x1, y1, x2, y2, null);
 	}
 
-	protected Color chooseColor(final Localizer localizer, final Color initialColor, final boolean isForeground) throws HeadlessException, LocalizationException {
-		return Utils.nvl(JColorChooser.showDialog(this,PureLibSettings.PURELIB_LOCALIZER.getValue(TITLE),initialColor),initialColor);
+	protected Image chooseImage(final Localizer localizer, final Image initialImage) throws HeadlessException, LocalizationException {
+		final File	choosed = chooseFile(localizer, lastFile);
+		
+		if (choosed != null) {
+			lastFile = choosed;
+			
+			try{
+				return ImageIO.read(choosed);
+			} catch (IOException e) {
+				SwingUtils.getNearestLogger(this).message(Severity.error, e, "Error loading image file");
+				return initialImage;
+			}
+		}
+		else {
+			return initialImage;
+		}
+	}
+
+	private File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
+		final JFileChooser	chooser = new JFileChooser();
+		final File			currentPath = initialFile;
+		
+		if (currentPath.exists()) {
+			if (currentPath.isFile()) {
+				chooser.setCurrentDirectory(currentPath.getParentFile());
+				chooser.setSelectedFile(currentPath);
+			}
+			else {
+				chooser.setCurrentDirectory(currentPath);
+			}
+		}
+		if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+			final File	sel = chooser.getSelectedFile();  
+			
+			return sel != null ? sel.getAbsoluteFile() : null;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	private void copyContent() {
+		final Image		img = newValue != null ? newValue : currentValue;  
+		
+		if (img != null) {
+			final Clipboard		cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+			final Transferable	t = new Transferable() {
+									@Override public boolean isDataFlavorSupported(DataFlavor flavor) {return flavor.equals(DataFlavor.imageFlavor);}
+									@Override public DataFlavor[] getTransferDataFlavors() {return new DataFlavor[] {DataFlavor.imageFlavor};}
+									@Override public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {return img;}
+								};
+
+			cb.setContents(t, (clipboard, contents)->{});
+		}
+	}
+	
+	private void pasteContent() {
+		final Clipboard	cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+		
+		if (cb.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+			try{assignValueToComponent(cb.getData(DataFlavor.imageFlavor));
+			} catch (UnsupportedFlavorException | IOException exc) {
+				SwingUtils.getNearestLogger(this).message(Severity.error, exc, "error pasting image");
+			}
+		}
 	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
@@ -259,11 +342,11 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 	
 	private void selectImage() {
-//		try{assignValueToComponent(chooseColor(localizer,currentValue,false));
-//			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
-//		} finally {
-//			requestFocus();
-//		}
+		try{assignValueToComponent(chooseImage(localizer,currentValue));
+			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
+		} finally {
+			requestFocus();
+		}
 	}
 
 	private void callLoad(final JComponentMonitor monitor) {
@@ -272,5 +355,56 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		} catch (ContentException exc) {
 			SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
+	}
+
+	private static class ImageAndFileTransferHandler extends TransferHandler {
+		private static final long serialVersionUID = 608229074222584792L;
+
+		private final JImageContainerWithMeta	owner;
+		
+		private ImageAndFileTransferHandler(final JImageContainerWithMeta owner) {
+			super(null);
+			this.owner = owner;
+		}
+		
+		@Override
+		public boolean canImport(final TransferSupport support) {
+			return support.getDropAction() == COPY && (support.getDataFlavors()[0].equals(DataFlavor.javaFileListFlavor) || support.getDataFlavors()[0].equals(DataFlavor.imageFlavor)); 
+		}
+		
+		@Override
+		public boolean importData(final TransferSupport support) {
+			if (canImport(support)) {
+				try{Image	image = null;
+					
+					if (support.getDataFlavors()[0].equals(DataFlavor.javaFileListFlavor)) {
+						for (File item : (List<File>)support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor)) {
+							if (item.exists() && item.isFile()) {
+								image = ImageIO.read(item);
+								break;
+							}
+						}
+					}
+					else {
+						image = (Image)support.getTransferable().getTransferData(DataFlavor.imageFlavor);
+					}
+					
+					if (image != null) {
+						owner.assignValueToComponent(image);
+						return true;
+					}
+					else {
+						return false;
+					}
+				
+				} catch (UnsupportedFlavorException | IOException e) {
+					SwingUtils.getNearestLogger(owner).message(Severity.error, e, "Error pasting files/images");
+					return false;
+				}
+			}
+			else {
+				return false;
+			}
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,9 +15,10 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @author Alexander Chernomyrdin aka chav1961
  * @see <a href="https://tools.ietf.org/pdf/rfc2045.pdf">RFC 2045</a>
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.6
  */
-public class MimeType {
+public class MimeType implements Serializable {
+	private static final long 		serialVersionUID = -4429376900886702159L;	
 	private static final SyntaxTreeInterface<String>	AVAILABLE_TYPE = new AndOrTree<>();
 	private static final char[]		X_PREFIX_LOWERCASE = "x-".toCharArray();
 	private static final char[]		X_PREFIX_UPPERCASE = "X-".toCharArray();

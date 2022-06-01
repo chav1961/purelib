@@ -2,12 +2,15 @@ package chav1961.purelib.ui.swing;
 
 import java.awt.Dialog;
 import java.awt.HeadlessException;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.InputVerifier;
@@ -15,6 +18,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
+import javax.swing.TransferHandler;
+import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -155,6 +160,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			callSelect.setName(name+'/'+CHOOSER_NAME);
 			callSelect.setFocusable(false);
 			InternalUtils.registerAdvancedTooptip(this);
+			setTransferHandler(new FileTransferHandler(this));
 			fillLocalizedStrings();
 		}		
 	}
@@ -427,5 +433,33 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		} catch (ContentException exc) {
 			SwingUtils.getNearestLogger(JFileFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
 		}					
+	}
+	
+	private static class FileTransferHandler extends TransferHandler {
+		private static final long serialVersionUID = 608229074222584792L;
+
+		private final JTextComponent	owner;
+		
+		private FileTransferHandler(final JTextComponent owner) {
+			super(null);
+			this.owner = owner;
+		}
+		
+		@Override
+		public boolean canImport(final TransferSupport support) {
+			return support.getDropAction() == COPY_OR_MOVE && support.getDataFlavors()[0].isFlavorJavaFileListType(); 
+		}
+		
+		@Override
+		public boolean importData(final TransferSupport support) {
+			try{final List<File>	content = (List<File>)support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+			
+				owner.setText(content.get(0).getAbsolutePath());
+				return true;
+			} catch (UnsupportedFlavorException | IOException e) {
+				SwingUtils.getNearestLogger(owner).message(Severity.error, e, "Error pasting files");
+				return false;
+			}
+		}
 	}
 }
