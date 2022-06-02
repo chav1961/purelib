@@ -346,45 +346,6 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		}
 	}
 	
-	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
-		final JFileChooser	chooser = new JFileChooser();
-		
-		if (!getText().isEmpty()) {
-			final File		currentPath = new File(getText());
-			
-			if (currentPath.exists()) {
-				if (currentPath.isFile()) {
-					chooser.setCurrentDirectory(currentPath.getParentFile());
-					chooser.setSelectedFile(currentPath);
-				}
-				else {
-					chooser.setCurrentDirectory(currentPath);
-				}
-			}
-			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-				final File	sel = chooser.getSelectedFile();  
-				
-				return sel != null ? sel.getAbsoluteFile() : null;
-			}
-			else {
-				return null;
-			}
-		}
-		else {
-			return null;
-		}
-	}
-	
-	protected FileSystemInterface chooseFileSystem(final Localizer localizer, final FileSystemInterface initialFS) throws HeadlessException, LocalizationException {
-		try{for(String item : JFileSelectionDialog.select((Dialog)null, localizer, (FileSystemInterface)getValueFromComponent(), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
-				return ((FileSystemInterface)getValueFromComponent()).open(item);
-			}
-		} catch (IOException exc) {
-			SwingUtils.getNearestLogger(JFileFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
-		} 
-		return null;
-	}
-	
 	private void fillLocalizedStrings() throws LocalizationException {
 		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
 		
@@ -397,7 +358,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
 		
 			if (getValueType().isAssignableFrom(File.class)) {
-				final File	result = chooseFile(localizer,(File)currentValue);
+				final File	result = InternalUtils.chooseFile(this, localizer,(File)currentValue);
 				
 				if (result != null) {
 					assignValueToComponent(result);
@@ -405,7 +366,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			}
 			else if (getValueType().isAssignableFrom(FileKeeper.class)) {
-				final File	result = chooseFile(localizer,((FileKeeper)currentValue).toFile());
+				final File	result = InternalUtils.chooseFile(this, localizer,((FileKeeper)currentValue).toFile());
 				
 				if (result != null) {
 					assignValueToComponent(result);
@@ -413,7 +374,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			}
 			else {
-				final FileSystemInterface	result = chooseFileSystem(localizer,(FileSystemInterface)currentValue);
+				final FileSystemInterface	result = InternalUtils.chooseFileSystem(this, localizer, (FileSystemInterface)currentValue);
 				
 				if (result != null) {
 					assignValueToComponent(result);
@@ -438,23 +399,29 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	private static class FileTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 608229074222584792L;
 
-		private final JTextComponent	owner;
+		private final JFileFieldWithMeta	owner;
 		
-		private FileTransferHandler(final JTextComponent owner) {
+		private FileTransferHandler(final JFileFieldWithMeta owner) {
 			super(null);
 			this.owner = owner;
 		}
 		
 		@Override
 		public boolean canImport(final TransferSupport support) {
-			return support.getDropAction() == COPY_OR_MOVE && support.getDataFlavors()[0].isFlavorJavaFileListType(); 
+			if (support.isDrop() && (support.getSourceDropActions() & COPY) == COPY && support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+		        support.setDropAction(COPY);
+		        return true;
+			}
+			else {
+				return false;
+			}
 		}
 		
 		@Override
 		public boolean importData(final TransferSupport support) {
 			try{final List<File>	content = (List<File>)support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 			
-				owner.setText(content.get(0).getAbsolutePath());
+				owner.assignValueToComponent(content.get(0));
 				return true;
 			} catch (UnsupportedFlavorException | IOException e) {
 				SwingUtils.getNearestLogger(owner).message(Severity.error, e, "Error pasting files");

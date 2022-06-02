@@ -1,15 +1,20 @@
 package chav1961.purelib.ui.swing;
 
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.HeadlessException;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -22,7 +27,9 @@ import java.util.TimerTask;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JToolBar;
 import javax.swing.ToolTipManager;
 import javax.swing.text.InternationalFormatter;
@@ -30,13 +37,18 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
+import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
 
 class InternalUtils {
 	static final String			VALIDATION_NULL_VALUE = "purelib.ui.validation.nullvalue";
@@ -44,6 +56,8 @@ class InternalUtils {
 	static final String			VALIDATION_NEITHER_TRUE_NOR_FALSE = "purelib.ui.validation.neithertruenorfalse";
 	static final String			VALIDATION_ILLEGAL_TYPE = "purelib.ui.validation.illegaltype";
 	static final String			VALIDATION_ILLEGAL_VALUE = "purelib.ui.validation.illegalvalue";
+	static final String 		CHOOSE_COLOR_TITLE = "JColorPicketWithMeta.chooser.title";
+
 	static final BufferedImage	BUFFERED_IMAGE = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
 
 	interface ComponentListenerCallback {
@@ -309,4 +323,43 @@ class InternalUtils {
 			});
 		}
 	}
+	
+	static Color chooseColor(final Component owner, final Localizer localizer, final Color initialColor, final boolean isForeground) throws HeadlessException, LocalizationException {
+		return Utils.nvl(JColorChooser.showDialog(owner,PureLibSettings.PURELIB_LOCALIZER.getValue(CHOOSE_COLOR_TITLE),initialColor),initialColor);
+	}
+	
+	static File chooseFile(final Component owner, final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
+		final JFileChooser	chooser = new JFileChooser();
+		final File			currentPath = initialFile;
+		
+		if (currentPath.exists()) {
+			if (currentPath.isFile()) {
+				chooser.setCurrentDirectory(currentPath.getParentFile());
+				chooser.setSelectedFile(currentPath);
+			}
+			else {
+				chooser.setCurrentDirectory(currentPath);
+			}
+		}
+		if (chooser.showSaveDialog(owner) == JFileChooser.APPROVE_OPTION) {
+			final File	sel = chooser.getSelectedFile();  
+			
+			return sel != null ? sel.getAbsoluteFile() : null;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	static FileSystemInterface chooseFileSystem(final Component owner, final Localizer localizer, final FileSystemInterface initialFS) throws HeadlessException, LocalizationException {
+		try{for(String item : JFileSelectionDialog.select((Dialog)null, localizer, initialFS, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
+				return initialFS.open(item);
+			}
+		} catch (IOException exc) {
+			SwingUtils.getNearestLogger(owner).message(Severity.error, exc, exc.getLocalizedMessage());
+		} 
+		return null;
+	}
+	
+	
 }

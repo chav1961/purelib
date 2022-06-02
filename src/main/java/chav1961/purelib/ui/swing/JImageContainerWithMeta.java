@@ -30,6 +30,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.TransferHandler;
 import javax.swing.TransferHandler.TransferSupport;
+import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.PureLibSettings;
@@ -104,7 +105,9 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 						monitor.process(MonitorEvent.FocusLost,metadata,JImageContainerWithMeta.this);
 					} catch (ContentException exc) {
 						SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
-					}					
+					} finally {
+						refreshBorder();
+					}
 				}
 				
 				@Override
@@ -113,6 +116,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
 						SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+					} finally {
+						refreshBorder();
 					}					
 				}
 			});
@@ -149,6 +154,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			setName(name);
 			callSelect.setName(name+'/'+IMAGE_NAME);
 			InternalUtils.registerAdvancedTooptip(this);
+			
+			setFocusable(true);
 			setTransferHandler(new ImageAndFileTransferHandler(this));
 			fillLocalizedStrings();
 		}
@@ -243,6 +250,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final boolean old = isVisible();
 		
 		super.setVisible(aFlag);
+		refreshBorder();
 		if (repo != null && aFlag != old) {
 			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
 		}
@@ -253,6 +261,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final boolean old = isEnabled();
 		
 		super.setEnabled(b);
+		refreshBorder();
 		if (repo != null && b != old) {
 			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
 		}
@@ -342,7 +351,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 	
 	private void selectImage() {
-		try{assignValueToComponent(chooseImage(localizer,currentValue));
+		try{assignValueToComponent(chooseImage(localizer, currentValue));
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
@@ -357,6 +366,20 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		}					
 	}
 
+	private void refreshBorder() {
+		if (isEnabled()) {
+			if (isFocusOwner()) {
+				setBorder(new LineBorder(Color.BLUE, 2));
+			}
+			else {
+				setBorder(new LineBorder(Color.BLACK));
+			}
+		}
+		else {
+			setBorder(new LineBorder(Color.LIGHT_GRAY));
+		}
+	}
+	
 	private static class ImageAndFileTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 608229074222584792L;
 
@@ -369,7 +392,13 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		
 		@Override
 		public boolean canImport(final TransferSupport support) {
-			return support.getDropAction() == COPY && (support.getDataFlavors()[0].equals(DataFlavor.javaFileListFlavor) || support.getDataFlavors()[0].equals(DataFlavor.imageFlavor)); 
+			if (support.isDrop() && (support.getSourceDropActions() & COPY) == COPY && (support.isDataFlavorSupported(DataFlavor.imageFlavor) || support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))) {
+		        support.setDropAction(COPY);
+		        return true;
+			}
+			else {
+				return false;
+			}
 		}
 		
 		@Override

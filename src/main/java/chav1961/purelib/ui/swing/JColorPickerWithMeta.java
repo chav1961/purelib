@@ -43,7 +43,6 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 
 	public static final String 			COLOR_NAME = "color";
 	
-	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
 	private static final Class<?>[]		VALID_CLASSES = {Color.class, ColorKeeper.class};
 
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
@@ -266,10 +265,6 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 		g2d.setColor(oldColor);
 	}
 
-	protected Color chooseColor(final Localizer localizer, final Color initialColor, final boolean isForeground) throws HeadlessException, LocalizationException {
-		return Utils.nvl(JColorChooser.showDialog(this,PureLibSettings.PURELIB_LOCALIZER.getValue(TITLE),initialColor),initialColor);
-	}
-	
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
 			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
@@ -277,7 +272,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	}
 	
 	private void selectColor() {
-		try{assignValueToComponent(chooseColor(localizer,currentValue,false));
+		try{assignValueToComponent(InternalUtils.chooseColor(this, localizer, currentValue, false));
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
