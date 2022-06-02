@@ -16,7 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  *
  * @param <Terminal> terminal (in the terms of FSM)
  * @param <NonTerminal> non-terminal (in the terms of FSM)
@@ -128,9 +128,9 @@ public class FSM<Terminal extends Enum<?>,NonTerminal extends Enum<?>,Exit exten
 				        if (debugEnable && logger.isLoggedNow(Severity.trace)) {
 				        	logger.message(Severity.trace,"FSM current state = %1$s, terminal = %2$s --> newState = %3$s, actions = %4$s",current,terminal,item.newState,Arrays.toString(item.actions));
 				        }
-				        currentState = item.newState;
+				        setCurrentState(item.newState);
 				        if (item.actions != null) {  
-					        callback.process(this,terminal,current,currentState,item.actions,parameter);
+					        callback.process(this, terminal, current, currentState, item.actions, parameter);
 				        }
 				        return;
 					}
@@ -183,6 +183,20 @@ public class FSM<Terminal extends Enum<?>,NonTerminal extends Enum<?>,Exit exten
 	 */
 	public NonTerminal getCurrentState() {
 		return currentState;
+	}
+	
+	/**
+	 * <p>Change current state if the FSM without calling any actions</p>
+	 * @param state state to set. Can't be null
+	 * @since 0.0.6
+	 */
+	public void setCurrentState(final NonTerminal state) {
+		if (state == null) {
+			throw new NullPointerException("State to set can't be null");
+		}
+		else {
+			currentState = state;
+		}
 	}
 	
 	/**
