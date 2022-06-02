@@ -120,41 +120,6 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 				throw new IllegalArgumentException("No rendered found for ["+metadata.getType().getCanonicalName()+"] in the list");
 			}
 			
-/*			setRenderer(new ListCellRenderer<Enum<?>>() {
-				@Override
-				public Component getListCellRendererComponent(final JList<? extends Enum<?>> list, final Enum<?> value, final int index, final boolean isSelected, final boolean cellHasFocus) {
-					if (value == null) {
-						return new JLabel("unselected");
-					}
-					else {
-						final JLabel	label = new JLabel();
-
-						label.setOpaque(true);
-						label.setBackground(isSelected ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND : (format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND));
-						label.setForeground(isSelected ? PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND : (format.isMandatory() ? PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND : PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND));
-						if (cellHasFocus) {
-							label.setBorder(new LineBorder(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
-						}
-						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
-								final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);
-								final Localizer			localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
-							
-								label.setText(localizer.getValue(res.value()));
-								label.setToolTipText(localizer.getValue(res.tooltip()));
-							}
-							else {
-								label.setText(value.name());
-								label.setToolTipText(value.name());
-							}
-						} catch (NoSuchFieldException | LocalizationException e) {
-							label.setText(value.name());
-						}
-						return label;
-					}
-				}
-			});
-*/
-				
 			addActionListener((e)->{
 				if (getSelectedItem() != null && !getSelectedItem().equals(currentValue)) {
 					try{if (monitor.process(MonitorEvent.Validation,metadata,JEnumFieldWithMeta.this)) {

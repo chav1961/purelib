@@ -9,7 +9,6 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -25,23 +24,17 @@ import java.util.Objects;
 import javax.imageio.ImageIO;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
-import javax.swing.JColorChooser;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.TransferHandler;
-import javax.swing.TransferHandler.TransferSupport;
-import javax.swing.text.JTextComponent;
+import javax.swing.border.LineBorder;
 
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.json.ColorKeeper;
 import chav1961.purelib.json.ImageKeeper;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -104,7 +97,9 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 						monitor.process(MonitorEvent.FocusLost,metadata,JImageContainerWithMeta.this);
 					} catch (ContentException exc) {
 						SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
-					}					
+					} finally {
+						refreshBorder();
+					}
 				}
 				
 				@Override
@@ -113,6 +108,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
 						SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+					} finally {
+						refreshBorder();
 					}					
 				}
 			});
@@ -139,8 +136,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 					callSelect.setEnabled(false);
 				}
 			}
-			callSelect.addActionListener((e)->{selectImage();});
-			new ComponentKeepedBorder(0,callSelect).install(this);
+			callSelect.addActionListener((e)->selectImage());
+			new ComponentKeepedBorder(0, callSelect).install(this);
 			setPreferredSize(new Dimension(2*callSelect.getPreferredSize().width,callSelect.getPreferredSize().height));
 
 			SwingUtils.assignActionKey(this, SwingUtils.KS_COPY, (e)->copyContent(), "copy");
@@ -149,6 +146,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			setName(name);
 			callSelect.setName(name+'/'+IMAGE_NAME);
 			InternalUtils.registerAdvancedTooptip(this);
+			
+			setFocusable(true);
 			setTransferHandler(new ImageAndFileTransferHandler(this));
 			fillLocalizedStrings();
 		}
@@ -243,6 +242,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final boolean old = isVisible();
 		
 		super.setVisible(aFlag);
+		refreshBorder();
 		if (repo != null && aFlag != old) {
 			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
 		}
@@ -253,6 +253,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final boolean old = isEnabled();
 		
 		super.setEnabled(b);
+		refreshBorder();
 		if (repo != null && b != old) {
 			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
 		}
@@ -287,26 +288,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 
 	private File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
-		final JFileChooser	chooser = new JFileChooser();
-		final File			currentPath = initialFile;
-		
-		if (currentPath.exists()) {
-			if (currentPath.isFile()) {
-				chooser.setCurrentDirectory(currentPath.getParentFile());
-				chooser.setSelectedFile(currentPath);
-			}
-			else {
-				chooser.setCurrentDirectory(currentPath);
-			}
-		}
-		if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-			final File	sel = chooser.getSelectedFile();  
-			
-			return sel != null ? sel.getAbsoluteFile() : null;
-		}
-		else {
-			return null;
-		}
+		return InternalUtils.chooseFile(this, localizer, initialFile);
 	}
 	
 	private void copyContent() {
@@ -342,7 +324,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 	
 	private void selectImage() {
-		try{assignValueToComponent(chooseImage(localizer,currentValue));
+		try{assignValueToComponent(chooseImage(localizer, currentValue));
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
@@ -357,6 +339,20 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		}					
 	}
 
+	private void refreshBorder() {
+		if (isEnabled()) {
+			if (isFocusOwner()) {
+				setBorder(new LineBorder(Color.BLUE, 2));
+			}
+			else {
+				setBorder(new LineBorder(Color.BLACK));
+			}
+		}
+		else {
+			setBorder(new LineBorder(Color.LIGHT_GRAY));
+		}
+	}
+	
 	private static class ImageAndFileTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 608229074222584792L;
 
@@ -369,7 +365,13 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		
 		@Override
 		public boolean canImport(final TransferSupport support) {
-			return support.getDropAction() == COPY && (support.getDataFlavors()[0].equals(DataFlavor.javaFileListFlavor) || support.getDataFlavors()[0].equals(DataFlavor.imageFlavor)); 
+			if (support.isDrop() && (support.getSourceDropActions() & COPY) == COPY && (support.isDataFlavorSupported(DataFlavor.imageFlavor) || support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))) {
+		        support.setDropAction(COPY);
+		        return true;
+			}
+			else {
+				return false;
+			}
 		}
 		
 		@Override
