@@ -9,7 +9,6 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -25,24 +24,17 @@ import java.util.Objects;
 import javax.imageio.ImageIO;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
-import javax.swing.JColorChooser;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.TransferHandler;
-import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.border.LineBorder;
-import javax.swing.text.JTextComponent;
 
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.json.ColorKeeper;
 import chav1961.purelib.json.ImageKeeper;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -144,8 +136,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 					callSelect.setEnabled(false);
 				}
 			}
-			callSelect.addActionListener((e)->{selectImage();});
-			new ComponentKeepedBorder(0,callSelect).install(this);
+			callSelect.addActionListener((e)->selectImage());
+			new ComponentKeepedBorder(0, callSelect).install(this);
 			setPreferredSize(new Dimension(2*callSelect.getPreferredSize().width,callSelect.getPreferredSize().height));
 
 			SwingUtils.assignActionKey(this, SwingUtils.KS_COPY, (e)->copyContent(), "copy");
@@ -296,26 +288,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 
 	private File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
-		final JFileChooser	chooser = new JFileChooser();
-		final File			currentPath = initialFile;
-		
-		if (currentPath.exists()) {
-			if (currentPath.isFile()) {
-				chooser.setCurrentDirectory(currentPath.getParentFile());
-				chooser.setSelectedFile(currentPath);
-			}
-			else {
-				chooser.setCurrentDirectory(currentPath);
-			}
-		}
-		if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-			final File	sel = chooser.getSelectedFile();  
-			
-			return sel != null ? sel.getAbsoluteFile() : null;
-		}
-		else {
-			return null;
-		}
+		return InternalUtils.chooseFile(this, localizer, initialFile);
 	}
 	
 	private void copyContent() {

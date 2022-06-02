@@ -265,6 +265,10 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 		g2d.setColor(oldColor);
 	}
 
+	protected Color chooseColor(final Localizer localizer, final Color initialColor, final boolean isForeground) throws HeadlessException, LocalizationException {
+		return InternalUtils.chooseColor(this, localizer, initialColor, isForeground);
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
 			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
@@ -272,7 +276,7 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 	}
 	
 	private void selectColor() {
-		try{assignValueToComponent(InternalUtils.chooseColor(this, localizer, currentValue, false));
+		try{assignValueToComponent(chooseColor(localizer, currentValue, false));
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();

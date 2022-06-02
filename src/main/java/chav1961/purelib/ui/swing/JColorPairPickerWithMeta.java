@@ -274,14 +274,19 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 		g2d.setColor(oldColor);
 	}
 
+	protected Color chooseColor(final Localizer localizer, final Color initialColor, final boolean isForeground) throws HeadlessException, LocalizationException {
+		return InternalUtils.chooseColor(this, localizer, initialColor, isForeground);
+	}
+	
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
 			setToolTipText(localizer.getValue(getNodeMetadata().getTooltipId()));
 		}
 	}
-	
+
 	private void selectColorF() {
-		try{assignValueToComponent(new ColorPair(InternalUtils.chooseColor(this, localizer, currentValue.getForeground(), true),currentValue.getBackground()));
+		try{assignValueToComponent(new ColorPair(chooseColor(localizer, currentValue.getForeground(), true),currentValue.getBackground()));
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
@@ -289,7 +294,7 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	}
 
 	private void selectColorB() {
-		try{assignValueToComponent(new ColorPair(currentValue.getForeground(),InternalUtils.chooseColor(this, localizer, currentValue.getBackground(), false)));
+		try{assignValueToComponent(new ColorPair(currentValue.getForeground(),chooseColor(localizer, currentValue.getBackground(), false)));
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();

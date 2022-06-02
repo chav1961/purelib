@@ -345,6 +345,14 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			repo.fireBooleanPropChange(this, EventChangeType.MODIFIABLE, b);
 		}
 	}
+
+	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
+		return InternalUtils.chooseFile(this, localizer, initialFile);
+	}
+
+	protected FileSystemInterface chooseFileSystem(final Localizer localizer, final FileSystemInterface initialFile) throws HeadlessException, LocalizationException {
+		return InternalUtils.chooseFileSystem(this, localizer, initialFile);
+	}
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
@@ -358,7 +366,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
 		
 			if (getValueType().isAssignableFrom(File.class)) {
-				final File	result = InternalUtils.chooseFile(this, localizer,(File)currentValue);
+				final File	result = chooseFile(localizer,(File)currentValue);
 				
 				if (result != null) {
 					assignValueToComponent(result);
@@ -366,7 +374,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			}
 			else if (getValueType().isAssignableFrom(FileKeeper.class)) {
-				final File	result = InternalUtils.chooseFile(this, localizer,((FileKeeper)currentValue).toFile());
+				final File	result = chooseFile(localizer,((FileKeeper)currentValue).toFile());
 				
 				if (result != null) {
 					assignValueToComponent(result);
