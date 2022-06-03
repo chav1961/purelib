@@ -360,6 +360,4 @@ class InternalUtils {
 		} 
 		return null;
 	}
-	
-	
 }

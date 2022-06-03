@@ -14,6 +14,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -61,7 +62,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final Localizer 			localizer;
 	private final JButton				callSelect = new JButton("...");
 	private File						lastFile = new File("./");
-	private Image						currentValue = null, newValue = null;
+	private Image						currentValue = null, newValue = null, grayScaleValue = null;
 	private boolean						invalid = false;
 	
 	public JImageContainerWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException {
@@ -253,6 +254,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final boolean old = isEnabled();
 		
 		super.setEnabled(b);
+		grayScaleValue = null;
 		refreshBorder();
 		if (repo != null && b != old) {
 			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
@@ -266,19 +268,23 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final Image			image = newValue != null ? newValue : (currentValue != null ? currentValue : new ImageKeeper().getImage()); 
 		final int			x1 = insets.left, x2 = getWidth()-insets.right, y1 = insets.top, y2 = getHeight()-insets.bottom;
 
-		g2d.drawImage(image, 0, 0, image.getHeight(null), image.getWidth(null), x1, y1, x2, y2, null);
+		if (!isEnabled() && grayScaleValue == null) {
+			grayScaleValue = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_BYTE_GRAY);
+			grayScaleValue.getGraphics().drawImage(image, 0, 0, null);
+		}
+		g2d.drawImage(!isEnabled() ? grayScaleValue : image, x1, y1, x2, y2, 0, 0, image.getWidth(null), image.getHeight(null), null);
 	}
 
 	protected Image chooseImage(final Localizer localizer, final Image initialImage) throws HeadlessException, LocalizationException {
 		final File	choosed = chooseFile(localizer, lastFile);
 		
 		if (choosed != null) {
-			lastFile = choosed;
-			
-			try{
-				return ImageIO.read(choosed);
+			try{final Image	result = ImageIO.read(choosed); 
+				
+				lastFile = choosed;
+				return result;
 			} catch (IOException e) {
-				SwingUtils.getNearestLogger(this).message(Severity.error, e, "Error loading image file");
+				SwingUtils.getNearestLogger(this).message(Severity.error, e, "Error loading image file: "+e.getLocalizedMessage());
 				return initialImage;
 			}
 		}

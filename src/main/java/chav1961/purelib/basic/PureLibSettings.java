@@ -266,6 +266,9 @@ public final class PureLibSettings {
 	 */
 	public static final String				DEFAULT_CONTENT_ENCODING = "UTF-8";
 	
+	
+	public static final FileSystemInterface	ROOT_FS;
+	
 	/**
 	 * <p>This interface describes well-known factories in the Pure Library. All the factories are accessible via standard Java SPI service</p>
 	 * @author Alexander Chernomyrdin aka chav1961
@@ -342,6 +345,13 @@ public final class PureLibSettings {
 		} catch (IOException exc) {
 			logger.log(Level.WARNING,"Default properties for the Pure library were not loaded: "+exc.getMessage(),exc);
 		}
+
+		try {
+			ROOT_FS = FileSystemInterface.Factory.newInstance(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:/"));
+		} catch (IOException exc) {
+			logger.log(Level.SEVERE, "Error preparing settings: "+exc.getMessage(),exc);
+			throw new PreparationException("Error preparing settings: "+exc.getLocalizedMessage());
+		}
 		
 		if (System.getProperty(SETTINGS_KEY) != null) {
 			try{final URI				uri = URI.create(System.getProperty(SETTINGS_KEY));
@@ -391,6 +401,7 @@ public final class PureLibSettings {
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
 		DEFAULT_COLOR_SCHEME = new ColorScheme();
+		
 	}
 	
 	private PureLibSettings(){}
@@ -672,6 +683,12 @@ public final class PureLibSettings {
 		}
 		
 		MONITORING_MANAGER.close();
+		
+		if (ROOT_FS != null) {
+			try{ROOT_FS.close();
+			} catch (IOException e) {
+			}
+		}
 	}
 
 	private static class WellKnownSchemaImpl<T> implements WellKnownSchema {
