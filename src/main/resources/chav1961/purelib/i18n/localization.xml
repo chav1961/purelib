@@ -301,6 +301,14 @@
 		<key name="JReferenceListWithMeta.editor.comment">Comment</key>
 		<key name="JReferenceListWithMeta.editor.comment.tt">Reference comment</key>
 
+<!-- Image container localization -->
+		<key name="JImageContainerWithMeta.menu.copy">Copy</key>
+		<key name="JImageContainerWithMeta.menu.copy.tt">Copy image content to clipboard</key>
+		<key name="JImageContainerWithMeta.menu.paste">Paste</key>
+		<key name="JImageContainerWithMeta.menu.paste.tt">Paste image content from clipboard</key>
+		<key name="JImageContainerWithMeta.menu.preview">Preview</key>
+		<key name="JImageContainerWithMeta.menu.preview.tt">Preview image content</key>
+
 <!-- Useful classes localization  -->
 		<key name="JCloseButton.tt">Close window</key>
 		<key name="JMultiLineEditor.title">Text editor</key>
@@ -636,6 +644,14 @@
 		<key name="JReferenceListWithMeta.editor.ref.tt">URI ссылки</key>
 		<key name="JReferenceListWithMeta.editor.comment">Комментарий</key>
 		<key name="JReferenceListWithMeta.editor.comment.tt">Комментарий к ссылке</key>
+
+<!-- Локализация контейнера изображений -->
+		<key name="JImageContainerWithMeta.menu.copy">Копировать</key>
+		<key name="JImageContainerWithMeta.menu.copy.tt">Копировать изображение в буфер обмена</key>
+		<key name="JImageContainerWithMeta.menu.paste">Вставить</key>
+		<key name="JImageContainerWithMeta.menu.paste.tt">Вставить изображение из буфера обмена</key>
+		<key name="JImageContainerWithMeta.menu.preview">Просмотр</key>
+		<key name="JImageContainerWithMeta.menu.preview.tt">Просмотр изображения</key>
 
 <!-- Локализация полезных классов -->
 		<key name="JCloseButton.tt">Закрыть окно</key>

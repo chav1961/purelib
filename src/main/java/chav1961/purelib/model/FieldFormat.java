@@ -411,11 +411,11 @@ public class FieldFormat {
 	}
 	
 	/**
-	 * <p>Is field used in list</p>
+	 * <p>Is field used in list (indifferent to anchored)</p>
 	 * @return true if yes
 	 */
 	public boolean isUsedInList() {
-		return useInList;
+		return useInList || useInListAnchored;
 	}
 
 	/**

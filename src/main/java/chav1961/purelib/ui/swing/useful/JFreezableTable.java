@@ -28,6 +28,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.SwingUtils;
 
@@ -145,14 +146,21 @@ public class JFreezableTable extends JTable {
 
 	@Override
 	public void setModel(final TableModel dataModel) {
-		if (this.model != null) {
+		if (this.model instanceof NodeMetadataOwner) {
 			this.model.removeTableModelListener(listener);
 		}
-		dataModel.addTableModelListener(listener);
 		this.model = dataModel;
-		super.setModel(new RightTableModel(dataModel,columns2Freeze));
-		if (leftBarExists()) {
-			leftBar.setModel(new LeftTableModel(dataModel,columns2Freeze));
+		if (model instanceof NodeMetadataOwner) {
+			final ContentNodeMetadata[] children = extractChildren((NodeMetadataOwner)model);
+			
+			dataModel.addTableModelListener(listener);
+			super.setModel(new RightTableModel(dataModel, children, columns2Freeze));
+			if (leftBarExists()) {
+				leftBar.setModel(new LeftTableModel(dataModel, children, columns2Freeze));
+			}
+		}
+		else {
+			super.setModel(dataModel);
 		}
 	}
 	
@@ -174,7 +182,8 @@ public class JFreezableTable extends JTable {
 	}
 
 	protected void createLeftBar(final JScrollPane scroll) {
-		final TableModel	leftModel = new LeftTableModel(model,columns2Freeze);
+		final ContentNodeMetadata[] children = extractChildren((NodeMetadataOwner)model);
+		final TableModel			leftModel = new LeftTableModel(model, children, columns2Freeze);
 		
 		leftBar = new JTable(leftModel);
 		
@@ -267,15 +276,28 @@ public class JFreezableTable extends JTable {
 			}
 		}
 	}
+
+	private static ContentNodeMetadata[] extractChildren(final NodeMetadataOwner model) {
+		final String[]				names = model.getMetadataChildrenNames();
+		final ContentNodeMetadata[]	result = new ContentNodeMetadata[names.length];
+		int		index = 0;
+		
+		for (String item : names) {
+			result[index++] = model.getNodeMetadata(item);
+		}
+		return result;
+	}
 	
 	private static abstract class SplittedTableModel implements TableModel {
 		private final LightWeightListenerList<TableModelListener>	ll = new LightWeightListenerList<>(TableModelListener.class);
 		
-		protected final TableModel	nested;
-		protected volatile int[]	columnIndices;
+		protected final TableModel				nested;
+		protected final ContentNodeMetadata[]	children;
+		protected volatile int[]				columnIndices;
 		
-		protected SplittedTableModel(final TableModel nested, final String... freezedColumns) {
+		protected SplittedTableModel(final TableModel nested, final ContentNodeMetadata[] children, final String... freezedColumns) {
 			this.nested = nested;
+			this.children = children;
 			buildExcludes(freezedColumns);
 			nested.addTableModelListener((e) -> {
 				buildExcludes(freezedColumns);
@@ -331,7 +353,7 @@ public class JFreezableTable extends JTable {
 		}
 
 		@Override
-		public void removeTableModelListener(TableModelListener l) {
+		public void removeTableModelListener(final TableModelListener l) {
 			if (l == null) {
 				throw new NullPointerException("Table model listener can't be null");
 			}
@@ -340,11 +362,14 @@ public class JFreezableTable extends JTable {
 			}
 		}
 
+		protected ContentNodeMetadata getColumnModel(final int columnIndex) {
+			return children[columnIndex];
+		}
 	}
 
 	private static class LeftTableModel extends SplittedTableModel {
-		private LeftTableModel(final TableModel nested, final String... freezedColumns) {
-			super(nested,freezedColumns);
+		private LeftTableModel(final TableModel nested, final ContentNodeMetadata[] children, final String... freezedColumns) {
+			super(nested, children, freezedColumns);
 		}
 
 		@Override
@@ -357,7 +382,7 @@ public class JFreezableTable extends JTable {
 				final int[]		columns = new int[freezedColumns.length];
 				
 loop:			for (int index = 0, cursor = 0; index < count; index++) {
-					final String	colName = nested.getColumnName(index);
+					final String	colName = getColumnModel(index).getName();
 					
 					for (String item : freezedColumns) {
 						if (colName.equals(item)) {
@@ -372,8 +397,8 @@ loop:			for (int index = 0, cursor = 0; index < count; index++) {
 	}
 
 	private static class RightTableModel extends SplittedTableModel {
-		private RightTableModel(final TableModel nested, final String... freezedColumns) {
-			super(nested,freezedColumns);
+		private RightTableModel(final TableModel nested, final ContentNodeMetadata[] children, final String... freezedColumns) {
+			super(nested, children, freezedColumns);
 		}
 
 		@Override
@@ -386,7 +411,7 @@ loop:			for (int index = 0, cursor = 0; index < count; index++) {
 				final int[]		columns = new int[count - freezedColumns.length];
 				
 loop:			for (int index = 0, cursor = 0; index < count; index++) {
-					final String	colName = nested.getColumnName(index);
+					final String	colName = getColumnModel(index).getName();
 					
 					if (!colName.isEmpty()) {
 						for (String item : freezedColumns) {

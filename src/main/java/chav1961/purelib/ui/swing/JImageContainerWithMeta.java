@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -14,9 +15,15 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -26,6 +33,7 @@ import javax.imageio.ImageIO;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
 import javax.swing.TransferHandler;
 import javax.swing.border.LineBorder;
 
@@ -40,12 +48,14 @@ import chav1961.purelib.json.ImageKeeper;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.inner.InternalConstants;
 import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
 import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
+import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
 
@@ -61,6 +71,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final ContentNodeMetadata	metadata;
 	private final Localizer 			localizer;
 	private final JButton				callSelect = new JButton("...");
+	private final JPopupMenu			popup;
 	private File						lastFile = new File("./");
 	private Image						currentValue = null, newValue = null, grayScaleValue = null;
 	private boolean						invalid = false;
@@ -85,7 +96,9 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
-			
+			this.popup = SwingUtils.toJComponent(InternalConstants.MDI.byUIPath(URI.create("ui:/model/navigation.top.JImageContainerWithMeta.menu")),JPopupMenu.class);
+			SwingUtils.assignActionListeners(this.popup,this);
+
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				@Override
@@ -143,13 +156,34 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 
 			SwingUtils.assignActionKey(this, SwingUtils.KS_COPY, (e)->copyContent(), "copy");
 			SwingUtils.assignActionKey(this, SwingUtils.KS_PASTE, (e)->pasteContent(), "paste");
+			SwingUtils.assignActionKey(this, SwingUtils.KS_PRINT, (e)->previewContent(), "preview");
+			SwingUtils.assignActionKey(this, SwingUtils.KS_CONTEXTMENU, (e)->menu(), SwingUtils.ACTION_CONTEXTMENU);
 			
 			setName(name);
 			callSelect.setName(name+'/'+IMAGE_NAME);
 			InternalUtils.registerAdvancedTooptip(this);
-			
+
 			setFocusable(true);
 			setTransferHandler(new ImageAndFileTransferHandler(this));
+			addMouseListener(new MouseListener() {
+				@Override public void mouseReleased(MouseEvent e) {}
+				@Override public void mousePressed(MouseEvent e) {}
+				@Override public void mouseExited(MouseEvent e) {}
+				@Override public void mouseEntered(MouseEvent e) {}
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					final Rectangle2D	rect = getBounds();
+					
+					if (e.getButton() == MouseEvent.BUTTON3 && e.getPoint().getX() < rect.getX()+rect.getWidth()-rect.getHeight()) {
+						menu(e.getPoint());
+					}
+				}
+			});
+			
+			if (metadata.getFormatAssociated() != null && metadata.getFormatAssociated().getHeight() > 1) {
+				setPreferredSize(new Dimension(metadata.getFormatAssociated().getLength(), metadata.getFormatAssociated().getHeight()));
+			}
 			fillLocalizedStrings();
 		}
 	}
@@ -157,6 +191,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizedStrings();
+		SwingUtils.refreshLocale(popup, localizer.currentLocale().getLocale(), localizer.currentLocale().getLocale());
 	}
 	
 	@Override
@@ -297,6 +332,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		return InternalUtils.chooseFile(this, localizer, initialFile);
 	}
 	
+	@OnAction("action:/menu.copy")
 	private void copyContent() {
 		final Image		img = newValue != null ? newValue : currentValue;  
 		
@@ -312,6 +348,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		}
 	}
 	
+	@OnAction("action:/menu.paste")
 	private void pasteContent() {
 		final Clipboard	cb = Toolkit.getDefaultToolkit().getSystemClipboard();
 		
@@ -322,6 +359,26 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			}
 		}
 	}
+	
+	@OnAction("action:/menu.preview")
+	private void previewContent() {
+		// TODO Auto-generated method stub
+	}
+
+	private void menu(final Point pt) {
+		final Clipboard	cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+		final boolean	pasteAvailable = cb.isDataFlavorAvailable(DataFlavor.imageFlavor);
+		
+		SwingUtils.findComponentByName(popup, "JImageContainerWithMeta.menu.paste").setEnabled(pasteAvailable);
+		popup.show(this, pt.x, pt.y);
+	}	
+	
+	private void menu() {
+		final Rectangle2D	rect = getBounds();
+		
+		menu(new Point((int)rect.getCenterX(), (int)rect.getCenterY()));
+	}
+
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null && !getNodeMetadata().getTooltipId().trim().isEmpty()) {
@@ -358,6 +415,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			setBorder(new LineBorder(Color.LIGHT_GRAY));
 		}
 	}
+
 	
 	private static class ImageAndFileTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 608229074222584792L;

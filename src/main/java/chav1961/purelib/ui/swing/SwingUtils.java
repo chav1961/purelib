@@ -180,6 +180,7 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_CUT = KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_COPY = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_PASTE = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK); 
+	public static final KeyStroke			KS_PRINT = KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK); 
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";

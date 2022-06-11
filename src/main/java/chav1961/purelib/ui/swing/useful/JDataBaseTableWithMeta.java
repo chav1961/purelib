@@ -1,9 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.Dimension;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -15,26 +12,23 @@ import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
 import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.TableContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.sql.interfaces.InstanceManager;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RecordFormManager.RecordAction;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.SwingUtils;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
-import chav1961.purelib.sql.interfaces.InstanceManager;
 
 public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements NodeMetadataOwner, LocaleChangeListener {
 	private static final long 			serialVersionUID = -6707307489832770493L;
@@ -61,7 +55,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			this.model = (InnerTableModel)getSourceModel();
 
 			SwingUtils.assignActionKey(this, SwingUtils.KS_INSERT, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_INSERT), SwingUtils.ACTION_INSERT);
-			SwingUtils.assignActionKey(this, SwingUtils.KS_DUPLICATE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DUPLICATE), SwingUtils.ACTION_DUPLICATE);;
+			SwingUtils.assignActionKey(this, SwingUtils.KS_DUPLICATE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DUPLICATE), SwingUtils.ACTION_DUPLICATE);
 			SwingUtils.assignActionKey(this, SwingUtils.KS_DELETE, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_DELETE), SwingUtils.ACTION_DELETE);
 			setAutoResizeMode(AUTO_RESIZE_OFF);
 			fillLocalizedStrings();
@@ -274,7 +268,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		private Object						lastRow;
 		private boolean						rsIsReadOnly = false;
 
-		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[]	metadata, final Localizer localizer) {
+		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[] metadata, final Localizer localizer) {
 			this.owner = owner;
 			this.metadata = metadata;
 			this.localizer = localizer;

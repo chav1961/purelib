@@ -361,6 +361,18 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
 		}
 	}
+
+	@Override
+	public String getToolTipText(final MouseEvent event) {
+		final int	index = locationToIndexExactly(event.getPoint());
+		
+		if (index >= 0) {
+			return getModel().getElementAt(index).getComment();
+		}
+		else {
+			return super.getToolTipText(event);
+		}
+	}
 	
 	private void prepareSelectedList(final ContentNodeMetadata meta) {
 		final InnerListModel<ReferenceAndComment>	listModel = new InnerListModel<>();
@@ -470,7 +482,7 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 
 	@OnAction("action:/menu.insert")
 	private void insert() {
-		final ReferenceAndComment	rac = new ReferenceAndCommentImpl(); 
+		final ReferenceAndComment	rac = ReferenceAndComment.of(URI.create("unknown:/"),""); 
 		
 		if (edit(rac)) {
 			final ReferenceAndComment[]	temp = Arrays.copyOf(model.content, model.content.length+1);
@@ -572,7 +584,7 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 	@OnAction("action:/menu.paste")
 	private void paste() {
 		if (Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null).isDataFlavorSupported(DataFlavor.stringFlavor)) {
-			final ReferenceAndComment	rac = new ReferenceAndCommentImpl();
+			final ReferenceAndComment	rac = ReferenceAndComment.of(URI.create("unknown:/"),"");
 			
 			try{final Object	obj = Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
 				final String 	value = obj.toString();
@@ -725,52 +737,4 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 			super.fireContentsChanged(source, index0, index1);
 		}
 	};
-	
-	private static class ReferenceAndCommentImpl implements ReferenceAndComment {
-		private URI		reference = URI.create("http:/");
-		private String	comment = "";
-
-		@Override
-		public URI getReference() {
-			return reference;
-		}
-
-		@Override
-		public void setReference(final URI reference) {
-			this.reference = reference;
-		}
-
-		@Override
-		public String getComment() {
-			return comment;
-		}
-
-		@Override
-		public void setComment(String comment) {
-			this.comment = comment;
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(comment, reference);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			ReferenceAndCommentImpl other = (ReferenceAndCommentImpl) obj;
-			return Objects.equals(comment, other.comment) && Objects.equals(reference, other.reference);
-		}
-
-		@Override
-		public String toString() {
-			return "ReferenceAndCommentImpl [reference=" + reference + ", comment=" + comment + "]";
-		}
-	}
-
 }

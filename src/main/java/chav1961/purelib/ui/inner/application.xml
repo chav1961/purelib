@@ -16,4 +16,15 @@
 		<app:key code="Enter" action="menu.edit"/>
 		<app:key code="Delete" action="menu.delete"/>
 	</app:keyset>		
+	<app:menu id="JImageContainerWithMeta.menu">
+		<app:item name="JImageContainerWithMeta.menu.copy" caption="JImageContainerWithMeta.menu.copy" tooltip="JImageContainerWithMeta.menu.copy.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/copy.png" action="menu.copy"/>
+		<app:item name="JImageContainerWithMeta.menu.paste" caption="JImageContainerWithMeta.menu.paste" tooltip="JImageContainerWithMeta.menu.paste.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/paste.png" action="menu.paste"/>
+		<app:separator/>
+		<app:item name="JImageContainerWithMeta.menu.preview" caption="JImageContainerWithMeta.menu.preview" tooltip="JImageContainerWithMeta.menu.preview.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/preview.png" action="menu.preview"/>
+	</app:menu>
+	<app:keyset id="JImageContainerWithMeta.menu.keyset">
+		<app:key code="C" ctrl="true" action="menu.copy"/>
+		<app:key code="V" ctrl="true" action="menu.paste"/>
+		<app:key code="P" ctrl="true" action="menu.preview"/>
+	</app:keyset>		
 </app:root>
