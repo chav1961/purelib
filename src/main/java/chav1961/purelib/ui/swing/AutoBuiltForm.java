@@ -116,9 +116,9 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
 	private final Set<String>				labelIds = new HashSet<>(), modifiableLabelIds = new HashSet<>();
 	private final Map<URI,GetterAndSetter>	accessors = new HashMap<>();	
-	private final JLabel					messages = new JLabel("",JLabel.LEFT);
+	private final JLabel					messages = new JLabel("", JLabel.LEFT);
 	private LoggerFacade					nearestLogger = null;
-	private JComponent						firstFocusedComponent;
+	private JComponent						firstFocusedComponent = null;
 	private boolean							closed = false;
 
 	/**
@@ -372,11 +372,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 						if (format.getHeight() > 1) {	// Place component with scroll pane
 							final JScrollPane		pane = new JScrollPane(fieldComponent);
 							final Dimension			charSize = InternalUtils.calculateFontCellSize(fieldComponent);
-//							final BufferedImage		bi = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
-//							final Graphics2D		g2d = bi.createGraphics();
-//							final Rectangle2D		charSize = fieldComponent.getFontMetrics(fieldComponent.getFont()).getMaxCharBounds(g2d);
 							
-//							pane.getViewport().setViewSize(new Dimension(format.getLength() * (int)charSize.getWidth(),format.getHeight() * (int)charSize.getHeight()));
 							pane.getViewport().setViewSize(new Dimension(format.getLength() * charSize.width, format.getHeight() * charSize.height));
 							childPanel.add(pane,LabelledLayout.CONTENT_AREA);
 						}
@@ -641,6 +637,16 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 			processContainerState(mdi.getRoot());
 		}
 		super.setVisible(visibility);
+	}
+
+	@Override
+	public boolean requestFocusInWindow() {
+		final boolean	result = super.requestFocusInWindow();
+
+		if (firstFocusedComponent != null) {
+			firstFocusedComponent.requestFocusInWindow();
+		}
+		return result;
 	}
 	
 	/**
