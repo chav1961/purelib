@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -2131,8 +2132,9 @@ loop:		for (index = from; index < len; index++) {
 	 * @throws IllegalArgumentException any parameters errors
 	 * @throws NullPointerException any parameters errors
 	 * @since 0.0.3
+	 * @lastUpdate 0.0.6
 	 */
-	public static String join(final String delimiter, final String... content) throws IllegalArgumentException, NullPointerException {
+	public static String join(final String delimiter, final CharSequence... content) throws IllegalArgumentException, NullPointerException {
 		if (delimiter == null || delimiter.isEmpty()) {
 			throw new IllegalArgumentException("String delimiter can't be null or empty");
 		}
@@ -2155,15 +2157,18 @@ loop:		for (index = from; index < len; index++) {
 	 * @return content converted
 	 * @throws NullPointerException when content string is null
 	 * @since 0.0.4
+	 * @lastUpdate 0.0.6
 	 */
-	public static char[] terminateAndConvert2CharArray(final String content, final char terminal) throws NullPointerException {
+	public static char[] terminateAndConvert2CharArray(final CharSequence content, final char terminal) throws NullPointerException {
 		if (content == null) {
 			throw new NullPointerException("COntent string can't be null");
 		}
 		else {
 			final char[]	result = new char[content.length()+1];
 			
-			content.getChars(0,result.length-1,result,0);
+			for(int index = 0, maxIndex = result.length-1; index < maxIndex; index++) {
+				result[index] = content.charAt(index);
+			}
 			result[result.length-1] = terminal;
 			return result;
 		}
@@ -2184,7 +2189,7 @@ loop:		for (index = from; index < len; index++) {
 			int		length = content.length(), additionalLength = 0;
 			
 			for (int index = 0; index < length; index++) {
-				additionalLength += howManyEscapedCharsOccupies(content.charAt(index),false)-1;
+				additionalLength += howManyEscapedCharsOccupies(content.charAt(index),false) - 1;
 			}
 			if (additionalLength > 0) {
 				final char[]	temp = new char[length+additionalLength];

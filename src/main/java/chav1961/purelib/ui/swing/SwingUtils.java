@@ -174,6 +174,7 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_DUPLICATE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
 	public static final KeyStroke			KS_DELETE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 	public static final KeyStroke			KS_EXIT = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	public static final KeyStroke			KS_SOFT_EXIT = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, InputEvent.SHIFT_DOWN_MASK);
 	public static final KeyStroke			KS_DROPDOWN = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_CONTEXTMENU = KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0);
 	public static final KeyStroke			KS_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK);
@@ -191,6 +192,7 @@ public abstract class SwingUtils {
 	public static final String				ACTION_ACCEPT = "accept";
 	public static final String				ACTION_CLICK = "click";
 	public static final String				ACTION_EXIT = "exit";
+	public static final String				ACTION_SOFT_EXIT = "softexit";
 	public static final String				ACTION_ROLLBACK = "rollback-value";
 	public static final String				ACTION_HELP = "help";
 	public static final String				ACTION_CUT = "cut";

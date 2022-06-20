@@ -1,6 +1,5 @@
 package chav1961.purelib.ui.swing.useful;
 
-import java.awt.Dimension;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;

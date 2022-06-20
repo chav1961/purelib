@@ -4,11 +4,8 @@ package chav1961.purelib.model;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
 import chav1961.purelib.basic.CharUtils.SubstitutionSource;
@@ -18,11 +15,11 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.CharGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.DoubleGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.FloatGetterAndSetter;
+import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.IntGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.LongGetterAndSetter;
-import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
-import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
+import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -38,15 +35,15 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 	private final Object[]			values;
 	private final GetterAndSetter[]	gas;
 
-	public ReflectedMapWrapper(final Object instance) {
+	public ReflectedMapWrapper(final Object instance) throws NullPointerException {
 		this(instance, PureLibSettings.CURRENT_LOGGER, (name, value) -> value == null ? "" : value.toString());
 	}
 
-	public ReflectedMapWrapper(final Object instance, final BiFunction<String, Object, String> convertor) {
+	public ReflectedMapWrapper(final Object instance, final BiFunction<String, Object, String> convertor) throws NullPointerException {
 		this(instance, PureLibSettings.CURRENT_LOGGER, convertor);
 	}
 	
-	public ReflectedMapWrapper(final Object instance, final LoggerFacade logger, final BiFunction<String, Object, String> convertor) {
+	public ReflectedMapWrapper(final Object instance, final LoggerFacade logger, final BiFunction<String, Object, String> convertor) throws NullPointerException {
 		if (instance == null) {
 			throw new NullPointerException("Instance can't be null");
 		}
@@ -89,7 +86,6 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 				fillValues(trans);
 				trans.rollback();
 			}
-			
 		}
 	}
 

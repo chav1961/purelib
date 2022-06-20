@@ -1712,10 +1712,10 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		}
 	}
 	
-	public static String join(final String delimiter, final String... content) throws IllegalArgumentException, NullPointerException {
+	public static String join(final String delimiter, final CharSequence... content) throws IllegalArgumentException, NullPointerException {
 		int	total = 0, count = 0;
 		
-		for (String item : content) {
+		for (CharSequence item : content) {
 			total += item.length();
 			count++;
 		}
@@ -1726,12 +1726,12 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		for (int index = 0, maxIndex = content.length - 1; index < maxIndex; index++) {
 			final int	len = content[index].length();
 			
-			content[index].getChars(0,len,result,displ);
+			moveChars(content[index], 0, len, result, displ);
 			displ += len;
-			System.arraycopy(delim,0,result,displ,delimLength);
+			System.arraycopy(delim, 0, result, displ, delimLength);
 			displ += delimLength;
 		}
-		content[content.length - 1].getChars(0,content[content.length - 1].length(),result,displ);
+		moveChars(content[content.length - 1], 0, content[content.length - 1].length(), result, displ);
 		return new String(result);
 	}
 
@@ -1824,5 +1824,10 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		}
 		target[targetIndex++] = new String(source,start,maxIndex-start);
 	}
-	
+
+	private static void moveChars(final CharSequence fromSeq, final int from, final int len, final char[] to, final int displ) {
+		for(int index = 0; index < len; index++) {
+			to[displ + index] = fromSeq.charAt(from +index);
+		}
+	}
 }
