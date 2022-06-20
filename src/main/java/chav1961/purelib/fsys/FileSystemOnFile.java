@@ -323,12 +323,12 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 			final Map<String, Object>	result;
 			
 			if (atRoot) {
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, new Date(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
 			}
 			else if (atRootItem) {
 				final File	temp = getFile();
 				
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, new Date(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
 			}
 			else {
 				final File	temp = getFile();
