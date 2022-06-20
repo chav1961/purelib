@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -2131,8 +2132,9 @@ loop:		for (index = from; index < len; index++) {
 	 * @throws IllegalArgumentException any parameters errors
 	 * @throws NullPointerException any parameters errors
 	 * @since 0.0.3
+	 * @lastUpdate 0.0.6
 	 */
-	public static String join(final String delimiter, final String... content) throws IllegalArgumentException, NullPointerException {
+	public static String join(final String delimiter, final CharSequence... content) throws IllegalArgumentException, NullPointerException {
 		if (delimiter == null || delimiter.isEmpty()) {
 			throw new IllegalArgumentException("String delimiter can't be null or empty");
 		}
