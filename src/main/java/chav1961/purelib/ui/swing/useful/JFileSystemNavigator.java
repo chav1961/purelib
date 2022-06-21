@@ -138,7 +138,15 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 								logger.message(Severity.error, "Not implemented yet");
 							}
 						};
-			this.list = new JFileList(localizer, logger, fsi, false, false);
+			this.list = new JFileList(localizer, logger, fsi, false, false) {
+						private static final long serialVersionUID = -6386127009486154573L;
+
+						@Override
+						public void placeFileContent(Iterable<File> content) {
+							// TODO Auto-generated method stub
+							
+						}
+					};
 			this.readOnly = checkParameter(props, PROP_ACCESS, PROP_ACCESS_READ_ONLY, PROP_ACCESS_READ_ONLY, PROP_ACCESS_READ_WRITE) == 0;
 			this.selectionType = SelectionType.values()[checkParameter(props, PROP_SELECTION_TYPE, SelectionType.NONE.getValue(), SelectionType.NONE.getValue(),SelectionType.SINGLE.getValue(), SelectionType.MULTIPLE.getValue())];
 			this.selectedObjects = SelectedObjects.values()[checkParameter(props, PROP_SELECTED_OBJECTS, SelectedObjects.NONE.getValue(), SelectedObjects.NONE.getValue(), SelectedObjects.FILES.getValue(), SelectedObjects.DIRECTORIES.getValue(), SelectedObjects.ALL.getValue())];

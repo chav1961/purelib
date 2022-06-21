@@ -1,8 +1,11 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -16,7 +19,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListSelectionModel;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -25,6 +31,7 @@ import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListDataEvent;
@@ -38,6 +45,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.concurrent.LightWeightListenerList;
@@ -49,7 +57,7 @@ import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentKeeper;
 
-public class JFileList extends JPanel implements LocaleChangeListener, FileContentKeeper {
+public abstract class JFileList extends JPanel implements LocaleChangeListener, FileContentKeeper {
 	private static final long 				serialVersionUID = 1L;
 	private static final String				CARD_ICONS = "icons";
 	private static final String				CARD_TABLE = "table";
@@ -143,11 +151,11 @@ public class JFileList extends JPanel implements LocaleChangeListener, FileConte
 	private ContentViewType				viewType;
 	private String						currentPath = "/";
 	
-	public JFileList(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final boolean useMultiselection) throws NullPointerException, LocalizationException {
+	public JFileList(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final boolean useMultiselection) throws NullPointerException, LocalizationException, IOException {
 		this(localizer, logger, fsi, insertParent, useMultiselection ? SelectionType.MULTIPLE : SelectionType.SINGLE, SelectedObjects.ALL, ContentViewType.AS_ICONS);
 	}
 
-	public JFileList(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final SelectionType selectionType, final SelectedObjects selectedObjects, final ContentViewType viewType) throws NullPointerException, LocalizationException {
+	public JFileList(final Localizer localizer, final LoggerFacade logger, final FileSystemInterface fsi, final boolean insertParent, final SelectionType selectionType, final SelectedObjects selectedObjects, final ContentViewType viewType) throws NullPointerException, LocalizationException, IOException {
 		if (logger == null) {
 			throw new NullPointerException("Logger can't be null"); 
 		}
@@ -199,32 +207,47 @@ public class JFileList extends JPanel implements LocaleChangeListener, FileConte
 			table.getSelectionModel().addListSelectionListener((e)->notifySelectionChanged(e));
 			table.setDragEnabled(true);
 			table.setTransferHandler(new FileTransferHandler());
-			FileTransferHandler.prepare4DroppingFiles(table);
 			
 			list.setCellRenderer(new ListCellRenderer<JFileItemDescriptor>() {
 				@Override
 				public Component getListCellRendererComponent(final JList<? extends JFileItemDescriptor> list, final JFileItemDescriptor value, final int index, final boolean isSelected, final boolean cellHasFocus) {
-					JLabel	label = null;
+					JLabel		label = null;
 					
 					switch (viewType) {
 						case AS_ICONS		:
 							label = new JLabel(value.getName(), value.isDirectory() ? PureLibStandardIcons.DIRECTORY.getIcon() : PureLibStandardIcons.FILE.getIcon(), JLabel.LEFT);
+							label.setOpaque(true);
+							if (isSelected) {
+								label.setForeground(list.getSelectionForeground());
+								label.setBackground(list.getSelectionBackground());
+							}
+							else {
+								label.setForeground(list.getForeground());
+								label.setBackground(list.getBackground());
+							}
 							break;
 						case AS_LARGE_ICONS	:
-							label = new JLabel(value.getName(), value.isDirectory() ? PureLibStandardIcons.LARGE_DIRECTORY.getIcon() : PureLibStandardIcons.LARGE_FILE.getIcon(), JLabel.LEFT);
+							final Icon	icon = value.isDirectory() ? PureLibStandardIcons.LARGE_DIRECTORY.getIcon() : PureLibStandardIcons.LARGE_FILE.getIcon();
+							
+							label = new JLabel(value.getName(), JLabel.CENTER);
+
+							label.setIcon(icon);
+						    label.setHorizontalTextPosition(JLabel.CENTER);
+						    label.setVerticalTextPosition(JLabel.BOTTOM);
+							label.setOpaque(true);
+							if (isSelected) {
+								label.setForeground(list.getSelectionForeground());
+								label.setBackground(list.getSelectionBackground());
+							}
+							else {
+								label.setForeground(list.getForeground());
+								label.setBackground(list.getBackground());
+							}
+							label.revalidate();
 							break;
 						case AS_TABLE		:
 							return null;
 						default	: throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet");
-					}
-					label.setOpaque(true);
-					if (isSelected) {
-						label.setForeground(list.getSelectionForeground());
-						label.setBackground(list.getSelectionBackground());
-					}
-					else {
-						label.setForeground(list.getForeground());
-						label.setBackground(list.getBackground());
 					}
 					if (cellHasFocus) {
 						label.setBorder(new LineBorder(Color.BLUE));
@@ -251,7 +274,6 @@ public class JFileList extends JPanel implements LocaleChangeListener, FileConte
 			list.addListSelectionListener((e)->notifySelectionChanged(e));
 			list.setDragEnabled(true);
 			list.setTransferHandler(new FileTransferHandler());
-			FileTransferHandler.prepare4DroppingFiles(list);
 			
 			addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
@@ -299,11 +321,16 @@ public class JFileList extends JPanel implements LocaleChangeListener, FileConte
 			
 			add(new JScrollPane(table), CARD_TABLE);
 			add(new JScrollPane(list), CARD_ICONS);
-			layout.show(this, viewType.getCardName());
+			FileTransferHandler.prepare4DroppingFiles(table);
+			FileTransferHandler.prepare4DroppingFiles(list);
+
 			fillLocalizationStrings();
+			setContentViewType(viewType);
 		}
 	}
 
+	@Override public abstract void placeFileContent(final Iterable<File> content);
+	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		fillLocalizationStrings();
@@ -342,8 +369,10 @@ public class JFileList extends JPanel implements LocaleChangeListener, FileConte
 			layout.show(this, viewType.getCardName());
 			switch (viewType) {
 				case AS_ICONS		:
+					list.setLayoutOrientation(JList.VERTICAL_WRAP);
 					break;
 				case AS_LARGE_ICONS	:
+					list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 					break;
 				case AS_TABLE		:
 					break;
@@ -417,11 +446,6 @@ public class JFileList extends JPanel implements LocaleChangeListener, FileConte
 		return result;
 	}
 
-	@Override
-	public void placeFileContent(final Iterable<File> content) {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	private String getTooltip4Path(final String path) {
 		try(final FileSystemInterface	temp = fsi.clone().open(path)) {
