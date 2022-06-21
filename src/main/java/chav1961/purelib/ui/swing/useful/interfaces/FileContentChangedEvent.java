@@ -1,6 +1,4 @@
-package chav1961.purelib.ui.swing.useful;
-
-import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeType;
+package chav1961.purelib.ui.swing.useful.interfaces;
 
 /**
  * <p>This interface describes changes in the listener content</p> 

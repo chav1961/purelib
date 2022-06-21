@@ -4,10 +4,14 @@ import java.awt.Component;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.TimerTask;
 
@@ -33,8 +37,9 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
+import chav1961.purelib.ui.swing.useful.interfaces.FileContentKeeper;
 
-public abstract class JFileTree extends JTree {
+public abstract class JFileTree extends JTree implements FileContentKeeper {
 	private static final long 	serialVersionUID = -9727348906597529L;
 
 	protected static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
@@ -118,6 +123,9 @@ public abstract class JFileTree extends JTree {
 			root.setUserObject(new JFileItemDescriptor("/", fsi.getAbsoluteURI().toString(), true, fsi.size(), new Date(fsi.lastModified())));
 			fillChildren(root, fsi);
 			((DefaultTreeModel)getModel()).setRoot(root);
+			setDragEnabled(true);
+			setTransferHandler(new FileTransferHandler());
+			FileTransferHandler.prepare4DroppingFiles(this);
 			
 			setCellRenderer(new DefaultTreeCellRenderer() {	// Don't move before setRoot() !!!
 				private static final long serialVersionUID = 1L;
@@ -159,6 +167,8 @@ public abstract class JFileTree extends JTree {
 		}
 	}
 
+	@Override
+	public abstract void placeFileContent(final Iterable<File> content);	
 	public abstract void refreshLinkedContent(final FileSystemInterface content);
 	
 	public void setSelection(final String path) {
@@ -190,6 +200,41 @@ public abstract class JFileTree extends JTree {
 		}
 	}
 	
+	@Override
+	public boolean hasFileContentNow() {
+		return true;
+	}
+
+	@Override
+	public Collection<File> getFileContent() {
+		final List<File>				result = new ArrayList<File>();
+		
+		walk((DefaultMutableTreeNode) getModel().getRoot(),result);
+		return result;
+	}
+
+	private void walk(final DefaultMutableTreeNode item, final List<File> target) {
+		target.add(new File(((JFileItemDescriptor)item.getUserObject()).getPath()));
+		for (int index = 0, maxIndex = item.getChildCount(); index < maxIndex; index++) {
+			walk((DefaultMutableTreeNode)item.getChildAt(index), target);
+		}
+	}
+
+	@Override
+	public boolean hasSelectedFileContentNow() {
+		return getSelectionCount() > 0;
+	}
+
+	@Override
+	public Collection<File> getSelectedFileContent() {
+		final List<File>	result = new ArrayList<File>();
+		
+		if (hasSelectedFileContentNow()) {
+			result.add(new File(((JFileItemDescriptor)((DefaultMutableTreeNode)getSelectionPath().getLastPathComponent()).getUserObject()).getPath()));
+		}
+		return result;
+	}
+
 	private void fillChildren(final DefaultMutableTreeNode node, final FileSystemInterface fsi) throws IOException {
 		final boolean[]	flag = new boolean[1];
 		

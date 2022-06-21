@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -130,6 +131,11 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 								} catch (IOException e) {
 									logger.message(Severity.error, "I/O error refreshing right panel: "+e.getLocalizedMessage(),e);
 								}
+							}
+
+							@Override
+							public void placeFileContent(final Iterable<File> content) {
+								logger.message(Severity.error, "Not implemented yet");
 							}
 						};
 			this.list = new JFileList(localizer, logger, fsi, false, false);

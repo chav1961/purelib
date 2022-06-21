@@ -7,9 +7,11 @@ import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -45,8 +47,9 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.useful.interfaces.FileContentKeeper;
 
-public class JFileList extends JPanel implements LocaleChangeListener {
+public class JFileList extends JPanel implements LocaleChangeListener, FileContentKeeper {
 	private static final long 				serialVersionUID = 1L;
 	private static final String				CARD_ICONS = "icons";
 	private static final String				CARD_TABLE = "table";
@@ -194,6 +197,9 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 				}
 			});
 			table.getSelectionModel().addListSelectionListener((e)->notifySelectionChanged(e));
+			table.setDragEnabled(true);
+			table.setTransferHandler(new FileTransferHandler());
+			FileTransferHandler.prepare4DroppingFiles(table);
 			
 			list.setCellRenderer(new ListCellRenderer<JFileItemDescriptor>() {
 				@Override
@@ -202,7 +208,7 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 					
 					switch (viewType) {
 						case AS_ICONS		:
-							label = new JLabel(value.getName(), value.isDirectory() ? PureLibStandardIcons.LARGE_DIRECTORY.getIcon() : PureLibStandardIcons.LARGE_FILE.getIcon(), JLabel.LEFT);
+							label = new JLabel(value.getName(), value.isDirectory() ? PureLibStandardIcons.DIRECTORY.getIcon() : PureLibStandardIcons.FILE.getIcon(), JLabel.LEFT);
 							break;
 						case AS_LARGE_ICONS	:
 							label = new JLabel(value.getName(), value.isDirectory() ? PureLibStandardIcons.LARGE_DIRECTORY.getIcon() : PureLibStandardIcons.LARGE_FILE.getIcon(), JLabel.LEFT);
@@ -243,6 +249,9 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 				}
 			});
 			list.addListSelectionListener((e)->notifySelectionChanged(e));
+			list.setDragEnabled(true);
+			list.setTransferHandler(new FileTransferHandler());
+			FileTransferHandler.prepare4DroppingFiles(list);
 			
 			addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
@@ -376,6 +385,44 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 		}
 	}
 
+	@Override
+	public boolean hasFileContentNow() {
+		return getModelSize() > 0;
+	}
+
+	@Override
+	public Collection<File> getFileContent() {
+		final List<File>	result = new ArrayList<File>();
+		
+		for(int index = 0, maxIndex = getModelSize(); index < maxIndex; index++) {
+			result.add(new File(getModelItem(index).getPath()));
+		}
+		return result;
+	}
+
+	@Override
+	public boolean hasSelectedFileContentNow() {
+		return isAnythingSelected();
+	}
+
+	@Override
+	public Collection<File> getSelectedFileContent() {
+		final List<File>	result = new ArrayList<File>();
+		
+		for(int index = 0, maxIndex = getModelSize(); index < maxIndex; index++) {
+			if (isItemSelected(index)) {
+				result.add(new File(getModelItem(index).getPath()));
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public void placeFileContent(final Iterable<File> content) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	private String getTooltip4Path(final String path) {
 		try(final FileSystemInterface	temp = fsi.clone().open(path)) {
 
@@ -406,6 +453,22 @@ public class JFileList extends JPanel implements LocaleChangeListener {
 		}
 	}
 
+	private boolean isAnythingSelected() {
+		switch (viewType) {
+			case AS_ICONS : case AS_LARGE_ICONS : return !list.getSelectionModel().isSelectionEmpty();
+			case AS_TABLE: return !table.getSelectionModel().isSelectionEmpty();
+			default : throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet"); 
+		}
+	}
+	
+	private boolean isItemSelected(final int index) {
+		switch (viewType) {
+			case AS_ICONS : case AS_LARGE_ICONS : return list.getSelectionModel().isSelectedIndex(index);
+			case AS_TABLE: return table.getSelectionModel().isSelectedIndex(index);
+			default : throw new UnsupportedOperationException("View type ["+viewType+"] is not supported yet"); 
+		}
+	}
+	
 	private void notifyDataInserted(final int from, final int to) {
 		final ListDataEvent	lde = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, from, to);
 		

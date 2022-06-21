@@ -1,6 +1,5 @@
 package chav1961.purelib.ui.swing.useful.interfaces;
 
-import chav1961.purelib.ui.swing.useful.FileContentChangedEvent;
 import chav1961.purelib.ui.swing.useful.JFileContentManipulator;
 
 /**
