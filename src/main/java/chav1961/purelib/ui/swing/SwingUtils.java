@@ -535,6 +535,9 @@ loop:			for (Component comp : children(node)) {
 				case ImageContent	:
 					result = new JImageContainerWithMeta(metadata,localizer,monitor);
 					break;
+				case ForeignKeyRefContent	:
+					result = new JLongItemAndReferenceFieldWithMeta(metadata,localizer,monitor);
+					break;
 				case Unclassified	:
 				case NestedContent	:
 				case TimestampContent	:

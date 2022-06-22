@@ -119,6 +119,10 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		resizeColumns(model);
 	}
 	
+	public void refresh() {
+		model.fireTableDataChanged();
+	}
+	
 	protected void insertRow(final Inst content) throws SQLException, FlowException {
 		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, instMgr.newKey()) != RefreshMode.REJECT) {
 			model.desc.rs.moveToInsertRow();

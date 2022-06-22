@@ -20,6 +20,8 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.json.ColorKeeper;
 import chav1961.purelib.json.FileKeeper;
 import chav1961.purelib.ui.ColorPair;
+import chav1961.purelib.ui.interfaces.ItemAndReference;
+import chav1961.purelib.ui.interfaces.LongItemAndReference;
 
 /**
  * <p>This class describes format string associated with any model entity. Detailed format description see {@linkplain #FieldFormat(Class, String)}</p>
@@ -50,6 +52,7 @@ public class FieldFormat {
 		ArrayContent,
 		NestedContent,
 		ImageContent,
+		ForeignKeyRefContent,
 		Unclassified
 	} 
 	
@@ -641,6 +644,9 @@ public class FieldFormat {
 				}
 				else if (Image.class.isAssignableFrom(clazz)) {
 					return ContentType.ImageContent;
+				}
+				else if (LongItemAndReference.class.isAssignableFrom(clazz)) {
+					return ContentType.ForeignKeyRefContent;
 				}
 				else  {
 					return ContentType.Unclassified;

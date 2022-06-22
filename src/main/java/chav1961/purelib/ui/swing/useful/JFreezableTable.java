@@ -16,6 +16,7 @@ import java.util.Set;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -120,6 +121,9 @@ public class JFreezableTable extends JTable {
 			else {
 				prepareRenderers(this, model);
 				setModel(model);
+				setCellSelectionEnabled(false);
+				setRowSelectionAllowed(true);
+				setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 				addHierarchyListener((e)->{
 					if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
 						Component parent = getParent();
