@@ -1,11 +1,8 @@
 package chav1961.purelib.ui.swing.useful;
 
-import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -19,10 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -31,7 +26,6 @@ import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListDataEvent;
@@ -45,7 +39,6 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.concurrent.LightWeightListenerList;
@@ -307,10 +300,10 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 					table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					break;
 				case MULTIPLE	:
-					list.setSelectionModel(new SelectionModelWrapper(()->upload(list), new DefaultListSelectionModel(), selObjects));
-					table.setSelectionModel(new SelectionModelWrapper(()->upload(table), new DefaultListSelectionModel(), selObjects));
-					list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-					table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+//					list.setSelectionModel(new SelectionModelWrapper(()->upload(list), new DefaultListSelectionModel(), selObjects));
+//					table.setSelectionModel(new SelectionModelWrapper(()->upload(table), new DefaultListSelectionModel(), selObjects));
+//					list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+//					table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 					break;
 				default:
 					break;
@@ -401,6 +394,14 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 					return ContinueMode.CONTINUE;
 				});
 			}
+			items.sort((o1,o2)->{
+				if (o1.isDirectory() == o2.isDirectory()) {
+					return o1.getName().compareTo(o2.getName());
+				}
+				else {
+					return o1.isDirectory() ? -1 : 1;
+				}
+			});
 			switch (viewType) {
 				case AS_ICONS : case AS_LARGE_ICONS :
 					list.removeAll();
@@ -512,7 +513,7 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 	}
 
 	private void notifySelectionChanged(final ListSelectionEvent event) {
-		
+		System.err.println("Changed");
 	}
 	
 	private void fillLocalizationStrings() throws LocalizationException {
@@ -698,16 +699,18 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 
 		@Override
 		public void setSelectionInterval(final int index0, final int index1) {
-			for (int[] item : collectAllowedIntervals(index0, index1)) {
-				nested.setSelectionInterval(item[0], item[1]);
-			}
+//			for (int[] item : collectAllowedIntervals(index0, index1)) {
+//				nested.setSelectionInterval(item[0], item[1]);
+//			}
+			nested.setSelectionInterval(index0, index1);
 		}
 
 		@Override
 		public void addSelectionInterval(int index0, int index1) {
-			for (int[] item : collectAllowedIntervals(index0, index1)) {
-				nested.addSelectionInterval(item[0], item[1]);
-			}
+//			for (int[] item : collectAllowedIntervals(index0, index1)) {
+//				nested.addSelectionInterval(item[0], item[1]);
+//			}
+			nested.addSelectionInterval(index0, index1);
 		}
 
 		@Override
@@ -727,14 +730,15 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 
 		@Override
 		public boolean isSelectedIndex(final int index) {
-			final boolean	result = nested.isSelectedIndex(index);
-			
-			if (result) {
-				return allowSelection(index);
-			}
-			else {
-				return false;
-			}
+			return nested.isSelectedIndex(index);
+//			final boolean	result = nested.isSelectedIndex(index);
+//			
+//			if (result) {
+//				return allowSelection(index);
+//			}
+//			else {
+//				return false;
+//			}
 		}
 
 		@Override
@@ -745,6 +749,7 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 		@Override
 		public void setAnchorSelectionIndex(final int index) {
 			// TODO Auto-generated method stub
+			nested.setAnchorSelectionIndex(index);
 		}
 
 		@Override
@@ -755,6 +760,7 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 		@Override
 		public void setLeadSelectionIndex(final int index) {
 			// TODO Auto-generated method stub
+			nested.setLeadSelectionIndex(index);
 		}
 
 		@Override
@@ -808,15 +814,16 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 		}
 
 		private boolean allowSelection(final int index) {
-			final JFileItemDescriptor	desc = contentGetter.extract().get(index);
-			
-			switch (objects) {
-				case ALL			: return true;
-				case DIRECTORIES	: return desc.isDirectory();
-				case FILES			: return !desc.isDirectory();
-				case NONE			: return false;
-				default : throw new UnsupportedOperationException("Selected objects ["+objects+"] is not supported yet");
-			}
+			return true;
+//			final JFileItemDescriptor	desc = contentGetter.extract().get(index);
+//			
+//			switch (objects) {
+//				case ALL			: return true;
+//				case DIRECTORIES	: return desc.isDirectory();
+//				case FILES			: return !desc.isDirectory();
+//				case NONE			: return false;
+//				default : throw new UnsupportedOperationException("Selected objects ["+objects+"] is not supported yet");
+//			}
 		}
 		
 		private List<int[]> collectAllowedIntervals(final int index0, final int index1) {

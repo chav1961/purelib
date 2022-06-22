@@ -43,6 +43,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	private static final long 	serialVersionUID = -9727348906597529L;
 
 	protected static final Icon	DIR_ICON = PureLibStandardIcons.DIRECTORY.getIcon();
+	protected static final Icon	DIR_ICON_OPENED = PureLibStandardIcons.DIRECTORY_OPENED.getIcon();
 	protected static final Icon	FILE_ICON = PureLibStandardIcons.FILE.getIcon();
 
 	private static final long	REFRESH_DELAY = 500;
@@ -138,7 +139,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 					try {final String	path = URLDecoder.decode(desc.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
 					
 						label.setText(path.endsWith("/") ? path : path.substring(path.lastIndexOf('/')+1));
-						label.setIcon(desc.isDirectory() ? DIR_ICON : FILE_ICON);
+						label.setIcon(desc.isDirectory() ? (expanded ? DIR_ICON_OPENED : DIR_ICON) : FILE_ICON);
 					} catch (UnsupportedEncodingException e) {
 						label.setText("I/O error: "+e.getLocalizedMessage());
 					}

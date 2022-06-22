@@ -12,7 +12,11 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 
 public class InternalConstants {
 	public static final ImageIcon	ICON_DIRECTORY;
+	public static final ImageIcon	ICON_LARGE_DIRECTORY;
+	public static final ImageIcon	ICON_DIRECTORY_OPENED;
+	public static final ImageIcon	ICON_LARGE_DIRECTORY_OPENED;
 	public static final ImageIcon	ICON_FILE;
+	public static final ImageIcon	ICON_LARGE_FILE;
 	public static final ImageIcon	ICON_SUCCESS;
 	public static final ImageIcon	ICON_FAIL;
 	public static final ImageIcon	ICON_CLOSE;
@@ -35,8 +39,13 @@ public class InternalConstants {
 	public static final ContentMetadataInterface	MDI; 
 
 	static {
-		try{ICON_DIRECTORY = loadIcon("directory.png");
+		try{
+			ICON_DIRECTORY = loadIcon("directory.png");
+			ICON_LARGE_DIRECTORY = loadIcon("largeDirectory.png");
+			ICON_DIRECTORY_OPENED = loadIcon("directoryOpened.png");
+			ICON_LARGE_DIRECTORY_OPENED = loadIcon("largeDirectoryOpened.png");
 			ICON_FILE = loadIcon("file.png");
+			ICON_LARGE_FILE = loadIcon("largeFile.png");
 			ICON_SUCCESS = loadIcon("testOK.png");
 			ICON_FAIL = loadIcon("testFailed.png");
 			ICON_CLOSE = loadIcon("redIcon.png");

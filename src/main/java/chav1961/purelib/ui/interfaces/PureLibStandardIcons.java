@@ -9,9 +9,11 @@ import chav1961.purelib.ui.swing.interfaces.IconKeeper;
 
 public enum PureLibStandardIcons implements IconKeeper {
 	DIRECTORY(InternalConstants.ICON_DIRECTORY),
+	DIRECTORY_OPENED(InternalConstants.ICON_DIRECTORY_OPENED),
 	FILE(InternalConstants.ICON_FILE),
-	LARGE_DIRECTORY(InternalConstants.ICON_DIRECTORY),
-	LARGE_FILE(InternalConstants.ICON_FILE),
+	LARGE_DIRECTORY(InternalConstants.ICON_LARGE_DIRECTORY),
+	LARGE_DIRECTORY_OPENED(InternalConstants.ICON_LARGE_DIRECTORY_OPENED),
+	LARGE_FILE(InternalConstants.ICON_LARGE_FILE),
 	SUCCESS(InternalConstants.ICON_SUCCESS),
 	FAIL(InternalConstants.ICON_FAIL),
 	ACCEPT(InternalConstants.ICON_SUCCESS),

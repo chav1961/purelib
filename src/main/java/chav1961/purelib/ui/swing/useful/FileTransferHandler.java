@@ -37,7 +37,11 @@ class FileTransferHandler extends TransferHandler {
 		final Transferable[]	result = new Transferable[1];
 		
 		findFileContentKeeper(source, (item)->{
-			result[0] = new FileTransferable(((FileContentKeeper)item).getSelectedFileContent());
+			final Collection<File> content = ((FileContentKeeper)item).getSelectedFileContent();
+			
+			if (content != null && !content.isEmpty()) {
+				result[0] = new FileTransferable(content);
+			}
 		});
 		return result[0];
 	}
