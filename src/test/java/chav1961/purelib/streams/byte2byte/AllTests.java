@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ZLibStreamTest.class , PseudoRandomInputStreamTest.class, SqlStreamsTest.class })
+@SuiteClasses({ ZLibStreamTest.class , PseudoRandomInputStreamTest.class, SqlStreamsTest.class, FragmentedStreamTest.class })
 public class AllTests {
 
 }
