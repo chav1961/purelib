@@ -12,11 +12,11 @@ public interface DatabaseModelManagement<Version extends Comparable<Version>> {
 	Version getVersion(int versionNumber);
 	ContentNodeMetadata getModel(int versionNumber);
 	
-	default Version getTheLastVersion() {
+	default Version getTheSameLastVersion() {
 		return getVersion(size() - 1);
 	}
 	
-	default ContentNodeMetadata getTheLastModel() {
+	default ContentNodeMetadata getTheSameLastModel() {
 		return getModel(size() - 1);
 	}
 	

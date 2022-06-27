@@ -17,7 +17,7 @@ module chav1961.purelib {
 	requires transitive jdk.httpserver;
 	requires transitive java.base;
 	requires jdk.compiler;
-	requires java.naming;
+	requires transitive java.naming;
 	requires java.datatransfer;
 
 	exports chav1961.purelib.basic; 
@@ -117,4 +117,8 @@ module chav1961.purelib {
 	provides chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter with chav1961.purelib.sql.model.internal.PostgreSQLDatabaseModelAdapter
 			, chav1961.purelib.sql.model.internal.SqliteDatabaseModelAdapter
 			, chav1961.purelib.sql.model.internal.DefaultDatabaseModelAdapter;
+	
+	uses javax.naming.spi.InitialContextFactory;
+	provides javax.naming.spi.InitialContextFactory with chav1961.purelib.basic.SimpleInitialContextFactory;
+	
 }

@@ -6,10 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import chav1961.purelib.basic.GettersAndSettersFactory;
-import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
-import chav1961.purelib.basic.exceptions.ContentException;
-
 public abstract class MappedAdamClass<K,V> implements Map<K,V> {
 	protected MappedAdamClass() {
 	}

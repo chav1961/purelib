@@ -290,18 +290,19 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 	private static class JPopupTable extends JDialog implements LoggerFacadeOwner {
 		private static final long serialVersionUID = 6213096362129076918L;
 
-		private final Localizer				localizer;
-		private final LoggerFacade			logger;
-		private final LongItemAndReference	record;
-		private final JTable				table;
-		private boolean						selected = false;
-		private long						selectedValue = 0;
+		private final Localizer					localizer;
+		private final LoggerFacade				logger;
+		private final LongItemAndReference<?>	record;
+		private final JTable					table;
+		private boolean							selected = false;
+		private long							selectedValue = 0;
 
-		public JPopupTable(final Localizer localizer, final LoggerFacade logger, final LongItemAndReference record) {
+		public JPopupTable(final Localizer localizer, final LoggerFacade logger, final LongItemAndReference<?> record) {
 			super((JDialog)null, true);
 			this.localizer = localizer;					
 			this.logger = logger;
 			this.record = record;
+			this.record.setModelFilter("");
 			
 			this.table = new JTable((TableModel) new TableModel() {
 				final TableModel	delegate = record.getModel();
