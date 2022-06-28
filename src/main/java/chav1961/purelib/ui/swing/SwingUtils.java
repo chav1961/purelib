@@ -2034,7 +2034,7 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Owner class can't be null");
 		}
 		else {
-			Component	current = component.getParent();
+			Component	current = component;
 			
 			while (current != null) {
 				if (ownerClass.isAssignableFrom(current.getClass())) {
