@@ -16,6 +16,21 @@
 		<app:key code="Enter" action="menu.edit"/>
 		<app:key code="Delete" action="menu.delete"/>
 	</app:keyset>		
+	<app:menu id="JLongItemAndReferenceListWithMeta.menu">
+		<app:item name="JLongItemAndReferenceListWithMeta.menu.copy" caption="JLongItemAndReferenceListWithMeta.menu.copy" tooltip="JLongItemAndReferenceListWithMeta.menu.copy.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/copy.png" action="menu.copy"/>
+		<app:item name="JLongItemAndReferenceListWithMeta.menu.paste" caption="JLongItemAndReferenceListWithMeta.menu.paste" tooltip="JLongItemAndReferenceListWithMeta.menu.paste.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/paste.png" action="menu.paste"/>
+		<app:separator/>
+		<app:item name="JLongItemAndReferenceListWithMeta.menu.insert" caption="JLongItemAndReferenceListWithMeta.menu.insert" tooltip="JLongItemAndReferenceListWithMeta.menu.insert.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/insert.png" action="menu.insert"/>
+		<app:item name="JLongItemAndReferenceListWithMeta.menu.edit" caption="JLongItemAndReferenceListWithMeta.menu.edit" tooltip="JLongItemAndReferenceListWithMeta.menu.edit.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/edit.png" action="menu.edit"/>
+		<app:item name="JLongItemAndReferenceListWithMeta.menu.delete" caption="JLongItemAndReferenceListWithMeta.menu.delete" tooltip="JLongItemAndReferenceListWithMeta.menu.delete.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/delete.png" action="menu.delete"/>
+	</app:menu>
+	<app:keyset id="JLongItemAndReferenceListWithMeta.menu.keyset">
+		<app:key code="C" ctrl="true" action="menu.copy"/>
+		<app:key code="V" ctrl="true" action="menu.paste"/>
+		<app:key code="Insert" action="menu.insert"/>
+		<app:key code="Enter" action="menu.edit"/>
+		<app:key code="Delete" action="menu.delete"/>
+	</app:keyset>		
 	<app:menu id="JImageContainerWithMeta.menu">
 		<app:item name="JImageContainerWithMeta.menu.copy" caption="JImageContainerWithMeta.menu.copy" tooltip="JImageContainerWithMeta.menu.copy.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/copy.png" action="menu.copy"/>
 		<app:item name="JImageContainerWithMeta.menu.paste" caption="JImageContainerWithMeta.menu.paste" tooltip="JImageContainerWithMeta.menu.paste.tt" icon="root://chav1961.purelib.ui.inner.InternalConstants/chav1961/purelib/ui/inner/paste.png" action="menu.paste"/>

@@ -22,6 +22,7 @@ import chav1961.purelib.json.FileKeeper;
 import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.interfaces.ItemAndReference;
 import chav1961.purelib.ui.interfaces.LongItemAndReference;
+import chav1961.purelib.ui.interfaces.LongItemAndReferenceList;
 
 /**
  * <p>This class describes format string associated with any model entity. Detailed format description see {@linkplain #FieldFormat(Class, String)}</p>
@@ -53,6 +54,7 @@ public class FieldFormat {
 		NestedContent,
 		ImageContent,
 		ForeignKeyRefContent,
+		ForeignKeyRefListContent,
 		Unclassified
 	} 
 	
@@ -647,6 +649,9 @@ public class FieldFormat {
 				}
 				else if (LongItemAndReference.class.isAssignableFrom(clazz)) {
 					return ContentType.ForeignKeyRefContent;
+				}
+				else if (LongItemAndReferenceList.class.isAssignableFrom(clazz)) {
+					return ContentType.ForeignKeyRefListContent;
 				}
 				else  {
 					return ContentType.Unclassified;

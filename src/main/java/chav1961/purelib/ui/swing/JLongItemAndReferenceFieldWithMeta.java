@@ -1,22 +1,30 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.TimerTask;
 
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.LineBorder;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -37,6 +45,9 @@ import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
 import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
+import chav1961.purelib.ui.swing.interfaces.FunctionalDocumentListener;
+import chav1961.purelib.ui.swing.interfaces.FunctionalMouseListener;
+import chav1961.purelib.ui.swing.interfaces.FunctionalMouseListener.EventType;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
@@ -46,13 +57,16 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 	private static final long serialVersionUID = 5255076724778401819L;
 
 	public static final String 			CHOOSER_NAME = "chooser";
+	public static final String 			KEY_TITLE = "JLongItemAndReferenceFieldWithMeta.select.title";
+	public static final String 			KEY_FILTER = "JLongItemAndReferenceFieldWithMeta.select.typefilter";
+	public static final long			REFRESH_DELAY_MILLISECONDS = 300;
 
 	private static final Class<?>[]		VALID_CLASSES = {ItemAndReference.class};
 	
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final Localizer				localizer;
-	private final JButton				callSelect = new JButton(InternalConstants.ICON_FOLDER);
+	private final JButton				callSelect = new JButton(InternalConstants.ICON_TABLE);
 	private final Class<?>				contentClass;
 	private LongItemAndReference<?>		currentValue, newValue;
 	private boolean						invalid = false;
@@ -104,7 +118,7 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 					}					
 				}
 			});
-			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
+			SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JLongItemAndReferenceFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
@@ -115,7 +129,7 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 					JLongItemAndReferenceFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
+			SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_DROPDOWN,(e)->{
 				callSelect.doClick();
 			},"show-dropdown");
 			setInputVerifier(new InputVerifier() {
@@ -152,6 +166,7 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 			}
 			
 			callSelect.addActionListener((e)->{selectRef();});
+			setBorder(new LineBorder(Color.BLACK));
 			new ComponentKeepedBorder(0,callSelect).install(this);
 			
 			setName(name);
@@ -272,7 +287,9 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 	}
 	
 	private void selectRef() {
-		final JPopupTable	popup = new JPopupTable(localizer, SwingUtils.getNearestLogger(this), currentValue);
+		currentValue.setModelFilter("");
+		
+		final JPopupTable	popup = new JPopupTable(this, localizer, SwingUtils.getNearestLogger(this), currentValue);
 		
 		if (popup.select()) {
 			newValue.setValue(popup.getSelectedValue());
@@ -290,15 +307,20 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 	private static class JPopupTable extends JDialog implements LoggerFacadeOwner {
 		private static final long serialVersionUID = 6213096362129076918L;
 
-		private final Localizer					localizer;
-		private final LoggerFacade				logger;
-		private final LongItemAndReference<?>	record;
-		private final JTable					table;
-		private boolean							selected = false;
-		private long							selectedValue = 0;
+		private final JLongItemAndReferenceFieldWithMeta	parent;
+		private final Localizer								localizer;
+		private final LoggerFacade							logger;
+		private final LongItemAndReference<?>				record;
+		private final JTable								table;
+		private final JLabel								seekLabel = new JLabel();
+		private final JTextField							seekFilter = new JTextField();
+		private TimerTask									tt = null;
+		private boolean										selected = false;
+		private long										selectedValue = 0;
 
-		public JPopupTable(final Localizer localizer, final LoggerFacade logger, final LongItemAndReference<?> record) {
+		public JPopupTable(final JLongItemAndReferenceFieldWithMeta parent, final Localizer localizer, final LoggerFacade logger, final LongItemAndReference<?> record) {
 			super((JDialog)null, true);
+			this.parent = parent;
 			this.localizer = localizer;					
 			this.logger = logger;
 			this.record = record;
@@ -306,6 +328,25 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 			
 			this.table = new JTable((TableModel) new TableModel() {
 				final TableModel	delegate = record.getModel();
+				final int			keyPosition;
+				
+				{	int	position = -1;
+				
+					for(int index = 0, maxIndex = delegate.getColumnCount(); index < maxIndex; index++) {
+						if (delegate.getColumnName(index).equals(record.getKeyName())) {
+							position = index;
+							break;
+						}
+					}
+					if (position == -1) {
+						throw new IllegalArgumentException("Key name ["+record.getKeyName()+"] is missing in the table model");
+					}
+					else {
+						keyPosition = position;
+					}
+				}
+
+				@Override public void setValueAt(Object aValue, int rowIndex, int columnIndex) {}
 				
 				@Override
 				public int getRowCount() {
@@ -314,20 +355,35 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 
 				@Override
 				public int getColumnCount() {
-					return delegate.getColumnCount();
+					return delegate.getColumnCount()-1;
 				}
 
 				@Override
 				public String getColumnName(final int columnIndex) {
-					try{return localizer.getValue(delegate.getColumnName(columnIndex));
+					try{if (columnIndex < keyPosition) {
+							return localizer.getValue(delegate.getColumnName(columnIndex));
+						}
+						else {
+							return localizer.getValue(delegate.getColumnName(columnIndex + 1));
+						}
 					} catch (LocalizationException exc) {
-						return delegate.getColumnName(columnIndex);
+						if (columnIndex < keyPosition) {
+							return delegate.getColumnName(columnIndex)+"<non-localized>";
+						}
+						else {
+							return delegate.getColumnName(columnIndex + 1)+"<non-localized>";
+						}
 					}
 				}
 
 				@Override
 				public Class<?> getColumnClass(final int columnIndex) {
-					return delegate.getColumnClass(columnIndex);
+					if (columnIndex < keyPosition) {
+						return delegate.getColumnClass(columnIndex);
+					}
+					else {
+						return delegate.getColumnClass(columnIndex + 1);
+					}
 				}
 
 				@Override
@@ -337,11 +393,12 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 
 				@Override
 				public Object getValueAt(final int rowIndex, final int columnIndex) {
-					return delegate.getValueAt(rowIndex, columnIndex);
-				}
-
-				@Override
-				public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+					if (columnIndex < keyPosition) {
+						return delegate.getValueAt(rowIndex, columnIndex);
+					}
+					else {
+						return delegate.getValueAt(rowIndex, columnIndex + 1);
+					}
 				}
 
 				@Override
@@ -360,22 +417,45 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 			}, SwingUtils.ACTION_EXIT);
 			SwingUtils.assignActionKey(table, SwingUtils.KS_ACCEPT, (e)->{
 				if (!table.getSelectionModel().isSelectionEmpty()) {
-					for (int index = 0; index < record.getModel().getColumnCount(); index++) {
-						if (record.getModel().getColumnName(index).equals(record.getKeyName())) {
-							selectedValue = ((Long)record.getModel().getValueAt(table.getSelectedRow(), index)).longValue();
-							selected = true;
-							return;
-						}
-					}
-					selected = false;
+					processSelection();
 				}
 				else {
 					selected = false;
+					setVisible(false);
 				}
-				setVisible(false);
 			}, SwingUtils.ACTION_ACCEPT);
+			table.addMouseListener((FunctionalMouseListener)(et, e)->{
+				if (et == EventType.CLICKED && e.getClickCount() >= 2 && !table.getSelectionModel().isSelectionEmpty()) {
+					processSelection();
+				}
+			});
 			
+			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			table.setColumnSelectionAllowed(false);
+			
+			final JPanel	seekPanel = new JPanel(new BorderLayout(5,5));
+
+			seekPanel.add(seekLabel, BorderLayout.WEST);
+			seekPanel.add(seekFilter, BorderLayout.CENTER);
+			
+			getContentPane().add(seekPanel, BorderLayout.NORTH);
 			getContentPane().add(new JScrollPane(table), BorderLayout.CENTER);
+			seekFilter.setText(parent.newValue.getModelFilter());
+			setTitle(localizer.getValue(KEY_TITLE));
+			seekLabel.setText(localizer.getValue(KEY_FILTER));
+
+			seekFilter.getDocument().addDocumentListener((FunctionalDocumentListener)(ct, e)->{
+				if (tt != null) {
+					tt.cancel();
+					tt = null;
+				}
+				tt = new SimpleTimerTask(()->{
+					parent.newValue.setModelFilter(seekFilter.getText());
+					tt = null;
+				});
+				PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY_MILLISECONDS);
+			});
+			
 			pack();
 		}
 
@@ -387,7 +467,7 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 		public boolean select() {
 			final String	filter = record.getModelFilter();
 			
-			SwingUtils.centerMainWindow((JDialog)null, 0.75f);
+			SwingUtils.centerMainWindow(this, 0.5f);
 			setVisible(true);
 			dispose();
 			record.setModelFilter(filter);
@@ -396,6 +476,16 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 		
 		public long getSelectedValue() {
 			return selectedValue;
+		}
+		
+		private void processSelection() {
+			for (int index = 0; index < record.getModel().getColumnCount(); index++) {
+				if (record.getModel().getColumnName(index).equals(record.getKeyName())) {
+					selectedValue = ((Long)record.getModel().getValueAt(table.getSelectedRow(), index)).longValue();
+					selected = true;
+					setVisible(false);
+				}
+			}
 		}
 	}
 }

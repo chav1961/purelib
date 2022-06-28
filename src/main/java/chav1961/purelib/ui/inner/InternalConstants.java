@@ -33,6 +33,7 @@ public class InternalConstants {
 	public static final ImageIcon	ICON_PREVIEW;	
 	public static final ImageIcon	ICON_FOLDER;
 	public static final ImageIcon	ICON_GOTO_LINK;
+	public static final ImageIcon	ICON_TABLE;
 	public static final ImageIcon	ICON_UPPERLEFT_QUAD;
 	public static final ImageIcon	ICON_LOWERRIGHT_QUAD;
 	
@@ -61,6 +62,7 @@ public class InternalConstants {
 			ICON_PASTE = loadIcon("paste.png");
 			ICON_PREVIEW = loadIcon("preview.png");
 			ICON_GOTO_LINK = loadIcon("goto.png");
+			ICON_TABLE = loadIcon("table.png");
 			ICON_FOLDER = loadIcon("folder.png");
 			ICON_UPPERLEFT_QUAD = loadIcon("upperleft.png");
 			ICON_LOWERRIGHT_QUAD = loadIcon("lowerright.png");

@@ -325,6 +325,22 @@
 		<key name="JDataBaseTableWithMeta.confirm.delete.title">Confirm deletion</key>
 		<key name="JDataBaseTableWithMeta.confirm.delete.message">Are you sure to delete this row?</key>
 
+<!-- JLongItemAndReferenceFieldWithMeta class localization -->
+		<key name="JLongItemAndReferenceFieldWithMeta.select.title">Select record you need</key>
+		<key name="JLongItemAndReferenceFieldWithMeta.select.typefilter">Filter:</key>
+
+<!-- JLongItemAndReferenceListWithMeta class localization -->
+		<key name="JLongItemAndReferenceListWithMeta.menu.copy">Copy</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.copy.tt">Copy element to clipboard</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.paste">Paste</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.paste.tt">Paste element from clipboard</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.insert">Insert</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.insert.tt">Insert element into list</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.edit">Edit</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.edit.tt">Edit elemtn content</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.delete">Delete</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.delete.tt">Delete element from list</key>
+
 <!-- SimpleDatabaseManager class localization -->
 		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema">Backup scheme (%1$s)</key>
 		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupModel">Backup model</key>
@@ -668,6 +684,22 @@
 <!-- Локализация класса JDataBaseTableWithMeta -->
 		<key name="JDataBaseTableWithMeta.confirm.delete.title">Подтвердить удаление</key>
 		<key name="JDataBaseTableWithMeta.confirm.delete.message">Вы действительно хотите удалить эту строку?</key>
+
+<!-- Локализация класса JLongItemAndReferenceFieldWithMeta -->
+		<key name="JLongItemAndReferenceFieldWithMeta.select.title">Выберите нужную запись</key>
+		<key name="JLongItemAndReferenceFieldWithMeta.select.typefilter">Фильтр:</key>
+
+<!-- Локализация класса JLongItemAndReferenceListWithMeta -->
+		<key name="JLongItemAndReferenceListWithMeta.menu.copy">Копировать</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.copy.tt">Копировать элемент в буфер обмена</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.paste">Вставить</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.paste.tt">Вставить элемент из буфера обмена</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.insert">Добавить</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.insert.tt">Добавить элемент в список</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.edit">Изменить</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.edit.tt">Редактировать элемент списка</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.delete">Удалить</key>
+		<key name="JLongItemAndReferenceListWithMeta.menu.delete.tt">Удалить элемент списка</key>
 
 <!-- Локализация класса SimpleDatabaseManager -->
 		<key name="chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema">Выгрузка схемы (%1$s)</key>

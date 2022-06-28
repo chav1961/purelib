@@ -32,6 +32,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -95,6 +96,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 						tt.cancel();
 						tt = null;
 					}
+					
 					if (fastRefresh) {
 						try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
 							
@@ -106,17 +108,14 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 						}
 					}
 					else {
-						tt = new TimerTask() {
-							@Override
-							public void run() {
-								try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
-									
-									refreshLinkedContent(partFsi);
-								} catch (IOException e) {
-									logger.message(Severity.error, "error refreshing right panel: "+e.getLocalizedMessage(),e);
-								}
+						tt = new SimpleTimerTask(()->{
+							try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
+								
+								refreshLinkedContent(partFsi);
+							} catch (IOException e) {
+								logger.message(Severity.error, "error refreshing right panel: "+e.getLocalizedMessage(),e);
 							}
-						};
+						});
 						PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY);
 					}
 				}

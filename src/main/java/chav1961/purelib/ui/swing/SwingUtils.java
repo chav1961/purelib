@@ -142,22 +142,26 @@ import chav1961.purelib.ui.interfaces.ActionFormManager;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.interfaces.LRUManagerOwner;
+import chav1961.purelib.ui.interfaces.LongItemAndReference;
+import chav1961.purelib.ui.interfaces.LongItemAndReferenceList;
 import chav1961.purelib.ui.interfaces.ReferenceAndComment;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
+import chav1961.purelib.ui.swing.inner.LongItemAndReferenceListImpl;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 import chav1961.purelib.ui.swing.useful.JLocalizedOptionPane;
 import chav1961.purelib.ui.swing.useful.LocalizedFormatter;
+import chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
 
 /**
  * <p>This utility class contains a set of useful methods to use in the Swing-based applications.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
 public abstract class SwingUtils {
@@ -524,6 +528,9 @@ loop:			for (Component comp : children(node)) {
 						else if (ReferenceAndComment.class.isAssignableFrom(componentClass)) {
 							result = new JReferenceListWithMeta(metadata, monitor);
 						}
+						else if (LongItemAndReference.class.isAssignableFrom(componentClass)) {
+							result = new JLongItemAndReferenceListWithMeta(metadata, localizer, monitor);
+						}
 						else {
 							throw new UnsupportedOperationException("Content type ["+content+"] for metadata ["+metadata.getName()+"] is not supported yet");
 						}
@@ -533,10 +540,13 @@ loop:			for (Component comp : children(node)) {
 					}
 					break;
 				case ImageContent	:
-					result = new JImageContainerWithMeta(metadata,localizer,monitor);
+					result = new JImageContainerWithMeta(metadata, localizer, monitor);
 					break;
 				case ForeignKeyRefContent	:
-					result = new JLongItemAndReferenceFieldWithMeta(metadata,localizer,monitor);
+					result = new JLongItemAndReferenceFieldWithMeta(metadata, localizer, monitor);
+					break;
+				case ForeignKeyRefListContent	:
+					result = new JLongItemAndReferenceListWithMeta(metadata, localizer, monitor);
 					break;
 				case Unclassified	:
 				case NestedContent	:
@@ -1963,6 +1973,7 @@ loop:			for (Component comp : children(node)) {
 	 * @return renderer found
 	 * @throws EnvironmentException renderer is missing
 	 * @since 0.0.5
+	 * @lastUpdate 0.0.6
 	 */
 	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType, final ClassLoader loader) throws EnvironmentException {
 		for (SwingItemRenderer<T,R> item : ServiceLoader.load(SwingItemRenderer.class, loader)) {
@@ -1970,7 +1981,17 @@ loop:			for (Component comp : children(node)) {
 				return item.getRenderer(rendererType, ff);
 			}
 		}
-		throw new EnvironmentException("Renderer type ["+rendererType+"] for class ["+clazz+"] not found"); 
+		if (clazz.isArray()) {
+			return getCellRenderer(clazz.getComponentType(), ff, rendererType, loader);
+		}
+		else {
+			for (SwingItemRenderer<T,R> item : ServiceLoader.load(SwingItemRenderer.class, loader)) {
+				if (item instanceof StringRenderer) {
+					return item.getRenderer(rendererType, ff);
+				}
+			}
+			throw new EnvironmentException("Renderer type ["+rendererType+"] for class ["+clazz+"] not found"); 
+		}
 	}
 
 	/**
