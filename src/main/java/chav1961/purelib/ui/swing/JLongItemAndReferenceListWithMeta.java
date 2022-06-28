@@ -98,7 +98,7 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 	private Class<?>					contentClass;
 	private final JPopupMenu			popup;
 	private final JToolBar				toolbar;
-	private final InnerTableModel<LongItemAndReference<T>>	model = new InnerTableModel<>();
+//	private final InnerTableModel<LongItemAndReference<T>>	model = new InnerTableModel<>();
 	private final SpecialUIActionManager	uiManager;
 	private LongItemAndReferenceList<T>	currentValue = new LongItemAndReferenceListImpl(), newValue = new LongItemAndReferenceListImpl();
 	private boolean						invalid = false;
@@ -371,45 +371,6 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 		setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		setLayout(new BorderLayout());
 		setModel(listModel);
-		model.addTableModelListener(new TableModelListener() {
-			@Override
-			public void tableChanged(final TableModelEvent e) {
-				switch (e.getType()) {
-					case TableModelEvent.DELETE :
-						if (e.getFirstRow() == 0 && e.getLastRow() == Integer.MAX_VALUE && e.getColumn() == TableModelEvent.ALL_COLUMNS) {
-							listModel.removeAllElements();
-						}
-						else {
-							for (int index = e.getLastRow(), maxIndex = e.getFirstRow(); index >= maxIndex; index--) {
-								listModel.remove(index);
-							}
-						}
-						listModel.fireIntervalRemoved(JLongItemAndReferenceListWithMeta.this, e.getFirstRow(), e.getLastRow());
-						break;
-					case TableModelEvent.INSERT :
-						for (int index = e.getFirstRow(), maxIndex = e.getLastRow(); index < maxIndex; index++) {
-							listModel.add(index, model.content[index]);
-						}
-						listModel.fireIntervalAdded(JLongItemAndReferenceListWithMeta.this, e.getFirstRow(), e.getLastRow());
-						break;
-					case TableModelEvent.UPDATE :
-						if (e.getFirstRow() == 0 && e.getLastRow() == Integer.MAX_VALUE && e.getColumn() == TableModelEvent.ALL_COLUMNS) {
-							listModel.removeAllElements();
-							for (int index = 0; index < model.getRowCount(); index++) {
-								listModel.add(index, model.content[index]);
-							}
-						}
-						else {
-							for (int index = e.getFirstRow(), maxIndex = Math.min(e.getLastRow(), listModel.getSize()); index < maxIndex; index++) {
-								listModel.set(index, model.content[index]);
-							}
-						}
-						listModel.fireContentsChanged(JLongItemAndReferenceListWithMeta.this, e.getFirstRow(), e.getLastRow());
-						break;
-					default : throw new UnsupportedOperationException(); 
-				}
-			}
-		});
 
 		SwingUtils.assignActionKey(this, SwingUtils.KS_COPY, (e)->copy(), SwingUtils.ACTION_COPY);
 		SwingUtils.assignActionKey(this, SwingUtils.KS_PASTE, (e)->paste(), SwingUtils.ACTION_PASTE);
@@ -476,12 +437,9 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 		try{final LongItemAndReference<T>	liar = newItem();
 		
 			if (edit(liar)) {
-				final LongItemAndReference<T>[]	temp = Arrays.copyOf(model.content, model.content.length+1);
-				
-				temp[temp.length-1] = liar;
-				model.setValue((LongItemAndReference<T>[]) temp);
-				setSelectedIndex(temp.length-1);
-				ensureIndexIsVisible(temp.length-1);
+				((DefaultListModel)getModel()).addElement(liar);
+				setSelectedIndex(getModel().getSize() - 1);
+				ensureIndexIsVisible(getModel().getSize() - 1);
 				SwingUtilities.invokeLater(()->requestFocusInWindow());
 			}
 		} catch (ContentException e) {
@@ -496,10 +454,7 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 			final LongItemAndReference<T>	liar = getModel().getElementAt(index);
 			
 			if (edit(liar)) {
-				model.content[index] = liar;
-				model.setValue(model.content);
-				setSelectedIndex(index);
-				ensureIndexIsVisible(index);
+				((DefaultListModel)getModel()).set(index, liar);
 				SwingUtilities.invokeLater(()->requestFocusInWindow());
 			}
 		}
@@ -525,7 +480,7 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 
 	@OnAction("action:/menu.delete")
 	private void delete() {
-		if (getSelectedIndex() >= 0) {
+		if (getSelectedIndex() >= 0 && getModel().getSize() > 1) {
 			delete(getSelectedIndex());
 		}
 		SwingUtilities.invokeLater(()->requestFocusInWindow());
@@ -533,16 +488,12 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 	
 	private void delete(final int rowIndex) {
 		if (rowIndex >= 0) {
-			final LongItemAndReference<T>[]	temp = new LongItemAndReference[model.content.length-1];
+			((DefaultListModel<?>)getModel()).remove(rowIndex);
 			
-			for (int from = 0, to = 0; from < model.content.length; from++) {
-				if (from != rowIndex) {
-					temp[to++] = model.content[from];
-				}
-			}
-			model.setValue(temp);
-			setSelectedIndex(rowIndex);
-			ensureIndexIsVisible(rowIndex);
+			final int	selection = Math.min(rowIndex, getModel().getSize() - 1);
+			
+			setSelectedIndex(selection);
+			ensureIndexIsVisible(selection);
 		}
 	}
 
@@ -577,12 +528,9 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 				}
 				
 				if (edit(liar)) {
-					final LongItemAndReference<T>[]	temp = Arrays.copyOf(model.content, model.content.length+1);
-					
-					temp[temp.length-1] = liar;
-					model.setValue((LongItemAndReference<T>[]) temp);
-					setSelectedIndex(temp.length-1);
-					ensureIndexIsVisible(temp.length-1);
+					((DefaultListModel)getModel()).addElement(liar);
+					setSelectedIndex(getModel().getSize() - 1);
+					ensureIndexIsVisible(getModel().getSize() - 1);
 					SwingUtilities.invokeLater(()->requestFocusInWindow());
 				}
 			} catch (HeadlessException | UnsupportedFlavorException | ContentException | IOException e) {
@@ -615,7 +563,6 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 
 	private void refresh() {
 		setModel(new InnerListModel<>(newValue));
-		model.content = newValue.toArray(new LongItemAndReference[newValue.size()]);
 	}
 
 	private static class InnerTableModel<T extends LongItemAndReference<?>> extends DefaultTableModel {
