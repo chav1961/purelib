@@ -70,6 +70,7 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
+import chav1961.purelib.ui.swing.SwingUtils.WalkCallback;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.useful.JTextTooltipWindow;
@@ -639,6 +640,16 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 		super.setVisible(visibility);
 	}
 
+	public void setEnabled(final boolean enabled) {
+		super.setEnabled(enabled);
+		SwingUtils.walkDown(this, (mode, node)->{
+			if (mode == NodeEnterMode.ENTER && node != this) {
+				node.setEnabled(enabled);
+			}
+			return ContinueMode.CONTINUE;
+		});
+	}
+	
 	@Override
 	public boolean requestFocusInWindow() {
 		final boolean	result = super.requestFocusInWindow();

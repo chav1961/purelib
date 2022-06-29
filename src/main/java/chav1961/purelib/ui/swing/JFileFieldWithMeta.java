@@ -327,6 +327,16 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 	
 	@Override
+	public boolean isEnabled() {
+		if (getParent() != null) {
+			return super.isEnabled() && getParent().isEnabled();
+		}
+		else {
+			return super.isEnabled();
+		}
+	}
+	
+	@Override
 	public void setEnabled(boolean b) {
 		final boolean old = isEnabled();
 		

@@ -249,6 +249,16 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
 		}
 	}
+
+	@Override
+	public boolean isEnabled() {
+		if (getParent() != null) {
+			return super.isEnabled() && getParent().isEnabled();
+		}
+		else {
+			return super.isEnabled();
+		}
+	}
 	
 	@Override
 	public void setEnabled(boolean b) {
