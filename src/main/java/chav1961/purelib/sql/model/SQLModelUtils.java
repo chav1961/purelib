@@ -337,6 +337,14 @@ public class SQLModelUtils {
 		}
 	}
 
+	/**
+	 * <p>Remove database structure by model description</p>
+	 * @param conn database connection. Can't be null and must have auto commit mode off
+	 * @param root model root. Can't be null 
+	 * @param removeSchema database schema must also be removed
+	 * @throws SQLException on any database errors
+	 * @throws NullPointerException on any parameter is null
+	 */
 	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final boolean removeSchema) throws SQLException, NullPointerException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
@@ -348,7 +356,16 @@ public class SQLModelUtils {
 			removeDatabaseByModel(conn, root, root.getName(), removeSchema);
 		}
 	}	
-	
+
+	/**
+	 * <p>Remove database structure by model description</p>
+	 * @param conn database connection. Can't be null and must have auto commit mode off
+	 * @param root model root. Can't be null 
+	 * @param schema database schema to remove structure in
+	 * @param removeSchema database schema must also be removed
+	 * @throws SQLException on any database errors
+	 * @throws NullPointerException on any parameter is null
+	 */
 	public static void removeDatabaseByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final boolean removeSchema) throws SQLException, NullPointerException {
 		if (conn == null) {
 			throw new NullPointerException("Connection can't be null");
@@ -377,7 +394,15 @@ public class SQLModelUtils {
 		}
 	}
 
-	public static <Version extends Comparable<Version>> Version extractVersionFromModel(final ContentNodeMetadata model, final Version defaultVersion) throws NullPointerException, IllegalArgumentException {
+	/**
+	 * <p>Extract version descriptor from model. It locates at the root node application URI as version=ZZZ query parameter</p>
+	 * @param <Version> version format.
+	 * @param model model to extract version from. Can't be null
+	 * @param defaultVersion. Default version if the one not found.
+	 * @return version extracted or default if is missing
+	 * @throws NullPointerException on any argument is null
+	 */
+	public static <Version extends Comparable<Version>> Version extractVersionFromModel(final ContentNodeMetadata model, final Version defaultVersion) throws NullPointerException {
 		if (model == null) {
 			throw new NullPointerException("Model can'tbe null");
 		}

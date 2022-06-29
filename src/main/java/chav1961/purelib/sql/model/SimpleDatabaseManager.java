@@ -46,6 +46,8 @@ import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.byte2byte.SQLDataOutputStream;
 
 public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable, NodeMetadataOwner {
+	private static final String					KEY_VERSIONING_SCHEMA = "purelib.db.versioning.schema";
+
 	private static final String					MSG_BACKUP_DATABASE_SCHEMA = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema";
 	private static final String					MSG_BACKUP_MODEL = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupModel";
 	private static final String					MSG_BACKUP_ENTITY = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupEntity";
@@ -76,6 +78,10 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		DatabaseManagement<T> getManagementInterface(final Connection conn) throws SQLException;
 	}
 
+	public static enum DatabaseVersioningSchema {
+		SHARED, PRIVATE
+	}
+	
 	private final LoggerFacade					logger;
 	private final DatabaseModelManagement<T>	modelMgmt;
 	private final ConnectionGetter				connGetter;
@@ -102,16 +108,17 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			
 			try(final Connection	conn = connGetter.getConnection();
 				final LoggerFacade	trans = logger.transaction(this.getClass().getCanonicalName())) {
-
 				final DatabaseManagement<T>	mgmt = mgmtGetter.getManagementInterface(conn);
+				final String		versioningSchema = PureLibSettings.instance().getProperty(KEY_VERSIONING_SCHEMA, DatabaseVersioningSchema.class) == DatabaseVersioningSchema.SHARED ? VERSION_MODEL.getName() : model.getTheSameLastModel().getName();
 				
-				conn.setSchema(VERSION_MODEL.getName());
+				conn.setSchema(versioningSchema);
 				conn.setAutoCommit(false);
 				
-				if (isDatabasePrepared4Versioning(conn, conn.getSchema())) {
+				if (isDatabasePrepared4Versioning(conn, versioningSchema)) {
 					trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] found in the database, schema="+conn.getSchema());
+					conn.setSchema(model.getTheSameLastModel().getName());
 					
-					final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel().getName());
+					final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), versioningSchema);
 					final T						oldVersion = oldModel == null ? mgmt.getInitialVersion() : mgmt.getVersion(oldModel);
 					final T						currentVersion = model.getTheSameLastVersion(); 
 					final int					result = currentVersion != null ? currentVersion.compareTo(oldVersion) : -1;
@@ -120,7 +127,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 						trans.message(Severity.info, "Current model version ["+currentVersion+"] is newer than database version ["+oldVersion+"], upgrade will be called");
 						mgmt.onUpgrade(conn, currentVersion, model.getTheSameLastModel(), oldVersion, oldModel);
 						trans.message(Severity.info, "Upgrade to version ["+currentVersion+"] completed");
-						storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), model.getTheSameLastModel().getName(), currentVersion);
+						storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, currentVersion);
 						trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
 					}
 					else if (result < 0) {
@@ -132,17 +139,18 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 					}
 				}
 				else {
-					try{trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] not found in the database, schema="+conn.getSchema()+". Version infrastructure will be prepared now");
-						createDbVersionTable(conn, VERSION_MODEL, model.getTheSameLastModel().getName());
-						trans.message(Severity.info, "Version infrastructure was prepared in the database, schema="+conn.getSchema()+", create model infrastructure will be called now");
+					try{trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] not found in the database, schema="+versioningSchema+". Version infrastructure will be prepared now");
+						createDbVersionInfrastructure(conn, VERSION_MODEL, versioningSchema);
+						trans.message(Severity.info, "Version infrastructure was prepared in the database, schema="+versioningSchema+", create model infrastructure will be called now");
+						conn.setSchema(model.getTheSameLastModel().getName());
 						mgmt.onCreate(conn, model.getTheSameLastModel());
 						trans.message(Severity.info, "Create model infrastructure completed, schema="+conn.getSchema()+", version ["+mgmt.getInitialVersion()+"]");
-						storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), model.getTheSameLastModel().getName(), model.getTheSameLastVersion());
+						storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, model.getTheSameLastVersion());
 						trans.message(Severity.info, "Database version stored, version ["+model.getTheSameLastVersion()+"]");
 					} catch (SQLException exc) {
-						exc.printStackTrace();
+//						exc.printStackTrace(); 
 						trans.message(Severity.error, exc, "Exception was detected, database will be rolled back");
-						removeDbVersionTable(conn, model.getTheSameLastModel(), model.getTheSameLastModel().getName());
+						removeDbVersionInfrastructure(conn, model.getTheSameLastModel(), model.getTheSameLastModel().getName());
 						trans.message(Severity.info, exc, "Database rollback completed");
 					}
 				}
@@ -348,7 +356,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			throw new NullPointerException("Schema can't be null");
 		}
 		else {
-			createDbVersionTable(conn, VERSION_MODEL, VERSION_MODEL.getName());
+			createDbVersionInfrastructure(conn, VERSION_MODEL, VERSION_MODEL.getName());
 		}
 	}
 	
@@ -365,8 +373,9 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		}
 	}
 	
-	private static void createDbVersionTable(final Connection conn, final ContentNodeMetadata model, final String schema) throws SQLException {
+	private static void createDbVersionInfrastructure(final Connection conn, final ContentNodeMetadata model, final String schema) throws SQLException {
 		SQLModelUtils.createDatabaseByModel(conn, model, schema);
+		conn.commit();
 	}
 
 	private static ContentNodeMetadata loadLastDbVersion(final Connection conn, final ContentNodeMetadata versionModel, final String schema) throws SQLException {
@@ -435,10 +444,10 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		}
 	}
 
-	private static void removeDbVersionTable(final Connection conn, final ContentNodeMetadata model, final String schema) throws SQLException {
+	private static void removeDbVersionInfrastructure(final Connection conn, final ContentNodeMetadata model, final String schema) throws SQLException {
 		SQLModelUtils.removeDatabaseByModel(conn, model, schema, true);
+		conn.commit();
 	}
-	
 	
 	private static class VersionRecord implements Cloneable {
 		private long	dbv_Id;

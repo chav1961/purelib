@@ -76,8 +76,8 @@ import chav1961.purelib.ui.swing.inner.ReferenceAndCommentEditor;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.FunctionalDocumentListener;
+import chav1961.purelib.ui.swing.interfaces.FunctionalKeyListener;
 import chav1961.purelib.ui.swing.interfaces.FunctionalMouseListener;
-import chav1961.purelib.ui.swing.interfaces.FunctionalMouseListener.EventType;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
@@ -780,8 +780,15 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 				}
 			}, SwingUtils.ACTION_ACCEPT);
 			table.addMouseListener((FunctionalMouseListener)(et, e)->{
-				if (et == EventType.CLICKED && e.getClickCount() >= 2 && !table.getSelectionModel().isSelectionEmpty()) {
+				if (et == FunctionalMouseListener.EventType.CLICKED && e.getClickCount() >= 2 && !table.getSelectionModel().isSelectionEmpty()) {
 					processSelection();
+				}
+			});
+			table.addKeyListener((FunctionalKeyListener)(et,e)->{
+				if (et == FunctionalKeyListener.EventType.TYPED) {
+					seekFilter.setText(seekFilter.getText()+e.getKeyChar());
+					seekFilter.setCaretPosition(seekFilter.getText().length());
+					seekFilter.requestFocusInWindow();
 				}
 			});
 			
@@ -795,7 +802,6 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 			
 			getContentPane().add(seekPanel, BorderLayout.NORTH);
 			getContentPane().add(new JScrollPane(table), BorderLayout.CENTER);
-//			seekFilter.setText(parent.newValue.getModelFilter());
 			setTitle(localizer.getValue(KEY_TITLE));
 			seekLabel.setText(localizer.getValue(KEY_FILTER));
 
@@ -805,13 +811,16 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 					tt = null;
 				}
 				tt = new SimpleTimerTask(()->{
-//					parent.newValue.setModelFilter(seekFilter.getText());
+					record.setModelFilter(seekFilter.getText());
 					tt = null;
 				});
 				PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY_MILLISECONDS);
 			});
-			
 			pack();
+			SwingUtilities.invokeLater(()->{
+				table.requestFocusInWindow();
+				table.getSelectionModel().addSelectionInterval(0,0);
+			});
 		}
 
 		@Override

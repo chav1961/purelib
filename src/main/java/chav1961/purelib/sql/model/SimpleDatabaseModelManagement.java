@@ -7,9 +7,11 @@ import java.io.Reader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -19,6 +21,8 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.sql.model.interfaces.DatabaseModelManagement;
 
 public class SimpleDatabaseModelManagement implements DatabaseModelManagement<SimpleDottedVersion> {
+	private static final String		DEFAULT_VERSION = "0.0";
+			
 	private final VersionAndModel[]	content, inversContent;
 	
 	public SimpleDatabaseModelManagement(final URI... jsonModels) throws EnvironmentException {
@@ -39,8 +43,8 @@ public class SimpleDatabaseModelManagement implements DatabaseModelManagement<Si
 				for (URI item : jsonModels) {
 					try(final InputStream	is = item.toURL().openStream();
 						final Reader		rdr = new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING)) {
-						final ContentMetadataInterface	mdi = ContentModelFactory.forJsonDescription(rdr);
-						final SimpleDottedVersion		version = new SimpleDottedVersion(mdi.getRoot().getName());
+						final ContentMetadataInterface		mdi = ContentModelFactory.forJsonDescription(rdr);
+						final SimpleDottedVersion			version = SQLModelUtils.extractVersionFromModel(mdi.getRoot(), new SimpleDottedVersion(DEFAULT_VERSION));
 						
 						list.add(new VersionAndModel(version, mdi));
 					} catch (IOException e) {
