@@ -18,6 +18,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.TableContainer;
@@ -30,16 +31,25 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements NodeMetadataOwner, LocaleChangeListener {
-	private static final long 			serialVersionUID = -6707307489832770493L;
-	private static final String			CONFIRM_DELETE_TITLE = "JDataBaseTableWithMeta.confirm.delete.title";
-	private static final String			CONFIRM_DELETE_MESSAGE = "JDataBaseTableWithMeta.confirm.delete.message";
+	private static final long 	serialVersionUID = -6707307489832770493L;
+	private static final String	CONFIRM_DELETE_TITLE = "JDataBaseTableWithMeta.confirm.delete.title";
+	private static final String	CONFIRM_DELETE_MESSAGE = "JDataBaseTableWithMeta.confirm.delete.message";
 	
-	private final ContentNodeMetadata	meta;
-	private final Localizer 			localizer;
-	private final InnerTableModel		model;
-	private final boolean 				enableManipulations;
-	private FormManager<K,Inst>			mgr = null;
-	private InstanceManager<K,Inst>		instMgr = null;
+	private final ContentNodeMetadata		meta;
+	private final Localizer 				localizer;
+	private final InnerTableModel<K,Inst>	model;
+	private final boolean 					enableManipulations;
+	private final LightWeightListenerList<ContentChangedListener<K,Inst>>	listeners = new LightWeightListenerList(ContentChangedListener.class);
+	private FormManager<K,Inst>				mgr = null;
+	private InstanceManager<K,Inst>			instMgr = null;
+
+	@FunctionalInterface
+	public static interface ContentChangedListener<K,Inst> {
+		public enum ChangeType {
+			INSERTED, DUPLICATED, DELETED
+		}
+		void process(JDataBaseTableWithMeta<K,Inst> table, ChangeType ct, K keyValue, String fieldName);
+	}
 	
 	public JDataBaseTableWithMeta(final ContentNodeMetadata meta, final Localizer localizer, final boolean enableManipulations, final boolean enableEdit) throws NullPointerException, IllegalArgumentException {
 		super(buildTableModel(meta, localizer, enableEdit), buildFreezedColumns(meta));
@@ -125,46 +135,95 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		model.fireTableDataChanged();
 	}
 	
-	public boolean processAction(final String action) {
+	public void processAction(final String action) {
 		manipulate(editingRow, action);
-		return true;
 	}
 	
-	protected void insertRow(final Inst content) throws SQLException, FlowException {
-		if (mgr == null || mgr.onRecord(RecordAction.INSERT, null, null, content, instMgr.newKey()) != RefreshMode.REJECT) {
-			model.desc.rs.moveToInsertRow();
-			instMgr.storeInstance(model.desc.rs, content, false);
-			model.desc.rs.insertRow();
-			model.desc.rs.moveToCurrentRow();
-			model.fireTableDataChanged();
+	public void addContentChangedListener(final ContentChangedListener<K,Inst> listener) {
+		if (listener == null) {
+			throw new NullPointerException("Listener to add can't be null"); 
+		}
+		else {
+			listeners.addListener(listener);
+		}
+	}
+	
+	public void removeContentChangedListener(final ContentChangedListener<K,Inst> listener) {
+		if (listener == null) {
+			throw new NullPointerException("Listener to remove can't be null"); 
+		}
+		else {
+			listeners.removeListener(listener);
+		}
+	}
+	
+	protected K insertRow(final Inst content) throws SQLException, FlowException {
+		if (mgr == null) {
+			throw new IllegalStateException("Manager is not assigned for the control");
+		}
+		else { 
+			final K	newKey = instMgr.extractKey(content);
+			
+			if (mgr.onRecord(RecordAction.INSERT, null, null, content, newKey) != RefreshMode.REJECT) {
+				model.desc.rs.moveToInsertRow();
+				instMgr.storeInstance(model.desc.rs, content, false);
+				model.desc.rs.insertRow();
+				model.desc.rs.moveToCurrentRow();
+				return newKey;
+			}
+			else {
+				return null;
+			}
 		}
 	}
 
-	protected void duplicateRow(final int row, final Inst sourceRow) throws SQLException, FlowException {
-		final Inst	duplicatedRow = instMgr.clone(sourceRow);
-		
-		if (mgr == null || mgr.onRecord(RecordAction.DUPLICATE, sourceRow, instMgr.extractKey(sourceRow), duplicatedRow, instMgr.extractKey(duplicatedRow)) != RefreshMode.REJECT) {
-			model.desc.rs.moveToInsertRow();
-			instMgr.storeInstance(model.desc.rs, duplicatedRow, false);
-			model.desc.rs.insertRow();
-			model.desc.rs.moveToCurrentRow();
-			model.fireTableDataChanged();
+	protected K duplicateRow(final int row, final Inst sourceRow) throws SQLException, FlowException {
+		if (mgr == null) {
+			throw new IllegalStateException("Manager is not assigned for the control");
+		}
+		else {
+			final Inst	duplicatedRow = instMgr.clone(sourceRow);
+			final K		newKey = instMgr.newKey();
+			
+			instMgr.assignKey(duplicatedRow, newKey);
+			if (mgr.onRecord(RecordAction.DUPLICATE, sourceRow, instMgr.extractKey(sourceRow), duplicatedRow, newKey) != RefreshMode.REJECT) {
+				model.desc.rs.moveToInsertRow();
+				instMgr.storeInstance(model.desc.rs, duplicatedRow, false);
+				model.desc.rs.insertRow();
+				model.desc.rs.moveToCurrentRow();
+				model.fireTableDataChanged();
+				return newKey;
+			}
+			else {
+				return null;
+			}
 		}
 	}
 
-	protected void deleteRow(final int row) throws SQLException, FlowException {
-		model.desc.rs.absolute(row);
+	protected K deleteRow(final int row) throws SQLException, FlowException {
+		if (mgr == null) {
+			throw new IllegalStateException("Manager is not assigned for the control");
+		}
+		else {
+			model.desc.rs.absolute(row);
+			
+			final Inst	inst = loadRow(row);
 		
-		final Inst	inst = loadRow(row);
-	
-		if (mgr == null || mgr.onRecord(RecordAction.DELETE, inst, instMgr.extractKey(inst), null, null) != RefreshMode.REJECT) {
-			model.desc.rs.deleteRow();
-			model.fireTableDataChanged();
+			if (mgr.onRecord(RecordAction.DELETE, inst, instMgr.extractKey(inst), null, null) != RefreshMode.REJECT) {
+				final K	key = instMgr.extractKey(inst);
+				
+				model.desc.rs.deleteRow();
+				model.fireTableDataChanged();
+				return key;
+			}
+			else {
+				return null;
+			}
 		}
 	}
 	
 	protected Inst newRow() throws SQLException {
-		return instMgr.newInstance();
+		return instMgr.newInstance(); 
 	}
 	
 	protected Inst loadRow(final int row) throws SQLException {
@@ -178,18 +237,24 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		if (!model.rsIsReadOnly && instMgr != null && enableManipulations) {
 			try{switch (action) {
 					case SwingUtils.ACTION_INSERT 		:
-						insertRow(newRow());
+						final K	keyInserted = insertRow(newRow());
+						
+						listeners.fireEvent((l)->l.process(this, ContentChangedListener.ChangeType.INSERTED, keyInserted, ""));
 						break;
 					case SwingUtils.ACTION_DUPLICATE 	:
 						if (model.getRowCount() > 0) {
 							model.desc.rs.absolute(row + 1);
-							duplicateRow(model.desc.rs.getRow(), loadRow(model.desc.rs.getRow()));
+							final K	keyDuplicated = duplicateRow(model.desc.rs.getRow(), loadRow(model.desc.rs.getRow()));
+							
+							listeners.fireEvent((l)->l.process(this, ContentChangedListener.ChangeType.DUPLICATED, keyDuplicated, ""));
 						}
 						break;
 					case SwingUtils.ACTION_DELETE		:
 						if (model.getRowCount() > 0) {
 							if (new JLocalizedOptionPane(localizer).confirm(this, CONFIRM_DELETE_MESSAGE, CONFIRM_DELETE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)  {
-								deleteRow(row + 1);
+								final K	keyRemoved = deleteRow(row + 1);
+								
+								listeners.fireEvent((l)->l.process(this, ContentChangedListener.ChangeType.DELETED, keyRemoved, ""));
 							}
 						}
 						break;
@@ -265,7 +330,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		return result.toArray(new String[result.size()]);
 	}
 	
-	private static class InnerTableModel extends DefaultTableModel implements NodeMetadataOwner {
+	private static class InnerTableModel<K,Inst> extends DefaultTableModel implements NodeMetadataOwner {
 		private static final long serialVersionUID = 4821572920544412802L;
 
 		private final ContentNodeMetadata	owner;
@@ -273,7 +338,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		private final Localizer				localizer;
 		private final boolean				enableEdit;
 		private volatile ContentDesc		desc = null; 
-		private Object						lastRow;
+		private Inst						lastRow;
 		private boolean						rsIsReadOnly = false;
 
 		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[] metadata, final Localizer localizer, final boolean enableEdit) {
@@ -417,7 +482,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			return metadata;
 		}
 
-		public void assignOwner(final JComponent owner, final ResultSet rs, final FormManager mgr, final InstanceManager instMgr) throws SQLException {
+		public void assignOwner(final JComponent owner, final ResultSet rs, final FormManager<K,Inst> mgr, final InstanceManager<K,Inst> instMgr) throws SQLException {
 			this.lastRow = instMgr != null ? instMgr.newInstance() : null;
 			this.rsIsReadOnly = rs != null && rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY;
 			this.desc = new ContentDesc(rs, mgr, instMgr, owner);

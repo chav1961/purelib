@@ -56,11 +56,19 @@ public interface InstanceManager<Key, Inst> extends AutoCloseable {
 	
 	/**
 	 * <p>Extract primary keys from instance</p>
-	 * @param inst instance to extract keys from. Can'tbe null
+	 * @param inst instance to extract keys from. Can't be null
 	 * @return key set extracted. Can't be null
 	 * @throws SQLException on any errors
 	 */
 	Key extractKey(Inst inst) throws SQLException;
+
+	/**
+	 * <p>Assign key to instance content.</p> 
+	 * @param inst instance to assign key for. Can't be null
+	 * @param key key set to assign. Can't be null
+	 * @throws SQLException
+	 */
+	void assignKey(Inst inst, Key key) throws SQLException;
 	
 	/**
 	 * <p>Clone existent instance with new unique primary key set</p>

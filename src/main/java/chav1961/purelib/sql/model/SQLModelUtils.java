@@ -229,6 +229,12 @@ public class SQLModelUtils {
 				public void storeInstance(PreparedStatement ps, Map<String, Object> inst, boolean update) throws SQLException {
 					throw new SQLException("Attempt to store content for read-only instance manager");
 				}
+
+				@Override
+				public void assignKey(Map<String, Object> inst, List<Entry<String, Object>> key) throws SQLException {
+					// TODO Auto-generated method stub
+					
+				}
 			};
 		}
 	}

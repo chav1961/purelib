@@ -577,5 +577,11 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		@Override
 		public void close() throws SQLException {
 		}
+
+		@Override
+		public void assignKey(VersionRecord inst, Long key) throws SQLException {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 }
