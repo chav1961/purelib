@@ -67,8 +67,6 @@ import chav1961.purelib.ui.inner.InternalConstants;
 import chav1961.purelib.ui.interfaces.LongItemAndReference;
 import chav1961.purelib.ui.interfaces.LongItemAndReferenceList;
 import chav1961.purelib.ui.interfaces.ReferenceAndComment;
-import chav1961.purelib.ui.interfaces.SpecialUIActionManager;
-import chav1961.purelib.ui.interfaces.SpecialUIActionManagerOwner;
 import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
 import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
 import chav1961.purelib.ui.swing.inner.LongItemAndReferenceListImpl;
@@ -99,7 +97,6 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 	private final JPopupMenu			popup;
 	private final JToolBar				toolbar;
 //	private final InnerTableModel<LongItemAndReference<T>>	model = new InnerTableModel<>();
-	private final SpecialUIActionManager	uiManager;
 	private LongItemAndReferenceList<T>	currentValue = new LongItemAndReferenceListImpl(), newValue = new LongItemAndReferenceListImpl();
 	private boolean						invalid = false;
 	
@@ -117,12 +114,10 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 			throw new IllegalArgumentException("Invalid node type ["+metadata.getType().getCanonicalName()+"] for the given control. Only "+Arrays.toString(VALID_CLASSES)+" are available");
 		}
 		else {
-			final SpecialUIActionManagerOwner	owner = SwingUtils.getNearestOwner(this, SpecialUIActionManagerOwner.class);
 			
 			this.metadata = metadata;
 			this.contentClass = metadata.getType();
 			this.localizer = localizer;
-			this.uiManager = owner != null ? owner.getSpecialActionManager() : null;
 			
 			this.popup = SwingUtils.toJComponent(InternalConstants.MDI.byUIPath(URI.create("ui:/model/navigation.top.JLongItemAndReferenceListWithMeta.menu")),JPopupMenu.class);
 			this.toolbar = SwingUtils.toJComponent(InternalConstants.MDI.byUIPath(URI.create("ui:/model/navigation.top.JLongItemAndReferenceListWithMeta.menu")),JToolBar.class);
