@@ -73,7 +73,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final JButton				callSelect = new JButton("...");
 	private final JPopupMenu			popup;
 	private File						lastFile = new File("./");
-	private Image						currentValue = null, newValue = null, grayScaleValue = null;
+	private volatile Image				currentValue = null, newValue = null, grayScaleValue = null;
 	private boolean						invalid = false;
 	
 	public JImageContainerWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException {
@@ -165,6 +165,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 
 			setFocusable(true);
 			setTransferHandler(new ImageAndFileTransferHandler(this));
+			
 			addMouseListener(new MouseListener() {
 				@Override public void mouseReleased(MouseEvent e) {}
 				@Override public void mousePressed(MouseEvent e) {}
@@ -185,6 +186,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			if (metadata.getFormatAssociated() != null && metadata.getFormatAssociated().getHeight() > 1) {
 				setPreferredSize(new Dimension(metadata.getFormatAssociated().getLength(), metadata.getFormatAssociated().getHeight()));
 			}
+			InternalUtils.registerAdvancedTooptip(this);
 			fillLocalizedStrings();
 		}
 	}
@@ -211,22 +213,31 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 
 	@Override
+	public String getToolTipText() {
+		if (newValue != null) {
+			return newValue.getWidth(null)+"*"+newValue.getHeight(null);
+		}
+		else {
+			return null;
+		}
+	}
+	
+	@Override
 	public void assignValueToComponent(final Object value) {
 		if (value instanceof Image) {
 			newValue = (Image)value;
-			repaint();
 		}
 		else if (value instanceof ImageKeeper) {
 			newValue = ((ImageKeeper)value).getImage();
-			repaint();
 		}
 		else if (value instanceof String) {
 			newValue = new ImageKeeper(value.toString()).getImage();
-			repaint();				
 		}
 		else if (value != null) {
 			throw new IllegalArgumentException("Value can't be null and must be String, Image or ImageKeeper instance only");
 		}
+		buildGrayScale();
+		repaint();				
 	}
 
 	@Override
@@ -311,14 +322,12 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	public void paintComponent(final Graphics g) {
 		final Graphics2D	g2d = (Graphics2D)g;
 		final Insets		insets = getInsets();
-		final Image			image = newValue != null ? newValue : (currentValue != null ? currentValue : new ImageKeeper().getImage()); 
+		final Image			image = !isEnabled() ? grayScaleValue : (newValue != null ? newValue : (currentValue != null ? currentValue : new ImageKeeper().getImage())); 
 		final int			x1 = insets.left, x2 = getWidth()-insets.right, y1 = insets.top, y2 = getHeight()-insets.bottom;
 
-		if (!isEnabled() && grayScaleValue == null) {
-			grayScaleValue = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_BYTE_GRAY);
-			grayScaleValue.getGraphics().drawImage(image, 0, 0, null);
+		if (image != null) {
+			g2d.drawImage(image, x1, y1, x2, y2, 0, 0, image.getWidth(null), image.getHeight(null), null);
 		}
-		g2d.drawImage(!isEnabled() ? grayScaleValue : image, x1, y1, x2, y2, 0, 0, image.getWidth(null), image.getHeight(null), null);
 	}
 
 	protected Image chooseImage(final Localizer localizer, final Image initialImage) throws HeadlessException, LocalizationException {
@@ -407,6 +416,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 
 	private void callLoad(final JComponentMonitor monitor) {
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
+			buildGrayScale();
 			currentValue = newValue;
 		} catch (ContentException exc) {
 			SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
@@ -427,6 +437,17 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		}
 	}
 
+	private void buildGrayScale() {
+		final Image		source = newValue != null ? newValue : currentValue;
+		
+		if (source != null) {
+			grayScaleValue = new BufferedImage(source.getWidth(null), source.getHeight(null), BufferedImage.TYPE_BYTE_GRAY);
+			grayScaleValue.getGraphics().drawImage(source, 0, 0, null);
+		}
+		else {
+			grayScaleValue = null;
+		}
+	}
 	
 	private static class ImageAndFileTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 608229074222584792L;
