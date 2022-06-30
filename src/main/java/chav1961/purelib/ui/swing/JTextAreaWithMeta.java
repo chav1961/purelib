@@ -119,7 +119,7 @@ public class JTextAreaWithMeta extends JTextArea implements NodeMetadataOwner, L
 				}
 			});
 
-			if (InternalUtils.checkMandatory(metadata)) {
+			if (InternalUtils.isContentMandatory(metadata)) {
 				InternalUtils.prepareMandatoryColor(this);
 			}
 			else {
@@ -198,7 +198,7 @@ public class JTextAreaWithMeta extends JTextArea implements NodeMetadataOwner, L
 				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
-		else if (InternalUtils.checkMandatory(getNodeMetadata())) {
+		else if (InternalUtils.isContentMandatory(getNodeMetadata())) {
 			if (val.toString().trim().isEmpty()) {
 				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_MANDATORY);
 			}

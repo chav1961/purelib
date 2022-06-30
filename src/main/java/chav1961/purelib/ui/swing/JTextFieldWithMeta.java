@@ -118,7 +118,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			});
 
-			if (InternalUtils.checkMandatory(metadata)) {
+			if (InternalUtils.isContentMandatory(metadata)) {
 				InternalUtils.prepareMandatoryColor(this);
 			}
 			else {
@@ -194,7 +194,7 @@ public class JTextFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
-		else if (InternalUtils.checkMandatory(getNodeMetadata())) {
+		else if (InternalUtils.isContentMandatory(getNodeMetadata())) {
 			if (val.toString().trim().isEmpty()) {
 				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_MANDATORY);
 			}

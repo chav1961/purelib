@@ -62,7 +62,7 @@ import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
 public class JImageContainerWithMeta extends JComponent implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = -4542351534072177624L;
 
-	public static final String 			IMAGE_NAME = "image";
+	public static final String 			CHOOSER_NAME = "chooser";
 	
 	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
 	private static final Class<?>[]		VALID_CLASSES = {Image.class, ImageKeeper.class};
@@ -160,7 +160,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			SwingUtils.assignActionKey(this, SwingUtils.KS_CONTEXTMENU, (e)->menu(), SwingUtils.ACTION_CONTEXTMENU);
 			
 			setName(name);
-			callSelect.setName(name+'/'+IMAGE_NAME);
+			callSelect.setName(name+'/'+CHOOSER_NAME);
 			InternalUtils.registerAdvancedTooptip(this);
 
 			setFocusable(true);
@@ -176,6 +176,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 					final Rectangle2D	rect = getBounds();
 					
 					if (e.getButton() == MouseEvent.BUTTON3 && e.getPoint().getX() < rect.getX()+rect.getWidth()-rect.getHeight()) {
+						JImageContainerWithMeta.this.requestFocusInWindow();
 						menu(e.getPoint());
 					}
 				}

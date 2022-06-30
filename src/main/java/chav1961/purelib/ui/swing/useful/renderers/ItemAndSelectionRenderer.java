@@ -54,7 +54,7 @@ public class ItemAndSelectionRenderer<T, R> implements SwingItemRenderer<ItemAnd
 				private final Map<Class<?>, ListCellRenderer>	nestedRenderers = new HashMap<>();
 
 				@Override
-				public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
 					final ItemAndSelection	sel = (ItemAndSelection)value;
 					final JLabel			label;
 					

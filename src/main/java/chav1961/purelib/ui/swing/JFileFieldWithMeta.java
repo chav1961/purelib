@@ -130,7 +130,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			});
 			if (format != null) {
-				if (InternalUtils.checkMandatory(metadata)) {
+				if (InternalUtils.isContentMandatory(metadata)) {
 					InternalUtils.prepareMandatoryColor(this);
 				}
 				else {

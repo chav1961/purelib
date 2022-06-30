@@ -475,7 +475,7 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 				}
 			}
 		});
-		if (InternalUtils.checkMandatory(metadata)) {
+		if (InternalUtils.isContentMandatory(metadata)) {
 			InternalUtils.prepareMandatoryColor(this);
 		}
 		else {

@@ -21,6 +21,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
@@ -292,7 +293,9 @@ public class JFreezableTable extends JTable {
 		return result;
 	}
 	
-	private static abstract class SplittedTableModel implements TableModel {
+	private static abstract class SplittedTableModel extends DefaultTableModel{
+		private static final long serialVersionUID = 1L;
+
 		private final LightWeightListenerList<TableModelListener>	ll = new LightWeightListenerList<>(TableModelListener.class);
 		
 		protected final TableModel				nested;
@@ -313,7 +316,12 @@ public class JFreezableTable extends JTable {
 		
 		@Override
 		public int getRowCount() {
-			return nested.getRowCount();
+			if (nested == null) {
+				return 0;
+			}
+			else {
+				return nested.getRowCount();
+			}
 		}
 
 		@Override

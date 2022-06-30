@@ -77,7 +77,7 @@ class InternalUtils {
 		return metadata.getFormatAssociated() != null && metadata.getFormatAssociated().isNullSupported(); 
 	}
 
-	static boolean checkMandatory(final ContentNodeMetadata metadata) {
+	static boolean isContentMandatory(final ContentNodeMetadata metadata) {
 		return metadata.getFormatAssociated() != null && metadata.getFormatAssociated().isMandatory(); 
 	}
 
@@ -86,6 +86,7 @@ class InternalUtils {
 		component.setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
 		if (component instanceof JTextComponent) {
 			((JTextComponent)component).setSelectedTextColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND);
+			((JTextComponent)component).setDisabledTextColor(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND.brighter());
 			((JTextComponent)component).setSelectionColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND);
 		}
 	}
@@ -95,6 +96,7 @@ class InternalUtils {
 		component.setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
 		if (component instanceof JTextComponent) {
 			((JTextComponent)component).setSelectedTextColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
+			((JTextComponent)component).setDisabledTextColor(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND.brighter());
 			((JTextComponent)component).setSelectionColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
 		}
 	}

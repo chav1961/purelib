@@ -142,7 +142,7 @@ public class JDateFieldWithMeta extends JFormattedTextField implements NodeMetad
 			});
 
 			if (format != null) {
-				if (InternalUtils.checkMandatory(metadata)) {
+				if (InternalUtils.isContentMandatory(metadata)) {
 					InternalUtils.prepareMandatoryColor(this);
 				}
 				else {

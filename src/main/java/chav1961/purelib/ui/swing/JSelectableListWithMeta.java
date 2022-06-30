@@ -296,7 +296,7 @@ public class JSelectableListWithMeta<T extends ItemAndSelection<T>> extends JLis
 				}
 			}
 		});
-		if (InternalUtils.checkMandatory(metadata)) {
+		if (InternalUtils.isContentMandatory(metadata)) {
 			InternalUtils.prepareMandatoryColor(this);
 		}
 		else {

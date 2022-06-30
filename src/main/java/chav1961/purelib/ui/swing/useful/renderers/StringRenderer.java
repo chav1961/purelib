@@ -45,7 +45,7 @@ public class StringRenderer<R> implements SwingItemRenderer<String, R> {
 				private static final long serialVersionUID = 0L;
 
 				@Override
-				public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
 					return super.getListCellRendererComponent(list, value== null ? null : value.toString(), index, isSelected, cellHasFocus);
 				}
 			};
@@ -55,8 +55,15 @@ public class StringRenderer<R> implements SwingItemRenderer<String, R> {
 				private static final long serialVersionUID = 0L;
 
 				@Override
-				public Component getTableCellRendererComponent(JTable list, Object value, boolean isSelected, boolean cellHasFocus, int row, int column) {
-					return super.getTableCellRendererComponent(list, value, isSelected, cellHasFocus, row, column);
+				public Component getTableCellRendererComponent(final JTable list, final Object value, final boolean isSelected, final boolean cellHasFocus, final int row, final int column) {
+					final Component	c = super.getTableCellRendererComponent(list, value, isSelected, cellHasFocus, row, column);
+					
+//					if (!list.isEnabled()) {
+//						c.setForeground(c.getForeground().brighter());
+//						c.setBackground(getBackground().darker());
+//					}
+//					
+					return c;
 				}
 			};
 		}

@@ -145,7 +145,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 				}
 			});
 
-			if (InternalUtils.checkMandatory(metadata)) {
+			if (InternalUtils.isContentMandatory(metadata)) {
 				InternalUtils.prepareMandatoryColor(this);
 			}
 			else {

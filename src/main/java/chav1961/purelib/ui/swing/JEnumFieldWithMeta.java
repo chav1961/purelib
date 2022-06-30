@@ -132,7 +132,7 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 			});
 
 			if (format != null) {
-				if (InternalUtils.checkMandatory(metadata)) {
+				if (InternalUtils.isContentMandatory(metadata)) {
 					InternalUtils.prepareMandatoryColor(this);
 				}
 				else {

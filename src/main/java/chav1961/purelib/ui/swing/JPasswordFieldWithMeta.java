@@ -113,7 +113,7 @@ public class JPasswordFieldWithMeta extends JPasswordField implements NodeMetada
 				}
 			});
 
-			if (InternalUtils.checkMandatory(metadata)) {
+			if (InternalUtils.isContentMandatory(metadata)) {
 				InternalUtils.prepareMandatoryColor(this);
 			}
 			else {
@@ -190,7 +190,7 @@ public class JPasswordFieldWithMeta extends JPasswordField implements NodeMetada
 				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_NULL_VALUE);
 			}
 		}
-		else if (InternalUtils.checkMandatory(getNodeMetadata())) {
+		else if (InternalUtils.isContentMandatory(getNodeMetadata())) {
 			if (((char[])val).length == 0) {
 				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_MANDATORY);
 			}

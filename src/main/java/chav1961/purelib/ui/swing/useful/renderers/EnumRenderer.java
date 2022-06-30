@@ -74,8 +74,14 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 						final JLabel				label = new JLabel();
 
 						label.setOpaque(true);
-						label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
-						label.setForeground(isSelected ?  list.getSelectionForeground() : list.getForeground());
+						if (list.isEnabled()) {
+							label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
+							label.setForeground(isSelected ?  list.getSelectionForeground() : list.getForeground());
+						}
+						else {
+							label.setBackground((isSelected ? list.getSelectionBackground() : list.getBackground()).darker());
+							label.setForeground((isSelected ?  list.getSelectionForeground() : list.getForeground()).brighter());
+						}
 						if (cellHasFocus) {
 							label.setBorder(new LineBorder(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
 						}

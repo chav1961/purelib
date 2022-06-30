@@ -179,7 +179,7 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 				}
 			});
 			if (format != null) {
-				if (InternalUtils.checkMandatory(metadata)) {
+				if (InternalUtils.isContentMandatory(metadata)) {
 					InternalUtils.prepareMandatoryColor(this);
 				}
 				else {
@@ -428,7 +428,7 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 				}
 			}
 		});
-		if (InternalUtils.checkMandatory(metadata)) {
+		if (InternalUtils.isContentMandatory(metadata)) {
 			InternalUtils.prepareMandatoryColor(this);
 		}
 		else {
