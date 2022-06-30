@@ -377,6 +377,30 @@ public class URIUtils {
 			}
 		}
 	}
+
+	/**
+	 * <p>Truncate query from multi-schemed URI</p>
+	 * @param uri uri to truncate query from
+	 * @return URI truncated
+	 * @throws NullPointerException when URI is null
+	 * @since 0.0.6
+	 */
+	public static URI truncateQueryFromURI(final URI uri) throws NullPointerException {
+		if (uri == null) {
+			throw new NullPointerException("URI to truncate query from can't be null");
+		}
+		else {
+			final String	content = uri.toString();
+			final int		index = content.lastIndexOf('?');
+			
+			if (index == -1) {
+				return uri;
+			}
+			else {
+				return URI.create(content.substring(0, index));
+			}
+		}
+	}
 	
 	/**
 	 * <p>Test weather URI has the given scheme at any depth</p>

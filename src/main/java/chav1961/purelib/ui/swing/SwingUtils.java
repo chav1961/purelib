@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Menu;
 import java.awt.MenuItem;
@@ -45,8 +46,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,6 +63,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -2421,6 +2425,36 @@ loop:			for (Component comp : children(node)) {
 			return false;
 		}
 	}
+
+	static ImageIcon extractIcon(final URI iconURI) throws IOException {
+		final URL		url = URIUtils.truncateQueryFromURI(iconURI).toURL();
+		final Image		image = ImageIO.read(url);
+		final String	query = URIUtils.extractQueryFromURI(iconURI);
+		
+		if (query != null) {
+			final Hashtable<String, String[]> 	q = URIUtils.parseQuery(query);
+			
+			if (q.containsKey("size")) {
+				final String[]	parts = q.get("size")[0].split("\\*");
+				
+				if (parts.length == 2) {
+					try{return new ImageIcon(image.getScaledInstance(Integer.valueOf(parts[0]), Integer.valueOf(parts[1]), Image.SCALE_DEFAULT));
+					} catch (NumberFormatException exc) {
+						return new ImageIcon(image);
+					}
+				}
+				else {
+					return new ImageIcon(image);
+				}
+			}
+			else {
+				return new ImageIcon(image);
+			}
+		}
+		else {
+			return new ImageIcon(image);
+		}
+	}
 	
 	static class JMenuBarWithMeta extends JMenuBar implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = 2873312186080690483L;
@@ -2515,7 +2549,7 @@ loop:			for (Component comp : children(node)) {
 			try{
 				fillLocalizedStrings();
 				if (metadata.getIcon() != null) {
-					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+					this.setIcon(extractIcon(metadata.getIcon()));
 				}
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
@@ -2562,7 +2596,7 @@ loop:			for (Component comp : children(node)) {
 			try{
 				fillLocalizedStrings();
 				if (metadata.getIcon() != null) {
-					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+					this.setIcon(extractIcon(metadata.getIcon()));
 				}
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
@@ -2610,7 +2644,7 @@ loop:			for (Component comp : children(node)) {
 			try{
 				fillLocalizedStrings();
 				if (metadata.getIcon() != null) {
-					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+					this.setIcon(extractIcon(metadata.getIcon()));
 				}
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();
@@ -2655,7 +2689,7 @@ loop:			for (Component comp : children(node)) {
 			try{
 				fillLocalizedStrings();
 				if (metadata.getIcon() != null) {
-					this.setIcon(new ImageIcon(metadata.getIcon().toURL()));
+					this.setIcon(extractIcon(metadata.getIcon()));
 				}
 			} catch (IOException | LocalizationException e) {
 				e.printStackTrace();

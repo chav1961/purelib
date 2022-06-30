@@ -380,6 +380,23 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	}
 
 	/**
+	 * <p>Close current tab programmatically</p>
+	 */
+	public void closeTab() {
+		if (tab instanceof AutoCloseable) {
+			try{((AutoCloseable)tab).close();
+			} catch (Exception exc) {
+				SwingUtils.getNearestLogger(this).message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
+			}
+		}
+		container.remove(tab);
+		container = null;
+		tab = null;
+		popup = null;
+	}
+	
+	
+	/**
 	 * <p>Place component into {@linkplain JTabbedPane} and associate {@linkplain JCloseableTab} label with it</p> 
 	 * @param container container to place component into
 	 * @param labelId tab id (see {@linkplain JTabbedPane#addTab(String, Component)}). Can't be null or empty
@@ -460,19 +477,6 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 
-	private void closeTab() {
-		if (tab instanceof AutoCloseable) {
-			try{((AutoCloseable)tab).close();
-			} catch (Exception exc) {
-				SwingUtils.getNearestLogger(this).message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
-			}
-		}
-		container.remove(tab);
-		container = null;
-		tab = null;
-		popup = null;
-	}
-	
 	private void prepare(final String path) throws LocalizationException, IllegalArgumentException {
 		final Font	oldFont = getFont(); 
 		
