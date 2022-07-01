@@ -23,6 +23,7 @@ import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.interfaces.ItemAndReference;
 import chav1961.purelib.ui.interfaces.LongItemAndReference;
 import chav1961.purelib.ui.interfaces.LongItemAndReferenceList;
+import chav1961.purelib.ui.interfaces.MimeBasedContent;
 
 /**
  * <p>This class describes format string associated with any model entity. Detailed format description see {@linkplain #FieldFormat(Class, String)}</p>
@@ -55,6 +56,7 @@ public class FieldFormat {
 		ImageContent,
 		ForeignKeyRefContent,
 		ForeignKeyRefListContent,
+		MimeBasedContent,
 		Unclassified
 	} 
 	
@@ -652,6 +654,9 @@ public class FieldFormat {
 				}
 				else if (LongItemAndReferenceList.class.isAssignableFrom(clazz)) {
 					return ContentType.ForeignKeyRefListContent;
+				}
+				else if (MimeBasedContent.class.isAssignableFrom(clazz)) {
+					return ContentType.MimeBasedContent;
 				}
 				else  {
 					return ContentType.Unclassified;

@@ -552,6 +552,9 @@ loop:			for (Component comp : children(node)) {
 				case ForeignKeyRefListContent	:
 					result = new JLongItemAndReferenceListWithMeta(metadata, localizer, monitor);
 					break;
+				case MimeBasedContent	:
+					result = new JMimeContentFieldWithMeta(metadata, localizer, monitor);
+					break;
 				case Unclassified	:
 				case NestedContent	:
 				case TimestampContent	:

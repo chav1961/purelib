@@ -6,7 +6,7 @@ import java.io.OutputStream;
 
 import chav1961.purelib.basic.MimeType;
 
-public interface MimeBasedContent {
+public interface MimeBasedContent extends PresentationOwner<String>{
 	MimeType getMimeType();
 	boolean isContentFilled();
 	long getContentSize() throws IOException;
