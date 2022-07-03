@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -53,8 +54,8 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 	private static final long 			serialVersionUID = 8167088888478756141L;
 
 	public static final String 			CHOOSER_NAME = "chooser";
-	
 	private static final Class<?>[]		VALID_CLASSES = {MimeBasedContent.class};
+	private static File					lastFile = new File("./"); 
 	
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
@@ -291,10 +292,9 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 	}
 
 	protected void assignValueToComponent(final File file) throws IOException {
-		try{final URLConnection connection = file.toURI().toURL().openConnection();
-			final String 		mimeTypeString = connection.getContentType();
-			final MimeType		mimeType = MimeType.parseMimeList(mimeTypeString)[0];
-			
+		try{final String 		mimeTypeString = Files.probeContentType(file.toPath());
+			final MimeType		mimeType =  MimeType.parseMimeList(mimeTypeString != null ? mimeTypeString : "application/octet-stream")[0];
+
 			newValue.setMimeType(mimeType);
 			try(final InputStream	is = new FileInputStream(file);
 				final OutputStream	os = newValue.putContent()) {
@@ -321,30 +321,12 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 
 	private void selectFile() {
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
-		
-			if (getValueType().isAssignableFrom(File.class)) {
-				final File	result = chooseFile(localizer,(File)currentValue);
-				
-				if (result != null) {
-					assignValueToComponent(result);
-					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
-				}
-			}
-			else if (getValueType().isAssignableFrom(FileKeeper.class)) {
-				final File	result = chooseFile(localizer,((FileKeeper)currentValue).toFile());
-				
-				if (result != null) {
-					assignValueToComponent(result);
-					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
-				}
-			}
-			else {
-				final FileSystemInterface	result = InternalUtils.chooseFileSystem(this, localizer, (FileSystemInterface)currentValue);
-				
-				if (result != null) {
-					assignValueToComponent(result);
-					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
-				}
+			final File		result = chooseFile(localizer, lastFile);
+			
+			if (result != null) {
+				lastFile = result;
+				assignValueToComponent(result);
+				getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 			}
 		} catch (HeadlessException | IOException exc) {
 			SwingUtils.getNearestLogger(JMimeContentFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());

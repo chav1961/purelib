@@ -328,6 +328,7 @@
 <!-- JLongItemAndReferenceFieldWithMeta class localization -->
 		<key name="JLongItemAndReferenceFieldWithMeta.select.title">Select record you need</key>
 		<key name="JLongItemAndReferenceFieldWithMeta.select.typefilter">Filter:</key>
+		<key name="JLongItemAndReferenceFieldWithMeta.not.defined">&lt;Not defined&gt;</key>
 
 <!-- JLongItemAndReferenceListWithMeta class localization -->
 		<key name="JLongItemAndReferenceListWithMeta.menu.copy">Copy</key>
@@ -688,6 +689,7 @@
 <!-- Локализация класса JLongItemAndReferenceFieldWithMeta -->
 		<key name="JLongItemAndReferenceFieldWithMeta.select.title">Выберите нужную запись</key>
 		<key name="JLongItemAndReferenceFieldWithMeta.select.typefilter">Фильтр:</key>
+		<key name="JLongItemAndReferenceFieldWithMeta.not.defined">&lt;Не задано&gt;</key>
 
 <!-- Локализация класса JLongItemAndReferenceListWithMeta -->
 		<key name="JLongItemAndReferenceListWithMeta.menu.copy">Копировать</key>

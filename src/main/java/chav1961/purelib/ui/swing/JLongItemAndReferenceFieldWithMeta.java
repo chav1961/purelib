@@ -59,6 +59,7 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 	public static final String 			CHOOSER_NAME = "chooser";
 	public static final String 			KEY_TITLE = "JLongItemAndReferenceFieldWithMeta.select.title";
 	public static final String 			KEY_FILTER = "JLongItemAndReferenceFieldWithMeta.select.typefilter";
+	public static final String 			KEY_NOT_DEFINED = "JLongItemAndReferenceFieldWithMeta.not.defined";
 	public static final long			REFRESH_DELAY_MILLISECONDS = 300;
 
 	private static final Class<?>[]		VALID_CLASSES = {ItemAndReference.class};
@@ -207,8 +208,15 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 	@Override
 	public void assignValueToComponent(Object value) throws ContentException {
 		if (value instanceof ItemAndReference) {
-			newValue = (LongItemAndReference<?>)value; 
-			setText(newValue.getPresentation().toString());
+			newValue = (LongItemAndReference<?>)value;
+			final Object	presentation = newValue.getPresentation(); 
+			
+			if (presentation != null) {
+				setText(presentation.toString());
+			}
+			else {
+				setText(localizer.getValue(KEY_NOT_DEFINED));
+			}
 		}
 		else {
 			throw new ContentException("Value is null or doesn't implement ItemAndReference interface"); 
