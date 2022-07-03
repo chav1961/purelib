@@ -15,8 +15,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
@@ -55,8 +53,8 @@ import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
-import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
+import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
 
 public class JImageContainerWithMeta extends JComponent implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
@@ -64,8 +62,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 
 	public static final String 			CHOOSER_NAME = "chooser";
 	
-	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
-	private static final Class<?>[]		VALID_CLASSES = {Image.class, ImageKeeper.class};
+	private static final Class<?>[]		VALID_CLASSES = {ImageKeeper.class};
 
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
@@ -73,7 +70,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final JButton				callSelect = new JButton("...");
 	private final JPopupMenu			popup;
 	private File						lastFile = new File("./");
-	private volatile Image				currentValue = null, newValue = null, grayScaleValue = null;
+	private volatile ImageKeeper		currentValue = null, newValue = null;
+	private volatile Image				grayScaleValue = null;
 	private boolean						invalid = false;
 	
 	public JImageContainerWithMeta(final ContentNodeMetadata metadata, final Localizer localizer, final JComponentMonitor monitor) throws LocalizationException {
@@ -105,7 +103,12 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 				public void focusLost(final FocusEvent e) {
 					try{if (!Objects.equals(newValue, currentValue)) {
 							if (monitor.process(MonitorEvent.Validation,metadata,JImageContainerWithMeta.this) && monitor.process(MonitorEvent.Saving,metadata,JImageContainerWithMeta.this)) {
-								currentValue = newValue;
+								if (currentValue == null) {
+									currentValue = newValue;
+								}
+								else {
+									currentValue.setImage(newValue.getImage());
+								}
 							}
 						}
 						monitor.process(MonitorEvent.FocusLost,metadata,JImageContainerWithMeta.this);
@@ -129,7 +132,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JImageContainerWithMeta.this)) {
-						assignValueToComponent(currentValue);
+						assignValueInternal(currentValue);
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
@@ -199,7 +202,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	
 	@Override
 	public String getRawDataFromComponent() {
-		return currentValue == null ? null : new ImageKeeper(currentValue).toString();
+		return "";
 	}
 
 	@Override
@@ -215,7 +218,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	@Override
 	public String getToolTipText() {
 		if (newValue != null) {
-			return newValue.getWidth(null)+"*"+newValue.getHeight(null);
+			return getAsImage().getWidth(null)+"*"+getAsImage().getHeight(null);
 		}
 		else {
 			return null;
@@ -224,17 +227,11 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	
 	@Override
 	public void assignValueToComponent(final Object value) {
-		if (value instanceof Image) {
-			newValue = (Image)value;
+		if (value instanceof ImageKeeper) {
+			assignValueInternal((ImageKeeper)value);
 		}
-		else if (value instanceof ImageKeeper) {
-			newValue = ((ImageKeeper)value).getImage();
-		}
-		else if (value instanceof String) {
-			newValue = new ImageKeeper(value.toString()).getImage();
-		}
-		else if (value != null) {
-			throw new IllegalArgumentException("Value can't be null and must be String, Image or ImageKeeper instance only");
+		else {
+			throw new IllegalArgumentException("Value can't be null and must be ImageKeeper instance only");
 		}
 		buildGrayScale();
 		repaint();				
@@ -242,7 +239,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 
 	@Override
 	public Class<?> getValueType() {
-		return Image.class;
+		return ImageKeeper.class;
 	}
 
 	@Override
@@ -322,7 +319,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	public void paintComponent(final Graphics g) {
 		final Graphics2D	g2d = (Graphics2D)g;
 		final Insets		insets = getInsets();
-		final Image			image = !isEnabled() ? grayScaleValue : (newValue != null ? newValue : (currentValue != null ? currentValue : new ImageKeeper().getImage())); 
+		final Image			image = !isEnabled() ? grayScaleValue : (newValue != null ? getAsImage(newValue) : (currentValue != null ? getAsImage(currentValue) : new ImageKeeper().getImage())); 
 		final int			x1 = insets.left, x2 = getWidth()-insets.right, y1 = insets.top, y2 = getHeight()-insets.bottom;
 
 		if (image != null) {
@@ -348,13 +345,36 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		}
 	}
 
+	private void assignValueInternal(final ImageKeeper value) {
+		if (newValue == null) {
+			try{newValue = (ImageKeeper)value.clone();
+			} catch (CloneNotSupportedException e) {
+				throw new UnsupportedOperationException(e);
+			} 
+		}
+		newValue.setImage(value.getImage());
+	}
+	
+	private Image getAsImage() {
+		return getAsImage(newValue);
+	}
+
+	private Image getAsImage(Object value) {
+		if (value instanceof ImageKeeper) {
+			return ((ImageKeeper)value).getImage();
+		}
+		else {
+			return (Image)value;
+		}
+	}
+	
 	private File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
 		return InternalUtils.chooseFile(this, localizer, initialFile);
 	}
 	
 	@OnAction("action:/menu.copy")
 	private void copyContent() {
-		final Image		img = newValue != null ? newValue : currentValue;  
+		final Image		img = newValue != null ? getAsImage(newValue) : getAsImage(currentValue);  
 		
 		if (img != null) {
 			final Clipboard		cb = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -373,7 +393,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final Clipboard	cb = Toolkit.getDefaultToolkit().getSystemClipboard();
 		
 		if (cb.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
-			try{assignValueToComponent(cb.getData(DataFlavor.imageFlavor));
+			try{assignValueInternal(new ImageKeeper((Image)cb.getData(DataFlavor.imageFlavor)));
 			} catch (UnsupportedFlavorException | IOException exc) {
 				SwingUtils.getNearestLogger(this).message(Severity.error, exc, "error pasting image");
 			}
@@ -407,7 +427,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 	
 	private void selectImage() {
-		try{assignValueToComponent(chooseImage(localizer, currentValue));
+		try{assignValueInternal(new ImageKeeper(chooseImage(localizer, getAsImage(currentValue))));
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
@@ -438,7 +458,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 
 	private void buildGrayScale() {
-		final Image		source = newValue != null ? newValue : currentValue;
+		final Image		source = newValue != null ? getAsImage(newValue) : getAsImage(currentValue);
 		
 		if (source != null) {
 			grayScaleValue = new BufferedImage(source.getWidth(null), source.getHeight(null), BufferedImage.TYPE_BYTE_GRAY);

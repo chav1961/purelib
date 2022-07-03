@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.Utils.EverywhereWalkerCollector.ReferenceType;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -103,18 +105,21 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 
 public class Utils {
 	private static final AtomicInteger		AI = new AtomicInteger();
-	private static AsmWriter				writer;
+	private static final AsmWriter			ASM_WRITER;
+	private static final Map<String,String>	HARDCODED_MIMES = new HashMap<>();
+	
 	
 	static {
-		prepareStatic();
+		ASM_WRITER = prepareStatic();
+		HARDCODED_MIMES.put("djvu","image/vnd.djvu");
 	}
 
-	private static void prepareStatic() {
+	private static AsmWriter prepareStatic() {
 		try{final AsmWriter			tempWriter = new AsmWriter(new ByteArrayOutputStream(),new OutputStreamWriter(System.err));
 		
 			try(final InputStream	is = GettersAndSettersFactory.class.getResourceAsStream("utilsmacros.txt");
@@ -122,7 +127,7 @@ public class Utils {
 				
 				Utils.copyStream(rdr,tempWriter);
 			}
-			writer = tempWriter;
+			return tempWriter;
 		} catch (NullPointerException | IOException e) {
 			PureLibSettings.CURRENT_LOGGER.message(Severity.error,"Utils class initialization failure: "+e.getLocalizedMessage(), e);
 			throw new PreparationException(e);
@@ -790,6 +795,7 @@ public class Utils {
 	 * @since 0.0.2
 	 * @deprecated use CompilerUtils.toWrappedClass(Class) instead
 	 */
+	@Deprecated(since="0.0.5")
 	public static Class<?> primitive2Wrapper(final Class<?> clazz) throws NullPointerException, IllegalArgumentException {
 		return CompilerUtils.toWrappedClass(clazz);
 	}
@@ -1261,6 +1267,48 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	public static <T> T preventRecursiveCall(final Throwable t) throws Throwable {
 		throw t;
 	}
+
+	/**
+	 * <p>Define MIME type for file content by it's extension</p>
+	 * @param file file to define MIME type for. Can't be null
+	 * @return MIME type, or {@value PureLibSettings#MIME_OCTET_STREAM} when can't be defined
+	 * @throws NullPointerException when file is null
+	 * @since 0.0.6
+	 */
+	public static MimeType mimeByFile(final File file) throws NullPointerException{
+		if (file == null) {
+			throw new NullPointerException("File to get MIME for can't be null");
+		}
+		else {
+			try{final String	mime = Files.probeContentType(file.toPath());
+			
+				if (mime != null) {
+					return MimeType.parseMimeList(mime)[0];
+				}
+				else{
+					final String	name = file.getName();
+					final int		index = name.lastIndexOf('.');
+					
+					if (index > 0) {
+						final String	ext = name.substring(index + 1);
+						
+						if (HARDCODED_MIMES.containsKey(ext)) {
+							return MimeType.parseMimeList(HARDCODED_MIMES.get(ext))[0];
+						}
+						else {
+							return PureLibSettings.MIME_OCTET_STREAM;
+						}
+					}
+					else {
+						return PureLibSettings.MIME_OCTET_STREAM;
+					}
+				}
+			} catch (IOException | MimeParseException e) {
+				return PureLibSettings.MIME_OCTET_STREAM;
+			}
+		}
+	}
+	
 	
 	@FunctionalInterface
 	public interface DirectProxyExecutor {
@@ -1360,7 +1408,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			gca.append(" printProxyClassEnd \"").append(className).append("\"\n");
 			
 			try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
-				try(final AsmWriter			wr = writer.clone(loader,baos)) {
+				try(final AsmWriter			wr = ASM_WRITER.clone(loader,baos)) {
 					wr.write(gca.extract());
 					wr.flush();
 				}
@@ -1395,7 +1443,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		gca.append(" printDPEClassEnd \"").append(className).append("\"\n");
 		
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
-			try(final AsmWriter			wr = writer.clone(loader,baos)) {
+			try(final AsmWriter			wr = ASM_WRITER.clone(loader,baos)) {
 				wr.write(gca.extract());
 				wr.flush();
 			}

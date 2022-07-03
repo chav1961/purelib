@@ -292,19 +292,13 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 	}
 
 	protected void assignValueToComponent(final File file) throws IOException {
-		try{final String 		mimeTypeString = Files.probeContentType(file.toPath());
-			final MimeType		mimeType =  MimeType.parseMimeList(mimeTypeString != null ? mimeTypeString : "application/octet-stream")[0];
-
-			newValue.setMimeType(mimeType);
-			try(final InputStream	is = new FileInputStream(file);
-				final OutputStream	os = newValue.putContent()) {
-				
-				Utils.copyStream(is, os);
-			}
-			setText(newValue.getPresentation());
-		} catch (MimeParseException  e) {
-			throw new IOException(e.getLocalizedMessage(), e);
+		try(final InputStream	is = new FileInputStream(file);
+			final OutputStream	os = newValue.putContent()) {
+			
+			Utils.copyStream(is, os);
 		}
+		newValue.setMimeType(Utils.mimeByFile(file));
+		setText(newValue.getPresentation());
 	}
 	
 	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {

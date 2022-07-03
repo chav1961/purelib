@@ -15,7 +15,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.streams.byte2char.Byte2HexOutputStream;
 import chav1961.purelib.streams.char2byte.Hex2ByteInputStream;
 
-public class ImageKeeper implements Serializable {
+public class ImageKeeper implements Serializable, Cloneable {
 	private static final long 	serialVersionUID = 8962529989993415955L;
 	private static final String	EMPTY_RESOURCE_NAME = "empty.png";
 	private static final Image	EMPTY;
@@ -69,6 +69,13 @@ public class ImageKeeper implements Serializable {
 		}
 	}
 	
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		try{return super.clone();
+		} catch (CloneNotSupportedException exc) {
+			return new ImageKeeper();
+		}
+	}
 	
 	@Override
 	public String toString() {

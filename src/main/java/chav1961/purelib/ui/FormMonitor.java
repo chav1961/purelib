@@ -131,9 +131,13 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 				getLogger().message(Severity.tooltip,"");
 				break;
 			case Saving:
-				try{final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
+				final Object	oldValue = ((JComponentInterface)component).getValueFromComponent();
+				final Object	newValue = ((JComponentInterface)component).getChangedValueFromComponent();
+							
+				try{final Object	toStore = newValue != null && !metadata.getType().isAssignableFrom(newValue.getClass()) ? SQLUtils.convert(metadata.getType(), newValue) : newValue;
 				
-					ModelUtils.setValueBySetter(instance, SQLUtils.convert(metadata.getType(),((JComponentInterface)component).getChangedValueFromComponent()), accessors.get(metadata.getUIPath()), metadata);
+					ModelUtils.setValueBySetter(instance, toStore, accessors.get(metadata.getUIPath()), metadata);
+					
 					switch (processRefreshMode(formMgr.onField(instance,null,metadata.getName(),oldValue,false), event, metadata, component, parameters)) {
 						case FIELD_ONLY : case DEFAULT : case NONE :
 							break;
@@ -152,6 +156,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 							break;
 					}
 				} catch (FlowException | ContentException | RuntimeException exc) {
+					exc.printStackTrace();
 					getLogger().message(Severity.error,exc,"Saving for [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 				}
 				break;

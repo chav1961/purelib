@@ -443,6 +443,7 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 		
 			if (edit(liar)) {
 				((DefaultListModel)getModel()).addElement(liar);
+				newValue.add(liar);
 				setSelectedIndex(getModel().getSize() - 1);
 				ensureIndexIsVisible(getModel().getSize() - 1);
 				SwingUtilities.invokeLater(()->requestFocusInWindow());
@@ -487,18 +488,24 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 	private void delete() {
 		if (getSelectedIndex() >= 0 && getModel().getSize() > 1) {
 			delete(getSelectedIndex());
+			newValue.remove(getSelectedIndex());
 		}
 		SwingUtilities.invokeLater(()->requestFocusInWindow());
 	}
 	
 	private void delete(final int rowIndex) {
 		if (rowIndex >= 0) {
-			((DefaultListModel<?>)getModel()).remove(rowIndex);
-			
-			final int	selection = Math.min(rowIndex, getModel().getSize() - 1);
-			
-			setSelectedIndex(selection);
-			ensureIndexIsVisible(selection);
+			if (((DefaultListModel<?>)getModel()).getSize() > 1) {
+				((DefaultListModel<?>)getModel()).remove(rowIndex);
+				
+				final int	selection = Math.min(rowIndex, getModel().getSize() - 1);
+				
+				setSelectedIndex(selection);
+				ensureIndexIsVisible(selection);
+			}
+			else {
+				SwingUtils.getNearestLogger(this).message(Severity.warning, "Can't delete from list, at lest one item must present");
+			}
 		}
 	}
 
