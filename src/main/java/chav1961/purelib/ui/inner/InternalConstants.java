@@ -36,6 +36,7 @@ public class InternalConstants {
 	public static final ImageIcon	ICON_TABLE;
 	public static final ImageIcon	ICON_UPPERLEFT_QUAD;
 	public static final ImageIcon	ICON_LOWERRIGHT_QUAD;
+	public static final ImageIcon	ICON_EYE;
 	
 	public static final ContentMetadataInterface	MDI; 
 
@@ -66,6 +67,7 @@ public class InternalConstants {
 			ICON_FOLDER = loadIcon("folder.png");
 			ICON_UPPERLEFT_QUAD = loadIcon("upperleft.png");
 			ICON_LOWERRIGHT_QUAD = loadIcon("lowerright.png");
+			ICON_EYE = loadIcon("eye.png");
 			
 			MDI = ContentModelFactory.forXmlDescription(InternalConstants.class.getResourceAsStream("application.xml"));			
 		} catch (IOException | EnvironmentException e) {

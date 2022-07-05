@@ -13,6 +13,10 @@ import java.awt.Taskbar;
 import java.awt.Taskbar.Feature;
 import java.awt.Taskbar.State;
 import java.awt.Window;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,10 +33,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
@@ -41,6 +47,7 @@ import javax.swing.table.DefaultTableModel;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -51,8 +58,11 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.inner.InternalConstants;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.interfaces.FunctionalMouseListener;
+import chav1961.purelib.ui.swing.interfaces.FunctionalMouseListener.EventType;
 
 /**
  * <p>This is a swing component for state string at the bottom of the application window. It can show any messages, view short history of them and indicate some
@@ -69,6 +79,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
 public class JStateString extends JPanel implements LoggerFacade, ProgressIndicator, LocaleChangeListener {
 	private static final long 		serialVersionUID = 5199220144621261938L;
 	private static final String		STATESTRING_HISTORY = "JStateString.history";
+	private static final String		STATESTRING_THROWABLE = "JStateString.throwable";
 	private static final Object[]	EMPTY_LIST = new Object[0];
 	private static final String		COMMON_PANEL = "commonPanel";
 	private static final String		STAGED_PANEL = "stagedPanel";
@@ -118,6 +129,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private volatile boolean		canceled = false;
 	private int[]					timeouts = new int[Severity.values().length];
 	private long					progressBarTotal = 0;
+	private Throwable				lastThrowable = null;
 	
 	/**
 	 * <p>Create ordinal state string with no history and no logging</p>
@@ -765,6 +777,22 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			}
 		});
 		historyView.addActionListener((e)->{viewHistory();});
+		state.addMouseListener(((FunctionalMouseListener)(ct,e)->{
+			if (ct == EventType.CLICKED && e.getPoint().x < state.getHeight() && state.getIcon() != null && lastThrowable != null) {
+				try(final Writer		wr = new StringWriter();
+					final PrintWriter	pw = new PrintWriter(wr)){
+					
+					lastThrowable.printStackTrace(pw);
+					pw.flush();
+					
+					final JScrollPane	pane = new JScrollPane(new JTextArea(wr.toString()));
+					
+					pane.setPreferredSize(new Dimension(1024, 768));
+					new JLocalizedOptionPane(localizer).message(null, pane, STATESTRING_THROWABLE, JOptionPane.WARNING_MESSAGE);
+				} catch (IOException e1) {
+				}
+			}
+		}));
 	}
 
 	private void fillLocalizedStrings() {
@@ -919,17 +947,23 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 				default:
 					break;
 			}
+			if ((lastThrowable = throwable) != null) {
+				state.setIcon(InternalConstants.ICON_EYE);
+			}
+			else {
+				state.setIcon(null);
+			}
 			final TimerTask	old;
 			
 			if (timeouts[level.ordinal()] > 0) {
-				final TimerTask	temp = new TimerTask() {
-											@Override
-											public void run() {
-												state.setText("");
-											}
-										};
-				PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(temp,timeouts[level.ordinal()]);
-				old = tt.getAndSet(temp);
+//				final TimerTask	temp = new TimerTask() {
+//											@Override
+//											public void run() {
+//												state.setText("");
+//											}
+//										};
+//				PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(temp, timeouts[level.ordinal()]);
+				old = tt.getAndSet(/*temp*/SimpleTimerTask.start(()->state.setText(""), timeouts[level.ordinal()]));
 			}
 			else {
 				old = tt.getAndSet(null);

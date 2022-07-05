@@ -2,9 +2,7 @@ package chav1961.purelib.basic;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import chav1961.purelib.basic.exceptions.MimeParseException;
@@ -104,22 +102,92 @@ public class MimeType implements Serializable {
 		this.attr = new Properties();
 	}
 
+	/**
+	 * <p>Get primary MIME type</p>
+	 * @return primary MIME type. Can't be null
+	 */
 	public String getPrimaryType() {
 		return primaryType;
 	}
 
+	/**
+	 * <p>Get subtype</p>
+	 * @return MIME subtype. Can't be null
+	 */
 	public String getSubType() {
 		return subType;
 	}
 
+	/**
+	 * <p>Get MIME attributes.</p>
+	 * @return MIME attributes. Can be empty, but not null.
+	 */
 	public Properties getAttr() {
 		return attr;
 	}
 	
-	public boolean match(final MimeType targetType) {
-		return equals(targetType);
+	/**
+	 * <p>Is MIME type matches another MIME</p>
+	 * @param targetType type to match to
+	 * @return true if match
+	 * @throws NullPointerException on null parameters
+	 */
+	public boolean match(final MimeType targetType) throws NullPointerException {
+		if (targetType == null) {
+			throw new NullPointerException("Target type can't be null"); 
+		}
+		else {
+			return equals(targetType);
+		}
+	}
+	
+	/**
+	 * <p>Is MIME type contains in the other type. Type contains when it's primary type equals with another one, and it's subtype is equals or contains with another subtype</p>   
+	 * @param another type to test with
+	 * @return true if contains
+	 * @throws NullPointerException on null parameters
+	 * @see #containerOf(MimeType)
+	 * @since 0.0.6
+	 */
+	public boolean containsIn(final MimeType another) {
+		if (another == null) {
+			throw new NullPointerException("Target type can't be null"); 
+		}
+		else if (getPrimaryType().equals(another.getPrimaryType())) {
+			if (ASTERISK_SUBTYPE.equals(another.getSubType())) {
+				return true;
+			}
+			else {
+				for (String item : another.getSubType().split("\\+")) {
+					if (item.equals(getSubType())) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
 	}
 
+	/**
+	 * <p>Is MIME type a container for another MIME. This is an inversion of {@linkplain #containsIn(MimeType)} function.</p>
+	 * @param another type to test with
+	 * @return true if it is a container
+	 * @throws NullPointerException on null parameters
+	 * @see #containsIn(MimeType)
+	 * @since 0.0.6
+	 */
+	public boolean containerOf(final MimeType another) {
+		if (another == null) {
+			throw new NullPointerException("Target type can't be null"); 
+		}
+		else {
+			return another.containsIn(this);
+		}
+	}
+	
 	/**
 	 * <p>Parse MIME string and return array of MIMEs parsed. Format of MIME string see {@linkplain #parseMimeList(char[], int, int)}<br>
 	 * @param mimeList string contains MIME to parse
