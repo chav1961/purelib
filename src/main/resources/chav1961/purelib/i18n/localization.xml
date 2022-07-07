@@ -361,6 +361,24 @@
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model.tt">Model</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created">Created</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created.tt">Created</key>
+
+<!-- FontStyleType enum localization -->
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.plain">Plain</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.plain.tt">Plain font style</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bold">Bold</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bold.tt">Bold font style</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.italic">Italic</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.italic.tt">Italic font style</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bolditalic">Bold &amp; Italic</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bolditalic.tt">Bold and italic font style</key>
+
+<!-- JFontSelectionDialog class localization-->
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.selectFont">Select font</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontName">Font name</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontStyle">Font style</key>		
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontSize">Font size</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sample">Sample</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sampleText">AaBbYyZz</key>
 		
 	</lang>
 	<lang name="ru">
@@ -724,6 +742,23 @@
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created">Дата создания</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created.tt">Дата создания</key>
 
+<!-- Локализация нумерации FontStyleType -->
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.plain">Обычный</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.plain.tt">Обычный стиль</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bold">Жирный</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bold.tt">Жирный стиль</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.italic">Курсив</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.italic.tt">Стиль курсив</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bolditalic">Жирный курсив</key>
+		<key name="chav1961.purelib.ui.swing.useful.interfaces.FontStyleType.bolditalic.tt">Стиль жирный и курсив</key>
+
+<!-- Локализация класса JFontSelectionDialog -->
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.selectFont">Выбрать шрифт</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontName">Имя шрифта</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontStyle">Стиль шрифта</key>		
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontSize">Размер</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sample">Пример шрифта</key>
+		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sampleText">АаБбЮюЯя</key>
 
 	</lang>
 </localization>

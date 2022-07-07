@@ -51,7 +51,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @since 0.0.4
  * @lastUpdate 0.0.5
  */
-public class JDialogContainer<Common,ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener {
+public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener {
 	private static final long 	serialVersionUID = 8956769935164098957L;
 	private static final String	OK_TEXT = "OK";
 	private static final String	CANCEL_TEXT = "CANCEL";
@@ -348,7 +348,7 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content extends 
 				item.prepare(common,temporary);
 			}
 			this.result = false;
-//			pack();
+			pack();
 			setVisible(true);
 			dispose();
 			for (WizardStep<Common, ErrorType, Content> item : steps) {
@@ -363,12 +363,13 @@ public class JDialogContainer<Common,ErrorType extends Enum<?>, Content extends 
 				SwingUtils.centerMainWindow(this,0.5f);
 			}
 			else {
+				setSize(new Dimension(innerSize.width + 10, innerSize.height + 50));
 				setLocationRelativeTo(parent);
 			}
 			
 			this.result = false;
 			
-//			pack();
+			pack();
 			setVisible(true);
 			dispose();
 			return this.result;
