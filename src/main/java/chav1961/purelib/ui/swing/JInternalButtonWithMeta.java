@@ -121,10 +121,12 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 				break;
 			case ICON_INLY		:
 				setIcon(loadImageIcon(getNodeMetadata().getIcon()));
+				InternalUtils.cropButtonByIcon(this);
 				break;
 			case ICON_THEN_TEXT	:
 				if (getNodeMetadata().getIcon() != null) {
 					setIcon(loadImageIcon(getNodeMetadata().getIcon()));
+					InternalUtils.cropButtonByIcon(this);
 					break;
 				}
 				// break doesn't need!
