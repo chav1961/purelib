@@ -17,9 +17,10 @@ import javax.swing.JComponent;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.LocalizerOwner;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 
-public class JBackgroundComponent extends JComponent implements LocaleChangeListener, ImageObserver {
+public class JBackgroundComponent extends JComponent implements LocaleChangeListener, ImageObserver, LocalizerOwner {
 	private static final long 	serialVersionUID = 5947661254360981622L;
 
 	public static enum FillMode {
@@ -43,6 +44,11 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 		}
 	}
 
+	@Override
+	public Localizer getLocalizer() {
+		return localizer;
+	}
+	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		// TODO Auto-generated method stub
