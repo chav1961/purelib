@@ -29,7 +29,6 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 		SQUARES
 	}
 	
-	
 	private final Localizer 	localizer;
 	private FillMode			currentFillMode = FillMode.FILL;
 	private Image				currentImage = null;
@@ -107,18 +106,19 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 		if (imgWidth != -1 && imgHeight != -1) {
 			final Graphics2D		g2d = (Graphics2D)g;
 			final Dimension			windowSize = getSize();
+			final AffineTransform	oldAt = g2d.getTransform();
 			final AffineTransform	at = new AffineTransform();
 			
 			switch (currentFillMode) {
 				case FILL		:
 					at.scale(1.0*windowSize.width/imgWidth,1.0*windowSize.height/imgHeight);
-					g2d.drawImage(currentImage,at,this);
+					g2d.drawImage(currentImage, at, this);
 					break;
 				case ORIGINAL	:
 					g2d.setColor(Color.GRAY);
 					g2d.fillRect(0, 0, windowSize.width, windowSize.height);
-					at.translate((windowSize.width - imgWidth)/2,1.0*(windowSize.height - imgHeight)/2);
-					g2d.drawImage(currentImage,at,this);
+//					at.translate((windowSize.width - imgWidth)/2,1.0*(windowSize.height - imgHeight)/2);
+					g2d.drawImage(currentImage, at, this);
 					break;
 				case SQUARES	:
 					for (int x = 0, maxX = (windowSize.width + 1 ) / imgWidth; x < maxX; x++) {
@@ -126,14 +126,14 @@ public class JBackgroundComponent extends JComponent implements LocaleChangeList
 							final AffineTransform	sq = new AffineTransform();
 							
 							sq.translate(x * imgWidth,y * imgHeight);
-							g2d.drawImage(currentImage,sq,this);
+							g2d.drawImage(currentImage, sq, this);
 						}
 					}
 					break;
 				default :
 					throw new UnsupportedOperationException("Fill mode ["+currentFillMode+"] is not supported yet"); 
 			}
-			
+			g2d.setTransform(oldAt);			
 		}
 		else {
 			super.paintComponent(g);
