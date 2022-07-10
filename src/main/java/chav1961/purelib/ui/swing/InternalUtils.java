@@ -15,21 +15,25 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimerTask;
 
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.ToolTipManager;
 import javax.swing.text.InternationalFormatter;
@@ -37,6 +41,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -60,6 +65,10 @@ class InternalUtils {
 
 	static final BufferedImage	BUFFERED_IMAGE = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
 
+	static enum IconType {
+		ORDINAL, TOGGLED, PRESSED
+	}
+	
 	interface ComponentListenerCallback {
 		void process();
 	}
@@ -297,6 +306,14 @@ class InternalUtils {
 			button.setPreferredSize(new Dimension(icon.getIconWidth() + 2, icon.getIconHeight() + 2));
 		}
 	}
+
+	static void cropButtonByIcon(final JToggleButton button) {
+		final Icon	icon = button.getIcon();
+		
+		if (icon != null) {
+			button.setPreferredSize(new Dimension(icon.getIconWidth() + 2, icon.getIconHeight() + 2));
+		}
+	}
 	
 	static void cropToolbarButtonsByIcons(final JToolBar toolbar) {
 		final int[]	widthAndHeight = new int[] {0, 0};
@@ -361,5 +378,51 @@ class InternalUtils {
 			SwingUtils.getNearestLogger(owner).message(Severity.error, exc, exc.getLocalizedMessage());
 		} 
 		return null;
+	}
+
+	static ImageIcon loadImageIcon(final URI iconLocation, final IconType type) {
+		if (iconLocation == null) {
+			return null;
+		}
+		else {
+			try{final URI							pureUri = URIUtils.removeQueryFromURI(iconLocation);
+				final Hashtable<String, String[]> 	query = URIUtils.parseQuery(iconLocation);
+				
+				switch (type) {
+					case ORDINAL	:
+						return new ImageIcon(pureUri.toURL());
+					case PRESSED	:
+						if (query.containsKey("pressed")) {
+							return new ImageIcon(replaceLastPathComponent(pureUri,query.get("pressed")[0]).toURL());
+						}
+						else {
+							return null;
+						}
+					case TOGGLED	:
+						if (query.containsKey("toggled")) {
+							return new ImageIcon(replaceLastPathComponent(pureUri,query.get("toggled")[0]).toURL());
+						}
+						else {
+							return null;
+						}
+					default:
+						throw new UnsupportedOperationException("Icon type ["+type+"] is not supported yet");
+				}
+			} catch (IOException exc) {
+				return null;
+			}
+		}
+	}
+	
+	private static URI replaceLastPathComponent(final URI source, final String replacement) {
+		final String	result = source.toString();
+		final int		index = result.lastIndexOf('/');
+		
+		if (index > 0) {
+			return URI.create(result.substring(0,index)+'/'+replacement);
+		}
+		else {
+			return source;
+		}
 	}
 }

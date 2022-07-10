@@ -7,6 +7,7 @@ import java.util.Locale;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
@@ -26,7 +27,7 @@ import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
  * <p>This class is a model-driven toolbar. The base model for toolbar is a menu model.<p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = 366031204608808220L;
@@ -71,19 +72,25 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 			for (ContentNodeMetadata child : metadata) {
 				if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_NODE)) {
 					final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child, state);
-					final JButton 				btn = new JButtonWithMetaAndActions(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT,menu);					
+					final JButton 				btn = new JButtonWithMetaAndActions(child,InternalButtonLAFType.ICON_THEN_TEXT,menu);					
 					
 					for (ContentNodeMetadata item : child) {
 						SwingUtils.toMenuEntity(item,menu);
 					}
 					
+					SwingUtils.buildRadioButtonGroups(menu);
 					btn.addActionListener((e)->{
 						menu.show(btn,btn.getWidth()/2,btn.getHeight()/2);
 					});
 					add(btn);
 				}
 				else if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_LEAF)) {
-					add(new JInternalButtonWithMeta(child,JInternalButtonWithMeta.LAFType.ICON_THEN_TEXT));
+					if (child.getApplicationPath() != null && URIUtils.parseQuery(child.getApplicationPath()).containsKey("checkable")) {
+						add(new JInternalToggleButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
+					}
+					else {
+						add(new JInternalButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
+					}
 				}
 				else if (SEPARATOR.equals(child.getRelativeUIPath())) {
 					addSeparator();
@@ -100,6 +107,9 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		for (int index = 0; index < getComponentCount(); index++) {
+			SwingUtils.refreshLocale(getComponent(index), oldLocale, newLocale);
+		}
 		fillLocalizedStrings();
 	}
 
@@ -175,7 +185,7 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
 		}
 	}
-	
+
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null) {
 			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));

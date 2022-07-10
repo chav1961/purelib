@@ -18,7 +18,7 @@ class JButtonWithMetaAndActions extends JInternalButtonWithMeta implements Inner
 		this.actionable = actionable;
 	}
 	
-	JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final JInternalButtonWithMeta.LAFType type, final JComponent... actionable) {
+	JButtonWithMetaAndActions(final ContentNodeMetadata metadata, final InternalButtonLAFType type, final JComponent... actionable) {
 		super(metadata,type);
 		this.actionable = actionable;
 	}

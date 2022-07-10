@@ -23,8 +23,6 @@ import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
-import java.awt.event.InputMethodEvent;
-import java.awt.event.InputMethodListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -46,7 +44,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -61,7 +58,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -100,14 +96,9 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.JTextComponent;
-import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
-
-import com.sun.source.doctree.SinceTree;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.PureLibSettings;
@@ -121,7 +112,6 @@ import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -147,11 +137,9 @@ import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.interfaces.LRUManagerOwner;
 import chav1961.purelib.ui.interfaces.LongItemAndReference;
-import chav1961.purelib.ui.interfaces.LongItemAndReferenceList;
 import chav1961.purelib.ui.interfaces.ReferenceAndComment;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
-import chav1961.purelib.ui.swing.inner.LongItemAndReferenceListImpl;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
@@ -1364,15 +1352,19 @@ loop:			for (Component comp : children(node)) {
 				if ((node instanceof NodeMetadataOwner) && ((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath() != null && (URIUtils.canServeURI(((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath(),MODEL_REF_URI))) {
 					return ContinueMode.CONTINUE;
 				}
+				else if ((node instanceof JButtonWithMetaAndActions) && ((NodeMetadataOwner)node).getNodeMetadata().getChildrenCount() > 0) {
+					return ContinueMode.CONTINUE;
+				}
 				else {
 					try{node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node,
 							new ActionListener() {
 								@Override
 								public void actionPerformed(final ActionEvent e) {
 									listener.actionPerformed(new ActionEvent(e.getSource(), e.getID() 
-														, preprocess.process(e.getActionCommand(), node
-														, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null
-														, listener
+														, preprocess.process(e.getActionCommand()
+															, node
+															, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null
+															, listener
 														), e.getWhen(), e.getModifiers())
 									);
 								}
@@ -2393,6 +2385,36 @@ loop:			for (Component comp : children(node)) {
 		}				
 	}
 
+	static void buildRadioButtonGroups(final JPopupMenu menu) {
+		final Set<String>	availableGroups = new HashSet<>(); 
+		
+		for (int index = 0, maxIndex = menu.getComponentCount(); index < maxIndex; index++) {
+			if (menu.getComponent(index) instanceof JRadioMenuItemWithMeta) {
+				availableGroups.add(((JRadioMenuItemWithMeta)menu.getComponent(index)).getRadioGroup());
+			}
+		}
+		if (availableGroups.size() > 0) {
+			for (String group : availableGroups) {
+				final ButtonGroup 	buttonGroup = new ButtonGroup();
+				ButtonModel			buttonModel = null;
+
+				for (int index = 0, maxIndex = menu.getComponentCount(); index < maxIndex; index++) {
+					Component	c = menu.getComponent(index); 
+					
+					if ((c instanceof JRadioMenuItemWithMeta) && group.equals(((JRadioMenuItemWithMeta)c).getRadioGroup())) {
+						buttonGroup.add((JRadioMenuItemWithMeta)c);
+						if (buttonModel == null) {
+							buttonModel = ((JRadioMenuItemWithMeta)c).getModel();
+						}
+					}
+				}
+				if (buttonModel != null) {
+					buttonGroup.setSelected(buttonModel,true);
+				}
+			}
+		}				
+	}
+	
 	private static NavigationNodeType getNavigationNodeType(final ContentNodeMetadata node) {
 		if (node.getRelativeUIPath().getPath().startsWith("./"+Constants.MODEL_NAVIGATION_NODE_PREFIX)) {
 			if (node.getApplicationPath() != null && node.getApplicationPath().toString().contains(Constants.MODEL_APPLICATION_SCHEME_BUILTIN_ACTION)) {

@@ -18,7 +18,7 @@ public class PureLibSettingsTest {
 	public void colorsTest() {
 		Assert.assertEquals(Color.BLACK,PureLibSettings.colorByName("black",Color.BLACK));
 		Assert.assertEquals(Color.GREEN,PureLibSettings.colorByName("unknown",Color.GREEN));
-		Assert.assertEquals("green",PureLibSettings.nameByColor(Color.GREEN,"green"));
+		Assert.assertEquals("Green",PureLibSettings.nameByColor(Color.GREEN,"green"));
 		Assert.assertEquals("unknown",PureLibSettings.nameByColor(new Color(1,2,3),"unknown"));
 		
 		try{PureLibSettings.colorByName(null,Color.gray);

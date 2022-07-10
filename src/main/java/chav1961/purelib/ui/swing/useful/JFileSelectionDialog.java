@@ -50,7 +50,9 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface.FileSystemListCallbackInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
@@ -126,7 +128,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public interface FilterCallback {
 		/**
 		 * <p>Get filter masks
-		 * @return filter masks. Can be empty, but not null
+		 * @return filter masks (with '?' and '*' wildcards). Can be empty, but not null
 		 */
 		String[] getFileMask();
 		
@@ -151,6 +153,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		 * @return filter callback implementation. Can't be null
 		 * @throws IllegalArgumentException on any argument errors
 		 * @since 0.0.5
+		 * @lastUpdate 0.0.6
 		 */
 		static FilterCallback of(final String name, final String... mask) throws IllegalArgumentException {
 			if (name == null || name.isEmpty()) {
@@ -163,7 +166,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				final Pattern[]	p = new Pattern[] {};
 				
 				for (int index = 0; index < p.length; index++) {
-					p[index] = Pattern.compile(mask[index]);
+					p[index] = Pattern.compile(Utils.fileMask2Regex(mask[index]));
 				}
 				
 				return new FilterCallback() {
@@ -801,15 +804,27 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			parent.addActionListener(forParent);
 			
 			final FilterCallback	currentFilter = (FilterCallback) filter.getSelectedItem();
+			final List<String>		forDirs = new ArrayList<>();
+			final List<String>		forFiles = new ArrayList<>();
 			
 			((DefaultListModel<String>)content.getModel()).clear();
-			for (String item : current.list()) {
-				try(final FileSystemInterface	fsi = currentNode.clone().open(item)) {
-					if (fsi.isDirectory() || currentFilter.accept(fsi)) {
-						((DefaultListModel<String>)content.getModel()).addElement(item);
+			current.list(new FileSystemListCallbackInterface() {
+				@Override
+				public ContinueMode process(final FileSystemInterface item) throws IOException {
+					if (item.isDirectory()) {
+						forDirs.add(item.getName());
 					}
+					else if (currentFilter.accept(item)) {
+						forFiles.add(item.getName());
+					}
+					return ContinueMode.CONTINUE;
 				}
-			}
+			});
+			forDirs.sort(String.CASE_INSENSITIVE_ORDER);
+			((DefaultListModel<String>)content.getModel()).addAll(forDirs);
+			forFiles.sort(String.CASE_INSENSITIVE_ORDER);
+			((DefaultListModel<String>)content.getModel()).addAll(forFiles);
+			
 			levelUp.setEnabled(!"/".equals(current.getPath()));
 			if (forOpen) {
 				accept.setText(localizer.getValue(ACCEPT_OPEN));

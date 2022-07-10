@@ -1,31 +1,35 @@
 package chav1961.purelib.ui.swing;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.Locale;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JToggleButton;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
 import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 
-class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, LocaleChangeListener, BooleanPropChangeListenerSource {
+class JInternalToggleButtonWithMeta extends JToggleButton implements NodeMetadataOwner, LocaleChangeListener, BooleanPropChangeListenerSource {
 	private static final long serialVersionUID = 366031204608808220L;
 	
 	private final BooleanPropChangeListenerRepo		repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata				metadata;
-	private final InternalButtonLAFType	type;
+	private final InternalButtonLAFType				type;
 
-	JInternalButtonWithMeta(final ContentNodeMetadata metadata) {
+	JInternalToggleButtonWithMeta(final ContentNodeMetadata metadata) {
 		this(metadata,InternalButtonLAFType.BOTH);
 	}		
 	
-	JInternalButtonWithMeta(final ContentNodeMetadata metadata, final InternalButtonLAFType type) {
+	JInternalToggleButtonWithMeta(final ContentNodeMetadata metadata, final InternalButtonLAFType type) {
 		this.metadata = metadata;
 		this.type = type;
 		this.setName(metadata.getName());
@@ -111,17 +115,20 @@ class JInternalButtonWithMeta extends JButton implements NodeMetadataOwner, Loca
 			case BOTH			:
 				setIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.ORDINAL));
 				setPressedIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.PRESSED));
+				setSelectedIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.TOGGLED));
 				setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
 				break;
 			case ICON_INLY		:
 				setIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.ORDINAL));
 				setPressedIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.PRESSED));
+				setSelectedIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.TOGGLED));
 				InternalUtils.cropButtonByIcon(this);
 				break;
 			case ICON_THEN_TEXT	:
 				if (getNodeMetadata().getIcon() != null) {
 					setIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.ORDINAL));
 					setPressedIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.PRESSED));
+					setSelectedIcon(InternalUtils.loadImageIcon(getNodeMetadata().getIcon(), InternalUtils.IconType.TOGGLED));
 					InternalUtils.cropButtonByIcon(this);
 					break;
 				}
