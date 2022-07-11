@@ -38,6 +38,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -892,6 +893,13 @@ public class ContentModelFactory {
 				if (checkedAction != null) {
 					sb.append("&checked=").append(checkedAction);
 				}
+
+				final URI		uriAction = URIUtils.removeQueryFromURI(URI.create(itemAction)); 
+				final String 	uriQuery = URIUtils.extractQueryFromURI(URI.create(itemAction));
+
+				if (uriQuery != null && !uriQuery.isEmpty()) {
+					sb.append('&').append(uriQuery);
+				}
 				
 				child = new MutableContentNodeMetadata(itemName
 						, String.class
@@ -901,8 +909,8 @@ public class ContentModelFactory {
 						, itemTooltip 
 						, itemHelp
 						, null
-						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+itemAction
-									+(groupAction != null ? "#"+groupAction : "")
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+uriAction.toString()
+									+ (groupAction != null ? "#"+groupAction : "")
 									+ (!sb.isEmpty() ? '?'+sb.substring(1) : "")
 									)
 						, itemIcon == null || itemIcon.isEmpty() ? null : URI.create(itemIcon));
