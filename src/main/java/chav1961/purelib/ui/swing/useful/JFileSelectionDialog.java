@@ -163,7 +163,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				throw new IllegalArgumentException("Mask is null/empty or contains nulls/empties inside");
 			}
 			else {
-				final Pattern[]	p = new Pattern[] {};
+				final Pattern[]	p = new Pattern[mask.length];
 				
 				for (int index = 0; index < p.length; index++) {
 					p[index] = Pattern.compile(Utils.fileMask2Regex(mask[index]));
