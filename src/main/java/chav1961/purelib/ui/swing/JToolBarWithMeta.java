@@ -2,8 +2,11 @@ package chav1961.purelib.ui.swing;
 
 import java.awt.Container;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
@@ -69,6 +72,18 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 			this.metadata = metadata;
 			this.state = state;
 			this.setName(metadata.getName());
+			
+			final Map<String, ButtonGroup>	fragments = new HashMap<>();
+			
+			for (ContentNodeMetadata child : metadata) {
+				if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_LEAF)) {
+					if (child.getApplicationPath() != null && child.getApplicationPath().getFragment() != null) {
+						fragments.put(child.getApplicationPath().getFragment(), new ButtonGroup());
+					}
+				}
+			}			
+			
+			
 			for (ContentNodeMetadata child : metadata) {
 				if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_NODE)) {
 					final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child, state);
@@ -88,7 +103,13 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 					if (child.getApplicationPath() != null && URIUtils.parseQuery(child.getApplicationPath()).containsKey("checkable")) {
 						add(new JInternalToggleButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
 					}
-					else {
+					else if (child.getApplicationPath() != null && child.getApplicationPath().getFragment() != null) {
+						final JInternalToggleButtonWithMeta	btn = new JInternalToggleButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT); 
+						
+						fragments.get(child.getApplicationPath().getFragment()).add(btn);
+						add(btn);
+					}
+					else {	// Button groups
 						add(new JInternalButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
 					}
 				}

@@ -178,6 +178,8 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_COPY = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_PASTE = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_PRINT = KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK); 
+	public static final KeyStroke			KS_UNDO = KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK); 
+	public static final KeyStroke			KS_REDO = KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK); 
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";
@@ -195,6 +197,8 @@ public abstract class SwingUtils {
 	public static final String				ACTION_COPY = "copy";
 	public static final String				ACTION_PASTE = "paste";
 	public static final String				ACTION_CONTEXTMENU = "contextmenu";
+	public static final String				ACTION_UNDO = "undo";
+	public static final String				ACTION_REDO = "redo";
 	
 	public static enum EditorKeys {
 		EK_INSERT(KS_INSERT, ACTION_INSERT),
@@ -1370,7 +1374,7 @@ loop:			for (Component comp : children(node)) {
 								}
 							}
 						);
-					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+					} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 					}
 				}
 			}

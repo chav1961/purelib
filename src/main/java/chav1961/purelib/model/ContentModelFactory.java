@@ -910,8 +910,8 @@ public class ContentModelFactory {
 						, itemHelp
 						, null
 						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_ACTION+":/"+uriAction.toString()
-									+ (groupAction != null ? "#"+groupAction : "")
 									+ (!sb.isEmpty() ? '?'+sb.substring(1) : "")
+									+ (groupAction != null ? "#"+groupAction : "")
 									)
 						, itemIcon == null || itemIcon.isEmpty() ? null : URI.create(itemIcon));
 				break;
