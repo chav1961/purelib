@@ -133,6 +133,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
 				try{if (monitor.process(MonitorEvent.Rollback,metadata,JImageContainerWithMeta.this)) {
 						assignValueInternal(currentValue);
+						currentValue.setModified(false);
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
@@ -353,6 +354,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			} 
 		}
 		newValue.setImage(value.getImage());
+		newValue.setModified(value.isModified());
 	}
 	
 	private Image getAsImage() {
@@ -394,6 +396,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		
 		if (cb.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
 			try{assignValueInternal(new ImageKeeper((Image)cb.getData(DataFlavor.imageFlavor)));
+				newValue.setModified(true);
 			} catch (UnsupportedFlavorException | IOException exc) {
 				SwingUtils.getNearestLogger(this).message(Severity.error, exc, "error pasting image");
 			}
@@ -428,6 +431,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	
 	private void selectImage() {
 		try{assignValueInternal(new ImageKeeper(chooseImage(localizer, getAsImage(currentValue))));
+			newValue.setModified(true);
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
 			requestFocus();
@@ -437,8 +441,9 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private void callLoad(final JComponentMonitor monitor) {
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			buildGrayScale();
-			currentValue = newValue;
-		} catch (ContentException exc) {
+			currentValue = (ImageKeeper) newValue.clone();
+			currentValue.setModified(false);
+		} catch (ContentException | CloneNotSupportedException exc) {
 			SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}
@@ -509,6 +514,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 					
 					if (image != null) {
 						owner.assignValueToComponent(image);
+						owner.newValue.setModified(true);
 						return true;
 					}
 					else {

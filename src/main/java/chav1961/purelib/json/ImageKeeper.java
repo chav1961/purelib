@@ -28,6 +28,7 @@ public class ImageKeeper implements Serializable, Cloneable {
 	}
 	
 	private Image	image = EMPTY;
+	private boolean	isModified = false;
 	
 	public ImageKeeper() {
 	}
@@ -67,6 +68,14 @@ public class ImageKeeper implements Serializable, Cloneable {
 		else {
 			this.image = image;
 		}
+	}
+	
+	public void setModified(final boolean modified) {
+		this.isModified = modified;
+	}
+	
+	public boolean isModified() {
+		return this.isModified;
 	}
 	
 	@Override
