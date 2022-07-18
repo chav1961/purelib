@@ -143,6 +143,15 @@ public class SubstitutableProperties extends Properties {
 			this.defaults = defaults;
 		}
 	}
+
+	/**
+	 * 
+	 * @return
+	 * @since 0.0.6
+	 */
+	public Set<String> availableKeys() {
+		return extractKeys(this);
+	}
 	
     @Override
     public boolean containsKey(Object key) {
