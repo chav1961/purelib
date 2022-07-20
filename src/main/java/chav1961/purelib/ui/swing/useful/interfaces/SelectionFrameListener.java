@@ -1,12 +1,18 @@
 package chav1961.purelib.ui.swing.useful.interfaces;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 
 @FunctionalInterface
 public interface SelectionFrameListener {
-	void selectionCompleted(Point start, Point end, Rectangle rect);
-	default void selectionChanging(Point start, Point end, Rectangle rect) {}
-	default void selectionStarted(Point pt) {}
-	default void selectionCancelled(Point start, Point end, Rectangle rect) {}
+	public enum SelectionStyle {
+		NONE,
+		PATH,
+		POINT,
+		RECTANGLE
+	}
+	
+	void selectionCompleted(SelectionStyle style, Point start, Point end, Object... parameters);
+	default void selectionChanging(SelectionStyle style, Point start, Point current, Object... parameters) {}
+	default void selectionStarted(SelectionStyle style, Point pt) {}
+	default void selectionCancelled(SelectionStyle style, Point start, Point end, Object... parameters) {}
 }
