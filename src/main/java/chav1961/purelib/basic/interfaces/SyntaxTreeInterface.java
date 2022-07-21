@@ -48,7 +48,7 @@ public interface SyntaxTreeInterface<T> {
 														@Override public int getName(long id, char[] target, int from) {return 0;}
 														@Override public int compareNames(long first, long second) {return 0;}
 														@Override public void walk(Walker walker) {}
-														@Override public long size() {return 0;}
+														@Override public long longSize() {return 0;}
 														@Override public void clear() {}
 													}; 
 	
@@ -259,8 +259,24 @@ public interface SyntaxTreeInterface<T> {
 	 * <p>Return amount of items in the tree</p>
 	 * @return amount of items
 	 */
-	long size();
+	default int size() {
+		final long	size = longSize();
+		
+		if (size > Integer.MAX_VALUE) {
+			return Integer.MAX_VALUE;
+		}
+		else {
+			return (int)size;
+		}
+	}
 
+	/**
+	 * <p>Return amount of items in the tree</p>
+	 * @return amount of items
+	 * @since 0.0.6
+	 */
+	long longSize();
+	
 	/**
 	 * <p>Clear tree content</p>
 	 */

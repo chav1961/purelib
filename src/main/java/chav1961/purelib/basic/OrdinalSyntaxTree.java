@@ -327,7 +327,7 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 	}
 
 	@Override
-	public long size() {
+	public long longSize() {
 		return map.size();
 	}
 

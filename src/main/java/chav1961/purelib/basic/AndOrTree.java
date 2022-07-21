@@ -458,7 +458,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	}
 	
 	@Override
-	public long size() {
+	public long longSize() {
 		return amount;
 	}
 	
