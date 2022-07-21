@@ -250,10 +250,19 @@ public interface SyntaxTreeInterface<T> {
 	int compareNames(long first, long second);
 
 	/**
-	 * <p>Walk all the ids in the tree</p>
+	 * <p>Walk all the ids in the tree in ascending order</p>
 	 * @param walker callback to process each walked item
 	 */
 	void walk(Walker<T> walker);
+
+	/**
+	 * <p>Walk all the ids in the tree in descending order</p>
+	 * @param walker callback to process each walked item
+	 * @since 0.0.6
+	 */
+	default void walkBack(Walker<T> walker) {
+		walk(walker);
+	}
 	
 	/**
 	 * <p>Return amount of items in the tree</p>

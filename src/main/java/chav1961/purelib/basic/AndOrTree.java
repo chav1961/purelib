@@ -179,7 +179,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		else {
 			final char[]	content = UnsafedUtils.getStringContent(name);
 			
-			return seekName(content,0,content.length);
+			return seekName(content, 0, content.length);
 		}
 	}
 
@@ -191,7 +191,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		else {
 			final char[]	content = UnsafedUtils.getStringContent(name);
 			
-			return seekNameI(content,0,content.length);
+			return seekNameI(content, 0, content.length);
 		}
 	}
 	

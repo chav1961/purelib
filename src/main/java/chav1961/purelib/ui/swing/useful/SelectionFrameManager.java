@@ -45,10 +45,11 @@ public class SelectionFrameManager {
 	private SelectionStyle		currentStyle = SelectionStyle.NONE;
 	private AutomatCall			ac;	
 	private boolean				enabled = false;
+	private boolean 			visible = false; 
 	private Point				startP, currentP;
 	private int					startX, startY;
 	private int					currentX, currentY;
-	private int					automatState = STATE_INITIAL; 
+	private int					automatState = STATE_INITIAL;
 	
 	public SelectionFrameManager(final JComponent component, final boolean keepSelectionOnMouseExit) {
 		if (component == null) {
@@ -105,10 +106,20 @@ public class SelectionFrameManager {
 
 	public void enableSelection(final boolean enable) {
 		this.enabled = enable;
+		background.repaint();
 	}
 	
 	public boolean isSelectionEnabled() {
 		return enabled;
+	}
+	
+	public void setVisible(final boolean visible) {
+		this.visible = visible;
+		background.repaint();
+	}
+	
+	public boolean isVisible() {
+		return visible;
 	}
 	
 	public void addSelectionFrameListener(final SelectionFrameListener l) {
@@ -178,6 +189,9 @@ public class SelectionFrameManager {
 						clearRectangle();
 						storeInitialPoint(parameter);
 						fireSelectionStarted();
+						break;
+					case TERM_RESET		:
+						clearRectangle();
 						break;
 				}
 				break;
