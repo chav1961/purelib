@@ -8,6 +8,7 @@ public interface SelectionFrameListener {
 		NONE,
 		PATH,
 		POINT,
+		LINE,
 		RECTANGLE
 	}
 	
