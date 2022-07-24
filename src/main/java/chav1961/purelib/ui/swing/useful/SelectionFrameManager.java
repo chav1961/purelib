@@ -25,11 +25,12 @@ public class SelectionFrameManager {
 	private static final int	STATE_COMPLETED = 3;
 
 	private static final int	TERM_PRESSED = 0;
-	private static final int	TERM_DRAGGED = 1;
-	private static final int	TERM_RELEASED = 2;
-	private static final int	TERM_EXITED = 3;
-	private static final int	TERM_ENTERED = 4;
-	private static final int	TERM_RESET = 5;
+	private static final int	TERM_MOVED = 1;
+	private static final int	TERM_DRAGGED = 2;
+	private static final int	TERM_RELEASED = 3;
+	private static final int	TERM_EXITED = 4;
+	private static final int	TERM_ENTERED = 5;
+	private static final int	TERM_RESET = 6;
 	
 	private static final int	REFRESH_BOUND = 2;
 	
@@ -64,7 +65,7 @@ public class SelectionFrameManager {
 				
 			});
 			this.background.addMouseMotionListener(new MouseMotionListener() {
-				@Override public void mouseMoved(MouseEvent e) {}
+				@Override public void mouseMoved(MouseEvent e) {automat(TERM_MOVED, e.getPoint());}
 				@Override public void mouseDragged(MouseEvent e) {automat(TERM_DRAGGED, e.getPoint());}
 			});
 		}
@@ -80,25 +81,7 @@ public class SelectionFrameManager {
 		}
 		else {
 			ultimateAutomat(TERM_RESET, null);
-			switch (ssk.currentStyle = style) {
-				case NONE		:
-					ssk.ac = keepSelectionOnMouseExit ? this::automatNoneWithKeep : this::automatNoneWithoutKeep;
-					break;
-				case PATH		:
-					ssk.ac = keepSelectionOnMouseExit ? this::automatPathWithKeep : this::automatPathWithoutKeep;
-					break;
-				case POINT		:
-					ssk.ac = keepSelectionOnMouseExit ? this::automatNoneWithKeep : this::automatNoneWithoutKeep;
-					break;
-				case LINE		:
-					ssk.ac = keepSelectionOnMouseExit ? this::automatLineWithKeep : this::automatLineWithoutKeep;
-					break;
-				case RECTANGLE	:
-					ssk.ac = keepSelectionOnMouseExit ? this::automatRectWithKeep : this::automatRectWithoutKeep;
-					break;
-				default :
-					throw new UnsupportedOperationException("Selection style ["+style+"] is not supprted yet"); 
-			}
+			setSelectionStyleInternal(style);
 		}
 	}
 	
@@ -107,8 +90,9 @@ public class SelectionFrameManager {
 			throw new NullPointerException("Style to push can't be null"); 
 		}
 		else {
+			ultimateAutomat(TERM_RESET, null);
 			stateKeepers.add(0,new SelectionStateKeeper(ssk));
-			setSelectionStyle(style);
+			setSelectionStyleInternal(style);
 			background.repaint();
 		}
 	}
@@ -186,13 +170,20 @@ public class SelectionFrameManager {
 	}
 	
 	private void automat(final int terminal, final Point pt) {
+//		System.err.println("Automat: "+terminal+", "+pt+", state="+ssk.automatState);
 		if (isSelectionEnabled()) {
 			ultimateAutomat(terminal, pt);
 		}
 	}
 
-	private void ultimateAutomat(final int terminal, final Point parameter) {
-		ssk.ac.automat(terminal, parameter);
+	private void ultimateAutomat(final int terminal, final Point pt) {
+//		System.err.println("Ultimate automat: "+terminal+", "+pt+", state="+ssk.automatState);
+		if (ssk.ac != null) {
+			ssk.ac.automat(terminal, pt);
+		}
+		else {
+			int x = 10;
+		}
 	}
 
 	private void automatNoneWithKeep(final int terminal, final Point parameter) {
@@ -350,6 +341,47 @@ public class SelectionFrameManager {
 				throw new UnsupportedOperationException("Automat state ["+ssk.automatState+"] is not supported yet");
 		}
 	}
+
+	private void automatPointWithKeep(final int terminal, final Point parameter) {
+		automatRectWithoutKeep(terminal, parameter);
+	}
+	
+	private void automatPointWithoutKeep(final int terminal, final Point parameter) {
+		switch (ssk.automatState) {
+			case STATE_INITIAL	:
+				ssk.automatState = STATE_SELECTION_IN_PROGRESS;
+				clearSelections();
+				storeInitialPoint(new Point(0,0));
+				fireSelectionStarted();
+				break;
+			case STATE_SELECTION_IN_PROGRESS	:
+				switch (terminal) {
+					case TERM_PRESSED	:
+						ssk.automatState = STATE_INITIAL;
+						storeCurrentPoint(parameter);
+						resizeRectangle();
+						fireSelectionCompleted();
+						refreshContent();
+						enableSelection(false);
+						break;
+					case TERM_MOVED		:
+						storeCurrentPoint(parameter);
+						resizeRectangle();
+						fireSelectionChanged();
+						refreshContent();
+						break;
+					case TERM_RESET		:
+						ssk.automatState = STATE_INITIAL;
+						fireSelectionCancelled();
+						clearSelections();
+						refreshContent();
+						break;
+				}
+				break;
+			default :
+				throw new UnsupportedOperationException("Automat state ["+ssk.automatState+"] is not supported yet");
+		}
+	}
 	
 	private void clearSelections() {
 		ssk.currentFrame.setBounds(0, 0, 0, 0);
@@ -438,6 +470,7 @@ public class SelectionFrameManager {
 				listeners.fireEvent((l)->l.selectionCompleted(getSelectionStyle(), ssk.startP, ssk.currentP, ssk.path));
 				break;
 			case POINT		:
+				listeners.fireEvent((l)->l.selectionCompleted(getSelectionStyle(), ssk.startP, ssk.currentP, ssk.currentFrame));
 				break;
 			case LINE		:
 				listeners.fireEvent((l)->l.selectionCompleted(getSelectionStyle(), ssk.startP, ssk.currentP, ssk.currentFrame));
@@ -485,6 +518,28 @@ public class SelectionFrameManager {
 		ssk.prevFrame.setFrame(ssk.currentFrame);
 		ssk.currentFrame.setFrameFromDiagonal(Math.min(ssk.startP.x, ssk.currentP.x), Math.min(ssk.startP.y, ssk.currentP.y), Math.max(ssk.startP.x, ssk.currentP.x), Math.max(ssk.startP.y, ssk.currentP.y));
 	}
+
+	private void setSelectionStyleInternal(final SelectionStyle style) {
+		switch (ssk.currentStyle = style) {
+			case NONE		:
+				ssk.ac = keepSelectionOnMouseExit ? this::automatNoneWithKeep : this::automatNoneWithoutKeep;
+				break;
+			case PATH		:
+				ssk.ac = keepSelectionOnMouseExit ? this::automatPathWithKeep : this::automatPathWithoutKeep;
+				break;
+			case POINT		:
+				ssk.ac = keepSelectionOnMouseExit ? this::automatPointWithKeep : this::automatPointWithoutKeep;
+				break;
+			case LINE		:
+				ssk.ac = keepSelectionOnMouseExit ? this::automatLineWithKeep : this::automatLineWithoutKeep;
+				break;
+			case RECTANGLE	:
+				ssk.ac = keepSelectionOnMouseExit ? this::automatRectWithKeep : this::automatRectWithoutKeep;
+				break;
+			default :
+				throw new UnsupportedOperationException("Selection style ["+style+"] is not supprted yet"); 
+		}
+	}
 	
 	private static class SelectionStateKeeper {
 		private final Rectangle		currentFrame = new Rectangle();
@@ -493,7 +548,7 @@ public class SelectionFrameManager {
 		private final Point			currentP = new Point(0,0);
 		private final GeneralPath	path = new GeneralPath();
 		private SelectionStyle		currentStyle;
-		private AutomatCall			ac;	
+		private AutomatCall			ac = (t,p)->{};
 		private boolean				enabled;
 		private boolean 			visible; 
 		private int					automatState;
