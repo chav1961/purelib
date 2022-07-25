@@ -48,6 +48,7 @@ module chav1961.purelib {
 	exports chav1961.purelib.net.fsys;
 	exports chav1961.purelib.net.root;
 	exports chav1961.purelib.net.self;
+	exports chav1961.purelib.parsers;
 	exports chav1961.purelib.sql;
 	exports chav1961.purelib.sql.content;
 	exports chav1961.purelib.sql.interfaces;

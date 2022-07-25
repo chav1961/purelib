@@ -1153,7 +1153,8 @@ loop:		for (index = from; index < len; index++) {
 	public enum ArgumentType {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat,
 		name, hyphenedName, simpleTerminatedString, specialTerminatedString,
-		colorRepresentation
+		colorRepresentation,
+		raw
 	}
 
 	/**
@@ -1170,7 +1171,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @throws IllegalArgumentException on any invalid parameters
 	 * @throws SyntaxException on any syntax error in the content
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.4
+	 * @lastUpdate 0.0.6
 	 */
 	public static int tryExtract(final char[] source, final int from, Object... lexemas) throws IllegalArgumentException, SyntaxException {
 		int	len, start = from;
@@ -1262,7 +1263,7 @@ loop:		for (index = from; index < len; index++) {
 								break;
 							case specialTerminatedString	:
 								try{if (source[start] == '\"') {
-											start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\"',sb);
+										start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\"',sb);
 									}
 									else if (source[start] == '\'') {
 										start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\'',sb);
@@ -1298,6 +1299,13 @@ loop:		for (index = from; index < len; index++) {
 									return -(start+1);
 								}
 								break;
+							case raw	:
+								final int	tailStart = start;
+								
+								while (source[start] != '\r' && source[start] != '\n') {
+									start++;
+								}
+								return start-1;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
 						}
@@ -1323,6 +1331,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @throws IllegalArgumentException on any invalid parameters
 	 * @throws SyntaxException on any syntax error in the content
 	 * @since 0.0.3
+	 * @lastUpate 0.0.6
 	 */
 	public static int extract(final char[] source, final int from, final Object[] result, Object... lexemas) throws SyntaxException {
 		int	len, start = from;
@@ -1456,6 +1465,15 @@ loop:		for (index = from; index < len; index++) {
 										throw new IllegalArgumentException("Unknonw color name ["+color+"]");
 									}
 								}
+								break;
+							case raw	:
+								final int 	tailStart = start;
+								
+								while (source[start] != '\n' && source[start] != '\r') {	// Content to the \n
+									start++;
+								}
+								result[resultIndex++] = new String(source,tailStart,start-tailStart-1);
+								start--;
 								break;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
