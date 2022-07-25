@@ -1,10 +1,9 @@
-package chav1961.purelib.json;
+package chav1961.purelib.model;
 
 import java.awt.Image;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -12,16 +11,17 @@ import java.io.Writer;
 import javax.imageio.ImageIO;
 
 import chav1961.purelib.basic.exceptions.PreparationException;
+import chav1961.purelib.model.interfaces.ImageKeeper;
 import chav1961.purelib.streams.byte2char.Byte2HexOutputStream;
 import chav1961.purelib.streams.char2byte.Hex2ByteInputStream;
 
-public class ImageKeeper implements Serializable, Cloneable {
+public class ImageKeeperImpl implements ImageKeeper {
 	private static final long 	serialVersionUID = 8962529989993415955L;
 	private static final String	EMPTY_RESOURCE_NAME = "empty.png";
 	private static final Image	EMPTY;
 
 	static {
-		try{EMPTY = ImageIO.read(ImageKeeper.class.getResourceAsStream(EMPTY_RESOURCE_NAME));
+		try{EMPTY = ImageIO.read(ImageKeeperImpl.class.getResourceAsStream(EMPTY_RESOURCE_NAME));
 		} catch (IOException e) {
 			throw new PreparationException("Image ["+EMPTY_RESOURCE_NAME+"] loading failed"); 
 		}
@@ -30,10 +30,10 @@ public class ImageKeeper implements Serializable, Cloneable {
 	private Image	image = EMPTY;
 	private boolean	isModified = false;
 	
-	public ImageKeeper() {
+	public ImageKeeperImpl() {
 	}
 
-	public ImageKeeper(final Image image) {
+	public ImageKeeperImpl(final Image image) {
 		if (image == null) {
 			throw new NullPointerException("File instance can't be null or empty"); 
 		}
@@ -42,7 +42,7 @@ public class ImageKeeper implements Serializable, Cloneable {
 		}
 	}
 
-	public ImageKeeper(final String imageDump) {
+	public ImageKeeperImpl(final String imageDump) {
 		if (imageDump == null) {
 			throw new NullPointerException("Image dump can't be null"); 
 		}
@@ -57,10 +57,12 @@ public class ImageKeeper implements Serializable, Cloneable {
 		}
 	}
 	
+	@Override
 	public Image getImage() {
 		return image;
 	}
 	
+	@Override
 	public void setImage(final Image image) {
 		if (image == null) {
 			throw new NullPointerException("File instance can't be null or empty"); 
@@ -69,20 +71,22 @@ public class ImageKeeper implements Serializable, Cloneable {
 			this.image = image;
 		}
 	}
-	
-	public void setModified(final boolean modified) {
-		this.isModified = modified;
-	}
-	
+
+	@Override
 	public boolean isModified() {
 		return this.isModified;
+	}
+	
+	@Override
+	public void setModified(final boolean modified) {
+		this.isModified = modified;
 	}
 	
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		try{return super.clone();
 		} catch (CloneNotSupportedException exc) {
-			return new ImageKeeper();
+			return new ImageKeeperImpl();
 		}
 	}
 	

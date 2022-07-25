@@ -1,4 +1,4 @@
-package chav1961.purelib.json;
+package chav1961.purelib.model;
 
 import java.awt.Color;
 import java.io.Serializable;

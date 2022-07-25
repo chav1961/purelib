@@ -47,7 +47,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.json.ImageKeeper;
+import chav1961.purelib.model.ImageKeeperImpl;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 

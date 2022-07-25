@@ -17,9 +17,6 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.json.ColorKeeper;
-import chav1961.purelib.json.FileKeeper;
-import chav1961.purelib.json.ImageKeeper;
 import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.interfaces.ItemAndReference;
 import chav1961.purelib.ui.interfaces.LongItemAndReference;
@@ -647,7 +644,7 @@ public class FieldFormat {
 				else if (ColorPair.class.isAssignableFrom(clazz)) {
 					return ContentType.ColorPairContent;
 				}
-				else if (Image.class.isAssignableFrom(clazz) || ImageKeeper.class.isAssignableFrom(clazz)) {
+				else if (Image.class.isAssignableFrom(clazz) || ImageKeeperImpl.class.isAssignableFrom(clazz)) {
 					return ContentType.ImageContent;
 				}
 				else if (LongItemAndReference.class.isAssignableFrom(clazz)) {

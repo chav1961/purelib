@@ -42,8 +42,8 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.json.ImageKeeper;
 import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.ImageKeeperImpl;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.inner.InternalConstants;
@@ -62,7 +62,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 
 	public static final String 			CHOOSER_NAME = "chooser";
 	
-	private static final Class<?>[]		VALID_CLASSES = {ImageKeeper.class};
+	private static final Class<?>[]		VALID_CLASSES = {ImageKeeperImpl.class};
 
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
@@ -70,7 +70,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final JButton				callSelect = new JButton("...");
 	private final JPopupMenu			popup;
 	private File						lastFile = new File("./");
-	private volatile ImageKeeper		currentValue = null, newValue = null;
+	private volatile ImageKeeperImpl		currentValue = null, newValue = null;
 	private volatile Image				grayScaleValue = null;
 	private boolean						invalid = false;
 	
@@ -228,8 +228,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	
 	@Override
 	public void assignValueToComponent(final Object value) {
-		if (value instanceof ImageKeeper) {
-			assignValueInternal((ImageKeeper)value);
+		if (value instanceof ImageKeeperImpl) {
+			assignValueInternal((ImageKeeperImpl)value);
 		}
 		else {
 			throw new IllegalArgumentException("Value can't be null and must be ImageKeeper instance only");
@@ -240,7 +240,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 
 	@Override
 	public Class<?> getValueType() {
-		return ImageKeeper.class;
+		return ImageKeeperImpl.class;
 	}
 
 	@Override
@@ -320,7 +320,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	public void paintComponent(final Graphics g) {
 		final Graphics2D	g2d = (Graphics2D)g;
 		final Insets		insets = getInsets();
-		final Image			image = !isEnabled() ? grayScaleValue : (newValue != null ? getAsImage(newValue) : (currentValue != null ? getAsImage(currentValue) : new ImageKeeper().getImage())); 
+		final Image			image = !isEnabled() ? grayScaleValue : (newValue != null ? getAsImage(newValue) : (currentValue != null ? getAsImage(currentValue) : new ImageKeeperImpl().getImage())); 
 		final int			x1 = insets.left, x2 = getWidth()-insets.right, y1 = insets.top, y2 = getHeight()-insets.bottom;
 
 		if (image != null) {
@@ -346,9 +346,9 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		}
 	}
 
-	private void assignValueInternal(final ImageKeeper value) {
+	private void assignValueInternal(final ImageKeeperImpl value) {
 		if (newValue == null) {
-			try{newValue = (ImageKeeper)value.clone();
+			try{newValue = (ImageKeeperImpl)value.clone();
 			} catch (CloneNotSupportedException e) {
 				throw new UnsupportedOperationException(e);
 			} 
@@ -362,8 +362,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 
 	private Image getAsImage(Object value) {
-		if (value instanceof ImageKeeper) {
-			return ((ImageKeeper)value).getImage();
+		if (value instanceof ImageKeeperImpl) {
+			return ((ImageKeeperImpl)value).getImage();
 		}
 		else {
 			return (Image)value;
@@ -395,7 +395,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 		final Clipboard	cb = Toolkit.getDefaultToolkit().getSystemClipboard();
 		
 		if (cb.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
-			try{assignValueInternal(new ImageKeeper((Image)cb.getData(DataFlavor.imageFlavor)));
+			try{assignValueInternal(new ImageKeeperImpl((Image)cb.getData(DataFlavor.imageFlavor)));
 				newValue.setModified(true);
 			} catch (UnsupportedFlavorException | IOException exc) {
 				SwingUtils.getNearestLogger(this).message(Severity.error, exc, "error pasting image");
@@ -430,7 +430,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 	
 	private void selectImage() {
-		try{assignValueInternal(new ImageKeeper(chooseImage(localizer, getAsImage(currentValue))));
+		try{assignValueInternal(new ImageKeeperImpl(chooseImage(localizer, getAsImage(currentValue))));
 			newValue.setModified(true);
 			getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 		} finally {
@@ -441,7 +441,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private void callLoad(final JComponentMonitor monitor) {
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			buildGrayScale();
-			currentValue = (ImageKeeper) newValue.clone();
+			currentValue = (ImageKeeperImpl) newValue.clone();
 			currentValue.setModified(false);
 		} catch (ContentException | CloneNotSupportedException exc) {
 			SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());

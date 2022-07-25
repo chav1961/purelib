@@ -1,4 +1,4 @@
-package chav1961.purelib.json;
+package chav1961.purelib.model;
 
 import java.io.File;
 import java.io.Serializable;
