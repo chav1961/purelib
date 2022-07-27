@@ -51,7 +51,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangedEvent;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public class JFileContentManipulator implements Closeable, LocaleChangeListener {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
@@ -63,6 +63,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private static final int				LRU_LIMIT = 10;
 
 	private final LightWeightListenerList<FileContentChangeListener>	listeners = new LightWeightListenerList<>(FileContentChangeListener.class);
+	private final String				name;
 	private final FileSystemInterface	fsi;
 	private final Localizer				localizer;
 	private final InputStreamGetter		getterIn;
@@ -120,7 +121,26 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws NullPointerException any of parameters are null
 	 */
 	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut, final LRUPersistence persistence) throws NullPointerException {
-		if (fsi == null) {
+		this("system", fsi, localizer, getterIn, getterOut, persistence);
+	}
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param name manipulator instance name. Can't be null or empty
+	 * @param fsi file system to use as content. Can't be null
+	 * @param localizer localizer to use. Can't be null
+	 * @param getterIn callback to get content when save
+	 * @param getterOut callback to put content when load
+	 * @param persistence persistence interface to load/store persistence
+	 * @throws NullPointerException any of parameters are null
+	 * @throws IllegalArgumentException manipulator name is null or empty
+	 * @since 0.0.6
+	 */
+	public JFileContentManipulator(final String name, final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut, final LRUPersistence persistence) throws NullPointerException {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Manipulator name can't be null or empty");
+		}
+		else if (fsi == null) {
 			throw new NullPointerException("File system interface can't be null");
 		}
 		else if (localizer == null) {
@@ -136,12 +156,13 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 			throw new NullPointerException("Persistence interface can't be null");
 		}
 		else {
+			this.name = name;
 			this.fsi = fsi;
 			this.localizer = localizer;
 			this.getterIn = getterIn;
 			this.getterOut = getterOut;
 			this.persistence = persistence;
-			try{persistence.loadLRU(lru);
+			try{persistence.loadLRU(name, lru);
 			} catch (IOException e) {
 				lru.clear();
 			}
@@ -171,7 +192,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				throw new IOException(e.getLocalizedMessage(),e);
 			}
 		}
-		persistence.saveLRU(lru);
+		persistence.saveLRU(name,lru);
 	}
 
 	/**
