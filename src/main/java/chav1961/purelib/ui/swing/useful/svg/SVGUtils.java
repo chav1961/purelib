@@ -101,7 +101,7 @@ loop:		for (;;) {
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y += number[0];
 							if (count++ == 0) {
 								result.moveTo(x,y);
@@ -117,7 +117,7 @@ loop:		for (;;) {
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y = number[0];
 							if (count++ == 0) {
 								result.moveTo(x,y);
@@ -134,7 +134,7 @@ loop:		for (;;) {
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y += number[0];
 							result.lineTo(x,y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -144,7 +144,7 @@ loop:		for (;;) {
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y = number[0];
 							result.lineTo(x,y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -187,34 +187,34 @@ loop:		for (;;) {
 						y = yOld;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
 						rx = number[0];
-						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						ry = number[0];
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 						rotation = number[0];
-						from = UnsafedCharUtils.uncheckedParseSignedInt(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),integer,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						large = integer[0];
-						from = UnsafedCharUtils.uncheckedParseSignedInt(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),integer,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						sweep = integer[0];
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 						x += number[0];
-						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						y += number[0];
 						result.append(SVGUtils.computeArc(xOld,yOld,rx,ry,rotation,large != 0,sweep != 0,x,y),true);
 						break;
 					case 'A' :
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
 						rx = number[0];
-						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						ry = number[0];
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 						rotation = number[0];
-						from = UnsafedCharUtils.uncheckedParseSignedInt(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),integer,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						large = integer[0];
-						from = UnsafedCharUtils.uncheckedParseSignedInt(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),integer,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						sweep = integer[0];
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 						x = number[0];
-						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						y = number[0];
 						result.append(SVGUtils.computeArc(xOld,yOld,rx,ry,rotation,large != 0,sweep != 0,x,y),true);
 						break;
@@ -225,7 +225,7 @@ loop:		for (;;) {
 							y = y1 = y2 = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x1 += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y1 += number[0];
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
@@ -233,7 +233,7 @@ loop:		for (;;) {
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
 							controleX = x2 += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							controleY = y2 += number[0];
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
@@ -241,7 +241,7 @@ loop:		for (;;) {
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
 							x += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y += number[0];
 							result.curveTo(x1, y1, x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -254,7 +254,7 @@ loop:		for (;;) {
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x1 = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y1 = number[0];
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
@@ -262,7 +262,7 @@ loop:		for (;;) {
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
 							controleX = x2 = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							controleY = y2 = number[0];
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
@@ -270,7 +270,7 @@ loop:		for (;;) {
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
 							x = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y = number[0];
 							result.curveTo(x1, y1, x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -283,11 +283,11 @@ loop:		for (;;) {
 							y = y1 = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x1 += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y1 += number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y += number[0];
 							result.quadTo(x1, y1, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -300,11 +300,11 @@ loop:		for (;;) {
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x1 = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y1 = number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y = number[0];
 							result.quadTo(x1, y1, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -319,11 +319,11 @@ loop:		for (;;) {
 							y = y2 = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x2 += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y2 += number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y += number[0];
 							result.curveTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -338,11 +338,11 @@ loop:		for (;;) {
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x2 = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y2 = number[0];
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y = number[0];
 							result.curveTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -359,7 +359,7 @@ loop:		for (;;) {
 							y = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y += number[0];
 							result.quadTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -374,7 +374,7 @@ loop:		for (;;) {
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 							x = number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y = number[0];
 							result.quadTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
@@ -406,6 +406,14 @@ loop:		for (;;) {
 		}
 	}
 	
+	private static int skipComma(final char[] content, int from) {
+		from = UnsafedCharUtils.uncheckedSkipBlank(content, from, true);
+		if (content[from] == ',') {
+			from = UnsafedCharUtils.uncheckedSkipBlank(content, from + 1, true);
+		}
+		return from;
+	}
+
 	static <T> T convertTo(final Class<T> awaited, final String source) throws SyntaxException {
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");
