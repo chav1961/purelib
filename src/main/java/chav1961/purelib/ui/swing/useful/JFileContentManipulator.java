@@ -26,8 +26,10 @@ import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.LocalizerOwner;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.LRUPersistence;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeListener;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeType;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangedEvent;
@@ -53,7 +55,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangedEvent;
  * @since 0.0.3
  * @lastUpdate 0.0.6
  */
-public class JFileContentManipulator implements Closeable, LocaleChangeListener {
+public class JFileContentManipulator implements Closeable, LocaleChangeListener, LocalizerOwner {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
 	private static final String				UNSAVED_BODY = "JFileContentManipulator.unsaved.body";
 	private static final String				PROGRESS_LOADING = "JFileContentManipulator.progress.loading";
@@ -71,8 +73,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	private final LRUPersistence		persistence;
 	private final List<String>			lru = new ArrayList<>();
 	
-	private boolean		wasChanged = false;
-	private String		currentName = "", currentDir = "";
+	private boolean				wasChanged = false;
+	private String				currentName = "", currentDir = "";
+	private FilterCallback[]	filters = new FilterCallback[0];
 	
 	/**
 	 * <p>Constructor of the class</p>
@@ -175,21 +178,23 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	}
 
 	@Override
+	public Localizer getLocalizer() {
+		return localizer;
+	}
+	
+	@Override
 	public void close() throws IOException, UnsupportedOperationException {
 		if (wasChanged) {
-			try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
-					case  JOptionPane.YES_OPTION :
-						if (saveFile()) {
-							clearModificationFlag();
-						}
-						break;
-					case  JOptionPane.NO_OPTION : 
-						break;
-					case  JOptionPane.CANCEL_OPTION :
-						throw new UnsupportedOperationException("Close rejected");
-				}
-			} catch (LocalizationException e) {
-				throw new IOException(e.getLocalizedMessage(),e);
+			switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+				case  JOptionPane.YES_OPTION :
+					if (saveFile()) {
+						clearModificationFlag();
+					}
+					break;
+				case  JOptionPane.NO_OPTION : 
+					break;
+				case  JOptionPane.CANCEL_OPTION :
+					throw new UnsupportedOperationException("Close rejected");
 			}
 		}
 		persistence.saveLRU(name,lru);
@@ -217,26 +222,27 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		}
 		else {
 			if (wasChanged) {
-				try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
-						case  JOptionPane.YES_OPTION :
-							if (!saveFile(progress)) {
-								return false;
-							}
-							break;
-						case  JOptionPane.NO_OPTION : 
-							break;
-						case  JOptionPane.CANCEL_OPTION :
+				switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+					case  JOptionPane.YES_OPTION :
+						if (!saveFile(progress)) {
 							return false;
-					}
-				} catch (LocalizationException e) {
-					throw new IOException(e.getLocalizedMessage(),e);
+						}
+						break;
+					case  JOptionPane.NO_OPTION : 
+						break;
+					case  JOptionPane.CANCEL_OPTION :
+						return false;
 				}
 			}
-			processNew(progress);
-			clearModificationFlag();
-			currentName = "";
-			fireEvent(FileContentChangeType.NEW_FILE_CREATED);
-			return true;
+			if (processNew(progress)) {
+				clearModificationFlag();
+				currentName = "";
+				fireEvent(FileContentChangeType.NEW_FILE_CREATED);
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 	}
 
@@ -262,42 +268,41 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		}
 		else {
 			if (wasChanged) {
-				try{switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
-						case  JOptionPane.YES_OPTION :
-							if (!saveFile(progress)) {
-								return false;
-							}
-							break;
-						case  JOptionPane.NO_OPTION : 
-							break;
-						case  JOptionPane.CANCEL_OPTION :
+				switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+					case  JOptionPane.YES_OPTION :
+						if (!saveFile(progress)) {
 							return false;
-					}
-				} catch (LocalizationException e) {
-					throw new IOException(e.getLocalizedMessage(),e);
-				}
-			}
-			try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS)) {
-					try(final FileSystemInterface	current = fsi.clone().open(item)) {
-						
-						progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
-						try(final InputStream			is = current.read()) {
-							processLoad(item, is, progress);
 						}
-						clearModificationFlag();
-						currentName = item;
-						currentDir = current.open("../").getPath();
-						fireEvent(FileContentChangeType.FILE_LOADED);
-						return true;
-					} finally {
-						fillLru(currentName,false);
-						progress.end();
-					}
+						break;
+					case  JOptionPane.NO_OPTION : 
+						break;
+					case  JOptionPane.CANCEL_OPTION :
+						return false;
 				}
-				return false;
-			} catch (LocalizationException e) {
-				throw new IOException(e);
 			}
+			for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS, filters)) {
+				try(final FileSystemInterface	current = fsi.clone().open(item)) {
+					
+					progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
+					try(final InputStream			is = current.read()) {
+						if (processLoad(item, is, progress)) {
+							clearModificationFlag();
+							currentName = item;
+							currentDir = current.open("../").getPath();
+							fillLru(currentName,false);
+							fireEvent(FileContentChangeType.FILE_LOADED);
+							fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+				} finally {
+					progress.end();
+				}
+			}
+			return false;
 		}
 	}
 
@@ -336,20 +341,23 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				else {
 					try{progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
 						try(final InputStream			is = current.read()) {
-							processLoad(file, is, progress);
+							if (processLoad(file, is, progress)) {
+								clearModificationFlag();
+								currentName = current.getPath();
+								currentDir = current.open("../").getPath();
+								fillLru(currentName,false);
+								fireEvent(FileContentChangeType.FILE_LOADED);
+								fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
+								return true;
+							}
+							else {
+								return false;
+							}
 						}
-						clearModificationFlag();
-						currentName = current.getPath();
-						currentDir = current.open("../").getPath();
-						fireEvent(FileContentChangeType.FILE_LOADED);
-						return true;
 					} finally {
-						fillLru(currentName,false);
 						progress.end();
 					}
 				}
-			} catch (LocalizationException e) {
-				throw new IOException(e);
 			}
 		}
 	}
@@ -397,20 +405,23 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 				else {
 					try{progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
 						try(final InputStream			is = current.read()) {
-							processLoad(file, is, progress);
+							if (processLoad(file, is, progress)) {
+								clearModificationFlag();
+								currentName = current.getPath();
+								currentDir = current.open("../").getPath();
+								fillLru(currentName,false);
+								fireEvent(FileContentChangeType.FILE_LOADED);
+								fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
+								return true;
+							}
+							else {
+								return false;
+							}
 						}
-						clearModificationFlag();
-						currentName = current.getPath();
-						currentDir = current.open("../").getPath();
-						fireEvent(FileContentChangeType.FILE_LOADED);
-						return true;
 					} finally {
-						fillLru(currentName,false);
 						progress.end();
 					}
 				}
-			} catch (LocalizationException e) {
-				throw new IOException(e);
 			}
 		}
 	}
@@ -450,16 +461,18 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
 					}
 					try(final OutputStream			os = current.write()) {
-						processStore(currentName, os, progress);
+						if (processStore(currentName, os, progress)) {
+							clearModificationFlag();
+							fillLru(currentName, true);
+							fireEvent(FileContentChangeType.FILE_STORED);
+							fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
+							return true;
+						}
+						else {
+							return false;
+						}
 					}
-	
-					clearModificationFlag();
-					fireEvent(FileContentChangeType.FILE_STORED);
-					return true;
-				} catch (LocalizationException | IllegalArgumentException e) {
-					throw new IOException(e);
 				} finally {
-					fillLru(currentName,true);
 					progress.end();
 				}
 			}
@@ -482,34 +495,36 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean saveFileAs(final ProgressIndicator progress) throws IOException {
-		try{for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
-				try(final FileSystemInterface	current = fsi.clone().open(item)) {
-				
-					if (current.exists()) {
-						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()), current.size());
+		for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE, filters)) {
+			try(final FileSystemInterface	current = fsi.clone().open(item)) {
+			
+				if (current.exists()) {
+					progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()), current.size());
+				}
+				else {
+					current.create();
+					progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
+				}
+				try(final OutputStream			os = current.write()) {
+					if (processStore(item, os, progress)) {
+						clearModificationFlag();
+						currentName = item;
+						currentDir = current.open("../").getPath();
+						fillLru(currentName,true);
+						fireEvent(FileContentChangeType.FILE_STORED_AS);
+						fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
+						return true;
 					}
 					else {
-						current.create();
-						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
+						return false;
 					}
-					try(final OutputStream			os = current.write()) {
-						processStore(item, os, progress);
-					}
-	
-					clearModificationFlag();
-					currentName = item;
-					currentDir = current.open("../").getPath();
-					fireEvent(FileContentChangeType.FILE_STORED_AS);
-					return true;
-				} finally {
-					fillLru(currentName,true);
-					progress.end();
 				}
+
+			} finally {
+				progress.end();
 			}
-			return false;
-		} catch (LocalizationException e) {
-			throw new IOException(e);
 		}
+		return false;
 	}
 
 	/**
@@ -595,24 +610,50 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener 
 		}
 	}
 
-	protected void processNew(final ProgressIndicator progress) throws IOException {
-		try(final OutputStream	os = getterOut.getContent()) {
-			os.flush();
+	/**
+	 * <p>Set filters for open/save operations.</p>
+	 * @param filters filters to set. Can be empty but not null
+	 * @since 0.0.6
+	 */
+	public void setFilters(final FilterCallback... filters) {
+		if (filters == null || Utils.checkArrayContent4Nulls(filters) >= 0) {
+			throw new IllegalArgumentException("File filters are null or contains nulls inside");
+		}
+		else {
+			this.filters = filters.clone();
 		}
 	}
 	
-	protected void processLoad(final String fileName, final InputStream source, final ProgressIndicator progress) throws IOException {
+	/**
+	 * <p>Get current filters for open/save operations</p>
+	 * @return current filters. Can be empty but not null
+	 * @since 0.0.6
+	 */
+	public FilterCallback[] getFilters() {
+		return filters;
+	}
+	
+	protected boolean processNew(final ProgressIndicator progress) throws IOException {
+		try(final OutputStream	os = getterOut.getContent()) {
+			os.flush();
+		}
+		return true;
+	}
+	
+	protected boolean processLoad(final String fileName, final InputStream source, final ProgressIndicator progress) throws IOException {
 		try(final OutputStream			os = getterOut.getContent()) {
 
 			Utils.copyStream(source, os, progress);
 		}
+		return true;
 	}
 
-	protected void processStore(final String fileName, final OutputStream target, final ProgressIndicator progress) throws IOException {
+	protected boolean processStore(final String fileName, final OutputStream target, final ProgressIndicator progress) throws IOException {
 		try(final InputStream			is = getterIn.getContent()) {
 
 			Utils.copyStream(is, target, progress);
 		}
+		return true;
 	}
 	
 	static InputStreamGetter buildInputStreamGetter(final JTextComponent component) {
