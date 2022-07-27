@@ -1225,6 +1225,12 @@ loop:		for (index = from; index < len; index++) {
 							case ordinalInt		:
 								start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
 								break;
+							case signedInt		:
+								if (source[start] == '-' || source[start] == '+') {
+									start++;
+								}
+								start = UnsafedCharUtils.uncheckedParseInt(source,UnsafedCharUtils.uncheckedSkipBlank(source,start,true),intResult,true);
+								break;
 							case ordinalLong	:
 								start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
 								break;
@@ -1401,6 +1407,23 @@ loop:		for (index = from; index < len; index++) {
 							case ordinalInt		:
 								start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
 								result[resultIndex++] = intResult[0];
+								break;
+							case signedInt		:
+								final int	intSign;
+								
+								if (source[start] == '-') {
+									intSign = -1;
+									start++;
+								}
+								else if (source[start] == '+') {
+									intSign = 1;
+									start++;
+								}
+								else {
+									intSign = 1;
+								}
+								start = UnsafedCharUtils.uncheckedParseInt(source,UnsafedCharUtils.uncheckedSkipBlank(source,start,true),intResult,true);
+								result[resultIndex++] = intSign * intResult[0];
 								break;
 							case ordinalLong	:
 								start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);

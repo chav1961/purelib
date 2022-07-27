@@ -111,6 +111,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -2005,7 +2006,7 @@ loop:			for (Component comp : children(node)) {
 	 * @lastUpdate 0.0.6
 	 */
 	public static LoggerFacade getNearestLogger(final Component component) {
-		return getNearestOwner(component, LoggerFacade.class, PureLibSettings.CURRENT_LOGGER);
+		return getNearestOwner(component, LoggerFacadeOwner.class, ()->PureLibSettings.CURRENT_LOGGER).getLogger();
 	}
 
 	/**
