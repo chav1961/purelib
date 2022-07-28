@@ -1496,10 +1496,10 @@ loop:		for (index = from; index < len; index++) {
 					}
 				}
 				else if (lexema instanceof Optional) {
-					final int	afterOptional = tryExtract(source, from, ((Optional)lexema).lexemas);
+					final int	afterOptional = tryExtract(source, start, ((Optional)lexema).lexemas);
 					
 					if (afterOptional >= 0) {
-						start = extract(source,from, result, resultIndex, ((Optional)lexema).lexemas);
+						start = extract(source, start, result, resultIndex, ((Optional)lexema).lexemas);
 					}
 				}
 				else if (lexema instanceof Choise) {
@@ -1509,9 +1509,9 @@ loop:		for (index = from; index < len; index++) {
 						final int	afterChoise;
 						
 						if (item.getClass().isArray()) {
-							afterChoise = tryExtract(source, from, (Object[])item);
+							afterChoise = tryExtract(source, start, (Object[])item);
 							if (afterChoise >= 0) {
-								start = extract(source,from, result, resultIndex, (Object[])item);
+								start = extract(source, start, result, resultIndex, (Object[])item);
 								found = true;
 								break;
 							}	

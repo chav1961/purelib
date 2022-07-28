@@ -908,7 +908,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		@Override
 		protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 			final Message	message = new Message(level, throwable, text, EMPTY_LIST);
-			final String	text2Store = text.trim().isEmpty() ? "&nbsp;" : text;
+			final String	text2Store = text.trim().isEmpty() ? "&nbsp;" : text.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;");
 			final TimerTask	old;
 			
 			if (level != Severity.tooltip) {
