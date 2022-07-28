@@ -908,6 +908,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		@Override
 		protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 			final Message	message = new Message(level, throwable, text, EMPTY_LIST);
+			final String	text2Store = text.trim().isEmpty() ? "&nbsp;" : text;
+			final TimerTask	old;
 			
 			if (level != Severity.tooltip) {
 				synchronized (history) {
@@ -922,26 +924,26 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			}
 			switch (level) {
 				case debug	:
-					state.setText("<html><body><font color='gray'>"+text+"</font></body></html>");
+					state.setText("<html><body><font color='gray'>"+text2Store+"</font></body></html>");
 					break;
 				case error	:
-					state.setText("<html><body><font color='red'><b>"+text+"</b></font></body></html>");
+					state.setText("<html><body><font color='red'><b>"+text2Store+"</b></font></body></html>");
 					break;
 				case info	:
-					state.setText("<html><body><font color='black'>"+text+"</font></body></html>");
+					state.setText("<html><body><font color='black'>"+text2Store+"</font></body></html>");
 					break;
 				case severe	:
-					state.setText("<html><body><font color='red'><b><u>"+text+"</u></b></font></body></html>");
+					state.setText("<html><body><font color='red'><b><u>"+text2Store+"</u></b></font></body></html>");
 					break;
 				case trace	:
-					state.setText("<html><body><font color='lightgray'>"+text+"</font></body></html>");
+					state.setText("<html><body><font color='lightgray'>"+text2Store+"</font></body></html>");
 					break;
 				case warning:
-					state.setText("<html><body><font color='blue'>"+text+"</font></body></html>");
+					state.setText("<html><body><font color='blue'>"+text2Store+"</font></body></html>");
 					break;
 				case tooltip:
 					if (supportTooltips) {
-						state.setText("<html><body><font color='black'>"+text+"</font></body></html>");
+						state.setText("<html><body><font color='black'>"+text2Store+"</font></body></html>");
 					}
 					break;
 				default:
@@ -953,17 +955,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			else {
 				state.setIcon(null);
 			}
-			final TimerTask	old;
 			
 			if (timeouts[level.ordinal()] > 0) {
-//				final TimerTask	temp = new TimerTask() {
-//											@Override
-//											public void run() {
-//												state.setText("");
-//											}
-//										};
-//				PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(temp, timeouts[level.ordinal()]);
-				old = tt.getAndSet(/*temp*/SimpleTimerTask.start(()->state.setText(""), timeouts[level.ordinal()]));
+				old = tt.getAndSet(SimpleTimerTask.start(()->state.setText(""), timeouts[level.ordinal()]));
 			}
 			else {
 				old = tt.getAndSet(null);

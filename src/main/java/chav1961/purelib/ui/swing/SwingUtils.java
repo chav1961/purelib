@@ -181,6 +181,8 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_PRINT = KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_UNDO = KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_REDO = KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK); 
+	public static final KeyStroke			KS_UP = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0); 
+	public static final KeyStroke			KS_DOWN = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0); 
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";
@@ -200,6 +202,8 @@ public abstract class SwingUtils {
 	public static final String				ACTION_CONTEXTMENU = "contextmenu";
 	public static final String				ACTION_UNDO = "undo";
 	public static final String				ACTION_REDO = "redo";
+	public static final String				ACTION_UP = "up";
+	public static final String				ACTION_DOWN = "down";
 	
 	public static enum EditorKeys {
 		EK_INSERT(KS_INSERT, ACTION_INSERT),

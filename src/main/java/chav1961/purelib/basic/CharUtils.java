@@ -1157,6 +1157,44 @@ loop:		for (index = from; index < len; index++) {
 		raw
 	}
 
+	public static class Optional {
+		private final Object[]	lexemas;
+		
+		public Optional(Object... lexemas) {
+			if (lexemas == null || lexemas.length == 0 || Utils.checkArrayContent4Nulls(lexemas) >= 0) {
+				throw new IllegalArgumentException("Lexemas is null, empty or contain nulls inside"); 
+			}
+			else {
+				this.lexemas = lexemas;
+			}
+		}
+	}
+
+	public static class Choise {
+		private final Object[]	lexemas;
+		
+		public Choise(Object... lexemas) {
+			if (lexemas == null || lexemas.length == 0 || Utils.checkArrayContent4Nulls(lexemas) >= 0) {
+				throw new IllegalArgumentException("Lexemas is null, empty or contain nulls inside"); 
+			}
+			else {
+				this.lexemas = lexemas;
+			}
+		}
+	}
+
+	public static class Mark {
+		private final int	value;
+		
+		public Mark(final int value) {
+			this.value = value;
+		}
+		
+		public int getMark() {
+			return value;
+		}
+	}
+	
 	/**
 	 * <p>Try to extract content from input character array with lexemas. Returns non-negative number if extraction was successful. Lexemas can be:</p>
 	 * <ul>
@@ -1211,6 +1249,49 @@ loop:		for (index = from; index < len; index++) {
 					}
 					else {
 						return -(start+1); 
+					}
+				}
+				else if (lexema instanceof Mark) {
+					// marker doesn't process on try
+				}
+				else if ((lexema instanceof Class<?>) && ((Class<?>)lexema).isEnum()) {
+					if (Character.isJavaIdentifierStart(source[start])) {
+						final int	possibleStart = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+						
+						try {Enum.valueOf((Class<? extends Enum>)lexema, new String(source, start, possibleStart-start));
+							start = possibleStart;
+						} catch (IllegalArgumentException exc) {
+							return -(start+1);
+						}
+					}
+					else {
+						return -(start+1);
+					}
+				}
+				else if (lexema instanceof Optional) {
+					final int	afterOptional = tryExtract(source, from, ((Optional)lexema).lexemas);
+					
+					if (afterOptional >= 0) {
+						start = afterOptional;
+					}
+				}
+				else if (lexema instanceof Choise) {
+					for (Object item : ((Choise)lexema).lexemas) {
+						final int	afterChoise;
+						
+						if (item.getClass().isArray()) {
+							afterChoise = tryExtract(source, from, (Object[])item);
+						}
+						else {
+							afterChoise = tryExtract(source, from, item);
+						}
+						if (afterChoise >= 0) {
+							start = afterChoise;
+							break;
+						}
+						else {
+							return -(start+1); 
+						}
 					}
 				}
 				else if (lexema instanceof ArgumentType) {
@@ -1340,6 +1421,10 @@ loop:		for (index = from; index < len; index++) {
 	 * @lastUpate 0.0.6
 	 */
 	public static int extract(final char[] source, final int from, final Object[] result, Object... lexemas) throws SyntaxException {
+		return extract(source, from, result, new int[] {0}, lexemas);
+	}	
+	
+	static int extract(final char[] source, final int from, final Object[] result, final int[] resultIndex, Object... lexemas) throws SyntaxException {
 		int	len, start = from;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -1355,21 +1440,20 @@ loop:		for (index = from; index < len; index++) {
 			throw new IllegalArgumentException("Lexemas list can't be null or empty");
 		}
 		else {
-			int  resultCount = 0;
+			int  resultCount = resultIndex[0];
 			
 			for (Object item : lexemas) {
-				if (item instanceof ArgumentType) {
+				if ((item instanceof ArgumentType) || (item instanceof Mark)) {
 					resultCount++;
 				}
 			}
 			if (resultCount > result.length) {
-				throw new IllegalArgumentException("Result array size ["+result.length+"] is less than number of ArgumetType lexemas in the list ["+resultCount+"]");
+				throw new IllegalArgumentException("Result array size ["+result.length+"] is less than number of ArgumetType and/or Mark lexemas in the list ["+resultCount+"]");
 			}
 			
 			final int[]		intResult = new int[2];
 			final long[]	longResult = new long[2];
 			final float[]	floatResult = new float[2];
-			int				resultIndex = 0;
 			
 			for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++) {
 				final Object	lexema = lexemas[index];
@@ -1393,20 +1477,72 @@ loop:		for (index = from; index < len; index++) {
 						throw new SyntaxException(0,start,"Missing '"+((Character)lexema).charValue()+"'"); 
 					}
 				}
+				else if (lexema instanceof Mark) {
+					result[resultIndex[0]++] = lexema;
+				}
+				else if ((lexema instanceof Class<?>) && ((Class<?>)lexema).isEnum()) {
+					if (Character.isJavaIdentifierStart(source[start])) {
+						final int		possibleStart = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+						final String	value = new String(source, start, possibleStart-start);
+						
+						try{result[resultIndex[0]++] = Enum.valueOf((Class<? extends Enum>)lexema, value);
+							start = possibleStart;
+						} catch (IllegalArgumentException exc) {
+							throw new SyntaxException(0,start,"Invalid enum value '"+value+"' for enum ["+((Class<?>)lexema).getSimpleName()+"]"); 
+						}
+					}
+					else {
+						throw new SyntaxException(0,start,"Enum value awaited"); 
+					}
+				}
+				else if (lexema instanceof Optional) {
+					final int	afterOptional = tryExtract(source, from, ((Optional)lexema).lexemas);
+					
+					if (afterOptional >= 0) {
+						start = extract(source,from, result, resultIndex, ((Optional)lexema).lexemas);
+					}
+				}
+				else if (lexema instanceof Choise) {
+					boolean found = false;
+					
+					for (Object item : ((Choise)lexema).lexemas) {
+						final int	afterChoise;
+						
+						if (item.getClass().isArray()) {
+							afterChoise = tryExtract(source, from, (Object[])item);
+							if (afterChoise >= 0) {
+								start = extract(source,from, result, resultIndex, (Object[])item);
+								found = true;
+								break;
+							}	
+						}	
+						else {
+							afterChoise = tryExtract(source, from, item);
+							if (afterChoise >= 0) {
+								start = extract(source,from, result, resultIndex, item);
+								found = true;
+								break;
+							}	
+						}
+					}
+					if (!found) {
+						throw new SyntaxException(0,start,"Parse error: No choise detected"); 
+					}
+				}
 				else if (lexema instanceof ArgumentType) {
 					try {
 						switch ((ArgumentType)lexema) {
 							case hexInt			:
 								start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
-								result[resultIndex++] = intResult[0];
+								result[resultIndex[0]++] = intResult[0];
 								break;
 							case hexLong		:
 								start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
-								result[resultIndex++] = longResult[0];
+								result[resultIndex[0]++] = longResult[0];
 								break;
 							case ordinalInt		:
 								start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
-								result[resultIndex++] = intResult[0];
+								result[resultIndex[0]++] = intResult[0];
 								break;
 							case signedInt		:
 								final int	intSign;
@@ -1423,19 +1559,19 @@ loop:		for (index = from; index < len; index++) {
 									intSign = 1;
 								}
 								start = UnsafedCharUtils.uncheckedParseInt(source,UnsafedCharUtils.uncheckedSkipBlank(source,start,true),intResult,true);
-								result[resultIndex++] = intSign * intResult[0];
+								result[resultIndex[0]++] = intSign * intResult[0];
 								break;
 							case ordinalLong	:
 								start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
-								result[resultIndex++] = longResult[0];
+								result[resultIndex[0]++] = longResult[0];
 								break;
 							case ordinalFloat	:
 								start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
-								result[resultIndex++] = floatResult[0];
+								result[resultIndex[0]++] = floatResult[0];
 								break;
 							case name			:
 								start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
-								result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+								result[resultIndex[0]++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 								break;
 							case simpleTerminatedString	:
 								if (source[start] == '\"') {
@@ -1447,22 +1583,22 @@ loop:		for (index = from; index < len; index++) {
 								else {
 									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
 								}
-								result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+								result[resultIndex[0]++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 								break;
 							case specialTerminatedString	:
 								final StringBuilder	sb = new StringBuilder();
 								
 								try{if (source[start] == '\"') {
 										start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\"',sb);
-										result[resultIndex++] = sb.toString();
+										result[resultIndex[0]++] = sb.toString();
 									}
 									else if (source[start] == '\'') {
 										start = UnsafedCharUtils.uncheckedParseString(source,start+1,'\'',sb);
-										result[resultIndex++] = sb.toString();
+										result[resultIndex[0]++] = sb.toString();
 									}
 									else {
 										start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
-										result[resultIndex++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
+										result[resultIndex[0]++] = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 									}
 								} catch (IOException exc) {
 									throw new SyntaxException(0,start,"Parse error: "+exc.getLocalizedMessage()); 
@@ -1473,18 +1609,18 @@ loop:		for (index = from; index < len; index++) {
 								
 								do {start = UnsafedCharUtils.uncheckedParseName(source,++start,intResult);
 								} while (start < source.length && source[start] == '-');
-								result[resultIndex++] = new String(source,startName,intResult[1]-startName+1);
+								result[resultIndex[0]++] = new String(source,startName,intResult[1]-startName+1);
 								break; 
 							case colorRepresentation	:
 								if (source[start] == '#') {	// Hex presentation
 									start = UnsafedCharUtils.uncheckedParseHexInt(source,start+1,intResult,true);
-									result[resultIndex++] = new Color(intResult[0]);
+									result[resultIndex[0]++] = new Color(intResult[0]);
 								}
 								else {
 									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
 									final String	color = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 									
-									if ((result[resultIndex++] = PureLibSettings.colorByName(color,null)) == null) {
+									if ((result[resultIndex[0]++] = PureLibSettings.colorByName(color,null)) == null) {
 										throw new IllegalArgumentException("Unknonw color name ["+color+"]");
 									}
 								}
@@ -1495,7 +1631,7 @@ loop:		for (index = from; index < len; index++) {
 								while (source[start] != '\n' && source[start] != '\r') {	// Content to the \n
 									start++;
 								}
-								result[resultIndex++] = new String(source,tailStart,start-tailStart-1);
+								result[resultIndex[0]++] = new String(source,tailStart,start-tailStart-1);
 								start--;
 								break;
 							default				:
