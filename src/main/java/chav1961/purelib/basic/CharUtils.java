@@ -165,7 +165,18 @@ public class CharUtils {
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
+	private static final SyntaxTreeInterface<Object>	CONSTANTS = new AndOrTree<>();
 	private static final SyntaxTreeInterface<String>	VOCABULARY = new AndOrTree<>();
+
+	static {
+		CONSTANTS.placeName("true",true);
+		CONSTANTS.placeName("on",true);
+		CONSTANTS.placeName("y",true);
+		
+		CONSTANTS.placeName("false",false);
+		CONSTANTS.placeName("off",false);
+		CONSTANTS.placeName("n",false);
+	}
 	
 	/**
 	 * <p>Extract unsigned integer value from the current position of the source data</p>
@@ -1151,16 +1162,26 @@ loop:		for (index = from; index < len; index++) {
 	 * @lastUpdate 0.0.4
 	 */
 	public enum ArgumentType {
-		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat,
+		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, Boolean,
 		name, hyphenedName, simpleTerminatedString, specialTerminatedString,
 		colorRepresentation,
 		raw
 	}
 
+	/**
+	 * <p>This class is used to describe template for extracting content from character array with lexemas. It contains <i>optional</i> sequence of lexemas</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
 	public static class Optional {
 		private final Object[]	lexemas;
 		
-		public Optional(Object... lexemas) {
+		/**
+		 * <p>Constructor of the class</p>
+		 * @param lexemas to keep. Can't be null or empty array and can't contain nulls inside
+		 * @throws IllegalArgumentException on any argument errors
+		 */
+		public Optional(Object... lexemas) throws IllegalArgumentException {
 			if (lexemas == null || lexemas.length == 0 || Utils.checkArrayContent4Nulls(lexemas) >= 0) {
 				throw new IllegalArgumentException("Lexemas is null, empty or contain nulls inside"); 
 			}
@@ -1170,10 +1191,21 @@ loop:		for (index = from; index < len; index++) {
 		}
 	}
 
+	/**
+	 * <p>This class is used to describe template for extracting content from character array with lexemas. It contains one or more <i>choises<i> (each with sequence of lexemas)</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 * 
+	 */
 	public static class Choise {
-		private final Object[]	lexemas;
+		private final Object[][]	lexemas;
 		
-		public Choise(Object... lexemas) {
+		/**
+		 * <p>Constructor of the class</p>
+		 * @param lexemas groups of lexemas to choise alternatives. Can't be null, empty or contains nulls inside
+		 * @throws IllegalArgumentException on any argument errors
+		 */
+		public Choise(Object[]... lexemas)  throws IllegalArgumentException {
 			if (lexemas == null || lexemas.length == 0 || Utils.checkArrayContent4Nulls(lexemas) >= 0) {
 				throw new IllegalArgumentException("Lexemas is null, empty or contain nulls inside"); 
 			}
@@ -1183,13 +1215,27 @@ loop:		for (index = from; index < len; index++) {
 		}
 	}
 
+	/**
+	 * <p>This class is used to describe template for extracting content from character array with lexemas. It represents self and will be included into parsed parameters as-is.
+	 * It is useful to mark 'trace' of parsing (for example in option clause)</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
 	public static class Mark {
 		private final int	value;
-		
+
+		/**
+		 * <p>Constructor of the class</p>
+		 * @param value value associated with this mark instance</p>
+		 */
 		public Mark(final int value) {
 			this.value = value;
 		}
 		
+		/**
+		 * <p>Get value associated with thisinstance</p>
+		 * @return value associated
+		 */
 		public int getMark() {
 			return value;
 		}
@@ -1199,8 +1245,12 @@ loop:		for (index = from; index < len; index++) {
 	 * <p>Try to extract content from input character array with lexemas. Returns non-negative number if extraction was successful. Lexemas can be:</p>
 	 * <ul>
 	 * <li>single character - marks character 'as-is' in the input array</li>
-	 * <li>string - marks sequence of characters in the input array</li>
+	 * <li>string - marks sequence of characters 'as-is' in the input array</li>
 	 * <li>{@linkplain ArgumentType} - marks kind of predefined lexema in the input array</li>
+	 * <li>{@linkplain Class<? extends Enum>} - marks kind of any enumeration in the input array</li>
+	 * <li>{@linkplain Mark} - marks self and will be included into parsed parameters list 'as-is'. It is useful to mark parsing 'trace'</li>
+	 * <li>{@linkplain Optional} - marks optional sequence of the lexemas in the inpt array</li>
+	 * <li>{@linkplain Choise} - marks choise (one of the sequences) in the input array</li>
 	 * </ul>
 	 * @param source source array to try extraction from
 	 * @param from start position to extract content from
@@ -1269,22 +1319,17 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 					}
 				}
 				else if (lexema instanceof Optional) {
-					final int	afterOptional = tryExtract(source, from, ((Optional)lexema).lexemas);
+					final int	afterOptional = tryExtract(source, start, ((Optional)lexema).lexemas);
 					
 					if (afterOptional >= 0) {
 						start = afterOptional;
 					}
 				}
 				else if (lexema instanceof Choise) {
-					for (Object item : ((Choise)lexema).lexemas) {
+					for (Object[] item : ((Choise)lexema).lexemas) {
 						final int	afterChoise;
 						
-						if (item.getClass().isArray()) {
-							afterChoise = tryExtract(source, from, (Object[])item);
-						}
-						else {
-							afterChoise = tryExtract(source, from, item);
-						}
+						afterChoise = tryExtract(source, start, item);
 						if (afterChoise >= 0) {
 							start = afterChoise;
 							continue loop;
@@ -1384,13 +1429,24 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									return -(start+1);
 								}
 								break;
+							case Boolean	:
+								if (Character.isJavaIdentifierStart(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+									final long	boolId = CONSTANTS.seekName(source, intResult[0], intResult[1]+1);
+										
+									if (!(boolId >= 0 && (CONSTANTS.getCargo(boolId) instanceof Boolean))) {
+										return -(start+1);
+									}
+								}
+								else {
+									return -(start+1);
+								}
+								break;
 							case raw	:
-								final int	tailStart = start;
-								
-								while (source[start] != '\r' && source[start] != '\n') {
+								while (start < source.length && source[start] != '\r' && source[start] != '\n') {
 									start++;
 								}
-								return start-1;
+								return start < source.length && (source[start] == '\r' || source[start] == '\n') ? start-1 : start;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 
 						}
@@ -1503,25 +1559,15 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 				else if (lexema instanceof Choise) {
 					boolean found = false;
 					
-					for (Object item : ((Choise)lexema).lexemas) {
+					for (Object[] item : ((Choise)lexema).lexemas) {
 						final int	afterChoise;
 						
-						if (item.getClass().isArray()) {
-							afterChoise = tryExtract(source, start, (Object[])item);
-							if (afterChoise >= 0) {
-								start = extract(source, start, result, resultIndex, (Object[])item);
-								found = true;
-								break;
-							}	
+						afterChoise = tryExtract(source, start, item);
+						if (afterChoise >= 0) {
+							start = extract(source, start, result, resultIndex, item);
+							found = true;
+							break;
 						}	
-						else {
-							afterChoise = tryExtract(source, from, item);
-							if (afterChoise >= 0) {
-								start = extract(source,from, result, resultIndex, item);
-								found = true;
-								break;
-							}	
-						}
 					}
 					if (!found) {
 						throw new SyntaxException(0,start,"Parse error: No choise detected"); 
@@ -1623,14 +1669,39 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									}
 								}
 								break;
+							case Boolean	:
+								if (Character.isJavaIdentifierStart(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+									final long	boolId = CONSTANTS.seekName(source, intResult[0], intResult[1]+1);
+										
+									if (boolId >= 0) {
+										final Object	cargo = CONSTANTS.getCargo(boolId);
+										
+										if (cargo instanceof Boolean) {
+											result[resultIndex[0]++] = cargo; 
+										}
+										else {
+											throw new SyntaxException(0,start,"Parse error: illegal boolean value"); 
+										}
+									}
+									else {
+										throw new SyntaxException(0,start,"Parse error: illegal boolean value"); 
+									}
+								}
+								else {
+									return -(start+1);
+								}
+								break;
 							case raw	:
 								final int 	tailStart = start;
 								
-								while (source[start] != '\n' && source[start] != '\r') {	// Content to the \n
+								while (start < source.length && source[start] != '\n' && source[start] != '\r') {	// Content to the \n
 									start++;
 								}
-								result[resultIndex[0]++] = new String(source,tailStart,start-tailStart-1);
-								start--;
+								if (start < source.length && (source[start] == '\n' || source[start] == '\r')) {
+									start--;
+								}
+								result[resultIndex[0]++] = new String(source,tailStart,start-tailStart);
 								break;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 

@@ -820,7 +820,7 @@ public class CharUtilsTest {
 	}
 
 	@Test
-	public void extractTest() throws SyntaxException {
+	public void basicExtractTest() throws SyntaxException {
 		final Object[]	result= new Object[10];
 		
 		// Constants (extract)
@@ -882,6 +882,17 @@ public class CharUtilsTest {
 		Assert.assertEquals(Color.BLACK,result[0]);
 		Assert.assertEquals(7,CharUtils.extract("#FFFFFF".toCharArray(),0,result,ArgumentType.colorRepresentation));
 		Assert.assertEquals(Color.WHITE,result[0]);
+
+		Assert.assertEquals(4,CharUtils.extract("true".toCharArray(),0,result,ArgumentType.Boolean));
+		Assert.assertEquals(true,result[0]);
+		Assert.assertEquals(5,CharUtils.extract("false".toCharArray(),0,result,ArgumentType.Boolean));
+		Assert.assertEquals(false,result[0]);
+
+		Assert.assertEquals(7,CharUtils.extract("unknown".toCharArray(),0,result,ArgumentType.raw));
+		Assert.assertEquals("unknown",result[0]);
+
+		Assert.assertEquals(3,CharUtils.extract("raw".toCharArray(),0,result,ArgumentType.class));
+		Assert.assertEquals(ArgumentType.raw,result[0]);
 		
 		// Lexemas (tryExtract)
 		Assert.assertEquals(3,CharUtils.tryExtract("120".toCharArray(),0,ArgumentType.ordinalInt));	
@@ -908,6 +919,13 @@ public class CharUtilsTest {
 
 		Assert.assertEquals(5,CharUtils.tryExtract("black".toCharArray(),0,ArgumentType.colorRepresentation));
 		Assert.assertEquals(7,CharUtils.tryExtract("#FFFFFF".toCharArray(),0,ArgumentType.colorRepresentation));
+
+		Assert.assertEquals(5,CharUtils.tryExtract("false".toCharArray(),0,ArgumentType.Boolean));
+		Assert.assertEquals(4,CharUtils.tryExtract("true".toCharArray(),0,ArgumentType.Boolean));
+		
+		Assert.assertEquals(7,CharUtils.tryExtract("unknown".toCharArray(),0,ArgumentType.raw));
+
+		Assert.assertEquals(3,CharUtils.tryExtract("raw".toCharArray(),0,ArgumentType.class));
 		
 		// Complex test
 		Assert.assertEquals(13,CharUtils.extract("test 120 test".toCharArray(),0,result,"test".toCharArray(),ArgumentType.ordinalInt,"test".toCharArray()));	// Complex
@@ -981,7 +999,30 @@ public class CharUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 	}	
+
+	@Test
+	public void nestedExtractTest() throws SyntaxException {
+		final Object[]	result= new Object[10];
+		
+		// Constants (extract)
+		Assert.assertEquals(3,CharUtils.extract("text".toCharArray(),0,result,'t',new CharUtils.Optional('e'), 'x'));	
+		Assert.assertEquals(2,CharUtils.extract("txt".toCharArray(),0,result,'t',new CharUtils.Optional('e'), 'x'));	
+		Assert.assertEquals(3,CharUtils.extract("text".toCharArray(),0,result,'t',new CharUtils.Choise(new Object[]{'e'},new Object[]{'a'}), 'x'));	
+		Assert.assertEquals(3,CharUtils.extract("taxt".toCharArray(),0,result,'t',new CharUtils.Choise(new Object[]{'e'},new Object[]{'a'}), 'x'));	
+
+		// Constants (tryExtract)
+		Assert.assertEquals(3,CharUtils.tryExtract("text".toCharArray(),0,'t',new CharUtils.Optional('e'), 'x'));	
+		Assert.assertEquals(2,CharUtils.tryExtract("txt".toCharArray(),0,'t',new CharUtils.Optional('e'), 'x'));	
+		Assert.assertEquals(3,CharUtils.tryExtract("text".toCharArray(),0,'t',new CharUtils.Choise(new Object[]{'e'},new Object[]{'a'}), 'x'));	
+		Assert.assertEquals(3,CharUtils.tryExtract("taxt".toCharArray(),0,'t',new CharUtils.Choise(new Object[]{'e'},new Object[]{'a'}), 'x'));	
+		
+		// Lexemas (extract)
+		Assert.assertEquals(3,CharUtils.extract("text".toCharArray(),0,result,'t','e',new CharUtils.Mark(1),'x'));	
+		Assert.assertEquals(1,((CharUtils.Mark)result[0]).getMark());
 	
+		// Lexemas (tryExtract)
+		Assert.assertEquals(3,CharUtils.tryExtract("text".toCharArray(),0,'t','e',new CharUtils.Mark(1),'x'));	
+	}	
 	
 	@Test
 	public void substitutionTest() {
