@@ -1245,6 +1245,7 @@ loop:		for (index = from; index < len; index++) {
 	 * <p>Try to extract content from input character array with lexemas. Returns non-negative number if extraction was successful. Lexemas can be:</p>
 	 * <ul>
 	 * <li>single character - marks character 'as-is' in the input array</li>
+	 * <li>char[] - marks sequence of characters 'as-is' in the input array</li>
 	 * <li>string - marks sequence of characters 'as-is' in the input array</li>
 	 * <li>{@linkplain ArgumentType} - marks kind of predefined lexema in the input array</li>
 	 * <li>{@linkplain Class<? extends Enum>} - marks kind of any enumeration in the input array</li>
@@ -1292,6 +1293,16 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 					else {
 						return -(start+1); 
 					}
+				}
+				else if (lexema instanceof CharSequence) {
+					final CharSequence	cs = (CharSequence)lexema;
+					
+					for (int pos = 0, maxPos = cs.length(); pos < maxPos; pos++) {
+						if (source[start+pos] != cs.charAt(pos)) {
+							return -(start+1); 
+						}
+					}
+					start += cs.length();
 				}
 				else if (lexema instanceof Character) {
 					if (source[start] == ((Character)lexema).charValue()) {
@@ -1341,25 +1352,55 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 					try {
 						switch ((ArgumentType)lexema) {
 							case hexInt			:
-								start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
+								if ("0123456789abcdefABCDEF".indexOf(source[start]) >= 0) {
+									start = UnsafedCharUtils.uncheckedParseHexInt(source,start,intResult,true);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case hexLong		:
-								start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
+								if ("0123456789abcdefABCDEF".indexOf(source[start]) >= 0) {
+									start = UnsafedCharUtils.uncheckedParseHexLong(source,start,longResult,true);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case ordinalInt		:
-								start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
+								if (Character.isDigit(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseInt(source,start,intResult,true);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case signedInt		:
 								if (source[start] == '-' || source[start] == '+') {
 									start++;
 								}
-								start = UnsafedCharUtils.uncheckedParseInt(source,UnsafedCharUtils.uncheckedSkipBlank(source,start,true),intResult,true);
+								if (Character.isDigit(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseInt(source,UnsafedCharUtils.uncheckedSkipBlank(source,start,true),intResult,true);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case ordinalLong	:
-								start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
+								if (Character.isDigit(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseLong(source,start,longResult,true);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case ordinalFloat	:
-								start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
+								if (Character.isDigit(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseFloat(source,start,floatResult,true);
+								}
+								else {
+									return -(start+1);
+								}
 								break;
 							case name			:
 								if (Character.isJavaIdentifierStart(source[start])) {
@@ -1522,6 +1563,16 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 					else {
 						throw new SyntaxException(0,start,"Missing '"+new String(item)+"'"); 
 					}
+				}
+				else if (lexema instanceof CharSequence) {
+					final CharSequence	cs = (CharSequence)lexema;
+					
+					for (int pos = 0, maxPos = cs.length(); pos < maxPos; pos++) {
+						if (source[start+pos] != cs.charAt(pos)) {
+							return -(start+1); 
+						}
+					}
+					start += cs.length();
 				}
 				else if (lexema instanceof Character) {
 					if (source[start] == ((Character)lexema).charValue()) {
@@ -1699,9 +1750,12 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									start++;
 								}
 								if (start < source.length && (source[start] == '\n' || source[start] == '\r')) {
+									result[resultIndex[0]++] = new String(source, tailStart, start-tailStart);
 									start--;
 								}
-								result[resultIndex[0]++] = new String(source,tailStart,start-tailStart);
+								else {
+									result[resultIndex[0]++] = new String(source, tailStart, start-tailStart);
+								}
 								break;
 							default				:
 								throw new UnsupportedOperationException("Argument type ["+lexema+"] is not supported yet"); 

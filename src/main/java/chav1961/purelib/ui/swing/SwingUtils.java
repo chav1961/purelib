@@ -1505,6 +1505,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws IllegalArgumentException any strings are null or empty
 	 * @throws NullPointerException any arguments are null
 	 * @since 0.0.5
+	 * @lastUpdate 0.0.6
 	 */
 	public static void showAboutScreen(final JFrame owner, final Localizer localizer, final String title, final String content, final URI imageIcon, final Dimension preferredSize) throws IllegalArgumentException, NullPointerException {
 		if (title == null || title.isEmpty()) {
@@ -1520,9 +1521,9 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Preferred size can't be null");
 		}
 		else {
-			try{JOptionPane.showMessageDialog(owner, buildAboutContent(localizer, content, preferredSize), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
+			try{JOptionPane.showMessageDialog(owner, new JScrollPane(buildAboutContent(localizer, content, preferredSize)), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
 			} catch (LocalizationException | IOException | MimeParseException e) {
-				PureLibSettings.CURRENT_LOGGER.message(Severity.error, e.getLocalizedMessage());
+				SwingUtils.getNearestLogger(owner.getContentPane()).message(Severity.error, e.getLocalizedMessage());
 			}
 		}
 	}
@@ -1538,6 +1539,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws IllegalArgumentException any strings are null or empty
 	 * @throws NullPointerException any arguments are null
 	 * @since 0.0.5
+	 * @lastUpdate 0.0.6
 	 */
 	public static void showAboutScreen(final JDialog owner, final Localizer localizer, final String title, final String content, final URI imageIcon, final Dimension preferredSize) {
 		if (title == null || title.isEmpty()) {
@@ -1553,9 +1555,9 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Preferred size can't be null");
 		}
 		else {
-			try{JOptionPane.showMessageDialog(owner, buildAboutContent(localizer, content, preferredSize), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
+			try{JOptionPane.showMessageDialog(owner, new JScrollPane(buildAboutContent(localizer, content, preferredSize)), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
 			} catch (LocalizationException | IOException | MimeParseException e) {
-				PureLibSettings.CURRENT_LOGGER.message(Severity.error, e.getLocalizedMessage());
+				SwingUtils.getNearestLogger(owner.getContentPane()).message(Severity.error, e.getLocalizedMessage());
 			}
 		}
 	}

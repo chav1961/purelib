@@ -908,7 +908,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		@Override
 		protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 			final Message	message = new Message(level, throwable, text, EMPTY_LIST);
-			final String	text2Store = text.trim().isEmpty() ? "&nbsp;" : text.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;");
+			final String	text2Store = text.trim().isEmpty() ? " " : text;
 			final TimerTask	old;
 			
 			if (level != Severity.tooltip) {
@@ -923,31 +923,18 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 				dump.message(level, throwable, text);
 			}
 			switch (level) {
-				case debug	:
-					state.setText("<html><body><font color='gray'>"+text2Store+"</font></body></html>");
-					break;
-				case error	:
-					state.setText("<html><body><font color='red'><b>"+text2Store+"</b></font></body></html>");
-					break;
-				case info	:
-					state.setText("<html><body><font color='black'>"+text2Store+"</font></body></html>");
-					break;
-				case severe	:
-					state.setText("<html><body><font color='red'><b><u>"+text2Store+"</u></b></font></body></html>");
-					break;
-				case trace	:
-					state.setText("<html><body><font color='lightgray'>"+text2Store+"</font></body></html>");
-					break;
-				case warning:
-					state.setText("<html><body><font color='blue'>"+text2Store+"</font></body></html>");
-					break;
-				case tooltip:
-					if (supportTooltips) {
-						state.setText("<html><body><font color='black'>"+text2Store+"</font></body></html>");
-					}
-					break;
-				default:
-					break;
+				case debug	: state.setForeground(Color.GRAY); break;
+				case error	: state.setForeground(Color.RED); break;
+				case info	: state.setForeground(Color.BLACK); break;
+				case severe	: state.setForeground(Color.RED); break;
+				case trace	: state.setForeground(Color.LIGHT_GRAY); break;
+				case warning: state.setForeground(Color.BLUE); break;
+				case tooltip: state.setForeground(Color.BLACK); break;
+				default: 
+					throw new UnsupportedOperationException("Severity level ["+level+"] is not supported yet"); 
+			}
+			if (level != Severity.tooltip || supportTooltips) {
+				state.setText(text2Store);
 			}
 			if ((lastThrowable = throwable) != null) {
 				state.setIcon(InternalConstants.ICON_EYE);
