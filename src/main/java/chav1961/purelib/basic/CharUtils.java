@@ -1229,7 +1229,7 @@ loop:		for (index = from; index < len; index++) {
 			final float[]		floatResult = new float[2];
 			final StringBuilder	sb = new StringBuilder();
 			
-			for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++) {
+loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++) {
 				final Object	lexema = lexemas[index];
 				
 				start = UnsafedCharUtils.uncheckedSkipBlank(source,start,true);
@@ -1287,12 +1287,10 @@ loop:		for (index = from; index < len; index++) {
 						}
 						if (afterChoise >= 0) {
 							start = afterChoise;
-							break;
-						}
-						else {
-							return -(start+1); 
+							continue loop;
 						}
 					}
+					return -(start+1); 
 				}
 				else if (lexema instanceof ArgumentType) {
 					try {
