@@ -167,6 +167,11 @@ public class CharUtils {
 	private static final char		WILDCARD_ANY_CHAR = '?';
 	private static final SyntaxTreeInterface<Object>	CONSTANTS = new AndOrTree<>();
 	private static final SyntaxTreeInterface<String>	VOCABULARY = new AndOrTree<>();
+	private static Object[]			RECTANGLE_REPRESENTATION = {ArgumentType.signedInt, ',', ArgumentType.signedInt, 
+													new Choise( new Object[] {"size", new Mark(1), ArgumentType.signedInt, ',', ArgumentType.signedInt}
+															, new Object[] {"center", new Mark(2), ArgumentType.signedInt, ',', ArgumentType.signedInt}
+															, new Object[] {new Optional("to"), new Mark(3), ArgumentType.signedInt, ',', ArgumentType.signedInt}
+													)};
 
 	static {
 		CONSTANTS.placeName("true",true);
@@ -1165,6 +1170,7 @@ loop:		for (index = from; index < len; index++) {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, Boolean,
 		name, hyphenedName, simpleTerminatedString, specialTerminatedString,
 		colorRepresentation,
+		rectangleRepresentation,
 		raw
 	}
 
@@ -1470,6 +1476,16 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									return -(start+1);
 								}
 								break;
+							case rectangleRepresentation	:
+								final int	rr = tryExtract(source, start, RECTANGLE_REPRESENTATION);
+								
+								if (rr >= 0) {
+									start = rr;
+								}
+								else {
+									return -(rr+1);
+								}
+								break;
 							case Boolean	:
 								if (Character.isJavaIdentifierStart(source[start])) {
 									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
@@ -1719,6 +1735,9 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 										throw new IllegalArgumentException("Unknonw color name ["+color+"]");
 									}
 								}
+								break;
+							case rectangleRepresentation	:
+								
 								break;
 							case Boolean	:
 								if (Character.isJavaIdentifierStart(source[start])) {
