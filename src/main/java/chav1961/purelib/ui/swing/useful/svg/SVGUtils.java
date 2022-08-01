@@ -408,12 +408,13 @@ loop:		for (;;) {
 	
 	private static int skipComma(final char[] content, int from) throws SyntaxException {
 		from = UnsafedCharUtils.uncheckedSkipBlank(content, from, true);
-		if (content[from] == ',') {
-			return UnsafedCharUtils.uncheckedSkipBlank(content, from + 1, true);
-		}
-		else {
-			throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Missing ','"); 
-		}
+		return from;
+//		if (content[from] == ',') {
+//			return UnsafedCharUtils.uncheckedSkipBlank(content, from + 1, true);
+//		}
+//		else {
+//			throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Missing ','"); 
+//		}
 	}
 
 	static <T> T convertTo(final Class<T> awaited, final String source) throws SyntaxException {
