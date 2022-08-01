@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
@@ -167,10 +168,10 @@ public class CharUtils {
 	private static final char		WILDCARD_ANY_CHAR = '?';
 	private static final SyntaxTreeInterface<Object>	CONSTANTS = new AndOrTree<>();
 	private static final SyntaxTreeInterface<String>	VOCABULARY = new AndOrTree<>();
-	private static Object[]			RECTANGLE_REPRESENTATION = {ArgumentType.signedInt, ',', ArgumentType.signedInt, 
-													new Choise( new Object[] {"size", new Mark(1), ArgumentType.signedInt, ',', ArgumentType.signedInt}
-															, new Object[] {"center", new Mark(2), ArgumentType.signedInt, ',', ArgumentType.signedInt}
-															, new Object[] {new Optional("to"), new Mark(3), ArgumentType.signedInt, ',', ArgumentType.signedInt}
+	private static final Object[]	RECTANGLE_REPRESENTATION = {new Choise(
+														  new Object[] {ArgumentType.signedInt, ',', ArgumentType.signedInt, new Optional("to"), ArgumentType.signedInt, ',', ArgumentType.signedInt, new Mark(1)}
+														, new Object[] {ArgumentType.signedInt, ',', ArgumentType.signedInt, "size", ArgumentType.signedInt, ',', ArgumentType.signedInt, new Mark(2)}
+														, new Object[] {"center", ArgumentType.signedInt, ',', ArgumentType.signedInt, "size", ArgumentType.signedInt, ',', ArgumentType.signedInt, new Mark(3)}
 													)};
 
 	static {
@@ -1737,7 +1738,31 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 								}
 								break;
 							case rectangleRepresentation	:
+								final int	beforeRectanglePos = resultIndex[0];
+								final int	afterRectangle = extract(source, start, result, resultIndex, RECTANGLE_REPRESENTATION);
 								
+								if (resultIndex[0] > 0 && (result[resultIndex[0]-1] instanceof Mark)) {
+									final int	x1 = (Integer)result[beforeRectanglePos], y1 = (Integer)result[beforeRectanglePos + 1], x2 = (Integer)result[beforeRectanglePos + 2], y2 = (Integer)result[beforeRectanglePos + 3];
+									
+									switch (((Mark)result[resultIndex[0]-1]).getMark()) {
+										case 1	:
+											result[beforeRectanglePos] = new Rectangle(x2, y2, x2-x1, y2-y1);
+											break;
+										case 2	:
+											result[beforeRectanglePos] = new Rectangle(x2, y2, x2, y2);
+											break;
+										case 3	:
+											result[beforeRectanglePos] = new Rectangle(x2 - x1/2, y2 - y1/2, x2, y2);
+											break;
+										default : 
+											throw new IllegalArgumentException("Unsupported rectangle format");
+									}
+									resultIndex[0] = beforeRectanglePos + 1;
+									start = afterRectangle;
+								}
+								else {
+									throw new IllegalArgumentException("Unsupported rectangle format");
+								}
 								break;
 							case Boolean	:
 								if (Character.isJavaIdentifierStart(source[start])) {
