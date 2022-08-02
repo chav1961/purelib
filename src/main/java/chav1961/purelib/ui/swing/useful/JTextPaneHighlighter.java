@@ -139,12 +139,12 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 				doc.setCharacterAttributes(0,doc.getLength(),getOrdinalCharacterStyle(),false);
 				doc.setParagraphAttributes(0,doc.getLength(),getOrdinalParagraphStyle(),false);
 				
-				final String						text = getText().replace("\r","");
+				final String	text = getText().replace("\r","");
 				
 				if (!text.trim().isEmpty()) {
 					final HighlightItem<LexemaType>[]	lexList = parseString(text);
 	
-					Arrays.sort(lexList,sorter);
+					Arrays.sort(lexList, sorter);
 					for (HighlightItem<LexemaType> currentItem : lexList) {
 						final HighlightItem<LexemaType>	item = preprocessLexema(currentItem,text);
 						
