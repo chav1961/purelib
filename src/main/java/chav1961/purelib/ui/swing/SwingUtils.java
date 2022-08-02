@@ -1358,27 +1358,22 @@ loop:			for (Component comp : children(node)) {
 	private static void internalAssignActionListeners(final JComponent root, final ActionListener listener, final PreprocessActionStringCallback preprocess) {
 		walkDownInternal(root,(mode,node)->{
 			if (mode == NodeEnterMode.ENTER) {
-				if ((node instanceof NodeMetadataOwner) && ((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath() != null && (URIUtils.canServeURI(((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath(),MODEL_REF_URI))) {
+				if ((node instanceof NodeMetadataOwner) && ((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath() != null && (URIUtils.canServeURI(((NodeMetadataOwner)node).getNodeMetadata().getApplicationPath(), MODEL_REF_URI))) {
 					return ContinueMode.CONTINUE;
 				}
 				else if ((node instanceof JButtonWithMetaAndActions) && ((NodeMetadataOwner)node).getNodeMetadata().getChildrenCount() > 0) {
 					return ContinueMode.CONTINUE;
 				}
 				else {
-					try{node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node,
-							new ActionListener() {
-								@Override
-								public void actionPerformed(final ActionEvent e) {
-									listener.actionPerformed(new ActionEvent(e.getSource(), e.getID() 
+					final ActionListener	al = (e)-> listener.actionPerformed(new ActionEvent(e.getSource(), e.getID() 
 														, preprocess.process(e.getActionCommand()
-															, node
-															, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null
-															, listener
-														), e.getWhen(), e.getModifiers())
-									);
-								}
-							}
-						);
+														, node
+														, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null
+														, listener
+														), e.getWhen(), e.getModifiers()));
+					
+					try{
+						node.getClass().getMethod("addActionListener",ActionListener.class).invoke(node, al);
 					} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 					}
 				}
