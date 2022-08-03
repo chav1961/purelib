@@ -1746,10 +1746,10 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									
 									switch (((Mark)result[resultIndex[0]-1]).getMark()) {
 										case 1	:
-											result[beforeRectanglePos] = new Rectangle(x2, y2, x2-x1, y2-y1);
+											result[beforeRectanglePos] = new Rectangle(x1, y1, x2-x1, y2-y1);
 											break;
 										case 2	:
-											result[beforeRectanglePos] = new Rectangle(x2, y2, x2, y2);
+											result[beforeRectanglePos] = new Rectangle(x1, y1, x2, y2);
 											break;
 										case 3	:
 											result[beforeRectanglePos] = new Rectangle(x2 - x1/2, y2 - y1/2, x2, y2);
