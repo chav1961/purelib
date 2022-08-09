@@ -1095,6 +1095,7 @@ public class SQLUtils {
 		final Map<Class<?>,ConversionCall>	toMap = new HashMap<>();
 		
 		toMap.put(Float.class,(source)->{return ((Double)source).floatValue();});
+		toMap.put(Long.class,(source)->{return ((Double)source).longValue();});
 		toMap.put(BigDecimal.class,(source)->{return new BigDecimal(source.toString());});
 		toMap.put(Blob.class,(source)->{
 			final long	temp = Double.doubleToLongBits(((Double)source).doubleValue());
