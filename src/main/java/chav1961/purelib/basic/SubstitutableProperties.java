@@ -36,6 +36,8 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * key name to substitute from the nameLocation key'. All substitutions are recursive. A source of properties to substitute are own 
  * properties, but one-level depth template can be referenced to {@link System#getProperties()} key set. Maximum substitution depth level
  * is restricted by {@value CharUtils#MAX_SUBST_DEPTH}</p>
+ * <p>Since 0.0.6 this class supports {@value #KEY_INCLUDE} operator inside the configuration file. This operator contains a list of {@linkplain URI} to include
+ * key/value pairs into the class content. URI can be any URI supporting by Pure Library. URI stream can also contains {@value #KEY_INCLUDE} operator inside.</p>
  * <p>You can get property content not only as string, but a lot of other classes:</p>
  * <ul>
  * <li>any appropriative {@link Enum} class constant</li>
@@ -61,6 +63,8 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
+	public static final String	KEY_INCLUDE = ".include"; 
+	
 	private static final String	MESSAGE_FILE_NOT_EXISTS = "SubstitutableProperties.notexists";
 	private static final String	MESSAGE_FILE_IS_DIRECTORY = "SubstitutableProperties.isdirectory";
 	private static final String	MESSAGE_FILE_CANNOT_READ = "SubstitutableProperties.cannottread";
@@ -583,6 +587,11 @@ public class SubstitutableProperties extends Properties {
 			
 			try (final InputStream	is = content.toURL().openStream()) {
 				props.load(is);
+			}
+			if (props.containsKey(KEY_INCLUDE)) {
+				for (String item : props.getProperty(KEY_INCLUDE).split(";")) {
+					
+				}
 			}
 			return props;
 		}
