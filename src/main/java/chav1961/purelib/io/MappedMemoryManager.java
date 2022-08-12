@@ -172,6 +172,7 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 							e.printStackTrace();
 						}
 					}
+					return true;
 				});
 			}
 		}
@@ -244,6 +245,7 @@ public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flush
 			if (item.record.prevClusterLocation == 0) {
 				result[0] = item;
 			}
+			return true;
 		});
 		if (result[0] != null) {
 			throw new IllegalArgumentException();

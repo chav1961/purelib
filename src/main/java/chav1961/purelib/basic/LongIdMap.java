@@ -3,6 +3,8 @@ package chav1961.purelib.basic;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+import chav1961.purelib.basic.interfaces.LongIdTreeInterface;
+
 /**
  * <p>This class implements a special king of map, oriented to use with {@linkplain AndOrTree} class. It can be also used to manipulate
  * with the identifiers was generated and used by {@linkplain AndOrTree}.</p>
@@ -15,17 +17,12 @@ import java.util.Arrays;
  * @since 0.0.2
  * @lastUpdate 0.0.6
  */
-public class LongIdMap<T> {
+public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	private static final int	RANGE_STEP = 64;
 	
 	private final Class<T>		contentType;
 	private T[][][][]			content;
 	private long				maxValue = 0;
-	
-	@FunctionalInterface
-	public static interface WalkCallback<T> {
-		void process(long id, T content);
-	}
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -200,7 +197,3 @@ public class LongIdMap<T> {
 		return Math.min(65536,((source+RANGE_STEP-1)/RANGE_STEP + 1)*RANGE_STEP);
 	}
 }
-
-
-
-
