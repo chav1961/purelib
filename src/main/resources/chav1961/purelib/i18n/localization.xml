@@ -61,7 +61,6 @@
 		<key name="SubstitutableProperties.notexists">File [%1$s] not exists</key>
 		<key name="SubstitutableProperties.isdirectory">File [%1$s] is directory, not file</key>
 		<key name="SubstitutableProperties.cannottread">File [%1$s] has no access to read for you</key>
-		<key name="SubstitutableProperties.ioerror">I/O error reading file [%1$s]</key>
 
 <!-- FileSystem descriptors  --> 
 		<key name="fileSystems.FileSystemInMemory.description">In-memory file system</key>
@@ -441,7 +440,6 @@
 		<key name="SubstitutableProperties.notexists">Файл [%1$s] не существует</key>
 		<key name="SubstitutableProperties.isdirectory">Объект [%1$s] является директорией, а не файлом</key>
 		<key name="SubstitutableProperties.cannottread">У вас нет прав на чтения файла [%1$s]</key>
-		<key name="SubstitutableProperties.ioerror">Ошибка ввода/вывода при чтении файла [%1$s]</key>
 
 <!-- Описания файловых систем   -->
 		<key name="fileSystems.FileSystemInMemory.description">ФС в памяти</key>

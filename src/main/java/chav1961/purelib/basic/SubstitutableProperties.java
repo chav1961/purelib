@@ -17,8 +17,10 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -36,8 +38,9 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * key name to substitute from the nameLocation key'. All substitutions are recursive. A source of properties to substitute are own 
  * properties, but one-level depth template can be referenced to {@link System#getProperties()} key set. Maximum substitution depth level
  * is restricted by {@value CharUtils#MAX_SUBST_DEPTH}</p>
- * <p>Since 0.0.6 this class supports {@value #KEY_INCLUDE} operator inside the configuration file. This operator contains a list of {@linkplain URI} to include
- * key/value pairs into the class content. URI can be any URI supporting by Pure Library. URI stream can also contains {@value #KEY_INCLUDE} operator inside.</p>
+ * <p>Since 0.0.6 this class supports {@value #KEY_INCLUDE} operator inside the key/value format configuration file. This operator contains a list of {@linkplain URI}(s) to include
+ * key/value pairs into the class content separated by semicolons. URI can be any URI supported by Pure Library. Included content doesn't replace keys already
+ * exists in the current file. URI stream to load can also contains {@value #KEY_INCLUDE} operator inside.</p>
  * <p>You can get property content not only as string, but a lot of other classes:</p>
  * <ul>
  * <li>any appropriative {@link Enum} class constant</li>
@@ -68,7 +71,6 @@ public class SubstitutableProperties extends Properties {
 	private static final String	MESSAGE_FILE_NOT_EXISTS = "SubstitutableProperties.notexists";
 	private static final String	MESSAGE_FILE_IS_DIRECTORY = "SubstitutableProperties.isdirectory";
 	private static final String	MESSAGE_FILE_CANNOT_READ = "SubstitutableProperties.cannottread";
-	private static final String	MESSAGE_FILE_IO_ERROR = "SubstitutableProperties.ioerror";
 
 	/**
 	 * <p>This interface describes formats of the input content for {@linkplain SubstitutableProperties#load(InputStream, Format)} and {@linkplain SubstitutableProperties#load(Reader, Format)} methods</p> 
@@ -84,7 +86,7 @@ public class SubstitutableProperties extends Properties {
 	private static enum Conversions {
 		STRING,	INTWRAPPER, LONGWRAPPER, FLOATWRAPPER, DOUBLEWRAPPER, BOOLEANWRAPPER,
 		BIGINTEGER, BIGDECIMAL,
-		FILE, INPUTSTREAM, URL, URI, UUID, COLOR, CHARARRAY
+		FILE, INPUTSTREAM, URL, URI, UUID, COLOR, CHARARRAY, MEMORY_SIZE
 	}
 
 	private static final Map<Class<?>,Class<?>>		WRAPPER = new HashMap<Class<?>,Class<?>>(){private static final long serialVersionUID = 1L;
@@ -111,6 +113,7 @@ public class SubstitutableProperties extends Properties {
 								put(Color.class,Conversions.COLOR);
 								put(char[].class,Conversions.CHARARRAY);
 								put(UUID.class,Conversions.UUID);
+								put(MemorySize.class,Conversions.MEMORY_SIZE);
 								}};
 
 	private final Properties	defaults;
@@ -484,6 +487,8 @@ public class SubstitutableProperties extends Properties {
 						return awaited.cast(value == null ? null : value.toCharArray());
 					case UUID			:
 						return awaited.cast(value == null ? null : UUID.fromString(value));
+					case MEMORY_SIZE	:
+						return awaited.cast(value == null ? null : MemorySize.valueOf(value));
 					default :
 						throw new UnsupportedOperationException("Conversion to ["+awaited+"] is not implemented yet");
 				}		
@@ -579,8 +584,15 @@ public class SubstitutableProperties extends Properties {
 	}
 
 	private static Properties loadFromUri(final URI content) throws IOException {
+		return loadFromUri(content, new HashSet<>());
+	}
+	
+	private static Properties loadFromUri(final URI content, final Set<URI> processed) throws IOException {
 		if (content == null) {
 			throw new NullPointerException("URI to load content from can't be null"); 
+		}
+		else if (processed.contains(content)) {
+			throw new IllegalArgumentException("Recursive include for URI ["+content+"], processed URIs are "+processed); 
 		}
 		else {
 			final Properties	props = new Properties();
@@ -588,12 +600,37 @@ public class SubstitutableProperties extends Properties {
 			try (final InputStream	is = content.toURL().openStream()) {
 				props.load(is);
 			}
+			processed.add(content);
+			
 			if (props.containsKey(KEY_INCLUDE)) {
-				for (String item : props.getProperty(KEY_INCLUDE).split(";")) {
-					
-				}
+				final Properties	included = loadFromIncludeList((String)props.remove(KEY_INCLUDE), processed);
+				
+				included.putAll(props);
+				return included;
 			}
-			return props;
+			else {
+				return props;
+			}
 		}
+	}
+
+	private static Properties loadFromIncludeList(final String content, final Set<URI> processed) throws IOException {
+		final List<Properties>	collectedProps = new ArrayList<>();
+		final Properties		result = new Properties();
+		
+		for (String item : content.split(";")) {
+			final URI	uri = URI.create(item);
+			
+			if (uri.isAbsolute()) {
+				collectedProps.add(loadFromUri(uri, processed));
+			}
+			else {
+				collectedProps.add(loadFromUri(new File(item).getAbsoluteFile().toURI(), processed));
+			}
+		}
+		for (Properties item : collectedProps) {
+			result.putAll(item);
+		}
+		return result;
 	}
 }
