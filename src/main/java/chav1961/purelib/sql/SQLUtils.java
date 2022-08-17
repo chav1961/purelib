@@ -1060,6 +1060,7 @@ public class SQLUtils {
 	private static Map<Class<?>,ConversionCall> prepareConversion4Float() {
 		final Map<Class<?>,ConversionCall>	toMap = new HashMap<>();
 		
+		toMap.put(Long.class,(source)->{return ((Float)source).longValue();});
 		toMap.put(Double.class,(source)->{return ((Float)source).doubleValue();});
 		toMap.put(BigDecimal.class,(source)->{return new BigDecimal(source.toString());});
 		toMap.put(Blob.class,(source)->{
