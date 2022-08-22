@@ -2344,12 +2344,18 @@ loop:			for (Component comp : children(node)) {
 				
 				if (query != null && !query.isEmpty()) {
 					final Hashtable<String, String[]>	queryItems = URIUtils.parseQuery(query);
-					final JCheckBoxMenuItemWithMeta		miwm = new JCheckBoxMenuItemWithMeta(node); 
 					
-					if (queryItems.containsKey("checked")) {
-						miwm.setSelected(Boolean.valueOf(queryItems.get("checked")[0]));
+					if (queryItems.containsKey("checkable")) {
+						final JCheckBoxMenuItemWithMeta	miwm = new JCheckBoxMenuItemWithMeta(node); 
+						
+						if (queryItems.containsKey("checked")) {
+							miwm.setSelected(Boolean.valueOf(queryItems.get("checked")[0]));
+						}
+						return miwm;
 					}
-					return miwm;
+					else {
+						return new JMenuItemWithMeta(node);
+					}
 				}
 				else {
 					return new JMenuItemWithMeta(node);
