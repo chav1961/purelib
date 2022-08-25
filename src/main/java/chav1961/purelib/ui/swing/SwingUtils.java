@@ -96,8 +96,10 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
 
 import chav1961.purelib.basic.GettersAndSettersFactory;
@@ -144,9 +146,11 @@ import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
+import chav1961.purelib.ui.swing.interfaces.SwingItemEditor;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 import chav1961.purelib.ui.swing.useful.JLocalizedOptionPane;
 import chav1961.purelib.ui.swing.useful.LocalizedFormatter;
+import chav1961.purelib.ui.swing.useful.editors.StringEditor;
 import chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
 
 /**
@@ -1999,6 +2003,66 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	/**
+	 * <p>Get cell editor for different controls. Each editor is an SPI service with {@linkplain SwingItemEditor} implementation </p>
+	 * @param <R> editor type ({@linkplain TableCellEditor}, {@linkplain TreeCellEditor})
+	 * @param meta model descriptor. Can't be null
+	 * @param editorType editor type. Can't be null
+	 * @param loader class loader to use SPI in. Can't be null
+	 * @return editor found
+	 * @throws EnvironmentException editor is missing
+	 * @since 0.0.6
+	 */
+	public static <R> R getCellEditor(final ContentNodeMetadata meta, final Class<R> editorType, final ClassLoader loader) throws EnvironmentException {
+		return getCellEditor(meta.getType(), meta.getFormatAssociated(), editorType, loader);
+	}	
+
+	/**
+	 * <p>Get cell editor for different controls. Each editor is an SPI service with {@linkplain SwingItemEditor} implementation </p>
+	 * @param <T> class to edit (for example, {@linkplain String})
+	 * @param <R> editor type ({@linkplain TableCellEditor}, {@linkplain TreeCellEditor})
+	 * @param clazz class to edit. Can't be null
+	 * @param ff field format. Can't be null
+	 * @param editorType editor type. Can't be null
+	 * @return editor found
+	 * @throws EnvironmentException editor is missing
+	 * @since 0.0.6
+	 */
+	public static <T, R> R getCellEditor(final Class<T> clazz, final FieldFormat ff, final Class<R> editorType) throws EnvironmentException {
+		return getCellEditor(clazz, ff, editorType, Thread.currentThread().getContextClassLoader());
+	}
+
+	/**
+	 * <p>Get cell editor for different controls. Each editor is an SPI service with {@linkplain SwingItemEditor} implementation </p>
+	 * @param <T> class to edit (for example, {@linkplain String})
+	 * @param <R> editor type ({@linkplain TableCellEditor}, {@linkplain TreeCellEditor})
+	 * @param clazz class to edit. Can't be null
+	 * @param ff field format. Can't be null
+	 * @param editorType editor type. Can't be null
+	 * @param loader class loader to use SPI in. Can't be null
+	 * @return editor found
+	 * @throws EnvironmentException editor is missing
+	 * @since 0.0.6
+	 */
+	public static <T, R> R getCellEditor(final Class<T> clazz, final FieldFormat ff, final Class<R> editorType, final ClassLoader loader) throws EnvironmentException {
+		for (SwingItemEditor<T,R> item : ServiceLoader.load(SwingItemEditor.class, loader)) {
+			if (item.canServe(clazz, editorType, ff)) {
+				return item.getEditor(editorType, clazz, ff);
+			}
+		}
+		if (clazz.isArray()) {
+			return getCellEditor(clazz.getComponentType(), ff, editorType, loader);
+		}
+		else {
+			for (SwingItemEditor<T,R> item : ServiceLoader.load(SwingItemEditor.class, loader)) {
+				if (item instanceof StringEditor) {
+					return item.getEditor(editorType, clazz, ff);
+				}
+			}
+			throw new EnvironmentException("Editor type ["+editorType+"] for class ["+clazz+"] not found"); 
+		}
+	}
+	
 	/**
 	 * <p>Get nearest logger available from component parents.</p>
 	 * @param component component to get logger for

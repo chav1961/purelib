@@ -111,6 +111,10 @@ module chav1961.purelib {
 			, chav1961.purelib.ui.swing.useful.renderers.LongItemAndReferenceRenderer			
 			, chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
 
+	uses chav1961.purelib.ui.swing.interfaces.SwingItemEditor;
+	provides chav1961.purelib.ui.swing.interfaces.SwingItemEditor with chav1961.purelib.ui.swing.useful.editors.NumericEditor
+			, chav1961.purelib.ui.swing.useful.editors.StringEditor;
+	
 	uses chav1961.purelib.basic.interfaces.LoggerFacade;
 	
 	uses java.sql.Driver;

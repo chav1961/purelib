@@ -1,18 +1,25 @@
 package chav1961.purelib.ui.swing.useful.editors;
 
-import java.awt.Component;
+import java.net.URI;
 import java.util.Set;
 
 import javax.swing.DefaultCellEditor;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
 import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellEditor;
-import javax.swing.tree.TreeCellRenderer;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.PreparationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.FieldFormat;
+import chav1961.purelib.model.MutableContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.SwingItemEditor;
 
 public class NumericEditor<R> implements SwingItemEditor<Number, R> {
@@ -44,14 +51,20 @@ public class NumericEditor<R> implements SwingItemEditor<Number, R> {
 			throw new NullPointerException("Editor type can't be null"); 
 		}
 		else if (TableCellEditor.class.isAssignableFrom(editorType)) {
-			return (R) new DefaultCellEditor(new JTextField()) {
-				private static final long serialVersionUID = 0L;
-
-			};
+			try{final Class<?>				clazz = options.length > 0 && (options[0] instanceof Class) ? (Class)options[0] : Number.class;
+				final FieldFormat			ff = options.length > 1 && (options[1] instanceof FieldFormat) ? (FieldFormat)options[1] : null;
+				final URI					app = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/Number/field?visibility=package");
+				final ContentNodeMetadata	mcnd = new MutableContentNodeMetadata("field", clazz, "./field", URI.create(PureLibLocalizer.LOCALIZER_SCHEME_STRING), "testSet1", null, null, ff, app, null); 
+				final JComponentMonitor		jcm = (event, metadata, component, parameters)->true;
+				final JTextField 			tf = (JTextField) SwingUtils.prepareRenderer(mcnd, PureLibSettings.PURELIB_LOCALIZER, FieldFormat.ContentType.NumericContent, jcm);
+				
+				return (R) new DefaultCellEditor(tf);
+			} catch (SyntaxException e) {
+				throw new PreparationException(e.getLocalizedMessage(), e);
+			}
 		}
 		else {
 			throw new UnsupportedOperationException("Required cell editor ["+editorType+"] is not supported yet");
 		}
 	}
-
 }
