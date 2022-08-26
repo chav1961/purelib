@@ -17,6 +17,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.model.interfaces.ImageKeeper;
 import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.interfaces.ItemAndReference;
 import chav1961.purelib.ui.interfaces.LongItemAndReference;

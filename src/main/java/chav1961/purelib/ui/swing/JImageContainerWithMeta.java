@@ -8,11 +8,14 @@ import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
@@ -32,6 +35,8 @@ import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.border.LineBorder;
 
@@ -70,7 +75,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final JButton				callSelect = new JButton("...");
 	private final JPopupMenu			popup;
 	private File						lastFile = new File("./");
-	private volatile ImageKeeperImpl		currentValue = null, newValue = null;
+	private volatile ImageKeeperImpl	currentValue = null, newValue = null;
 	private volatile Image				grayScaleValue = null;
 	private boolean						invalid = false;
 	
@@ -154,9 +159,18 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 					callSelect.setEnabled(false);
 				}
 			}
+			callSelect.setSize(new Dimension(20,20));
+			callSelect.setPreferredSize(new Dimension(20,20));
 			callSelect.addActionListener((e)->selectImage());
-			new ComponentKeepedBorder(0, callSelect).install(this);
-			setPreferredSize(new Dimension(2*callSelect.getPreferredSize().width,callSelect.getPreferredSize().height));
+			add(callSelect);
+//			new ComponentKeepedBorder(0, callSelect).install(this);
+//			setPreferredSize(new Dimension(2*callSelect.getPreferredSize().width,callSelect.getPreferredSize().height));
+			if (format != null) {
+				setPreferredSize(new Dimension(format.getLength(), format.getHeight()));
+			}
+			else {
+				setPreferredSize(new Dimension(2*callSelect.getSize().width,callSelect.getSize().height));
+			}
 
 			SwingUtils.assignActionKey(this, SwingUtils.KS_COPY, (e)->copyContent(), "copy");
 			SwingUtils.assignActionKey(this, SwingUtils.KS_PASTE, (e)->pasteContent(), "paste");
@@ -183,6 +197,36 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 					if (e.getButton() == MouseEvent.BUTTON3 && e.getPoint().getX() < rect.getX()+rect.getWidth()-rect.getHeight()) {
 						JImageContainerWithMeta.this.requestFocusInWindow();
 						menu(e.getPoint());
+					}
+				}
+			});
+			
+			addComponentListener(new ComponentListener() {
+				@Override public void componentHidden(ComponentEvent e) {}
+				
+				@Override 
+				public void componentShown(ComponentEvent e) {
+					placeButton();
+				}
+				
+				@Override
+				public void componentResized(ComponentEvent e) {
+					placeButton();
+				}
+
+				@Override 
+				public void componentMoved(ComponentEvent e) {
+					placeButton();
+				}
+				
+				private void placeButton() {
+					if (getParent() instanceof JViewport) {
+						final Rectangle	rect = ((JViewport)getParent()).getViewRect();
+						
+						callSelect.setLocation(rect.x + rect.width - callSelect.getWidth(), rect.y);
+					}
+					else {
+						callSelect.setLocation(getWidth() - callSelect.getWidth(), 0);
 					}
 				}
 			});
