@@ -170,6 +170,7 @@
 <!-- State string localization  -->
 		<key name="JStateString.history">Message history</key>
 		<key name="JStateString.throwable">Take a look to exception</key>
+		<key name="JStateString.caption">History log</key>	
 
 <!-- Date selection dialog localization  -->
 		<key name="JDateSelectionDialog.yearLabel">Year</key>
@@ -549,6 +550,7 @@
 <!-- Локализация строки состояния  -->
 		<key name="JStateString.history">История сообщений</key>
 		<key name="JStateString.throwable">Просмотр исключения</key>
+		<key name="JStateString.caption">Журнал истории</key>	
 
 <!-- Локализация диалога выбора даты  -->
 		<key name="JDateSelectionDialog.yearLabel">Год</key>

@@ -53,10 +53,10 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 *
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
-	 * @lastUpdate 0.0.4
+	 * @lastUpdate 0.0.6
 	 */
 	public enum Severity {
-		tooltip, trace, debug, info, warning, error, severe
+		tooltip, trace, debug, info, note, warning, error, severe
 	}
 
 	/**

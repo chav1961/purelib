@@ -90,6 +90,7 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 			if (throwable != null) {
 				throwable.printStackTrace(ps);
 			}
+			pw.flush();
 		}
 	}
 }

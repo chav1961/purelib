@@ -18,11 +18,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,7 +46,9 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
 import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
 import chav1961.purelib.basic.PureLibSettings;
@@ -58,6 +63,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.i18n.interfaces.LocalizerOwner;
 import chav1961.purelib.ui.inner.InternalConstants;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
@@ -80,15 +86,20 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private static final long 		serialVersionUID = 5199220144621261938L;
 	private static final String		STATESTRING_HISTORY = "JStateString.history";
 	private static final String		STATESTRING_THROWABLE = "JStateString.throwable";
+	private static final String		STATESTRING_CAPTION = "JStateString.caption";
 	private static final Object[]	EMPTY_LIST = new Object[0];
 	private static final String		COMMON_PANEL = "commonPanel";
 	private static final String		STAGED_PANEL = "stagedPanel";
 	private static final int		STATE_PLAIN = 0;
 	private static final int		STATE_COMMON = 1;
 	private static final int		STATE_STAGED = 2;
-	private static final Dimension	DEFAULT_HISTORY_SIZE = new Dimension(400,200);
 	private static final Icon		CANCEL_ICON = PureLibStandardIcons.CANCEL.getIcon();
+	private static final SimpleDateFormat	SDF = new SimpleDateFormat("DDD HH:mm:ss");
 
+	static {
+		SDF.setTimeZone(TimeZone.getTimeZone("UTC"));	
+	}
+	
 	/**
 	 * <p>This lambda-oriented interface will be called on pressing 'cancel' button 
 	 * @author Alexander Chernomyrdin aka chav1961
@@ -124,6 +135,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private final HistoryTableModel	model;
 	private final boolean 			taskBarSupport = Taskbar.isTaskbarSupported();
 	private final Taskbar			taskBar;
+	private final long				startTime = System.currentTimeMillis();
 	private int 					currentState = STATE_PLAIN; 
 	private volatile CancelCallback	currentCallback = null;
 	private volatile boolean		canceled = false;
@@ -665,16 +677,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	protected void showHistory(final JTable historyContent) {
-		final Point			location = historyView.getLocationOnScreen();
 		final JScrollPane	pane = new JScrollPane(historyContent);
-		final Dimension		parentSize = getParent() != null ? getParent().getSize() : DEFAULT_HISTORY_SIZE;
-		final Dimension		windowSize = new Dimension(parentSize.width/2,parentSize.height/2);
-		final Point			leftTop = SwingUtils.locateRelativeToAnchor(location.x,location.y,windowSize.width,windowSize.height);
-		final Popup 		window = PopupFactory.getSharedInstance().getPopup(this.getParent(),pane,leftTop.x,leftTop.y);
-
-		pane.setPreferredSize(windowSize);
-		SwingUtils.assignActionKey(historyContent, JPanel.WHEN_IN_FOCUSED_WINDOW, SwingUtils.KS_EXIT, (e)->window.hide(), SwingUtils.ACTION_EXIT);
-		window.show();
+		
+		new JLocalizedOptionPane(SwingUtils.getNearestOwner(this, LocalizerOwner.class).getLocalizer()).message(this.getParent(), pane, STATESTRING_CAPTION, JOptionPane.PLAIN_MESSAGE);
 	}
 	
 	private void prepareControls() {
@@ -683,7 +688,6 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		final SpringLayout	springCommon = new SpringLayout();
 		final JPanel		commonPanel = new JPanel(springCommon);
 		
-//		historyView.setPreferredSize(new Dimension(VIEW_ICON.getIconWidth()+2,VIEW_ICON.getIconHeight()+2));
 		cancelCommon.setPreferredSize(new Dimension(CANCEL_ICON.getIconWidth()+2,CANCEL_ICON.getIconHeight()+2));
 		cancelStaged.setPreferredSize(new Dimension(CANCEL_ICON.getIconWidth()+2,CANCEL_ICON.getIconHeight()+2));
 		common.setPreferredSize(new Dimension(100,CANCEL_ICON.getIconHeight()+2));
@@ -796,8 +800,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 
 	private void fillLocalizedStrings() {
-		// TODO Auto-generated method stub
-		
+		historyView.setToolTipText(localizer.getValue(STATESTRING_HISTORY));
 	}
 
 	private String localize(final String source) throws LocalizationException {
@@ -813,7 +816,39 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 	
 	private void viewHistory() {
-		showHistory(new JTable(model));
+		final JTable	table = new JTable(model); 
+		
+		table.setDefaultRenderer(Message.class, new DefaultTableCellRenderer() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+				final Message	msg = (Message)value;
+				final JLabel	label = (JLabel) super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column);
+				final Date		date = new Date(msg.timestamp - startTime);
+
+				label.setText(SDF.format(date) + " : " + String.format(msg.message, msg.parameters));
+				switch (msg.severity) {
+					case error : case severe :
+						label.setForeground(Color.RED);
+						break;
+					case warning	:
+						label.setForeground(Color.BLUE);
+						break;
+					case note		:
+						label.setForeground(Color.BLACK);
+						break;
+					case info		:
+						label.setForeground(Color.GRAY);
+						break;
+					default:
+						label.setForeground(Color.LIGHT_GRAY);
+						break;
+				}
+				return label;
+			}
+		});
+		showHistory(table);
 	}
 
 	private void startProgressBar(final long total) {
@@ -862,12 +897,13 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	}
 	
 	private static class Message {
+		final long		timestamp = System.currentTimeMillis();
 		final Severity	severity;
 		final Throwable	exception;
 		final String	message;
 		final Object[]	parameters;
 		
-		public Message(Severity severity, Throwable exception, String message, Object[] parameters) {
+		public Message(final Severity severity, final Throwable exception, final String message, final Object[] parameters) {
 			this.severity = severity;
 			this.exception = exception;
 			this.message = message;
@@ -913,9 +949,9 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			
 			if (level != Severity.tooltip) {
 				synchronized (history) {
-					history.add(0,message);
+					history.add(message);
 					while (history.size() > maxCapacity + 1) {
-						history.remove(history.size()-1);
+						history.remove(0);
 					}
 				}
 			}
@@ -925,7 +961,8 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 			switch (level) {
 				case debug	: state.setForeground(Color.GRAY); break;
 				case error	: state.setForeground(Color.RED); break;
-				case info	: state.setForeground(Color.BLACK); break;
+				case note	: state.setForeground(Color.BLACK); break;
+				case info	: state.setForeground(Color.GRAY); break;
 				case severe	: state.setForeground(Color.RED); break;
 				case trace	: state.setForeground(Color.LIGHT_GRAY); break;
 				case warning: state.setForeground(Color.BLUE); break;
@@ -998,7 +1035,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
-			return String.class;
+			return Message.class;
 		}
 
 		@Override
@@ -1009,7 +1046,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			synchronized (history) {
-				return history.get(rowIndex).message;
+				return history.get(rowIndex);
 			}
 		}
 	}
