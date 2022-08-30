@@ -1160,12 +1160,152 @@ loop:		for (index = from; index < len; index++) {
 			return UnsafedCharUtils.uncheckedCompareIgnoreCase(source,from,template,templateFrom,templateLen);
 		}
 	}
+
+	/**
+	 * <p>Compare two char arrays lexically</p>
+	 * @param left left array to compare
+	 * @param right right array to compare
+	 * @return see {@linkplain Comparator} interface description
+	 * @throws NullPointerException on any array is null
+	 * @see String#compareTo(String)
+	 * @since 0.0.6
+	 */
+	public static int compareTo(final char[] left, final char[] right) throws NullPointerException {
+		if (left == null) {
+			throw new NullPointerException("Left array to compare can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right array to compare can't be null");
+		}
+		else {
+			return compareTo(left, 0, left.length, right, 0 , right.length);
+		}
+	}
+	
+	/**
+	 * <p>Compare two char arrays lexically</p>
+	 * @param left left array to compare
+	 * @param leftFrom from position to compare
+	 * @param leftLen length to compare
+	 * @param right right array to compare
+	 * @param rightFrom from position to compare
+	 * @param rightLen length to compare 
+	 * @return see {@linkplain Comparator} interface description
+	 * @throws NullPointerException on any array is null
+	 * @throws IllegalArgumentException on any indices or lengths outside ranges
+	 * @see String#compareTo(String)
+	 * @since 0.0.6
+	 */
+	public static int compareTo(final char[] left, final int leftFrom, final int leftLen, final char[] right, final int rightFrom, final int rightLen) throws NullPointerException, IllegalArgumentException {
+		if (left == null) {
+			throw new NullPointerException("Left array to compare can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right array to compare can't be null");
+		}
+		else if (leftFrom < 0 || leftFrom >= left.length) {
+			throw new IllegalArgumentException("Left start pos ["+leftFrom+"] out of range 0.."+(left.length-1));
+		}
+		else if (rightFrom < 0 || rightFrom >= right.length) {
+			throw new IllegalArgumentException("Right start pos ["+rightFrom+"] out of range 0.."+(right.length-1));
+		}
+		else if (leftFrom + leftLen < 0 || leftFrom + leftLen > left.length) {
+			throw new IllegalArgumentException("Left end pos ["+(leftFrom + leftLen)+"] out of range 0.."+(left.length-1));
+		}
+		else if (rightFrom + rightLen < 0 || rightFrom + rightLen > right.length) {
+			throw new IllegalArgumentException("Right end pos ["+(rightFrom + rightLen)+"] out of range 0.."+(right.length-1));
+		}
+		else {
+			final int	minLen = Math.min(leftLen, rightLen);
+			
+			for(int index = 0; index < minLen; index++) {
+				final int	delta = left[index + leftFrom] - right[index + rightFrom];
+				
+				if (delta != 0) {
+					return delta;
+				}
+			}
+			return leftLen - rightLen;
+		}
+	}	
+
+	/**
+	 * <p>Compare two char arrays lexically ignore case</p>
+	 * @param left left array to compare
+	 * @param right right array to compare
+	 * @return see {@linkplain Comparator} interface description
+	 * @throws NullPointerException on any array is null
+	 * @see String#compareToIgnoreCase(String)
+	 * @since 0.0.6
+	 */
+	public static int compareToIgnoreCase(final char[] left, final char[] right) throws NullPointerException {
+		if (left == null) {
+			throw new NullPointerException("Left array to compare can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right array to compare can't be null");
+		}
+		else {
+			return compareToIgnoreCase(left, 0, left.length, right, 0 , right.length);
+		}
+	}
+	
+	/**
+	 * <p>Compare two char arrays lexically ignore case</p>
+	 * @param left left array to compare
+	 * @param leftFrom from position to compare
+	 * @param leftLen length to compare
+	 * @param right right array to compare
+	 * @param rightFrom from position to compare
+	 * @param rightLen length to compare 
+	 * @return see {@linkplain Comparator} interface description
+	 * @throws NullPointerException on any array is null
+	 * @throws IllegalArgumentException on any indices or lengths outside ranges
+	 * @see String#compareToIgnoreCase(String)
+	 * @since 0.0.6
+	 */
+	public static int compareToIgnoreCase(final char[] left, final int leftFrom, final int leftLen, final char[] right, final int rightFrom, final int rightLen) throws NullPointerException, IllegalArgumentException {
+		if (left == null) {
+			throw new NullPointerException("Left array to compare can't be null");
+		}
+		else if (right == null) {
+			throw new NullPointerException("Right array to compare can't be null");
+		}
+		else if (leftFrom < 0 || leftFrom >= left.length) {
+			throw new IllegalArgumentException("Left start pos ["+leftFrom+"] out of range 0.."+(left.length-1));
+		}
+		else if (rightFrom < 0 || rightFrom >= right.length) {
+			throw new IllegalArgumentException("Right start pos ["+rightFrom+"] out of range 0.."+(right.length-1));
+		}
+		else if (leftFrom + leftLen < 0 || leftFrom + leftLen > left.length) {
+			throw new IllegalArgumentException("Left end pos ["+(leftFrom + leftLen)+"] out of range 0.."+(left.length-1));
+		}
+		else if (rightFrom + rightLen < 0 || rightFrom + rightLen > right.length) {
+			throw new IllegalArgumentException("Right end pos ["+(rightFrom + rightLen)+"] out of range 0.."+(right.length-1));
+		}
+		else {
+			final int	minLen = Math.min(leftLen, rightLen);
+			
+			for(int index = 0; index < minLen; index++) {
+				int	delta = left[index + leftFrom] - right[index + rightFrom];
+				
+				if (delta != 0) {
+					if ((delta = Character.toUpperCase(left[index + leftFrom]) - Character.toUpperCase(right[index + rightFrom])) != 0) {
+						if ((delta = Character.toLowerCase(left[index + leftFrom]) - Character.toLowerCase(right[index + rightFrom])) != 0) {
+							return delta;
+						}
+					}
+				}
+			}
+			return leftLen - rightLen;
+		}
+	}	
 	
 	/**
 	 * <p>This enumeration is used to describe template for extracting content from character array with lexemas.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.4
+	 * @lastUpdate 0.0.6
 	 */
 	public enum ArgumentType {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, Boolean,
@@ -1202,7 +1342,6 @@ loop:		for (index = from; index < len; index++) {
 	 * <p>This class is used to describe template for extracting content from character array with lexemas. It contains one or more <i>choises<i> (each with sequence of lexemas)</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.6
-	 * 
 	 */
 	public static class Choise {
 		private final Object[][]	lexemas;

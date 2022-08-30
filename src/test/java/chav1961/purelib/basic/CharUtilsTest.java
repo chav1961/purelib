@@ -766,6 +766,7 @@ public class CharUtilsTest {
 	
 	@Test
 	public void compareTest() {
+		// Test compare
 		Assert.assertTrue(CharUtils.compare("test string".toCharArray(), 5, "str".toCharArray()));
 		Assert.assertTrue(CharUtils.compare("test string".toCharArray(), 5, "string".toCharArray()));
 		Assert.assertTrue(CharUtils.compare("test string".toCharArray(), 5, "".toCharArray()));
@@ -816,7 +817,98 @@ public class CharUtilsTest {
 		try{CharUtils.compare("test string".toCharArray(), 5, "str".toCharArray(), 0, 4);
 			Assert.fail("Mandatory exception was not detected (5-th argument out of range)");
 		} catch (IllegalArgumentException exc) {
-		}		
+		}
+		
+		// Test compareTo
+		Assert.assertTrue(CharUtils.compareTo("test".toCharArray(), "test".toCharArray()) == 0);
+		Assert.assertTrue(CharUtils.compareTo("tfst".toCharArray(), "test".toCharArray()) > 0);
+		Assert.assertTrue(CharUtils.compareTo("test".toCharArray(), "tfst".toCharArray()) < 0);
+		Assert.assertTrue(CharUtils.compareTo("test".toCharArray(), "test1".toCharArray()) < 0);
+		Assert.assertTrue(CharUtils.compareTo("test1".toCharArray(), "test".toCharArray()) > 0);
+
+		Assert.assertTrue(CharUtils.compareTo("test".toCharArray(), 1, 3, "test".toCharArray(), 1, 3) == 0);
+		Assert.assertTrue(CharUtils.compareTo("test".toCharArray(), 1, 3, "test1".toCharArray(), 1, 3) == 0);
+		Assert.assertTrue(CharUtils.compareTo("test1".toCharArray(), 1, 3, "test".toCharArray(), 1, 3) == 0);
+
+		try{CharUtils.compareTo(null, "test".toCharArray());
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.compareTo("test".toCharArray(), null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{CharUtils.compareTo(null, 1, 3, "test".toCharArray(), 1, 3);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.compareTo("test".toCharArray(), 10, 3, "test".toCharArray(), 1, 3);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.compareTo("test".toCharArray(), 1, 30, "test".toCharArray(), 1, 3);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.compareTo("test".toCharArray(), 1, 3, null, 1, 3);
+			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.compareTo("test".toCharArray(), 1, 3, "test".toCharArray(), 10, 3);
+			Assert.fail("Mandatory exception was not detected (5-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.compareTo("test".toCharArray(), 1, 3, "test".toCharArray(), 1, 30);
+			Assert.fail("Mandatory exception was not detected (6-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+
+		// Test compareToIgnoreCase
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("test".toCharArray(), "test".toCharArray()) == 0);
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("tEsT".toCharArray(), "TeSt".toCharArray()) == 0);
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("tfst".toCharArray(), "test".toCharArray()) > 0);
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("test".toCharArray(), "tfst".toCharArray()) < 0);
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("test".toCharArray(), "test1".toCharArray()) < 0);
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("test1".toCharArray(), "test".toCharArray()) > 0);
+
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("test".toCharArray(), 1, 3, "test".toCharArray(), 1, 3) == 0);
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("test".toCharArray(), 1, 3, "test1".toCharArray(), 1, 3) == 0);
+		Assert.assertTrue(CharUtils.compareToIgnoreCase("test1".toCharArray(), 1, 3, "test".toCharArray(), 1, 3) == 0);
+
+		try{CharUtils.compareToIgnoreCase(null, "test".toCharArray());
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.compareToIgnoreCase("test".toCharArray(), null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		try{CharUtils.compareToIgnoreCase(null, 1, 3, "test".toCharArray(), 1, 3);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.compareToIgnoreCase("test".toCharArray(), 10, 3, "test".toCharArray(), 1, 3);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.compareToIgnoreCase("test".toCharArray(), 1, 30, "test".toCharArray(), 1, 3);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.compareToIgnoreCase("test".toCharArray(), 1, 3, null, 1, 3);
+			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{CharUtils.compareToIgnoreCase("test".toCharArray(), 1, 3, "test".toCharArray(), 10, 3);
+			Assert.fail("Mandatory exception was not detected (5-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.compareToIgnoreCase("test".toCharArray(), 1, 3, "test".toCharArray(), 1, 30);
+			Assert.fail("Mandatory exception was not detected (6-th argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
 
 	@Test
