@@ -170,6 +170,7 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_FORWARD = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_HELP = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
 	public static final KeyStroke			KS_ACCEPT = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+	public static final KeyStroke			KS_SOFT_ACCEPT = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_DOWN_MASK);
 	public static final KeyStroke			KS_CLICK = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
 	public static final KeyStroke			KS_INSERT = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 	public static final KeyStroke			KS_DUPLICATE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);

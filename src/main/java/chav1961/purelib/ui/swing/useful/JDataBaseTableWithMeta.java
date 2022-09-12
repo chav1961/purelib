@@ -62,7 +62,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		else {
 			this.meta = meta;
 			this.localizer = localizer;
-			this.model = (InnerTableModel)getSourceModel();
+			this.model = (InnerTableModel<K,Inst>)getSourceModel();
 			this.enableManipulations = enableManipulations;
 
 			SwingUtils.assignActionKey(this, SwingUtils.KS_INSERT, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_INSERT), SwingUtils.ACTION_INSERT);
@@ -128,7 +128,11 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	}
 
 	public void resizeColumns() {
-		resizeColumns(model);
+		resizeColumns(getPreferredSize().width);
+	}
+
+	public void resizeColumns(final int width) {
+		resizeColumns(width, model);
 	}
 	
 	public void refresh() {
@@ -137,6 +141,16 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	
 	public void processAction(final String action) {
 		manipulate(editingRow, action);
+	}
+	
+	public K getSelectedKey() throws SQLException {
+		if (getSelectedRow() >= 0) {
+			model.desc.rs.absolute(getSelectedRow() + 1);
+			return instMgr.extractKey(model.desc.rs);
+		}
+		else {
+			return null;
+		}
 	}
 	
 	public void addContentChangedListener(final ContentChangedListener<K,Inst> listener) {
@@ -169,6 +183,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 				instMgr.storeInstance(model.desc.rs, content, false);
 				model.desc.rs.insertRow();
 				model.desc.rs.moveToCurrentRow();
+				model.fireTableDataChanged();
 				return newKey;
 			}
 			else {
@@ -267,7 +282,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		}
 	}
 
-	private void resizeColumns(final InnerTableModel model) {
+	private void resizeColumns(final int width, final InnerTableModel<K, Inst> model) {
 		final int[]	sizes = new int[model.getColumnCount()];
 		
 		int	totalSize = 0, index = 0;
@@ -283,7 +298,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 				totalSize += sizes[index++] = 10;
 			}
 		}
-		final float	scale = 1.0f * getWidth() / totalSize;
+		final float	scale = 1.0f * width / totalSize;
 		
 		for (int col = 0, maxCol = getColumnModel().getColumnCount(); col < maxCol; col++) {
 			final int	currentWidth = (int) (scale * sizes[col]);
@@ -296,7 +311,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		
 	}
 
-	static TableModel buildTableModel(final ContentNodeMetadata meta, final Localizer localizer, final boolean enableEdit) {
+	static <K, Inst> TableModel buildTableModel(final ContentNodeMetadata meta, final Localizer localizer, final boolean enableEdit) {
 		if (meta == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
@@ -315,7 +330,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 					}
 				}
 			}
-			return new InnerTableModel(meta, result.toArray(new ContentNodeMetadata[result.size()]), localizer, enableEdit);
+			return new InnerTableModel<K, Inst>(meta, result.toArray(new ContentNodeMetadata[result.size()]), localizer, enableEdit);
 		}
 	}
 	
@@ -333,19 +348,17 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 	private static class InnerTableModel<K,Inst> extends DefaultTableModel implements NodeMetadataOwner {
 		private static final long serialVersionUID = 4821572920544412802L;
 
-		private final ContentNodeMetadata	owner;
-		private final ContentNodeMetadata[]	metadata;
-		private final Localizer				localizer;
-		private final boolean				enableEdit;
-		private volatile ContentDesc		desc = null; 
-		private Inst						lastRow;
-		private boolean						rsIsReadOnly = false;
+		private final ContentNodeMetadata		owner;
+		private final ContentNodeMetadata[]		metadata;
+		private final Localizer					localizer;
+		private volatile ContentDesc<K, Inst>	desc = null; 
+		private Inst							lastRow;
+		private boolean							rsIsReadOnly = false;
 
 		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[] metadata, final Localizer localizer, final boolean enableEdit) {
 			this.owner = owner;
 			this.metadata = metadata;
 			this.localizer = localizer;
-			this.enableEdit = enableEdit;
 		}
 
 		@Override
@@ -485,7 +498,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		public void assignOwner(final JComponent owner, final ResultSet rs, final FormManager<K,Inst> mgr, final InstanceManager<K,Inst> instMgr) throws SQLException {
 			this.lastRow = instMgr != null ? instMgr.newInstance() : null;
 			this.rsIsReadOnly = rs != null && rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY;
-			this.desc = new ContentDesc(rs, mgr, instMgr, owner);
+			this.desc = new ContentDesc<K, Inst>(rs, mgr, instMgr, owner);
 			
 			fireTableStructureChanged();
 			fireTableDataChanged();
@@ -500,18 +513,16 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			}
 		}
 		
-		static class ContentDesc {
-			final ResultSet			rs;
-			final FormManager		mgr;
-			final InstanceManager	instMgr;
-			final boolean			rsIsReadOnly;
-			final JComponent		owner;
+		static class ContentDesc<K, Inst> {
+			final ResultSet					rs;
+			final FormManager<K, Inst>		mgr;
+			final InstanceManager<K, Inst>	instMgr;
+			final JComponent				owner;
 			
-			ContentDesc(final ResultSet rs, final FormManager mgr, final InstanceManager instMgr, final JComponent owner) throws SQLException {
+			ContentDesc(final ResultSet rs, final FormManager<K, Inst> mgr, final InstanceManager<K, Inst> instMgr, final JComponent owner) throws SQLException {
 				this.rs = rs;
 				this.mgr = mgr;
 				this.instMgr = instMgr;
-				this.rsIsReadOnly = rs != null && rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY;
 				this.owner = owner;
 			}
 		}

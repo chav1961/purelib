@@ -63,6 +63,15 @@ public interface InstanceManager<Key, Inst> extends AutoCloseable {
 	Key extractKey(Inst inst) throws SQLException;
 
 	/**
+	 * <p>Extract key from current {@linkplain ResultSet}</p>
+	 * @param rs result set to extract key from
+	 * @return key extracted
+	 * @throws SQLException on any errors
+	 */
+	Key extractKey(ResultSet rs) throws SQLException;
+	
+	
+	/**
 	 * <p>Assign key to instance content.</p> 
 	 * @param inst instance to assign key for. Can't be null
 	 * @param key key set to assign. Can't be null

@@ -583,5 +583,11 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public Long extractKey(ResultSet rs) throws SQLException {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 }

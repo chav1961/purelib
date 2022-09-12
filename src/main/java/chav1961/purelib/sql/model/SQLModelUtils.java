@@ -235,6 +235,12 @@ public class SQLModelUtils {
 					// TODO Auto-generated method stub
 					
 				}
+
+				@Override
+				public List<Entry<String, Object>> extractKey(ResultSet rs) throws SQLException {
+					// TODO Auto-generated method stub
+					return null;
+				}
 			};
 		}
 	}
