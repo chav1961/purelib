@@ -20,6 +20,7 @@ public class ReferenceAndCommentEditor implements FormManager<Object, ReferenceA
 	@LocaleResource(value="JReferenceListWithMeta.editor.ref",tooltip="JReferenceListWithMeta.editor.ref.tt")
 	@Format("30ms")
 	public URI			ref = URI.create("http:/");
+	
 	@LocaleResource(value="JReferenceListWithMeta.editor.comment",tooltip="JReferenceListWithMeta.editor.comment.tt")
 	@Format("30ms")
 	public String		comment = "";

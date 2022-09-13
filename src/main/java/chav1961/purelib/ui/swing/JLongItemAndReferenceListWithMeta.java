@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -42,6 +43,8 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -129,6 +132,8 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
+				private Border	oldBorder;
+				
 				@Override
 				public void focusLost(final FocusEvent e) {
 					try{if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
@@ -137,12 +142,16 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 						monitor.process(MonitorEvent.FocusLost,metadata,JLongItemAndReferenceListWithMeta.this);
 					} catch (ContentException exc) {
 						SwingUtils.getNearestLogger(JLongItemAndReferenceListWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
-					}					
+					} finally {
+						setBorder(oldBorder);
+					}
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					try{
+					try{oldBorder = getBorder();
+						setBorder(InternalUtils.getFocusedBorder());
+						
 						monitor.process(MonitorEvent.FocusGained,metadata,JLongItemAndReferenceListWithMeta.this);
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {

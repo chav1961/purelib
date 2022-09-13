@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.Color;
 import java.awt.HeadlessException;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -21,6 +22,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.TransferHandler;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 
 import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
@@ -86,6 +89,8 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
+				private Border	oldBorder;
+				
 				@Override
 				public void focusLost(final FocusEvent e) {
 					try{if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
@@ -94,11 +99,16 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 						monitor.process(MonitorEvent.FocusLost,metadata,JMimeContentFieldWithMeta.this);
 					} catch (ContentException exc) {
 						SwingUtils.getNearestLogger(JMimeContentFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
-					}					
+					} finally {
+						setBorder(oldBorder);
+					}
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
+					oldBorder = getBorder();
+					setBorder(InternalUtils.getFocusedBorder());
+					
 					if (format != null && format.needSelectOnFocus()) {
 						selectAll();
 					}

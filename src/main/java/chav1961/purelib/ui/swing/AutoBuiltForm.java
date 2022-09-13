@@ -1,7 +1,5 @@
 package chav1961.purelib.ui.swing;
 
-
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -58,7 +56,6 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
-import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -70,7 +67,6 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
-import chav1961.purelib.ui.swing.SwingUtils.WalkCallback;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.useful.JTextTooltipWindow;
@@ -139,6 +135,26 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 		this(mdi, localizer, loader, instance, formMgr, 1);
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param mdi metadata for the instance will be showed
+	 * @param localizer localizer associated with the given instance
+	 * @param logger logger for messages. Can't be null
+	 * @param loader loader to create on-the-fly classes in 
+	 * @param instance instance to show
+	 * @param formMgr form manager for the instance. It's strongly recommended for instance to implement this interface self
+	 * @throws NullPointerException any arguments are null
+	 * @throws IllegalArgumentException any errors in arguments
+	 * @throws SyntaxException errors in class or fields annotations
+	 * @throws LocalizationException errors in localizer
+	 * @throws ContentException errors in class or fields annotations
+	 * @since 0.0.6
+	 */
+	public AutoBuiltForm(final ContentMetadataInterface mdi, final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader, final T instance, final FormManager<K,T> formMgr) throws NullPointerException, IllegalArgumentException, SyntaxException, LocalizationException, ContentException {
+		this(mdi, localizer, logger, loader, null, instance, formMgr, 1, false);
+	}
+	
+	
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param mdi metadata for the instance will be showed

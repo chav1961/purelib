@@ -36,6 +36,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.ToolTipManager;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.text.InternationalFormatter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
@@ -412,6 +414,10 @@ class InternalUtils {
 				return null;
 			}
 		}
+	}
+
+	static Border getFocusedBorder() {
+		return new LineBorder(Color.BLUE, 2);
 	}
 	
 	private static URI replaceLastPathComponent(final URI source, final String replacement) {

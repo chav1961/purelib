@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -43,6 +44,8 @@ import javax.swing.JViewport;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
@@ -52,6 +55,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -113,6 +117,8 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 			}
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
+				private Border	oldBorder;
+				
 				@Override
 				public void focusLost(final FocusEvent e) {
 					try{if (newValue != currentValue && newValue != null && !Arrays.equals(newValue,currentValue)) {
@@ -122,12 +128,15 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 					} catch (ContentException exc) {
 					} finally {
 						Toolkit.getDefaultToolkit().getSystemClipboard().removeFlavorListener(flavorListener);
+						setBorder(oldBorder);
 					}
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
-					try{
+					try{oldBorder = getBorder();
+						setBorder(InternalUtils.getFocusedBorder());
+						
 						monitor.process(MonitorEvent.FocusGained,metadata,JReferenceListWithMeta.this);
 					} catch (ContentException exc) { 
 					} finally {
@@ -376,7 +385,17 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 		final int	index = locationToIndexExactly(event.getPoint());
 		
 		if (index >= 0) {
-			return getModel().getElementAt(index).getComment();
+			final ReferenceAndComment rac = getModel().getElementAt(index);
+			
+			if (rac.getReference() != null) {
+				return rac.getReference().toString();
+			}
+			else if (rac.getComment() != null) {
+				return rac.getComment();
+			}
+			else {
+				return super.getToolTipText(event);
+			}
 		}
 		else {
 			return super.getToolTipText(event);
@@ -524,9 +543,10 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 	}
 	
 	private boolean edit(final ReferenceAndComment rac) {
-		try{final ReferenceAndCommentEditor	rce = new ReferenceAndCommentEditor(SwingUtils.getNearestLogger(this));
+		try{final LoggerFacade				logger = SwingUtils.getNearestLogger(this);
+			final ReferenceAndCommentEditor	rce = new ReferenceAndCommentEditor(logger);
 		
-			try(final AutoBuiltForm<ReferenceAndCommentEditor,Object>	abf = new AutoBuiltForm<ReferenceAndCommentEditor,Object>(editorModel,localizer,PureLibSettings.INTERNAL_LOADER,rce,rce)) {
+			try(final AutoBuiltForm<ReferenceAndCommentEditor,Object>	abf = new AutoBuiltForm<ReferenceAndCommentEditor,Object>(editorModel, localizer, logger, PureLibSettings.INTERNAL_LOADER, rce, rce)) {
 				
 				for (Module m : abf.getUnnamedModules()) {
 					rce.getClass().getModule().addExports(rce.getClass().getPackageName(),m);

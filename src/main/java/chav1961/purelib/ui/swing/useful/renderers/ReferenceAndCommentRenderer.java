@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful.renderers;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.util.Set;
 
@@ -49,11 +50,15 @@ public class ReferenceAndCommentRenderer<T, R> implements SwingItemRenderer<Refe
 					final ReferenceAndComment	sel = (ReferenceAndComment)value;
 					final JLabel				label;
 					
-					if (sel.getReference() != null) {
-						label = (JLabel) super.getListCellRendererComponent(list, sel.getReference().toString(), index, isSelected, cellHasFocus);
+					if (sel.getComment() != null) {
+						label = (JLabel) super.getListCellRendererComponent(list, sel.getComment().toString(), index, isSelected, cellHasFocus);
 					}
 					else {
-						label = new JLabel();
+						label = new JLabel("<no comment>");
+						label.setForeground(Color.LIGHT_GRAY);
+					}
+					if (sel.getReference() != null) {
+						label.setToolTipText(sel.getReference().toString());
 					}
 					
 					return label;
