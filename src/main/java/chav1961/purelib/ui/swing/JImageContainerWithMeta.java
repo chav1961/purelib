@@ -163,8 +163,6 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			callSelect.setPreferredSize(new Dimension(20,20));
 			callSelect.addActionListener((e)->selectImage());
 			add(callSelect);
-//			new ComponentKeepedBorder(0, callSelect).install(this);
-//			setPreferredSize(new Dimension(2*callSelect.getPreferredSize().width,callSelect.getPreferredSize().height));
 			if (format != null) {
 				setPreferredSize(new Dimension(format.getLength(), format.getHeight()));
 			}
@@ -364,11 +362,24 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	public void paintComponent(final Graphics g) {
 		final Graphics2D	g2d = (Graphics2D)g;
 		final Insets		insets = getInsets();
-		final Image			image = !isEnabled() ? grayScaleValue : (newValue != null ? getAsImage(newValue) : (currentValue != null ? getAsImage(currentValue) : new ImageKeeperImpl().getImage())); 
 		final int			x1 = insets.left, x2 = getWidth()-insets.right, y1 = insets.top, y2 = getHeight()-insets.bottom;
+		final Image			image = !isEnabled() ? grayScaleValue : (newValue != null ? getAsImage(newValue) : (currentValue != null ? getAsImage(currentValue) : new ImageKeeperImpl().getImage())); 
 
 		if (image != null) {
-			g2d.drawImage(image, x1, y1, x2, y2, 0, 0, image.getWidth(null), image.getHeight(null), null);
+			final int		w = image.getWidth(null), h = image.getHeight(null);
+			
+			if (w <= x2 - x1 && h <= y2 - y1) {
+				g2d.drawImage(image, x1 + ((x2 - x1) - w)/2, y1 + ((y2 - y1) - h)/2, null);
+			}
+			else if (w <= x2 - x1) {
+				g2d.drawImage(image, x1 + ((x2 - x1) - w)/2, y1, x2 - ((x2 - x1) - w)/2, y2, 0, 0, w, h, null);
+			}
+			else if (h <= y2 - y1) {
+				g2d.drawImage(image, x1, y1 + ((y2 - y1) - h)/2, x2, y2 - ((y2 - y1) - h)/2, 0, 0, w, h, null);
+			}
+			else {
+				g2d.drawImage(image, x1, y1, x2, y2, 0, 0, w, h, null);
+			}
 		}
 	}
 

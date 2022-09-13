@@ -196,9 +196,10 @@ public abstract class SwingUtils {
 	public static final String				ACTION_DELETE = "delete";
 	public static final String				ACTION_DROPDOWN = "dropdown";
 	public static final String				ACTION_ACCEPT = "accept";
-	public static final String				ACTION_CLICK = "click";
+	public static final String				ACTION_SOFT_ACCEPT = "softaccept";
 	public static final String				ACTION_EXIT = "exit";
 	public static final String				ACTION_SOFT_EXIT = "softexit";
+	public static final String				ACTION_CLICK = "click";
 	public static final String				ACTION_ROLLBACK = "rollback-value";
 	public static final String				ACTION_HELP = "help";
 	public static final String				ACTION_CUT = "cut";
