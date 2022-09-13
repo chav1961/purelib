@@ -197,12 +197,27 @@ public final class PureLibSettings {
 	 * <p>Predefined MIMEs in the Pure Library: MIME for favicon content</p>
 	 */
 	public static final MimeType	MIME_FAVICON = buildMime("image","webp");
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for *.png content</p>
+	 */
+	public static final MimeType	MIME_PNG = buildMime("image","x-png");
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for any image content</p>
+	 */
+	public static final MimeType	MIME_ANY_IMAGE = buildMime("image","*");
 	
 	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for octet stream</p>
 	 */
 	public static final MimeType	MIME_OCTET_STREAM = buildMime("application","octet-stream");
 
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for any stream</p>
+	 */
+	public static final MimeType	MIME_ANY_STREAM = buildMime("application","*");
+	
 	/**
 	 * <p>Predefined Data Flavor name for Pure Library models to use them in the Swing applications</p>
 	 * @see chav1961.purelibrary.model

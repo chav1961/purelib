@@ -990,12 +990,14 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					final String		fromMimeString = from !=null ? from.get(0) : PureLibSettings.MIME_OCTET_STREAM.toString();
 					final List<String>	to = requestHeaders.get(HEAD_ACCEPT);
 					final String		toMimeString = to != null ? to.get(0) : PureLibSettings.MIME_OCTET_STREAM.toString();
-					final MimeType		fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM,
-										toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
+					final MimeType		fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
+//										toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
 					
 					for (MethodDescriptor item : desc.methods) {
-						if (item.isAppicable(qType,charPath,prefixLen,fromMime,toMime)) {
-							return item.caller;
+						for (MimeType type : MimeType.parseMimeList(toMimeString != null ? toMimeString : PureLibSettings.MIME_OCTET_STREAM.toString())) {
+							if (item.isAppicable(qType, charPath, prefixLen, fromMime, type)) {
+								return item.caller;
+							}
 						}
 					}
 					return null;
@@ -2004,7 +2006,15 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. It's type should not be array, primitive type or enumeration");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_OCTET_STREAM,mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_IMAGE, mimeType)) {
+			if (OutputStream.class.isAssignableFrom(itemType)) {
+				sb.append(" OutputStream2Stack\n");
+			}
+			else {
+				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream can be used");
+			}
+		}
+		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_STREAM, mimeType)) {
 			if (OutputStream.class.isAssignableFrom(itemType)) {
 				sb.append(" OutputStream2Stack\n");
 			}

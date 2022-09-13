@@ -136,6 +136,9 @@ public class MimeType implements Serializable {
 		if (targetType == null) {
 			throw new NullPointerException("Target type can't be null"); 
 		}
+		else if ("*".equals(getSubType())) {
+			return getPrimaryType().equals(targetType.getPrimaryType());
+		}
 		else {
 			return equals(targetType);
 		}
