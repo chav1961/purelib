@@ -121,7 +121,7 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
  * @see <a href="http://www.wikicreole.org/">Creole</a>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @lastUpdate 0.0.6
  */
 
 public class NanoServiceFactory implements Closeable, NanoService, HttpHandler   {
@@ -261,58 +261,10 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				}
 				
 				if (!wereErrors) {
-//					this.environment = new NanoServiceEnvironment() {
-//						@Override
-//						public void success(final HttpExchange handler, final int rc) throws IOException {
-//							if (handler == null) {
-//								throw new NullPointerException("Exchange handler can't be null");
-//							}
-//							else {
-//								handler.sendResponseHeaders(rc,0);
-//							}
-//						}
-//						
-//						@Override
-//						public LoggerFacade getLogger() {
-//							return facade;
-//						}
-//						
-//						@Override
-//						public Connection getConnection() throws SQLException {
-//							if (dataSource == null) {
-//								throw new IllegalStateException("Data source was not passed to the nanoservice. Using of the connections are illegal"); 
-//							}
-//							else {
-//								return dataSource.getConnection();
-//							}
-//						}
-//						
-//						@Override
-//						public void fail(final HttpExchange handler, final int rc, final String format, final Object... parameters) throws IOException {
-//							if (handler == null) {
-//								throw new NullPointerException("Exchange handler can't be null");
-//							}
-//							else if (format == null) {
-//								throw new NullPointerException("Format string can't be null");
-//							}
-//							else {
-//								final byte[] 	answer = (parameters == null || parameters.length == 0 ? format : String.format(format,parameters)).getBytes("UTF-8");
-//								
-//								handler.getResponseHeaders().add(HEAD_CONTENT_TYPE,PureLibSettings.MIME_PLAIN_TEXT.toString());
-//								handler.getResponseHeaders().add(HEAD_CONTENT_LENGTH,String.valueOf(answer.length));
-//								handler.getResponseHeaders().add(HEAD_CONTENT_ENCODING,HEAD_CONTENT_ENCODING_IDENTITY);
-//								handler.sendResponseHeaders(rc,0);
-//								try(final OutputStream	os = handler.getResponseBody()) {
-//									os.write(answer);
-//									os.flush();
-//								}
-//							}
-//						}
-//					};					
-					this.disableLoopback = props.getProperty(NANOSERVICE_DISABLE_LOOPBACK,boolean.class,DEFAULT_NANOSERVICE_DISABLE_LOOPBACK);
-					this.localhostOnly = props.getProperty(NANOSERVICE_LOCALHOST_ONLY,boolean.class,DEFAULT_NANOSERVICE_LOCALHOST_ONLY);
-					this.tempStore = new TemporaryStore(props.getProperty(NANOSERVICE_TEMPORARY_CACHE_SIZE,int.class,""+TemporaryStore.DEFAULT_BUFFER_SIZE));
-					this.executorPoolSize = props.getProperty(NANOSERVICE_EXECUTOR_POOL_SIZE,int.class,DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE);
+					this.disableLoopback = props.getProperty(NANOSERVICE_DISABLE_LOOPBACK, boolean.class, DEFAULT_NANOSERVICE_DISABLE_LOOPBACK);
+					this.localhostOnly = props.getProperty(NANOSERVICE_LOCALHOST_ONLY, boolean.class, DEFAULT_NANOSERVICE_LOCALHOST_ONLY);
+					this.tempStore = new TemporaryStore(props.getProperty(NANOSERVICE_TEMPORARY_CACHE_SIZE, int.class, ""+TemporaryStore.DEFAULT_BUFFER_SIZE));
+					this.executorPoolSize = props.getProperty(NANOSERVICE_EXECUTOR_POOL_SIZE, int.class, DEFAULT_NANOSERVICE_EXECUTOR_POOL_SIZE);
 					
 					try(final InputStream	is = NanoServiceFactory.class.getResourceAsStream(MACROS_CONTENT);
 						final Reader		rdr = new InputStreamReader(is,"UTF-8")) {
@@ -322,11 +274,11 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					}
 					
 					if (useBuiltinServer) {
-						if (props.getProperty(NANOSERVICE_USE_SSL,boolean.class,"false")) {
+						if (props.getProperty(NANOSERVICE_USE_SSL, boolean.class,"false")) {
 							server = createHttpsServer(props);
 						}
 						else {
-							server = HttpServer.create(new InetSocketAddress(props.getProperty(NANOSERVICE_PORT,int.class)),0);
+							server = HttpServer.create(new InetSocketAddress(props.getProperty(NANOSERVICE_PORT, int.class)),0);
 						}
 						server.createContext("/",this);
 					}
@@ -452,7 +404,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		
 		try{type = QueryType.valueOf(call.getRequestMethod());
 		} catch (IllegalArgumentException exc) {
-			nse.fail(HttpURLConnection.HTTP_BAD_METHOD,"Request method [%1$s] is not supported yet",call.getRequestMethod());
+			nse.fail(HttpURLConnection.HTTP_BAD_METHOD, "Request method [%1$s] is not supported yet",call.getRequestMethod());
 			return;
 		}
 		
@@ -502,7 +454,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 										env.success(HttpURLConnection.HTTP_OK);
 										
 										try(final OutputStream	os = getOutputStream(responseBody,streamType);
-											final Writer		wr = new OutputStreamWriter(os,"UTF-8");
+											final Writer		wr = new OutputStreamWriter(os, PureLibSettings.DEFAULT_CONTENT_ENCODING);
 											final CreoleWriter	cre = new CreoleWriter(wr,MarkupOutputFormat.XML2HTML,prologue,epilogue)) {
 											
 											fsi.copy(cre);
@@ -568,7 +520,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								}
 							}
 							else {
-								env.fail(rc,"Unsuccessful processing your request");
+								env.fail(rc, "Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
 							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
@@ -2478,9 +2430,9 @@ loop:		for (; index < maxIndex && from < maxFrom; index++) {
 			else {
 				final byte[] 	answer = (parameters == null || parameters.length == 0 ? format : String.format(format,parameters)).getBytes("UTF-8");
 				
-				handler.getResponseHeaders().add(HEAD_CONTENT_TYPE,PureLibSettings.MIME_PLAIN_TEXT.toString());
-				handler.getResponseHeaders().add(HEAD_CONTENT_LENGTH,String.valueOf(answer.length));
-				handler.getResponseHeaders().add(HEAD_CONTENT_ENCODING,HEAD_CONTENT_ENCODING_IDENTITY);
+				handler.getResponseHeaders().add(HEAD_CONTENT_TYPE, PureLibSettings.MIME_PLAIN_TEXT.toString());
+				handler.getResponseHeaders().add(HEAD_CONTENT_LENGTH, String.valueOf(answer.length));
+				handler.getResponseHeaders().add(HEAD_CONTENT_ENCODING, HEAD_CONTENT_ENCODING_IDENTITY);
 				handler.sendResponseHeaders(rc,0);
 				try(final OutputStream	os = handler.getResponseBody()) {
 					os.write(answer);

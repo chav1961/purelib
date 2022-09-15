@@ -496,14 +496,14 @@ public class InternalUtils {
 		else {
 			final String	encoding = requestHeaders.getFirst(NanoServiceFactory.HEAD_ACCEPT_CHARSET);
 			
-			if (encoding == null || encoding.isEmpty()) {
-				return new OutputStreamWriter(os);
-			}
-			else {
-				try{return new OutputStreamWriter(os,encoding);
-				} catch (UnsupportedEncodingException e) {
-					return new OutputStreamWriter(os);
+			try{if (encoding == null || encoding.isEmpty()) {
+					return new OutputStreamWriter(os, PureLibSettings.DEFAULT_CONTENT_ENCODING);
 				}
+				else {
+					return new OutputStreamWriter(os, encoding);
+				}
+			} catch (UnsupportedEncodingException e) {
+				return new OutputStreamWriter(os);
 			}
 		}
 	}
@@ -515,14 +515,14 @@ public class InternalUtils {
 		else {
 			final String	encoding = requestHeaders.getFirst(NanoServiceFactory.HEAD_CONTENT_TYPE);
 			
-			if (encoding == null || encoding.isEmpty()) {
-				return new InputStreamReader(is);
-			}
-			else {
-				try{return new InputStreamReader(is,encoding);
-				} catch (UnsupportedEncodingException e) {
-					return new InputStreamReader(is);
+			try{if (encoding == null || encoding.isEmpty()) {
+					return new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING);
 				}
+				else {
+					return new InputStreamReader(is, encoding);
+				}
+			} catch (UnsupportedEncodingException e) {
+				return new InputStreamReader(is);
 			}
 		}
 	}
