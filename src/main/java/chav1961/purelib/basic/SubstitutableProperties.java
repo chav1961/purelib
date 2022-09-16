@@ -66,7 +66,8 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
-	public static final String	KEY_INCLUDE = ".include"; 
+	public static final String	KEY_INCLUDE = ".include";
+	public static final File	CURRENT_DIR = new File("./");
 	
 	private static final String	MESSAGE_FILE_NOT_EXISTS = "SubstitutableProperties.notexists";
 	private static final String	MESSAGE_FILE_IS_DIRECTORY = "SubstitutableProperties.isdirectory";
@@ -435,6 +436,7 @@ public class SubstitutableProperties extends Properties {
 	 * @throws NullPointerException if awaited class is null
 	 * @throws IllegalArgumentException if requested conversion failed or not supported
 	 * @since 0.0.3
+	 * @lastUdate 0.0.6
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T convert(final String key, final String value, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
@@ -478,9 +480,23 @@ public class SubstitutableProperties extends Properties {
 					case INPUTSTREAM	:
 						return awaited.cast(new FileInputStream(value));						
 					case URL			:
-						return awaited.cast(new URL(value));
+						final URI	tempURI1 = URI.create(value);
+						
+						if (tempURI1.isAbsolute()) {
+							return awaited.cast(tempURI1.toURL());
+						}
+						else {
+							return awaited.cast(new File(CURRENT_DIR, value).toURI().toURL());
+						}
 					case URI			:
-						return awaited.cast(URI.create(value));
+						final URI	tempURI2 = URI.create(value);
+						
+						if (tempURI2.isAbsolute()) {
+							return awaited.cast(tempURI2);
+						}
+						else {
+							return awaited.cast(new File(CURRENT_DIR, value).toURI());
+						}
 					case COLOR			:
 						return awaited.cast(PureLibSettings.colorByName(value,null));
 					case CHARARRAY		:
