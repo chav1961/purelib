@@ -352,7 +352,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		private final ContentNodeMetadata[]		metadata;
 		private final Localizer					localizer;
 		private volatile ContentDesc<K, Inst>	desc = null; 
-		private Inst							lastRow;
+		private Inst						lastRow;
 		private boolean							rsIsReadOnly = false;
 
 		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[] metadata, final Localizer localizer, final boolean enableEdit) {
