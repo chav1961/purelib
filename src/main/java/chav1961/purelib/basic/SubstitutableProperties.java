@@ -551,6 +551,33 @@ public class SubstitutableProperties extends Properties {
 		}
 	}
 	
+	
+	public static SubstitutableProperties of(final File file) throws IOException {
+		if (file == null) {
+			throw new NullPointerException("File can't be null");
+		}
+		else if (!file.exists() || !file.isFile() || !file.canRead()) {
+			throw new IllegalArgumentException("File ["+file.getAbsolutePath()+"] is not exists, is not a file or is unaccessible for you"); 
+		}
+		else {
+			try(final InputStream	is = new FileInputStream(file)) {
+				return of(is);
+			}
+		}
+	}
+
+	public static SubstitutableProperties of(final InputStream is) throws IOException {
+		if (is == null) {
+			throw new NullPointerException("Input stream can't be null");
+		}
+		else {
+			final SubstitutableProperties	props = new SubstitutableProperties();
+
+			props.load(is);
+			return props;
+		}
+	}
+	
 	protected String extendedGetProperty(final String key) {
 		if (containsKey(key)) {
 			return super.getProperty(key);
