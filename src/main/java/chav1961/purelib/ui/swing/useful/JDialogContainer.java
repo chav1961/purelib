@@ -34,6 +34,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.ErrorProcessing;
@@ -50,7 +51,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @since 0.0.4
  * @lastUpdate 0.0.5
  */
-public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener {
+public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener, LoggerFacadeOwner {
 	private static final long 	serialVersionUID = 8956769935164098957L;
 	private static final String	OK_TEXT = "OK";
 	private static final String	CANCEL_TEXT = "CANCEL";
@@ -68,6 +69,8 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	private final Localizer		localizer;
 	private final Component		parent;
 	private final JComponent	inner;
+	private final JLabel		wizardDescription = new JLabel("", JLabel.CENTER);
+	private final JLabel		wizardHelp = new JLabel("");
 	private final Common		common;
 	private final JStateString	state;
 	private final JButton		okButton = new JButton();
@@ -264,7 +267,10 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			this.state = new JStateString(localizer);
 			this.history = new History(localizer,steps.length);
 			
-			prepareWizardDialog(steps);
+			try{prepareWizardDialog(steps);
+			} catch (FlowException e) {
+				throw new IllegalArgumentException(e); 
+			}
 		}
 	}
 
@@ -305,7 +311,10 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			this.state = new JStateString(localizer);
 			this.history = new History(localizer,steps.length);
 			
-			prepareWizardDialog(steps);
+			try{prepareWizardDialog(steps);
+			} catch (FlowException e) {
+				throw new IllegalArgumentException(e); 
+			}
 		}
 	}
 
@@ -382,8 +391,8 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			temporary.clear();
 			if (isWizard) {
 				try{prepareCurrentComponent(currentStep);
-				} catch (LocalizationException | FlowException exc) {
-					state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
+				} catch (FlowException exc) {
+					getLogger().message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
 				}
 			}
 			super.setVisible(true);
@@ -391,8 +400,8 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		else {
 			if (isWizard) {
 				try{steps[stepIndexById(currentStep)].afterShow(common,temporary,err);
-				} catch (LocalizationException | FlowException exc) {
-					state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
+				} catch (FlowException exc) {
+					getLogger().message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
 				}
 			}
 			super.setVisible(false);
@@ -401,6 +410,11 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		}
 	}
 
+	@Override
+	public LoggerFacade getLogger() {
+		return state;
+	}
+	
 	protected void ok() {
 		result = true;
 		setVisible(false);
@@ -415,20 +429,18 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		setVisible(false);
 	}
 
-	protected void prev() throws LocalizationException, FlowException {
-		if (steps[stepIndexById(currentStep)].validate(common, temporary, err)) {
-			String	prev = steps[stepIndexById(currentStep)].getPrevStep();
-			
-			if (prev == null) {
-				prev = steps[stepIndexById(currentStep)-1].getStepId(); 
-			}
-			placeCurrentComponent(currentStep,prev);
-			history.pop();
-			refreshButtons();
+	protected void prev() throws FlowException {
+		String	prev = steps[stepIndexById(currentStep)].getPrevStep();
+		
+		if (prev == null) {
+			prev = steps[stepIndexById(currentStep) - 1].getStepId(); 
 		}
+		placeCurrentComponent(currentStep, prev);
+		history.pop();
+		refreshButtons();
 	}
 
-	protected void next() throws LocalizationException, FlowException {
+	protected void next() throws FlowException {
 		if (steps[stepIndexById(currentStep)].validate(common, temporary, err)) {
 			if (steps[stepIndexById(currentStep)].getStepType().isFinal()) {
 				if (steps[stepIndexById(currentStep)].getStepType() != StepType.TERM_FAILURE) {
@@ -452,18 +464,12 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		if (isWizard) {
 			prevButton.setEnabled(!steps[stepIndexById(currentStep)].getStepType().isInitial());
 			if (steps[stepIndexById(currentStep)].getStepType().isFinal()) {
-				try{nextButton.setText(localizer.getValue(FINISH_TEXT));
-					nextButton.setToolTipText(localizer.getValue(FINISH_TEXT_TT));
-				} catch (LocalizationException | IllegalArgumentException exc) {
-					state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
-				}
+				nextButton.setText(localizer.getValue(FINISH_TEXT));
+				nextButton.setToolTipText(localizer.getValue(FINISH_TEXT_TT));
 			}
 			else {
-				try{nextButton.setText(localizer.getValue(NEXT_TEXT));
-					nextButton.setToolTipText(localizer.getValue(NEXT_TEXT_TT));
-				} catch (LocalizationException | IllegalArgumentException exc) {
-					state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
-				}
+				nextButton.setText(localizer.getValue(NEXT_TEXT));
+				nextButton.setToolTipText(localizer.getValue(NEXT_TEXT_TT));
 			}
 			nextButton.setEnabled(steps[stepIndexById(currentStep)].getStepType() != StepType.TERM_FAILURE);
 		}
@@ -498,7 +504,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		}
 	}
 
-	private void prepareWizardDialog(WizardStep<Common, ErrorType, Content>[] steps) throws LocalizationException {
+	private void prepareWizardDialog(WizardStep<Common, ErrorType, Content>[] steps) throws LocalizationException, FlowException {
 		try(final LoggerFacade	trans = PureLibSettings.CURRENT_LOGGER.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
@@ -506,15 +512,15 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			bottom.add(prevButton);
 			prevButton.addActionListener((e)->{
 				try{prev();
-				} catch (LocalizationException | FlowException exc) {
-					state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
+				} catch (FlowException exc) {
+					getLogger().message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
 				}
 			});
 			bottom.add(nextButton);
 			nextButton.addActionListener((e)->{
 				try{next();
-				} catch (LocalizationException | FlowException exc) {
-					state.message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
+				} catch (FlowException exc) {
+					getLogger().message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
 				}
 			});
 			bottom.add(cancelButton);
@@ -562,12 +568,11 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 				}
 			}
 			
+			getContentPane().add(wizardDescription, BorderLayout.NORTH);
 			getContentPane().add(inner, BorderLayout.CENTER);
+			inner.add(wizardHelp, BorderLayout.NORTH);
 			
-			getContentPane().add(new JLabel(localizer.getValue(steps[stepIndexById(initialStep)].getDescription()), JLabel.CENTER), BorderLayout.NORTH);
-			currentComponent = stepById(initialStep).getContent();
-			inner.add(new JLabel(localizer.getValue(steps[stepIndexById(initialStep)].getHelpId())), BorderLayout.NORTH);
-			inner.add(currentComponent, BorderLayout.CENTER);
+			prepareCurrentComponent(initialStep);
 			refreshButtons();
 			
 			SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{
@@ -594,7 +599,6 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			
 			final JPanel		historyPanel = new JPanel(new BorderLayout());
 			
-			
 			history.push(stepById(initialStep).getStepType(),stepById(initialStep).getCaption());
 			historyPanel.setPreferredSize(new Dimension(200,0));
 			historyPanel.setBorder(new EmptyBorder(20, 10, 10, 10));
@@ -611,7 +615,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT,(e) ->{
 			if (isWizard) {
 				try{next();
-				} catch (LocalizationException | FlowException exc) {
+				} catch (FlowException exc) {
 					state.message(Severity.error,exc,"Next jump error: "+exc.getLocalizedMessage());
 				}
 			}
@@ -626,17 +630,17 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	
 	private void placeCurrentComponent(final String currentState, final String newState) throws LocalizationException, FlowException {
 		steps[stepIndexById(currentState)].afterShow(common,temporary,err);
-		getContentPane().remove(currentComponent);
+		removeCurrentComponent();
 		currentStep = newState;
 		if (steps[stepIndexById(newState)].getStepType() == StepType.PROCESSING) {
 			processingThread = new Thread(()->{
 								try{steps[stepIndexById(newState)].beforeShow(common,temporary, err);
 									steps[stepIndexById(newState)].afterShow(common,temporary, err);
-								} catch (LocalizationException | FlowException e) {
+								} catch (FlowException e) {
 								} finally {
 									SwingUtilities.invokeLater(()->{
 										try{next();
-										} catch (LocalizationException | FlowException e) {
+										} catch (FlowException e) {
 										}
 									});
 								}
@@ -652,14 +656,25 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		}
 	}
 
-	private void prepareCurrentComponent(final String step) throws LocalizationException, FlowException {
-		captionId = steps[stepIndexById(step)].getCaption();
+	private void removeCurrentComponent() throws FlowException {
+		inner.remove(currentComponent);
+	}
+	
+	private void prepareCurrentComponent(final String step) throws FlowException {
+		final int	stepNo = stepIndexById(step); 
+		
+		captionId = steps[stepNo].getCaption();
+		currentComponent = steps[stepNo].getContent();
+		
 		fillLocalizedStrings();
-		steps[stepIndexById(step)].beforeShow(common,temporary,err);
-		currentComponent = steps[stepIndexById(step)].getContent();
-		getContentPane().add(new JLabel(localizer.getValue(steps[stepIndexById(step)].getDescription()), JLabel.CENTER), BorderLayout.NORTH);
-		inner.add(new JLabel(localizer.getValue(steps[stepIndexById(step)].getHelpId())), BorderLayout.NORTH);
+		
+		wizardDescription.setText(localizer.getValue(steps[stepNo].getDescription()));
+		wizardHelp.setText(localizer.getValue(steps[stepNo].getHelpId()));
 		inner.add(currentComponent, BorderLayout.CENTER);
+		inner.revalidate();
+		inner.repaint();
+		
+		steps[stepNo].beforeShow(common,temporary,err);
 	}
 	
 	private WizardStep<Common, ErrorType, Content> stepById(final String stepId) {
@@ -695,7 +710,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			setEditable(false);
 		}
 		
-		public void push(final StepType type, final String step) throws LocalizationException {
+		public void push(final StepType type, final String step) {
 			steps.add(step);
 			refreshContent();
 		}
@@ -710,7 +725,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			refreshContent();
 		}
 
-		private void refreshContent() throws LocalizationException, IllegalArgumentException {
+		private void refreshContent() throws IllegalArgumentException {
 			final StringBuilder	sb = new StringBuilder();
 			
 			sb.append("<html><body>");

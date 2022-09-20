@@ -1,6 +1,5 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.Dialog;
 import java.awt.HeadlessException;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -16,10 +15,8 @@ import java.util.Locale;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.TransferHandler;
-import javax.swing.text.JTextComponent;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -47,7 +44,6 @@ import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
-import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
 
 public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = 8167088888478756141L;

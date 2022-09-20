@@ -551,13 +551,21 @@ public class SubstitutableProperties extends Properties {
 		}
 	}
 	
-	
-	public static SubstitutableProperties of(final File file) throws IOException {
+	/**
+	 * <p>Create properties from file</p>
+	 * @param file file to create properties from. Can't be null 
+	 * @return properties created from the file
+	 * @throws NullPointerException null file
+	 * @throws IllegalArgumentException file not exists, is not a file or is not accessible for you
+	 * @throws IOException any I/O errors
+	 * @since 0.0.6
+	 */
+	public static SubstitutableProperties of(final File file) throws IOException, NullPointerException, IllegalArgumentException {
 		if (file == null) {
 			throw new NullPointerException("File can't be null");
 		}
 		else if (!file.exists() || !file.isFile() || !file.canRead()) {
-			throw new IllegalArgumentException("File ["+file.getAbsolutePath()+"] is not exists, is not a file or is unaccessible for you"); 
+			throw new IllegalArgumentException("File ["+file.getAbsolutePath()+"] is not exists, is not a file or is not accessible for you"); 
 		}
 		else {
 			try(final InputStream	is = new FileInputStream(file)) {
@@ -566,6 +574,14 @@ public class SubstitutableProperties extends Properties {
 		}
 	}
 
+	/**
+	 * <p>Create properties from input stream</p>
+	 * @param file input stream to create properties from. Can't be null 
+	 * @return properties created from the file
+	 * @throws NullPointerException null input stream
+	 * @throws IOException any I/O errors
+	 * @since 0.0.6
+	 */
 	public static SubstitutableProperties of(final InputStream is) throws IOException {
 		if (is == null) {
 			throw new NullPointerException("Input stream can't be null");

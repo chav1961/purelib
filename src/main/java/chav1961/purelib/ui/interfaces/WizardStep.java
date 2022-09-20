@@ -74,7 +74,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 		 * @return true if yes
 		 */
 		public boolean isFinal() {
-			return isInitial;
+			return isFinal;
 		}
 	}
 
