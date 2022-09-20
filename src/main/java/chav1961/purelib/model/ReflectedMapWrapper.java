@@ -33,6 +33,7 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 	private final BiFunction<String, Object, String>	convertor;
 	private final String[]			names;
 	private final Object[]			values;
+	private final Class<?>[]		classes;
 	private final GetterAndSetter[]	gas;
 
 	public ReflectedMapWrapper(final Object instance) throws NullPointerException {
@@ -60,6 +61,7 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 
 			try(final LoggerFacade	trans = logger.transaction(this.getClass().getName())) {
 				final Map<String,GetterAndSetter>	fields = new HashMap<>();
+				final Map<String,Class<?>>			fieldClasses = new HashMap<>();
 				
 				CompilerUtils.walkFields(instance.getClass(), (cl, f)->{
 					if (!Modifier.isStatic(f.getModifiers())) {
@@ -70,6 +72,7 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 								else {
 									fields.put(f.getName(), GettersAndSettersFactory.buildGetterAndSetter(f.getDeclaringClass(), f.getName()));
 								}
+								fieldClasses.put(f.getName(), f.getType());
 							}
 						} catch (ContentException e) {
 							trans.message(Severity.error, e, e.getLocalizedMessage());
@@ -79,9 +82,11 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 				
 				this.names = fields.keySet().toArray(new String[fields.size()]);
 				this.values = new Object[fields.size()];
+				this.classes = new Class[fields.size()];
 				this.gas = new GetterAndSetter[fields.size()];
 				for (int index= 0; index < names.length; index++) {
 					gas[index] = fields.get(names[index]);
+					classes[index] = fieldClasses.get(names[index]);
 				}
 				fillValues(trans);
 				trans.rollback();
@@ -118,6 +123,23 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 		}
 		else {
 			return getValue(new String(data, from, to-from)).toCharArray();
+		}
+	}
+	
+	public Class<?> getValueClass(final String key) {
+		if (key == null || key.isEmpty()) {
+			throw new IllegalArgumentException("Key can't be null or empty"); 
+		}
+		else if (containsKey(key)) {
+			for (int index = 0; index < names.length; index++) {
+				if (names[index].equals(key)) {
+					return classes[index];
+				}
+			}
+			return null;
+		}
+		else {
+			return null;
 		}
 	}
 	

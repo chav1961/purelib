@@ -606,6 +606,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			
 			prepareCurrentComponent(initialStep);
 			refreshButtons();
+			fillLocalizedStrings();
 			
 			SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{
 				final String	help = steps[stepIndexById(currentStep)].getHelpId();
