@@ -49,4 +49,13 @@ public enum SupportedLanguages {
 	public URI getIconURI() {
 		return iconUri;
 	}
+	
+	public static SupportedLanguages getDefaultLanguage() {
+		for (SupportedLanguages item : values()) {
+			if (item.getLocale().getLanguage().equals(Locale.getDefault().getLanguage())) {
+				return item;
+			}
+		}
+		return en;
+	}
 }

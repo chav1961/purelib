@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.IOException;
 import java.net.URI;
@@ -63,6 +64,9 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	private static final String	PREV_TEXT_TT = "PREV.tooltip";
 	private static final String	NEXT_TEXT_TT = "NEXT.tooltip";
 	private static final String	FINISH_TEXT_TT = "FINISH.tooltip";
+
+	private static final String	HTML_PREFIX = "<html><body>";
+	private static final String	HTML_SUFFIX = "</body></html>";
 	
 	private final boolean		isWizard;
 	private final ModalityType	isModal;
@@ -320,6 +324,16 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		if (history != null) {
+			history.localeChanged(oldLocale, newLocale);
+		}
+		if (this.inner != null) {
+			SwingUtils.refreshLocale(this.inner, oldLocale, newLocale);
+		}
+		refreshButtons();
+		if (currentStep != null) {
+			fillLocalizedComponent(currentStep);
+		}
 		fillLocalizedStrings();
 	}
 
@@ -357,8 +371,17 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			}
 			this.result = false;
 			pack();
-			setVisible(true);
+			
+			final Locale	current = PureLibSettings.PURELIB_LOCALIZER.currentLocale().getLocale();
+			
+			try{localizer.addLocaleChangeListener(this);
+				setVisible(true);
+			} finally {
+				localizer.removeLocaleChangeListener(this);
+				PureLibSettings.PURELIB_LOCALIZER.setCurrentLocale(current);
+			}
 			dispose();
+			
 			for (WizardStep<Common, ErrorType, Content> item : steps) {
 				item.unprepare(common,temporary);
 			}
@@ -505,6 +528,8 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	}
 
 	private void prepareWizardDialog(WizardStep<Common, ErrorType, Content>[] steps) throws LocalizationException, FlowException {
+		getContentPane().setLayout(new BorderLayout(10, 10));
+		
 		try(final LoggerFacade	trans = PureLibSettings.CURRENT_LOGGER.transaction(this.getClass().getSimpleName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
@@ -568,7 +593,14 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 				}
 			}
 			
-			getContentPane().add(wizardDescription, BorderLayout.NORTH);
+			final JPanel				northPanel = new JPanel(new BorderLayout(0, 10));
+			final Font					font = wizardDescription.getFont();
+			
+			wizardDescription.setFont(font.deriveFont(1.5f*font.getSize2D()));
+			northPanel.add(wizardDescription, BorderLayout.CENTER);
+			northPanel.add(new JLanguageComboBox(PureLibSettings.PURELIB_LOCALIZER), BorderLayout.EAST);
+			
+			getContentPane().add(northPanel, BorderLayout.NORTH);
 			getContentPane().add(inner, BorderLayout.CENTER);
 			inner.add(wizardHelp, BorderLayout.NORTH);
 			
@@ -666,15 +698,22 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		captionId = steps[stepNo].getCaption();
 		currentComponent = steps[stepNo].getContent();
 		
-		fillLocalizedStrings();
+		fillLocalizedComponent(step);
 		
-		wizardDescription.setText(localizer.getValue(steps[stepNo].getDescription()));
-		wizardHelp.setText(localizer.getValue(steps[stepNo].getHelpId()));
+//		wizardDescription.setText(HTML_PREFIX+localizer.getValue(steps[stepNo].getDescription())+HTML_SUFFIX);
+//		wizardHelp.setText(HTML_PREFIX+localizer.getValue(steps[stepNo].getHelpId())+HTML_SUFFIX);
 		inner.add(currentComponent, BorderLayout.CENTER);
 		inner.revalidate();
 		inner.repaint();
 		
 		steps[stepNo].beforeShow(common,temporary,err);
+	}
+	
+	private void fillLocalizedComponent(final String step) {
+		final int	stepNo = stepIndexById(step);
+		
+		wizardDescription.setText(HTML_PREFIX+localizer.getValue(steps[stepNo].getDescription())+HTML_SUFFIX);
+		wizardHelp.setText(HTML_PREFIX+localizer.getValue(steps[stepNo].getHelpId())+HTML_SUFFIX);
 	}
 	
 	private WizardStep<Common, ErrorType, Content> stepById(final String stepId) {
