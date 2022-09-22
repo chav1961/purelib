@@ -134,6 +134,25 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 	 * @return any kind of content. Can't be null. Interpretation of the content is a scope of the wizard, not wizard step
 	 */
 	Content getContent();
+
+	/**
+	 * <p>Callback after clicking 'Finish' button.</p> 
+	 * @return if false, OK process will be aborted</p>
+	 * @since 0.0.6
+	 */
+	
+	default boolean onOK() {
+		return true;
+	}
+
+	/**
+	 * <p>Callback after clicking 'Cancel' button.</p> 
+	 * @return if false, cancel process will be aborted</p>
+	 * @since 0.0.6
+	 */
+	default boolean onCancel() {
+		return true;
+	}
 	
 	/**
 	 * <p>Prepare wizard step to use in the wizard</p>

@@ -50,7 +50,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @param <ErrorType> type of errors on wizard steps
  * @param <Content> content for showing on wizard steps
  * @since 0.0.4
- * @lastUpdate 0.0.5
+ * @lastUpdate 0.0.6
  */
 public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener, LoggerFacadeOwner {
 	private static final long 	serialVersionUID = 8956769935164098957L;
@@ -374,13 +374,17 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			
 			final Locale	current = PureLibSettings.PURELIB_LOCALIZER.currentLocale().getLocale();
 			
-			try{localizer.addLocaleChangeListener(this);
+			try{
+				SwingUtils.assignActionKey((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_BACKWARD, (e)->prevButton.doClick(), SwingUtils.ACTION_BACKWARD);
+				SwingUtils.assignActionKey((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e)->nextButton.doClick(), SwingUtils.ACTION_ACCEPT);
+				SwingUtils.assignActionKey((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->cancelButton.doClick(), SwingUtils.ACTION_EXIT);
+				localizer.addLocaleChangeListener(this);
 				setVisible(true);
 			} finally {
 				localizer.removeLocaleChangeListener(this);
 				PureLibSettings.PURELIB_LOCALIZER.setCurrentLocale(current);
+				dispose();
 			}
-			dispose();
 			
 			for (WizardStep<Common, ErrorType, Content> item : steps) {
 				item.unprepare(common,temporary);
@@ -440,24 +444,34 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	}
 	
 	protected void ok() {
-		result = true;
-		setVisible(false);
+		final int	stepNo = stepIndexById(currentStep);
+		
+		if (steps[stepNo].onOK()) {
+			result = true;
+			setVisible(false);
+		}
 	}
 
 	protected void cancel() {
-		if (processingThread != null) {
-			processingThread.interrupt();
-			processingThread = null;
+		final int	stepNo = stepIndexById(currentStep);
+		
+		if (steps[stepNo].onCancel()) {
+			if (processingThread != null) {
+				processingThread.interrupt();
+				processingThread = null;
+			}
+			result = false;
+			setVisible(false);
 		}
-		result = false;
-		setVisible(false);
 	}
 
 	protected void prev() throws FlowException {
-		String	prev = steps[stepIndexById(currentStep)].getPrevStep();
+		final int	stepNo = stepIndexById(currentStep);
+		
+		String	prev = steps[stepNo].getPrevStep();
 		
 		if (prev == null) {
-			prev = steps[stepIndexById(currentStep) - 1].getStepId(); 
+			prev = history.getCurrentStepId();	//steps[stepIndexById(currentStep) - 1].getStepId(); 
 		}
 		placeCurrentComponent(currentStep, prev);
 		history.pop();
@@ -465,20 +479,24 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	}
 
 	protected void next() throws FlowException {
-		if (steps[stepIndexById(currentStep)].validate(common, temporary, err)) {
-			if (steps[stepIndexById(currentStep)].getStepType().isFinal()) {
-				if (steps[stepIndexById(currentStep)].getStepType() != StepType.TERM_FAILURE) {
+		final int	stepNo = stepIndexById(currentStep);
+		
+		if (steps[stepNo].validate(common, temporary, err)) {
+			if (steps[stepNo].getStepType().isFinal()) {
+				if (steps[stepNo].getStepType() != StepType.TERM_FAILURE) {
+					steps[stepNo].afterShow(common, temporary, err);
 					ok();
 				}
 			}
 			else {
-				String	next = steps[stepIndexById(currentStep)].getNextStep();
+				String	next = steps[stepNo].getNextStep();
 				
 				if (next == null) {
 					next = steps[stepIndexById(currentStep)+1].getStepId(); 
 				}
 				placeCurrentComponent(currentStep,next);
-				history.push(steps[stepIndexById(currentStep)].getStepType(),steps[stepIndexById(currentStep)].getCaption());
+				
+				history.push(steps[stepIndexById(currentStep)].getStepType(), steps[stepIndexById(currentStep)].getStepId(), steps[stepIndexById(currentStep)].getCaption());
 				refreshButtons();
 			}
 		}
@@ -486,16 +504,21 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	
 	protected void refreshButtons() {
 		if (isWizard) {
-			prevButton.setEnabled(!steps[stepIndexById(currentStep)].getStepType().isInitial());
-			if (steps[stepIndexById(currentStep)].getStepType().isFinal()) {
+			final int		stepNo = stepIndexById(currentStep);
+			final boolean	prevEnabled = !steps[stepNo].getStepType().isInitial() && steps[stepNo].getStepType() != StepType.PROCESSING;
+			final boolean	nextEnabled = steps[stepNo].getStepType() != StepType.TERM_FAILURE  && steps[stepNo].getStepType() != StepType.PROCESSING;
+			
+			prevButton.setEnabled(prevEnabled);
+			nextButton.setEnabled(nextEnabled);
+			if (steps[stepNo].getStepType().isFinal()) {
 				nextButton.setText(localizer.getValue(FINISH_TEXT));
 				nextButton.setToolTipText(localizer.getValue(FINISH_TEXT_TT));
+				nextButton.requestFocusInWindow();
 			}
 			else {
 				nextButton.setText(localizer.getValue(NEXT_TEXT));
 				nextButton.setToolTipText(localizer.getValue(NEXT_TEXT_TT));
 			}
-			nextButton.setEnabled(steps[stepIndexById(currentStep)].getStepType() != StepType.TERM_FAILURE);
 		}
 	}
 
@@ -632,9 +655,10 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			}, SwingUtils.ACTION_HELP);
 			SwingUtils.centerMainWindow(this,0.5f);
 			
-			final JPanel		historyPanel = new JPanel(new BorderLayout());
+			final JPanel	historyPanel = new JPanel(new BorderLayout());
+			final int		stepNo = stepIndexById(initialStep);
 			
-			history.push(stepById(initialStep).getStepType(),stepById(initialStep).getCaption());
+			history.push(steps[stepNo].getStepType(), steps[stepNo].getStepId(), steps[stepNo].getCaption());
 			historyPanel.setPreferredSize(new Dimension(200,0));
 			historyPanel.setBorder(new EmptyBorder(20, 10, 10, 10));
 			historyPanel.add(history, BorderLayout.CENTER);
@@ -672,8 +696,6 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		
 		if (steps[stepNo].getStepType() == StepType.PROCESSING) {
 			prepareCurrentComponent(currentStep);
-			prevButton.setEnabled(false);
-			nextButton.setEnabled(false);
 			
 			processingThread = new Thread(()->{
 								try{steps[stepNo].beforeShow(common,temporary, err);
@@ -681,7 +703,12 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 								} catch (FlowException e) {
 									SwingUtils.getNearestLogger(JDialogContainer.this).message(Severity.error, e, e.getLocalizedMessage());
 								} finally {
-									SwingUtilities.invokeLater(()->nextButton.doClick());
+									SwingUtilities.invokeLater(()->{
+										try{next();
+										} catch (FlowException e) {
+											SwingUtils.getNearestLogger(JDialogContainer.this).message(Severity.error, e, e.getLocalizedMessage());
+										}
+									});
 								}
 							});
 			
@@ -743,10 +770,10 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	}
 	
 	private static class History extends JEditorPane implements LocaleChangeListener {
-		private static final long 	serialVersionUID = 1L;
+		private static final long 		serialVersionUID = 1L;
 		
-		private final List<String>	steps = new ArrayList<>();
-		private final Localizer		localizer;
+		private final List<String[]>	steps = new ArrayList<>();
+		private final Localizer			localizer;
 		
 		History(final Localizer localizer, final int maximumSize) {
 			super("text/html","");
@@ -755,14 +782,23 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			setEditable(false);
 		}
 		
-		public void push(final StepType type, final String step) {
-			steps.add(step);
+		public void push(final StepType type, final String stepId, final String step) {
+			steps.add(new String[] {stepId, step});
 			refreshContent();
 		}
 
 		public void pop() throws LocalizationException {
 			steps.remove(steps.size()-1);
 			refreshContent();
+		}
+		
+		public String getCurrentStepId() {
+			if(steps.isEmpty()) {
+				throw new IllegalArgumentException("Attempt to get current stem from empty history");
+			}
+			else {
+				return steps.get(steps.size()-1)[0];
+			}
 		}
 		
 		@Override
@@ -772,10 +808,11 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 
 		private void refreshContent() throws IllegalArgumentException {
 			final StringBuilder	sb = new StringBuilder();
+			int	stepNo = 1;
 			
 			sb.append("<html><body>");
-			for (String step : steps) {
-				sb.append(localizer.getValue(step)).append("<br>");
+			for (String[] step : steps) {
+				sb.append(stepNo++).append(": ").append(localizer.getValue(step[1])).append("<br>");
 			}
 			sb.append("</body></html>");
 			setText(sb.toString());
