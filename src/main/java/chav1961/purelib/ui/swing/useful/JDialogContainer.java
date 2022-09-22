@@ -667,28 +667,30 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		steps[stepIndexById(currentState)].afterShow(common,temporary,err);
 		removeCurrentComponent();
 		currentStep = newState;
-		if (steps[stepIndexById(newState)].getStepType() == StepType.PROCESSING) {
-			processingThread = new Thread(()->{
-								try{steps[stepIndexById(newState)].beforeShow(common,temporary, err);
-									steps[stepIndexById(newState)].afterShow(common,temporary, err);
-								} catch (FlowException e) {
-								} finally {
-									SwingUtilities.invokeLater(()->{
-										try{next();
-										} catch (FlowException e) {
-										}
-									});
-								}
-							});
-			processingThread.setDaemon(true);
+		
+		final int	stepNo = stepIndexById(newState); 
+		
+		if (steps[stepNo].getStepType() == StepType.PROCESSING) {
+			prepareCurrentComponent(currentStep);
 			prevButton.setEnabled(false);
 			nextButton.setEnabled(false);
-			prepareCurrentComponent(currentStep);
+			
+			processingThread = new Thread(()->{
+								try{steps[stepNo].beforeShow(common,temporary, err);
+									steps[stepNo].afterShow(common,temporary, err);
+								} catch (FlowException e) {
+									SwingUtils.getNearestLogger(JDialogContainer.this).message(Severity.error, e, e.getLocalizedMessage());
+								} finally {
+									SwingUtilities.invokeLater(()->nextButton.doClick());
+								}
+							});
+			
+			processingThread.setDaemon(true);
 			processingThread.start();
 		}
 		else {
 			prepareCurrentComponent(currentStep);
-			steps[stepIndexById(newState)].beforeShow(common,temporary, err);
+			steps[stepNo].beforeShow(common,temporary, err);
 		}
 	}
 
