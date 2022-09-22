@@ -414,6 +414,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			temporary.clear();
 			if (isWizard) {
 				try{prepareCurrentComponent(currentStep);
+					steps[stepIndexById(currentStep)].beforeShow(common,temporary,err);
 				} catch (FlowException exc) {
 					getLogger().message(Severity.error,exc,"Browser start error: "+exc.getLocalizedMessage());
 				}
@@ -608,6 +609,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			refreshButtons();
 			fillLocalizedStrings();
 			
+			
 			SwingUtils.assignActionKey(getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{
 				final String	help = steps[stepIndexById(currentStep)].getHelpId();
 				
@@ -686,6 +688,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		}
 		else {
 			prepareCurrentComponent(currentStep);
+			steps[stepIndexById(newState)].beforeShow(common,temporary, err);
 		}
 	}
 
@@ -707,7 +710,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 		inner.revalidate();
 		inner.repaint();
 		
-		steps[stepNo].beforeShow(common,temporary,err);
+//		steps[stepNo].beforeShow(common,temporary,err);
 	}
 	
 	private void fillLocalizedComponent(final String step) {
