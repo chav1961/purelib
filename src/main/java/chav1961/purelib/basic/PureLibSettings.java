@@ -84,10 +84,21 @@ public final class PureLibSettings {
 	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
 
 	/**
+	 * <p>This enumeration defines current OS for application</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public static enum CurrentOS {
+		WINDOWS, LINUX, MACOS, UNKNOWN
+	}
+
+	public static final CurrentOS	CURRENT_OS;
+	
+	/**
 	 * <p>Pure library MBean entry name</p>
 	 */
 	public static final String		PURELIB_MBEAN = "chav1961.purelib";
-	
+
 	/**
 	 * <p>This logger is used to print any internal problems in the Pure Library</p>
 	 */
@@ -281,6 +292,12 @@ public final class PureLibSettings {
 	 */
 	public static final String				DEFAULT_CONTENT_ENCODING = "UTF-8";
 	
+	/**
+	 * <p>System content encoding for library</p>
+	 * @since 0.0.6
+	 */
+	public static final String				SYSTEM_CONTENT_ENCODING = System.getProperty("file.encoding");
+	
 	
 	public static final FileSystemInterface	ROOT_FS;
 	
@@ -417,6 +434,20 @@ public final class PureLibSettings {
 		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
 		DEFAULT_COLOR_SCHEME = new ColorScheme();
 		
+		final String	osName = System.getProperty("os.name").toUpperCase();
+		
+		if (osName.contains("MAC") || osName.contains("DARWIN")) {
+			CURRENT_OS = CurrentOS.MACOS; 
+		}
+		else if (osName.contains("WINDOWS")) {
+			CURRENT_OS = CurrentOS.WINDOWS; 
+		}
+		else if (osName.contains("NUX")) {
+			CURRENT_OS = CurrentOS.LINUX; 
+		}
+		else {
+			CURRENT_OS = CurrentOS.UNKNOWN; 
+		}
 	}
 	
 	private PureLibSettings(){}
