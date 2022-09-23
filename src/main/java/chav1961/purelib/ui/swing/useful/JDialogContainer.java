@@ -554,7 +554,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	private void prepareWizardDialog(WizardStep<Common, ErrorType, Content>[] steps) throws LocalizationException, FlowException {
 		getContentPane().setLayout(new BorderLayout(10, 10));
 		
-		try(final LoggerFacade	trans = PureLibSettings.CURRENT_LOGGER.transaction(this.getClass().getSimpleName())) {
+		try(final LoggerFacade	trans = PureLibSettings.CURRENT_LOGGER.transaction(this.getClass().getName())) {
 			final JPanel		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 			final JPanel		south = new JPanel(new GridLayout(2,1,2,2));
 			

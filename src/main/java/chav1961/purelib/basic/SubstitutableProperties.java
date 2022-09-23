@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -426,6 +427,28 @@ public class SubstitutableProperties extends Properties {
 		}
 	}
 
+	/**
+	 * <p>Store properties content into the given file</p> 
+	 * @param file2Store file to store content to. Can't be null
+	 * @throws NullPointerException parameter is null
+	 * @throws IllegalArgumentException parameter is directory or can't be writted
+	 * @throws IOException on any I/O errors
+	 */
+	public void store(final File file2Store) throws NullPointerException, IllegalArgumentException, IOException {
+		if (file2Store == null) {
+			throw new NullPointerException("File to store content to can't be null");
+		}
+		else if (file2Store.exists() && (!file2Store.isFile() || !file2Store.canWrite())) {
+			throw new IllegalArgumentException("File to store content to [" + file2Store.getAbsolutePath() + "] is not a file or you don't have access rights to store into it");
+		}
+		else {
+			try(final FileOutputStream	fos = new FileOutputStream(file2Store)) {
+				store(fos, "");
+			}
+		}
+	}
+	
+	
 	/**
 	 * <p>Convert value content to type awaited</p> 
 	 * @param <T> converted instance type
