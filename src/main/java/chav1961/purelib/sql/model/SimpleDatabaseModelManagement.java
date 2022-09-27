@@ -1,5 +1,6 @@
 package chav1961.purelib.sql.model;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -7,11 +8,9 @@ import java.io.Reader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.List;
 
 import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -20,16 +19,36 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.model.interfaces.DatabaseModelManagement;
 
+/**
+ * <p>This class implements simple database model management for {@linkplain SimpleDottedVersion} enumerations.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.6
+ */
 public class SimpleDatabaseModelManagement implements DatabaseModelManagement<SimpleDottedVersion> {
 	private static final String		DEFAULT_VERSION = "0.0";
 			
 	private final VersionAndModel[]	content, inversContent;
 	
-	public SimpleDatabaseModelManagement(final URI... jsonModels) throws EnvironmentException {
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param jsonModels list of models to load. Can't be null, empty or contains nulls inside
+	 * @throws EnvironmentException illegal models detected
+	 * @throws NullPointerException any parameter is null
+	 * @throws IllegalArgumentException json list is empty or contains nulls inside
+	 */
+	public SimpleDatabaseModelManagement(final URI... jsonModels) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		this(PureLibSettings.CURRENT_LOGGER, jsonModels);
 	}
 	
-	public SimpleDatabaseModelManagement(final LoggerFacade logger, final URI... jsonModels) throws EnvironmentException {
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param logger logger to print errors to. Can't be null
+	 * @param jsonModels list of models to load. Can't be null, empty or contains nulls inside
+	 * @throws EnvironmentException illegal models detected
+	 * @throws NullPointerException any parameter is null
+	 * @throws IllegalArgumentException json list is empty or contains nulls inside
+	 */
+	public SimpleDatabaseModelManagement(final LoggerFacade logger, final URI... jsonModels) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (logger == null) {
 			throw new NullPointerException("Logger can't be null"); 
 		}
@@ -97,6 +116,36 @@ public class SimpleDatabaseModelManagement implements DatabaseModelManagement<Si
 		return Arrays.asList(inversContent);
 	}
 
+	/**
+	 * <p>Collect mode URIs from descriptor (for example, file). Each descriptor must occupy exactly one line in the content and must be an URI relative to modelListDescriptor parameter. 
+	 * Empty lines and line comments (started with # sign) are supported.</p> 
+	 * @param modelListDescriptor any stream contains list of model descriptors. 
+	 * @return URIs list connected. Can be empty but not null
+	 * @throws IOException on any I/O errors
+	 * @throws link NullPointerException when parameter is null
+	 */
+	public static URI[] collectModels(final URI modelListDescriptor) throws IOException, NullPointerException {
+		if (modelListDescriptor == null) {
+			throw new NullPointerException("Model lis descriptor can't be null");
+		}
+		else {
+			final List<URI>		result = new ArrayList<>();
+			
+			try(final InputStream		is = modelListDescriptor.toURL().openStream();
+				final Reader			rdr = new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING);
+				final BufferedReader	brdr = new BufferedReader(rdr)) {
+				String		line;
+				
+				while ((line = brdr.readLine()) != null) {
+					if (!line.trim().isEmpty() && !line.trim().startsWith("#")) {
+						result.add(modelListDescriptor.resolve(line));
+					}
+				}
+			}
+			return result.toArray(new URI[result.size()]);
+		}
+	}
+	
 	private static class VersionAndModel implements Comparable<VersionAndModel>, DatabaseModelContent<SimpleDottedVersion> {
 		private final SimpleDottedVersion		version;
 		private final ContentMetadataInterface	model;
