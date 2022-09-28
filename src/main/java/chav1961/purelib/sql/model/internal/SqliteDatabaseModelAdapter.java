@@ -194,4 +194,20 @@ public class SqliteDatabaseModelAdapter implements DatabaseModelAdapter {
 	public char getEndQuote() {
 		return '\"';
 	}
+
+
+	@Override
+	public String createReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema)
+			throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public String dropReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema)
+			throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

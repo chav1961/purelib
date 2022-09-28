@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,12 +40,15 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.json.JsonNode;
 import chav1961.purelib.json.JsonUtils;
 import chav1961.purelib.json.interfaces.JsonValueType;
 import chav1961.purelib.model.SchemaContainer;
 import chav1961.purelib.model.TableContainer;
 import chav1961.purelib.model.UniqueIdContainer;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ORMModelMapper;
 import chav1961.purelib.sql.SQLUtils;
@@ -73,6 +77,7 @@ public class SQLModelUtils {
 	private static final Map<String, JsonValueType>	TYPES = Utils.mkMap("VARCHAR", JsonValueType.STRING,
 																		"TEXT", JsonValueType.STRING,
 																		"BIGINT", JsonValueType.INTEGER);
+	private static final URI					COLUMN_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":column:/");
 
 	static {
 		ASM_WRITER = null;
@@ -302,6 +307,8 @@ public class SQLModelUtils {
 				for (ContentNodeMetadata item : root) {
 					internalCreateDatabaseByModel(conn, item, schema, adapter);
 				}
+				
+				createDatabaseReferencesByModel(conn, root, schema, adapter);
 			} catch (EnvironmentException e) {
 				throw new SQLException(e);
 			} finally {
@@ -335,13 +342,6 @@ public class SQLModelUtils {
 		}
 	}
 
-	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
-		try{executeSQL(conn, adapter.createTable(root, schema));
-		} catch (SyntaxException e) {
-			throw new SQLException(e); 
-		}
-	}
-
 	private static void createDatabaseSequenceByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
 		try{executeSQL(conn, adapter.createSequence(root, schema));
 		} catch (SyntaxException  e) {
@@ -349,6 +349,49 @@ public class SQLModelUtils {
 		}
 	}
 
+	private static void createDatabaseTableByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
+		try{executeSQL(conn, adapter.createTable(root, schema));
+		} catch (SyntaxException e) {
+			throw new SQLException(e); 
+		}
+	}
+
+	private static void createDatabaseReferencesByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final DatabaseModelAdapter adapter) throws SQLException {
+		final Map<String,ColumnAndReferences>	refs = new HashMap<>();
+		final ContentMetadataInterface			owner = root.getOwner();
+		
+		owner.walkDown((mode, appPath, uiPath, node)->{	// Collect primary keys
+			if (mode == NodeEnterMode.ENTER && URIUtils.canServeURI(appPath, COLUMN_URI)) {
+				final Hashtable<String, String[]>	query = URIUtils.parseQuery(appPath);
+				
+				if (query.contains("pkSeq")) {
+					refs.put(node.getName(), new ColumnAndReferences(node.getName(), node));
+				}
+			}
+			return ContinueMode.CONTINUE;
+		}, owner.getRoot().getUIPath());
+		owner.walkDown((mode, appPath, uiPath, node)->{	// Collect references
+			if (mode == NodeEnterMode.ENTER && URIUtils.canServeURI(appPath, COLUMN_URI)) {
+				final Hashtable<String, String[]>	query = URIUtils.parseQuery(appPath);
+				
+				if (!query.contains("pkSeq") && refs.containsKey(node.getName())) {
+					refs.get(node.getName()).references.add(node);
+				}
+			}
+			return ContinueMode.CONTINUE;
+		}, owner.getRoot().getUIPath());
+		
+		for (Entry<String, ColumnAndReferences> item : refs.entrySet()) {
+			for (ContentNodeMetadata ref : item.getValue().references) {
+				try{executeSQL(conn, adapter.createReference(item.getValue().columnOwner, ref, schema));
+				} catch (SyntaxException e) {
+					throw new SQLException(e); 
+				}
+			}
+		}
+	}
+
+	
 	/**
 	 * <p>Remove database structure by model description</p>
 	 * @param conn database connection. Can't be null and must have auto commit mode off
@@ -1291,6 +1334,22 @@ public class SQLModelUtils {
 		@Override
 		public String toString() {
 			return "ColumnAndType [column=" + column + ", type=" + type + "]";
+		}
+	}
+	
+	private static class ColumnAndReferences {
+		private final String					column;
+		private final ContentNodeMetadata		columnOwner;
+		private final List<ContentNodeMetadata>	references = new ArrayList<>();
+		
+		public ColumnAndReferences(final String column, final ContentNodeMetadata columnOwner) {
+			this.column = column;
+			this.columnOwner = columnOwner;
+		}
+
+		@Override
+		public String toString() {
+			return "ColumnAndReferences [column=" + column + ", columnOwner=" + columnOwner + ", references=" + references + "]";
 		}
 	}
 }

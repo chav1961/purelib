@@ -201,4 +201,18 @@ public class DefaultDatabaseModelAdapter implements DatabaseModelAdapter {
 		return startQuote + source + endQuote;
 	}
 
+	@Override
+	public String createReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema)
+			throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String dropReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema)
+			throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

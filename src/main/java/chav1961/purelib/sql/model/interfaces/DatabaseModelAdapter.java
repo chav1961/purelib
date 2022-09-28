@@ -21,6 +21,8 @@ public interface DatabaseModelAdapter extends SpiService<DatabaseModelAdapter> {
 	String getColumnName(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String createTable(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String dropTable(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String createReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema) throws SyntaxException;
+	String dropReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema) throws SyntaxException;
 	String getTableName(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String createSequence(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String dropSequence(ContentNodeMetadata meta, String schema) throws SyntaxException;
