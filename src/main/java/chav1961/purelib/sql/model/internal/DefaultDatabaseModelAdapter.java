@@ -34,6 +34,18 @@ public class DefaultDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
+	public String createSchemaOwner(ContentNodeMetadata meta, String schema, String user, char[] password) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String dropSchemaOwner(ContentNodeMetadata meta, String schema, String user) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public String createSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
@@ -202,17 +214,14 @@ public class DefaultDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
-	public String createReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema)
-			throws SyntaxException {
+	public String createReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema) throws SyntaxException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String dropReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema)
-			throws SyntaxException {
+	public String dropReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema) throws SyntaxException {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

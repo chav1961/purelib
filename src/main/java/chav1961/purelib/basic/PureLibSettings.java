@@ -14,12 +14,13 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
@@ -368,6 +369,7 @@ public final class PureLibSettings {
 														};
 	private static final AtomicInteger				HELP_CONTEXT_COUNT = new AtomicInteger();
 	private static final Object						HELP_CONTEXT_COUNT_SYNC = new Object();
+	private static final List<AutoCloseable>		finalCloseList = new ArrayList<>();
 	static volatile NanoServiceFactory		helpServer = null;
 	
 	static {
@@ -643,6 +645,64 @@ public final class PureLibSettings {
 		}
 	}
 
+	/**
+	 * <p>Register {@linkplain AutoCloseable} instance to process it on system shutdown</p>
+	 * @param ac autocloseable to register. Can't be null
+	 * @throws NullPointerException when parameter is null
+	 * @see #unregisterAutoCloseable(AutoCloseable)
+	 * @see #isAutoCloseableRegistered(AutoCloseable)
+	 * @since 0.0.6
+	 */
+	public static void registerAutoCloseable(final AutoCloseable ac) throws NullPointerException {
+		if (ac == null) {
+			throw new NullPointerException("Autocloseable to register can't be null");
+		}
+		else {
+			synchronized (finalCloseList) {
+				finalCloseList.add(ac);
+			}
+		}
+	}
+
+	/**
+	 * <p>Unregister {@linkplain AutoCloseable} instance to process it on system shutdown</p>
+	 * @param ac autocloseable to unregister. Can't be null
+	 * @throws NullPointerException when parameter is null
+	 * @see #registerAutoCloseable(AutoCloseable)
+	 * @see #isAutoCloseableRegistered(AutoCloseable)
+	 * @since 0.0.6
+	 */
+	public static void unregisterAutoCloseable(final AutoCloseable ac) throws NullPointerException {
+		if (ac == null) {
+			throw new NullPointerException("Autocloseable to unregister can't be null");
+		}
+		else {
+			synchronized (finalCloseList) {
+				finalCloseList.remove(ac);
+			}
+		}
+	}
+	
+	/**
+	 * <p>Is {@linkplain AutoCloseable} registered by {@linkplain #registerAutoCloseable(AutoCloseable)}</p>
+	 * @param ac autocloseable to test. Can't be null
+	 * @return true if registered
+	 * @throws NullPointerException when parameter is null
+	 * @see #registerAutoCloseable(AutoCloseable)
+	 * @see #unregisterAutoCloseable(AutoCloseable)
+	 * @since 0.0.6
+	 */
+	public boolean isAutoCloseableRegistered(final AutoCloseable ac) throws NullPointerException {
+		if (ac == null) {
+			throw new NullPointerException("Autocloseable to unregister can't be null");
+		}
+		else {
+			synchronized (finalCloseList) {
+				return finalCloseList.contains(ac);
+			}
+		}
+	}
+	
 	public static void preloadNatives(final URI nativesRoot) throws IOException {
 		preloadNatives(nativesRoot, (s)->true);
 	}
@@ -701,9 +761,22 @@ public final class PureLibSettings {
 		return ProcessHandle.current().pid();
 	}
 
+	private static void closeAll(final List<AutoCloseable> fcl) {
+		synchronized (fcl) {
+			for (AutoCloseable item : fcl) {
+				try{item.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
 	private static void stopPureLib() {
 		final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
 				
+		closeAll(finalCloseList);
+		
 		synchronized (HELP_CONTEXT_COUNT_SYNC) {
 			if (helpServer != null) {
 				try{helpServer.stop();
@@ -737,6 +810,7 @@ public final class PureLibSettings {
 		}
 	}
 
+	
 	private static class WellKnownSchemaImpl<T> implements WellKnownSchema {
 		@FunctionalInterface
 		private interface CreationCallback<T> {

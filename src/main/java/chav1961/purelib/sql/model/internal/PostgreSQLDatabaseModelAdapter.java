@@ -37,6 +37,18 @@ public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
+	public String createSchemaOwner(ContentNodeMetadata meta, String schema, String user, char[] password) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String dropSchemaOwner(ContentNodeMetadata meta, String schema, String user) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
 	public String createSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		final String	currentSchema = schema == null || schema.isEmpty() ? meta.getName() : schema;
 		

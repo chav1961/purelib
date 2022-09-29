@@ -33,7 +33,7 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 	public SystemErrLoggerFacade(final PrintStream ps) {
 		super();
 		this.ps = ps;
-		this.pw = new PrintWriter(ps);
+		this.pw = null;
 	}
 
 	public SystemErrLoggerFacade(final PrintWriter pw) {
@@ -49,7 +49,7 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 	public SystemErrLoggerFacade(final PrintStream ps, final String mark, final Class<?> root, final Set<Reducing> reducing) {
 		super(mark, root, reducing);
 		this.ps = ps;
-		this.pw = new PrintWriter(ps);
+		this.pw = null;
 	}
 
 	public SystemErrLoggerFacade(final PrintWriter pw, final String mark, final Class<?> root, final Set<Reducing> reducing) {
@@ -86,11 +86,22 @@ public class SystemErrLoggerFacade extends AbstractLoggerFacade {
 	@Override
 	protected void toLogger(final Severity level, final String text, final Throwable throwable) {
 		if (level != Severity.tooltip) {
-			pw.println("System.err.logger["+level+"]: "+text);
-			if (throwable != null) {
-				throwable.printStackTrace(ps);
+			final String	msg = "System.err.logger["+level+"]: "+text;
+			
+			if (ps != null) {
+				ps.println(msg);
+				if (throwable != null) {
+					throwable.printStackTrace(ps);
+				}
+				ps.flush();
 			}
-			pw.flush();
+			else if (pw != null) {
+				pw.println(msg);
+				if (throwable != null) {
+					throwable.printStackTrace(pw);
+				}
+				pw.flush();
+			}
 		}
 	}
 }

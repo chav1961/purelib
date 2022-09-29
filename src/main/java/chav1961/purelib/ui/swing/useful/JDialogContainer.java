@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -81,7 +82,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	private final JButton		cancelButton = new JButton();
 	private final JButton		prevButton = new JButton();
 	private final JButton		nextButton = new JButton();
-	private final Map<String,Object>	temporary = new HashMap<>();
+	private final ConcurrentHashMap<String,Object>	temporary = new ConcurrentHashMap<>();
 	private final WizardStep<Common,ErrorType,Content>[]	steps;
 	private final History		history;
 

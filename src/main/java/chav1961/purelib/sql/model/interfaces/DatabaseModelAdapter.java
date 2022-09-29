@@ -14,16 +14,23 @@ public interface DatabaseModelAdapter extends SpiService<DatabaseModelAdapter> {
 		NO_OBJECT_FOUND;
 	}
 
+	String createSchemaOwner(ContentNodeMetadata meta, String schema, String user, char[] password) throws SyntaxException;
+	String dropSchemaOwner(ContentNodeMetadata meta, String schema, String user) throws SyntaxException;
+	
 	String createSchema(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String dropSchema(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String getSchemaName(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	
 	String describeColumn(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String getColumnName(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	
 	String createTable(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String dropTable(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String getTableName(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	
 	String createReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema) throws SyntaxException;
 	String dropReference(ContentNodeMetadata metaFrom, ContentNodeMetadata metaTo, String schema) throws SyntaxException;
-	String getTableName(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	
 	String createSequence(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String dropSequence(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String getSequenceName(ContentNodeMetadata meta, String schema) throws SyntaxException;

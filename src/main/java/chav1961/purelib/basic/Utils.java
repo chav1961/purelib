@@ -470,7 +470,7 @@ public class Utils {
 			final StringBuilder		sb = new StringBuilder();
 			
 			try(final InputStream	is = resourceURL.openStream();
-				final Reader		rdr = new InputStreamReader(is,encoding)) {
+				final Reader		rdr = new InputStreamReader(is, encoding)) {
 				final char[]		buffer = new char[8192];
 				int		len;
 				

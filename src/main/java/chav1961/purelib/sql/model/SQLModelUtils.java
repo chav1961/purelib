@@ -249,6 +249,33 @@ public class SQLModelUtils {
 			};
 		}
 	}
+	
+	public static void createSchemaOwnerByModel(final Connection conn, final ContentNodeMetadata root, final String schema, final String userName, final char[] password) throws SQLException, NullPointerException {
+		if (conn == null) {
+			throw new NullPointerException("Connection can't be null");
+		}
+		else if (root == null) {
+			throw new NullPointerException("Root metadata can't be null");
+		}
+		else if (userName == null || userName.isEmpty()) {
+			throw new IllegalArgumentException("User name can't be null or empty");
+		}
+		else if (password == null || password.length == 0) {
+			throw new IllegalArgumentException("Password can't be null or empty");
+		}
+		else {
+			try{final DatabaseModelAdapter	adapter = getModelAdapter(URI.create(conn.getMetaData().getURL()));
+			
+				try{executeSQL(conn, adapter.createSchemaOwner(root, schema, userName, password));
+				} catch (SyntaxException e) {
+					throw new SQLException(e); 
+				}
+			} catch (EnvironmentException e) {
+				throw new SQLException(e);
+			}
+		}
+	}
+	
 
 	/**
 	 * <p>Create database structure by model description.</p>
