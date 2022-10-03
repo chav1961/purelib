@@ -31,11 +31,19 @@
 						 "relUri":"dbv_Id",
 					 	 "format":"m"
 					},
+					 {"name":"dbv_GUID",
+						 "type":"java.util.UUID",
+						 "labelId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_GUID",
+						 "tooltipId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_GUID.tt",
+						 "appUri":"app:column:/purelib.dbversion/dbv_GUID?seq=2&type=TEXT",
+						 "relUri":"dbv_GUID",
+					 	 "format":"m"
+					},
 					 {"name":"dbv_Version",
 						 "type":"java.lang.String",
 						 "labelId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version",
 						 "tooltipId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version.tt",
-						 "appUri":"app:column:/purelib.dbversion/dbv_Version?seq=2&type=TEXT",
+						 "appUri":"app:column:/purelib.dbversion/dbv_Version?seq=3&type=TEXT",
 						 "relUri":"dbv_Version",
 					 	 "format":"m"
 					},
@@ -43,7 +51,7 @@
 						 "type":"java.lang.String",
 						 "labelId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model",
 						 "tooltipId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model.tt",
-						 "appUri":"app:column:/purelib.dbversion/dbv_Model?seq=3&type=TEXT",
+						 "appUri":"app:column:/purelib.dbversion/dbv_Model?seq=4&type=TEXT",
 						 "relUri":"dbv_Model",
 					 	 "format":"m"
 					},
@@ -51,7 +59,7 @@
 						 "type":"java.util.Date",
 						 "labelId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created",
 						 "tooltipId":"chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Created.tt",
-						 "appUri":"app:column:/purelib.dbversion/dbv_Created?seq=4&type=DATE",
+						 "appUri":"app:column:/purelib.dbversion/dbv_Created?seq=5&type=DATE",
 						 "relUri":"dbv_Created",
 					 	 "format":"m"
 					}

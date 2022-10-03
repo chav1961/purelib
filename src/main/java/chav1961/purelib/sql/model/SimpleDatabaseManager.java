@@ -19,13 +19,16 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
@@ -33,9 +36,11 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.model.ModelUtils;
+import chav1961.purelib.model.SimpleContentMetadata;
 import chav1961.purelib.model.TableContainer;
 import chav1961.purelib.model.UniqueIdContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.sql.interfaces.InstanceManager;
 import chav1961.purelib.sql.model.SQLModelUtils.ConnectionGetter;
@@ -46,20 +51,22 @@ import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.byte2byte.SQLDataOutputStream;
 
 public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoCloseable, NodeMetadataOwner {
-	private static final String					KEY_VERSIONING_SCHEMA = "purelib.db.versioning.schema";
+	private static final String						KEY_VERSIONING_SCHEMA = "purelib.db.versioning.schema";
 
-	private static final String					MSG_BACKUP_DATABASE_SCHEMA = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema";
-	private static final String					MSG_BACKUP_MODEL = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupModel";
-	private static final String					MSG_BACKUP_ENTITY = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupEntity";
+	private static final String						MSG_BACKUP_DATABASE_SCHEMA = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupDatabaseSchema";
+	private static final String						MSG_BACKUP_MODEL = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupModel";
+	private static final String						MSG_BACKUP_ENTITY = "chav1961.purelib.sql.model.SimpleDatabaseManager.backupEntity";
 	
-	private static final String					VERSION_MODEL_URI = "model.json";
-	private static final String					VERSION_TABLE = "dbversion";
-	private static final String					VERSION_ID_FIELD = "dbv_Id";
-	private static final String					VERSION_VERSION_FIELD = "dbv_Version";
-	private static final String					VERSION_MODEL_FIELD = "dbv_Model";
-	private static final String					VERSION_CREATED_FIELD = "dbv_Created";
-	private static final String					PART_MODEL = "model";
-	private static final ContentNodeMetadata	VERSION_MODEL;
+	private static final String						VERSION_MODEL_URI = "model.json";
+	private static final String						VERSION_TABLE = "dbversion";
+	private static final String						VERSION_ID_FIELD = "dbv_Id";
+	private static final String						VERSION_GUID_FIELD = "dbv_GUID";
+	private static final String						VERSION_VERSION_FIELD = "dbv_Version";
+	private static final String						VERSION_MODEL_FIELD = "dbv_Model";
+	private static final String						VERSION_CREATED_FIELD = "dbv_Created";
+	private static final String						PART_MODEL = "model";
+	private static final ContentNodeMetadata		VERSION_MODEL;
+	private static final ContentMetadataInterface	VERSION_MODEL_CONTAINER;
 
 	static {
 		try(final InputStream		is = SimpleDatabaseManager.class.getResourceAsStream(VERSION_MODEL_URI);
@@ -68,6 +75,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 
 			parser.next();
 			VERSION_MODEL = ModelUtils.deserializeFromJson(parser);
+			VERSION_MODEL_CONTAINER = new SimpleContentMetadata(VERSION_MODEL);
 		} catch (IOException e) {
 			throw new PreparationException("Initialization of SimpleDatabaseManager class failed: "+e.getLocalizedMessage(), e);
 		}
@@ -83,6 +91,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 	
 	private final LoggerFacade					logger;
+	private final UUID							applicationId;
 	private final DatabaseModelManagement<T>	modelMgmt;
 	private final ConnectionGetter				connGetter;
 	private final DatabaseManagementGetter<T>	mgmtGetter;
@@ -105,6 +114,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			this.modelMgmt = model;
 			this.connGetter = connGetter;
 			this.mgmtGetter = mgmtGetter;
+			this.applicationId = extractUUIDFromModel(model);
 			
 			try(final Connection	conn = connGetter.getConnection();
 				final LoggerFacade	trans = logger.transaction(this.getClass().getCanonicalName())) {
@@ -127,25 +137,25 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 						trans.message(Severity.info, "Current model version ["+currentVersion+"] is newer than database version ["+oldVersion+"], upgrade will be called");
 						mgmt.onUpgrade(conn, currentVersion, model.getTheSameLastModel(), oldVersion, oldModel);
 						trans.message(Severity.info, "Upgrade to version ["+currentVersion+"] completed");
-						storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, currentVersion);
+						storeCurrentDbVersion(conn, applicationId, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, currentVersion);
 						trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
 					}
 					else if (result < 0) {
 						trans.message(Severity.info, "Current model version ["+currentVersion+"] is older  than database version ["+oldVersion+"], downgrade will be called");
 						mgmt.onDowngrade(conn, currentVersion, model.getTheSameLastModel(), oldVersion, oldModel);
 						trans.message(Severity.info, "Downgrade to version ["+currentVersion+"] completed");
-						storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), model.getTheSameLastModel().getName(), currentVersion);
+						storeCurrentDbVersion(conn, applicationId, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), model.getTheSameLastModel().getName(), currentVersion);
 						trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
 					}
 				}
 				else {
 					try{trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] not found in the database, schema="+versioningSchema+". Version infrastructure will be prepared now");
-						createDbVersionInfrastructure(conn, VERSION_MODEL, versioningSchema);
+						createDbVersionInfrastructure(conn, VERSION_MODEL_CONTAINER.getRoot(), versioningSchema);
 						trans.message(Severity.info, "Version infrastructure was prepared in the database, schema="+versioningSchema+", create model infrastructure will be called now");
 						conn.setSchema(model.getTheSameLastModel().getName());
 						mgmt.onCreate(conn, model.getTheSameLastModel());
 						trans.message(Severity.info, "Create model infrastructure completed, schema="+conn.getSchema()+", version ["+mgmt.getInitialVersion()+"]");
-						storeCurrentDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, model.getTheSameLastVersion());
+						storeCurrentDbVersion(conn, applicationId, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, model.getTheSameLastVersion());
 						trans.message(Severity.info, "Database version stored, version ["+model.getTheSameLastVersion()+"]");
 					} catch (SQLException exc) {
 //						exc.printStackTrace(); 
@@ -178,7 +188,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 	
 	public ContentNodeMetadata getCurrentDatabaseModel() throws SQLException {
-		return loadLastDbVersion(getConnection(), VERSION_MODEL, modelMgmt.getTheSameLastModel().getName());
+		return loadLastDbVersion(getConnection(), VERSION_MODEL.getChild(VERSION_TABLE), modelMgmt.getTheSameLastModel().getName());
 	}
 
 	public DatabaseManagement<T> getManagement() throws SQLException {
@@ -379,33 +389,46 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 
 	private static ContentNodeMetadata loadLastDbVersion(final Connection conn, final ContentNodeMetadata versionModel, final String schema) throws SQLException {
-		final String	select = SQLModelUtils.buildSelectAllStatementByModel(conn, versionModel, schema)+" order by 1 desc";
+		final String	versionSchema; 
 		
-		try(final Statement					stmt = conn.createStatement();
-			final ResultSet					rs = stmt.executeQuery(select);
-			final VersionInstanceManager	vim = new VersionInstanceManager()) {
-		
+		try(final ResultSet	rs = conn.getMetaData().getTables(null, schema, VERSION_TABLE, null)) {
 			if (rs.next()) {
-				final VersionRecord			vr = vim.newInstance();
-				
-				vim.loadInstance(rs, vr);
-				try(final Reader			rdr = new StringReader(vr.dbv_Model);
-					final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
-					
-					parser.next();
-					return ModelUtils.deserializeFromJson(parser);
-				} catch (IOException e) {
-					throw new SQLException(e); 
-				}
+				versionSchema = schema;
 			}
 			else {
-				return null;
+				versionSchema = "purelib"; 
+			}
+		}
+		
+		final String	select = SQLModelUtils.buildSelectAllStatementByModel(conn, versionModel, versionSchema)+" where \"dbv_GUID\" = ? order by 1 desc";
+		
+		try(final PreparedStatement			stmt = conn.prepareStatement(select);
+			final VersionInstanceManager	vim = new VersionInstanceManager()) {
+		
+			stmt.setString(1, "");
+
+			try(final ResultSet				rs = stmt.executeQuery()) {
+				if (rs.next()) {
+					final VersionRecord		vr = vim.newInstance();
+					
+					vim.loadInstance(rs, vr);
+					try(final Reader			rdr = new StringReader(vr.dbv_Model);
+						final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
+						
+						parser.next();
+						return ModelUtils.deserializeFromJson(parser);
+					} catch (IOException e) {
+						throw new SQLException(e); 
+					}
+				}
+				else {
+					return null;
+				}
 			}
 		}
 	}
-
 	
-	private static <T extends Comparable<T>> void storeCurrentDbVersion(final Connection conn, final ContentNodeMetadata versionModel, final ContentNodeMetadata model, final String schema, final T modelVersion) throws SQLException {
+	private static <T extends Comparable<T>> void storeCurrentDbVersion(final Connection conn, final UUID applicationId, final ContentNodeMetadata versionModel, final ContentNodeMetadata model, final String schema, final T modelVersion) throws SQLException {
 		if (conn.getMetaData().supportsResultSetConcurrency(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 			final String	select = SQLModelUtils.buildSelectAllStatementByModel(conn, versionModel, schema);
 
@@ -415,6 +438,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 				final VersionRecord				vr = vim.newInstance();
 				
 				vr.dbv_Id = vim.newKey();
+				vr.dbv_GUID = applicationId;
 				vr.dbv_Version = modelVersion.toString();
 				vr.dbv_Model = modelToString(model);
 				vr.dbv_Created = new Date(System.currentTimeMillis());
@@ -433,6 +457,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 				final VersionRecord				vr = vim.newInstance();
 				
 				vr.dbv_Id = vim.newKey();
+				vr.dbv_GUID = applicationId;
 				vr.dbv_Version = modelVersion != null ? modelVersion.toString() : "";
 				vr.dbv_Model = modelToString(model);
 				vr.dbv_Created = new Date(System.currentTimeMillis());
@@ -448,9 +473,22 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		SQLModelUtils.removeDatabaseByModel(conn, model, schema, true);
 		conn.commit();
 	}
+
+	private static <S extends Comparable<S>> UUID extractUUIDFromModel(final DatabaseModelManagement<S> model) {
+		final Hashtable<String, String[]> 	keys = URIUtils.parseQuery(model.getTheSameLastModel().getApplicationPath());
+
+		if (keys.containsKey("UUID")) {
+			return UUID.fromString(keys.get("UUID")[0]);
+		}
+		else {
+			throw new NullPointerException("Model root ["+model+"] doesn't contain mandatory 'UUID' clause in the query string of the application URI");
+		}
+	}
+
 	
 	private static class VersionRecord implements Cloneable {
 		private long	dbv_Id;
+		private UUID	dbv_GUID;
 		private String	dbv_Version;
 		private String	dbv_Model;
 		private Date	dbv_Created;
@@ -459,10 +497,10 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		public VersionRecord clone() throws CloneNotSupportedException {
 			return (VersionRecord)super.clone();
 		}
-		
+
 		@Override
 		public String toString() {
-			return "VersionRecord [dbv_Id=" + dbv_Id + ", dbv_Version=" + dbv_Version + ", dbv_Model=" + dbv_Model + ", dbv_Created=" + dbv_Created + "]";
+			return "VersionRecord [dbv_Id=" + dbv_Id + ", dbv_GUID=" + dbv_GUID + ", dbv_Version=" + dbv_Version + ", dbv_Model=" + dbv_Model + ", dbv_Created=" + dbv_Created + "]";
 		}
 	}
 	
@@ -511,9 +549,10 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		@Override
 		public void loadInstance(final ResultSet rs, final VersionRecord inst) throws SQLException {
 			inst.dbv_Id = rs.getLong(1);
-			inst.dbv_Version = rs.getString(2);
-			inst.dbv_Model = rs.getString(3);
-			inst.dbv_Created = rs.getDate(4);
+			inst.dbv_GUID = UUID.fromString(rs.getString(2));
+			inst.dbv_Version = rs.getString(3);
+			inst.dbv_Model = rs.getString(4);
+			inst.dbv_Created = rs.getDate(5);
 		}
 
 		@Override
@@ -521,24 +560,27 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			if (!update) {
 				rs.updateLong(1, inst.dbv_Id);
 			}
-			rs.updateString(2, inst.dbv_Version);
-			rs.updateString(3, inst.dbv_Model);
-			rs.updateDate(4, new java.sql.Date(inst.dbv_Created.getTime()));
+			rs.updateString(2, inst.dbv_GUID.toString());
+			rs.updateString(3, inst.dbv_Version);
+			rs.updateString(4, inst.dbv_Model);
+			rs.updateDate(5, new java.sql.Date(inst.dbv_Created.getTime()));
 		}
 
 		@Override
 		public void storeInstance(PreparedStatement ps, VersionRecord inst, boolean update) throws SQLException {
 			if (!update) {
 				ps.setLong(1, inst.dbv_Id);
+				ps.setString(2, inst.dbv_GUID.toString());
+				ps.setString(3, inst.dbv_Version);
+				ps.setString(4, inst.dbv_Model);
+				ps.setDate(5, new java.sql.Date(inst.dbv_Created.getTime()));
+			}
+			else {
+				ps.setString(1, inst.dbv_GUID.toString());
 				ps.setString(2, inst.dbv_Version);
 				ps.setString(3, inst.dbv_Model);
 				ps.setDate(4, new java.sql.Date(inst.dbv_Created.getTime()));
-			}
-			else {
-				ps.setString(1, inst.dbv_Version);
-				ps.setString(2, inst.dbv_Model);
-				ps.setDate(3, new java.sql.Date(inst.dbv_Created.getTime()));
-				ps.setLong(4, inst.dbv_Id);
+				ps.setLong(5, inst.dbv_Id);
 			}
 		}
 		
@@ -546,6 +588,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		public <T> T get(final VersionRecord inst, final String name) throws SQLException {
 			switch (name) {
 				case VERSION_ID_FIELD		: return (T)Long.valueOf(inst.dbv_Id);
+				case VERSION_GUID_FIELD		: return (T)inst.dbv_GUID;
 				case VERSION_VERSION_FIELD	: return (T)inst.dbv_Version;
 				case VERSION_MODEL_FIELD	: return (T)inst.dbv_Model;
 				case VERSION_CREATED_FIELD	: return (T)inst.dbv_Created;
@@ -558,6 +601,9 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			switch (name) {
 				case VERSION_ID_FIELD		: 
 					inst.dbv_Id = (Long)value;
+					break;
+				case VERSION_GUID_FIELD	:
+					inst.dbv_GUID = (UUID)value;
 					break;
 				case VERSION_VERSION_FIELD	:
 					inst.dbv_Version = (String)value;

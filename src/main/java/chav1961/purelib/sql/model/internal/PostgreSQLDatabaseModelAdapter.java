@@ -37,9 +37,22 @@ public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
-	public String createSchemaOwner(ContentNodeMetadata meta, String schema, String user, char[] password) throws SyntaxException {
-		// TODO Auto-generated method stub
-		return null;
+	public String createSchemaOwner(final ContentNodeMetadata meta, final String schema, final String user, final char[] password) throws SyntaxException {
+		if (meta == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (schema == null || schema.isEmpty()) {
+			throw new IllegalArgumentException("Schema name can't be null or empty");
+		}
+		else if (user == null || user.isEmpty()) {
+			throw new IllegalArgumentException("User name can't be null or empty");
+		}
+		else if (password == null || password.length == 0) {
+			throw new IllegalArgumentException("Passsword can't be null or empty");
+		}
+		else {
+			return new StringBuilder("create user ").append(DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), user)).append(" with password '").append(password).append("'").toString();
+		}
 	}
 
 	@Override
@@ -47,9 +60,17 @@ public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public String createSchema(final ContentNodeMetadata meta, final String schema, final String schemaOwner) throws SyntaxException {
+		final String	currentSchema = schema == null || schema.isEmpty() ? meta.getName() : schema;
+		
+		return "create schema "+DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), currentSchema)
+			  +" authorization "+DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), schemaOwner);
+	}
 	
 	@Override
-	public String createSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
+	public String createSchema(final ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		final String	currentSchema = schema == null || schema.isEmpty() ? meta.getName() : schema;
 		
 		return "create schema "+DefaultDatabaseModelAdapter.escape(getStartQuote(), getEndQuote(), currentSchema);
@@ -243,4 +264,5 @@ public class PostgreSQLDatabaseModelAdapter implements DatabaseModelAdapter {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

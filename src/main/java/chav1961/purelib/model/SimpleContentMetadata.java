@@ -18,6 +18,9 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 		}
 		else {
 			this.root = root;
+			if (root instanceof MutableContentNodeMetadata) {
+				((MutableContentNodeMetadata)root).setOwner(this);
+			}
 		}
 	}
 	

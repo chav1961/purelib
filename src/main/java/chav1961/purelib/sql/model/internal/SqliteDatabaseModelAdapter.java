@@ -38,6 +38,12 @@ public class SqliteDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
+	public String createSchema(ContentNodeMetadata meta, String schema, String schemaOwner) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
 	public String createSchemaOwner(ContentNodeMetadata meta, String schema, String user, char[] password) throws SyntaxException {
 		// TODO Auto-generated method stub
 		return null;
@@ -223,4 +229,6 @@ public class SqliteDatabaseModelAdapter implements DatabaseModelAdapter {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
 }

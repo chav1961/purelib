@@ -1147,6 +1147,18 @@ public class SQLModelUtils {
 			throw new SQLException((exc.getCause() != null ? exc.getCause().getLocalizedMessage() : exc.getLocalizedMessage()) + "\nStatement: "+sql); 
 		}
 	}
+
+	private static void executeSQL(final Connection conn, final String sql, final Object... parameters) throws SQLException {
+		try(final PreparedStatement	stmt = conn.prepareStatement(sql)) {
+			
+			for(int index = 0; index < parameters.length; index++) {
+				stmt.setObject(index + 1, parameters[index]);
+			}
+			stmt.executeUpdate();
+		} catch (SQLException exc) {
+			throw new SQLException((exc.getCause() != null ? exc.getCause().getLocalizedMessage() : exc.getLocalizedMessage()) + "\nStatement: "+sql); 
+		}
+	}
 	
 	
 	@FunctionalInterface

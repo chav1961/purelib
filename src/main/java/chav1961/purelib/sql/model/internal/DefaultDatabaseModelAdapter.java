@@ -46,6 +46,12 @@ public class DefaultDatabaseModelAdapter implements DatabaseModelAdapter {
 	}
 
 	@Override
+	public String createSchema(ContentNodeMetadata meta, String schema, String schemaOwner) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
 	public String createSchema(ContentNodeMetadata meta, final String schema) throws SyntaxException {
 		return null;
 	}
@@ -224,4 +230,5 @@ public class DefaultDatabaseModelAdapter implements DatabaseModelAdapter {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

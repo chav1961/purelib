@@ -355,6 +355,8 @@
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.tt">Version model table</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id">ID</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id.tt">ID</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_GUID">Application GUID</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_GUID.tt">Application GUID</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version">Version</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version.tt">Version</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model">Model</key>
@@ -735,6 +737,8 @@
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.tt">Таблица модели версии</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id">Идентификатор</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Id.tt">Идентификатор</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_GUID">GUID приложения</key>
+		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_GUID.tt">GUID приложения</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version">Версия</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Version.tt">Версия</key>
 		<key name="chav1961.purelib.sql.model.interfaces.DatabaseManagement.dbversion.dbv_Model">Модель</key>

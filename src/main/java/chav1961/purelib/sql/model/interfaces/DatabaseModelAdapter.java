@@ -17,7 +17,10 @@ public interface DatabaseModelAdapter extends SpiService<DatabaseModelAdapter> {
 	String createSchemaOwner(ContentNodeMetadata meta, String schema, String user, char[] password) throws SyntaxException;
 	String dropSchemaOwner(ContentNodeMetadata meta, String schema, String user) throws SyntaxException;
 	
-	String createSchema(ContentNodeMetadata meta, String schema) throws SyntaxException;
+	String createSchema(ContentNodeMetadata meta, String schema, String schemaOwner) throws SyntaxException;
+	default String createSchema(ContentNodeMetadata meta, String schema) throws SyntaxException {
+		return createSchema(meta, schema, schema);
+	}
 	String dropSchema(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	String getSchemaName(ContentNodeMetadata meta, String schema) throws SyntaxException;
 	
