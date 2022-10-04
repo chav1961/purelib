@@ -97,6 +97,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @param name name to place into tree
 	 * @param cargo cargo associated (can be null)
 	 * @return id of the placed name. If name exists, replaces cargo for the name.
+	 * @deprecated since 0.0.7, use {@linkplain #placeName(CharSequence, Object)}
 	 */
 	long placeName(final String name, final T cargo);
 
@@ -106,8 +107,31 @@ public interface SyntaxTreeInterface<T> {
 	 * @param cargo cargo associated
 	 * @return id of the placed name. If name exists and cargo is not assigned yet (is null), assign cargo for the name.
 	 * @since 0.0.2
+	 * @deprecated since 0.0.7, use {@linkplain #placeName(CharSequence, Object)}
 	 */
 	long placeOrChangeName(final String name, final T cargo);
+
+	/**
+	 * <p>Place new name into tree and assign unique id for it</p>
+	 * @param name name to place into tree
+	 * @param cargo cargo associated (can be null)
+	 * @return id of the placed name. If name exists, replaces cargo for the name.
+	 * @since 0.0.6
+	 */
+	default long placeName(final CharSequence name, final T cargo) {
+		return placeName(new StringBuilder().append(name).toString(), cargo);
+	}
+	
+	/**
+	 * <p>Place new name into tree and assign unique id for it</p>
+	 * @param name name to place into tree
+	 * @param cargo cargo associated
+	 * @return id of the placed name. If name exists and cargo is not assigned yet (is null), assign cargo for the name.
+	 * @since 0.0.6
+	 */
+	default long placeOrChangeName(final CharSequence name, final T cargo) {
+		return placeOrChangeName(new StringBuilder().append(name).toString(), cargo);
+	}
 	
 	/**
 	 * <p>Place new name into tree with the given id</p>
@@ -139,6 +163,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @param cargo cargo associated (can be null)
 	 * @return id of the placed name. If exists, replaces cargo for the name
 	 * @since 0.0.2
+	 * @deprecated since 0.0.7, use {@linkplain #placeName(CharSequence, Object)}
 	 */
 	long placeName(final String name, long id, T cargo);
 
@@ -149,8 +174,33 @@ public interface SyntaxTreeInterface<T> {
 	 * @param cargo cargo associated (can be null)
 	 * @return id of the placed name. If name exists and cargo is not assigned yet (is null), assign cargo for the name.
 	 * @since 0.0.2
+	 * @deprecated since 0.0.7, use {@linkplain #placeName(CharSequence, Object)}
 	 */
 	long placeOrChangeName(final String name, long id, T cargo);
+
+	/**
+	 * <p>Place new name into tree with the given id</p>
+	 * @param name name to place into tree
+	 * @param id id associated with the name. If the name already exists, has no effect
+	 * @param cargo cargo associated (can be null)
+	 * @return id of the placed name. If exists, replaces cargo for the name
+	 * @since 0.0.6
+	 */
+	default long placeName(final CharSequence name, long id, T cargo) {
+		return placeName(new StringBuilder().append(name).toString(), id, cargo);
+	}
+
+	/**
+	 * <p>Place new name into tree with the given id</p>
+	 * @param name name to place into tree
+	 * @param id id associated with the name. If the name already exists, has no effect
+	 * @param cargo cargo associated (can be null)
+	 * @return id of the placed name. If name exists and cargo is not assigned yet (is null), assign cargo for the name.
+	 * @since 0.0.6
+	 */
+	default long placeOrChangeName(final CharSequence name, long id, T cargo) {
+		return placeOrChangeName(new StringBuilder().append(name).toString(), id, cargo);
+	}
 	
 	/**
 	 * <p>Seek name and return it's id</p>
@@ -188,6 +238,26 @@ public interface SyntaxTreeInterface<T> {
 	 */
 	default long seekNameI(String name) {
 		return seekName(name);
+	}
+	
+	/**
+	 * <p>Seek name and return it's id</p>
+	 * @param name name to seek
+	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1)
+	 * @since 0.0.6 
+	 */
+	default long seekName(CharSequence name) {
+		return seekName(new StringBuilder().append(name).toString());
+	}
+
+	/**
+	 * <p>Seek name ignoring case and return it's id</p>
+	 * @param name name to seek
+	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1) 
+	 * @since 0.0.6 
+	 */
+	default long seekNameI(CharSequence name) {
+		return seekNameI(new StringBuilder().append(name).toString());
 	}
 	
 	/**
