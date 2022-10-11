@@ -3,7 +3,6 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.AWTException;
 import java.awt.CheckboxMenuItem;
-import java.awt.Component;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Menu;
@@ -15,18 +14,10 @@ import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -56,6 +47,12 @@ import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 
+/**
+ * <p>This class is a wrapper for {@linkplain SystemTray} class. It supports {@linkplain LoggerFacade} interface to print messages and all localization features
+ * supported by {@linkplain Localizer} class. You also can assign any pop-up menu for it to use inside the system tray</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.6
+ */
 public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeListener, AutoCloseable {
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class);
 	private final Localizer		localizer;
@@ -65,8 +62,17 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 	private final JPopupMenu	popup;
 	private final TrayIcon		icon;
 	private final boolean		onlyEn;
-	private final IdentityHashMap<JComponent,ListenerDescriptor>	map = new IdentityHashMap<>();
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to sue. Can't be null
+	 * @param applicationName application name to show in the display message title. Can't be null or empty and must be valid localization key in the localizer passed 
+	 * @param image icon image reference inside the system tray. Can't be null. Preferred size of the icon is 16*16px. 
+	 * @throws EnvironmentException if operation system doesn't support system trays 
+	 * @throws NullPointerException any argument is null
+	 * @throws IllegalArgumentException application name is null or empty
+	 * @see TrayIcon#displayMessage(String, String, MessageType)
+	 */
 	public JSystemTray(final Localizer localizer, final String applicationName, final URI image) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -98,6 +104,17 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 		}
 	}
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to sue. Can't be null
+	 * @param applicationName application name to show in the display message title. Can't be null or empty and must be valid localization key in the localizer passed 
+	 * @param image icon image reference inside the system tray. Can't be null. Preferred size of the icon is 16*16px. 
+	 * @param tooltip tooltip inside system tray. Can't be null or empty and must be valid localization key in the localizer passed
+	 * @throws EnvironmentException if operation system doesn't support system trays 
+	 * @throws NullPointerException any argument is null
+	 * @throws IllegalArgumentException application name or tooltip is null or empty
+	 * @see TrayIcon#displayMessage(String, String, MessageType)
+	 */
 	public JSystemTray(final Localizer localizer, final String applicationName, final URI image, final String tooltip) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
@@ -134,7 +151,20 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 			}
 		}
 	}
-	
+
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param localizer localizer to sue. Can't be null
+	 * @param applicationName application name to show in the display message title. Can't be null or empty and must be valid localization key in the localizer passed 
+	 * @param image icon image reference inside the system tray. Can't be null. Preferred size of the icon is 16*16px. 
+	 * @param tooltip tooltip inside system tray. Can't be null or empty and must be valid localization key in the localizer passed
+	 * @param menu pop-up menu to show on right click on the icon inside the system tray. Can't be null. Note that not all menu options are supported (icons, radio button menus etc) because of operation system restrictions
+	 * @param onlyEn use only english localization to show pop-up menu (due to operation system restrictions)
+	 * @throws EnvironmentException if operation system doesn't support system trays 
+	 * @throws NullPointerException any argument is null
+	 * @throws IllegalArgumentException application name or tooltip is null or empty
+	 * @see TrayIcon#displayMessage(String, String, MessageType)
+	 */
 	public JSystemTray(final Localizer localizer, final String applicationName, final URI image, final String tooltip, final JPopupMenu menu, final boolean onlyEn) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
