@@ -1,14 +1,9 @@
 package chav1961.purelib.streams;
 
-import java.io.IOException;
+
 import java.io.InputStream;
 
-public class MultipartInputStream extends InputStream {
+import chav1961.purelib.streams.interfaces.MultipartInputStreamContainer;
 
-	@Override
-	public int read() throws IOException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
+public abstract class MultipartInputStream<T> extends InputStream implements MultipartInputStreamContainer<T>{
 }

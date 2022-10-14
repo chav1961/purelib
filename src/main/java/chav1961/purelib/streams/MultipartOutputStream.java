@@ -1,12 +1,8 @@
 package chav1961.purelib.streams;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
-public class MultipartOutputStream extends OutputStream {
-	@Override
-	public void write(int b) throws IOException {
-		// TODO Auto-generated method stub
-		
-	}
+import chav1961.purelib.streams.interfaces.MultipartOutputStreamContainer;
+
+public abstract class MultipartOutputStream<T> extends OutputStream implements MultipartOutputStreamContainer<T>{
 }
