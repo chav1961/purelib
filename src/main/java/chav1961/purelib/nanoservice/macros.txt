@@ -768,7 +768,9 @@ currentElement			.var		int
 			.endfor
 						getQueryParserLocateName
 						getQueryParserCompareName	parameterCount=&cleans
-endOfData:				ldc			&cleans
+endOfData:				iload		forFrom
+						ldc			&cleans
+						iadd
 						ireturn
 parse					.end
 						.mend
@@ -790,7 +792,7 @@ index		.local		int
 			.for index = 0 to parameterCount-1 step 1
 						aload		forQuery
 						iload		currentIndex
-						aload_0
+						aload		this
 						getfield	parameter&index
 						invokestatic	chav1961.purelib.basic.CharUtils.compare([CI[C)Z
 						ifeq		label&index
@@ -819,7 +821,9 @@ label&index:
 						iload		endIndex
 						invokestatic	chav1961.purelib.nanoservice.NanoServiceFactory$QueryParser.skipValue([CI)I
 						goto		testLoop
+				.if parameterCount > 1
 skipAmp:				iload		endValue
+				.endif
 testLoop:				dup
 						istore		currentIndex
 						aload		forQuery

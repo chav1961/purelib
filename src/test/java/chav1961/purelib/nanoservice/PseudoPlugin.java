@@ -269,11 +269,18 @@ public class PseudoPlugin {
 	 *		Test FromQuery annotation 
 	 */
 
-	@Path("/get/query")
-	public int callQuery(@FromQuery("parm1") String parm1, @FromQuery("parm2") String parm2, @FromQuery("parm3") String parm3, @ToBody(mimeType="text/plain") final Writer os) throws IOException {
+	@Path("/get/query1")
+	public int callQuery1(@FromQuery("parm1") String parm1, @FromQuery("parm2") String parm2, @FromQuery("parm3") String parm3, @ToBody(mimeType="text/plain") final Writer os) throws IOException {
 		os.write(parm1 == null ? "NULL" : parm1);
 		os.write(parm2 == null ? "NULL" : parm2);
 		os.write(parm3 == null ? "NULL" : parm3);
+		os.flush();
+		return 200;
+	}
+
+	@Path("/get/query2")
+	public int callQuery2(@FromQuery("parm1") String parm1, @ToBody(mimeType="text/plain") final Writer os) throws IOException {
+		os.write(parm1 == null ? "NULL" : parm1);
 		os.flush();
 		return 200;
 	}

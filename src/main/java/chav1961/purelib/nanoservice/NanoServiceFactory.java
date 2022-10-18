@@ -495,9 +495,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 							int 	rc = 200;
 							
 							try(final OutputStream	os = pair.getOutputStream()) {
-								final String 						query = URIUtils.extractQueryFromURI(requestUri);
-								final Hashtable<String,String[]>	queryParsed = URIUtils.parseQuery(query == null ? "" : query);
-								final String						pathTail = requestUri.getPath().replace(pluginRoot,"");
+								final String 		query = URIUtils.extractQueryFromURI(requestUri);
+								final String		pathTail = requestUri.getPath().replace(pluginRoot,"");
 										
 								rc = me.execute(QueryType.GET
 											, pathTail.startsWith("/") ? pathTail.substring(1).toCharArray() : pathTail.toCharArray() 
@@ -1205,9 +1204,10 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				else if (item.isAnnotationPresent(ToBody.class)) {
 					try{result.append(buildToBodyParameterText(item.getType(),MimeType.parseMimeList(item.getAnnotation(ToBody.class).mimeType())[0]));
 					} catch (MimeParseException exc) {
+						exc.printStackTrace();
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
-						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
+						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage(), exc); 
 					}		
 				}
 				else if (item.isAnnotationPresent(FromBody.class)) {
@@ -1976,6 +1976,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			}
 		}
 		else {
+			InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_STREAM, mimeType);
 			throw new ContentException("Unsupported combination of parameter type ["+itemType.getCanonicalName()+"] and annotated MIME type ["+mimeType+"]");
 		}
 		return sb.toString();

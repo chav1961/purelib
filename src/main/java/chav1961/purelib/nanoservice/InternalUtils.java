@@ -100,7 +100,7 @@ public class InternalUtils {
 			throw new NullPointerException("Type to compare with can't be null");
 		}
 		else {
-			return from.getPrimaryType().equals(with.getPrimaryType()) && from.getSubType().equals(with.getSubType());
+			return from.getPrimaryType().equals(with.getPrimaryType()) && ("*".equals(from.getSubType()) || from.getSubType().equals(with.getSubType()));
 		}
 	}
 
