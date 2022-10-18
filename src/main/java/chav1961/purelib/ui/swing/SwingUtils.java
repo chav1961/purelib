@@ -250,6 +250,7 @@ public abstract class SwingUtils {
 	private static final String		UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String		UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
 	static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
+	static final URI				MODEL_FIELD_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/");
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -708,7 +709,7 @@ loop:			for (Component comp : children(node)) {
 				boolean	put = false;
 				
 				for (ContentNodeMetadata item : metadata) {
-					if (putToScreen(item,content,uiRoot)) {
+					if (URIUtils.canServeURI(item.getApplicationPath(), MODEL_FIELD_URI) && putToScreen(item,content,uiRoot)) {
 						put = true;
 					}
 				}

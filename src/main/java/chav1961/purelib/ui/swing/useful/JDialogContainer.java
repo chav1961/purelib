@@ -11,6 +11,7 @@ import java.awt.GridLayout;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import javax.swing.border.EtchedBorder;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
@@ -54,6 +56,10 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @lastUpdate 0.0.6
  */
 public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener, LoggerFacadeOwner {
+	public static enum Option {
+		DONT_USE_ENTER_AS_OK
+	}
+	
 	private static final long 	serialVersionUID = 8956769935164098957L;
 	private static final String	OK_TEXT = "OK";
 	private static final String	CANCEL_TEXT = "CANCEL";
@@ -362,9 +368,12 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	 * @throws LocalizationException on any localization error
 	 * @throws IllegalStateException when call on modeless dialog
 	 */
-	public boolean showDialog() throws LocalizationException, IllegalStateException {
+	public boolean showDialog(final Option... options) throws LocalizationException, IllegalStateException {
 		if (isModal == ModalityType.MODELESS) {
 			throw new IllegalStateException("showDialog call is applicable to modal dialog only");
+		}
+		else if (options == null || Utils.checkArrayContent4Nulls(options) >= 0) {
+			throw new IllegalArgumentException("Options are null or contains nulls inside"); 
 		}
 		else if (isWizard) {
 			for (WizardStep<Common, ErrorType, Content> item : steps) {
@@ -393,7 +402,8 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			return this.result;
 		}
 		else {
-			final Dimension	innerSize = inner.getPreferredSize();
+			final Set<Option>	opts = new HashSet<>(Arrays.asList(options));
+			final Dimension		innerSize = inner.getPreferredSize();
 
 			if (innerSize == null) {
 				SwingUtils.centerMainWindow(this,0.5f);
@@ -402,6 +412,10 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 				setSize(new Dimension(innerSize.width + 10, innerSize.height + 50));
 				setLocationRelativeTo(parent);
 			}
+			if (!opts.contains(Option.DONT_USE_ENTER_AS_OK)) {
+				SwingUtils.assignActionKey((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e)->okButton.doClick(), SwingUtils.ACTION_ACCEPT);
+			}
+			SwingUtils.assignActionKey((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->cancelButton.doClick(), SwingUtils.ACTION_EXIT);
 			
 			this.result = false;
 			
@@ -445,22 +459,34 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	}
 	
 	protected void ok() {
-		final int	stepNo = stepIndexById(currentStep);
-		
-		if (steps[stepNo].onOK()) {
+		if (isWizard) {
+			final int	stepNo = stepIndexById(currentStep);
+			
+			if (steps[stepNo].onOK()) {
+				result = true;
+				setVisible(false);
+			}
+		}
+		else {
 			result = true;
 			setVisible(false);
 		}
 	}
 
 	protected void cancel() {
-		final int	stepNo = stepIndexById(currentStep);
-		
-		if (steps[stepNo].onCancel()) {
-			if (processingThread != null) {
-				processingThread.interrupt();
-				processingThread = null;
+		if (isWizard) {
+			final int	stepNo = stepIndexById(currentStep);
+			
+			if (steps[stepNo].onCancel()) {
+				if (processingThread != null) {
+					processingThread.interrupt();
+					processingThread = null;
+				}
+				result = false;
+				setVisible(false);
 			}
+		}
+		else {
 			result = false;
 			setVisible(false);
 		}
@@ -547,7 +573,6 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			south.add(state);
 			getContentPane().add(inner,BorderLayout.CENTER);
 			getContentPane().add(south,BorderLayout.SOUTH);
-			assignKeys();
 			trans.rollback();
 		}
 	}
@@ -666,7 +691,6 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			
 			getContentPane().add(historyPanel,BorderLayout.WEST);
 			getContentPane().add(south,BorderLayout.SOUTH);
-			assignKeys();
 			trans.rollback();
 		}
 	}

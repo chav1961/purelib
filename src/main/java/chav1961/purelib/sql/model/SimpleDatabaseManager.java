@@ -481,7 +481,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 			return UUID.fromString(keys.get("UUID")[0]);
 		}
 		else {
-			throw new NullPointerException("Model root ["+model+"] doesn't contain mandatory 'UUID' clause in the query string of the application URI");
+			throw new IllegalArgumentException("Model root ["+model+"] doesn't contain mandatory 'UUID' clause in the query string of the application URI");
 		}
 	}
 

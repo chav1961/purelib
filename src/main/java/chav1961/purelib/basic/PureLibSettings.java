@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -299,6 +300,11 @@ public final class PureLibSettings {
 	 */
 	public static final String				SYSTEM_CONTENT_ENCODING = System.getProperty("file.encoding");
 	
+	/**
+	 * <p>UUID to use as 'NULL' UUID value</p>
+	 * @since 0.0.6
+	 */
+	public static final UUID				NULL_UUID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
 	
 	public static final FileSystemInterface	ROOT_FS;
 	

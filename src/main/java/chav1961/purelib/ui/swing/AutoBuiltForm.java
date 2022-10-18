@@ -46,6 +46,7 @@ import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -73,7 +74,7 @@ import chav1961.purelib.ui.swing.useful.JTextTooltipWindow;
 import chav1961.purelib.ui.swing.useful.LabelledLayout;
 
 /**
- * <p>This class is a simplest for builder for any class. It supports the {@linkplain FormManager} interface to process user actions in the generated form.</p>
+ * <p>This class is a simplest form builder for any class. It supports the {@linkplain FormManager} interface to process user actions in the generated form.</p>
  * <p>Form was build has two columns:</p>
  * <ul>
  * <li>field label<li>      
@@ -85,6 +86,8 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * {@linkplain FormManager#onAction(Object, Object, String, Object)} calls on the {@linkplain FormManager} interface. To simplify code, it's recommended that class to show
  * also implements {@linkplain FormManager} interface itself.</p>
  * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and similar). You must close this form yourself, if required</p> 
+ * @param <T> Instance to build form for
+ * @param <K> Primary key for instance, if exists, otherwise {@linkplain Object}
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  * @lastUpdate 0.0.6
@@ -409,7 +412,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 						if (!format.isReadOnly(false) && !format.isReadOnly(true)) {
 							modifiableLabelIds.add(metadata.getLabelId());
 						}
-						accessors.put(metadata.getUIPath(),gas);
+						accessors.put(metadata.getUIPath(), gas);
 						if (format.isOutput()) {
 							outputFocused.add(fieldComponent);
 						}
@@ -437,6 +440,9 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 					}
 				}, loader);
 				
+				if (accessors.isEmpty()) {
+					throw new IllegalArgumentException("Content model doesn't contain any URI with ["+SwingUtils.MODEL_FIELD_URI+"] scheme");
+				}
 
 				if (!outputFocused.isEmpty()) {
 					setFocusTraversalPolicy(new ABFFocusTraversalPolicy(ordinalFocused, outputFocused));
@@ -460,6 +466,10 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 				}
 				InternalUtils.registerAdvancedTooptip(this);
 				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
+
+				if (instance instanceof ModuleAccessor) {
+					((ModuleAccessor)instance).allowUnnamedModuleAccess(loader.getUnnamedModule());
+				}
 				
 				trans.rollback();
 			}

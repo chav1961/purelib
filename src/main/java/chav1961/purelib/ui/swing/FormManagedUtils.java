@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 
 import javax.swing.JComponent;
@@ -60,6 +61,9 @@ public class FormManagedUtils {
 								trans.message(Severity.trace,"Process button [%1$s]",node.getApplicationPath());
 		
 								button.setActionCommand(node.getApplicationPath().toString());
+								for (ActionListener item : button.getActionListeners()) {	// Антиалгоритм для стр. 58 (там устанавливается лишний слушатель).
+									button.removeActionListener(item);
+								}
 								callback.processActionButton(node,button);							
 							}
 							else if(node.getApplicationPath().toString().contains(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD)) {

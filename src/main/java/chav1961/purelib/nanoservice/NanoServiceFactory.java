@@ -523,6 +523,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								env.fail(rc, "Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
+							exc.printStackTrace();
 							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
