@@ -24,6 +24,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
+import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -86,7 +87,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  * @lastUpdate 0.0.3
- */
+ */ 
 public class InternalUtils {
 	private static final MimetypesFileTypeMap	typeMap = new MimetypesFileTypeMap();
 	private static final char[]					TRUE = "true".toCharArray();
@@ -563,6 +564,18 @@ public class InternalUtils {
 			@Override
 			public InputStream getPartContent(final String partName) {
 				return is;
+			}
+
+			@Override
+			public boolean hasPartName(String partName) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public Properties getPartProperties(String partName) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		};
 	}

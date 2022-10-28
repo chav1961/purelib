@@ -16,17 +16,28 @@ import chav1961.purelib.nanoservice.interfaces.MultipartContent;
 
 /**
  * 
+ * @see RFC-2045
+ * @see RFC-2046
  * @see RFC-2047
+ * @see RFC-2048
  */
 
 class MultipartParserImpl implements MultipartContent {
-	private static final char[]	CONTENT_DISPOSITION = "Content-Disposition".toCharArray();
-	private static final char[]	MIME_VERSION = "MIME-Version".toCharArray();
-	private static final char[]	CONTENT_TYPE = "Content-Type".toCharArray();
-	private static final char[]	CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding".toCharArray();
-	private static final char[]	CONTENT_ID = "Content-ID".toCharArray();
-	private static final char[]	CONTENT_DESCRIPTION = "Content-Description".toCharArray();
-	private static final String	PROP_KEYVALUE = "keyValue";
+	private static final String	CONTENT_DISPOSITION_STRING = "Content-Disposition";
+	private static final String	MIME_VERSION_STRING = "MIME-Version";
+	private static final String	CONTENT_TYPE_STRING = "Content-Type";
+	private static final String	CONTENT_TRANSFER_ENCODING_STRING = "Content-Transfer-Encoding";
+	private static final String	CONTENT_ID_STRING = "Content-ID";
+	private static final String	CONTENT_DESCRIPTION_STRING = "Content-Description";
+
+	private static final String	DEFAULT_MIME_VERSION_STRING = "1.0";
+	
+	private static final char[]	CONTENT_DISPOSITION = CONTENT_DISPOSITION_STRING.toCharArray();
+	private static final char[]	MIME_VERSION = MIME_VERSION_STRING.toCharArray();
+	private static final char[]	CONTENT_TYPE = CONTENT_TYPE_STRING.toCharArray();
+	private static final char[]	CONTENT_TRANSFER_ENCODING = CONTENT_TRANSFER_ENCODING_STRING.toCharArray();
+	private static final char[]	CONTENT_ID = CONTENT_ID_STRING.toCharArray();
+	private static final char[]	CONTENT_DESCRIPTION = CONTENT_DESCRIPTION_STRING.toCharArray();
 	
 	private static final int	TERM_START = 0;
 	private static final int	TERM_START_DATA = 1;
@@ -109,36 +120,32 @@ class MultipartParserImpl implements MultipartContent {
 		}
 		else if (CharUtils.compareIgnoreCase(data, from, CONTENT_DISPOSITION)) {
 			automat(TERM_START_DATA);
-			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + CONTENT_DISPOSITION.length, true), contentKeys);
+			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + CONTENT_DISPOSITION.length, true), CONTENT_DISPOSITION_STRING, contentKeys);
 		}
 		else if (CharUtils.compareIgnoreCase(data, from, CONTENT_TYPE)) {
 			automat(TERM_CONTENT_TYPE);
-			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + CONTENT_TYPE.length, true), contentKeys);
-
-			final MimeType[]	content = MimeType.parseMimeList(contentKeys.getProperty(PROP_KEYVALUE));
-			
-			if (PureLibSettings.MIME_ANY_STREAM.match(content[0]) || PureLibSettings.MIME_ANY_IMAGE.match(content[0])) {
-				automat(TERM_CONTENT_BASE64);
-			}
-			else {
-				automat(TERM_CONTENT_PLAIN);
-			}
+			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + CONTENT_TYPE.length, true), CONTENT_TYPE_STRING, contentKeys);
 		}
 		else if (CharUtils.compareIgnoreCase(data, from, MIME_VERSION)) {
-			automat(TERM_START_DATA);
-			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), contentKeys);
+			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), MIME_VERSION_STRING, contentKeys);
+			if (!DEFAULT_MIME_VERSION_STRING.equals(contentKeys.get(MIME_VERSION_STRING))) {
+				throw new SyntaxException(lineNo, from, "Unsupported MIME version ["+contentKeys.get(MIME_VERSION_STRING)+"]"); 
+			}
+			else {
+				automat(TERM_CONTENT_TYPE);
+			}
 		}
 		else if (CharUtils.compareIgnoreCase(data, from, CONTENT_TRANSFER_ENCODING)) {
 			automat(TERM_START_DATA);
-			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), contentKeys);
+			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), CONTENT_TRANSFER_ENCODING_STRING, contentKeys);
 		}
 		else if (CharUtils.compareIgnoreCase(data, from, CONTENT_ID)) {
 			automat(TERM_START_DATA);
-			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), contentKeys);
+			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), CONTENT_ID_STRING, contentKeys);
 		}
 		else if (CharUtils.compareIgnoreCase(data, from, CONTENT_DESCRIPTION)) {
 			automat(TERM_START_DATA);
-			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), contentKeys);
+			from = parseNamedList(data, lineNo, CharUtils.skipBlank(data, from + MIME_VERSION.length, true), CONTENT_DESCRIPTION_STRING, contentKeys);
 		}
 		else {
 			automat(TERM_CONTENT);
@@ -158,7 +165,7 @@ class MultipartParserImpl implements MultipartContent {
 		}
 	}
 	
-	int parseNamedList(final char[] data, final int lineNo, int from, final Properties keyValuePairs) throws SyntaxException {
+	int parseNamedList(final char[] data, final int lineNo, int from, final String key, final Properties keyValuePairs) throws SyntaxException {
 		from = CharUtils.skipBlank(data, from, true);
 		
 		if (data[from] == ':') {
@@ -166,7 +173,7 @@ class MultipartParserImpl implements MultipartContent {
 			if (Character.isLetter(data[from])) {
 				from = CharUtils.skipBlank(data, CharUtils.parseName(data, from, forInt), true);
 
-				keyValuePairs.setProperty(PROP_KEYVALUE, new String(data, forInt[0], forInt[1] - forInt[0]));
+				keyValuePairs.setProperty(key, new String(data, forInt[0], forInt[1] - forInt[0]));
 				if (data[from] == ';') {
 						do {
 							from = CharUtils.skipBlank(data, from + 1, true);
