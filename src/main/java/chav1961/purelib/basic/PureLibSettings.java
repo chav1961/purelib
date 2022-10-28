@@ -220,6 +220,16 @@ public final class PureLibSettings {
 	 * <p>Predefined MIMEs in the Pure Library: MIME for any image content</p>
 	 */
 	public static final MimeType	MIME_ANY_IMAGE = buildMime("image","*");
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for html form content</p>
+	 */
+	public static final MimeType	MIME_FORM_URLENCODED = buildMime("application","x-www-form-urlencoded");
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for html multipart form content</p>
+	 */
+	public static final MimeType	MIME_MULTIPART_FORM = buildMime("multipart","form-data");
 	
 	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for octet stream</p>

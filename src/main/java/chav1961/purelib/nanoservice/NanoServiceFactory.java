@@ -85,6 +85,7 @@ import chav1961.purelib.nanoservice.interfaces.FromPath;
 import chav1961.purelib.nanoservice.interfaces.FromQuery;
 import chav1961.purelib.nanoservice.interfaces.HeaderName;
 import chav1961.purelib.nanoservice.interfaces.MethodExecutor;
+import chav1961.purelib.nanoservice.interfaces.MultipartContent;
 import chav1961.purelib.nanoservice.interfaces.NanoService;
 import chav1961.purelib.nanoservice.interfaces.Path;
 import chav1961.purelib.nanoservice.interfaces.QueryType;
@@ -537,7 +538,6 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						final List<String>			inputContent = requestHeaders.get(HEAD_CONTENT_TYPE); 
 						final List<String>			outputContent = requestHeaders.get(HEAD_ACCEPT); 
 						
-						
 						try(final InputOutputPair	pair = tempStore.allocate()){
 							int 	rc = 200;
 							
@@ -568,6 +568,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 								env.fail(rc,"Unsuccessful processing your request");
 							}
 						} catch (Throwable exc) {
+							exc.printStackTrace();
 							env.fail(HttpURLConnection.HTTP_INTERNAL_ERROR,"Exception %1$s (%2$s) during processing request", exc.getClass().getSimpleName(), exc.getLocalizedMessage());
 						}
 					}
@@ -1207,7 +1208,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						exc.printStackTrace();
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
-						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage(), exc); 
+						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @ToBody): "+exc.getLocalizedMessage(), exc); 
 					}		
 				}
 				else if (item.isAnnotationPresent(FromBody.class)) {
@@ -1215,7 +1216,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 					} catch (MimeParseException exc) {
 						throw new ContentException(exc);
 					} catch (ContentException exc) {
-						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @toBody): "+exc.getLocalizedMessage()); 
+						exc.printStackTrace();
+						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"], method ["+m.getName()+"], parameter ["+item.getName()+"] (annotated with @FromBody): "+exc.getLocalizedMessage()); 
 					}		
 				}
 			}
@@ -1853,12 +1855,31 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. It's type should not be array, primitive type or enumeration");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_OCTET_STREAM,mimeType)) {
+//		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_OCTET_STREAM, mimeType)) {
+//			if (InputStream.class.isAssignableFrom(itemType)) {
+//				sb.append(" PostInputStream2Stack\n");
+//			}
+//			else {
+//				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only InputStream can be used");
+//			}
+//		}
+		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_MULTIPART_FORM, mimeType)) {
+			if (InputStream.class.isAssignableFrom(itemType)) {
+				sb.append(" PostInputStream2Stack\n");
+			}
+			else if (MultipartContent.class.isAssignableFrom(itemType)) {
+				sb.append(" PostMultipartContent2Stack\n");
+			}
+			else {
+				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only InputStream can be used");
+			}
+		}
+		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_STREAM, mimeType)) {
 			if (InputStream.class.isAssignableFrom(itemType)) {
 				sb.append(" PostInputStream2Stack\n");
 			}
 			else {
-				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream can be used");
+				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only InputStream can be used");
 			}
 		}
 		else {

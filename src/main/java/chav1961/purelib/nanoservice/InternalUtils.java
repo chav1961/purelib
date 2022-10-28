@@ -76,6 +76,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.MimetypesFileTypeMap;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.json.JsonSerializer;
+import chav1961.purelib.nanoservice.interfaces.MultipartContent;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
@@ -547,6 +548,25 @@ public class InternalUtils {
 		return null;
 	}
 
+	public static MultipartContent buildMultipartContent(final InputStream is) {
+		return new MultipartContent() {
+			@Override
+			public String[] getPartNames() {
+				return new String[] {"assa"};
+			}
+			
+			@Override
+			public int getPartCount() {
+				return 1;
+			}
+			
+			@Override
+			public InputStream getPartContent(final String partName) {
+				return is;
+			}
+		};
+	}
+	
 	public static String buildFromList(final List<?> content) {
 		final StringBuilder	sb = new StringBuilder();
 		

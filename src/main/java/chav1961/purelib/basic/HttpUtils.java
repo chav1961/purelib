@@ -8,13 +8,10 @@ import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 
 public class HttpUtils {
 	public static SupportedLanguages[] extractSupportedLanguages(final String supportedLanguages, final SupportedLanguages defaultLanguage) {
-		if (supportedLanguages == null) {
-			throw new NullPointerException("Supported language string can't be null or empty");
-		}
-		else if (defaultLanguage == null) {
+		if (defaultLanguage == null) {
 			throw new NullPointerException("Default language can't be null");
 		}
-		else if (supportedLanguages.isEmpty()) {
+		else if (supportedLanguages == null || supportedLanguages.isEmpty()) {
 			return new SupportedLanguages[] {defaultLanguage};
 		}
 		else {

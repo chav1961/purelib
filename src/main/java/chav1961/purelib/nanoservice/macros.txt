@@ -49,6 +49,8 @@ getExecutorHead			.macro		name:str,simpleName:str,pathParsed:int=0,queryParsed:i
 ; --------------------------------------------------------------------
 
 getExecutorClassHead	.macro		name:str,simpleName:str,pathParsed:int=0,queryParsed:int=0,requestHeadParsed:int=0,totalResponsed:int=0
+						.line		auto
+						.source		"&simpleName"
 &simpleName				.class		public extends java.lang.Object implements chav1961.purelib.nanoservice.interfaces.MethodExecutor
 forProcessor			.field		java.lang.Object
 		.if (pathParsed+queryParsed+requestHeadParsed > 0) 
@@ -255,11 +257,16 @@ contunue&labelId:
 ; --------------------------------------------------------------------
 
 getExecutor2StringArray	.macro	parameterIndex:int=
+			.if parameterIndex >= 0
 						aload		this
 						getfield	forParsedParameters
 						bipush		&parameterIndex
 						aaload
 						invokestatic	chav1961.purelib.nanoservice.InternalUtils.buildStringArray([C)Ljava/lang/String;
+			.else
+						bipush		0
+						anewarray	java.lang.String.class	
+			.endif
 						.mend
 
 ; --------------------------------------------------------------------
@@ -297,6 +304,7 @@ getExecutor2Primitive	.macro	className:str,parameterIndex:int=
 getExecutor2String		.macro	parameterIndex:int=
 label					.local		str
 label					.set		uniqueG()#"_"#uniqueL()
+			.if parameterIndex >= 0
 						aload		this
 						getfield	forParsedParameters
 						bipush		&parameterIndex
@@ -312,6 +320,9 @@ label					.set		uniqueG()#"_"#uniqueL()
 						goto		continue&label		
 skip&label:				aconst_null
 continue&label:
+			.else
+						aconst_null
+			.endif
 						.mend
 
 ; --------------------------------------------------------------------
@@ -537,6 +548,7 @@ makePathIncludes 		.macro
 						.import		chav1961.purelib.nanoservice.NanoServiceFactory$AnyKindParserAndSetter
 						.import		chav1961.purelib.basic.exceptions.SyntaxException
 						.import		chav1961.purelib.nanoservice.interfaces.MethodExecutor
+						.import		chav1961.purelib.nanoservice.interfaces.MultipartContent
 						.import		chav1961.purelib.nanoservice.interfaces.QueryType
 						.import		chav1961.purelib.nanoservice.InternalUtils
 						.import		java.util.Arrays
@@ -1273,6 +1285,14 @@ PostReader2Stack		.macro
 PostInputStream2Stack	.macro
 						aload	is
 						.mend
+
+; --------------------------------------------------------------------
+
+PostMultipartContent2Stack	.macro
+						aload	is
+						invokestatic	chav1961.purelib.nanoservice.InternalUtils.buildMultipartContent(Ljava/io/InputStream;)Lchav1961/purelib/nanoservice/interfaces/MultipartContent;
+						.mend
+
 
 ; --------------------------------------------------------------------
 						
