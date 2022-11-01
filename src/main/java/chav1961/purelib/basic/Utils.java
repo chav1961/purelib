@@ -17,7 +17,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -28,7 +27,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.Utils.EverywhereWalkerCollector.ReferenceType;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.MimeParseException;
@@ -36,8 +34,8 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.streams.char2byte.AsmWriter;
@@ -1091,7 +1089,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @return true if deletion is successful
 	 * @since 0.0.2
 	 */
-	public static boolean  deleteDir(final File dir) {
+	public static boolean deleteDir(final File dir) {
 		if (dir == null) {
 			throw new NullPointerException("Uri can't be null");
 		}

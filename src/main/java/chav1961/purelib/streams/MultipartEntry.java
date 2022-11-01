@@ -1,5 +1,8 @@
 package chav1961.purelib.streams;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import chav1961.purelib.streams.byte2byte.MultipartInputStream;
@@ -18,7 +21,7 @@ import chav1961.purelib.streams.byte2byte.MultipartOutputStream;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
  */
-public class MultipartEntry {
+public class MultipartEntry implements Iterable<Map.Entry<String, String>> {
 	private final String		name;
 	private final Properties	props = new Properties();
 	
@@ -112,5 +115,10 @@ public class MultipartEntry {
 		else {
 			props.setProperty(key, value);
 		}
+	}
+
+	@Override
+	public Iterator<Entry<String, String>> iterator() {
+		return (Iterator<Entry<String, String>>) props.entrySet();
 	}
 }
