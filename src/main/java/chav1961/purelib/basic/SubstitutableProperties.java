@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -170,9 +171,12 @@ public class SubstitutableProperties extends Properties {
     @Override
     public synchronized Object put(final Object key, final Object value) {
     	final Object	oldValue = super.put(key, value);
-    	final PropertyChangeEvent	e = new PropertyChangeEvent(this, key.toString(), oldValue, value);  
     	
-    	listeners.fireEvent((l)->l.propertyChange(e));
+    	if (!Objects.equals(oldValue, value)) {
+        	final PropertyChangeEvent	e = new PropertyChangeEvent(this, key.toString(), oldValue, value);  
+    		
+        	listeners.fireEvent((l)->l.propertyChange(e));
+    	}
     	return oldValue;
     }
     
