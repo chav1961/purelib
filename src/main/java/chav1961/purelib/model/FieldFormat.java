@@ -51,6 +51,7 @@ public class FieldFormat {
 		ColorContent,
 		ColorPairContent,
 		ArrayContent,
+		RangeContent,
 		NestedContent,
 		ImageContent,
 		ForeignKeyRefContent,
@@ -319,7 +320,7 @@ public class FieldFormat {
 			this.length = len;
 			this.height = height;
 			this.frac = frac;
-			this.contentType = defineContentType(clazz,mask);
+			this.contentType = defineContentType(clazz,mask,wizardType);
 			this.mask = mask;
 			this.wizardType = wizardType;
 		}
@@ -600,15 +601,26 @@ public class FieldFormat {
 		}
 	}
 
-	
 	static ContentType defineContentType(final Class<?> clazz, final String mask) {
+		return defineContentType(clazz, mask, "");
+	}	
+	
+	static ContentType defineContentType(final Class<?> clazz, final String mask, final String wizardType) {
 		switch (CompilerUtils.defineClassType(clazz)) {
 			case CompilerUtils.CLASSTYPE_REFERENCE	:
 				if (clazz.isEnum()) {
 					return ContentType.EnumContent;
 				}
 				else if (clazz.isArray()) {
-					return clazz.getComponentType() == char.class ? ContentType.PasswordContent : ContentType.ArrayContent;
+					if (clazz.getComponentType() == char.class) {
+						return ContentType.PasswordContent;
+					}
+					else if (clazz.getComponentType() == int.class && wizardType.startsWith("slider")) {
+						return ContentType.RangeContent;
+					}
+					else {
+						return ContentType.ArrayContent;
+					}
 				}
 				else if (String.class.isAssignableFrom(clazz) || Character.class.isAssignableFrom(clazz)) {
 					if (mask == null) {

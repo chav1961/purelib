@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -84,6 +86,18 @@ public class SubstitutableProperties extends Properties {
 		Ordinal, 
 		XML, 
 		WindowsStyled
+	}
+
+	/**
+	 * <p>This interface describes listener for group changes (when {@linkplain SubstitutableProperties#putAll(Map)} method was called). When {@linkplain SubstitutableProperties#put(Object, Object)} or 
+	 * {@linkplain SubstitutableProperties#putIfAbsent(Object, Object)} methods were called, then {@linkplain #propertyChange(PropertyChangeEvent)} method will be called. When {@linkplain SubstitutableProperties#putAll(Map)} method was called,
+	 * method {@linkplain #propertyChange(PropertyChangeEvent)} will not be called, but only {@linkplain #propertiesChange(PropertyGroupChangeEvent)} will be called. This interface is useful to process 'transactional' changes in the
+	 * properties content, where some parameters can be dependent each other.</p>  
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public static interface PropertyGroupChangeListener extends PropertyChangeListener {
+		void propertiesChange(PropertyGroupChangeEvent event);
 	}
 	
 	private static enum Conversions {
@@ -155,8 +169,8 @@ public class SubstitutableProperties extends Properties {
 	}
 
 	/**
-	 * 
-	 * @return
+	 * <p>Get all available keys</p> 
+	 * @return available keys. Can be empty but not null.
 	 * @since 0.0.6
 	 */
 	public Set<String> availableKeys() {
@@ -178,6 +192,46 @@ public class SubstitutableProperties extends Properties {
         	listeners.fireEvent((l)->l.propertyChange(e));
     	}
     	return oldValue;
+    }
+    
+    @Override
+    public synchronized Object putIfAbsent(Object key, Object value) {
+    	final Object	oldValue = super.putIfAbsent(key, value);
+    	
+    	if (!Objects.equals(oldValue, value)) {
+        	final PropertyChangeEvent	e = new PropertyChangeEvent(this, key.toString(), oldValue, value);  
+    		
+        	listeners.fireEvent((l)->l.propertyChange(e));
+    	}
+    	return oldValue;
+    }
+    
+    @Override
+    public synchronized void putAll(final Map<?, ?> values) {
+    	if (values == null) {
+    		throw new NullPointerException("Values to put can't be null");
+    	}
+    	else {
+    		final List<PropertyChangeDescriptor> pcd = new ArrayList<>();
+    		
+    		for (java.util.Map.Entry<?, ?> item : values.entrySet()) {
+    			final Object	newValue = item.getValue();
+    	    	final Object	oldValue = super.put(item.getKey(), newValue);
+
+    	    	if (!Objects.equals(oldValue, newValue)) {
+    	    		pcd.add(new PropertyChangeDescriptor(item.getKey(), oldValue, newValue));
+    	    	}
+    		}
+        	if (!pcd.isEmpty()) {
+	        	for (PropertyChangeDescriptor item : pcd) {
+	        		final PropertyChangeEvent	e = new PropertyChangeEvent(this, item.propertyName.toString(), item.oldValue, item.newValue);
+	            	
+	        		listeners.fireEvent((l)->{if (!(l instanceof PropertyGroupChangeListener)) {l.propertyChange(e);}});
+	        	}
+	        	final PropertyGroupChangeEvent	e = new PropertyGroupChangeEvent(this, pcd.toArray(new PropertyChangeDescriptor[pcd.size()]));
+        		listeners.fireEvent((l)->{if (l instanceof PropertyGroupChangeListener) {((PropertyGroupChangeListener)l).propertiesChange(e);}});
+        	}
+    	}
     }
     
     /**
@@ -718,5 +772,90 @@ public class SubstitutableProperties extends Properties {
 			result.putAll(item);
 		}
 		return result;
+	}
+
+	/**
+	 * <p>This class describes group changes event. It is used in conjunction of the {@linkplain PropertyGroupChangeEvent} interface.</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @see PropertyGroupChangeEvent
+	 * @see PropertyChangeDescriptor
+	 * @since 0.0.6
+	 */
+	public static class PropertyGroupChangeEvent extends EventObject {
+		private static final long serialVersionUID = 7659660893846279186L;
+		
+		private final PropertyChangeDescriptor[]	properties;
+		
+		public PropertyGroupChangeEvent(final Object source, final PropertyChangeDescriptor... properties) {
+			super(source);
+			this.properties = properties;
+		}
+		
+		public PropertyChangeDescriptor[] getChanges() {
+			return properties;
+		}
+	}
+	
+	/**
+	 * <p>This class is a descriptor about individual property change. It is used with conjunction of the {@linkplain PropertyGroupChangeEvent} class.</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
+	public static class PropertyChangeDescriptor implements Serializable {
+		private static final long serialVersionUID = -4541840579942022901L;
+		
+		/**
+		 * <p>Name of the property changed</p>
+		 */
+		public final Object	propertyName;
+		
+		/**
+		 * <p>Old value of the property changed </p>
+		 */
+		public final Object	oldValue;
+		
+		/**
+		 * <p>New value of the property changed</p>
+		 */
+		public final Object	newValue;
+		
+		public PropertyChangeDescriptor(Object propertyName, Object oldValue, Object newValue) {
+			this.propertyName = propertyName;
+			this.oldValue = oldValue;
+			this.newValue = newValue;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((newValue == null) ? 0 : newValue.hashCode());
+			result = prime * result + ((oldValue == null) ? 0 : oldValue.hashCode());
+			result = prime * result + ((propertyName == null) ? 0 : propertyName.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			PropertyChangeDescriptor other = (PropertyChangeDescriptor) obj;
+			if (newValue == null) {
+				if (other.newValue != null) return false;
+			} else if (!newValue.equals(other.newValue)) return false;
+			if (oldValue == null) {
+				if (other.oldValue != null) return false;
+			} else if (!oldValue.equals(other.oldValue)) return false;
+			if (propertyName == null) {
+				if (other.propertyName != null) return false;
+			} else if (!propertyName.equals(other.propertyName)) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "PropertyChangeDescriptor [propertyName=" + propertyName + ", oldValue=" + oldValue + ", newValue=" + newValue + "]";
+		}
 	}
 }
