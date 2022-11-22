@@ -42,10 +42,10 @@ public class JDBCUtils {
 	 */
 	public static Driver loadJdbcDriver(final SimpleURLClassLoader loader, final File jdbcDriver) throws NullPointerException, ContentException {
 		if (loader == null) {
-			throw new NullPointerException("Loader to laod driver into can't be null");
+			throw new NullPointerException("Loader to load driver into can't be null");
 		}
 		else if (jdbcDriver == null) {
-			throw new NullPointerException("JDBC driver can't be null");
+			throw new NullPointerException("JDBC driver file can't be null");
 		}
 		else {
 			try{loader.addURL(jdbcDriver.toURI().toURL());
