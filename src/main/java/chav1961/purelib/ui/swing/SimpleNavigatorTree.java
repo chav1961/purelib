@@ -27,7 +27,6 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import javax.swing.border.LineBorder;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -35,11 +34,13 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -48,6 +49,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.json.JsonNode;
 import chav1961.purelib.json.interfaces.JsonNodeType;
 import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 
@@ -197,28 +199,33 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 			
 			setName(URIUtils.removeQueryFromURI(metadata.getUIPath()).toString());
 			setModel(new DefaultTreeModel(content2Tree(metadata,rootNode)));
-			setCellRenderer(new DefaultTreeCellRenderer() {
-				private static final long serialVersionUID = 1L;
+			
+			try{
+				setCellRenderer(SwingUtils.getCellRenderer(ContentNodeMetadata.class, new FieldFormat(ContentNodeMetadata.class), TreeCellRenderer.class));
+			} catch (EnvironmentException e) {
+				setCellRenderer(new DefaultTreeCellRenderer() {
+					private static final long serialVersionUID = 1L;
 
-				@Override
-				public Component getTreeCellRendererComponent(final JTree tree, final Object value, final boolean selected, final boolean expanded, final boolean leaf, final int row, final boolean hasFocus) {
-					final JLabel 					label = (JLabel)super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-					
-					try{final ContentNodeMetadata	item = (ContentNodeMetadata)((DefaultMutableTreeNode)value).getUserObject();
-								
-						label.setText(localizer.getValue(item.getLabelId()));
-						if (item.getTooltipId() != null) {
-							label.setToolTipText(localizer.getValue(item.getTooltipId()));
+					@Override
+					public Component getTreeCellRendererComponent(final JTree tree, final Object value, final boolean selected, final boolean expanded, final boolean leaf, final int row, final boolean hasFocus) {
+						final JLabel 					label = (JLabel)super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+						
+						try{final ContentNodeMetadata	item = (ContentNodeMetadata)((DefaultMutableTreeNode)value).getUserObject();
+									
+							label.setText(localizer.getValue(item.getLabelId()));
+							if (item.getTooltipId() != null) {
+								label.setToolTipText(localizer.getValue(item.getTooltipId()));
+							}
+							label.setIcon(defineIcon((T)item)); 
+
+							label.setName(URIUtils.removeQueryFromURI(item.getUIPath()).toString());
+							return label;
+						} catch (LocalizationException | MalformedURLException exc) {
+							return label;
 						}
-						label.setIcon(defineIcon((T)item)); 
-
-						label.setName(URIUtils.removeQueryFromURI(item.getUIPath()).toString());
-						return label;
-					} catch (LocalizationException | MalformedURLException exc) {
-						return label;
 					}
-				}
-			});
+				});
+			}
 			
 			prepareCommon(lazyLoading);
 			assignKeys(this,metadata);
