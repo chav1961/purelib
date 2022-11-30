@@ -850,7 +850,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		return this;
 	}
 
-	private FileSystemInterface push(URI item) {
+	private FileSystemInterface push(final URI item) {
 		stack.add(0,currentPath);
 		return open(item);
 	}

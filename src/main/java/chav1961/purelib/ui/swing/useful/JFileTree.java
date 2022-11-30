@@ -236,40 +236,71 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	private void fillChildren(final DefaultMutableTreeNode node, final FileSystemInterface fsi) throws IOException {
-		final boolean[]	flag = new boolean[1];
-		
 		node.removeAllChildren();
 		
-		for (String item : fsi.list()) {
-			try(final FileSystemInterface	child = fsi.clone().open(item)) {
-				if (child.isDirectory()) {
-					flag[0] = false;
-					child.list((i)->{
-						return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
-					});
-					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
+		fsi.list((child)->{
+			if (child.isDirectory()) {
+				final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
+				final boolean[]				flag = new boolean[] {false};
+				
+				child.list((i)->{
+					return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
+				});
+
+				node.add(new DefaultMutableTreeNode(desc) {
+					private static final long	serialVersionUID = 1L;
+					private final boolean		dirsInside = flag[0];
 					
-					node.add(new DefaultMutableTreeNode(desc) {
-						private static final long	serialVersionUID = 1L;
-						
-						final boolean				dirsInside = flag[0];
-						
-						@Override
-						public boolean isLeaf() {
-							return !dirsInside;
-						}
-					});
-				}
-				else if (showFiles) {
-					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
-					
-					node.add(new DefaultMutableTreeNode(desc) {
-						private static final long	serialVersionUID = 1L;
-						@Override public boolean isLeaf() {return true;}
-					});
-				}
+					@Override
+					public boolean isLeaf() {
+						return !dirsInside;
+					}
+				});
 			}
-		}
+			else if (showFiles) {
+				final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
+				
+				node.add(new DefaultMutableTreeNode(desc) {
+					private static final long	serialVersionUID = 1L;
+					
+					@Override public boolean isLeaf() {return true;}
+				});
+			}
+			return ContinueMode.CONTINUE;
+		});
+		
+//		for (String item : fsi.list((child)->{})) {
+//			try(final FileSystemInterface	child = fsi.clone().open(item)) {
+//				
+//				
+//				if (child.isDirectory()) {
+//					flag[0] = false;
+//					child.list((i)->{
+//						return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
+//					});
+//					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
+//					
+//					node.add(new DefaultMutableTreeNode(desc) {
+//						private static final long	serialVersionUID = 1L;
+//						
+//						final boolean				dirsInside = flag[0];
+//						
+//						@Override
+//						public boolean isLeaf() {
+//							return !dirsInside;
+//						}
+//					});
+//				}
+//				else if (showFiles) {
+//					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
+//					
+//					node.add(new DefaultMutableTreeNode(desc) {
+//						private static final long	serialVersionUID = 1L;
+//						@Override public boolean isLeaf() {return true;}
+//					});
+//				}
+//			}
+//		}
 	}
 
 	private void findAndSelect(final DefaultMutableTreeNode node, final String path) {
