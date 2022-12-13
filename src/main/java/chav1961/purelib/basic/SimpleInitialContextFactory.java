@@ -83,7 +83,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public Object lookup(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -118,7 +118,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public void bind(final String name, Object obj) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else if (obj == null) {
@@ -151,7 +151,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public void rebind(final String name, Object obj) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else if (obj == null) {
@@ -186,7 +186,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public void unbind(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -225,10 +225,10 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public void rename(final String oldName, final String newName) throws NamingException {
-			if (oldName == null || oldName.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(oldName)) {
 				throw new IllegalArgumentException("Old name can't be null or empty"); 
 			}
-			else if (newName == null || newName.isEmpty()) {
+			else if (Utils.checkEmptyOrNullString(newName)) {
 				throw new IllegalArgumentException("New name can't be null or empty"); 
 			}
 			else {
@@ -261,7 +261,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public NamingEnumeration<NameClassPair> list(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -294,7 +294,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public NamingEnumeration<Binding> listBindings(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -314,7 +314,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public void destroySubcontext(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -334,7 +334,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public Context createSubcontext(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -357,7 +357,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public Object lookupLink(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -377,7 +377,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public NameParser getNameParser(final String name) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty");
 			}
 			else {
@@ -400,10 +400,10 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public String composeName(final String name, final String prefix) throws NamingException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty"); 
 			}
-			else if (prefix == null || prefix.isEmpty()) {
+			else if (Utils.checkEmptyOrNullString(prefix)) {
 				throw new IllegalArgumentException("Prefix can't be null or empty"); 
 			}
 			else {
@@ -413,7 +413,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public Object addToEnvironment(final String propName, final Object propVal) throws NamingException {
-			if (propName == null || propName.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(propName)) {
 				throw new IllegalArgumentException("Property name can't be null or empty");
 			}
 			else {
@@ -423,7 +423,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		@Override
 		public Object removeFromEnvironment(final String propName) throws NamingException {
-			if (propName == null || propName.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(propName)) {
 				throw new IllegalArgumentException("Property name can't be null or empty");
 			}
 			else {
@@ -453,7 +453,7 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 		private List<String>	parts = new ArrayList<>();
 		
 		public SimpleNameImpl(final String name) {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Name can't be null or empty"); 
 			}
 			else {
@@ -605,8 +605,8 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 			if (posn < 0 || posn >= size()) {
 				throw new IllegalArgumentException("Position ["+posn+"] out of range 0.."+(size()-1));
 			}
-			else if (comp == null || comp.isEmpty()) {
-				throw new NullPointerException("Suffix to add can't be null or empty");
+			else if (Utils.checkEmptyOrNullString(comp)) {
+				throw new IllegalArgumentException("Suffix to add can't be null or empty");
 			}
 			else {
 				parts.add(posn, comp);

@@ -76,10 +76,10 @@ public class MimeType implements Serializable {
 	 * @throws IllegalArgumentException on null or empty parameters
 	 */
 	public MimeType(final String primaryType, final String subtype, final Properties attrs) throws MimeParseException, IllegalArgumentException {
-		if (primaryType == null || primaryType.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(primaryType)) {
 			throw new IllegalArgumentException("Primary MIME type can't be null or empty");
 		}
-		else if (subtype == null || subtype.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(subtype)) {
 			throw new IllegalArgumentException("Primary MIME subtype can't be null or empty");
 		}
 		else if (attrs == null) {
@@ -200,7 +200,7 @@ public class MimeType implements Serializable {
 	 * @see #parseMimeList(char[], int, int)
 	 */
 	public static MimeType[] parseMimeList(final String mimeList) throws IllegalArgumentException, MimeParseException {
-		if (mimeList == null || mimeList.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(mimeList)) {
 			throw new IllegalArgumentException("Mime list can't be null or empty");
 		}
 		else {

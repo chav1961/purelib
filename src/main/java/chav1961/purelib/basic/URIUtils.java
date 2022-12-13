@@ -131,7 +131,7 @@ public class URIUtils {
 		if (uri == null) {
 			throw new NullPointerException("URI to load data from can't be null");  
 		}
-		else if (encoding == null || encoding.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(encoding)) {
 			throw new IllegalArgumentException("Content encoding can't be null or empty string");  
 		}
 		else {
@@ -254,7 +254,7 @@ public class URIUtils {
 		if (uri == null) {
 			throw new NullPointerException("Uri to append path to can't be null");
 		}
-		else if (relativePath == null || relativePath.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(relativePath)) {
 			throw new IllegalArgumentException("Relative path Uri can't be null or empty");
 		}
 		else {
@@ -412,7 +412,7 @@ public class URIUtils {
 		if (uri == null) {
 			throw new NullPointerException("URI to test can't be null");
 		}
-		else if (scheme == null || scheme.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(scheme)) {
 			throw new IllegalArgumentException("Scheme string can'ty be null or empty");
 		}
 		else if (!uri.isAbsolute()) {
@@ -592,7 +592,7 @@ public class URIUtils {
 		if (content == null) {
 			throw new NullPointerException("Content for URI can't be null");
 		}
-		else if (charSet == null || charSet.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(charSet)) {
 			throw new IllegalArgumentException("Char set for for URI can't be null or empty");
 		}
 		else {

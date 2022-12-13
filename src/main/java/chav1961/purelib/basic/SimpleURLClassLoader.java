@@ -47,7 +47,7 @@ public class SimpleURLClassLoader extends URLClassLoader {
 	 */
 
 	public Class<?> createClass(final String className, final byte[] content) throws IllegalArgumentException {
-		if (className == null || className.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(className)) {
 			throw new IllegalArgumentException("Class name can't be null or empty");
 		}
 		else if (content == null || content.length < className.length()) {
@@ -92,7 +92,7 @@ public class SimpleURLClassLoader extends URLClassLoader {
 	 * @throws IOException when any problems during class loading and definition were detected
 	 */
 	public Class<?> createClass(final String className, final Reader content) throws NullPointerException, IllegalArgumentException, IOException {
-		if (className == null || className.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(className)) {
 			throw new IllegalArgumentException("Class name can't be null or empty");
 		}
 		else if (content == null) {

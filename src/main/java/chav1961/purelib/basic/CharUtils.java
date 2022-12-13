@@ -2572,7 +2572,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 		if (source == null) {
 			throw new NullPointerException("Source string can't be null"); 
 		}
-		else if (splitter == null || splitter.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(splitter)) {
 			throw new IllegalArgumentException("Splitter string can't be null or empty"); 
 		}
 		else if (target == null) {

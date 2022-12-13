@@ -30,19 +30,19 @@ public abstract class AbstractScriptEngineFactory implements ScriptEngineFactory
 	private final List<String> 		languageSynonyms;
 
 	protected AbstractScriptEngineFactory(final String engineName, final String engineVersion, final List<MimeType> engineMIMEs, final String language, final String languageVersion, final List<String> languageSynonyms) {
-		if (engineName == null || engineName.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(engineName)) {
 			throw new IllegalArgumentException("Engine name can't be null or empty"); 
 		}
-		else if (engineVersion == null || engineVersion.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(engineVersion)) {
 			throw new IllegalArgumentException("Engine version can't be null or empty"); 
 		}
 		else if (engineMIMEs == null || engineMIMEs.size() == 0) {
 			throw new IllegalArgumentException("Engine MIMEs can't be null or empty list"); 
 		}
-		if (language == null || language.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(language)) {
 			throw new IllegalArgumentException("Language can't be null or empty"); 
 		}
-		else if (languageVersion == null || languageVersion.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(languageVersion)) {
 			throw new IllegalArgumentException("Language version can't be null or empty"); 
 		}
 		else if (languageSynonyms == null || languageSynonyms.size() == 0) {
@@ -104,7 +104,7 @@ public abstract class AbstractScriptEngineFactory implements ScriptEngineFactory
 
 	@Override
 	public Object getParameter(final String key) throws IllegalArgumentException {
-		if (key == null || key.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(key)) {
 			throw new IllegalArgumentException("Key parameter can't be null or empty");
 		}
 		else {

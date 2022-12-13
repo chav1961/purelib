@@ -1253,6 +1253,16 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	}
 	
 	/**
+	 * <p>Check string is null or empty</p>
+	 * @param str string to check
+	 * @return true if string is null or empty
+	 * @since 0.0.6
+	 */
+	public static boolean checkEmptyOrNullString(final String str) {
+		return str == null || str.isEmpty();
+	}
+	
+	/**
 	 * <p>Throw exception (used in asm code to avoid stack manipulations for athrow)</p>
 	 * @param t throwable to throw
 	 * @throws Throwable throwable passed

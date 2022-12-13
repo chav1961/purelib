@@ -453,11 +453,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public void setAttribute(final String name, final Object value, final int scope) {
-			if (name == null) {
-				throw new NullPointerException("Attribute name can't be null");
-			}
-			else if (name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be empty");
+			if (Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Attribute name can't be null or empty");
 			}
 			else {
 				getBindings(scope).put(name,value);
@@ -466,11 +463,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public Object getAttribute(final String name, final int scope) {
-			if (name == null) {
-				throw new NullPointerException("Attribute name can't be null");
-			}
-			else if (name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be empty");
+			if (Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Attribute name can't be null or empty");
 			}
 			else {
 				return getBindings(scope).get(name);
@@ -479,11 +473,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public Object removeAttribute(final String name, final int scope) {
-			if (name == null) {
-				throw new NullPointerException("Attribute name can't be null");
-			}
-			else if (name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be empty");
+			if (Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Attribute name can't be null or empty");
 			}
 			else {
 				return getBindings(scope).remove(name);
@@ -504,11 +495,8 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 
 		@Override
 		public int getAttributesScope(final String name) {
-			if (name == null) {
-				throw new NullPointerException("Attribute name can't be null");
-			}
-			else if (name.isEmpty()) {
-				throw new IllegalArgumentException("Attribute name can't be empty");
+			if (Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Attribute name can't be null or empty");
 			}
 			else {
 				return bindings[1].containsKey(name) 

@@ -490,7 +490,7 @@ public final class PureLibSettings {
 	 * @throws IllegalArgumentException if color name is null or empty
 	 */
 	public static Color colorByName(final String name, final Color defaultColor) throws IllegalArgumentException {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Color name can't be null or empty");
 		}
 		else if (NAME2COLOR.containsKey(name)) {
@@ -536,7 +536,7 @@ public final class PureLibSettings {
 	 * @since 0.0.3
 	 */
 	public static void installHelpContent(final String helpPath, final FileSystemInterface helpContent) throws SyntaxException, NullPointerException, IllegalArgumentException, IllegalStateException, ContentException, IOException {
-		if (helpPath == null || helpPath.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(helpPath)) {
 			throw new IllegalArgumentException("Help path can't be null or empty"); 
 		}
 		else if (helpContent == null) {
@@ -586,7 +586,7 @@ public final class PureLibSettings {
 	 * @since 0.0.3
 	 */
 	public static void uninstallHelpContent(final String helpPath) throws SyntaxException, NullPointerException, IllegalArgumentException, IllegalStateException, ContentException, IOException {
-		if (helpPath == null || helpPath.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(helpPath)) {
 			throw new IllegalArgumentException("Help path can't be null or empty"); 
 		}
 		else if (!instance().containsKey(BUILTIN_HELP_PORT)) {

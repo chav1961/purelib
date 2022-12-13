@@ -61,7 +61,7 @@ public class MemorySize {
 	}
 	
 	public static MemorySize valueOf(final String value) {
-		if (value == null || value.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(value)) {
 			throw new IllegalArgumentException("Value to parse can't be null or empty");
 		}
 		else {

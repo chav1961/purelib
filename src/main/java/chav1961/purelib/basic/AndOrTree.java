@@ -109,7 +109,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public long placeName(final String name, final T cargo) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
@@ -119,7 +119,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public long placeOrChangeName(final String name, final T cargo) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
@@ -149,7 +149,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	
 	@Override
 	public long placeName(final String name, final long id, final T cargo) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
@@ -161,7 +161,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public long placeOrChangeName(final String name, final long id, final T cargo) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
@@ -173,7 +173,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	
 	@Override
 	public long seekName(final String name) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to seek can't be null or empty");
 		}
 		else {
@@ -185,7 +185,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public long seekNameI(final String name) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to seek can't be null or empty");
 		}
 		else {

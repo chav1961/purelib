@@ -235,7 +235,7 @@ public class XMLUtils {
 		if (node == null) {
 			throw new NullPointerException("Node can't be null");
 		}
-		else if (attribute == null || attribute.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(attribute)) {
 			throw new IllegalArgumentException("Attribute name can't be null or empty");
 		}
 		else if (!node.hasAttribute(attribute)) {

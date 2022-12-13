@@ -219,7 +219,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 
 	@Override
 	public LoggerFacade transaction(final String mark) {
-		if (mark == null || mark.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(mark)) {
 			throw new IllegalArgumentException("String mark ca't be null or empty");
 		}
 		else {
@@ -235,7 +235,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 
 	@Override
 	public LoggerFacade transaction(final String mark, final Class<?> root) throws NullPointerException, IllegalArgumentException {
-		if (mark == null || mark.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(mark)) {
 			throw new IllegalArgumentException("String mark can't be null or empty");
 		}
 		else if (root == null) {

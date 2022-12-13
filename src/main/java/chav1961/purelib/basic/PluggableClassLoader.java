@@ -77,10 +77,10 @@ public class PluggableClassLoader extends ClassLoader implements AutoCloseable {
     }
 
 	public void install(final String name, final String description, final FileSystemInterface content) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Plugin name can't be null"); 
 		}
-		else if (description == null || description.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(description)) {
 			throw new IllegalArgumentException("Plugin name can't be null"); 
 		}
 		else if (content == null) {
@@ -103,7 +103,7 @@ public class PluggableClassLoader extends ClassLoader implements AutoCloseable {
 	}
 
 	public void uninstall(final String name) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Plugin name can't be null"); 
 		}
 		else {
@@ -127,7 +127,7 @@ public class PluggableClassLoader extends ClassLoader implements AutoCloseable {
 	}
 
 	public boolean wasInstalled(final String name) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Plugin name can't be null"); 
 		}
 		else {
@@ -143,7 +143,7 @@ public class PluggableClassLoader extends ClassLoader implements AutoCloseable {
 	}
 	
 	public String getDescription(final String name) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Plugin name can't be null"); 
 		}
 		else {

@@ -191,7 +191,7 @@ public class ArgParser {
 		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call getValue(...) on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
-		else if (key == null || key.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(key)) {
 			throw new IllegalArgumentException("Key to get value for can't be null or empty");
 		}
 		else if (awaited == null) {
@@ -230,7 +230,7 @@ public class ArgParser {
 		if (this.pairs == null) {
 			throw new IllegalStateException("Attempt to call isTyped() on 'parent' instance. Call parse(...) method and use value returned for this purpose");
 		}
-		else if (key == null || key.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(key)) {
 			throw new IllegalArgumentException("Key to test can't be null or empty");
 		}
 		else {
@@ -267,7 +267,7 @@ public class ArgParser {
 	 * @throws IllegalArgumentException application string is null or empty
 	 */
 	public String getUsage(final String applicationName) throws IllegalArgumentException {
-		if (applicationName == null || applicationName.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(applicationName)) {
 			throw new IllegalArgumentException("Application name can't be null or empty");
 		}
 		else {
@@ -484,10 +484,10 @@ loop:	for (int index = 0; index < args.length; index++) {
 		private final boolean	isPositional;
 
 		public AbstractArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Argument name can't be null or empty");
 			}
-			else if (helpDescriptor == null || helpDescriptor.isEmpty()) {
+			else if (Utils.checkEmptyOrNullString(helpDescriptor)) {
 				throw new IllegalArgumentException("Argument help descriptor can't be null or empty");
 			}
 			else {
@@ -896,7 +896,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
@@ -1117,7 +1117,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
