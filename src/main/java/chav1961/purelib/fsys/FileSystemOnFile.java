@@ -138,7 +138,17 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 
 	@Override
 	public DataWrapperInterface createDataWrapper(final URI actualPath) throws IOException {
-		return new FileDataWrapper(multiRoot,actualPath,rootPath);
+		switch (PureLibSettings.CURRENT_OS) {
+			case LINUX		:
+				return new LinuxFileDataWrapper(multiRoot,actualPath,rootPath);
+			case MACOS		:
+				return new MacOSFileDataWrapper(multiRoot,actualPath,rootPath);
+			case WINDOWS	:
+				return new WindowsFileDataWrapper(multiRoot,actualPath,rootPath);
+			case UNKNOWN	:
+			default:
+				throw new UnsupportedOperationException("Current OS ["+PureLibSettings.CURRENT_OS+"] is not supported");
+		}
 	}
 
 	@Override
@@ -242,12 +252,12 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 		return source.lock(0, 1, sharedMode);
 	}
 	
-	private static class FileDataWrapper implements DataWrapperInterface {
+	private static class WindowsFileDataWrapper implements DataWrapperInterface {
 		private final boolean	atRoot;
 		private final boolean	atRootItem;
 		private final URI		wrapper;
 		
-		public FileDataWrapper(final boolean multiRoot, final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
+		public WindowsFileDataWrapper(final boolean multiRoot, final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
 			final RootsAndWrapper	raw = new RootsAndWrapper(multiRoot, wrapper, rootPath); 
 			
 			this.wrapper = raw.wrapper;
@@ -256,7 +266,7 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 		}
 
 		@Override
-		public OutputStream getOutputStream(boolean append) throws IOException {
+		public OutputStream getOutputStream(final boolean append) throws IOException {
 			return new FileOutputStream(getFile(),append);
 		}
 
@@ -338,7 +348,273 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 			return result;
 		}
 
-		@Override public void linkAttributes(Map<String, Object> attributes) throws IOException {}
+		@Override 
+		public void linkAttributes(final Map<String, Object> attributes) throws IOException {
+		}
+		
+		@Override
+		public void setName(final String name) throws IOException {
+			final File	oldFile = getFile(), newFile = new File(oldFile.getParent(),name);
+			
+			if (!oldFile.renameTo(newFile)) {
+				throw new IOException("Directory/file ["+wrapper+"] was not renamed");
+			}
+		}
+		
+		private File getFile() {
+			return new File(wrapper.getSchemeSpecificPart());
+		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+
+	private static class LinuxFileDataWrapper implements DataWrapperInterface {
+		private final boolean	atRoot;
+		private final boolean	atRootItem;
+		private final URI		wrapper;
+		
+		public LinuxFileDataWrapper(final boolean multiRoot, final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
+			final RootsAndWrapper	raw = new RootsAndWrapper(multiRoot, wrapper, rootPath); 
+			
+			this.wrapper = raw.wrapper;
+			this.atRoot = raw.atRoot;
+			this.atRootItem = raw.atRootItem;
+		}
+
+		@Override
+		public OutputStream getOutputStream(final boolean append) throws IOException {
+			return new FileOutputStream(getFile(),append);
+		}
+
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return new FileInputStream(getFile());
+		}
+
+		@Override
+		public URI[] list(final Pattern pattern) throws IOException {
+			if (atRoot) {
+				final File[]	roots = File.listRoots();
+				final URI[]		returned = new URI[roots.length];
+				
+				for (int index = 0; index < returned.length; index++) {
+					returned[index] = roots[index].toURI();
+				}
+				return returned;
+			}
+			else {
+				final List<URI>		result = new ArrayList<>();
+				
+				getFile().listFiles(new FileFilter(){
+						@Override
+						public boolean accept(final File pathname) {
+							if (pattern.matcher(pathname.getName()).matches()) {
+								final String uri = wrapper.relativize(pathname.toURI()).toString();
+								
+								result.add(URI.create(uri.endsWith("/") ? uri.substring(0,uri.length()-1) : uri));
+							}
+							return false;
+						}
+					}
+				);
+				
+				final URI[]			returned = result.toArray(new URI[result.size()]);
+				result.clear();
+				return returned;
+			}
+		}
+
+		@Override
+		public void mkDir() throws IOException {
+			if (!getFile().mkdirs()) {
+				throw new IOException("Directory ["+wrapper+"] was not created");
+			}
+		}
+
+		@Override
+		public void create() throws IOException {
+			try(final OutputStream os = new FileOutputStream(getFile())) {
+			}
+		}
+
+		@Override
+		public void delete() throws IOException {
+			if (!getFile().delete()) {
+				throw new IOException("Directory/file ["+wrapper+"] was not deleted");
+			}
+		}
+
+		@Override
+		public Map<String, Object> getAttributes() throws IOException {
+			final Map<String, Object>	result;
+			
+			if (atRoot) {
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+			}
+			else if (atRootItem) {
+				final File	temp = getFile();
+				
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+			}
+			else {
+				final File	temp = getFile();
+				
+				result = Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
+			}
+			return result;
+		}
+
+		@Override 
+		public void linkAttributes(final Map<String, Object> attributes) throws IOException {
+		}
+		
+		@Override
+		public void setName(final String name) throws IOException {
+			final File	oldFile = getFile(), newFile = new File(oldFile.getParent(),name);
+			
+			if (!oldFile.renameTo(newFile)) {
+				throw new IOException("Directory/file ["+wrapper+"] was not renamed");
+			}
+		}
+		
+		private File getFile() {
+			return new File(wrapper.getSchemeSpecificPart());
+		}
+
+		@Override
+		public boolean tryLock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void lock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void unlock(final String path, final boolean sharedMode) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+
+	private static class MacOSFileDataWrapper implements DataWrapperInterface {
+		private final boolean	atRoot;
+		private final boolean	atRootItem;
+		private final URI		wrapper;
+		
+		public MacOSFileDataWrapper(final boolean multiRoot, final URI wrapper, final URI rootPath) throws UnsupportedEncodingException {
+			final RootsAndWrapper	raw = new RootsAndWrapper(multiRoot, wrapper, rootPath); 
+			
+			this.wrapper = raw.wrapper;
+			this.atRoot = raw.atRoot;
+			this.atRootItem = raw.atRootItem;
+		}
+
+		@Override
+		public OutputStream getOutputStream(final boolean append) throws IOException {
+			return new FileOutputStream(getFile(),append);
+		}
+
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return new FileInputStream(getFile());
+		}
+
+		@Override
+		public URI[] list(final Pattern pattern) throws IOException {
+			if (atRoot) {
+				final File[]	roots = File.listRoots();
+				final URI[]		returned = new URI[roots.length];
+				
+				for (int index = 0; index < returned.length; index++) {
+					returned[index] = roots[index].toURI();
+				}
+				return returned;
+			}
+			else {
+				final List<URI>		result = new ArrayList<>();
+				
+				getFile().listFiles(new FileFilter(){
+						@Override
+						public boolean accept(final File pathname) {
+							if (pattern.matcher(pathname.getName()).matches()) {
+								final String uri = wrapper.relativize(pathname.toURI()).toString();
+								
+								result.add(URI.create(uri.endsWith("/") ? uri.substring(0,uri.length()-1) : uri));
+							}
+							return false;
+						}
+					}
+				);
+				
+				final URI[]			returned = result.toArray(new URI[result.size()]);
+				result.clear();
+				return returned;
+			}
+		}
+
+		@Override
+		public void mkDir() throws IOException {
+			if (!getFile().mkdirs()) {
+				throw new IOException("Directory ["+wrapper+"] was not created");
+			}
+		}
+
+		@Override
+		public void create() throws IOException {
+			try(final OutputStream os = new FileOutputStream(getFile())) {
+			}
+		}
+
+		@Override
+		public void delete() throws IOException {
+			if (!getFile().delete()) {
+				throw new IOException("Directory/file ["+wrapper+"] was not deleted");
+			}
+		}
+
+		@Override
+		public Map<String, Object> getAttributes() throws IOException {
+			final Map<String, Object>	result;
+			
+			if (atRoot) {
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+			}
+			else if (atRootItem) {
+				final File	temp = getFile();
+				
+				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+			}
+			else {
+				final File	temp = getFile();
+				
+				result = Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
+			}
+			return result;
+		}
+
+		@Override 
+		public void linkAttributes(final Map<String, Object> attributes) throws IOException {
+		}
 		
 		@Override
 		public void setName(final String name) throws IOException {
