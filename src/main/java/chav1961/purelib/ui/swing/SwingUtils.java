@@ -62,6 +62,7 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.FocusManager;
@@ -667,6 +668,9 @@ loop:			for (Component comp : children(node)) {
 						throw new IllegalArgumentException("Error creation toolbar: "+e.getLocalizedMessage(),e); 
 					}
 				}
+			}
+			else if (awaited.isAssignableFrom(Action.class)) {
+				throw new IllegalArgumentException("Unsupported awaited class ["+awaited.getCanonicalName()+"]. Only JMenuBar, JPopupMenu or JToolBar are supported"); 
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported awaited class ["+awaited.getCanonicalName()+"]. Only JMenuBar, JPopupMenu or JToolBar are supported"); 
