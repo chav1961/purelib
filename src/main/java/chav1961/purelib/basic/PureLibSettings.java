@@ -84,6 +84,12 @@ import chav1961.purelib.ui.swing.SwingUtils;
 public final class PureLibSettings {
 	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
+	
+	public static enum CurrentOsGroup {
+		WINDOWS,
+		UNIX,
+		UNKNOWN
+	}
 
 	/**
 	 * <p>This enumeration defines current OS for application</p>
@@ -91,7 +97,25 @@ public final class PureLibSettings {
 	 * @since 0.0.6
 	 */
 	public static enum CurrentOS {
-		WINDOWS, LINUX, MACOS, UNKNOWN
+		WINDOWS(CurrentOsGroup.WINDOWS),
+		OS2(CurrentOsGroup.WINDOWS),
+		OSX(CurrentOsGroup.UNIX),
+		BSD(CurrentOsGroup.UNIX),
+		OPEN_VMS(CurrentOsGroup.UNIX),
+		SUN_OS(CurrentOsGroup.UNIX),
+		LINUX(CurrentOsGroup.UNIX), 
+		MACOS(CurrentOsGroup.UNIX), 
+		UNKNOWN(CurrentOsGroup.UNKNOWN);
+		
+		private final CurrentOsGroup	group;
+		
+		private CurrentOS(final CurrentOsGroup group) {
+			this.group = group;
+		}
+		
+		public CurrentOsGroup getGroup() {
+			return group;
+		}
 	}
 
 	public static final CurrentOS	CURRENT_OS;
@@ -452,16 +476,48 @@ public final class PureLibSettings {
 		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
 		DEFAULT_COLOR_SCHEME = new ColorScheme();
 		
-		final String	osName = System.getProperty("os.name").toUpperCase();
+		final String	osName = System.getProperty("os.name","unknown").toUpperCase();
+        boolean 		windows = osName != null && osName.toLowerCase().indexOf("windows") >= 0;
+        
+        final boolean 	isOS2;
+        
+        if (!windows) {
+            windows = osName.indexOf("OS/2") >= 0;
+            isOS2 = windows;
+        } else {
+            isOS2 = false;
+        }
+        final boolean 	isWindows = windows;
+        final boolean 	isOSX = !isWindows && osName.indexOf("MAC OS X") >= 0;
+        final boolean 	isLinux = !isWindows && osName.indexOf("LINUX") >= 0;
+        final boolean 	isBSD = !isWindows && !isLinux && osName.indexOf("BSD") >= 0;
+        final boolean 	isOpenVMS = !isWindows && !isOSX && !isBSD && osName.indexOf("OPENVMS") >= 0;
+        final boolean 	isSunOS = !isWindows && !isOSX && !isBSD && !isOpenVMS && osName.indexOf("SUNOS") >= 0;
+        final boolean 	isMacOS = !isWindows && !isOSX && !isBSD && !isOpenVMS && !isSunOS && (osName.indexOf("MAC") >= 0 || osName.indexOf("DARWIN") >= 0);
 		
-		if (osName.contains("MAC") || osName.contains("DARWIN")) {
-			CURRENT_OS = CurrentOS.MACOS; 
+		if (isOS2) {
+			CURRENT_OS = CurrentOS.OS2; 
 		}
-		else if (osName.contains("WINDOWS")) {
+		else if (isWindows) {
 			CURRENT_OS = CurrentOS.WINDOWS; 
 		}
-		else if (osName.contains("NUX")) {
+		else if (isOSX) {
+			CURRENT_OS = CurrentOS.OSX; 
+		}
+		else if (isLinux) {
 			CURRENT_OS = CurrentOS.LINUX; 
+		}
+		else if (isBSD) {
+			CURRENT_OS = CurrentOS.BSD; 
+		}
+		else if (isOpenVMS) {
+			CURRENT_OS = CurrentOS.OPEN_VMS; 
+		}
+		else if (isSunOS) {
+			CURRENT_OS = CurrentOS.SUN_OS; 
+		}
+		else if (isMacOS) {
+			CURRENT_OS = CurrentOS.MACOS; 
 		}
 		else {
 			CURRENT_OS = CurrentOS.UNKNOWN; 
