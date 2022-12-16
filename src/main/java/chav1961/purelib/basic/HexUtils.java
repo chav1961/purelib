@@ -1,0 +1,72 @@
+package chav1961.purelib.basic;
+
+public class HexUtils {
+	private static final char[]	HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+	
+    public static final char[] encode(final byte[] bytes) {
+    	if (bytes == null) {
+    		throw new NullPointerException("Array to encode can't be null");
+    	}
+    	else {
+    		final char[]	result = new char[2 * bytes.length];
+    		int				index = 0;
+    		
+    		for (int item : bytes) {
+    			result[index++] = HEX_DIGITS[item >> 8];
+    			result[index++] = HEX_DIGITS[item & 0x0F];
+    		}
+    		return result;
+    	}
+    }
+
+    public static final byte[] decode(final char[] str) {
+    	if (str == null) {
+    		throw new NullPointerException("Array to decode can't be null");
+    	}
+    	else {
+    		final byte[]	result = new byte[(str.length + 1) >> 1];
+    		int				from = 0, to = 0, toMax = result.length;
+    		
+    		if ((str.length & 0x01) != 0) {
+    			result[to++] = (byte)fromHex(str[from++]);
+    		}
+    		while (to < toMax) {
+    			result[to++] = (byte)((fromHex(str[from++]) << 4) | fromHex(str[from++])); 
+    		}
+    		return result;
+    	}
+    }    
+    
+    public static final byte[] decode(final CharSequence str) {
+    	if (str == null) {
+    		throw new NullPointerException("Array to decode can't be null");
+    	}
+    	else {
+    		final byte[]	result = new byte[(str.length() + 1) >> 1];
+    		int				from = 0, to = 0, toMax = result.length;
+    		
+    		if ((str.length() & 0x01) != 0) {
+    			result[to++] = (byte)fromHex(str.charAt(from++));
+    		}
+    		while (to < toMax) {
+    			result[to++] = (byte)((fromHex(str.charAt(from++)) << 4) | fromHex(str.charAt(from++))); 
+    		}
+    		return result;
+    	}
+    }
+
+    private static int fromHex(char hexDigit) {
+    	if (hexDigit >= '0' && hexDigit <= '9') {
+    		return hexDigit - '0';
+    	}
+    	else if (hexDigit >= 'A' && hexDigit <= 'F') {
+    		return hexDigit - 'A' + 10;
+    	}
+    	else if (hexDigit >= 'a' && hexDigit <= 'f') {
+    		return hexDigit - 'a' + 10;
+    	}
+    	else {
+    		throw new IllegalArgumentException("Wring hex digit representation ["+hexDigit+"], content=[0x"+Integer.toHexString(hexDigit)+"]");
+    	}
+    }
+}
