@@ -149,7 +149,7 @@ public class ScriptEngineTest {
 
 		try{engine.getContext().getAttribute(null,ScriptContext.GLOBAL_SCOPE);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{engine.getContext().getAttribute("",ScriptContext.GLOBAL_SCOPE);
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
@@ -162,7 +162,7 @@ public class ScriptEngineTest {
 
 		try{engine.getContext().setAttribute(null,"test",ScriptContext.GLOBAL_SCOPE);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{engine.getContext().setAttribute("","test",ScriptContext.GLOBAL_SCOPE);
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
@@ -175,7 +175,7 @@ public class ScriptEngineTest {
 		
 		try{engine.getContext().removeAttribute(null,ScriptContext.GLOBAL_SCOPE);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{engine.getContext().removeAttribute("",ScriptContext.GLOBAL_SCOPE);
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
@@ -194,7 +194,7 @@ public class ScriptEngineTest {
 
 		try{engine.getContext().getAttribute(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{engine.getContext().getAttribute("");
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
@@ -203,7 +203,7 @@ public class ScriptEngineTest {
 		
 		try{engine.getContext().getAttributesScope(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{engine.getContext().getAttributesScope("");
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
@@ -216,7 +216,7 @@ public class ScriptEngineTest {
 
 		try{engine.get(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{engine.get("");
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
@@ -225,7 +225,7 @@ public class ScriptEngineTest {
 
 		try{engine.put(null,"test");
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{engine.put("","test");
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
