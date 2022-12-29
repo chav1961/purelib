@@ -192,6 +192,352 @@ public class UtilsTest {
 	}
 
 	@Test
+	public void fillArrayTest() {
+		// test byte
+		
+		byte[]	byteContent = new byte[0];
+		Utils.fillArray(byteContent, (byte)1);
+		
+		byteContent = new byte[32];
+		Utils.fillArray(byteContent, (byte)1);
+		Assert.assertEquals((byte)1, byteContent[31]);
+
+		byteContent = new byte[33];
+		Utils.fillArray(byteContent, (byte)1);
+		Assert.assertEquals((byte)1, byteContent[32]);
+
+		byteContent = new byte[63];
+		Utils.fillArray(byteContent, (byte)1);
+		Assert.assertEquals((byte)1, byteContent[62]);
+		
+		byteContent = new byte[64];
+		Utils.fillArray(byteContent, (byte)1);
+		Assert.assertEquals((byte)1, byteContent[63]);
+
+		byteContent = new byte[65];
+		Utils.fillArray(byteContent, (byte)1);
+		Assert.assertEquals((byte)1, byteContent[64]);
+
+		byteContent = new byte[127];
+		Utils.fillArray(byteContent, (byte)1);
+		Assert.assertEquals((byte)1, byteContent[126]);
+		
+		byteContent = new byte[129];
+		Utils.fillArray(byteContent, (byte)1);
+		Assert.assertEquals((byte)1, byteContent[128]);
+		
+		try{Utils.fillArray((byte[])null, (byte)1);
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		// test short
+		
+		short[]	shortContent = new short[0];
+		Utils.fillArray(shortContent, (short)1);
+		
+		shortContent = new short[32];
+		Utils.fillArray(shortContent, (short)1);
+		Assert.assertEquals((short)1, shortContent[31]);
+
+		shortContent = new short[33];
+		Utils.fillArray(shortContent, (short)1);
+		Assert.assertEquals((short)1, shortContent[32]);
+
+		shortContent = new short[63];
+		Utils.fillArray(shortContent, (short)1);
+		Assert.assertEquals((short)1, shortContent[62]);
+		
+		shortContent = new short[64];
+		Utils.fillArray(shortContent, (short)1);
+		Assert.assertEquals((short)1, shortContent[63]);
+
+		shortContent = new short[65];
+		Utils.fillArray(shortContent, (short)1);
+		Assert.assertEquals((short)1, shortContent[64]);
+
+		shortContent = new short[127];
+		Utils.fillArray(shortContent, (short)1);
+		Assert.assertEquals((short)1, shortContent[126]);
+		
+		shortContent = new short[129];
+		Utils.fillArray(shortContent, (short)1);
+		Assert.assertEquals((short)1, shortContent[128]);
+		
+		try{Utils.fillArray((short[])null, (short)1);
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		// test int
+		
+		int[]	intContent = new int[0];
+		Utils.fillArray(intContent, 1);
+		
+		intContent = new int[32];
+		Utils.fillArray(intContent, 1);
+		Assert.assertEquals(1, intContent[31]);
+
+		intContent = new int[33];
+		Utils.fillArray(intContent, 1);
+		Assert.assertEquals(1, intContent[32]);
+
+		intContent = new int[63];
+		Utils.fillArray(intContent, 1);
+		Assert.assertEquals(1, intContent[62]);
+		
+		intContent = new int[64];
+		Utils.fillArray(intContent, 1);
+		Assert.assertEquals(1, intContent[63]);
+
+		intContent = new int[65];
+		Utils.fillArray(intContent, 1);
+		Assert.assertEquals(1, intContent[64]);
+
+		intContent = new int[127];
+		Utils.fillArray(intContent, 1);
+		Assert.assertEquals(1, intContent[126]);
+		
+		intContent = new int[129];
+		Utils.fillArray(intContent, 1);
+		Assert.assertEquals(1, intContent[128]);
+		
+		try{Utils.fillArray((int[])null, 1);
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		// test long
+		
+		long[]	longContent = new long[0];
+		Utils.fillArray(longContent, 1);
+		
+		longContent = new long[32];
+		Utils.fillArray(longContent, 1);
+		Assert.assertEquals(1, longContent[31]);
+
+		longContent = new long[33];
+		Utils.fillArray(longContent, 1);
+		Assert.assertEquals(1, longContent[32]);
+
+		longContent = new long[63];
+		Utils.fillArray(longContent, 1);
+		Assert.assertEquals(1, longContent[62]);
+		
+		longContent = new long[64];
+		Utils.fillArray(longContent, 1);
+		Assert.assertEquals(1, longContent[63]);
+
+		longContent = new long[65];
+		Utils.fillArray(longContent, 1);
+		Assert.assertEquals(1, longContent[64]);
+
+		longContent = new long[127];
+		Utils.fillArray(longContent, 1);
+		Assert.assertEquals(1, longContent[126]);
+		
+		longContent = new long[129];
+		Utils.fillArray(longContent, 1);
+		Assert.assertEquals(1, longContent[128]);
+		
+		try{Utils.fillArray((long[])null, 1);
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		// test float
+		
+		float[]	floatContent = new float[0];
+		Utils.fillArray(floatContent, 1);
+		
+		floatContent = new float[32];
+		Utils.fillArray(floatContent, 1f);
+		Assert.assertEquals(1f, floatContent[31], 0.0001f);
+
+		floatContent = new float[33];
+		Utils.fillArray(floatContent, 1f);
+		Assert.assertEquals(1f, floatContent[32], 0.0001f);
+
+		floatContent = new float[63];
+		Utils.fillArray(floatContent, 1f);
+		Assert.assertEquals(1f, floatContent[62], 0.0001f);
+		
+		floatContent = new float[64];
+		Utils.fillArray(floatContent, 1f);
+		Assert.assertEquals(1f, floatContent[63], 0.0001f);
+
+		floatContent = new float[65];
+		Utils.fillArray(floatContent, 1f);
+		Assert.assertEquals(1f, floatContent[64], 0.0001f);
+
+		floatContent = new float[127];
+		Utils.fillArray(floatContent, 1f);
+		Assert.assertEquals(1f, floatContent[126], 0.0001f);
+		
+		floatContent = new float[129];
+		Utils.fillArray(floatContent, 1f);
+		Assert.assertEquals(1f, floatContent[128], 0.0001f);
+		
+		try{Utils.fillArray((float[])null, 1f);
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		// test double
+		
+		double[]	doubleContent = new double[0];
+		Utils.fillArray(doubleContent, 1);
+		
+		doubleContent = new double[32];
+		Utils.fillArray(doubleContent, 1);
+		Assert.assertEquals(1, doubleContent[31], 0.0001);
+
+		doubleContent = new double[33];
+		Utils.fillArray(doubleContent, 1);
+		Assert.assertEquals(1, doubleContent[32], 0.0001);
+
+		doubleContent = new double[63];
+		Utils.fillArray(doubleContent, 1);
+		Assert.assertEquals(1, doubleContent[62], 0.0001);
+		
+		doubleContent = new double[64];
+		Utils.fillArray(doubleContent, 1);
+		Assert.assertEquals(1, doubleContent[63], 0.0001);
+
+		doubleContent = new double[65];
+		Utils.fillArray(doubleContent, 1);
+		Assert.assertEquals(1, doubleContent[64], 0.0001);
+
+		doubleContent = new double[127];
+		Utils.fillArray(doubleContent, 1);
+		Assert.assertEquals(1, doubleContent[126], 0.0001);
+		
+		doubleContent = new double[129];
+		Utils.fillArray(doubleContent, 1);
+		Assert.assertEquals(1, doubleContent[128], 0.0001);
+		
+		try{Utils.fillArray((double[])null, 1f);
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		// test char
+		
+		char[]	charContent = new char[0];
+		Utils.fillArray(charContent, '1');
+		
+		charContent = new char[32];
+		Utils.fillArray(charContent, '1');
+		Assert.assertEquals('1', charContent[31]);
+
+		charContent = new char[33];
+		Utils.fillArray(charContent, '1');
+		Assert.assertEquals('1', charContent[32]);
+
+		charContent = new char[63];
+		Utils.fillArray(charContent, '1');
+		Assert.assertEquals('1', charContent[62]);
+		
+		charContent = new char[64];
+		Utils.fillArray(charContent, '1');
+		Assert.assertEquals('1', charContent[63]);
+
+		charContent = new char[65];
+		Utils.fillArray(charContent, '1');
+		Assert.assertEquals('1', charContent[64]);
+
+		charContent = new char[127];
+		Utils.fillArray(charContent, '1');
+		Assert.assertEquals('1', charContent[126]);
+		
+		charContent = new char[129];
+		Utils.fillArray(charContent, '1');
+		Assert.assertEquals('1', charContent[128]);
+		
+		try{Utils.fillArray((char[])null, '1');
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+
+		// test boolean
+		
+		boolean[]	booleanContent = new boolean[0];
+		Utils.fillArray(booleanContent, true);
+		
+		booleanContent = new boolean[32];
+		Utils.fillArray(booleanContent, true);
+		Assert.assertEquals(true, booleanContent[31]);
+
+		booleanContent = new boolean[33];
+		Utils.fillArray(booleanContent, true);
+		Assert.assertEquals(true, booleanContent[32]);
+
+		booleanContent = new boolean[63];
+		Utils.fillArray(booleanContent, true);
+		Assert.assertEquals(true, booleanContent[62]);
+		
+		booleanContent = new boolean[64];
+		Utils.fillArray(booleanContent, true);
+		Assert.assertEquals(true, booleanContent[63]);
+
+		booleanContent = new boolean[65];
+		Utils.fillArray(booleanContent, true);
+		Assert.assertEquals(true, booleanContent[64]);
+
+		booleanContent = new boolean[127];
+		Utils.fillArray(booleanContent, true);
+		Assert.assertEquals(true, booleanContent[126]);
+		
+		booleanContent = new boolean[129];
+		Utils.fillArray(booleanContent, true);
+		Assert.assertEquals(true, booleanContent[128]);
+		
+		try{Utils.fillArray((boolean[])null, true);
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		// test T
+		
+		String[]	stringContent = new String[0];
+		Utils.fillArray(stringContent, "1");
+		
+		stringContent = new String[32];
+		Utils.fillArray(stringContent, "1");
+		Assert.assertEquals("1", stringContent[31]);
+
+		stringContent = new String[33];
+		Utils.fillArray(stringContent, "1");
+		Assert.assertEquals("1", stringContent[32]);
+
+		stringContent = new String[63];
+		Utils.fillArray(stringContent, "1");
+		Assert.assertEquals("1", stringContent[62]);
+		
+		stringContent = new String[64];
+		Utils.fillArray(stringContent, "1");
+		Assert.assertEquals("1", stringContent[63]);
+
+		stringContent = new String[65];
+		Utils.fillArray(stringContent, "1");
+		Assert.assertEquals("1", stringContent[64]);
+
+		stringContent = new String[127];
+		Utils.fillArray(stringContent, "1");
+		Assert.assertEquals("1", stringContent[126]);
+		
+		stringContent = new String[129];
+		Utils.fillArray(stringContent, "1");
+		Assert.assertEquals("1", stringContent[128]);
+		
+		try{Utils.fillArray((String[])null, "1");
+			Assert.fail("MAndatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+	}
+	
+	@Test
 	public void extractValuesTest() throws IOException {
 		Assert.assertEquals(100L,Utils.extractLongValue(Long.valueOf(100)));
 		

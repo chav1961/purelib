@@ -110,7 +110,7 @@ public class Utils {
 	private static final AtomicInteger		AI = new AtomicInteger();
 	private static final AsmWriter			ASM_WRITER;
 	private static final Map<String,String>	HARDCODED_MIMES = new HashMap<>();
-	
+	private static final int				FILL_ARRAY_BOUND = 32; 
 	
 	static {
 		ASM_WRITER = prepareStatic();
@@ -784,6 +784,340 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final byte[] content, final byte value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final short[] content, final short value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final int[] content, final int value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final long[] content, final long value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final float[] content, final float value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final double[] content, final double value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final char[] content, final char value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static void fillArray(final boolean[] content, final boolean value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Quick fill array content with the given value.</p>
+	 * @param <T> any referenced type
+	 * @param content content to fill
+	 * @param value value to fill
+	 * @since 0.0.6
+	 */
+	public static <T> void fillArray(final T[] content, final T value) {
+		final int 	len;
+		
+		if (content == null) {
+			throw new NullPointerException("Content array can't be null"); 
+		}
+		else if ((len = content.length) > 0) {
+			for(int index = 0, maxIndex = Math.min(FILL_ARRAY_BOUND, len); index < maxIndex; index++) {
+				content[index] = value;
+			}
+			
+			if (len > FILL_ARRAY_BOUND) {	// Copy 2N content on each step 
+				int	step = FILL_ARRAY_BOUND, loopCount = 0;
+				
+				for(int index = 0; index < 31/*size of integer*/; index++, loopCount++, step <<= 1) {
+					if (step > len) {
+						break;
+					}
+				}
+				
+				step = FILL_ARRAY_BOUND;
+				for(int index = 0; index < loopCount - 1; index++, step <<= 1) {
+					System.arraycopy(content, 0, content, step, step);
+				}
+				if (len > step) {
+					System.arraycopy(content, 0, content, step, len-step);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * <p>Define wrapper class for the primitive type</p>
 	 * @param clazz class to define wrapper for
