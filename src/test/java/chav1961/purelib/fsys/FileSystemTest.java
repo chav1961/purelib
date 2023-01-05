@@ -13,7 +13,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URL;
 import java.rmi.registry.Registry;
 import java.rmi.server.ExportException;
 import java.util.Arrays;
