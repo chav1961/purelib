@@ -51,7 +51,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FontStyleType;
  *   	Font font = fontChooser.getSelectedFont(); 
  *   	System.out.println("Selected Font : " + font); 
  *   }
- * <pre>
+ * </pre>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
  **/

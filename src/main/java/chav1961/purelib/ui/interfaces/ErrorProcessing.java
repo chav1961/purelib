@@ -9,7 +9,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
  * @param <ErrorType> type of the errors can be detected on the wizard execution stages
  * @author chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 @FunctionalInterface
 public interface ErrorProcessing<Common, ErrorType extends Enum<?>> {

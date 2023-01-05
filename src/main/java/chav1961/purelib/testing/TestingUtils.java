@@ -25,7 +25,7 @@ import chav1961.purelib.basic.exceptions.DebuggingException;
  * <p>This class is used in JUnit tests.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class TestingUtils {
 	public static PrintStream err() {

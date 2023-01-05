@@ -17,7 +17,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
  * @author Alexander Chernomyrdin aka chav1961
  * @see JOptionPane
  * @since 0.0.4
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class JLocalizedOptionPane implements LocaleChangeListener {
 	private static final String	LOCALIZED_PANE_YES = "JLocalizedOptionPane.yesButton";

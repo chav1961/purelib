@@ -19,7 +19,7 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * @see Serializable
  * @see JsonSerializable
  * @since 0.0.5
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class ColorPair implements Serializable, JsonSerializable<ColorPair> {
 	private static final long serialVersionUID = 869188177438346062L;

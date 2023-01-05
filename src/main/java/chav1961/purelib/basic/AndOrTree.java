@@ -53,7 +53,7 @@ import chav1961.purelib.basic.intern.UnsafedUtils;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @last.update 0.0.2
  */
 public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	private static final int	TYPE_OR = 0; 

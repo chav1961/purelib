@@ -53,7 +53,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @param <ErrorType> type of errors on wizard steps
  * @param <Content> content for showing on wizard steps
  * @since 0.0.4
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener, LoggerFacadeOwner {
 	public static enum Option {

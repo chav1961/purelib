@@ -16,7 +16,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 	private static final int					RANGE_STEP = 64;

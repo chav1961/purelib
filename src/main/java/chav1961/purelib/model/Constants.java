@@ -7,7 +7,7 @@ import java.util.Set;
  * <p>This class contains a set of well-known constants for the model entities</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public class Constants {

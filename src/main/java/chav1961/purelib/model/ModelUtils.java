@@ -56,7 +56,7 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * @see chav1961.purelib.model.interfaces
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 public class ModelUtils {
 	public static final String			JSON_METADATA_VERSION = "version";

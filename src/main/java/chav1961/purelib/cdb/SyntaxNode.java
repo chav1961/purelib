@@ -15,7 +15,7 @@ import java.util.Arrays;
  * <p>It's strongly recommended to use these fields as described above</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  * @param <Type> any enumeration to mark node types
  * @param <Clazz> types of parent and child syntax tree nodes. Usually are {@linkplain SyntaxNode} or it's children reference 
  */

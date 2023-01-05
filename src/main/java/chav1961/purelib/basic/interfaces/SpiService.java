@@ -6,8 +6,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 /**
  * <p>This interface describes any SPI member. Every purelib SPI implementation <i>must</i> implements this interface (see META-INF/services for details)</p>
- * @param Type any type of the SPI service
- *
+ * @param <Type> any type of the SPI service
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  */

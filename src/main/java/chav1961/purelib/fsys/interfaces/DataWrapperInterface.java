@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  *   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 
 public interface DataWrapperInterface extends FileSystemLockInterface {

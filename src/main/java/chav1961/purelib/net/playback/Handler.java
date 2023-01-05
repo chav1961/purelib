@@ -5,6 +5,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+import chav1961.purelib.net.capture.CaptureHandlerProvider;
+
 /**
  * <p>This class is  handler to support "playback" schema URL. Format of playback URL is:</p>
  * <code><b>playback://</b>&lt;device&gt;?&lt;parameters&gt;</code>

@@ -47,7 +47,7 @@ import chav1961.purelib.streams.StreamsUtil;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 
 public abstract class AbstractLocalizer implements Localizer {

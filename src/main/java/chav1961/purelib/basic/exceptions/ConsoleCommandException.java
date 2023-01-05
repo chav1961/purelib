@@ -6,7 +6,7 @@ package chav1961.purelib.basic.exceptions;
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 public class ConsoleCommandException extends ContentException {
 	private static final long serialVersionUID = 8876250986756751250L;

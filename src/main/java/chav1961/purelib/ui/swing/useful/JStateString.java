@@ -79,7 +79,7 @@ import chav1961.purelib.ui.swing.interfaces.FunctionalMouseListener.EventType;
  * @see ProgressIndicator
  * @see JTextPaneHighlighter
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 
 public class JStateString extends JPanel implements LoggerFacade, ProgressIndicator, LocaleChangeListener {

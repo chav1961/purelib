@@ -82,20 +82,21 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * </ul>
  * <p>If number of fields in the form is too long, you can split form to a set of two-column pairs (named <i>bars</i>). Fields of the class to show must be annotated at least with {@linkplain LocaleResource} annotations. These annotations are source for the field labels and field tooltips 
  * in the form to build. Form can also contains a set of buttons to process actions on it. These buttons are not represents as fields in the class to show, but as 
- * {@linkplain Action} annotation before class description. Any user actions on the form fire {@linkplain FormManager#onField(Object, Object, String, Object)} or
- * {@linkplain FormManager#onAction(Object, Object, String, Object)} calls on the {@linkplain FormManager} interface. To simplify code, it's recommended that class to show
+ * {@linkplain Action} annotation before class description. Any user actions on the form fire {@linkplain FormManager#onField(Object, Object, String, Object, boolean)} or
+ * {@linkplain FormManager#onAction(Object, Object, String, Object, boolean)} calls on the {@linkplain FormManager} interface. To simplify code, it's recommended that class to show
  * also implements {@linkplain FormManager} interface itself.</p>
  * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and similar). You must close this form yourself, if required</p> 
  * @param <T> Instance to build form for
  * @param <K> Primary key for instance, if exists, otherwise {@linkplain Object}
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener, AutoCloseable, JComponentMonitor, ModuleExporter, LoggerFacadeOwner {
 	private static final long 				serialVersionUID = 4920624779261769348L;
 	private static final Module[]			EMPTY_MODULES = new Module[0];
+
 	
 	public static final String				DEFAULT_OK_BUTTON_NAME = "ask.accept";
 	public static final String				DEFAULT_CANCEL_BUTTON_NAME = "ask.cancel";

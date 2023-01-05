@@ -36,7 +36,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  *    
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
@@ -53,7 +53,7 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 *
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public enum Severity {
 		tooltip, trace, debug, info, note, warning, error, severe
@@ -90,7 +90,7 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 *
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	@FunctionalInterface
 	public interface LoggerCallbackInterface {

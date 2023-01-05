@@ -18,7 +18,7 @@ import javax.script.ScriptEngineFactory;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 
 public abstract class AbstractScriptEngineFactory implements ScriptEngineFactory {

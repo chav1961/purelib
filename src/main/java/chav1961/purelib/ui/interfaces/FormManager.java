@@ -15,7 +15,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
  * </ul>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 
 public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>, FieldFormManager<Id,Instance>, ActionFormManager<Id,Instance>, LoggerFacadeOwner {

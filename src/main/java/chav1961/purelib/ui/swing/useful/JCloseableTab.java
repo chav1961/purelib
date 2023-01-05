@@ -34,7 +34,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * If tab removed implements {@linkplain AutoCloseable} interface, the {@linkplain AutoCloseable#close()} method will be called at removing.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpate 0.0.6
+ * @last.update 0.0.6
  */
 public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	private static final long 	serialVersionUID = -5601021193645267745L;

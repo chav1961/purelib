@@ -8,7 +8,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
  * @see chav1961.purelib.streams.charsource
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.2
+ * @last.update 0.0.2
  *
  */
 public interface CharacterSource {

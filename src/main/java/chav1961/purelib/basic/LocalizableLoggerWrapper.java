@@ -13,7 +13,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * instance. It has a {@linkplain Localizer} associated with it, and always tries to transalate all format strings in the messages with the localizer.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class LocalizableLoggerWrapper implements LoggerFacade {
 	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":i18n:/");

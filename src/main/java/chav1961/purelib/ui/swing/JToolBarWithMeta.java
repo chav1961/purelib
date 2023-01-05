@@ -27,10 +27,10 @@ import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
 
 
 /**
- * <p>This class is a model-driven toolbar. The base model for toolbar is a menu model.<p>
+ * <p>This class is a model-driven toolbar. The base model for toolbar is a menu model.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = 366031204608808220L;

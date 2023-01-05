@@ -30,14 +30,14 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @author Alexander Chernomyrdin aka chav1961
  * @see DnDInterface
  * @since 0.0.4
- * @lastUpate 0.0.5
+ * @last.update 0.0.5
  */
 public class DnDManager implements AutoCloseable {
 	/**
 	 * <p>This anumerations describes current Drag&amp;drop mode in the swing container.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.4
-	 * @lastUpate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	public static enum DnDMode {
 		NONE(DnDConstants.ACTION_NONE, null, null), 

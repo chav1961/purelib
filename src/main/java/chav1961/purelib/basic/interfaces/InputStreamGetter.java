@@ -7,7 +7,7 @@ import java.io.InputStream;
  * <p>This interface produces input stream to get content of the manipulated entity on saving</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 @FunctionalInterface
 public interface InputStreamGetter {

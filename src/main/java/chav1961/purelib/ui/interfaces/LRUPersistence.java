@@ -11,7 +11,7 @@ import chav1961.purelib.ui.swing.useful.JFileContentManipulator;
  * <p>This interface describes persistence fotr LRU list in the content manupulator</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public interface LRUPersistence {
 	/**

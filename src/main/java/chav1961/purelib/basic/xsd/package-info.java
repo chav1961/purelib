@@ -12,6 +12,6 @@
  * <p>To get access to the XML schemes, you can use {@linkplain XSDConst} class as an anchor to them (see the class description for details)</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 package chav1961.purelib.basic.xsd;

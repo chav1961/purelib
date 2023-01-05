@@ -77,7 +77,7 @@ import chav1961.purelib.ui.interfaces.WizardStep.StepType;
  * @see WizardStep
  * @see chav1961.purelib.streams JUnit tests
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public class SimpleWizard<Common, ErrorType extends Enum<?>> extends JDialog implements AutoCloseable, ErrorProcessing<Common,ErrorType> {
 	private static final long 							serialVersionUID = 750522918265155456L;

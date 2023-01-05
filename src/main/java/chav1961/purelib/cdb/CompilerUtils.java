@@ -34,7 +34,7 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public class CompilerUtils {

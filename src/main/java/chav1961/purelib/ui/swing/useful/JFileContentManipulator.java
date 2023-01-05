@@ -53,7 +53,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangedEvent;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class JFileContentManipulator implements Closeable, LocaleChangeListener, LocalizerOwner {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";

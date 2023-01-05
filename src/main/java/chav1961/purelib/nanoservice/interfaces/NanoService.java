@@ -26,7 +26,7 @@ import chav1961.purelib.nanoservice.NanoServiceFactory;
  * @see NanoServiceFactory
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public interface NanoService extends ExecutionControl {
 	@Override

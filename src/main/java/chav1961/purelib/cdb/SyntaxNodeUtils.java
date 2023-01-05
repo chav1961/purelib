@@ -16,7 +16,7 @@ import chav1961.purelib.enumerations.NodeEnterMode;
  * @author Alexander Chernomyrdin aka chav1961
  * @see SyntaxNode
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class SyntaxNodeUtils {
 	private SyntaxNodeUtils() {}
@@ -26,9 +26,8 @@ public class SyntaxNodeUtils {
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @see SyntaxNode
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 * @param <Type> node type
-	 * @param <Clazz> node class (usually {@linkplain SyntaxNode}
 	 */
 	@FunctionalInterface
 	public interface WalkCallback<Type extends Enum<?>> {

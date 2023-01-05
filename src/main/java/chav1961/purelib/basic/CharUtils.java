@@ -122,7 +122,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public class CharUtils {
@@ -1302,7 +1302,7 @@ loop:		for (index = from; index < len; index++) {
 	 * <p>This enumeration is used to describe template for extracting content from character array with lexemas.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public enum ArgumentType {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, Boolean,
@@ -1336,7 +1336,7 @@ loop:		for (index = from; index < len; index++) {
 	}
 
 	/**
-	 * <p>This class is used to describe template for extracting content from character array with lexemas. It contains one or more <i>choises<i> (each with sequence of lexemas)</p>
+	 * <p>This class is used to describe template for extracting content from character array with lexemas. It contains one or more <i>choises</i> (each with sequence of lexemas)</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.6
 	 */
@@ -2209,7 +2209,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * The only functionality it must support is get appropriative string value for string key requested.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	@FunctionalInterface
 	public interface SubstitutionSource {
@@ -2273,7 +2273,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * The only functionality it must support is get appropriative char array value for char array key requested.</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	@FunctionalInterface
 	public interface CharSubstitutionSource {

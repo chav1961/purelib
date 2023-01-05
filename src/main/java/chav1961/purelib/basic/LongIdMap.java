@@ -15,7 +15,7 @@ import chav1961.purelib.basic.interfaces.LongIdTreeInterface;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	private static final int	RANGE_STEP = 64;

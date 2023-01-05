@@ -30,7 +30,7 @@ import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 
 public class LineByLineProcessor implements Closeable, Flushable {

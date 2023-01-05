@@ -13,7 +13,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @author Alexander Chernomyrdin aka chav1961
  * @see <a href="https://tools.ietf.org/pdf/rfc2045.pdf">RFC 2045</a>
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class MimeType implements Serializable {
 	private static final long 		serialVersionUID = -4429376900886702159L;	

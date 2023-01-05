@@ -64,7 +64,7 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
  * <p>THis class is a factory for most model sources. It can load models from external sources or build models by existent entities.</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public class ContentModelFactory {
 	private static final String			NAMESPACE_PREFIX = "app";

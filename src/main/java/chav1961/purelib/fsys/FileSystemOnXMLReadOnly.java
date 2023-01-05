@@ -61,7 +61,7 @@ import chav1961.purelib.i18n.PureLibLocalizer;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 
 public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileSystemInterfaceDescriptor {

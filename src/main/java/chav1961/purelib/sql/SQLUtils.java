@@ -57,7 +57,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
  * @see ContentMetadataInterface.ContentNodeMetadata
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class SQLUtils {
 	public static final int							UNKNOWN_TYPE = 666;

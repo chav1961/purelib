@@ -4,7 +4,7 @@ package chav1961.purelib.streams.interfaces;
  * <p>This enumeration describes types of JSON lexemas in the input stream</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2 
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 public enum JsonStaxParserLexType {
 	START_OBJECT,	// { 

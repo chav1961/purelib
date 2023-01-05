@@ -7,7 +7,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see chav1961.purelib.basic.xsd
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 
 public enum XSDCollection {

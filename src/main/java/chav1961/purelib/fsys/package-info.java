@@ -9,7 +9,6 @@
  * <ul>
  * <li>{@link chav1961.purelib.fsys.FileSystemOnFile} - the usual file system</li>
  * <li>{@link chav1961.purelib.fsys.FileSystemOnFileSystem} - file system based on Java 1.7 and later standard file systems mechanism</li>
- * <li>{@link chav1961.purelib.fsys.FileSystemOnCsvDb} - file system provided access to database content in the CSV format via JDBC protocol</li>
  * <li>{@link chav1961.purelib.fsys.FileSystemOnXMLReadOnly} - read-only file system based on XML</li>
  * <li>{@link chav1961.purelib.fsys.FileSystemInMemory} - file system in the RAM</li>
  * </ul>
@@ -17,7 +16,7 @@
  * 
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.1, last change at 0.0.2
- *
+ * @since 0.0.1 
+ * @last.update 0.0.2
  */
 package chav1961.purelib.fsys;

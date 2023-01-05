@@ -37,7 +37,7 @@ import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 
 public class CreoleWriter extends Writer {

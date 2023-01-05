@@ -80,7 +80,7 @@ import chav1961.purelib.streams.char2byte.asm.Asm;
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 
 public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {

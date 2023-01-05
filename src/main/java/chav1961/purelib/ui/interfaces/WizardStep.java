@@ -28,7 +28,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
  * @param <Content> content type of the wizard step (for example, usually JComponent for the Swing application)
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Component> {
@@ -44,7 +44,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 	 * </ul>
 	 * @author chav1961
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public enum StepType {
 		THE_ONLY(true, true), 

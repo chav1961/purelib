@@ -9,7 +9,7 @@ package chav1961.purelib.basic.exceptions;
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 public class SyntaxException extends ContentException {
 	private static final long serialVersionUID = 8141880743233589596L;

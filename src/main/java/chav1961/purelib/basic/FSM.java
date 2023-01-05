@@ -16,7 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  *
  * @param <Terminal> terminal (in the terms of FSM)
  * @param <NonTerminal> non-terminal (in the terms of FSM)

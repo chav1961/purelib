@@ -15,7 +15,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
  * <p>This class is a filter for nested {@linkplain ContentMetadataInterface} model. It can be used to exclude some part of model from searching/walking.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 public class ContentMetadataFilter implements ContentMetadataInterface {
 	private final ContentMetadataInterface	nested;

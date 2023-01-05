@@ -11,7 +11,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class ArrayCharTarget implements CharacterTarget {
 	private final char[]	target;

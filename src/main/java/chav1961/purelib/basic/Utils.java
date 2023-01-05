@@ -103,7 +103,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public class Utils {

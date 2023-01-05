@@ -7,7 +7,7 @@ import java.io.Reader;
 import chav1961.purelib.streams.char2byte.RawWriter;
 
 /**
- * <p>This class implements simple converter from type <b>byte</b> to type <b>char</p> without using any encoders/decoders. 
+ * <p>This class implements simple converter from type <b>byte</b> to type <b>char</b> without using any encoders/decoders. 
  * It simply build one char item from two sequential bytes. This class must be used with {@linkplain RawWriter} class.</p>
  * <p>This class is not a thread-safe.</p>
  * @see RawWriter

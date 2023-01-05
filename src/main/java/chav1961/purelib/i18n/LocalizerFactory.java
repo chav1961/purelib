@@ -31,7 +31,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see LocaleSpecificTextSetter
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 
 public final class LocalizerFactory {

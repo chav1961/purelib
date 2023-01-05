@@ -10,7 +10,7 @@ import java.util.Map;
  * <p>Don't use this interface for any purposes! It's a special for the RMI file system only.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public interface RMIDataWrapperInterface extends Remote, Serializable {
 	String[] list(URI path, String pattern) throws RemoteException;

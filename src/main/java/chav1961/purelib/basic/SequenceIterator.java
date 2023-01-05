@@ -15,7 +15,7 @@ import java.util.stream.Stream.Builder;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public class SequenceIterator<T> implements Iterator<T> {

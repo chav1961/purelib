@@ -28,7 +28,7 @@ import chav1961.purelib.ui.interfaces.MimeBasedContent;
  * <p>This class describes format string associated with any model entity. Detailed format description see {@linkplain #FieldFormat(Class, String)}</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public class FieldFormat {
 	/**

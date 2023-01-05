@@ -17,7 +17,7 @@ import java.net.URL;
  * @see chav1961.purelib.enumerations.XSDCollection
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 public abstract class XSDConst {
 	/**

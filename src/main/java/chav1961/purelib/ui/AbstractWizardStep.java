@@ -15,7 +15,7 @@ import chav1961.purelib.ui.interfaces.WizardStep;
  * @author Alexander Chernomyrdin aka chav1961
  * @see WizardStep 
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public abstract class AbstractWizardStep<Common,ErrorType extends Enum<?>, Content extends JComponent> implements WizardStep<Common,ErrorType,Content> {

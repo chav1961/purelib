@@ -74,7 +74,7 @@ import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public class JFileSelectionDialog extends JPanel implements LocaleChangeListener {
 	private static final long 	serialVersionUID = 4285629141818684880L;
@@ -123,7 +123,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * <p>This interface is analog of {@linkplain FilterCallback}</p>  
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	public interface FilterCallback {
 		/**

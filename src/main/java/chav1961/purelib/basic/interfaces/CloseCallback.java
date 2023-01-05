@@ -4,7 +4,7 @@ package chav1961.purelib.basic.interfaces;
  * <p>This interface is used to close some objects by external environment.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.5
- * @param T - object to close 
+ * @param <T> - object to close 
  */
 
 @FunctionalInterface

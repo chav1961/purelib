@@ -64,7 +64,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 
 public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptEngineController, Closeable {

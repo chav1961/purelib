@@ -40,7 +40,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * left of these is located at row header view in the scroll pane.</p>   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public class JFreezableTable extends JTable {
 	private static final long 			serialVersionUID = 5593084316211899679L;

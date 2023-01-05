@@ -9,7 +9,7 @@ import chav1961.purelib.basic.interfaces.Maintenable;
  * <p>This class is a simple extension of {@linkplain TimerTask} to use it in lambda-styles calls.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public class SimpleTimerTask extends TimerTask {
 	private final Runnable	runnable;

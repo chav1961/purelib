@@ -52,7 +52,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see SubstitutableProperties
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	/**

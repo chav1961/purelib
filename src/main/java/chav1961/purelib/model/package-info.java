@@ -12,6 +12,6 @@
  * <p>Model and it's API is a base for almost all the Pure Library infrastructure.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 package chav1961.purelib.model;

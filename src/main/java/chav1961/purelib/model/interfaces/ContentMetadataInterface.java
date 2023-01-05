@@ -19,7 +19,7 @@ import chav1961.purelib.model.FieldFormat;
  * <p>Mount operation allows you build total model from pieces of many other models</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 public interface ContentMetadataInterface {
 	/**
@@ -36,7 +36,7 @@ public interface ContentMetadataInterface {
 	 * <p>This interface describes a node in the model tree. This node implements {@linkplain Iterable} interface to get access for all children with for-each loop</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public interface ContentNodeMetadata extends Iterable<ContentNodeMetadata>, Cloneable {
 		/**

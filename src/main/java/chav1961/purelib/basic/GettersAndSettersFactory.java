@@ -73,7 +73,7 @@ import sun.reflect.ReflectionFactory;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 
 public class GettersAndSettersFactory {
@@ -112,7 +112,7 @@ public class GettersAndSettersFactory {
 	 * this interface, so all of them can be casted to it</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public interface GetterAndSetter {
 		int getClassType();

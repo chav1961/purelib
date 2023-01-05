@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * @see LocaleSpecificTextSetter
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 
 @Inherited

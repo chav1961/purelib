@@ -41,7 +41,7 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * Syntax of the filter see {@linkplain #filterOf(String, JsonTreeWalkerCallback)} method description</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 public class JsonUtils {
 	public static final String		JSON_TYPE_BOOLEAN = "bool";

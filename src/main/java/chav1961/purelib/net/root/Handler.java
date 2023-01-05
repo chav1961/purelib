@@ -8,6 +8,7 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.net.capture.CaptureHandlerProvider;
 
 /**
  * <p>This class is  handler to support "root" schema URL. Format of root URL is:</p>
@@ -20,7 +21,7 @@ import chav1961.purelib.basic.URIUtils;
  * @see CaptureHandlerProvider   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.4
+ * @last.update 0.0.4
  */
 public class Handler extends URLStreamHandler {
 	public static final String	PROTOCOL = "root";

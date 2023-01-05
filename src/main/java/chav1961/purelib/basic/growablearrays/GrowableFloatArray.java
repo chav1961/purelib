@@ -17,7 +17,7 @@ import chav1961.purelib.basic.growablearrays.GrowableDoubleArray.SlicedSpliterat
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @lastUpdate 0.0.5
+ * @last.update 0.0.5
  */
 
 public class GrowableFloatArray {

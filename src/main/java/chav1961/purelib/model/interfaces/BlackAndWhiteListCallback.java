@@ -7,7 +7,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
  * <p>This interface is used to accept/reject nodes by filter</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 @FunctionalInterface
 public interface BlackAndWhiteListCallback {

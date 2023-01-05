@@ -18,7 +18,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  * @param <T> any JComponent or it's child
  */
 

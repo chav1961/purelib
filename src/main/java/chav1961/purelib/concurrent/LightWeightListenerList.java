@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * @param <Listener> any listener type to keep in the class
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 public class LightWeightListenerList<Listener> {
 	

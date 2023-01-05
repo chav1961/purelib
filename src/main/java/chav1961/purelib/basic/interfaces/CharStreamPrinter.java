@@ -16,9 +16,8 @@ import chav1961.purelib.basic.exceptions.PrintingException;
  * @see PrintStream
  * @see PrintWriter
  * @since 0.0.3
- * @param T - returned type to use for chained operations 
+ * @param <T> - returned type to use for chained operations 
  */
-
 public interface CharStreamPrinter<T> extends Flushable, Closeable {
 	/**
 	 * <p>Print (CR)NL due to operation system settings</p>

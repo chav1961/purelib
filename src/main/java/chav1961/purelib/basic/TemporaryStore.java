@@ -153,7 +153,7 @@ public class TemporaryStore implements Closeable {
 	 * <p>This class is used to support predefined scenario for temporary file usage</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	public class InputOutputPair implements InputOutputPairInterface {
 		private static final int	STATE_INITIAL = 0;

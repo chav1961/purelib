@@ -12,7 +12,7 @@ import java.util.zip.Deflater;
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @lastUpdate 0.0.3
+ * @last.update 0.0.3
  */
 public class ZLibOutputStream extends OutputStream {
 	private static final int		MINIMUM_INNER_BUFFER = 4096;

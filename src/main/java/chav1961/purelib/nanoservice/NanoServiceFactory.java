@@ -122,7 +122,7 @@ import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
  * @see <a href="http://www.wikicreole.org/">Creole</a>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @lastUpdate 0.0.6
+ * @last.update 0.0.6
  */
 
 public class NanoServiceFactory implements Closeable, NanoService, HttpHandler   {
