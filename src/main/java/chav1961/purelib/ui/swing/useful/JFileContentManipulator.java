@@ -586,7 +586,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @throws NullPointerException when listener to add is null
 	 * @since 0.0.4
 	 */
-	public void addFileContentChangeListener(final FileContentChangeListener l) throws NullPointerException {
+	public void addFileContentChangeListener(final FileContentChangeListener<?> l) throws NullPointerException {
 		if (l == null) {
 			throw new NullPointerException("Listener to add can't be null"); 
 		}
@@ -601,7 +601,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @throws NullPointerException when listener to remove is null
 	 * @since 0.0.4
 	 */
-	public void removeFileContentChangeListener(final FileContentChangeListener l) throws NullPointerException {
+	public void removeFileContentChangeListener(final FileContentChangeListener<?> l) throws NullPointerException {
 		if (l == null) {
 			throw new NullPointerException("Listener to remove can't be null"); 
 		}
@@ -707,7 +707,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 	
 	private void fireEvent(final FileContentChangeType type) {
-		final FileContentChangedEvent	event = new FileContentChangedEvent() {
+		final FileContentChangedEvent<?>	event = new FileContentChangedEvent<>() {
 											@Override public FileContentChangeType getChangeType() {return type;}
 											@Override public JFileContentManipulator getOwner() {return JFileContentManipulator.this;}
 										}; 
