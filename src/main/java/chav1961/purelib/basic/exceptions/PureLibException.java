@@ -2,6 +2,8 @@ package chav1961.purelib.basic.exceptions;
 
 import java.net.URI;
 
+import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
@@ -100,7 +102,11 @@ public class PureLibException extends Exception {
 			return super.getLocalizedMessage();
 		}
 		else {
-			return null;
+			final URI		localizerURI = URIUtils.removeFragmentFromURI(messageId);
+			final String	key = messageId.getFragment(); 
+			final String 	message = LocalizerFactory.getLocalizer(localizerURI).getValue(key);
+			
+			return message.formatted(parameters);
 		}
 	}
 }

@@ -1,5 +1,7 @@
 package chav1961.purelib.basic.exceptions;
 
+import java.net.URI;
+
 /**
  * <p>This exception describes any problems on syntax during parsing any kind of data. It's a special form of exception, that
  * contains explicit row and column numbers for better problem localization. It always uses in the case, when we need localize 
@@ -9,7 +11,7 @@ package chav1961.purelib.basic.exceptions;
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 public class SyntaxException extends ContentException {
 	private static final long serialVersionUID = 8141880743233589596L;
@@ -37,6 +39,18 @@ public class SyntaxException extends ContentException {
 	 */
 	public SyntaxException(final long lineNo, final long pos, final String message) {
 		super("Line "+lineNo+", pos "+pos+": "+message);
+		this.lineNo = lineNo;
+		this.pos = pos;
+	}
+	
+	public SyntaxException(final long lineNo, final long pos, final Throwable cause, final URI messageId, final Object... parameters) {
+		super(cause, messageId, parameters);
+		this.lineNo = lineNo;
+		this.pos = pos;
+	}
+
+	public SyntaxException(final long lineNo, final long pos, final URI messageId, final Object... parameters) {
+		super(messageId, parameters);
 		this.lineNo = lineNo;
 		this.pos = pos;
 	}
