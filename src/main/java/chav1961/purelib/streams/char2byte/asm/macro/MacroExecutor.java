@@ -7,7 +7,7 @@ import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.streams.char2byte.asm.AssignableExpressionNodeInterface;
 
-abstract class MacroExecutor implements MacroExecutorInterface {
+public abstract class MacroExecutor implements MacroExecutorInterface {
 	static final char[]				TRUE_CONTENT = "true".toCharArray();
 	static final char[]				EMPTY_CONTENT = new char[0];
 	

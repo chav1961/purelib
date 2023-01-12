@@ -217,8 +217,7 @@ class RemoteClientLocalizer implements Localizer {
 	}
 
 	@Override
-	public String getValue(String key, Locale locale)
-			throws LocalizationException, IllegalArgumentException, NullPointerException {
+	public String getValue4Locale(Locale locale, String key) throws LocalizationException, IllegalArgumentException, NullPointerException {
 		// TODO Auto-generated method stub
 		return null;
 	}

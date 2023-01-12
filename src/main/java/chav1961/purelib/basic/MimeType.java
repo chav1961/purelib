@@ -43,14 +43,14 @@ public class MimeType implements Serializable {
 	static {
 		String	value;			// To reduce amount of repeatable strings in the primary type 
 		
-		value = "text"; 		AVAILABLE_TYPE.placeName(value,value);
-		value = "image"; 		AVAILABLE_TYPE.placeName(value,value);
-		value = "audio"; 		AVAILABLE_TYPE.placeName(value,value);
-		value = "video"; 		AVAILABLE_TYPE.placeName(value,value);
-		value = "application"; 	AVAILABLE_TYPE.placeName(value,value);
-		value = "multipart"; 	AVAILABLE_TYPE.placeName(value,value);
-		value = "message"; 		AVAILABLE_TYPE.placeName(value,value);
-		value = "*"; 			AVAILABLE_TYPE.placeName(value,value);
+		value = "text"; 		AVAILABLE_TYPE.placeName((CharSequence)value,value);
+		value = "image"; 		AVAILABLE_TYPE.placeName((CharSequence)value,value);
+		value = "audio"; 		AVAILABLE_TYPE.placeName((CharSequence)value,value);
+		value = "video"; 		AVAILABLE_TYPE.placeName((CharSequence)value,value);
+		value = "application"; 	AVAILABLE_TYPE.placeName((CharSequence)value,value);
+		value = "multipart"; 	AVAILABLE_TYPE.placeName((CharSequence)value,value);
+		value = "message"; 		AVAILABLE_TYPE.placeName((CharSequence)value,value);
+		value = "*"; 			AVAILABLE_TYPE.placeName((CharSequence)value,value);
 	}
 	
 	private final String		primaryType, subType;
