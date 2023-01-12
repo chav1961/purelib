@@ -228,13 +228,13 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	protected String getHelp(String helpId, String encoding) throws LocalizationException, IllegalArgumentException {
+	protected String getHelp(String helpId, final Locale locale, String encoding) throws LocalizationException, IllegalArgumentException {
 		// TODO Auto-generated method stub
 		if (helpId == null || helpId.isEmpty()) {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}
 		else {
-			try{return new String(URIUtils.loadCharsFromURI(URIUtils.appendRelativePath2URI(resourceAddress,"../help/"+currentLocale().getLanguage()+"/"+helpId),encoding));
+			try{return new String(URIUtils.loadCharsFromURI(URIUtils.appendRelativePath2URI(resourceAddress,"../help/"+locale.getLanguage()+"/"+helpId),encoding));
 			} catch (IOException e) {
 				throw new LocalizationException(e.getLocalizedMessage(),e);
 			}

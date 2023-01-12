@@ -10,6 +10,8 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -52,7 +54,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see SubstitutableProperties
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	/**
@@ -191,6 +193,21 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 */
 	String getValue(String key) throws LocalizationException, IllegalArgumentException;
 
+	/**
+	 * <p>Get localization value for the given key. Extracts and substitute values (see {@linkplain SubstitutableProperties}) from localization content. Also processed a set of URLs inside the localization string. 
+	 * Each url inside the localization string has syntax:</p>
+	 * <p><code><b>url(</b>&lt;valid_url&gt;[<b>,</b>&lt;valid_MIME&gt;]<b>)</b></code></p>
+	 * <p>Relative URL (with the missing scheme) points to resource inside the JRE class tree. Duplicated keys in the localizer hierarchy always are resolved to the deepest localizer content</p>
+	 * @param key key to get localization string for. Key content is case-sensitive
+	 * @param locale locale to get key for. Can't be null.
+	 * @return string localized
+	 * @throws LocalizationException if the key is missing anywhere.
+	 * @throws IllegalArgumentException if key to get is null or empty
+	 * @throws NullPointerException if locale is null
+	 * @since 0.0.7
+	 */
+	String getValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException, NullPointerException;
+	
 	/**
 	 * <p>Get localization value for the given key. Extracts and substitute values (see {@linkplain SubstitutableProperties}) from localization content. Also processed a set of URLs inside the localization string. 
 	 * Each url inside the localization string has syntax:</p>
@@ -440,6 +457,47 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 */
 	@Override
 	void close() throws LocalizationException;
+	
+	/**
+	 * <p>Get key value by URI. URI must have format &lt;validLocalizerURI#keyInsideLocalizer&gt; Fragment can have language prefix as &lt;prefix/key&gt;. 
+	 * If language prefix is missing, current locale settings will be used to seek key inside localizer.</p>
+	 * <p>Example:</p>
+	 * <code>getValue(URI.create("i18n:xml:/path.to.xml#ru/localizationKey"))</code>
+	 * @param value URI value to extract appropriative key from localizer. Can't be null
+	 * @return value found
+	 * @throws NullPointerException value URI is null
+	 * @throws IllegalArgumentException value URI is not valid localizer URI or doens't contain fragment clause
+	 * @throws LocalizationException key or localizer not found
+	 * @since 0.0.7
+	 */
+	public static String getValue(final URI value) throws NullPointerException, IllegalArgumentException, LocalizationException {
+		if (value == null) {
+			throw new NullPointerException("URI value can't be null"); 
+		}
+		else if (!LOCALIZER_SCHEME.equalsIgnoreCase(value.getScheme())) {
+			throw new IllegalArgumentException("URI value ["+value+"] must have ["+LOCALIZER_SCHEME+"] scheme"); 
+		}
+		else {
+			final String	key = value.getFragment(); 
+			final URI		localizerUri = URIUtils.removeFragmentFromURI(value);
+			
+			if (Utils.checkEmptyOrNullString(key)) {
+				throw new IllegalArgumentException("URI value ["+value+"] doesn't contain fragment clause (use "+value+"#exitentLocalizerKey to call)"); 
+			}
+			else {
+				final Localizer	l = Factory.newInstance(localizerUri);
+				final int		index = key.indexOf('/');
+				
+				if (index > 0) {
+					return l.getValue(key.substring(index + 1), Locale.forLanguageTag(key.substring(0,index))); 
+				}
+				else {
+					return l.getValue(key);
+				}
+			}
+		}
+	}
+	
 	
 	/**
 	 * <p>This class is a factory to get localizer by it's URI. It implements a 'Factory' template and wraps call to {@linkplain LocalizerFactory#getLocalizer(URI)}</p> 

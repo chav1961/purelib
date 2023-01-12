@@ -473,7 +473,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		}
 
 		@Override
-		protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
+		protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
 			// TODO Auto-generated method stub
 			return null;
 		}

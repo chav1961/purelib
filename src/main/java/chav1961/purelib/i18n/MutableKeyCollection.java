@@ -8,6 +8,4 @@ class MutableKeyCollection extends KeyCollection {
 	MutableKeyCollection(final Map<String, String> keysAndValues, final Map<String, URI> helpRefs) {
 		super(keysAndValues, helpRefs);
 	}
-
-	
 }

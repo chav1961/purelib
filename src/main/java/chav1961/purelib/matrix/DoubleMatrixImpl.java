@@ -2,6 +2,7 @@ package chav1961.purelib.matrix;
 
 import java.util.Arrays;
 
+import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.matrix.interfaces.DoubleMatrix;
 import chav1961.purelib.matrix.interfaces.FloatMatrix;
@@ -235,9 +236,9 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 
 	@Override
 	// see https://github.com/vkostyukov/la4j
-	public Matrix inv() {
+	public Matrix inv() throws CalculationException {
 		if (sizeX != sizeY) {
-			throw new IllegalStateException("Matrix to invert is not a square matrix");
+			throw new CalculationException("Matrix to invert is not a square matrix");
 		}
 		else {
 			final double[]	result = content.clone();
@@ -247,7 +248,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	            diagonalTerm = result[k + k * sizeX];
 
 	            if (Math.abs(diagonalTerm) <= Double.MIN_VALUE) {
-	                throw new IllegalArgumentException("This matrix cannot be inverted with a non-pivoting Gauss elimination method (contains zeroes on main diagonal).");
+	                throw new CalculationException("This matrix cannot be inverted with a non-pivoting Gauss elimination method (contains zeroes on main diagonal).");
 	            }
 
 	            var = 1.0 / diagonalTerm;

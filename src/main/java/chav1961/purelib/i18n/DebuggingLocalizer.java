@@ -116,7 +116,7 @@ public class DebuggingLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
+	protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
 		if (helps.containsKey(helpId)) {
 			return helps.get(helpId);
 		}

@@ -108,7 +108,7 @@ public abstract class AbstractLocalizer implements Localizer {
 	@Override public abstract Iterable<String> localKeys();
 	@Override public abstract String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException;
 	protected abstract void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException;
-	protected abstract String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException;
+	protected abstract String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException;
 	
 	@Override
 	public LocaleDescriptor currentLocale() {
@@ -196,6 +196,19 @@ public abstract class AbstractLocalizer implements Localizer {
 		if (key == null || key.isEmpty()) {
 			throw new IllegalArgumentException("Key to check can't be null or empty");
 		}
+		else {
+			return getValue(key, currentLocale());
+		}
+	}
+
+	@Override
+	public String getValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException, NullPointerException {
+		if (key == null || key.isEmpty()) {
+			throw new IllegalArgumentException("Key to check can't be null or empty");
+		}
+		else if (locale == null) {
+			throw new NullPointerException("Locale can't be null");
+		}
 		else if (!containsKey(key)) {
 			throw new LocalizationException("Key ["+key+"] to get value is missing anywhere");
 		}
@@ -205,7 +218,7 @@ public abstract class AbstractLocalizer implements Localizer {
 			walkUp((current,depth)->{
 				for (String item : current.localKeys()) {
 					if (item.equals(key)) {
-						sb.append(substitute(key,current.getLocalValue(key)));
+						sb.append(substitute(key,current.getLocalValue(key, locale)));
 						return ContinueMode.STOP;
 					}
 				}
@@ -245,7 +258,7 @@ public abstract class AbstractLocalizer implements Localizer {
 				if (uriRef.getScheme() == null) {
 					final String	query = URIUtils.extractQueryFromURI(uriRef);
 					final Hashtable<String,String[]>	queryParsed = URIUtils.parseQuery(query == null ? "" : query);
-					final String	temp = getHelp(uriRef.getPath(),queryParsed.containsKey(CONTENT_ENCODING) ? queryParsed.get(CONTENT_ENCODING)[0] : DEFAULT_CONTENT_ENCODING); 
+					final String	temp = getHelp(uriRef.getPath(), locale, queryParsed.containsKey(CONTENT_ENCODING) ? queryParsed.get(CONTENT_ENCODING)[0] : DEFAULT_CONTENT_ENCODING); 
 					
 					if (uriRef.getQuery() != null) {
 						try{final Hashtable<String,String[]>	mimes = URIUtils.parseQuery(uriRef.getQuery());
@@ -281,7 +294,7 @@ public abstract class AbstractLocalizer implements Localizer {
 			}
 		}
 	}
-
+	
 	@Override
 	public String getValue(final String key, final Object... parameters) throws LocalizationException, IllegalArgumentException {
 		if (key == null || key.isEmpty()) {
@@ -784,8 +797,8 @@ sw:				for(;;) {
 		}
 
 		@Override
-		protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
-			return nested.getHelp(helpId, encoding);
+		protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
+			return nested.getHelp(helpId, locale, encoding);
 		}
 		
 		@Override

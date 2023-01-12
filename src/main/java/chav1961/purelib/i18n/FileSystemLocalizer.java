@@ -130,15 +130,18 @@ public class FileSystemLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	protected String getHelp(final String helpId, final String encoding) throws LocalizationException, IllegalArgumentException {
+	protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
 		if (helpId == null || helpId.isEmpty()) {
 			throw new IllegalArgumentException("Help id key can't be null or empty"); 
+		}
+		else if (locale == null) {
+			throw new NullPointerException("Locale can't be null"); 
 		}
 		else if (encoding == null || encoding.isEmpty()) {
 			throw new IllegalArgumentException("Encoding can't be null or empty"); 
 		}
 		else {
-			final String			resourceLocation =  getResourceAddress()+"/help/"+currentLocale().getLanguage()+"/"+helpId;
+			final String			resourceLocation =  getResourceAddress()+"/help/"+locale.getLanguage()+"/"+helpId;
 			
 			try{final URLConnection conn = new URL(null,resourceLocation,new FileSystemURLStreamHandler()).openConnection();
 			

@@ -3,7 +3,6 @@ package chav1961.purelib.i18n;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;

@@ -10,7 +10,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
-public class RemoteServerLocalizer implements Localizer {
+class RemoteServerLocalizer implements Localizer {
 
 	@Override
 	public boolean canServe(URI resource) throws NullPointerException {
@@ -214,5 +214,12 @@ public class RemoteServerLocalizer implements Localizer {
 	public boolean isInParentChain(Localizer test) throws LocalizationException {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public String getValue(String key, Locale locale)
+			throws LocalizationException, IllegalArgumentException, NullPointerException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

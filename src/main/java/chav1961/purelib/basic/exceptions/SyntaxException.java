@@ -2,6 +2,8 @@ package chav1961.purelib.basic.exceptions;
 
 import java.net.URI;
 
+import chav1961.purelib.basic.PureLibSettings;
+
 /**
  * <p>This exception describes any problems on syntax during parsing any kind of data. It's a special form of exception, that
  * contains explicit row and column numbers for better problem localization. It always uses in the case, when we need localize 
@@ -55,6 +57,16 @@ public class SyntaxException extends ContentException {
 		this.pos = pos;
 	}
 
+	@Override
+	public String getLocalizedMessage() {
+		if (isLocalized()) {
+			return PureLibSettings.PURELIB_LOCALIZER.getValue(getClass().getCanonicalName()).formatted(lineNo, pos)+super.getLocalizedMessage();
+		}
+		else {
+			return super.getLocalizedMessage();
+		}
+	}
+	
 	/**
 	 * <p>Get row (line) where problem was detected</p>
 	 * @return zero-based line where problem was detected. Is't strongly recommended to use 0 for single-line content 

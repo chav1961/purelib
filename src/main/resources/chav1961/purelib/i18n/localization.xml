@@ -14,6 +14,9 @@
 		<key name="ru">ru</key> 
 		<key name="ru.tt">Russian</key> 
 
+<!-- Exceptions keys  -->
+		<key name="chav1961.purelib.basic.exceptions.SyntaxException">Line %1$d col %2$d: </key> 
+
 <!-- SwingUtils keys  -->
 		<key name="SwingUtils.unknownAction.title">Unknown action!</key>
 		<key name="SwingUtils.unknownAction.content">Action [%1$s] not found in the current window!</key>
@@ -395,6 +398,9 @@
 		<key name="en.tt">Английский</key> 
 		<key name="ru">ru</key> 
 		<key name="ru.tt">Русский</key> 
+
+<!-- Ключи Exceptions  -->
+		<key name="chav1961.purelib.basic.exceptions.SyntaxException">Стр %1$d поз %2$d: </key> 
 
 <!-- Ключи класса SwingUtils  -->
 		<key name="SwingUtils.unknownAction.title">Неизвестное действие!</key>

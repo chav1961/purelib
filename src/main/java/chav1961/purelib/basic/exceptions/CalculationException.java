@@ -1,5 +1,7 @@
 package chav1961.purelib.basic.exceptions;
 
+import java.net.URI;
+
 /**
  * <p>This exception describes any problems on any calculations. Don't use this exception by another way</p>
  *  
@@ -40,5 +42,26 @@ public class CalculationException extends PureLibException {
 	 */
 	public CalculationException(final Throwable cause) {
 		super(cause);
+	}
+
+	/**
+	 * <p>Constructor of the class for localizable messages</p>
+	 * @param cause exception cause. Can be null
+	 * @param messageId message id. Can't be null, and must have format &lt;localizerURI#messageId&gt;
+	 * @param parameters message parameters. Can be empty but not null
+	 * @since 0.0.7
+	 */
+	public CalculationException(final Throwable cause, final URI messageId, final Object... parameters) {
+		super(cause, messageId, parameters);
+	}
+
+	/**
+	 * <p>Constructor of the class for localizable messages</p>
+	 * @param messageId message id. Can't be null, and must have format &lt;localizerURI#messageId&gt;
+	 * @param parameters message parameters. Can be empty but not null
+	 * @since 0.0.7
+	 */
+	public CalculationException(final URI messageId, final Object... parameters) {
+		super(messageId, parameters);
 	}
 }

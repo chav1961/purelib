@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.matrix.interfaces.DoubleMatrix;
 import chav1961.purelib.matrix.interfaces.FloatMatrix;
 import chav1961.purelib.matrix.interfaces.IntMatrix;
@@ -14,7 +15,7 @@ import chav1961.purelib.testing.OrdinalTestCategory;
 @Category(OrdinalTestCategory.class)
 public class MatrixTest {
 	@Test
-	public void doubleMatrixTest() {
+	public void doubleMatrixTest() throws CalculationException {
 		final DoubleMatrix	dm1 = new DoubleMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), dm2 = new DoubleMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), dm3 = new DoubleMatrixImpl(2, 3, 6, 5, 4, 3, 2, 1);
 		
 		Assert.assertEquals(dm2, dm1);
@@ -85,17 +86,17 @@ public class MatrixTest {
 
 		try{dm1.inv();
 			Assert.fail("Mandatory exception was not detected (not square matrix)");
-		} catch (IllegalStateException exc) {
+		} catch (CalculationException exc) {
 		}
 		
 		try{new DoubleMatrixImpl(1, 1, 0).inv();
 			Assert.fail("Mandatory exception was not detected (0 at main diagonal)");
-		} catch (IllegalArgumentException exc) {
+		} catch (CalculationException exc) {
 		}
 	}
 
 	@Test
-	public void floatMatrixTest() {
+	public void floatMatrixTest() throws CalculationException {
 		final FloatMatrix	fm1 = new FloatMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), fm2 = new FloatMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), fm3 = new FloatMatrixImpl(2, 3, 6, 5, 4, 3, 2, 1);
 		
 		Assert.assertEquals(fm2, fm1);
@@ -166,17 +167,17 @@ public class MatrixTest {
 
 		try{fm1.inv();
 			Assert.fail("Mandatory exception was not detected (not square matrix)");
-		} catch (IllegalStateException exc) {
+		} catch (CalculationException exc) {
 		}
 		
 		try{new FloatMatrixImpl(1, 1, 0).inv();
 			Assert.fail("Mandatory exception was not detected (0 at main diagonal)");
-		} catch (IllegalArgumentException exc) {
+		} catch (CalculationException exc) {
 		}
 	}
 
 	@Test
-	public void longMatrixTest() {
+	public void longMatrixTest() throws CalculationException {
 		final LongMatrix	lm1 = new LongMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), lm2 = new LongMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), lm3 = new LongMatrixImpl(2, 3, 6, 5, 4, 3, 2, 1);
 		
 		Assert.assertEquals(lm2, lm1);
@@ -247,17 +248,17 @@ public class MatrixTest {
 
 		try{lm1.inv();
 			Assert.fail("Mandatory exception was not detected (not square matrix)");
-		} catch (IllegalStateException exc) {
+		} catch (CalculationException exc) {
 		}
 		
 		try{new LongMatrixImpl(1, 1, 0).inv();
 			Assert.fail("Mandatory exception was not detected (0 at main diagonal)");
-		} catch (IllegalArgumentException exc) {
+		} catch (CalculationException exc) {
 		}
 	}
 
 	@Test
-	public void intMatrixTest() {
+	public void intMatrixTest() throws CalculationException {
 		final IntMatrix	im1 = new IntMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), im2 = new IntMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), im3 = new IntMatrixImpl(2, 3, 6, 5, 4, 3, 2, 1);
 		
 		Assert.assertEquals(im2, im1);
@@ -328,12 +329,12 @@ public class MatrixTest {
 
 		try{im1.inv();
 			Assert.fail("Mandatory exception was not detected (not square matrix)");
-		} catch (IllegalStateException exc) {
+		} catch (CalculationException exc) {
 		}
 		
 		try{new IntMatrixImpl(1, 1, 0).inv();
 			Assert.fail("Mandatory exception was not detected (0 at main diagonal)");
-		} catch (IllegalArgumentException exc) {
+		} catch (CalculationException exc) {
 		}
 	}
 }

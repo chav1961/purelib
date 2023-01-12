@@ -134,7 +134,7 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 	}
 	
 	@Override
-	protected String getHelp(final String helpId, final String encoding) {
+	protected String getHelp(final String helpId, final Locale locale, final String encoding) {
 		if (helpId == null || helpId.isEmpty()) {
 			throw new IllegalArgumentException("Help id key can't be null or empty"); 
 		}
@@ -142,7 +142,7 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 			throw new IllegalArgumentException("Encoding can't be null or empty"); 
 		}
 		else {
-			final String	resourceLocation =  "/"+getResourceAddress()+"/help/"+currentLocale().getLanguage()+"/"+helpId;
+			final String	resourceLocation =  "/"+getResourceAddress()+"/help/"+locale.getLanguage()+"/"+helpId;
 			
 			try(final InputStream		is = PropertiesLocalizer.class.getResourceAsStream(resourceLocation)) {
 				if (is == null ) {

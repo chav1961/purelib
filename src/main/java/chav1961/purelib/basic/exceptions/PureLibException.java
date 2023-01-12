@@ -2,8 +2,6 @@ package chav1961.purelib.basic.exceptions;
 
 import java.net.URI;
 
-import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
@@ -93,20 +91,29 @@ public class PureLibException extends Exception {
 	}
 
 	/**
+	 * <p>Get message by using {@linkplain Localizer}.</p>
+	 * @since 0.0.7
+	 */
+	@Override
+	public String getMessage() {
+		return getLocalizedMessage();
+	}
+	
+	/**
 	 * <p>Get localized message by using {@linkplain Localizer}.</p>
 	 * @since 0.0.7
 	 */
 	@Override
 	public String getLocalizedMessage() {
-		if (messageId == null) {
-			return super.getLocalizedMessage();
+		if (isLocalized()) {
+			return Localizer.getValue(messageId).formatted(parameters);
 		}
 		else {
-			final URI		localizerURI = URIUtils.removeFragmentFromURI(messageId);
-			final String	key = messageId.getFragment(); 
-			final String 	message = LocalizerFactory.getLocalizer(localizerURI).getValue(key);
-			
-			return message.formatted(parameters);
+			return super.getLocalizedMessage();
 		}
+	}
+	
+	protected boolean isLocalized() {
+		return messageId != null;
 	}
 }

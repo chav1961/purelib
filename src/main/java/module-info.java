@@ -38,6 +38,8 @@ module chav1961.purelib {
 	exports chav1961.purelib.i18n.interfaces;
 	exports chav1961.purelib.json;
 	exports chav1961.purelib.json.interfaces;
+	exports chav1961.purelib.matrix;
+	exports chav1961.purelib.matrix.interfaces;
 	exports chav1961.purelib.model;
 	exports chav1961.purelib.model.interfaces;
 	exports chav1961.purelib.monitoring;
@@ -127,5 +129,7 @@ module chav1961.purelib {
 	
 	uses javax.naming.spi.InitialContextFactory;
 	provides javax.naming.spi.InitialContextFactory with chav1961.purelib.basic.SimpleInitialContextFactory;
-	
+
+	uses chav1961.purelib.matrix.interfaces.MatrixFactory;
+	provides chav1961.purelib.matrix.interfaces.MatrixFactory with chav1961.purelib.matrix.OrdinalMatrixFactory;
 }
