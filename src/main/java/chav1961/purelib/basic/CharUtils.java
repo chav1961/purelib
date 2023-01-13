@@ -3373,6 +3373,48 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     public static void resetIdenticalStringVocabulary() {
     	VOCABULARY.clear();
     }
+
+    /**
+     * <p>Convert character sequence content to char array</p>
+     * @param seq sequence to convert. Can't be null
+     * @return char array converted. Can be empty but not null
+     * @throws NullPointerException when sequence is null
+     * @since 0.0.7 
+     */
+    public static char[] toCharArray(final CharSequence seq) throws NullPointerException {
+    	return toCharArray(seq, EMPTY_CHAR_ARRAY);
+    }
+
+    /**
+     * <p>Convert character sequence content to char array and append tail content to it</p>
+     * @param seq sequence to convert. Can't be null
+     * @param tail tail to append. Can be empty but not null
+     * @return char array converted and appended. Can be empty but not null
+     * @throws NullPointerException when sequence or tail is null
+     * @since 0.0.7 
+     */
+    public static char[] toCharArray(final CharSequence seq, final char... tail) throws NullPointerException {
+    	if (seq == null) {
+    		throw new NullPointerException("Character sequence to convert can't be null"); 
+    	}
+    	else if (tail == null) {
+    		throw new NullPointerException("Tail can't be null"); 
+    	}
+    	else if (seq.length() == 0) {
+    		return tail.length == 0 ? EMPTY_CHAR_ARRAY : tail.clone();
+    	}
+    	else {
+    		final char[]	result = new char[seq.length() + tail.length];
+    		
+    		for(int index = 0; index < result.length; index++) {
+    			result[index] = seq.charAt(index);
+    		}
+    		if (tail.length > 0) {
+        		System.arraycopy(tail, 0, result, seq.length(), tail.length);
+    		}
+    		return result;
+    	}
+    }
     
     private static class OrdinalCharSequence implements CharSequence {
     	private final char[]	content;
