@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -168,7 +169,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	@Override
-	public abstract void placeFileContent(final Iterable<File> content);	
+	public abstract void placeFileContent(final Point location, final Iterable<File> content);	
 	public abstract void refreshLinkedContent(final FileSystemInterface content);
 	
 	public void setSelection(final String path) {

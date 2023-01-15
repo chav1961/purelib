@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful.interfaces;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -9,5 +10,5 @@ public interface FileContentKeeper {
 	Collection<File> getFileContent();
 	boolean hasSelectedFileContentNow();
 	Collection<File> getSelectedFileContent();
-	void placeFileContent(Iterable<File> content) throws IOException;
+	void placeFileContent(final Point location, Iterable<File> content) throws IOException;
 }

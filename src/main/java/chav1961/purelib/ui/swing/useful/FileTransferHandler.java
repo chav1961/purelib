@@ -60,7 +60,8 @@ class FileTransferHandler extends TransferHandler {
 	                	if ((evt.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0 && evt.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
 		                	evt.acceptDrop(DnDConstants.ACTION_COPY);
 		        			findFileContentKeeper(target,(item)->{
-			                    try{((FileContentKeeper)item).placeFileContent((Iterable<File>)evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
+			                    try{
+			                    	((FileContentKeeper)item).placeFileContent(evt.getLocation(), (Iterable<File>)evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
 								} catch (IOException | UnsupportedFlavorException exc) {
 				                	SwingUtils.getNearestLogger(target).message(Severity.error, exc, exc.getLocalizedMessage());
 								}

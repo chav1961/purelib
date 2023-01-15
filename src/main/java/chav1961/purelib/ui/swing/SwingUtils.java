@@ -181,10 +181,12 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_DROPDOWN = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK);
 	public static final KeyStroke			KS_CONTEXTMENU = KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0);
 	public static final KeyStroke			KS_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK);
+	public static final KeyStroke			KS_SOFT_CLOSE = KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.CTRL_DOWN_MASK);
 	public static final KeyStroke			KS_CUT = KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_COPY = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_PASTE = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_PRINT = KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK); 
+	public static final KeyStroke			KS_SAVE = KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_UNDO = KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_REDO = KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_UP = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0); 
@@ -206,11 +208,14 @@ public abstract class SwingUtils {
 	public static final String				ACTION_CUT = "cut";
 	public static final String				ACTION_COPY = "copy";
 	public static final String				ACTION_PASTE = "paste";
+	public static final String				ACTION_PRINT = "print";
+	public static final String				ACTION_SAVE = "save";
 	public static final String				ACTION_CONTEXTMENU = "contextmenu";
 	public static final String				ACTION_UNDO = "undo";
 	public static final String				ACTION_REDO = "redo";
 	public static final String				ACTION_UP = "up";
 	public static final String				ACTION_DOWN = "down";
+	public static final String				ACTION_SOFT_CLOSE = "softclose";
 	
 	public static enum EditorKeys {
 		EK_INSERT(KS_INSERT, ACTION_INSERT),

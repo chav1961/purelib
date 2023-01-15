@@ -559,14 +559,20 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		if (text == null) {
 			label.setText("");
 		}
-		else {
+		else if (localizer.containsKey(text)) {
 			label.setText(localizer.getValue(text));
+		}
+		else {
+			label.setText(text);
 		}
 		if (tooltip == null) {
 			label.setToolTipText("");
 		}
-		else {
+		else if (localizer.containsKey(tooltip)) {
 			label.setToolTipText(localizer.getValue(tooltip));
+		}
+		else {
+			label.setToolTipText(tooltip);
 		}
 	}
 }

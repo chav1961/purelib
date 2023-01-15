@@ -3,6 +3,7 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -134,7 +135,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 							}
 
 							@Override
-							public void placeFileContent(final Iterable<File> content) {
+							public void placeFileContent(final Point location, final Iterable<File> content) {
 								logger.message(Severity.error, "Not implemented yet");
 							}
 						};
@@ -142,7 +143,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 						private static final long serialVersionUID = -6386127009486154573L;
 
 						@Override
-						public void placeFileContent(Iterable<File> content) {
+						public void placeFileContent(final Point location, Iterable<File> content) {
 							// TODO Auto-generated method stub
 							
 						}
