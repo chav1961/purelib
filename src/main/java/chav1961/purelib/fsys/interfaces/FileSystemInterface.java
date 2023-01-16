@@ -9,14 +9,9 @@ import java.io.Writer;
 import java.net.URI;
 import java.util.Map;
 
-import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.FileSystemFactory;
-import chav1961.purelib.i18n.LocalizerFactory;
-import chav1961.purelib.i18n.interfaces.Localizer;
-
-
 
 /**
  * <p>This interface describes an abstract file system. It uses to unify access to the any data hierarchical structures can be used to keep and manipulate persistent data</p>
@@ -71,11 +66,13 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * {@link #setAttributes(java.util.Map) setAttributes(Map)} method. You also can make the same operations during read/write data from/to the file</p>
  * 
  *  <p>The most of all the methods return a {@linkplain FileSystemInterface} as a result. This result is a <b>'this'</b> reference (except {@link #unmount() unmount()} method), so you can use the interface in the 
- *  chained calls (for example <code>myFileSystem.open("something").create().write()</code>).</p> 
+ *  chained calls (for example <code>myFileSystem.open("something").create().write()</code>).</p>
+ *  <p>Transactional file systems</p>
+ *  <p>Transactional file systems can be used to support any transactions with the file systems. Typical usage is repository file systems.</p> 
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public interface FileSystemInterface extends Cloneable, Closeable, SpiService<FileSystemInterface>, FileSystemLockInterface {
@@ -547,6 +544,45 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @since 0.0.4
 	 */
 	boolean isTheSame(FileSystemInterface another) throws IOException;
+
+	
+	/**
+	 * <p>Start transaction on the file system</p>
+	 * @param parameters transaction parameters. Can be empty but not null
+	 * @return transaction interface. Can be the same as the current one
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.7
+	 */
+	default FileSystemInterface startTransaction(final Object... parameters) throws IOException {
+		return this;
+	}
+
+	/**
+	 * <p>Commit transaction started</p>
+	 * @param parameters commit parameters.  Can be empty but not null
+	 * @throws IOException if any exceptions was thrown
+	 * @throws IllegalStateException if no transactions was started
+	 * @since 0.0.7
+	 */
+	default void commit(final Object... parameters) throws IOException, IllegalStateException {		
+	}
+	
+	/**
+	 * <p>Rollback transaction started</p>
+	 * @throws IOException if any exceptions was thrown
+	 * @throws IllegalStateException if no transactions was started
+	 * @since 0.0.7
+	 */
+	default void rollback() throws IOException, IllegalStateException {
+	}
+
+	/**
+	 * <p>Is the interface in the transaction mode</p>
+	 * @return true if yes
+	 */
+	default boolean isInTransaction() {
+		return false;
+	}
 	
 	/**
 	 * <p>This class is a factory to get File system by it's URI. It implements a 'Factory' template and wraps call to {@linkplain FileSystemFactory#createFileSystem(URI)}</p> 
