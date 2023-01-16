@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.util.Map;
+import java.util.Properties;
 
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -18,8 +19,10 @@ import chav1961.purelib.fsys.FileSystemFactory;
  * <p>As the usual file system, the {@link FileSystemInterface FileSystemInterface} interface describes a data tree containing a set of <i>folders</i> and <i>files</i>. There is one <i>root</i> folder in the file system,
  * that is a parent of all other entities. You can locate in any point of the tree, but in the only point for every time. Point of your current location in the file
  * system is named <i>cursor</i>. Any operations on the file system always happen in the cursor point only. You can change the cursor location in the tree by using 
- * {@link #open(java.lang.String) open(String)} method. Current cursor location defines by it's <i>path</i> (as in the usual file system), and can be defined by
- * {@link #getPath() getPath()} method. The same last name of this path can be read by {@link #getName() getName()} method.</p>
+ * {@link #open(java.lang.String) open(String)} method. Note, that file systems, that are supported revisions, can process {@link #open(java.lang.String) open(String)} method argument in the form
+ * "file_path#revision_id", where revision_id is an Id of the revision in the implementation-specific form. Current cursor location defines by it's <i>path</i> (as in the usual file system), and can be defined by
+ * {@link #getPath() getPath()} method. The same last name of this path can be read by {@link #getName() getName()} method. Both methods must concatenate revision id to the result, when the one was typed for 
+ * {@link #open(java.lang.String) open(String)} method argument.</p>
  * 
  * <p>When you walk on the data tree by using {@link #open(java.lang.String) open(String)}, you can also point the cursor to non-existent paths. If you do it, you can use 
  * {@link #exists() exists()} method to test existence of this path, and {@link #isFile() isFile()} / {@link #isDirectory() isDirectory()} methods to define kind of location point
@@ -68,7 +71,7 @@ import chav1961.purelib.fsys.FileSystemFactory;
  *  <p>The most of all the methods return a {@linkplain FileSystemInterface} as a result. This result is a <b>'this'</b> reference (except {@link #unmount() unmount()} method), so you can use the interface in the 
  *  chained calls (for example <code>myFileSystem.open("something").create().write()</code>).</p>
  *  <p>Transactional file systems</p>
- *  <p>Transactional file systems can be used to support any transactions with the file systems. Typical usage is repository file systems.</p> 
+ *  <p>Transactional file systems can be used to support any transactions with the file systems. Typical usage is file systems that supports revisions.</p> 
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
@@ -170,7 +173,7 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	
 	/**
 	 * <p>Change file system cursor to the given location</p>
-	 * @param path new path (as relative, so absolute)
+	 * @param path new path (as relative, so absolute).
 	 * @return self
 	 * @throws IOException if any exceptions was thrown
 	 */
@@ -534,7 +537,17 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @throws IOException if any exceptions was thrown
 	 * @since 0.0.4
 	 */
-	URI getAbsoluteURI()  throws IOException;
+	URI getAbsoluteURI() throws IOException;
+
+	/**
+	 * <p>Get options supported by the file system. Options list is implementation-specific, but "REVISIONS"=&gt;"true"/"false" is strongly recommended for file systems that supports revisions.</p>
+	 * @return options supported. Can be empty but not null.
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.7
+	 */
+	default Properties getOptionsSupported() throws IOException {
+		return new Properties();
+	}
 	
 	/**
 	 * <p>Is the file system identical to another file system and does it points to the same location in it.</p>
