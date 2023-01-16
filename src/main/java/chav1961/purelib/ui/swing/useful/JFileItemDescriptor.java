@@ -2,7 +2,11 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.util.Date;
 
-public class JFileItemDescriptor {
+/**
+ * 
+ *
+ */
+public class JFileItemDescriptor implements Comparable<JFileItemDescriptor> {
 	private final String 	name;
 	private final String	path; 
 	private final boolean	isDirectory;
@@ -40,5 +44,18 @@ public class JFileItemDescriptor {
 	@Override
 	public String toString() {
 		return "JFileItemDescriptor [name=" + name + ", path=" + path + ", isDirectory=" + isDirectory + ", size=" + size + ", lastModified=" + lastModified + "]";
+	}
+
+	@Override
+	public int compareTo(final JFileItemDescriptor o) {
+		if (o == null) {
+			return 1;
+		}
+		else if (o.isDirectory() == isDirectory()) {
+			return o.getName().compareTo(getName());
+		}
+		else {
+			return isDirectory() ? -1 : 1;
+		}
 	}
 }

@@ -28,6 +28,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreeCellEditor;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -38,7 +40,9 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
+import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentKeeper;
 
 public abstract class JFileTree extends JTree implements FileContentKeeper {
@@ -128,25 +132,27 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			setTransferHandler(new FileTransferHandler());
 			FileTransferHandler.prepare4DroppingFiles(this);
 			
-			setCellRenderer(new DefaultTreeCellRenderer() {	// Don't move before setRoot() !!!
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-					final JLabel					label = (JLabel)super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-					final JFileItemDescriptor	desc = (JFileItemDescriptor) ((DefaultMutableTreeNode)value).getUserObject();
-					
-					try {final String	path = URLDecoder.decode(desc.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
-					
-						label.setText(path.endsWith("/") ? path : path.substring(path.lastIndexOf('/')+1));
-						label.setIcon(desc.isDirectory() ? (expanded ? DIR_ICON_OPENED : DIR_ICON) : FILE_ICON);
-					} catch (UnsupportedEncodingException e) {
-						label.setText("I/O error: "+e.getLocalizedMessage());
-					}
-	
-					return label;
-				}
-			});
+			setCellRenderer(SwingUtils.getCellRenderer(JFileItemDescriptor.class, new FieldFormat(JFileItemDescriptor.class), TreeCellRenderer.class));
+			
+//			setCellRenderer(new DefaultTreeCellRenderer() {	// Don't move before setRoot() !!!
+//				private static final long serialVersionUID = 1L;
+//	
+//				@Override
+//				public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+//					final JLabel					label = (JLabel)super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+//					final JFileItemDescriptor	desc = (JFileItemDescriptor) ((DefaultMutableTreeNode)value).getUserObject();
+//					
+//					try {final String	path = URLDecoder.decode(desc.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
+//					
+//						label.setText(path.endsWith("/") ? path : path.substring(path.lastIndexOf('/')+1));
+//						label.setIcon(desc.isDirectory() ? (expanded ? DIR_ICON_OPENED : DIR_ICON) : FILE_ICON);
+//					} catch (UnsupportedEncodingException e) {
+//						label.setText("I/O error: "+e.getLocalizedMessage());
+//					}
+//	
+//					return label;
+//				}
+//			});
 	        addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
 				@Override public void componentMoved(ComponentEvent e) {}
@@ -237,7 +243,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	private void fillChildren(final DefaultMutableTreeNode node, final FileSystemInterface fsi) throws IOException {
-		node.removeAllChildren();
+		final List<DefaultMutableTreeNode>	content = new ArrayList<>();
 		
 		fsi.list((child)->{
 			if (child.isDirectory()) {
@@ -248,7 +254,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 					return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
 				});
 
-				node.add(new DefaultMutableTreeNode(desc) {
+				content.add(new DefaultMutableTreeNode(desc) {
 					private static final long	serialVersionUID = 1L;
 					private final boolean		dirsInside = flag[0];
 					
@@ -261,7 +267,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			else if (showFiles) {
 				final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
 				
-				node.add(new DefaultMutableTreeNode(desc) {
+				content.add(new DefaultMutableTreeNode(desc) {
 					private static final long	serialVersionUID = 1L;
 					
 					@Override public boolean isLeaf() {return true;}
@@ -270,38 +276,12 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			return ContinueMode.CONTINUE;
 		});
 		
-//		for (String item : fsi.list((child)->{})) {
-//			try(final FileSystemInterface	child = fsi.clone().open(item)) {
-//				
-//				
-//				if (child.isDirectory()) {
-//					flag[0] = false;
-//					child.list((i)->{
-//						return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
-//					});
-//					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
-//					
-//					node.add(new DefaultMutableTreeNode(desc) {
-//						private static final long	serialVersionUID = 1L;
-//						
-//						final boolean				dirsInside = flag[0];
-//						
-//						@Override
-//						public boolean isLeaf() {
-//							return !dirsInside;
-//						}
-//					});
-//				}
-//				else if (showFiles) {
-//					final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
-//					
-//					node.add(new DefaultMutableTreeNode(desc) {
-//						private static final long	serialVersionUID = 1L;
-//						@Override public boolean isLeaf() {return true;}
-//					});
-//				}
-//			}
-//		}
+		content.sort((c1,c2)->((Comparable<JFileItemDescriptor>)c1.getUserObject()).compareTo((JFileItemDescriptor)c2.getUserObject()));
+		node.removeAllChildren();
+		for(DefaultMutableTreeNode item : content) {
+			node.add(item);
+		}
+		content.clear();
 	}
 
 	private void findAndSelect(final DefaultMutableTreeNode node, final String path) {
