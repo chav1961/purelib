@@ -59,7 +59,7 @@ public class JFileItemDescriptorRenderer<R> implements SwingItemRenderer<JFileIt
 //				}
 //			};
 //		}
-		else if (TableCellRenderer.class.isAssignableFrom(rendererType)) {
+		else if (TreeCellRenderer.class.isAssignableFrom(rendererType)) {
 			return (R) new DefaultTreeCellRenderer() {
 				private static final long serialVersionUID = 1L;
 	

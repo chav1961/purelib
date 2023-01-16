@@ -52,7 +52,7 @@ public class JFileItemDescriptor implements Comparable<JFileItemDescriptor> {
 			return 1;
 		}
 		else if (o.isDirectory() == isDirectory()) {
-			return o.getName().compareTo(getName());
+			return getName().compareTo(o.getName());
 		}
 		else {
 			return isDirectory() ? -1 : 1;

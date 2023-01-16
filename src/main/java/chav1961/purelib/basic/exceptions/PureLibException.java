@@ -91,15 +91,6 @@ public class PureLibException extends Exception {
 	}
 
 	/**
-	 * <p>Get message by using {@linkplain Localizer}.</p>
-	 * @since 0.0.7
-	 */
-	@Override
-	public String getMessage() {
-		return getLocalizedMessage();
-	}
-	
-	/**
 	 * <p>Get localized message by using {@linkplain Localizer}.</p>
 	 * @since 0.0.7
 	 */
