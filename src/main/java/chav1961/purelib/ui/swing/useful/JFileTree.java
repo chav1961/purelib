@@ -1,6 +1,5 @@
 package chav1961.purelib.ui.swing.useful;
 
-import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -11,13 +10,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.lang.Iterable;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimerTask;
 
 import javax.swing.Icon;
-import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
 import javax.swing.event.TreeExpansionEvent;
@@ -25,10 +24,8 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.ExpandVetoException;
-import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -36,6 +33,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -43,8 +41,24 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentKeeper;
 
+/**
+ * <p>This class supports navigation on the file system in the tree style. The class is abstract, and children of the class must 
+ * implements at least two methods:</p>
+ * <ul>
+ * <li>{@linkplain #placeFileContent(Point, Iterable<File>)} method to process DROP operation with the list of files on any tree item</li>
+ * <li>{@linkplain #refreshLinkedContent(FileSystemInterface)} method to refresh linked content after change selection inside the tree</li>
+ * </ul>
+ * <p>Every item in the tree is an instance of {@linkplain JFileItemDescriptor}.</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see LoggerFacade
+ * @see FileSystemInterface
+ * @see FilterCallback
+ * @see JFileItemDescriptor
+ * @since 0.0.7
+ */
 public abstract class JFileTree extends JTree implements FileContentKeeper {
 	private static final long 	serialVersionUID = -9727348906597529L;
 
@@ -58,21 +72,49 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	protected final FileSystemInterface		fsi;
 	protected final boolean 				showFiles;
 	protected final DefaultMutableTreeNode	root = new DefaultMutableTreeNode();
+	protected final FilterCallback[]		filter;
 	
 	private TimerTask						tt = null;
 	private boolean							fastRefresh = false;
+
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param fsi file system to show content. Can't be null
+	 * @param showFiles show files in the tree. When false, only directories will be shown
+	 * @param filter filter to accept for files. Directories are never filtered.
+	 * @throws NullPointerException when logger or file system is null
+	 * @throws IllegalArgumentException when filter callback is null or contains nulls inside
+	 * @throws IOException on any I/O errors
+	 */
+	public JFileTree(final FileSystemInterface fsi, final boolean showFiles, final FilterCallback... filter) throws NullPointerException, IllegalArgumentException, IOException {
+		this(PureLibSettings.CURRENT_LOGGER, fsi, showFiles, filter);
+	}
 	
-	public JFileTree(final LoggerFacade logger, final FileSystemInterface fsi, final boolean showFiles) throws NullPointerException, IllegalArgumentException, IOException {
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param logger logger to log error messages if any. Can't be null
+	 * @param fsi file system to show content. Can't be null
+	 * @param showFiles show files in the tree. When false, only directories will be shown
+	 * @param filter filter to accept for files. Directories are never filtered.
+	 * @throws NullPointerException when logger or file system is null
+	 * @throws IllegalArgumentException when filter callback is null or contains nulls inside
+	 * @throws IOException on any I/O errors
+	 */
+	public JFileTree(final LoggerFacade logger, final FileSystemInterface fsi, final boolean showFiles, final FilterCallback... filter) throws NullPointerException, IllegalArgumentException, IOException {
 		if (logger == null) {
 			throw new NullPointerException("Logger can't be null");
 		}
 		else if (fsi == null) {
 			throw new NullPointerException("File system interface can't be null");
 		}
+		else if (filter == null || Utils.checkArrayContent4Nulls(filter) >= 0) {
+			throw new IllegalArgumentException("Filter list is null or contains nulls inside");
+		}
 		else {
 			this.logger = logger;
 			this.fsi = fsi;
 			this.showFiles = showFiles;
+			this.filter = filter;
 			
 			getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 			setRootVisible(true);
@@ -133,26 +175,6 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			FileTransferHandler.prepare4DroppingFiles(this);
 			
 			setCellRenderer(SwingUtils.getCellRenderer(JFileItemDescriptor.class, new FieldFormat(JFileItemDescriptor.class), TreeCellRenderer.class));
-			
-//			setCellRenderer(new DefaultTreeCellRenderer() {	// Don't move before setRoot() !!!
-//				private static final long serialVersionUID = 1L;
-//	
-//				@Override
-//				public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-//					final JLabel					label = (JLabel)super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-//					final JFileItemDescriptor	desc = (JFileItemDescriptor) ((DefaultMutableTreeNode)value).getUserObject();
-//					
-//					try {final String	path = URLDecoder.decode(desc.getName(), PureLibSettings.DEFAULT_CONTENT_ENCODING);
-//					
-//						label.setText(path.endsWith("/") ? path : path.substring(path.lastIndexOf('/')+1));
-//						label.setIcon(desc.isDirectory() ? (expanded ? DIR_ICON_OPENED : DIR_ICON) : FILE_ICON);
-//					} catch (UnsupportedEncodingException e) {
-//						label.setText("I/O error: "+e.getLocalizedMessage());
-//					}
-//	
-//					return label;
-//				}
-//			});
 	        addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
 				@Override public void componentMoved(ComponentEvent e) {}
@@ -177,9 +199,14 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	@Override
 	public abstract void placeFileContent(final Point location, final Iterable<File> content);	
 	public abstract void refreshLinkedContent(final FileSystemInterface content);
-	
-	public void setSelection(final String path) {
-		if (path == null || path.isEmpty()) {
+
+	/**
+	 * <p>Set selection in the tree by the path to file/directory
+	 * @param path file/directory path to select
+	 * @throws IllegalArgumentException when path to select is null or empty
+	 */
+	public void setSelection(final String path) throws IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(path)) {
 			throw new IllegalArgumentException("Path to select can-t be null or empty"); 
 		}
 		else {

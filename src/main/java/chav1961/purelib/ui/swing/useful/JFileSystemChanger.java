@@ -14,7 +14,6 @@ import java.util.Base64;
 import java.util.Locale;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -33,7 +32,6 @@ import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -53,9 +51,6 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
-import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
-import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
-import chav1961.purelib.ui.swing.useful.DnDManager.DnDInterface;
 
 /**
  * <p>This class implements File system changer window and supports model dialogs with it. </p>

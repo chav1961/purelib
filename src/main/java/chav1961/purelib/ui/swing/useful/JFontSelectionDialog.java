@@ -54,6 +54,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FontStyleType;
  * </pre>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
+ *
  **/
 
 public class JFontSelectionDialog extends JPanel {
