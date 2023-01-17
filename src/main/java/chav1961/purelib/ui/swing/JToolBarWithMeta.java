@@ -207,6 +207,20 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 		}
 	}
 
+	public long getEnabledState() {
+		return 0;
+	}
+	
+	public void setEnabledState(final long enabledState) {
+	}
+
+	public long getSelectedState() {
+		return 0;
+	}
+	
+	public void setSelectedState(final long selectedState) {
+	}
+	
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null) {
 			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
