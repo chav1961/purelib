@@ -110,6 +110,7 @@ module chav1961.purelib {
 			, chav1961.purelib.ui.swing.useful.renderers.JFileItemDescriptorRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.NumericRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.ItemAndSelectionRenderer
+			, chav1961.purelib.ui.swing.useful.renderers.IconAndTextKeeperRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.ReferenceAndCommentRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.LongItemAndReferenceRenderer			
 			, chav1961.purelib.ui.swing.useful.renderers.ContentNodeMetadataRenderer			
