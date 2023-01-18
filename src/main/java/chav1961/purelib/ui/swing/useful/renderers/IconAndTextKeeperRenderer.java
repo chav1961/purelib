@@ -31,7 +31,7 @@ public class IconAndTextKeeperRenderer<R> implements SwingItemRenderer<IconAndTe
 			return canServe((Class<IconAndTextKeeper>) class2Render.getComponentType(), rendererType, options);
 		}
 		else {
-			return Enum.class.isAssignableFrom(class2Render) && SUPPORTED_RENDERERDS.contains(rendererType); 
+			return IconAndTextKeeper.class.isAssignableFrom(class2Render) && SUPPORTED_RENDERERDS.contains(rendererType); 
 		}
 	}
 
@@ -46,7 +46,7 @@ public class IconAndTextKeeperRenderer<R> implements SwingItemRenderer<IconAndTe
 				
 				@Override
 				public Component getListCellRendererComponent(final JList list, final Object val, final int index, final boolean isSelected, final boolean cellHasFocus) {
-					final JLabel			label = (JLabel)super.getListCellRendererComponent(list, val, index, isSelected, cellHasFocus);
+					final JLabel			label = (JLabel)super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus);
 					final IconAndTextKeeper	keeper = (IconAndTextKeeper)val;
 
 					label.setIcon(keeper.getIcon());
