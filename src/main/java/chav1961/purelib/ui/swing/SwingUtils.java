@@ -89,6 +89,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
+import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -103,6 +104,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
 
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.GettersAndSettersFactory;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -159,7 +161,7 @@ import chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public abstract class SwingUtils {
@@ -2132,6 +2134,66 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 	
+	/**
+	 * <p>Create SprintLayout instance and place children into container with constraints formatted.<p>
+	 * @param container container to set {@linkplain SpringLayout} and place children into. Can't be null
+	 * @param format format string. Can't be null or empty. Format syntax see {@linkplain #placeContainerBySpringLayout(JComponent, int, int, String, JComponent...)}
+	 * @param children children to place into the container. Can't be null or empty array  
+	 * @throws NullPointerException on container parameter is null 
+	 * @throws IllegalArgumentException format string is null or empty or children is null, empty or contains nulls inside
+	 * @throws EnvironmentException on syntax errors inside the format string
+	 * @see {@link #placeContainerBySpringLayout(JComponent, int, int, String, JComponent...)}
+	 * @since 0.0.7
+	 */
+	public static void placeContainerBySpringLayout(final JComponent container, final String format, final JComponent... children) throws NullPointerException, IllegalArgumentException, EnvironmentException {
+		placeContainerBySpringLayout(container, 5, 5, format, children);
+	}
+
+	/**
+	 * <p>Create SprintLayout instance and place children into container with constraints formatted.<p>
+	 * <p>Constraint format is:</p>
+	 * <ul>
+	 * <li>&lt;format&gt;::=&lt;part&gt;[';'...]</li>
+	 * <li>&lt;part&gt;::=&lt;constraint&gt;[' '...]</li>
+	 * <li>&lt;constraint&gt;::=&lt;itemRef&gt;&lt;padding&gt;&lt;itemRef&gt;</li>
+	 * <li>&lt;itemRef&gt;::='#'[&lt;number&gt;]{'n'|'s'|'w'|'e'}</li>
+	 * <li>&lt;padding&gt;::={'0'|{'+'|'-'}{&lt;number&gt;|'X'|'Y'}}</li>
+	 * </ul>
+	 * <p>Item ref number is a sequential zero-based number of child in the children list. When the number missing, item ref points to the container self. 'X' and 'Y' are values of xGap and yGap parameters passed.
+	 * Semicolon inside the doesn't have any semantics associated and can be used as splitter between parts<p> 	
+	 * @param container container to set {@linkplain SpringLayout} and place children into. Can't be null
+	 * @param xGap horizontal gaps between items. Refers by 'X' variable inside format string
+	 * @param yGap vertical gaps between items. Refers by 'Y' variable inside format string
+	 * @param format format string. Can't be null or empty. Format syntax see above
+	 * @param children children to place into the container. Can't be null or empty array  
+	 * @throws NullPointerException on container parameter is null 
+	 * @throws IllegalArgumentException format string is null or empty or children is null, empty or contains nulls inside
+	 * @throws EnvironmentException on syntax errors inside the format string
+	 * @see {@linkplain #placeContainerBySpringLayout(JComponent, String, JComponent...)}
+	 * @since 0.0.7
+	 */
+	public static void placeContainerBySpringLayout(final JComponent container, final int xGap, final int yGap, final String format, final JComponent... children) throws NullPointerException, IllegalArgumentException, EnvironmentException {
+		if (container == null) {
+			throw new NullPointerException("Container can't be null"); 
+		}
+		else if (Utils.checkEmptyOrNullString(format)) {
+			throw new IllegalArgumentException("Format string can't be null or empty"); 
+		}
+		else if (children == null || children.length == 0 || Utils.checkArrayContent4Nulls(children) >= 0) {
+			throw new IllegalArgumentException("Children list is null, empty, or contains nulls inside"); 
+		}
+		else {
+			final SpringLayout	layout = new SpringLayout();
+			final char[]		content = CharUtils.terminateAndConvert2CharArray(format, '\n');
+			int					pos = 0;
+			
+			container.setLayout(layout);
+			for (JComponent item : children) {
+				container.add(item);
+			}
+			
+		}
+	}
 	
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
 		final JEditorPane 	pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),null);
