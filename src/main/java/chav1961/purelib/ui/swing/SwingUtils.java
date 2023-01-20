@@ -2180,18 +2180,108 @@ loop:			for (Component comp : children(node)) {
 			throw new IllegalArgumentException("Format string can't be null or empty"); 
 		}
 		else if (children == null || children.length == 0 || Utils.checkArrayContent4Nulls(children) >= 0) {
-			throw new IllegalArgumentException("Children list is null, empty, or contains nulls inside"); 
+			throw new IllegalArgumentException("Children list is null or empty or contains nulls inside"); 
 		}
 		else {
 			final SpringLayout	layout = new SpringLayout();
 			final char[]		content = CharUtils.terminateAndConvert2CharArray(format, '\n');
-			int					pos = 0;
+			String				leftConstraint = null;
+			JComponent			leftComponent = null;
+			int					gap = 0;
+			int					forNumber[] = new int[1];
+			int					pos = 0, state = 1;
 			
 			container.setLayout(layout);
 			for (JComponent item : children) {
 				container.add(item);
 			}
 			
+			try	{
+loop:			for (;;) {
+					switch (content[pos = CharUtils.skipBlank(content, pos, true)]) {
+						case '\n'	:
+							break loop;
+						case ';'	:
+							pos++;
+							break;
+						case '#'	:
+							final JComponent	ref;
+							final String		constraint;
+							
+							pos = CharUtils.skipBlank(content, pos + 1, true);
+							if (content[pos] >= '0' && content[pos] <= '9') {
+								pos = CharUtils.skipBlank(content, CharUtils.parseInt(content, pos, forNumber, true), true);
+								if (forNumber[0] < children.length) {
+									ref = children[forNumber[0]];
+								}
+								else {
+									throw new SyntaxException(0, pos, "Reference number ["+forNumber[0]+"] out of range 0.."+(children.length-1));
+								}
+							}
+							else {
+								ref = container;
+							}
+							switch (content[pos]) {
+								case 'n' : case 'N'	:
+									constraint = SpringLayout.NORTH;
+									pos++;
+									break;
+								case 's' : case 'S'	:
+									constraint = SpringLayout.SOUTH;
+									pos++;
+									break;
+								case 'w' : case 'W'	:
+									constraint = SpringLayout.WEST;
+									pos++;
+									break;
+								case 'e' : case 'E'	:
+									constraint = SpringLayout.EAST;
+									pos++;
+									break;
+								default :
+									throw new SyntaxException(0, pos, "Illegal reference modifier ["+content[pos]+"]. Only 'n', 'e', 's', 'w' are valid");
+							}
+							if (state == 1) {
+								leftConstraint = constraint;
+								leftComponent = ref;
+								state = 2;
+							}
+							else {
+								layout.putConstraint(leftConstraint, leftComponent, gap, constraint, ref);
+								state = 1;
+							}
+							break;
+						case '0' :
+							gap = 0;
+							pos++;
+							break;
+						case '+' : case '-' :
+							final int	multiplier = content[pos] == '-' ? -1 : 1;
+							
+							pos = CharUtils.skipBlank(content, pos + 1, true);
+							if (content[pos] == 'X' || content[pos] == 'x') {
+								gap = multiplier * xGap;
+								pos++;
+							}
+							else if (content[pos] == 'Y' || content[pos] == 'y') {
+								gap = multiplier * yGap;
+								pos++;
+							}
+							else {
+								pos = CharUtils.parseInt(content, pos, forNumber, true);
+								gap = multiplier * forNumber[0];
+							}
+							break;
+						default :
+							throw new SyntaxException(0, pos, "Unknown symbol"); 
+					}
+				}
+				if (state == 2) {
+					throw new SyntaxException(0, pos, "Last constraint: right component is missing"); 
+				}
+			} catch (SyntaxException e) {
+				throw new EnvironmentException(e.getLocalizedMessage(), e); 
+			}
 		}
 	}
 	

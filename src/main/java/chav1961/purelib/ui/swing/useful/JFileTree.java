@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 import javax.swing.Icon;
 import javax.swing.JTree;
@@ -51,7 +52,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentKeeper;
  * <li>{@linkplain #placeFileContent(Point, Iterable<File>)} method to process DROP operation with the list of files on any tree item</li>
  * <li>{@linkplain #refreshLinkedContent(FileSystemInterface)} method to refresh linked content after change selection inside the tree</li>
  * </ul>
- * <p>Every item in the tree is an instance of {@linkplain JFileItemDescriptor}.</p> 
+ * <p>Every item in the tree is an instance of {@linkplain JFileItemDescriptor} and can be cast to it safely.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @see LoggerFacade
  * @see FileSystemInterface
@@ -73,6 +74,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	protected final boolean 				showFiles;
 	protected final DefaultMutableTreeNode	root = new DefaultMutableTreeNode();
 	protected final FilterCallback[]		filter;
+	protected final Pattern					filterPattern;
 	
 	private TimerTask						tt = null;
 	private boolean							fastRefresh = false;
@@ -115,6 +117,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			this.fsi = fsi;
 			this.showFiles = showFiles;
 			this.filter = filter;
+			this.filterPattern = Pattern.compile(buildFilterPattern(filter));
 			
 			getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 			setRootVisible(true);
@@ -197,7 +200,13 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	@Override
-	public abstract void placeFileContent(final Point location, final Iterable<File> content);	
+	public abstract void placeFileContent(final Point location, final Iterable<File> content);
+	
+	/**
+	 * <p>Refresh linked content. Typical use of this method is refresh list of files in another component, when selection in this component changes. 
+	 * Calling of this method is optimized to reduce calls when user simply moves selection from item to item (for example, by arrow keys).</p> 
+	 * @param content file system item that was selected now
+	 */
 	public abstract void refreshLinkedContent(final FileSystemInterface content);
 
 	/**
@@ -291,7 +300,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 					}
 				});
 			}
-			else if (showFiles) {
+			else if (showFiles && (filter.length == 0 || filterPattern.matcher(child.getName()).matches())) {
 				final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
 				
 				content.add(new DefaultMutableTreeNode(desc) {
@@ -326,6 +335,22 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			else {
 				findAndSelect(item, path);
 			}
+		}
+	}
+
+	private static String buildFilterPattern(final FilterCallback[] filters) {
+		if (filters.length == 0) {
+			return ".*";
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			
+			for (FilterCallback item : filters) {
+				for (String mask : item.getFileMask()) {
+					sb.append('|').append(Utils.fileMask2Regex(mask));
+				}
+			}
+			return sb.substring(1);
 		}
 	}
 }

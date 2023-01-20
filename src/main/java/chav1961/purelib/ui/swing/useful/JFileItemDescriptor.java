@@ -17,7 +17,7 @@ public class JFileItemDescriptor implements Comparable<JFileItemDescriptor> {
 	private final long		size;
 	private final Date		lastModified;
 	
-	JFileItemDescriptor(final String name, final String path, final boolean isDirectory, final long size, final Date lastModified) {
+	public JFileItemDescriptor(final String name, final String path, final boolean isDirectory, final long size, final Date lastModified) {
 		this.name = name;
 		this.path = path;
 		this.isDirectory = isDirectory;
