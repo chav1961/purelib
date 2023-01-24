@@ -381,18 +381,24 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 
 	/**
 	 * <p>Close current tab programmatically</p>
+	 * @return true if tab was successfully closed
 	 */
-	public void closeTab() {
+	public boolean closeTab() {
+		boolean result = true;
+		
 		if (tab instanceof AutoCloseable) {
 			try{((AutoCloseable)tab).close();
 			} catch (Exception exc) {
 				SwingUtils.getNearestLogger(this).message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
+				result = false;
 			}
 		}
 		container.remove(tab);
 		container = null;
 		tab = null;
 		popup = null;
+		
+		return result;
 	}
 	
 	
