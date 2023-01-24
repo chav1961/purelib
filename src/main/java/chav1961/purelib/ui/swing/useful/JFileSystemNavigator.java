@@ -135,7 +135,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 							}
 
 							@Override
-							public void placeFileContent(final Point location, final Iterable<File> content) {
+							public void placeFileContent(final Point location, final Iterable<JFileItemDescriptor> content) {
 								logger.message(Severity.error, "Not implemented yet");
 							}
 						};
@@ -143,7 +143,7 @@ public class JFileSystemNavigator extends JSplitPane implements LocaleChangeList
 						private static final long serialVersionUID = -6386127009486154573L;
 
 						@Override
-						public void placeFileContent(final Point location, Iterable<File> content) {
+						public void placeFileContent(final Point location, Iterable<JFileItemDescriptor> content) {
 							// TODO Auto-generated method stub
 							
 						}

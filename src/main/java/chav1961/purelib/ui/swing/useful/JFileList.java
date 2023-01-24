@@ -322,7 +322,7 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 		}
 	}
 
-	@Override public abstract void placeFileContent(final Point location, final Iterable<File> content);
+	@Override public abstract void placeFileContent(final Point location, final Iterable<JFileItemDescriptor> content);
 	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
@@ -421,11 +421,11 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 	}
 
 	@Override
-	public Collection<File> getFileContent() {
-		final List<File>	result = new ArrayList<File>();
+	public Collection<JFileItemDescriptor> getFileContent() {
+		final List<JFileItemDescriptor>	result = new ArrayList<>();
 		
 		for(int index = 0, maxIndex = getModelSize(); index < maxIndex; index++) {
-			result.add(new File(getModelItem(index).getPath()));
+			result.add(getModelItem(index));
 		}
 		return result;
 	}
@@ -436,12 +436,12 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 	}
 
 	@Override
-	public Collection<File> getSelectedFileContent() {
-		final List<File>	result = new ArrayList<File>();
+	public Collection<JFileItemDescriptor> getSelectedFileContent() {
+		final List<JFileItemDescriptor>	result = new ArrayList<>();
 		
 		for(int index = 0, maxIndex = getModelSize(); index < maxIndex; index++) {
 			if (isItemSelected(index)) {
-				result.add(new File(getModelItem(index).getPath()));
+				result.add(getModelItem(index));
 			}
 		}
 		return result;

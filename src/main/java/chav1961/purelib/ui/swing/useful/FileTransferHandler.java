@@ -37,7 +37,7 @@ class FileTransferHandler extends TransferHandler {
 		final Transferable[]	result = new Transferable[1];
 		
 		findFileContentKeeper(source, (item)->{
-			final Collection<File> content = ((FileContentKeeper)item).getSelectedFileContent();
+			final Collection<JFileItemDescriptor> content = ((FileContentKeeper)item).getSelectedFileContent();
 			
 			if (content != null && !content.isEmpty()) {
 				result[0] = new FileTransferable(content);
@@ -60,8 +60,13 @@ class FileTransferHandler extends TransferHandler {
 	                	if ((evt.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0 && evt.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
 		                	evt.acceptDrop(DnDConstants.ACTION_COPY);
 		        			findFileContentKeeper(target,(item)->{
-			                    try{
-			                    	((FileContentKeeper)item).placeFileContent(evt.getLocation(), (Iterable<File>)evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
+			                    try{final List<JFileItemDescriptor>	descList = new ArrayList<>();
+			                    	
+			                    	for (File f : (List<File>)evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor)) {
+			                    		descList.add(JFileItemDescriptor.of(f));
+			                    	}
+			                    	
+			                    	((FileContentKeeper)item).placeFileContent(evt.getLocation(), descList);
 								} catch (IOException | UnsupportedFlavorException exc) {
 				                	SwingUtils.getNearestLogger(target).message(Severity.error, exc, exc.getLocalizedMessage());
 								}
@@ -92,15 +97,15 @@ class FileTransferHandler extends TransferHandler {
 	}
 	
 	private class FileTransferable implements Transferable {
-	    private final DataFlavor[]	flavors = {DataFlavor.javaFileListFlavor};
-		private final List<File>	files;
+	    private final DataFlavor[]				flavors = {DataFlavor.javaFileListFlavor};
+		private final List<JFileItemDescriptor>	files;
 
-	    public FileTransferable(final Collection<File> files) throws IllegalArgumentException {
+	    public FileTransferable(final Collection<JFileItemDescriptor> files) throws IllegalArgumentException {
 	    	if (files == null || files.isEmpty()) {
 	    		throw new IllegalArgumentException("File list can't be null or empty collection"); 
 	    	}
 	    	else {
-	            this.files = Collections.unmodifiableList(new ArrayList<File>(files));
+	            this.files = Collections.unmodifiableList(new ArrayList<JFileItemDescriptor>(files));
 	    	}
 	    }
 	 

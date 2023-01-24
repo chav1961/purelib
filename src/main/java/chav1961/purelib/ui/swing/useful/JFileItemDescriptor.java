@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -80,6 +81,21 @@ public class JFileItemDescriptor implements Comparable<JFileItemDescriptor> {
 		}
 		else {
 			return isDirectory() ? -1 : 1;
+		}
+	}
+
+	/**
+	 * <p>Build file item descriptor from {@linkplain File} instance</p>
+	 * @param file file instance to build descriptor from. Can't be null
+	 * @return file item descriptor built. Can't be null
+	 * @throws NullPointerException when file descriptor is null
+	 */
+	public static JFileItemDescriptor of(final File file) throws NullPointerException {
+		if (file == null) {
+			throw new NullPointerException("File descriptor can't be null"); 
+		}
+		else {
+			return new JFileItemDescriptor(file.getName(), file.getAbsolutePath(), file.isDirectory(), file.length(), new Date(file.lastModified()));
 		}
 	}
 }

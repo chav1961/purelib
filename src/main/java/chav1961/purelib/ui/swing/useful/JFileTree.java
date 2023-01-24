@@ -200,7 +200,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	@Override
-	public abstract void placeFileContent(final Point location, final Iterable<File> content);
+	public abstract void placeFileContent(final Point location, final Iterable<JFileItemDescriptor> content);
 	
 	/**
 	 * <p>Refresh linked content. Typical use of this method is refresh list of files in another component, when selection in this component changes. 
@@ -249,15 +249,15 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	@Override
-	public Collection<File> getFileContent() {
-		final List<File>				result = new ArrayList<File>();
+	public Collection<JFileItemDescriptor> getFileContent() {
+		final List<JFileItemDescriptor>	result = new ArrayList<>();
 		
 		walk((DefaultMutableTreeNode) getModel().getRoot(),result);
 		return result;
 	}
 
-	private void walk(final DefaultMutableTreeNode item, final List<File> target) {
-		target.add(new File(((JFileItemDescriptor)item.getUserObject()).getPath()));
+	private void walk(final DefaultMutableTreeNode item, final List<JFileItemDescriptor> target) {
+		target.add((JFileItemDescriptor)item.getUserObject());
 		for (int index = 0, maxIndex = item.getChildCount(); index < maxIndex; index++) {
 			walk((DefaultMutableTreeNode)item.getChildAt(index), target);
 		}
@@ -269,11 +269,11 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	@Override
-	public Collection<File> getSelectedFileContent() {
-		final List<File>	result = new ArrayList<File>();
+	public Collection<JFileItemDescriptor> getSelectedFileContent() {
+		final List<JFileItemDescriptor>	result = new ArrayList<>();
 		
 		if (hasSelectedFileContentNow()) {
-			result.add(new File(((JFileItemDescriptor)((DefaultMutableTreeNode)getSelectionPath().getLastPathComponent()).getUserObject()).getPath()));
+			result.add((JFileItemDescriptor)((DefaultMutableTreeNode)getSelectionPath().getLastPathComponent()).getUserObject());
 		}
 		return result;
 	}
