@@ -95,7 +95,7 @@ public class JFileItemDescriptor implements Comparable<JFileItemDescriptor> {
 			throw new NullPointerException("File descriptor can't be null"); 
 		}
 		else {
-			return new JFileItemDescriptor(file.getName(), file.getAbsolutePath(), file.isDirectory(), file.length(), new Date(file.lastModified()));
+			return new JFileItemDescriptor(file.getName(), file.getAbsoluteFile().toURI().toString(), file.isDirectory(), file.length(), new Date(file.lastModified()));
 		}
 	}
 }

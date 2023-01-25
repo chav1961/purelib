@@ -51,14 +51,14 @@ public class StringEditor<R> implements SwingItemEditor<String, R> {
 			throw new NullPointerException("Editor type can't be null"); 
 		}
 		else if (TableCellEditor.class.isAssignableFrom(editorType)) {
-			try{final Class<?>				clazz = options.length > 0 && (options[0] instanceof Class) ? (Class)options[0] : Number.class;
+			try{final Class<?>				clazz = options.length > 0 && (options[0] instanceof Class) ? (Class<?>)options[0] : Number.class;
 				final FieldFormat			ff = options.length > 1 && (options[1] instanceof FieldFormat) ? (FieldFormat)options[1] : null;
 				final URI					app = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/String/field?visibility=package");
 				final ContentNodeMetadata	mcnd = new MutableContentNodeMetadata("field", clazz, "./field", URI.create(PureLibLocalizer.LOCALIZER_SCHEME_STRING), "testSet1", null, null, ff, app, null); 
 				final JComponentMonitor		jcm = (event, metadata, component, parameters)->true;
 				final JTextField 			tf = (JTextField) SwingUtils.prepareRenderer(mcnd, PureLibSettings.PURELIB_LOCALIZER, FieldFormat.ContentType.StringContent, jcm);
 				
-				return (R) new DefaultCellEditor(tf);
+				return editorType.cast(new DefaultCellEditor(tf));
 			} catch (SyntaxException e) {
 				throw new PreparationException(e.getLocalizedMessage(), e);
 			}

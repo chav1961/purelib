@@ -558,6 +558,15 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 */
 	boolean isTheSame(FileSystemInterface another) throws IOException;
 
+	/**
+	 * <p>Build unique name in the current directory</p>
+	 * @param prefix prefix of unique name. Can't be null but can be empty
+	 * @param suffix suffix of unique name. Can't be null but can be empty
+	 * @return unique name built. Can't be null or empty
+	 * @throws IOException on any I/O errors or create unique name on the file
+	 * @since 0.0.7
+	 */
+	String createUniqueName(String prefix, String suffix) throws IOException;
 	
 	/**
 	 * <p>Start transaction on the file system</p>

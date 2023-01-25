@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.AndOrTree;
@@ -45,7 +46,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 
 public abstract class AbstractFileSystem implements FileSystemInterface {
@@ -53,7 +54,8 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	
 	private static final String			ALL_MASK = ".*";
 	private static final Pattern		ALL_MASK_COMPILED = Pattern.compile(ALL_MASK);
-	private static final FileSystemInterface[]	EMPTY_LIST = new FileSystemInterface[0];  
+	private static final FileSystemInterface[]	EMPTY_LIST = new FileSystemInterface[0];
+	private static final Random			random = new Random(System.currentTimeMillis());  
 
 	protected final URI 				rootPath;
 	
@@ -710,6 +712,36 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		}
 		else {
 			return getAbsoluteURI().equals(another.getAbsoluteURI());
+		}
+	}
+	
+	@Override
+	public String createUniqueName(final String prefix, final String suffix) throws IOException {
+		if (prefix == null) {
+			throw new NullPointerException("Prefix can't be null. Use empty string instead");
+		}
+		else if (suffix == null) {
+			throw new NullPointerException("Suffix can't be null. Use empty string instead");
+		}
+		else if (!exists() || isFile()) {
+			throw new IOException("Current path ["+getPath()+"] is not exists or is not a directory");
+		}
+		else {
+			for(int attempts = 0; attempts < 1000000; attempts++) {
+				final int		value;
+				
+				synchronized (random) {
+					value = random.nextInt(1000000000);
+				}
+				final String	name = prefix+value+suffix;
+						
+				try(final FileSystemInterface	temp = clone().open(prefix+value+suffix)) {
+					if (!temp.exists()) {
+						return name;
+					}
+				}
+			}
+			throw new IOException("Attempts limit exceeded to create unique name");
 		}
 	}
 	

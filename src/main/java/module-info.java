@@ -106,7 +106,8 @@ module chav1961.purelib {
 	provides java.nio.file.spi.FileSystemProvider with chav1961.purelib.fsys.PureLibFileSystemProvider;
 	
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
-	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with chav1961.purelib.ui.swing.useful.renderers.EnumRenderer
+	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with 
+			  chav1961.purelib.ui.swing.useful.renderers.EnumRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.IconAndTextKeeperRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.JFileItemDescriptorRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.NumericRenderer
@@ -117,7 +118,9 @@ module chav1961.purelib {
 			, chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
 
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemEditor;
-	provides chav1961.purelib.ui.swing.interfaces.SwingItemEditor with chav1961.purelib.ui.swing.useful.editors.NumericEditor
+	provides chav1961.purelib.ui.swing.interfaces.SwingItemEditor with 
+	  		  chav1961.purelib.ui.swing.useful.editors.JFileItemDescriptorEditor
+			, chav1961.purelib.ui.swing.useful.editors.NumericEditor
 			, chav1961.purelib.ui.swing.useful.editors.StringEditor;
 	
 	uses chav1961.purelib.basic.interfaces.LoggerFacade;

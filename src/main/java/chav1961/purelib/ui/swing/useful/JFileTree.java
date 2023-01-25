@@ -21,12 +21,15 @@ import javax.swing.Icon;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -72,7 +75,6 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	protected final LoggerFacade			logger;
 	protected final FileSystemInterface		fsi;
 	protected final boolean 				showFiles;
-	protected final DefaultMutableTreeNode	root = new DefaultMutableTreeNode();
 	protected final FilterCallback[]		filter;
 	protected final Pattern					filterPattern;
 	
@@ -126,7 +128,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 				
 				@Override
 				public void treeWillExpand(final TreeExpansionEvent event) throws ExpandVetoException {
-					final DefaultMutableTreeNode	last = (DefaultMutableTreeNode)event.getPath().getLastPathComponent(); 
+					final JFileItemDescriptorNode	last = (JFileItemDescriptorNode)event.getPath().getLastPathComponent(); 
 					final String					path = ((JFileItemDescriptor)last.getUserObject()).getPath();
 					
 					try(final FileSystemInterface	partFsi = fsi.clone().open(path)) {
@@ -139,7 +141,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			addTreeSelectionListener(new TreeSelectionListener() {
 				@Override
 				public void valueChanged(final TreeSelectionEvent event) {
-					final DefaultMutableTreeNode	last = (DefaultMutableTreeNode)event.getPath().getLastPathComponent(); 
+					final JFileItemDescriptorNode	last = (JFileItemDescriptorNode)event.getPath().getLastPathComponent(); 
 					final String					path = ((JFileItemDescriptor)last.getUserObject()).getPath();
 					
 					if (tt != null) {
@@ -170,7 +172,8 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 					}
 				}
 			});
-			root.setUserObject(new JFileItemDescriptor("/", fsi.getAbsoluteURI().toString(), true, fsi.size(), new Date(fsi.lastModified())));
+			final JFileItemDescriptorNode	root = new JFileItemDescriptorNode(new JFileItemDescriptor("/", fsi.getAbsoluteURI().toString(), true, fsi.size(), new Date(fsi.lastModified())));
+
 			fillChildren(root, fsi);
 			((DefaultTreeModel)getModel()).setRoot(root);
 			setDragEnabled(true);
@@ -178,6 +181,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			FileTransferHandler.prepare4DroppingFiles(this);
 			
 			setCellRenderer(SwingUtils.getCellRenderer(JFileItemDescriptor.class, new FieldFormat(JFileItemDescriptor.class), TreeCellRenderer.class));
+			setCellEditor(SwingUtils.getCellEditor(JFileItemDescriptor.class, new FieldFormat(JFileItemDescriptor.class), TreeCellEditor.class));
 	        addComponentListener(new ComponentListener() {
 				@Override public void componentResized(ComponentEvent e) {}
 				@Override public void componentMoved(ComponentEvent e) {}
@@ -219,10 +223,105 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			throw new IllegalArgumentException("Path to select can-t be null or empty"); 
 		}
 		else {
-			findAndSelect((DefaultMutableTreeNode)getModel().getRoot(), path);
+			findAndSelect((JFileItemDescriptorNode)getModel().getRoot(), path);
 		}
 	}
 
+	/**
+	 * <p>Get selected item from the tree</p>
+	 * @return item selected or null if no selection available
+	 */
+	public JFileItemDescriptor getSelectedItem() {
+		if (!isSelectionEmpty()) {
+			return (JFileItemDescriptor)getLastSelectedPathComponent();
+		}
+		else {
+			return null;
+		}
+	}
+	
+	/**
+	 * <p>Add new file item descriptor to the path</p>
+	 * @param path path to add content to. Can't be null or empty and must points to directory
+	 * @param desc file descriptor to add
+	 * @return true if descriptor was added successfully, false otherwise (for example file name is not available for the filter list if the tree navigator)
+	 * @throws IllegalArgumentException path to add element to is null, empty, not exists or is not a directory 
+	 * @throws NullPointerException descriptor to add is null
+	 * @see #JFileTree(FileSystemInterface, boolean, FilterCallback...)
+	 * @see #JFileTree(LoggerFacade, FileSystemInterface, boolean, FilterCallback...)
+	 */
+	public boolean add(final String path, final JFileItemDescriptor desc) throws IllegalArgumentException, NullPointerException {
+		return add(path, desc, !desc.isDirectory());
+	}
+	
+	/**
+	 * <p>Add new file item descriptor to the path</p>
+	 * @param path path to add content to. Can't be null or empty and must points to directory
+	 * @param desc file descriptor to add
+	 * @param isLeaf mark descriptor to add as leaf
+	 * @return true if descriptor was added successfully, false otherwise (for example file name is not available for the filter list if the tree navigator)
+	 * @throws IllegalArgumentException path to add element to is null, empty, not exists or is not a directory 
+	 * @throws NullPointerException descriptor to add is null
+	 * @see #JFileTree(FileSystemInterface, boolean, FilterCallback...)
+	 * @see #JFileTree(LoggerFacade, FileSystemInterface, boolean, FilterCallback...)
+	 */
+	public boolean add(final String path, final JFileItemDescriptor desc, final boolean isLeaf) throws IllegalArgumentException, NullPointerException {
+		if (Utils.checkEmptyOrNullString(path)) {
+			throw new IllegalArgumentException("Path to add element to can't be null or empty"); 
+		}
+		else if (desc == null) {
+			throw new NullPointerException("Descriptor to add can't be null");
+		}
+		else {
+			final TreeNode[] 	found = find((JFileItemDescriptorNode)getModel().getRoot(), path);
+			
+			if (found == null || found.length == 0) {
+				throw new IllegalArgumentException("Path to add ["+path+"] not found in the tree"); 
+			}
+			else {
+				final JFileItemDescriptorNode	node = (JFileItemDescriptorNode)found[found.length-1];
+						
+				if (!((JFileItemDescriptor)node.getUserObject()).isDirectory()) {
+					throw new IllegalArgumentException("Path to add ["+path+"] is not a directory!"); 
+				}
+				else if (desc.isDirectory() || showFiles && (filter.length == 0 || filterPattern.matcher(desc.getName()).matches())) {
+					final List<JFileItemDescriptorNode> list = new ArrayList<>();
+					
+					for(int index = 0; index < node.getChildCount(); index++) {
+						list.add((JFileItemDescriptorNode)node.getChildAt(index));
+					}
+					list.add(new JFileItemDescriptorNode(desc));
+					sortAndAdd(node, list);
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>Remove subtree from tree</p>
+	 * @param path path to remove from tree. Can't be null or empty
+	 * @throws IllegalArgumentException path to add element to is null, empty or not exists 
+	 */
+	public void removeSubtree(final String path) throws IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(path)) {
+			throw new IllegalArgumentException("Path to remove subtree can't be null or empty"); 
+		}
+		else {
+			final TreeNode[] 	found = find((JFileItemDescriptorNode)getModel().getRoot(), path);
+			
+			if (found == null || found.length == 0) {
+				throw new IllegalArgumentException("Path to remove subtree ["+path+"] not found in the tree"); 
+			}
+			else {
+				((DefaultTreeModel)getModel()).removeNodeFromParent((DefaultMutableTreeNode)found[found.length-1]);
+			}
+		}
+	}	
+	
 	@Override
 	public String getToolTipText(final MouseEvent event) {
 		final TreePath	path = getClosestPathForLocation(event.getX(), event.getY());
@@ -278,8 +377,8 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 		return result;
 	}
 
-	private void fillChildren(final DefaultMutableTreeNode node, final FileSystemInterface fsi) throws IOException {
-		final List<DefaultMutableTreeNode>	content = new ArrayList<>();
+	private void fillChildren(final JFileItemDescriptorNode node, final FileSystemInterface fsi) throws IOException {
+		final List<JFileItemDescriptorNode>	content = new ArrayList<>();
 		
 		fsi.list((child)->{
 			if (child.isDirectory()) {
@@ -290,54 +389,57 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 					return (flag[0] |= i.isDirectory()) ? ContinueMode.STOP : ContinueMode.CONTINUE; 
 				});
 
-				content.add(new DefaultMutableTreeNode(desc) {
-					private static final long	serialVersionUID = 1L;
-					private final boolean		dirsInside = flag[0];
-					
-					@Override
-					public boolean isLeaf() {
-						return !dirsInside;
-					}
-				});
+				content.add(new JFileItemDescriptorNode(desc));
 			}
 			else if (showFiles && (filter.length == 0 || filterPattern.matcher(child.getName()).matches())) {
 				final JFileItemDescriptor	desc = new JFileItemDescriptor(child.getName(), child.getPath(), child.isDirectory(), child.size(), new Date(child.lastModified()));
 				
-				content.add(new DefaultMutableTreeNode(desc) {
-					private static final long	serialVersionUID = 1L;
-					
-					@Override public boolean isLeaf() {return true;}
-				});
+				content.add(new JFileItemDescriptorNode(desc));
 			}
 			return ContinueMode.CONTINUE;
 		});
-		
-		content.sort((c1,c2)->((Comparable<JFileItemDescriptor>)c1.getUserObject()).compareTo((JFileItemDescriptor)c2.getUserObject()));
-		node.removeAllChildren();
-		for(DefaultMutableTreeNode item : content) {
-			node.add(item);
-		}
-		content.clear();
+
+		sortAndAdd(node, content);
 	}
 
-	private void findAndSelect(final DefaultMutableTreeNode node, final String path) {
+	private void findAndSelect(final JFileItemDescriptorNode node, final String path) {
+		final TreeNode[]	selectionPath = find(node, path);
+		
+		if (selectionPath != null && selectionPath.length > 0) {
+			fastRefresh = true;
+			setSelectionPath(new TreePath(selectionPath));
+		}
+	}	
+	
+	private TreeNode[] find(final JFileItemDescriptorNode node, final String path) {
 		for (int index = 0, maxIndex = node.getChildCount(); index < maxIndex; index++) {
-			final DefaultMutableTreeNode	item = (DefaultMutableTreeNode)node.getChildAt(index);
+			final JFileItemDescriptorNode	item = (JFileItemDescriptorNode)node.getChildAt(index);
 			final JFileItemDescriptor	desc = (JFileItemDescriptor) item.getUserObject(); 
 			
 			if (Objects.equals(desc.getPath(),path)) {
-				final TreeNode[]	tn = ((DefaultMutableTreeNode)node.getChildAt(index)).getPath();
-				
-				fastRefresh = true;
-				setSelectionPath(new TreePath(tn));
-				break;
+				return ((JFileItemDescriptorNode)node.getChildAt(index)).getPath();
 			}
-			else {
-				findAndSelect(item, path);
+			else if (path.startsWith(desc.getPath())) {
+				final TreeNode[] result = find(item, path);
+				
+				if (result != null) {
+					return result;
+				}
 			}
 		}
+		return null;
 	}
 
+	private void sortAndAdd(final JFileItemDescriptorNode node, final List<JFileItemDescriptorNode> content) {
+		content.sort((c1,c2)->((Comparable<JFileItemDescriptor>)c1.getUserObject()).compareTo((JFileItemDescriptor)c2.getUserObject()));
+		node.removeAllChildren();
+		for(JFileItemDescriptorNode item : content) {
+			node.add(item);
+		}
+		content.clear();
+		((DefaultTreeModel)getModel()).reload(node);
+	}
+	
 	private static String buildFilterPattern(final FilterCallback[] filters) {
 		if (filters.length == 0) {
 			return ".*";
@@ -351,6 +453,19 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 				}
 			}
 			return sb.substring(1);
+		}
+	}
+	
+	private static class JFileItemDescriptorNode extends DefaultMutableTreeNode {
+		private static final long serialVersionUID = -7778314375257616437L;
+
+		public JFileItemDescriptorNode(final JFileItemDescriptor desc) {
+			super(desc, desc.isDirectory());
+		}
+		
+		@Override
+		public boolean isLeaf() {
+			return !allowsChildren;
 		}
 	}
 }

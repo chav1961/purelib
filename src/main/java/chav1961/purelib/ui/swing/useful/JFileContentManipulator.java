@@ -53,7 +53,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangedEvent;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class JFileContentManipulator implements Closeable, LocaleChangeListener, LocalizerOwner {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
@@ -581,6 +581,22 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 
 	/**
+	 * <p>Remove file name from last recently list</p>
+	 * @param fileName file name to remove. Can't be null or empty
+	 * @throws IllegalArgumentException file name is null or empty
+	 * @since 0.0.7
+	 */
+	public void removeFileNameFromLRU(final String fileName) throws IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(fileName)) {
+			throw new IllegalArgumentException("File name to remove can't be null or empty");
+		}
+		else {
+			lru.remove(fileName);
+			fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
+		}			
+	}
+	
+	/**
 	 * <p>Add listener for change content events</p>
 	 * @param l listener to add
 	 * @throws NullPointerException when listener to add is null
@@ -632,7 +648,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	public FilterCallback[] getFilters() {
 		return filters;
 	}
-	
+
 	protected boolean processNew(final ProgressIndicator progress) throws IOException {
 		try(final OutputStream	os = getterOut.getContent()) {
 			os.flush();
@@ -699,8 +715,8 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 				return;
 			}
 		}
-		lru.remove(currentName);
-		lru.add(0,currentName);
+		lru.remove(name);
+		lru.add(0,name);
 		if (lru.size() > LRU_LIMIT) {
 			lru.remove(lru.size()-1);
 		}

@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -66,7 +67,7 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class SubstitutableProperties extends Properties {
 	private static final long 	serialVersionUID = 4802630950148088823L;
@@ -176,6 +177,26 @@ public class SubstitutableProperties extends Properties {
 	public Set<String> availableKeys() {
 		return extractKeys(this);
 	}
+
+	/**
+	 * <p>Get available keys by it's pattern</p>
+	 * @param pattern pattern to get keys for. Can't be null
+	 * @return available keys. Can be empty but not null.
+	 * @throws NullPointerException when pattern is null
+	 * @since 0.0.7
+	 */
+	public Set<String> availableKeys(final Pattern pattern) throws NullPointerException {
+		final Set<String>	result = new HashSet<>();
+		final Set<String>	temp = extractKeys(this);
+		
+		for(String item : temp) {
+			if (pattern.matcher(item).matches()) {
+				result.add(item);
+			}
+		}
+		return result;
+	}
+	
 	
     @Override
     public boolean containsKey(Object key) {
@@ -629,6 +650,17 @@ public class SubstitutableProperties extends Properties {
 		}
 		else {
 			listeners.addListener(listener);
+		}
+	}
+	
+	/**
+	 * <p>Remove property names by {@linkplain Pattern} </p>
+	 * @param pattern pattern to remove property names for. Can't be null
+	 * @since 0.0.7
+	 */
+	public void remove(final Pattern pattern) {
+		for(String item : availableKeys(pattern)) {
+			remove(item);
 		}
 	}
 	
