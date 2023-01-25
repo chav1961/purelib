@@ -233,7 +233,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	 */
 	public JFileItemDescriptor getSelectedItem() {
 		if (!isSelectionEmpty()) {
-			return (JFileItemDescriptor)getLastSelectedPathComponent();
+			return (JFileItemDescriptor)((JFileItemDescriptorNode)getLastSelectedPathComponent()).getUserObject();
 		}
 		else {
 			return null;
