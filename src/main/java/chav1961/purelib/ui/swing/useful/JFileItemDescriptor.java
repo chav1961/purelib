@@ -11,7 +11,7 @@ import java.util.Date;
  * @see JFileTree
  * @since 0.0.7
  */
-public class JFileItemDescriptor implements Comparable<JFileItemDescriptor> {
+public class JFileItemDescriptor implements Comparable<JFileItemDescriptor>, Cloneable {
 	private final String 	name;
 	private final String	path; 
 	private final boolean	isDirectory;
@@ -84,6 +84,11 @@ public class JFileItemDescriptor implements Comparable<JFileItemDescriptor> {
 		}
 	}
 
+	@Override
+	public JFileItemDescriptor clone() throws CloneNotSupportedException {
+		return (JFileItemDescriptor)super.clone();
+	}
+	
 	/**
 	 * <p>Build file item descriptor from {@linkplain File} instance</p>
 	 * @param file file instance to build descriptor from. Can't be null

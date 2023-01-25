@@ -322,6 +322,33 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 		}
 	}	
 	
+	/**
+	 * <p>Replace content of the selected tree node</p> 
+	 * @param path path to replace content for. Can't be null or empty and must points to directory
+	 * @param desc file descriptor to replace
+	 * @throws IllegalArgumentException path to add element to is null, empty or not exists  
+	 * @throws NullPointerException file descriptor is null
+	 */
+	public void replace(final String path, final JFileItemDescriptor desc) throws IllegalArgumentException, NullPointerException {
+		if (Utils.checkEmptyOrNullString(path)) {
+			throw new IllegalArgumentException("Path to remove subtree can't be null or empty"); 
+		}
+		else if (desc == null) {
+			throw new NullPointerException("File item descriptor to set can't be null"); 
+		}
+		else {
+			final TreeNode[] 	found = find((JFileItemDescriptorNode)getModel().getRoot(), path);
+			
+			if (found == null || found.length == 0) {
+				throw new IllegalArgumentException("Path to set descriptor ["+path+"] not found in the tree"); 
+			}
+			else {
+				((JFileItemDescriptorNode)found[found.length - 1]).setUserObject(desc);
+				((DefaultTreeModel)getModel()).nodeChanged(found[found.length - 1]);
+			}
+		}
+	}
+	
 	@Override
 	public String getToolTipText(final MouseEvent event) {
 		final TreePath	path = getClosestPathForLocation(event.getX(), event.getY());
