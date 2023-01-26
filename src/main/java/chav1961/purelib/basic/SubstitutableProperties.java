@@ -45,7 +45,8 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * is restricted by {@value CharUtils#MAX_SUBST_DEPTH}</p>
  * <p>Since 0.0.6 this class supports {@value #KEY_INCLUDE} operator inside the key/value format configuration file. This operator contains a list of {@linkplain URI}(s) to include
  * key/value pairs into the class content separated by semicolons. URI can be any URI supported by Pure Library. Included content doesn't replace keys already
- * exists in the current file. URI stream to load can also contains {@value #KEY_INCLUDE} operator inside.</p>
+ * exists in the current file. URI stream to load can also contains {@value #KEY_INCLUDE} operator inside. Also the class supports a lot of
+ * file formats to load now (see {@linkplain SubstitutableProperties.Format} description).</p>
  * <p>You can get property content not only as string, but a lot of other classes:</p>
  * <ul>
  * <li>any appropriative {@link Enum} class constant</li>
@@ -60,7 +61,14 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * 			final int amount = subst.getProperty("amountOfSomething",int.class);
  * 		}
  * }
- * 
+ * <p>Since 0.0.7 this class supports {@linkplain Pattern} for keys manipulation. You can use patterns for the methods:</p>
+ * <ul>
+ * <li>{@linkplain #availableKeys(Pattern)} - get key list for the given pattern</li>
+ * <li>{@linkplain #containsAllKeys(Pattern)} - check that the instance contains all the keys specified by the given pattern</li>
+ * <li>{@linkplain #containsAnyKeys(Pattern)} - check that the instance contains any of the keys specified by the given pattern</li>
+ * <li>{@linkplain #remove(Pattern)} - remove all own keys from the current {@linkplain SubstitutableProperties} instance</li>
+ * <li>{@linkplain #removeAll(Pattern)} - remove all keys from the current {@linkplain SubstitutableProperties} instance and default associated</li>
+ * </ul>
  * <p>This class is thread-safe.</p>
  *
  * @see Properties
@@ -84,8 +92,19 @@ public class SubstitutableProperties extends Properties {
 	 * @since 0.0.6
 	 */
 	public static enum Format {
+		/**
+		 * <p>Unix-styled file format</p>
+		 */
 		Ordinal, 
+		/**
+		 * <p>XML file format</p>
+		 * @see Properties
+		 */
 		XML, 
+		/**
+		 * <p>Windows-styled file format (see reference below for details). All the keys after loading will have format '[&lt;sectionName&gt;].&lt;keyName&gt;'</p>
+		 * @see https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getprivateprofilestring 
+		 */
 		WindowsStyled
 	}
 
@@ -196,11 +215,20 @@ public class SubstitutableProperties extends Properties {
 		}
 		return result;
 	}
-	
+
+	@Override
+	public int size() {
+		return super.size() + (defaults != null ? defaults.size() : 0);
+	}
 	
     @Override
-    public boolean containsKey(Object key) {
-        return !super.containsKey(key) ? defaults.containsKey(key) : true;
+    public boolean containsKey(final Object key) {
+    	if (key == null) {
+    		throw new NullPointerException("Key to test can't be null"); 
+    	}
+    	else {
+            return !super.containsKey(key) ? defaults.containsKey(key) : true;
+    	}
     }
 
     @Override
@@ -258,12 +286,12 @@ public class SubstitutableProperties extends Properties {
     /**
      * <p>Check all the keys presents in the properties</p>
      * @param keys keys to test. Can't be null
-     * @return true of all the keys are presented in the properties
+     * @return true if all the keys are presented in the properties
      * @throws NullPointerException on null keys list
      * @throws IllegalArgumentException on null inside keys list
      * @since 0.0.5
      */
-    public boolean containsAllKeys(final Object... keys) throws NullPointerException, IllegalArgumentException {
+    public boolean containsAllKeys(final String... keys) throws NullPointerException, IllegalArgumentException {
     	if (keys == null) {
     		throw new NullPointerException("Key list to check can't be null");
     	}
@@ -271,7 +299,7 @@ public class SubstitutableProperties extends Properties {
     		throw new IllegalArgumentException("SOme items in the key list are null");
     	}
     	else {
-        	for (Object item : keys) {
+        	for (String item : keys) {
         		if (!containsKey(item)) {
         			return false;
         		}
@@ -281,14 +309,36 @@ public class SubstitutableProperties extends Properties {
     }
 
     /**
+     * <p>Check all the keys presents in the properties</p>
+     * @param keys keys pattern to check presence. Can't be null
+     * @return true if all the keys are presented in the properties
+     * @throws NullPointerException on null keys list
+     * @throws IllegalArgumentException on null inside keys list
+     * @since 0.0.7
+     */
+    public boolean containsAllKeys(final Pattern keys) throws NullPointerException, IllegalArgumentException {
+    	if (keys == null) {
+    		throw new NullPointerException("Key list to check can't be null");
+    	}
+    	else {
+        	for (String item : availableKeys()) {
+        		if (!keys.matcher(item).matches()) {
+        			return false;
+        		}
+        	}
+        	return true;
+    	}
+    }    
+    
+    /**
      * <p>Check any key presents in the properties</p>
      * @param keys keys to test. Can't be null
-     * @return true of all the keys are presented in the properties
+     * @return true if any of the keys are presented in the properties
      * @throws NullPointerException on null keys list
      * @throws IllegalArgumentException on null inside keys list
      * @since 0.0.5
      */
-    public boolean containsAnyKeys(final Object... keys) throws NullPointerException, IllegalArgumentException {
+    public boolean containsAnyKeys(final String... keys) throws NullPointerException, IllegalArgumentException {
     	if (keys == null) {
     		throw new NullPointerException("Key list to check can't be null");
     	}
@@ -296,7 +346,7 @@ public class SubstitutableProperties extends Properties {
     		throw new IllegalArgumentException("SOme items in the key list are null");
     	}
     	else {
-        	for (Object item : keys) {
+        	for (String item : keys) {
         		if (containsKey(item)) {
         			return true;
         		}
@@ -304,6 +354,28 @@ public class SubstitutableProperties extends Properties {
         	return false;
     	}
     }
+
+    /**
+     * <p>Check any key presents in the properties</p>
+     * @param keys keys pattern to check presence. Can't be null
+     * @return true if any of the keys are presented in the properties
+     * @throws NullPointerException on null keys list
+     * @throws IllegalArgumentException on null inside keys list
+     * @since 0.0.5
+     */
+    public boolean containsAnyKeys(final Pattern keys) throws NullPointerException, IllegalArgumentException {
+    	if (keys == null) {
+    		throw new NullPointerException("Key list to check can't be null");
+    	}
+    	else {
+        	for (String item : availableKeys()) {
+        		if (keys.matcher(item).matches()) {
+        			return true;
+        		}
+        	}
+        	return false;
+    	}
+    }    
     
 	@Override 
 	public String getProperty(final String key) {
@@ -352,6 +424,18 @@ public class SubstitutableProperties extends Properties {
 		return value != null ? convert(key,value,awaited) : null;
 	}
 
+	@Override
+	public Object setProperty(final String key, final String value) {
+		final Object	oldValue = super.setProperty(key, value);
+		
+    	if (!Objects.equals(oldValue, value)) {
+        	final PropertyChangeEvent	e = new PropertyChangeEvent(this, key.toString(), oldValue, value);  
+    		
+        	listeners.fireEvent((l)->l.propertyChange(e));
+    	}
+		return oldValue;
+	}
+	
 	/**
 	 * <p>Compare properties content is identical</p>
 	 * @param another another properties to compare
@@ -391,7 +475,7 @@ public class SubstitutableProperties extends Properties {
 	 * @since 0.0.5
 	 */
 	public boolean tryLoad(final File content) {
-		return tryLoad(content, PureLibSettings.CURRENT_LOGGER);
+		return tryLoad(content, PureLibSettings.NULL_LOGGER);
 	}
 	
 	/**
@@ -430,7 +514,6 @@ public class SubstitutableProperties extends Properties {
 			}
 		}
 	}
-	
 	
 	@Override
 	public void load(final InputStream is) throws IOException {
@@ -656,14 +739,104 @@ public class SubstitutableProperties extends Properties {
 	/**
 	 * <p>Remove property names by {@linkplain Pattern} </p>
 	 * @param pattern pattern to remove property names for. Can't be null
+	 * @return number of items removed
+	 * @throws NullPointerException when pattern is null
 	 * @since 0.0.7
 	 */
-	public void remove(final Pattern pattern) {
-		for(String item : availableKeys(pattern)) {
-			remove(item);
+	public int remove(final Pattern pattern) throws NullPointerException {
+		if (pattern == null) {
+			throw new NullPointerException("PAttern can't be null");
+		}
+		else {
+			final Set<String>	toRemove = new HashSet<>();
+			
+			for(Map.Entry<Object, Object> entry : entrySet()) {
+				if (pattern.matcher(entry.getKey().toString()).matches()) {
+					toRemove.add(entry.getKey().toString());
+				}
+			}
+			for (String item : toRemove) {
+				remove(item);
+			}
+			return toRemove.size();
 		}
 	}
+
+	@Override
+	public synchronized Object remove(final Object key) {
+		final Object	result = super.remove(key);
+		
+    	final PropertyChangeEvent	e = new PropertyChangeEvent(this, key.toString(), result, null);  
+    	listeners.fireEvent((l)->l.propertyChange(e));
+		return result;
+	}
 	
+	/**
+	 * <p>Remove property names by {@linkplain Pattern} from this and default instances (if any)</p>
+	 * @param pattern pattern to remove property names for. Can't be null
+	 * @return number of items removed
+	 * @throws NullPointerException when pattern is null
+	 * @since 0.0.7
+	 */
+	public int removeAll(final Pattern pattern) throws NullPointerException {
+		if (pattern == null) {
+			throw new NullPointerException("PAttern can't be null");
+		}
+		else {
+			final Set<String>	toRemove = new HashSet<>();
+			
+			for(Map.Entry<Object, Object> entry : defaults.entrySet()) {
+				if (pattern.matcher(entry.getKey().toString()).matches()) {
+					toRemove.add(entry.getKey().toString());
+				}
+			}
+			for (String item : toRemove) {
+				remove(item);
+			}
+			if (defaults instanceof SubstitutableProperties) {
+				return toRemove.size() + ((SubstitutableProperties)defaults).removeAll(pattern);
+			}
+			else {
+				if (defaults != null) {
+					for(Map.Entry<Object, Object> entry : defaults.entrySet()) {
+						if (pattern.matcher(entry.getKey().toString()).matches()) {
+							toRemove.add(entry.getKey().toString());
+						}
+					}
+					for (String item : toRemove) {
+						defaults.remove(item);
+					}
+				}
+				return toRemove.size();
+			}
+		}
+	}
+
+	
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		return super.equals(obj);
+	}
+
+
+	@Override
+	public String toString() {
+		return "SubstitutableProperties [defaults=" + defaults + ", toString()=" + super.toString() + "]";
+	}
+
 	/**
 	 * <p>Create properties from file</p>
 	 * @param file file to create properties from. Can't be null 

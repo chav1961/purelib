@@ -167,9 +167,10 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 					this.mountPoints = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
 					
 					for (int index = 0; index < this.mountPoints.getLength(); index++) {
-						final Node	node = this.mountPoints.item(index);
+						final Node		node = this.mountPoints.item(index);
+						final String	ref = node.getAttributes().getNamedItem("ref").getNodeValue();
 						
-						this.open(buildPath(node)).mount(FileSystemFactory.createFileSystem(URI.create(node.getAttributes().getNamedItem("ref").getNodeValue())));
+						this.open(buildPath(node)).mount(FileSystemFactory.createFileSystem(URI.create(substitutePredefinedValues(ref))));
 					}
 					this.open("/");
 				}

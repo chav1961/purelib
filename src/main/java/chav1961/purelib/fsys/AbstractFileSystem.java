@@ -19,6 +19,7 @@ import java.util.Random;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -38,7 +39,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * </ul>
  * 
  * <p>As a good example, see {@link chav1961.purelib.fsys.FileSystemOnFile} class implementation.</p>
- * <p>Don't use the class as a type of variables or parameters in your program. Use the {@link FileSystemInterface} interface instead in all cases</p>  
+ * <p>Don't use the class as a type of variables or parameters in your program. Use the {@link FileSystemInterface} interface instead in all cases</p>
  * <p>This class is not thread-safe.</p>
  * 
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
@@ -51,6 +52,21 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public abstract class AbstractFileSystem implements FileSystemInterface {
 	public static final String			DEFAULT_ENCODING = "UTF-8";
+
+	/**
+	 * <p>Predefined ${variable} can be used in some URIs to substitute user home directory inside</p>
+	 */
+	public static final String			PREDEFINED_HOME_DIR = "homeDir";
+
+	/**
+	 * <p>Predefined ${variable} can be used in some URIs to substitute user working directory inside</p>
+	 */
+	public static final String			PREDEFINED_APP_DIR = "appDir";
+
+	/**
+	 * <p>Predefined ${variable} can be used in some URIs to substitute user temporary files directory inside</p>
+	 */
+	public static final String			PREDEFINED_TEMP_DIR = "tempDir";
 	
 	private static final String			ALL_MASK = ".*";
 	private static final Pattern		ALL_MASK_COMPILED = Pattern.compile(ALL_MASK);
@@ -782,6 +798,21 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		} catch (IOException e) {
 			return "FileSystemFS [currentPath=" + currentPath + ", appendMode=" + appendMode + ", absoluteURI=<failed>]";
 		}
+	}
+
+	protected String substitutePredefinedValues(final String source) {
+		return CharUtils.substitute("", source, (s)->{
+			switch (s) {
+				case PREDEFINED_HOME_DIR	:
+					return new File(System.getProperty("user.home")).getAbsoluteFile().toURI().getSchemeSpecificPart();
+				case PREDEFINED_APP_DIR		:
+					return new File(System.getProperty("user.dir")).getAbsoluteFile().toURI().getSchemeSpecificPart();
+				case PREDEFINED_TEMP_DIR	:
+					return new File(System.getProperty("java.io.tmpdir")).getAbsoluteFile().toURI().getSchemeSpecificPart();
+				default :
+					return s;
+			}
+		});
 	}
 	
 	protected void purgeCurrentDataWrapper() {

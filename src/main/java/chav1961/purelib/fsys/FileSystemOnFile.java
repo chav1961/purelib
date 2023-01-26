@@ -95,7 +95,7 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 					
 			if (rootPath.getAuthority() != null) {
 				if (".".equals(rootPath.getAuthority())) {
-					this.rootPath = URI.create(rootPath.getPath());
+					this.rootPath = URI.create(substitutePredefinedValues(rootPath.getPath()));
 				}
 				else {
 					this.rootPath = rootPath.normalize();
