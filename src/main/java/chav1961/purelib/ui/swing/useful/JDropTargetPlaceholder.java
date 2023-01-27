@@ -67,7 +67,6 @@ public abstract class JDropTargetPlaceholder extends JLabel implements LocaleCha
 		}
 	}
 
-	
 	private void fillLocalizedStrings() {
 		setText(localizer.getValue(placeholderTooltip));
 	}
