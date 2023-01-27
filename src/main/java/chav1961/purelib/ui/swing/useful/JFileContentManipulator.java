@@ -181,22 +181,36 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	public Localizer getLocalizer() {
 		return localizer;
 	}
-	
-	@Override
-	public void close() throws IOException, UnsupportedOperationException {
+
+	/**
+	 * <p>Commit unsaved changes. This method can be used to decide weather exit application or not</p> 
+	 * @return false if 'cancel' option was selected, true otherwise
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.7
+	 */
+	public boolean commit() throws IOException {
 		if (wasChanged) {
 			switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 				case  JOptionPane.YES_OPTION :
 					if (saveFile()) {
 						clearModificationFlag();
 					}
-					break;
 				case  JOptionPane.NO_OPTION : 
-					break;
+					return true;
 				case  JOptionPane.CANCEL_OPTION :
-					throw new UnsupportedOperationException("Close rejected");
+					return false;
+				default :
+					throw new UnsupportedOperationException("Illegal option from JLocalizedOptionPane.confirm(...)");
 			}
 		}
+		else {
+			return true;
+		}
+	}
+	
+	@Override
+	public void close() throws IOException, UnsupportedOperationException {
+		commit();
 		persistence.saveLRU(name,lru);
 	}
 
