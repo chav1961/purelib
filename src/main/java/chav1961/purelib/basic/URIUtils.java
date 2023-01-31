@@ -461,7 +461,12 @@ public class URIUtils {
 			
 			for (String scheme : schemas) {
 				if (scheme.equals(current.getScheme()) || "*".equals(scheme)) {
-					current = URI.create(current.getSchemeSpecificPart());
+					if (current.getRawFragment() != null) {
+						current = URI.create(current.getSchemeSpecificPart()+"#"+current.getRawFragment());
+					}
+					else {
+						current = URI.create(current.getSchemeSpecificPart());
+					}
 				}
 				else {
 					throw new IllegalArgumentException("Error extracting subScheme ["+scheme+"] from URI : URI ["+uri+"] doesn't contain it at requested position ("+Arrays.toString(schemas)+" awaited)");
