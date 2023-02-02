@@ -457,7 +457,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 				final String			lang = locale.getLanguage();
 				
 				for (int index = 0; index < rec.langs.length;  index++) {
-					if (lang.equals(rec.langs[index])) {
+					if (lang.equals(rec.langs[index].getLocale().getLanguage())) {
 						return rec.values[index];
 					}
 				}
