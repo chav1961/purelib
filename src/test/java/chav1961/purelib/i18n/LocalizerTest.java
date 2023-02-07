@@ -359,6 +359,18 @@ class PseudoLocalizer extends AbstractLocalizer {
 	@Override
 	public URI getLocalizerId() {
 		return URI.create("AnyId");
+	}
+
+	@Override
+	public String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected boolean isLocaleSupported(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return false;
 	}	
 }
 
@@ -414,5 +426,17 @@ class SingleKeyLocalizer extends AbstractLocalizer {
 	@Override
 	public URI getLocalizerId() {
 		return URI.create("AnyId");
+	}
+
+	@Override
+	public String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected boolean isLocaleSupported(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return false;
 	}	
 }

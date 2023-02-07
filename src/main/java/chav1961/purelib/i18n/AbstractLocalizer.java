@@ -35,6 +35,7 @@ import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.i18n.interfaces.LocalizedString;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.streams.StreamsUtil;
@@ -47,7 +48,7 @@ import chav1961.purelib.streams.StreamsUtil;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 
 public abstract class AbstractLocalizer implements Localizer {
@@ -107,6 +108,8 @@ public abstract class AbstractLocalizer implements Localizer {
 
 	@Override public abstract Iterable<String> localKeys();
 	@Override public abstract String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException;
+	@Override public abstract String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException;
+	protected abstract boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException;
 	protected abstract void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException;
 	protected abstract String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException;
 	
@@ -735,6 +738,28 @@ sw:				for(;;) {
 	}
 	
 	@Override
+	public LocalizedString getLocalizedString(final String key) throws LocalizationException {
+		final LocalizedString[] result = new LocalizedString[1];
+		
+		walkUp((current,depth)->{
+			for (String item : current.localKeys()) {
+				if (item.equals(key)) {
+					result[0] = (current instanceof AbstractLocalizer) ? ((AbstractLocalizer)current).buildLocalizedString(key) : null;
+					return ContinueMode.STOP;
+				}
+			}
+			return ContinueMode.CONTINUE;
+		});
+		if (result[0] == null) {
+			throw new LocalizationException("Localization key ["+key+"] not found anywhere"); 
+		}
+		else {
+			return result[0];
+		}
+	}
+	
+	
+	@Override
 	public void close() throws LocalizationException {
 		synchronized(listeners) {
 			listeners.clear();
@@ -760,6 +785,49 @@ sw:				for(;;) {
 			}
 		}
 	}	
+
+	protected LocalizedString buildLocalizedString(final String key) {
+		return new LocalizedString() {
+					@Override
+					public Localizer getLocalizer() {
+						return AbstractLocalizer.this;
+					}
+					
+					@Override
+					public boolean isLanguageSupported(final Locale lang) throws LocalizationException {
+						return false;
+					}
+					
+					@Override
+					public String getValueOrDefault(final Locale lang) throws LocalizationException {
+						try{
+							return getValue(lang);
+						} catch (LocalizationException exc) {
+							return getValue();
+						}
+					}
+					
+					@Override
+					public String getValue(final Locale lang) throws LocalizationException {
+						return getLocalValue(key, lang);
+					}
+					
+					@Override
+					public String getValue() throws LocalizationException {
+						return getLocalValue(key);
+					}
+					
+					@Override
+					public String getId() throws LocalizationException {
+						return key;
+					}
+					
+					@Override
+					public Object clone() throws CloneNotSupportedException {
+						return super.clone();
+					}
+				};
+	}
 	
 	protected String substitute(final String key, final String localValue) {
 		return CharUtils.substitute(key,localValue,(key2substitute)->{
@@ -845,6 +913,11 @@ sw:				for(;;) {
 		@Override
 		public void close() throws LocalizationException {
 			getParent().pop(this);
+		}
+
+		@Override
+		protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+			return nested.isLocaleSupported(key, locale);
 		}
 	}
 	

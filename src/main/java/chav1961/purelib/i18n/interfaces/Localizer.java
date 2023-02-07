@@ -126,7 +126,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	}
 
 	/**
-	 * <p>This interface describes associations for the givan key with the given parameters (to build substitutable content)</p>
+	 * <p>This interface describes associations for the given key with the given parameters (to build substitutable content)</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
 	 */
@@ -252,9 +252,7 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @see #getValue(String), #getLocalValue(String)
 	 * @since 0.0.5
 	 */
-	default String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
-		return getLocalValue(key);
-	}
+	String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException;
 	
 	/**
 	 * <p>Get localization value for the given key as Reader.</p> 
@@ -457,6 +455,15 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 */
 	@Override
 	void close() throws LocalizationException;
+
+	/**
+	 * <p>Get localized string descriptor for the given string key. Mutable localizers must return {@linkplain MutableLocalizedString} instead when called</p>
+	 * @param key string key to get description for. Can't be null or empty;
+	 * @return localized string descriptor. Can't be null
+	 * @throws LocalizationException when string key not found
+	 * @throws IllegalArgumentException key string is null or empty
+	 */
+	LocalizedString getLocalizedString(String key) throws LocalizationException, IllegalArgumentException;
 	
 	/**
 	 * <p>Get key value by URI. URI must have format &lt;validLocalizerURI#keyInsideLocalizer&gt; Fragment can have language prefix as &lt;prefix/key&gt;. 

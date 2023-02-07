@@ -567,6 +567,9 @@ loop:			for (Component comp : children(node)) {
 				case MimeBasedContent	:
 					result = new JMimeContentFieldWithMeta(metadata, localizer, monitor);
 					break;
+				case LocaliizedStringContent	:
+					result = new JLocalizedStringContentWithMeta(metadata, localizer, monitor);
+					break;
 				case RangeContent	:
 					result = new JRangeSliderWithMeta(metadata, monitor);
 					break;

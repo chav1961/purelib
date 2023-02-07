@@ -118,6 +118,18 @@ public class FileSystemLocalizer extends AbstractLocalizer {
 		return result; 
 	}
 
+	@Override
+	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		final ResourceBundle	oldBundle = getBundle();
+		
+		loadResource(locale);
+		
+		final String	result = getBundle().getString(key).trim();
+		
+		setBundle(oldBundle);
+		return Utils.checkEmptyOrNullString(result); 
+	}
+	
 	
 	@Override
 	protected void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException {

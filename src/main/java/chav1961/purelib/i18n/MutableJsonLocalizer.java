@@ -27,7 +27,10 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.interfaces.LocalizedString;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.MutableLocalizedString;
+import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.json.JsonNode;
 import chav1961.purelib.json.JsonUtils;
 import chav1961.purelib.json.interfaces.JsonNodeType;
@@ -49,6 +52,7 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  * </code>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
+ * @last.update 0.0.7
  */
 public class MutableJsonLocalizer extends AbstractLocalizer {
 	private static final String			SUBSCHEME = "json";
@@ -241,6 +245,97 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 		}
 	}
 
+	@Override
+	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return keys.containsKey(locale.getLanguage()) && keys.get(locale.getLanguage()).containsKey(key);
+	}
+	
+	@Override
+	protected LocalizedString buildLocalizedString(final String key) {
+		return new MutableLocalizedString() {
+				String	currentKey = key;
+			
+				@Override
+				public Localizer getLocalizer() {
+					return MutableJsonLocalizer.this;
+				}
+				
+				@Override
+				public boolean isLanguageSupported(final Locale lang) throws LocalizationException {
+					return isLocaleSupported(key, lang);
+				}
+				
+				@Override
+				public String getValueOrDefault(Locale lang) throws LocalizationException {
+					if (keys.containsKey(lang.getLanguage())) {
+						return getLocalValue(key, lang);
+					}
+					else {
+						return getLocalValue(key); 
+					}
+				}
+				
+				@Override
+				public String getValue(final Locale lang) throws LocalizationException {
+					return getLocalValue(key, lang);
+				}
+				
+				@Override
+				public String getValue() throws LocalizationException {
+					return getLocalValue(key);
+				}
+				
+				@Override
+				public String getId() throws LocalizationException {
+					return currentKey;
+				}
+
+				@Override
+				public void setId(final String id) throws LocalizationException {
+					for (SupportedLanguages lang : SupportedLanguages.values()) {
+						if (keys.containsKey(lang.getLocale().getLanguage())) {
+							if (keys.get(lang.getLocale().getLanguage()).containsKey(id)) {
+								throw new LocalizationException("Key id to set ["+id+"] already exists in the localizer"); 
+							}
+						}
+					}
+
+					for (SupportedLanguages lang : SupportedLanguages.values()) {
+						if (keys.containsKey(lang.getLocale().getLanguage())) {
+							keys.get(lang.getLocale().getLanguage()).replaceKey(currentKey, id);
+						}
+					}
+					currentKey = id;
+				}
+				
+				@Override
+				public void setValue(final Locale lang, final String value) throws LocalizationException {
+					if (keys.containsKey(lang.getLanguage())) {
+						keys.get(lang.getLanguage()).setValue(currentKey, value);
+					}
+				}
+				
+				@Override
+				public void removeValue(Locale lang) throws LocalizationException {
+					if (keys.containsKey(lang.getLanguage())) {
+						keys.get(lang.getLanguage()).removeKey(currentKey);
+					}
+				}
+				
+				@Override
+				public void addValue(final Locale lang, final String value) throws LocalizationException {
+					if (keys.containsKey(lang.getLanguage())) {
+						keys.get(lang.getLanguage()).addValue(currentKey, value);
+					}
+				}
+				
+				@Override
+				public Object clone() throws CloneNotSupportedException {
+					return super.clone();
+				}
+			};
+	}	
+	
 	private static JsonNode loadJson(final InputStream is, final LoggerFacade trans) throws SyntaxException, IOException {
 		try(final Reader			rdr = new InputStreamReader(is);
 			final JsonStaxParser	parser = new JsonStaxParser(rdr)) {

@@ -17,6 +17,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.i18n.interfaces.LocalizedString;
 import chav1961.purelib.model.interfaces.ImageKeeper;
 import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.interfaces.ItemAndReference;
@@ -28,13 +29,14 @@ import chav1961.purelib.ui.interfaces.MimeBasedContent;
  * <p>This class describes format string associated with any model entity. Detailed format description see {@linkplain #FieldFormat(Class, String)}</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 public class FieldFormat {
 	/**
 	 * <p>Content type for the given format</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
+	 * @last.update 0.0.7
 	 */
 	public enum ContentType {
 		BooleanContent,
@@ -57,6 +59,7 @@ public class FieldFormat {
 		ForeignKeyRefContent,
 		ForeignKeyRefListContent,
 		MimeBasedContent,
+		LocaliizedStringContent,
 		Unclassified
 	} 
 	
@@ -668,6 +671,9 @@ public class FieldFormat {
 				}
 				else if (MimeBasedContent.class.isAssignableFrom(clazz)) {
 					return ContentType.MimeBasedContent;
+				}
+				else if (LocalizedString.class.isAssignableFrom(clazz)) {
+					return ContentType.LocaliizedStringContent;
 				}
 				else  {
 					return ContentType.Unclassified;

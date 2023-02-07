@@ -477,6 +477,13 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		protected boolean isLocaleSupported(String key, Locale locale)
+				throws LocalizationException, IllegalArgumentException {
+			// TODO Auto-generated method stub
+			return false;
+		}
 	}
 	
 	private class InnerTableModel extends DefaultTableModel {

@@ -16,10 +16,10 @@ class KeyCollection {
 
 	KeyCollection(final Map<String,String> keysAndValues, final Map<String,URI> helpRefs) {
 		for (Entry<String, String> item : keysAndValues.entrySet()) {
-			this.keysAndValues.placeName(item.getKey(),new String[]{item.getKey(),item.getValue()});
+			this.keysAndValues.placeName((CharSequence)item.getKey(),new String[]{item.getKey(),item.getValue()});
 		}
 		for (Entry<String, URI> item : helpRefs.entrySet()) {
-			this.helpRefs.placeName(item.getKey(),item.getValue());
+			this.helpRefs.placeName((CharSequence)item.getKey(),item.getValue());
 		}
 	}
 	
@@ -36,6 +36,28 @@ class KeyCollection {
 		return keysAndValues.getCargo(keysAndValues.seekName(key))[1];
 	}
 
+	public void setValue(final String key, final String value) {
+		keysAndValues.getCargo(keysAndValues.seekName(key))[1] = value;
+	}
+
+	public void replaceKey(final String oldKey, final String newKey) {
+		final String	value = getValue(oldKey);
+		
+		removeKey(oldKey);
+		keysAndValues.placeName((CharSequence)newKey,new String[]{newKey, value});
+	}
+
+	public void addValue(final String key, final String value) {
+		final long	id = keysAndValues.seekName(key); 
+		
+		if (id >= 0) {
+			throw new IllegalArgumentException("Duplicaite key ["+key+"] to add");
+		}
+		else {
+			keysAndValues.placeName((CharSequence)value, new String[] {key, value});
+		}
+	}
+	
 	public Iterable<String> keys() {
 		return new Iterable<String>() {
 			@Override
@@ -80,5 +102,11 @@ class KeyCollection {
 			return true;
 		});
 		return result.iterator();
+	}
+	
+	public void removeKey(final String key) {
+		final long	id = keysAndValues.seekName(key);
+		
+		keysAndValues.removeName(id);
 	}
 }

@@ -8,6 +8,7 @@ import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.i18n.interfaces.LocalizedString;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 class RemoteClientLocalizer implements Localizer {
@@ -218,6 +219,12 @@ class RemoteClientLocalizer implements Localizer {
 
 	@Override
 	public String getValue4Locale(Locale locale, String key) throws LocalizationException, IllegalArgumentException, NullPointerException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public LocalizedString getLocalizedString(String key) throws LocalizationException, IllegalArgumentException {
 		// TODO Auto-generated method stub
 		return null;
 	}

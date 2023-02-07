@@ -17,6 +17,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @author Alexander Chernomyrdin aka chav1961
  * @see Localizer
  * @since 0.0.3
+ * @last.update 0.0.7
  */
 
 public class DummyLocalizer extends AbstractLocalizer {
@@ -72,5 +73,10 @@ public class DummyLocalizer extends AbstractLocalizer {
 	@Override
 	protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
 		return helpId;
+	}
+
+	@Override
+	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return true;
 	}
 }

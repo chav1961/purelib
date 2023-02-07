@@ -39,6 +39,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @last.update 0.0.7
  */
 public class XMLLocalizer extends AbstractLocalizer {
 	private static final String			SUBSCHEME = "xml";
@@ -299,5 +300,10 @@ public class XMLLocalizer extends AbstractLocalizer {
 			keysAndValues.clear();
 			helpRefs.clear();
 		}
+	}
+
+	@Override
+	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return true;
 	}
 }

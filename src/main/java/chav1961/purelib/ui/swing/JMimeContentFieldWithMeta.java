@@ -1,6 +1,5 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.Color;
 import java.awt.HeadlessException;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -11,8 +10,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URLConnection;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -23,23 +20,18 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.TransferHandler;
 import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
 
-import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.model.FileKeeper;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.inner.InternalConstants;
@@ -253,12 +245,22 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 	
 	@Override
 	public void addBooleanPropChangeListener(final BooleanPropChangeListener listener) {
-		repo.addBooleanPropChangeListener(listener);
+		if (listener == null) {
+			throw new NullPointerException("Listener to add can't be null"); 
+		}
+		else {
+			repo.addBooleanPropChangeListener(listener);
+		}
 	}
 
 	@Override
 	public void removeBooleanPropChangeListener(final BooleanPropChangeListener listener) {
-		repo.removeBooleanPropChangeListener(listener);
+		if (listener == null) {
+			throw new NullPointerException("Listener to remove can't be null"); 
+		}
+		else {
+			repo.removeBooleanPropChangeListener(listener);
+		}
 	}
 	
 	@Override

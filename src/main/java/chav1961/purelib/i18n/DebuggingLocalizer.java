@@ -21,6 +21,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @author Alexander Chernomyrdin aka chav1961
  * @see Localizer
  * @since 0.0.2
+ * @last.update 0.0.7
  */
 
 public class DebuggingLocalizer extends AbstractLocalizer {
@@ -123,5 +124,10 @@ public class DebuggingLocalizer extends AbstractLocalizer {
 		else {
 			return "Help id ["+helpId+"] is missing in the helps";
 		}
+	}
+
+	@Override
+	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return true;
 	}
 }

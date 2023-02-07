@@ -32,6 +32,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see chav1961.purelib.i18n JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @last.update 0.0.7
  * @deprecated
  */
 @Deprecated(since="Java 9")
@@ -208,5 +209,10 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 	        	return loader.getResourceAsStream(resourceName); 
 	        }
 	    }
+	}
+
+	@Override
+	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return true;
 	}
 }
