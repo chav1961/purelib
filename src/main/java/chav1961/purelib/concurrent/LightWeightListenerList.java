@@ -6,6 +6,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+
 /**
  * <p>This class is a simple implementation of listeners repository. Listener mechanism is often used in the different classes. Most of cases require thread-safe
  * implementation of the listener list, but thread-safe implementation must use synchronized sections to keep list consistency. This class reduces cost of the
@@ -163,6 +166,7 @@ public class LightWeightListenerList<Listener> {
 			for (Listener item : items) {
 				try{callback.fire(item);
 				} catch (Exception exc) {
+					PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc, exc.getLocalizedMessage());
 				}
 			}
 		}
