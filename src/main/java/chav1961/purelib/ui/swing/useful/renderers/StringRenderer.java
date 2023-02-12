@@ -11,6 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 
 public class StringRenderer<R> implements SwingItemRenderer<String, R> {
@@ -36,7 +37,7 @@ public class StringRenderer<R> implements SwingItemRenderer<String, R> {
 	}
 
 	@Override
-	public R getRenderer(final Class<R> rendererType, final Object... options) {
+	public R getRenderer(final Class<R> rendererType, final FieldFormat ff, final Object... options) {
 		if (rendererType == null) {
 			throw new NullPointerException("Renderer type can't be null"); 
 		}

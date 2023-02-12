@@ -10,7 +10,6 @@ import java.awt.GridLayout;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -25,7 +24,6 @@ import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -55,6 +53,8 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface.FileSystemListCallbackInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.i18n.interfaces.LocalizerOwner;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
@@ -74,9 +74,9 @@ import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
  * @see FileSystemInterface
  * @see Localizer
  * @since 0.0.3
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
-public class JFileSelectionDialog extends JPanel implements LocaleChangeListener {
+public class JFileSelectionDialog extends JPanel implements LocaleChangeListener, LocalizerOwner {
 	private static final long 	serialVersionUID = 4285629141818684880L;
 	private static final int	ICON_BORDER_WIDTH = 2;
 	private static final int	MIN_WIDTH = 400;
@@ -256,6 +256,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		else {
 			this.localizer = localizer;
 			this.logger = logger;
+			this.filter.setRenderer(SwingUtils.getCellRenderer(FilterCallback.class, new FieldFormat(FilterCallback.class), ListCellRenderer.class, localizer));
 			
 			fileName.setColumns(30);
 			
@@ -347,23 +348,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			bottomSpring.putConstraint(SpringLayout.SOUTH, bottomValuesPanel, -5, SpringLayout.SOUTH, bottomPanel);
 			bottomSpring.putConstraint(SpringLayout.WEST, bottomValuesPanel, 5, SpringLayout.EAST, bottomNamesPanel);
 			bottomSpring.putConstraint(SpringLayout.EAST, bottomValuesPanel, -5, SpringLayout.WEST, bottomButtonsPanel);
-
-			filter.setRenderer(new ListCellRenderer<FilterCallback>() {
-				@Override
-				public Component getListCellRendererComponent(JList<? extends FilterCallback> list, FilterCallback value, int index, boolean isSelected, boolean cellHasFocus) {
-					final JLabel	result = new JLabel(value.getFilterName()+" "+Arrays.toString(value.getFileMask()));
-					
-					if (isSelected) {
-						result.setOpaque(true);
-						result.setForeground(list.getSelectionForeground());
-						result.setBackground(list.getSelectionBackground());
-					}
-					if (cellHasFocus) {
-						result.setBorder(new LineBorder(Color.BLACK));
-					}
-					return result;
-				}
-			});
+			
 			assignEnterAndEscape(this);
 			assignEnterAndEscape(fileName);
 			accept.addActionListener((e)->{
@@ -460,7 +445,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			add(topPanel,BorderLayout.NORTH);
 			add(scroll,BorderLayout.CENTER);
 			add(bottomPanel,BorderLayout.SOUTH);
-			
+
 			fillLocalizedStrings();
 		}
 	}
@@ -470,6 +455,11 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		fillLocalizedStrings();
 	}
 
+	@Override
+	public Localizer getLocalizer() {
+		return localizer;
+	}
+	
 	/**
 	 * <p>Select file(s) or directory(ies) from the current file system</p>
 	 * @param node filesystem to select from. Can't be null. Selection always begins from the current file system point. If user press 'accept', current file system point is committed, else remains unchanged.
@@ -479,6 +469,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * @throws IOException on any I/O errors
 	 * @throws NullPointerException if any of the parameters is null
 	 * @throws IllegalArgumentException if options contains incompatible flags
+	 * @last.update 0.0.7
 	 */
 	public void select(final FileSystemInterface node, final int options, final AcceptAndCancelCallback<JFileSelectionDialog> callback, final FilterCallback... filters) throws IOException, NullPointerException, IllegalArgumentException {
 		if (node == null) {
@@ -523,29 +514,14 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			}
 			this.canSelectDir = (options & OPTIONS_CAN_SELECT_DIR) != 0;
 			this.canSelectFile = (options & OPTIONS_CAN_SELECT_FILE) != 0;
-			
-			filter.addItem(new FilterCallback() {
-				@Override
-				public String[] getFileMask() {
-					return new String[] {"*.*"};
-				}
 
-				@Override
-				public String getFilterName() {
-					try{return localizer.getValue(ACCEPT_ALL_FILES);
-					} catch (LocalizationException e) {
-						logger.message(Severity.error,e,"Error getting filter name ["+ACCEPT_ALL_FILES+"]: "+e.getLocalizedMessage());
-						return ACCEPT_ALL_FILES;
-					}
+			if (filters.length == 0) {
+				filter.addItem(FilterCallback.of(ACCEPT_ALL_FILES, "*.*"));
+			}
+			else {
+				for (FilterCallback item : filters) {
+					filter.addItem(item);
 				}
-
-				@Override
-				public boolean accept(final FileSystemInterface item) throws IOException {
-					return true;
-				}
-			});	
-			for (FilterCallback item : filters) {
-				filter.addItem(item);
 			}
 			filter.setSelectedIndex(0);
 			filter.addActionListener((e)->{

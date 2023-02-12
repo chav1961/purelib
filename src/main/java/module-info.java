@@ -3,6 +3,7 @@
  * @author Alexander Chernomyrdin aka chav1961
  * @see <a href="http://github.com/chav1961/purelib">Pure Library</a> project
  * @since 0.0.4
+ * @last.update 0.0.7
  */
 module chav1961.purelib {
 	requires transitive java.desktop;
@@ -108,6 +109,7 @@ module chav1961.purelib {
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with 
 			  chav1961.purelib.ui.swing.useful.renderers.EnumRenderer
+			, chav1961.purelib.ui.swing.useful.renderers.FilterCallbackRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.IconAndTextKeeperRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.JFileItemDescriptorRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.NumericRenderer

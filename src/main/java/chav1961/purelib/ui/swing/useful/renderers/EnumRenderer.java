@@ -54,7 +54,7 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 	}
 
 	@Override
-	public R getRenderer(final Class<R> rendererType, final Object... options) {
+	public R getRenderer(final Class<R> rendererType, final FieldFormat ff, final Object... options) {
 		if (rendererType == null) {
 			throw new NullPointerException("Renderer type can't be null"); 
 		}

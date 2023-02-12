@@ -16,6 +16,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
@@ -43,7 +44,7 @@ public class ItemAndSelectionRenderer<T, R> implements SwingItemRenderer<ItemAnd
 	}
 
 	@Override
-	public R getRenderer(final Class<R> rendererType, final Object... options) {
+	public R getRenderer(final Class<R> rendererType, final FieldFormat ff, final Object... options) {
 		if (rendererType == null) {
 			throw new NullPointerException("Renderer type can't be null"); 
 		}
@@ -64,7 +65,7 @@ public class ItemAndSelectionRenderer<T, R> implements SwingItemRenderer<ItemAnd
 						if (!nestedRenderers.containsKey(cl)) {
 							try{nestedRenderers.put(cl, SwingUtils.getCellRenderer(cl, null, ListCellRenderer.class));
 							} catch (EnvironmentException e) {
-								nestedRenderers.put(cl, (ListCellRenderer) new StringRenderer().getRenderer(ListCellRenderer.class));							
+								nestedRenderers.put(cl, (ListCellRenderer) new StringRenderer().getRenderer(ListCellRenderer.class, ff));							
 							}
 						}
 						label = (JLabel) nestedRenderers.get(cl).getListCellRendererComponent(list, sel.getItem(), index, isSelected, cellHasFocus);

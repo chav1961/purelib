@@ -15,6 +15,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 import chav1961.purelib.ui.swing.useful.JFileItemDescriptor;
@@ -45,7 +46,7 @@ public class JFileItemDescriptorRenderer<R> implements SwingItemRenderer<JFileIt
 	}
 
 	@Override
-	public R getRenderer(Class<R> rendererType, Object... options) {
+	public R getRenderer(Class<R> rendererType, final FieldFormat ff, Object... options) {
 		if (rendererType == null) {
 			throw new NullPointerException("Renderer type can't be null"); 
 		}

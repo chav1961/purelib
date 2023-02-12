@@ -254,6 +254,7 @@ public abstract class SwingUtils {
 	}
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
+	private static final Object[]				EMPTY_OPTIONS = new Object[0];
 
 	private static final String		UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String		UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
@@ -1998,16 +1999,49 @@ loop:			for (Component comp : children(node)) {
 	 * @param clazz class to render. Can't be null
 	 * @param ff field format. Can't be null
 	 * @param rendererType renderer type. Can't be null
+	 * @param options options to pass to renderer. Can be empty but not null
+	 * @return renderer found
+	 * @throws EnvironmentException renderer is missing
+	 * @since 0.0.7
+	 */
+	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType, final Object... options) throws EnvironmentException {
+		return getCellRenderer(clazz, ff, rendererType, Thread.currentThread().getContextClassLoader(), options);
+	}	
+	
+	/**
+	 * <p>Get cell renderer for different controls. Each renderer is an SPI service with {@linkplain SwingItemRenderer} implementation </p>
+	 * @param <T> class to render (for example, {@linkplain String})
+	 * @param <R> renderer type ({@linkplain ListCellRenderer}, {@linkplain TableCellRenderer}, {@linkplain TreeCellRenderer})
+	 * @param clazz class to render. Can't be null
+	 * @param ff field format. Can't be null
+	 * @param rendererType renderer type. Can't be null
 	 * @param loader class loader to use SPI in. Can't be null
 	 * @return renderer found
 	 * @throws EnvironmentException renderer is missing
 	 * @since 0.0.5
-	 * @lastUpdate 0.0.6
+	 * @lastUpdate 0.0.7
 	 */
 	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType, final ClassLoader loader) throws EnvironmentException {
+		return getCellRenderer(clazz, ff, rendererType, loader, EMPTY_OPTIONS);
+	}
+	
+	/**
+	 * <p>Get cell renderer for different controls. Each renderer is an SPI service with {@linkplain SwingItemRenderer} implementation </p>
+	 * @param <T> class to render (for example, {@linkplain String})
+	 * @param <R> renderer type ({@linkplain ListCellRenderer}, {@linkplain TableCellRenderer}, {@linkplain TreeCellRenderer})
+	 * @param clazz class to render. Can't be null
+	 * @param ff field format. Can't be null
+	 * @param rendererType renderer type. Can't be null
+	 * @param loader class loader to use SPI in. Can't be null
+	 * @param options options to pass to renderer. Can be empty but not null
+	 * @return renderer found
+	 * @throws EnvironmentException renderer is missing
+	 * @since 0.0.7
+	 */
+	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType, final ClassLoader loader, final Object... options) throws EnvironmentException {
 		for (SwingItemRenderer<T,R> item : ServiceLoader.load(SwingItemRenderer.class, loader)) {
 			if (item.canServe(clazz, rendererType, ff)) {
-				return item.getRenderer(rendererType, ff);
+				return item.getRenderer(rendererType, ff, options);
 			}
 		}
 		if (clazz.isArray()) {
@@ -2016,7 +2050,7 @@ loop:			for (Component comp : children(node)) {
 		else {
 			for (SwingItemRenderer<T,R> item : ServiceLoader.load(SwingItemRenderer.class, loader)) {
 				if (item instanceof StringRenderer) {
-					return item.getRenderer(rendererType, ff);
+					return item.getRenderer(rendererType, ff, options);
 				}
 			}
 			throw new EnvironmentException("Renderer type ["+rendererType+"] for class ["+clazz+"] not found"); 

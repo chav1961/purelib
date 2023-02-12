@@ -19,6 +19,7 @@ import javax.swing.tree.TreeCellRenderer;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.LocalizerOwner;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.interfaces.ReferenceAndComment;
 import chav1961.purelib.ui.swing.SwingUtils;
@@ -47,7 +48,7 @@ public class ContentNodeMetadataRenderer<T, R> implements SwingItemRenderer<Cont
 	}
 
 	@Override
-	public R getRenderer(final Class<R> rendererType, final Object... options) {
+	public R getRenderer(final Class<R> rendererType, final FieldFormat ff, final Object... options) {
 		if (rendererType == null) {
 			throw new NullPointerException("Renderer type can't be null"); 
 		}

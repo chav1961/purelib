@@ -2,6 +2,7 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.Container;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JComponent;
@@ -17,10 +18,10 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @since 0.0.7
  */
 public class JEnableMaskManipulator {
-	private final String[]		names;
-	private final JComponent[]	entities;
-	private final List<Long>	stack = new ArrayList<>();
-	private long				currentMask = 0;
+	private final String[]			names;
+	private final List<JComponent>	entities = new ArrayList<>();
+	private final List<Long>		stack = new ArrayList<>();
+	private long					currentMask = 0;
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -48,11 +49,39 @@ loop:		for (String itemName : itemNames) {
 				throw new IllegalArgumentException("Item name ["+itemName+"] not found anywhere in the component list");
 			}
 			this.names = itemNames;
-			this.entities = components;
+			this.entities.addAll(Arrays.asList(components));
 			refreshState();
 		}
 	}
 
+	/**
+	 * <p>Add component to control enable state</p>
+	 * @param component component to add. Can't be null
+	 * @throws NullPointerException component to add is null
+	 */
+	public void addComponent(final JComponent component) throws NullPointerException {
+		if (component == null) {
+			throw new NullPointerException("Component to add can't eb null"); 
+		}
+		else {
+			entities.add(component);
+		}
+	}
+	
+	/**
+	 * <p>Remove component from control enable state</p>
+	 * @param component component to remove. Can't be null
+	 * @throws NullPointerException component to remove is null
+	 */
+	public void removeComponent(final JComponent component) throws NullPointerException {
+		if (component == null) {
+			throw new NullPointerException("Component to remove can't eb null"); 
+		}
+		else {
+			entities.remove(component);
+		}
+	}
+	
 	/**
 	 * <p>Get current enable mask</p>
 	 * @return current enable mask
@@ -74,7 +103,7 @@ loop:		for (String itemName : itemNames) {
 	 * <p>Set enabled state for the given bits to 'enable'</p>
 	 * @param enableMask bits to set enable state to 'enabled'
 	 */
-	public void enableMaskOn(final long enableMask) {
+	public void setEnableMaskOn(final long enableMask) {
 		setEnableMask(getEnableMask() | enableMask);
 	}
 
@@ -82,7 +111,7 @@ loop:		for (String itemName : itemNames) {
 	 * <p>Set enabled state for the given bits to 'disable'</p>
 	 * @param enableMask bits to set enable state to 'disabled'
 	 */
-	public void enableMaskOff(final long enableMask) {
+	public void setEnableMaskOff(final long enableMask) {
 		setEnableMask(getEnableMask() & ~enableMask);
 	}
 
@@ -91,12 +120,12 @@ loop:		for (String itemName : itemNames) {
 	 * @param enableMask bits to change enable state
 	 * @param state new state for enable mask
 	 */
-	public void enableMaskTo(final long enableMask, final boolean state) {
+	public void setEnableMaskTo(final long enableMask, final boolean state) {
 		if (state) {
-			enableMaskOn(enableMask);
+			setEnableMaskOn(enableMask);
 		}
 		else {
-			enableMaskOff(enableMask);
+			setEnableMaskOff(enableMask);
 		}
 	}
 	
