@@ -128,9 +128,10 @@ public class LocalizerFactoryTest {
 		for (Localizer item : ServiceLoader.load(Localizer.class)) {
 			providers.add((Class<Localizer>)item.getClass());
 		}
-		Assert.assertEquals(2,providers.size());
+		Assert.assertEquals(3,providers.size());
 		Assert.assertTrue(providers.contains(XMLLocalizer.class));
 		Assert.assertTrue(providers.contains(PropertiesLocalizer.class));
+		Assert.assertTrue(providers.contains(MutableJsonLocalizer.class));
 	}
 
 }

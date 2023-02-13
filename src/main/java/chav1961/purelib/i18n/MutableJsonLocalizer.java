@@ -543,7 +543,7 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 	}	
 	
 	private static void loadJson(final InputStream is, final LoggerFacade trans, final Map<String,KeyCollection> keys) throws SyntaxException, IOException {
-		try(final Reader			rdr = new InputStreamReader(is);
+		try(final Reader			rdr = new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING);
 			final JsonStaxParser	parser = new JsonStaxParser(rdr)) {
 			String			name = null;
 			String			lang = null;

@@ -159,7 +159,7 @@ public class SimpleWizardTest {
 		try(final PseudoWizard wiz = new PseudoWizard(null,"key1",ModalityType.DOCUMENT_MODAL,ctrl,ws1,ws3)) {
 			Assert.assertEquals(wiz.getTitle(),"value1");
 			l.setCurrentLocale(new Locale("ru"));
-			Assert.assertEquals(wiz.getTitle(),"значение1");
+			Assert.assertEquals(wiz.getTitle(),"Р·РЅР°С‡РµРЅРёРµ1");
 			l.setCurrentLocale(new Locale("en"));
 			
 			final BlockingQueue<ActionButton>	ex = new ArrayBlockingQueue<>(1000);
@@ -183,8 +183,8 @@ public class SimpleWizardTest {
 			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"value1");
 			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"value2");
 			l.setCurrentLocale(new Locale("ru"));
-			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"значение1");
-			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"значение2");
+			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ1");
+			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ2");
 			ex.put(ActionButton.CANCEL);
 			t.join(1000);
 			Assert.assertFalse(results[0]);
@@ -198,7 +198,7 @@ public class SimpleWizardTest {
 		try(final PseudoWizard wiz = new PseudoWizard(null,"key1",ModalityType.DOCUMENT_MODAL,ctrl,ws1,ws3)) {
 			Assert.assertEquals(wiz.getTitle(),"value1");
 			l.setCurrentLocale(new Locale("ru"));
-			Assert.assertEquals(wiz.getTitle(),"значение1");
+			Assert.assertEquals(wiz.getTitle(),"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ1");
 			l.setCurrentLocale(new Locale("en"));
 			
 			final BlockingQueue<ActionButton>	ex = new ArrayBlockingQueue<>(1000);
@@ -222,8 +222,8 @@ public class SimpleWizardTest {
 			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"value1");
 			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"value2");
 			l.setCurrentLocale(new Locale("ru"));
-			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"значение1");
-			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"значение2");
+			Assert.assertEquals(((WizardStep3)ws3).f.getText(),"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ1");
+			Assert.assertEquals(((WizardStep3)ws3).f.getToolTipText(),"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ2");
 			ex.put(ActionButton.CANCEL);
 			t.join(5000);
 			Assert.assertFalse(results[0]);

@@ -262,8 +262,8 @@ public class LocalizerTest {
 				count++;
 			}
 			Assert.assertEquals(count, 3);
-			Assert.assertEquals(fsl.getValue("key1"),"value1");
-			Assert.assertEquals(fsl.getValue("key2"),"value2");
+			Assert.assertEquals(fsl.getValue("key1"), "value1");
+			Assert.assertEquals(fsl.getValue("key2"), "value2");
 			
 			fsl.setCurrentLocale(new Locale("ru"));
 			count = 0;
@@ -271,8 +271,8 @@ public class LocalizerTest {
 				count++;
 			}
 			Assert.assertEquals(count, 3);
-			Assert.assertEquals(fsl.getValue("key1"),"Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ1");
-			Assert.assertEquals(fsl.getValue("key2"),"Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ2");
+			Assert.assertEquals("значение1", fsl.getValue("key1"));
+			Assert.assertEquals("значение2", fsl.getValue("key2"));
 		}
 	}
 
@@ -296,8 +296,8 @@ public class LocalizerTest {
 				count++;
 			}
 			Assert.assertEquals(count, 3);
-			Assert.assertEquals(pl.getValue("key1"),"значение1");
-			Assert.assertEquals(pl.getValue("key2"),"значение2");
+			Assert.assertEquals("значение1", pl.getValue("key1"));
+			Assert.assertEquals("значение2", pl.getValue("key2"));
 		}
 	}
 

@@ -56,7 +56,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 	}
 
 	protected XMLLocalizer(final URI resourceAddress) throws LocalizationException, NullPointerException {
-		this(resourceAddress,PureLibSettings.CURRENT_LOGGER);
+		this(resourceAddress, PureLibSettings.CURRENT_LOGGER);
 	}
 	
 	protected XMLLocalizer(final URI resourceAddress, final LoggerFacade facade) throws LocalizationException, NullPointerException {

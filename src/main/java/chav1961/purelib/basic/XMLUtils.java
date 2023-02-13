@@ -9,6 +9,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Properties;
 
 import org.w3c.dom.Document;
