@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ LocalizerFactoryTest.class, LocalizerTest.class, LocaleSpecificTextWrapperTest.class })
+@SuiteClasses({ LocalizerFactoryTest.class, LocalizerTest.class, LocaleSpecificTextWrapperTest.class, MutableLocalizerTest.class })
 public class AllTests {
 
 }

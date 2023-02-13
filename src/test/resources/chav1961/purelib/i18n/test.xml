@@ -3,11 +3,11 @@
 	<lang name="en">
 		<key name="key1">${key3}</key>
 		<key name="key3">value1</key>
-		<ref name="key2" ref="file:./src/test/resources/chav1961/purelib/i18n/test/help/en/test.txt"/>
+		<ref name="key2" ref="file:./src/test/resources/chav1961/purelib/i18n/help/en/test.txt"/>
 	</lang>
 	<lang name="ru">
 		<key name="key1">${key3}</key>
 		<key name="key3">значение1</key>
-		<ref name="key2" ref="file:./src/test/resources/chav1961/purelib/i18n/test/help/ru/test.txt"/>
+		<ref name="key2" ref="file:./src/test/resources/chav1961/purelib/i18n/help/ru/test.txt"/>
 	</lang>
 </localization>

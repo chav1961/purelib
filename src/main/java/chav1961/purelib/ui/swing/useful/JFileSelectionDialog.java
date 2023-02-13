@@ -13,6 +13,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -369,7 +371,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			content.setCellRenderer(new ListCellRenderer<String>() {
 				@Override
 				public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
-					final JLabel	result = new JLabel(value);
+					final JLabel	result = new JLabel(URLDecoder.decode(value, Charset.forName(PureLibSettings.DEFAULT_CONTENT_ENCODING)));
 					
 					try(final FileSystemInterface	node = currentNode.clone().open(value);) {
 						

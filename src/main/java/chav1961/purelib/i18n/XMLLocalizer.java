@@ -17,6 +17,7 @@ import java.util.Set;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SequenceIterator;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.XMLUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -144,7 +145,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 
 	@Override
 	public String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException {
-		if (key == null || key.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(key)) {
 			throw new IllegalArgumentException("Key to get value for can't be null or empty"); 
 		}
 		else if (currentCollection.containsKey(key)) {
@@ -160,7 +161,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 
 	@Override
 	public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException, NullPointerException {
-		if (key == null || key.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(key)) {
 			throw new IllegalArgumentException("Key to get value for can't be null or empty"); 
 		}
 		else if (locale == null) {
@@ -194,7 +195,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 
 	@Override
 	protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
-		if (helpId == null || helpId.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(helpId)) {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}
 		else {

@@ -44,11 +44,11 @@ public class LocalizerTest {
 		for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 			count++;
 		}
-		Assert.assertEquals(count, 4);
-		Assert.assertEquals(pl.getValue("key1"),"value1");
-		Assert.assertEquals(pl.getValue("key2"),"value2");
-		Assert.assertEquals(pl.getValue("key3"),"HELP_test");
-		Assert.assertEquals(pl.getValue("key4"),"HELP_test");
+		Assert.assertEquals(4, count);
+		Assert.assertEquals("value1", pl.getValue("key1"));
+		Assert.assertEquals("value2", pl.getValue("key2"));
+		Assert.assertEquals("HELP_test", pl.getValue("key3"));
+		Assert.assertEquals("HELP_test", pl.getValue("key4"));
 
 		try {pl.getValue("");
 			Assert.fail("Mandatory exception was not detected (null or empty 1-st argument)");
@@ -69,16 +69,16 @@ public class LocalizerTest {
 			count++;
 		}
 		Assert.assertEquals(count, 4);
-		Assert.assertEquals(pl.getValue("key1"),"значение1");
-		Assert.assertEquals(pl.getValue("key2"),"значение2");
-		Assert.assertEquals(pl.getValue("key3"),"HELP_значение");
-		Assert.assertEquals(pl.getValue("key4"),"HELP_значение");
+		Assert.assertEquals(pl.getValue("key1"),"Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ1");
+		Assert.assertEquals(pl.getValue("key2"),"Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ2");
+		Assert.assertEquals(pl.getValue("key3"),"HELP_Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ");
+		Assert.assertEquals(pl.getValue("key4"),"HELP_Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ");
 		
 		try(final Reader	content = pl.getContent("key3");
 			final Writer	wr = new StringWriter()) {
 
 			Utils.copyStream(content,wr);
-			Assert.assertEquals(wr.toString(),"HELP_значение");
+			Assert.assertEquals(wr.toString(),"HELP_Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ");
 		}
 
 		Assert.assertEquals(pl.currentLocale().getLanguage(),"ru");
@@ -251,7 +251,7 @@ public class LocalizerTest {
 //		final Localizer		root = new SingleKeyLocalizer("root","rootEn","rootRu");
 	}
 
-//	@Test
+//	@Test not supported by Java 9
 	public void fileSystemLocalizerTest() throws LocalizationException, IOException {
 		try(final FileSystemLocalizer	fsl = new FileSystemLocalizer("fsys:file:./src/test/resources/chav1961/purelib/i18n#/test")) {
 			int		count;
@@ -271,12 +271,12 @@ public class LocalizerTest {
 				count++;
 			}
 			Assert.assertEquals(count, 3);
-			Assert.assertEquals(fsl.getValue("key1"),"значение1");
-			Assert.assertEquals(fsl.getValue("key2"),"значение2");
+			Assert.assertEquals(fsl.getValue("key1"),"Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ1");
+			Assert.assertEquals(fsl.getValue("key2"),"Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ2");
 		}
 	}
 
-//	@Test
+	@Test
 	public void xmlLocalizerTest() throws LocalizationException, IOException {
 		try(final XMLLocalizer	pl = new XMLLocalizer(URI.create("./src/test/resources/chav1961/purelib/i18n/test.xml"))) {
 			int		count;
@@ -287,8 +287,8 @@ public class LocalizerTest {
 				count++;
 			}
 			Assert.assertEquals(count, 3);
-			Assert.assertEquals(pl.getValue("key1"),"value1");
-			Assert.assertEquals(pl.getValue("key2"),"value2");
+			Assert.assertEquals("value1", pl.getValue("key1"));
+			Assert.assertEquals("value2", pl.getValue("key2"));
 			
 			pl.setCurrentLocale(new Locale("ru"));
 			count = 0;
@@ -298,6 +298,31 @@ public class LocalizerTest {
 			Assert.assertEquals(count, 3);
 			Assert.assertEquals(pl.getValue("key1"),"значение1");
 			Assert.assertEquals(pl.getValue("key2"),"значение2");
+		}
+	}
+
+	@Test
+	public void jsonLocalizerTest() throws LocalizationException, IOException {
+		try(final MutableJsonLocalizer	pl = new MutableJsonLocalizer(URI.create("./src/test/resources/chav1961/purelib/i18n/test.json"))) {
+			int		count;
+			
+			pl.setCurrentLocale(new Locale("en"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals("value1", pl.getValue("key1"));
+			Assert.assertEquals("value2", pl.getValue("key2"));
+			
+			pl.setCurrentLocale(new Locale("ru"));
+			count = 0;
+			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
+				count++;
+			}
+			Assert.assertEquals(count, 3);
+			Assert.assertEquals("значение1", pl.getValue("key1"));
+			Assert.assertEquals("значение2", pl.getValue("key2"));
 		}
 	}
 }
@@ -342,10 +367,10 @@ class PseudoLocalizer extends AbstractLocalizer {
 				content.put("key4","uri(test?mime=text/html)");
 				break;
 			case "ru"	:
-				content.put("key1","значение1");
-				content.put("key2","значение2");
-				content.put("key3","uri(значение)");
-				content.put("key4","uri(значение?mime=text/html)");
+				content.put("key1","Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ1");
+				content.put("key2","Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ2");
+				content.put("key3","uri(Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ)");
+				content.put("key4","uri(Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ?mime=text/html)");
 				break;
 		}
 		
@@ -363,14 +388,12 @@ class PseudoLocalizer extends AbstractLocalizer {
 
 	@Override
 	public String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return null;
+		return getLocalValue(key);
 	}
 
 	@Override
 	protected boolean isLocaleSupported(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return false;
+		return "'en;ru;".contains(locale.getLanguage());
 	}	
 }
 
@@ -429,14 +452,12 @@ class SingleKeyLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	public String getLocalValue(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return null;
+	public String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return getLocalValue(key);
 	}
 
 	@Override
-	protected boolean isLocaleSupported(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return false;
+	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
+		return "'en;ru;".contains(locale.getLanguage());
 	}	
 }

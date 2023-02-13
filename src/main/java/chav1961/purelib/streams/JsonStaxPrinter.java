@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 
-import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
@@ -19,6 +19,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @see chav1961.purelib.streams JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @last.update 0.0.7
  */
 
 public class JsonStaxPrinter implements Closeable, Flushable {
@@ -35,6 +36,8 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	private static final char				OBJ_TERMINATOR = '}';
 	private static final char				LIST_SPLITTER = ',';
 	private static final char				NAME_SPLITTER = ':';
+	private static final char				NL = '\n';
+	private static final char				TAB = '\t';
 
 	private static final byte				VALUE_AWAITING = 0;
 	private static final byte				NAME_AWAITING = 1;
@@ -48,6 +51,8 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	private char[]							buffer;
 	private char[]							pseudoStack = new char[64];
 	private byte[]							pseudoStackState = new byte[64];
+	private boolean							newLineSupport = false;
+	private int								depth = 0;
 	private int								bufferFill = 0, pseudoStackFill = 0;
 
 	/**
@@ -55,7 +60,7 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	 * @param writer writer to pass JSON content to
 	 */
 	public JsonStaxPrinter(final Writer writer) {
-		this(writer,DEFAULT_BUFFER_SIZE);
+		this(writer, DEFAULT_BUFFER_SIZE);
 	}
 
 	/**
@@ -64,7 +69,7 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	 * @param tree tree to keep field names inside the JSON
 	 */
 	public JsonStaxPrinter(final Writer writer, final SyntaxTreeInterface<?> tree) {
-		this(writer,DEFAULT_BUFFER_SIZE,tree);
+		this(writer, DEFAULT_BUFFER_SIZE, tree);
 	}
 
 	/**
@@ -73,7 +78,7 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	 * @param bufferSize size of the buffer to write content
 	 */
 	public JsonStaxPrinter(final Writer writer, final int bufferSize) {
-		this(writer,bufferSize,null);
+		this(writer, bufferSize, null);
 	}
 
 	/**
@@ -128,6 +133,24 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 		}
 	}
 
+	/**
+	 * <p>Is automatic '\n' and '\t' appended after START/END OBJECT/ARRAY</p> 
+	 * @return true if yes
+	 * @since 0.0.7 
+	 */
+	public boolean isNewLineAppended() {
+		return newLineSupport;
+	}
+	
+	/**
+	 * <p>Set automatic '\n' and '\t' appended after START/END OBJECT/ARRAY</p>
+	 * @param support true if set, else otherwise
+	 * @since 0.0.7
+	 */
+	public void setNewLineAppended(final boolean support) {
+		newLineSupport = support;
+	}
+	
 	/**
 	 * <p>Reset prinet context</p>
 	 * @throws IOException on any I/O errors
@@ -614,26 +637,26 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 	 * @throws IOException on any I/O errors
 	 */
 	public JsonStaxPrinter name(final String name) throws IOException {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name can't be null or empty");
 		}
 		else if (closed) {
 			throw new IOException("Attempt to write into closed printer");
 		}
 		else if (pseudoStackFill == 0 || pseudoStack[pseudoStackFill] == ARRAY_STARTER) {
-			throw new IOException("Name outside the object");
+			throw new IOException("Name ["+name+"] outside the object");
 		}
 		else if (pseudoStackState[pseudoStackFill] != NAME_AWAITING) {
-			throw new IOException("Output structure failure: name is not awaiting here");
+			throw new IOException("Output structure failure: name ["+name+"] is not awaiting here");
 		}
 		else {
 			final int	nameLen = name.length();
 			
-			if (bufferFill + nameLen + 3>= bufferSize) {
+			if (bufferFill + nameLen + 3 >= bufferSize) {
 				flushBuffer();
 			}
 			buffer[bufferFill] = STRING_TERMINATOR;
-			name.getChars(0,nameLen,buffer,bufferFill+1);
+			name.getChars(0, nameLen, buffer, bufferFill+1);
 			buffer[bufferFill + 1 + nameLen] = STRING_TERMINATOR;
 			buffer[bufferFill + 2 + nameLen] = NAME_SPLITTER;
 			bufferFill += nameLen + 3;
@@ -746,6 +769,10 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 			pseudoStackFill++;
 			pseudoStackState[pseudoStackFill] = NAME_AWAITING;
 			splitter(pseudoStack[pseudoStackFill] = OBJ_STARTER);
+			if (isNewLineAppended()) {
+				splitter(NL);
+				tabSplitter(++depth);
+			}
 			return this;
 		}
 	}
@@ -770,6 +797,10 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 		}
 		else {
 			pseudoStackFill--;
+			if (isNewLineAppended()) {
+				splitter(NL);
+				tabSplitter(--depth);
+			}
 			splitter(OBJ_TERMINATOR);
 			if (pseudoStackFill >= 0) {
 				pseudoStackState[pseudoStackFill] = SPLITTER_AWAITING;
@@ -798,12 +829,16 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 			pseudoStackFill++;
 			pseudoStackState[pseudoStackFill] = VALUE_AWAITING;
 			splitter(pseudoStack[pseudoStackFill] = ARRAY_STARTER);
+			if (isNewLineAppended()) {
+				splitter(NL);
+				tabSplitter(++depth);
+			}
 			return this;
 		}
 	}
 
 	/**
-	 * <p>Print end of object</p>
+	 * <p>Print end of array</p>
 	 * @return self
 	 * @throws IOException on any I/O errors
 	 */
@@ -819,6 +854,10 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 		}
 		else {
 			pseudoStackFill--;
+			if (isNewLineAppended()) {
+				splitter(NL);
+				tabSplitter(--depth);
+			}
 			splitter(ARRAY_TERMINATOR);
 			if (pseudoStackFill >= 0) {
 				pseudoStackState[pseudoStackFill] = SPLITTER_AWAITING;
@@ -840,6 +879,12 @@ public class JsonStaxPrinter implements Closeable, Flushable {
 			splitter(LIST_SPLITTER);
 			pseudoStackState[pseudoStackFill] = pseudoStack[pseudoStackFill] == OBJ_STARTER ? NAME_AWAITING : VALUE_AWAITING; 
 			return this;
+		}
+	}
+	
+	private void tabSplitter(final int amount) throws IOException {
+		for(int index = 0; index < amount; index++) {
+			splitter(TAB);
 		}
 	}
 	

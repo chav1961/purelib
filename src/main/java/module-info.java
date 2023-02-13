@@ -87,7 +87,9 @@ module chav1961.purelib {
 	provides chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor with chav1961.purelib.fsys.FileSystemOnFile, chav1961.purelib.fsys.FileSystemOnFileSystem, chav1961.purelib.fsys.FileSystemOnXMLReadOnly, chav1961.purelib.fsys.FileSystemOnRMI, chav1961.purelib.fsys.FileSystemInMemory;
 	
 	uses chav1961.purelib.i18n.interfaces.Localizer;
-	provides chav1961.purelib.i18n.interfaces.Localizer with chav1961.purelib.i18n.PropertiesLocalizer, chav1961.purelib.i18n.XMLLocalizer;
+	provides chav1961.purelib.i18n.interfaces.Localizer with chav1961.purelib.i18n.PropertiesLocalizer
+			, chav1961.purelib.i18n.XMLLocalizer
+			, chav1961.purelib.i18n.MutableJsonLocalizer;
 
 	uses chav1961.purelib.sql.interfaces.ResultSetContentParser;
 	provides chav1961.purelib.sql.interfaces.ResultSetContentParser with chav1961.purelib.sql.content.CsvContentParser, chav1961.purelib.sql.content.XMLContentParser, chav1961.purelib.sql.content.JsonContentParser;	
