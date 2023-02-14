@@ -75,7 +75,7 @@ public class SVGPainter {
 
 	public void paint(final Graphics2D g2d) {
 		if (background != null) {
-			fillBackground(g2d,background);
+			fillBackground(g2d, background);
 		}
 		
 		for (AbstractPainter item : primitives) {

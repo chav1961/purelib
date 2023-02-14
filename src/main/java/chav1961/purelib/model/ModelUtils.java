@@ -1034,7 +1034,7 @@ loop:		for(;;) {
 	/**
 	 * <p>Build Map-styled wrapper to any class by it's model. Wrapper allows to get access to instance fields 
 	 * thru {@linkplain Map} interface instead of reflective calls. Public and non-public fields are supported. Wrapper class returned also
-	 * implements {@linkplain ModuleExporter} interface, which can be used to allow access for it's unnamed modules in Java 1.9 and higher</p>
+	 * implements {@linkplain ModuleExporter} interface, which can be used to allow access for it's unnamed modules in Java 9 and higher</p>
 	 * @param <K> Map key type
 	 * @param <V> Map value type
 	 * @param root root of the model tree
