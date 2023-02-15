@@ -34,7 +34,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * If tab removed implements {@linkplain AutoCloseable} interface, the {@linkplain AutoCloseable#close()} method will be called at removing.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	private static final long 	serialVersionUID = -5601021193645267745L;
@@ -471,6 +471,13 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		paintChildren(g);
 	}
 
+	/**
+	 * <p>Process click on left icon (if exists). Default is select tab</p>
+	 */
+	protected void onClickIcon() {
+		selectTab();
+	}
+	
 	private void popup() {
 		if (popup != null) {
 			popup.show(this,getWidth()/2,getHeight()/2);
@@ -483,6 +490,13 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		}
 	}
 
+	private void clickIcon() {
+		if (container != null && tab != null) {
+			onClickIcon();
+		}
+	}
+	
+	
 	private void prepare(final String path) throws LocalizationException, IllegalArgumentException {
 		final Font	oldFont = getFont(); 
 		
@@ -512,7 +526,19 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				selectTab();
+				if (label.getIcon() != null) {
+					final Icon	icon = label.getIcon();
+					
+					if (e.getX() <= icon.getIconWidth() && e.getY() <= icon.getIconHeight()) {
+						clickIcon();
+					}
+					else {
+						selectTab();
+					}
+				}
+				else {
+					selectTab();
+				}
 			}
 		});
 		label.addKeyListener(new KeyListener() {

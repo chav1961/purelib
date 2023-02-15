@@ -170,7 +170,7 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 				tt.cancel();
 			}
 			tt = new SimpleTimerTask(()->callHighlighter());
-			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt,REFRESH_DELAY_MILLISECONDS);
+			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY_MILLISECONDS);
 		}
 	}
 }
