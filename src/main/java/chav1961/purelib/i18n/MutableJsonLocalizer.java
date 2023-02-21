@@ -136,7 +136,7 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 						if (possibleLocalResource != null) {
 							try(final InputStream	is = possibleLocalResource.openStream()) {
 								if (is == null) {
-									throw new ContentException("XML localizer error: URL ["+possibleLocalResource+"] is not exists or it's content not acsessible"); 
+									throw new ContentException("JSON localizer error: URL ["+possibleLocalResource+"] is not exists or it's content not acsessible"); 
 								}
 								else {
 									loadJson(is, trans, localKeys);

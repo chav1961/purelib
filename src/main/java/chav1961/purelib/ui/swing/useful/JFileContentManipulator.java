@@ -193,6 +193,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 				case  JOptionPane.YES_OPTION :
 					if (saveFile()) {
+						
 						clearModificationFlag();
 					}
 				case  JOptionPane.NO_OPTION : 
