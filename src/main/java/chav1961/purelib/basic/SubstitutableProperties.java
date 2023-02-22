@@ -32,6 +32,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
+import chav1961.purelib.basic.CharUtils.SubstitutionSource;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.concurrent.LightWeightListenerList;
@@ -77,7 +79,7 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
  * @since 0.0.1
  * @last.update 0.0.7
  */
-public class SubstitutableProperties extends Properties {
+public class SubstitutableProperties extends Properties implements SubstitutionSource, CharSubstitutionSource {
 	private static final long 	serialVersionUID = 4802630950148088823L;
 	public static final String	KEY_INCLUDE = ".include";
 	public static final File	CURRENT_DIR = new File("./");
@@ -436,6 +438,27 @@ public class SubstitutableProperties extends Properties {
 		return oldValue;
 	}
 	
+	
+	@Override
+	public String getValue(final String key) {
+		if (Utils.checkEmptyOrNullString(key)) {
+			throw new IllegalArgumentException("Key to substitute can't be null or empty");
+		}
+		else {
+			return getProperty(key);
+		}
+	}
+	
+	@Override
+	public char[] getValue(final char[] data, final int from, final int to) {
+		if (data == null || data.length == 0) {
+			throw new IllegalArgumentException("Key name array to substitute can't be null or empty");
+		}
+		else {
+			return getValue(data, from, to);
+		}
+	}
+
 	/**
 	 * <p>Compare properties content is identical</p>
 	 * @param another another properties to compare

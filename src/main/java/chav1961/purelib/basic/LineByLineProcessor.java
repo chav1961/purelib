@@ -92,11 +92,11 @@ public class LineByLineProcessor implements Closeable, Flushable {
 		else if (off < 0 || off >= cbuf.length) {
 			throw new IllegalArgumentException("Offset ["+off+"] out of range 0.."+(cbuf.length));
 		}
-		else if (len <= 0 || off+len > cbuf.length) {
-			throw new IllegalArgumentException("Len ["+len+"] out of range 1.."+(cbuf.length-off));
+		else if (len < 0 || off+len > cbuf.length) {
+			throw new IllegalArgumentException("Len ["+len+"] out of range 0.."+(cbuf.length-off));
 		}
-		else {
-			uncheckedWrite(cbuf,off,len);
+		else if (len > 0) {
+			uncheckedWrite(cbuf, off, len);
 		}
 	}
 
