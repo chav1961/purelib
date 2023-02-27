@@ -5,7 +5,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.Locale;
 
-import javax.swing.Icon;
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -177,6 +176,11 @@ public class JLocalizedStringContentWithMeta extends JTabbedPane implements Node
 					
 					tab.field.setText(newValue.getValue(SupportedLanguages.values()[index].getLocale()));
 				}
+				
+				for (SupportedLanguages item : SupportedLanguages.values()) {
+					((InnerTab)getComponentAt(item.ordinal())).getComponent().setText(newValue.getValue(item.getLocale()));
+					((InnerTab)getComponentAt(item.ordinal())).getComponent().setEditable(value instanceof MutableLocalizedString);
+				}
 			} catch (CloneNotSupportedException e) {
 				throw new ContentException(e); 
 			}
@@ -262,7 +266,7 @@ public class JLocalizedStringContentWithMeta extends JTabbedPane implements Node
 				@Override
 				public void focusGained(final FocusEvent e) {
 					try{
-						monitor.process(MonitorEvent.FocusGained,metadata,JLocalizedStringContentWithMeta.this);
+						monitor.process(MonitorEvent.FocusGained, metadata, JLocalizedStringContentWithMeta.this);
 						field.getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
 						SwingUtils.getNearestLogger(JLocalizedStringContentWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
@@ -330,6 +334,10 @@ public class JLocalizedStringContentWithMeta extends JTabbedPane implements Node
 					((JTextField)field).setColumns(format.getLength());
 				}
 			}
+		}
+		
+		public JTextComponent getComponent() {
+			return field;
 		}
 		
 		private void refreshContent() {

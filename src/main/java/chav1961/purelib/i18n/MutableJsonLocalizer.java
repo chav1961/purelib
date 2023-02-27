@@ -242,6 +242,11 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 			
 			return new MutableLocalizedString() {
 				private String	currentKey = key;
+
+				@Override
+				public String toString() {
+					return "MutableLocalizedString["+getId()+"="+getValue()+"]";
+				}
 				
 				@Override
 				public Localizer getLocalizer() {
@@ -461,6 +466,11 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 		return new MutableLocalizedString() {
 				String	currentKey = key;
 			
+				@Override
+				public String toString() {
+					return "MutableLocalizedString["+getId()+"="+getValue()+"]";
+				}
+				
 				@Override
 				public Localizer getLocalizer() {
 					return MutableJsonLocalizer.this;
