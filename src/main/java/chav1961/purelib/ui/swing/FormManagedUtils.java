@@ -70,8 +70,8 @@ public class FormManagedUtils {
 								final JLabel			label = new JLabel();
 								final FieldFormat		ff = node.getFormatAssociated() != null ? node.getFormatAssociated() : new FieldFormat(node.getType());
 								final JComponent 		field = SwingUtils.prepareRenderer(node, currentLocalizer, ff.getContentType(), monitor);
-								final GetterAndSetter	gas = GettersAndSettersFactory.buildGetterAndSetter(instanceClass,node.getName(),(list)->{},loader);
-							
+								final GetterAndSetter	gas = GettersAndSettersFactory.buildGetterAndSetter(instanceClass, node.getName(), (list)->{}, loader);
+								
 								label.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString()+"/label");
 								field.setName(URIUtils.removeQueryFromURI(node.getUIPath()).toString());
 								trans.message(Severity.trace,"Process control [%1$s] type [%2$s]",node.getUIPath(),field.getClass().getCanonicalName());

@@ -59,9 +59,18 @@ public class JLocalizedStringContentWithMeta extends JTabbedPane implements Node
 		else {
 			this.metadata = metadata;
 			this.localizer = localizer;
-			
-			for (SupportedLanguages item : SupportedLanguages.values()) {
+
+			int	tabIndex = -1;
+			for (int index = 0; index < SupportedLanguages.values().length; index++) {
+				final SupportedLanguages	item = SupportedLanguages.values()[index];
+				
+				if (localizer.currentLocale().getLocale().getLanguage().equals(item.name())) {
+					tabIndex = index;
+				}
 				addTab(item.name(), null, new InnerTab(item.getLocale(), metadata.getFormatAssociated(), monitor));
+			}
+			if (tabIndex >= 0) {	// Current locale selection
+				setSelectedIndex(tabIndex);
 			}
 			setName(metadata.getName());
 			fillLocalizedStrings();
@@ -144,6 +153,13 @@ public class JLocalizedStringContentWithMeta extends JTabbedPane implements Node
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
+		if (newValue instanceof MutableLocalizedString) {
+			for(int index = 0; index < getComponentCount(); index++) {
+				final InnerTab	tab = (InnerTab)getComponent(index);
+				
+				((MutableLocalizedString) newValue).setValue(SupportedLanguages.values()[index].getLocale(), tab.field.getText());
+			}
+		}
 		return newValue;
 	}
 
@@ -156,6 +172,11 @@ public class JLocalizedStringContentWithMeta extends JTabbedPane implements Node
 			try {
 				currentValue = (LocalizedString)value;
 				newValue = (LocalizedString) currentValue.clone();
+				for(int index = 0; index < getComponentCount(); index++) {
+					final InnerTab	tab = (InnerTab)getComponent(index);
+					
+					tab.field.setText(newValue.getValue(SupportedLanguages.values()[index].getLocale()));
+				}
 			} catch (CloneNotSupportedException e) {
 				throw new ContentException(e); 
 			}
@@ -194,8 +215,8 @@ public class JLocalizedStringContentWithMeta extends JTabbedPane implements Node
 
 	private void callLoad(final JComponentMonitor monitor) {
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
-			currentValue = newValue;
-		} catch (ContentException exc) {
+			currentValue = (LocalizedString) newValue.clone();
+		} catch (ContentException | CloneNotSupportedException exc) {
 			SwingUtils.getNearestLogger(this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
 	}

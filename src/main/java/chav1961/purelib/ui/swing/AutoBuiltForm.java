@@ -637,7 +637,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 				break;
 		}
 		try {
-		return monitor.process(event, metadata, component, parameters);
+			return monitor.process(event, metadata, component, parameters);
 		} catch (NullPointerException exc) {
 			return monitor.process(event, metadata, component, parameters);
 		}
