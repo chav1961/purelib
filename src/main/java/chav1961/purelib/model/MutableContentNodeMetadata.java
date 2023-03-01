@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -22,16 +23,16 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private boolean 					mounted = false;	
 	
 	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final FieldFormat formatAssociated, final URI applicationPath, final URI iconURI) {
-		if (name == null || name.isEmpty()) {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Node name can't be null or empty");
 		}
 		else if (type == null) {
 			throw new NullPointerException("Node type can't be null");
 		}
-		else if (relativeUIPath == null || relativeUIPath.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(relativeUIPath)) {
 			throw new IllegalArgumentException("Relative UI path can't be null or empty");
 		}
-		else if (labelId == null || labelId.isEmpty()) {
+		else if (Utils.checkEmptyOrNullString(labelId)) {
 			throw new IllegalArgumentException("Label identifier can't be null or empty");
 		}
 		else if (localizerAssociated != null && !Localizer.LOCALIZER_SCHEME.equals(localizerAssociated.getScheme())) {
