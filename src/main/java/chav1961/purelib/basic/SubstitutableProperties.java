@@ -398,6 +398,27 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 	}
 	
 	/**
+	 * <p>Get property value without substitutions</p>
+	 * @param key get to get property for. Can't be null or empty
+	 * @return property found or null
+	 * @since 0.0.7
+	 */
+	public String getPropertyAsIs(final String key) {
+		return super.getProperty(key);
+	}
+
+	/**
+	 * <p>Get property value without substitutions</p>
+	 * @param key get to get property for. Can't be null or empty
+	 * @param defaultValue default value. Can be null or empty
+	 * @return property found or null
+	 * @since 0.0.7
+	 */
+	public String getPropertyAsIs(final String key, final String defaultValue) {
+		return super.getProperty(key,defaultValue);
+	}	
+	
+	/**
 	 * <p>Get property and convert it to requested class</p>
 	 * @param <T> class returned
 	 * @param key key to get property value for
