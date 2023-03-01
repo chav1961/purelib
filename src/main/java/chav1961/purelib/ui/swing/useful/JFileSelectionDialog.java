@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
@@ -125,7 +126,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	 * <p>This interface is analog of {@linkplain FilterCallback}</p>  
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @last.update 0.0.5
+	 * @last.update 0.0.7
 	 */
 	public interface FilterCallback {
 		/**
@@ -147,6 +148,14 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		 * @throws IOException when I/O errors during processing
 		 */
 		boolean accept(final FileSystemInterface item) throws IOException;
+
+		/**
+		 * <p>Accept file system interface item with the given filter.</p>
+		 * @param item file system item to test
+		 * @return true if the item must be include into the list, false otherwise
+		 * @throws IOException when I/O errors during processing
+		 */
+		boolean accept(final File item) throws IOException;
 		
 		/**
 		 * <p>Create simple filter callback implementation</p>
@@ -178,18 +187,25 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					@Override
 					public boolean accept(final FileSystemInterface item) throws IOException {
 						if (item.isFile()) {
-							final String	name = item.getName();
-							
-							for (Pattern pItem : p) {
-								if (pItem.matcher(name).find()) {
-									return true;
-								}
-							}
-							return false;
+							return accept(item.getName());
 						}
 						else {
 							return true;
 						}
+					}
+					
+					@Override
+					public boolean accept(final File item) throws IOException {
+						return accept(item.getName());
+					}
+					
+					private boolean accept(final String name) {
+						for (Pattern pItem : p) {
+							if (pItem.matcher(name).find()) {
+								return true;
+							}
+						}
+						return false;
 					}
 				}; 
 			}
