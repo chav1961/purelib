@@ -198,7 +198,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 					}
 				case  JOptionPane.NO_OPTION : 
 					return true;
-				case  JOptionPane.CANCEL_OPTION :
+				case  JOptionPane.CANCEL_OPTION : case  JOptionPane.CLOSED_OPTION :
 					return false;
 				default :
 					throw new UnsupportedOperationException("Illegal option from JLocalizedOptionPane.confirm(...)");
