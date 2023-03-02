@@ -19,7 +19,7 @@ import chav1961.purelib.basic.OrdinalSyntaxTree;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public interface SyntaxTreeInterface<T> {
@@ -321,16 +321,60 @@ public interface SyntaxTreeInterface<T> {
 
 	/**
 	 * <p>Walk all the ids in the tree in ascending order</p>
-	 * @param walker callback to process each walked item
+	 * @param walker callback to process each walked item. Can't be null
 	 */
 	void walk(Walker<T> walker);
 
 	/**
 	 * <p>Walk all the ids in the tree in descending order</p>
-	 * @param walker callback to process each walked item
+	 * @param walker callback to process each walked item. Can't be null
 	 * @since 0.0.6
 	 */
 	default void walkBack(Walker<T> walker) {
+		walk(walker);
+	}
+
+	/**
+	 * <p>Walk all the ids in the tree in ascending order starting with the given prefix</p>
+	 * @param prefix prefix array. Can't be null or empty
+	 * @param from from position of the prefix array
+	 * @param to to position of the prefix array
+	 * @param walker callback to process each walked item. Can't be null
+	 * @since 0.0.7
+	 */
+	default void walk(char[] prefix, int from, int to, Walker<T> walker) {
+		
+	}
+	
+	/**
+	 * <p>Walk all the ids in the tree in descending order starting with the given prefix</p>
+	 * @param prefix prefix array. Can't be null or empty
+	 * @param from from position of the prefix array
+	 * @param to to position of the prefix array
+	 * @param walker callback to process each walked item. Can't be null
+	 * @since 0.0.7
+	 */
+	default void walkBack(char[] prefix, int from, int to, Walker<T> walker) {
+		walk(walker);
+	}
+	
+	/**
+	 * <p>Walk all the ids in the tree in descending order starting with the given prefix</p>
+	 * @param prefix prefix sequence. Can't be null or empty
+	 * @param walker callback to process each walked item. Can't be null
+	 * @since 0.0.7
+	 */
+	default void walk(CharSequence prefix, Walker<T> walker) {
+		walk(walker);
+	}
+	
+	/**
+	 * <p>Walk all the ids in the tree in ascending order starting with the given prefix</p>
+	 * @param prefix prefix sequence. Can't be null or empty
+	 * @param walker callback to process each walked item. Can't be null
+	 * @since 0.0.7
+	 */
+	default void walkBack(CharSequence prefix, Walker<T> walker) {
 		walk(walker);
 	}
 	
