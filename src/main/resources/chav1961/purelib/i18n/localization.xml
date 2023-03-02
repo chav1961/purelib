@@ -153,6 +153,8 @@
 		<key name="JFileSelectionDialog.ask.alreadyexists.message">Name typed [%1$s] already exists!</key>
 		<key name="JFileSelectionDialog.ask.notexists.caption">Error!</key>
 		<key name="JFileSelectionDialog.ask.notexists.message">Name typed [%1$s] must exists!</key>
+		<key name="JFileSelectionDialog.ask.notaccepted.byFilter.caption">Error!</key>
+		<key name="JFileSelectionDialog.ask.notaccepted.byFilter.message">Name typed [%1$s] doesn't accept to name filter selected!</key>
 		<key name="JFileSelectionDialog.caption.open">Open file(s)...</key>
 		<key name="JFileSelectionDialog.caption.save">Save file(s)...</key>
 
@@ -538,6 +540,8 @@
 		<key name="JFileSelectionDialog.ask.alreadyexists.message">Заданное имя [%1$s] уже существует!</key>
 		<key name="JFileSelectionDialog.ask.notexists.caption">Ошибка!</key>
 		<key name="JFileSelectionDialog.ask.notexists.message">Заданное имя [%1$s] должно существовать!</key>
+		<key name="JFileSelectionDialog.ask.notaccepted.byFilter.caption">Ошибка!</key>
+		<key name="JFileSelectionDialog.ask.notaccepted.byFilter.message">Заданное имя [%1$s] не подходит под выбранный фильтр!</key>
 		<key name="JFileSelectionDialog.caption.open">Открыть файл(ы)...</key>
 		<key name="JFileSelectionDialog.caption.save">Сохранить файл(ы)...</key>
 

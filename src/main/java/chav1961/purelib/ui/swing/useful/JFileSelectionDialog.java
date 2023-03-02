@@ -111,6 +111,8 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	private static final String	ALREADY_EXISTS_MESSAGE = "JFileSelectionDialog.ask.alreadyexists.message";
 	private static final String	NOT_EXISTS_CAPTION = "JFileSelectionDialog.ask.notexists.caption";
 	private static final String	NOT_EXISTS_MESSAGE = "JFileSelectionDialog.ask.notexists.message";
+	private static final String	NOT_ACCEPTED_BY_FILTER_CAPTION = "JFileSelectionDialog.ask.notaccepted.byFilter.caption";
+	private static final String	NOT_ACCEPTED_BY_FILTER_MESSAGE = "JFileSelectionDialog.ask.notaccepted.byFilter.message";
 	
 	public static final int		OPTIONS_CAN_SELECT_DIR = 1 << 0; 
 	public static final int		OPTIONS_CAN_SELECT_FILE = 1 << 1; 
@@ -121,6 +123,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public static final int		OPTIONS_FOR_SAVE  = 1 << 6; 
 	public static final int		OPTIONS_FOR_OPEN  = 1 << 7; 
 	public static final int		OPTIONS_CONFIRM_REPLACEMENT = 1 << 8; 
+	public static final int		OPTIONS_NOCHECK_FILTER = 1 << 9; 
 	
 	/**
 	 * <p>This interface is analog of {@linkplain FilterCallback}</p>  
@@ -558,8 +561,21 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 									new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_EXISTS_MESSAGE,((JTextComponent)input).getText()), NOT_EXISTS_CAPTION, JOptionPane.ERROR_MESSAGE);
 									return false;
 								}
-								else {
+								else if ((options & OPTIONS_NOCHECK_FILTER) != 0) {
 									return true;
+								}
+								else {
+									try{if (!((FilterCallback)filter.getSelectedItem()).accept(new File(((JTextComponent)input).getText()))) {
+											new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_ACCEPTED_BY_FILTER_MESSAGE,((JTextComponent)input).getText()), NOT_ACCEPTED_BY_FILTER_CAPTION, JOptionPane.ERROR_MESSAGE);
+											return false;
+										}
+										else {
+											return true;
+										}
+									} catch (IOException e) {
+										logger.message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
+										return false;
+									}
 								}
 							} catch (IOException | HeadlessException | LocalizationException  e) {
 								logger.message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
@@ -577,7 +593,30 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				fileName.setInputVerifier(new InputVerifier() {
 					@Override
 					public boolean verify(final JComponent input) {
-						return true;
+						final String	content = ((JTextComponent)input).getText().trim();
+						
+						if (!content.isEmpty()) {
+							if ((options & OPTIONS_NOCHECK_FILTER) != 0) {
+								return true;
+							}
+							else {
+								try{if (!((FilterCallback)filter.getSelectedItem()).accept(new File(((JTextComponent)input).getText()))) {
+										new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_ACCEPTED_BY_FILTER_MESSAGE,((JTextComponent)input).getText()), NOT_ACCEPTED_BY_FILTER_CAPTION, JOptionPane.ERROR_MESSAGE);
+										return false;
+									}
+									else {
+										return true;
+									}
+								} catch (IOException e) {
+									logger.message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
+									return false;
+								}
+							}
+						}
+						else {
+							logger.message(Severity.error,"Error processing file name content: file name doesn't fill");
+							return false;
+						}
 					}
 				});
 			}
