@@ -67,7 +67,9 @@ public class StaticHelp implements AutoCloseable {
 	
 	@Override
 	public void close() throws EnvironmentException {
-		Utils.deleteDir(helpContent);
+		if (helpContent.exists()) {
+			Utils.deleteDir(helpContent);
+		}
 	}
 
 	public static File createUnuqieName(final File parent, final String prefix) throws IOException {
