@@ -53,10 +53,10 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @param <ErrorType> type of errors on wizard steps
  * @param <Content> content for showing on wizard steps
  * @since 0.0.4
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends Component> extends JDialog implements LocaleChangeListener, LoggerFacadeOwner {
-	public static enum Option {
+	public static enum JDialogContainerOption {
 		DONT_USE_ENTER_AS_OK
 	}
 	
@@ -368,7 +368,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 	 * @throws LocalizationException on any localization error
 	 * @throws IllegalStateException when call on modeless dialog
 	 */
-	public boolean showDialog(final Option... options) throws LocalizationException, IllegalStateException {
+	public boolean showDialog(final JDialogContainerOption... options) throws LocalizationException, IllegalStateException {
 		if (isModal == ModalityType.MODELESS) {
 			throw new IllegalStateException("showDialog call is applicable to modal dialog only");
 		}
@@ -402,7 +402,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 			return this.result;
 		}
 		else {
-			final Set<Option>	opts = new HashSet<>(Arrays.asList(options));
+			final Set<JDialogContainerOption>	opts = new HashSet<>(Arrays.asList(options));
 			final Dimension		innerSize = inner.getPreferredSize();
 
 			if (innerSize == null) {
@@ -412,7 +412,7 @@ public class JDialogContainer<Common, ErrorType extends Enum<?>, Content extends
 				setSize(new Dimension(innerSize.width + 10, innerSize.height + 50));
 				setLocationRelativeTo(parent);
 			}
-			if (!opts.contains(Option.DONT_USE_ENTER_AS_OK)) {
+			if (!opts.contains(JDialogContainerOption.DONT_USE_ENTER_AS_OK)) {
 				SwingUtils.assignActionKey((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e)->okButton.doClick(), SwingUtils.ACTION_ACCEPT);
 			}
 			SwingUtils.assignActionKey((JComponent)getContentPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->cancelButton.doClick(), SwingUtils.ACTION_EXIT);
