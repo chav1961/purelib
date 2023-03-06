@@ -226,7 +226,8 @@ public interface SyntaxTreeInterface<T> {
 	/**
 	 * <p>Seek name and return it's id</p>
 	 * @param name name to seek
-	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1) 
+	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1)
+	 * @deprecated since 0.0.7, use {@linkplain #seekName(CharSequence)} 
 	 */
 	long seekName(String name);
 
@@ -235,6 +236,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @param name name to seek
 	 * @return id of the name or negative number if missing. Negative number value is -(position of the first different char + 1) 
 	 * @since 0.0.6 
+	 * @deprecated since 0.0.7, use {@linkplain #seekNameI(CharSequence)} 
 	 */
 	default long seekNameI(String name) {
 		return seekName(name);

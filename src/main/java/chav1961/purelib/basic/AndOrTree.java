@@ -1,13 +1,8 @@
 package chav1961.purelib.basic;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Set;
 
-import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedUtils;
 
@@ -53,7 +48,7 @@ import chav1961.purelib.basic.intern.UnsafedUtils;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.2
+ * @last.update 0.0.7
  */
 public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	private static final int	TYPE_OR = 0; 
@@ -61,19 +56,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	private static final int	TYPE_TERM = 2;
 	private static final int	RANGE_ALLOCATE = 8;
 	private static final int	RANGE_STEP = 64;
-	
-//	private static final OutputStream	os; 
-//	private static final PrintWriter	pw;
-//	public static boolean print = false; 
-//	
-//	static {
-//		try {
-//			os = new FileOutputStream("c:/tmp/z.txt",true);
-//			pw = new PrintWriter(os);
-//		} catch (FileNotFoundException e) {
-//			throw new PreparationException(e); 
-//		}
-//	}
 	
 	private final long			step;
 	private final int[]			forPosition = new int[1];
@@ -109,89 +91,115 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 
 	@Override
 	public long placeName(final String name, final T cargo) {
+		return placeName((CharSequence)name, cargo);
+	}	
+	
+	@Override
+	public long placeName(final CharSequence name, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
-			return placeName(name.toCharArray(),0,name.length(),0,cargo,true,true);
+			return placeName((CharSequence)name, 0, name.length(), 0, cargo, true, true);
 		}
 	}
 
 	@Override
 	public long placeOrChangeName(final String name, final T cargo) {
+		return placeOrChangeName((CharSequence)name, cargo);
+	}	
+	
+	@Override
+	public long placeOrChangeName(final CharSequence name, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
-			return placeName(name.toCharArray(),0,name.length(),0,cargo,true,false);
+			return placeName(name, 0, name.length(), 0, cargo, true, false);
 		}
 	}
 	
 	@Override
 	public long placeName(final char[] source, final int from, final int to, final T cargo) {
-		return placeName(source,from,to,0,cargo,true,true);
+		return placeName(source, from, to, 0, cargo, true, true);
 	}
 
 	@Override
 	public long placeOrChangeName(final char[] value, final int from, final int to, final T cargo) {
-		return placeName(value,from,to,0,cargo,true,false);
+		return placeName(value, from, to, 0, cargo, true, false);
 	}
 	
 	@Override
 	public long placeName(final char[] source, final int from, final int to, final long id, final T cargo) {
-		return placeName(source,from,to,id,cargo,false,true);
+		return placeName(source, from, to, id, cargo, false, true);
 	}
 
 	@Override
 	public long placeOrChangeName(final char[] source, final int from, final int to, final long id, final T cargo) {
-		return placeName(source,from,to,id,cargo,false,false);
+		return placeName(source, from, to, id, cargo, false, false);
+	}
+
+	@Override
+	public long placeName(final String name, final long id, final T cargo) {
+		return placeName((CharSequence)name, id, cargo);
 	}
 	
 	@Override
-	public long placeName(final String name, final long id, final T cargo) {
+	public long placeName(final CharSequence name, final long id, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
-			final char[]	content = UnsafedUtils.getStringContent(name);
-			
-			return placeName(content,0,content.length,id,cargo,false,true);
+			return placeName(name, 0, name.length(), id, cargo, false, true);
 		}
 	}
 
 	@Override
 	public long placeOrChangeName(final String name, final long id, final T cargo) {
+		return placeOrChangeName((CharSequence)name, id, cargo);
+	}	
+	
+	@Override
+	public long placeOrChangeName(final CharSequence name, final long id, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
 		}
 		else {
-			final char[]	content = UnsafedUtils.getStringContent(name);
-			
-			return placeName(content,0,content.length,id,cargo,false,false);
+			return placeName(name, 0, name.length(), id, cargo, false, false);
 		}
 	}
-	
+
 	@Override
 	public long seekName(final String name) {
+		return seekName((CharSequence)name);
+	}	
+	
+	@Override
+	public long seekName(final CharSequence name) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to seek can't be null or empty");
 		}
 		else {
-			final char[]	content = UnsafedUtils.getStringContent(name);
-			
-			return seekName(content, 0, content.length);
+			final TermNode	node = (TermNode) seekNameInternal(root,name,0,name.length(),forPosition);
+
+			return node == null ? -forPosition[0]-1 : node.id;
 		}
 	}
 
 	@Override
 	public long seekNameI(final String name) {
+		return seekNameI((CharSequence)name);
+	}
+	
+	@Override
+	public long seekNameI(final CharSequence name) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to seek can't be null or empty");
 		}
 		else {
-			final char[]	content = UnsafedUtils.getStringContent(name);
-			
-			return seekNameI(content, 0, content.length);
+			final TermNode	node = (TermNode) seekNameInternalIgnoreCase(root,name,0,name.length(),forPosition);
+
+			return node == null ? -forPosition[0]-1 : node.id;
 		}
 	}
 	
@@ -240,7 +248,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			return node == null ? -forPosition[0]-1 : node.id;
 		}
 	}
-	
 	
 	@Override
 	public boolean contains(final long id) {
@@ -453,8 +460,40 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		else {
 			final char[]	place = new char[maxNameLength];
 			
-			walk(root,place,0,callback);
+			walk(root,place,0,callback,true);
 		}
+	}
+	
+	@Override
+	public void walkBack(final Walker<T> callback) {
+		if (callback == null) {
+			throw new NullPointerException("Walking callback interface can't be null"); 
+		}
+		else {
+			final char[]	place = new char[maxNameLength];
+			
+			walk(root,place,0,callback,false);
+		}
+	}
+	
+	@Override
+	public void walk(char[] prefix, int from, int to, Walker<T> callback) {
+		// TODO:
+	}
+
+	@Override
+	public void walkBack(char[] prefix, int from, int to, Walker<T> callback) {
+		// TODO:
+	}
+
+	@Override
+	public void walk(final CharSequence source, Walker<T> callback) {
+		// TODO:
+	}
+	
+	@Override
+	public void walkBack(final CharSequence source, Walker<T> callback) {
+		// TODO:
 	}
 	
 	@Override
@@ -469,6 +508,16 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		amount = 0;
 	}
 
+
+	/**
+	 * <p>Print tree content in human-readable format.</p>
+	 * @param ps print writer to print content to. Can't be null
+	 * @since 0.0.6
+	 */
+	public void print(final PrintWriter ps) {
+		print(root, ps, "");
+	}
+	
 	private long placeName(final char[] source, final int from, final int to, final long id, final T cargo, final boolean createId, final boolean refreshCargo) {
 		final int	len;
 		
@@ -523,23 +572,10 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 seek:	for(;;) {
 			switch (root.type) {
 				case TYPE_OR 	:
-//					try{
-						symbol = from >= theEnd ? 0 : source[from];
-//					} catch (ArrayIndexOutOfBoundsException exc) {
-//						symbol = 0;
-//					}
-//					if (symbol == ':' || symbol < ' ') {
-//						final PrintWriter pw = new PrintWriter(System.err);
-//						print(pw);
-//						pw.flush();
-//						int x = 0;
-//					}
+					symbol = from >= theEnd ? 0 : source[from];
 					temp = ((OrNode)root).chars;
 					maxIndex = ((OrNode)root).filled;
 					if (print) {
-						if (symbol == ':' || symbol < ' ') {
-							int x = 0;
-						}
 						System.err.println("Root: OR {"+symbol+"} for "+Arrays.toString(temp));
 					}
 					
@@ -752,6 +788,276 @@ seek:	for(;;) {
 		}
 	}
 
+	private long placeName(final CharSequence source, final int from, final int to, final long id, final T cargo, final boolean createId, final boolean refreshCargo) {
+		final int	len;
+		
+		if (source == null || (len = source.length()) == 0) {
+			throw new IllegalArgumentException("Source array can't be null or empty");
+		}
+		else if (from < 0 || from > len) {
+			throw new IllegalArgumentException("'from' location ["+from+"] outside the range 0.."+len);
+		}
+		else if (to < 0 || to > len) {
+			throw new IllegalArgumentException("'to' location ["+to+"] outside the range 0.."+len);
+		}
+		else if (to <= from) {
+			throw new IllegalArgumentException("'to' location ["+to+"] not greater than 'from' ["+from+"]");
+		}
+		else if (id < 0) {
+			throw new IllegalArgumentException("'id' ["+id+"] need be non-negtive");
+		}
+		else {
+			final TermNode	node = (TermNode) placeNameInternal(source,from,to,false);
+			
+			if (to-from > maxNameLength) {
+				maxNameLength = to - from;
+			}
+			if (node.id == -1) {	// Newly created node
+				if (createId) {
+					node.id = actualId;
+					actualId += step;
+				}
+				else {
+					node.id = id;
+				}
+				node.nameLen = to - from;
+				placeRevert(node,node.id);
+				amount++;
+			}
+			if (refreshCargo || node.cargo == null) {
+				node.cargo = cargo;
+			}
+			return node.id;
+		}
+	}
+	
+	private Node placeNameInternal(final CharSequence source, int from, final int to, final boolean print) {
+		Node		root = this.root, prev = null, newChain;
+		AndNode		chain1, chain2, chain3;
+		OrNode		chainOr;
+		TermNode	chainTerm;
+		char		temp[], symbol, midVal;
+		int			index, maxIndex, prevIndex = 0, low, high, mid = 0, len, theEnd = Math.min(source.length(), to);
+		
+seek:	for(;;) {
+			switch (root.type) {
+				case TYPE_OR 	:
+					symbol = from >= theEnd ? 0 : source.charAt(from);
+					temp = ((OrNode)root).chars;
+					maxIndex = ((OrNode)root).filled;
+					if (print) {
+						System.err.println("Root: OR {"+symbol+"} for "+Arrays.toString(temp));
+					}
+					
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							prev = root;
+							root = ((OrNode)root).children[prevIndex = mid];
+							if (print) {
+								System.err.println("Root: OR found at "+mid);
+							}
+							continue seek;
+			            }
+			        }
+			        
+			        mid = low;
+					if (maxIndex == temp.length) {		// Expand OR node if needed
+						expandOrNode((OrNode)root);
+						if (prev == null) {
+							this.root = root;
+						}
+						else if (prev instanceof OrNode) {
+							((OrNode)prev).children[prevIndex] = root;
+						}
+						else if (prev instanceof TermNode) {
+							((TermNode)prev).child = root;
+						}
+						temp = ((OrNode)root).chars;
+					}
+					
+					if ((len = ((OrNode)root).filled - mid) > 0) {
+						System.arraycopy(temp,mid,temp,mid+1,len);
+						System.arraycopy(((OrNode)root).children,mid,((OrNode)root).children,mid+1,len);
+					}
+					
+					temp[mid] = symbol;			// Place new data in the 'found' cell
+					((OrNode)root).children[mid] = newChain = createAndTail(source, from, to);
+					newChain.parent = root;
+					((OrNode)root).filled++;
+
+					if (print) {
+						System.err.println("Root: OR expand ");
+					}
+					
+					return ((AndNode)newChain).child;
+				case TYPE_AND 	:
+					temp = ((AndNode)root).chars;
+					if (print) {
+						System.err.println("Root: And for "+Arrays.toString(temp));
+					}
+					for (index = 0, maxIndex = temp.length; from < to && index < maxIndex; index++, from++) {
+						if (temp[index] != source.charAt(from)) {	// And strings are different
+							if (index == 0) {				// OR node will be in the beginning
+								if (print) {
+									System.err.println("Root: And +0");
+								}
+								chainOr = new OrNode();
+								chainOr.filled = 2;
+								chainOr.parent = root.parent;
+								root.parent = chainOr;
+
+								chain1 = createAndTail(source,from,to);
+								chain1.parent = chainOr;
+								
+								if (temp[index] < source.charAt(from)) {
+									chainOr.chars[0] = temp[index]; 
+									chainOr.children[0] = root; 
+									chainOr.chars[1] = source.charAt(from); 
+									chainOr.children[1] = chain1;
+								}
+								else {
+									chainOr.chars[0] = source.charAt(from); 
+									chainOr.children[0] = chain1;
+									chainOr.chars[1] = temp[index]; 
+									chainOr.children[1] = root; 
+								}
+								if (prev == null) {
+									this.root = chainOr;
+								}
+								else if (prev instanceof OrNode) {
+									((OrNode)prev).children[prevIndex] = chainOr;
+								}
+								else if (prev instanceof TermNode) {
+									((TermNode)prev).child = chainOr;
+								}
+								root = chainOr;
+							}
+							else {	// Need cutting strings
+								if (print) {
+									System.err.println("Root: And +1");
+								}
+								chain1 = new AndNode(index);
+								System.arraycopy(((AndNode)root).chars,0,chain1.chars,0,index);
+								chain1.parent = root.parent;
+								
+								chainOr = new OrNode();
+								chain1.child = chainOr;
+								chainOr.filled = 2;
+								chainOr.parent = chain1;
+								
+								chain2 = new AndNode(maxIndex-index);
+								if ((chain2.child = ((AndNode)root).child) != null) {
+									((AndNode)root).child.parent = chain2;
+								}
+								System.arraycopy(((AndNode)root).chars,index,chain2.chars,0,maxIndex-index);
+								chain2.parent = chainOr;
+								
+								chain3 = createAndTail(source,from,to);
+								chain3.parent = chainOr;
+								
+								if (temp[index] < source.charAt(from)) {
+									chainOr.chars[0] = temp[index]; 
+									chainOr.children[0] = chain2; 
+									chainOr.chars[1] = source.charAt(from); 
+									chainOr.children[1] = chain3;
+								}
+								else {
+									chainOr.chars[0] = source.charAt(from); 
+									chainOr.children[0] = chain3;
+									chainOr.chars[1] = temp[index]; 
+									chainOr.children[1] = chain2; 
+								}
+								if (prev == null) {
+									this.root = chain1;
+								}
+								else if (prev instanceof OrNode) {
+									((OrNode)prev).children[prevIndex] = chain1;
+								}
+								else if (prev instanceof TermNode) {
+									((TermNode)prev).child = chain1;
+								}
+								prev = chain1;
+								root = chainOr;
+							}
+							continue seek;
+						}
+					}
+					if (from == to && index < maxIndex) {	// Need cutting strings and insert term inside 
+						if (print) {
+							System.err.println("Root: And +2");
+						}
+						chain1 = new AndNode(index);
+						System.arraycopy(((AndNode)root).chars,0,chain1.chars,0,index);
+						chain1.parent = root.parent;
+						
+						temp = new char[maxIndex-index];	// Change actual root node!
+						System.arraycopy(((AndNode)root).chars,index,temp,0,maxIndex-index);
+						((AndNode)root).chars = temp;
+						chainTerm = new TermNode(chain1,root);
+						root.parent = chainTerm;
+						chain1.child = chainTerm;
+						
+						if (prev == null) {
+							this.root = chain1;
+						}
+						else if (prev instanceof OrNode) {
+							((OrNode)prev).children[prevIndex] = chain1;
+						}
+						else if (prev instanceof TermNode) {
+							((TermNode)prev).child = chain1;
+						}
+						return chainTerm;
+					}
+					else if (((AndNode)root).child == null) {
+						if (print) {
+							System.err.println("Root: And +3");
+						}
+						return ((AndNode)root).child = new TermNode(root,null);
+					}
+					else {
+						prev = root;
+						root = ((AndNode)root).child;
+					}
+					if (print) {
+						System.err.println("Root: And +4");
+					}
+					break;
+				case TYPE_TERM	:
+					if (from == to) {
+						if (print) {
+							System.err.println("Term: 1");
+						}
+						return root;
+					}
+					else if (((TermNode)root).child == null) {
+						((TermNode)root).child = newChain = createAndTail(source,from,to);
+						newChain.parent = root;
+						if (print) {
+							System.err.println("Term: 2");
+						}
+						return ((AndNode)newChain).child;
+					}
+					else {
+						prev = root; 
+						root = ((TermNode)root).child;
+					}
+					if (print) {
+						System.err.println("Term: 3");
+					}
+					break;
+				default			:
+					throw new UnsupportedOperationException();
+			}
+		}
+	}
+	
 	private static Node seekNameInternal(Node root, final char[] source, int from, final int to, final int[] forPosition) {
 		char	temp[], symbol, midVal;
 		int		index, maxIndex, low, high, mid;
@@ -821,6 +1127,75 @@ seek:	while (root != null && from < to) {
 		}
 	}
 
+	private static Node seekNameInternal(Node root, final CharSequence source, int from, final int to, final int[] forPosition) {
+		char	temp[], symbol, midVal;
+		int		index, maxIndex, low, high, mid;
+		
+seek:	while (root != null && from < to) {
+			switch (root.type) {
+				case TYPE_OR 	:
+					symbol = source.charAt(from);
+					temp = ((OrNode)root).chars;
+					maxIndex = ((OrNode)root).filled;
+
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							root = ((OrNode)root).children[mid];
+							continue seek;
+			            }
+			        }
+					root = null;
+					break seek;
+				case TYPE_AND 	:
+					temp = ((AndNode)root).chars;
+					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
+						if (temp[index] != source.charAt(from)) {
+							root = null;
+							break seek;
+						}
+					}
+					if (index < maxIndex) {
+						root = null;
+						break seek;
+					}
+					else {
+						root = ((AndNode)root).child;
+					}
+					break;
+				case TYPE_TERM	:
+					if (from == to) {
+						break seek;
+					}
+					else {
+						root = ((TermNode)root).child;
+					}
+					break;
+			}
+		}
+		forPosition[0] = from;
+		if (from == to) {
+			if (root instanceof TermNode) {
+				return root;
+			}
+			else if ((root instanceof OrNode) && ((OrNode)root).chars[0] == '\0') {
+				return ((AndNode)((OrNode)root).children[0]).child;
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
+	
 	private static Node seekNameInternalIgnoreCase(Node root, final char[] source, int from, final int to, final int[] forPosition) {
 		char	temp[], symbol, midVal;
 		int		index, maxIndex, low, high, mid;
@@ -904,8 +1279,223 @@ seek:	while (root != null && from < to) {
 		}
 	}
 
-	public void print(final PrintWriter ps) {
-		print(this.root,ps,"");
+	private static Node seekNameInternalIgnoreCase(Node root, final CharSequence source, int from, final int to, final int[] forPosition) {
+		char	temp[], symbol, midVal;
+		int		index, maxIndex, low, high, mid;
+		
+seek:	while (root != null && from < to) {
+			switch (root.type) {
+				case TYPE_OR 	:
+					symbol = Character.toUpperCase(source.charAt(from));
+					temp = ((OrNode)root).chars;
+					maxIndex = ((OrNode)root).filled;
+
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = Character.toUpperCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							root = ((OrNode)root).children[mid];
+							continue seek;
+			            }
+			        }
+					symbol = Character.toLowerCase(source.charAt(from));
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = Character.toLowerCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							root = ((OrNode)root).children[mid];
+							continue seek;
+			            }
+			        }
+					root = null;
+					break seek;
+				case TYPE_AND 	:
+					temp = ((AndNode)root).chars;
+					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
+						if (Character.toUpperCase(temp[index]) != Character.toUpperCase(source.charAt(from)) && Character.toLowerCase(temp[index]) != Character.toLowerCase(source.charAt(from))) {
+							root = null;
+							break seek;
+						}
+					}
+					if (index < maxIndex) {
+						root = null;
+						break seek;
+					}
+					else {
+						root = ((AndNode)root).child;
+					}
+					break;
+				case TYPE_TERM	:
+					if (from == to) {
+						break seek;
+					}
+					else {
+						root = ((TermNode)root).child;
+					}
+					break;
+			}
+		}
+		forPosition[0] = from;
+		if (from == to) {
+			if (root instanceof TermNode) {
+				return root;
+			}
+			else if ((root instanceof OrNode) && ((OrNode)root).chars[0] == '\0') {
+				return ((AndNode)((OrNode)root).children[0]).child;
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
+
+	private static Node fetchNode(Node root, final char[] source, int from, final int to, final int[] forPosition) {
+		char	temp[], symbol, midVal;
+		int		index, maxIndex, low, high, mid;
+		
+seek:	while (root != null && from < to) {
+			switch (root.type) {
+				case TYPE_OR 	:
+					symbol = source[from];
+					temp = ((OrNode)root).chars;
+					maxIndex = ((OrNode)root).filled;
+
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							root = ((OrNode)root).children[mid];
+							continue seek;
+			            }
+			        }
+					root = null;
+					break seek;
+				case TYPE_AND 	:
+					temp = ((AndNode)root).chars;
+					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
+						if (temp[index] != source[from]) {
+							root = null;
+							break seek;
+						}
+					}
+					if (index < maxIndex) {
+						break seek;
+					}
+					else {
+						root = ((AndNode)root).child;
+					}
+					break;
+				case TYPE_TERM	:
+					if (from == to) {
+						break seek;
+					}
+					else {
+						root = ((TermNode)root).child;
+					}
+					break;
+			}
+		}
+		forPosition[0] = from;
+		if (from == to) {
+			if (root instanceof TermNode) {
+				return root;
+			}
+			else if ((root instanceof OrNode) && ((OrNode)root).chars[0] == '\0') {
+				return ((AndNode)((OrNode)root).children[0]).child;
+			}
+			else {
+				return root;
+			}
+		}
+		else {
+			return root;
+		}
+	}
+	
+	private static Node fetchNode(Node root, final CharSequence source, int from, final int to, final int[] forPosition) {
+		char	temp[], symbol, midVal;
+		int		index, maxIndex, low, high, mid;
+		
+seek:	while (root != null && from < to) {
+			switch (root.type) {
+				case TYPE_OR 	:
+					symbol = source.charAt(from);
+					temp = ((OrNode)root).chars;
+					maxIndex = ((OrNode)root).filled;
+
+			        low = 0;	high = maxIndex - 1;
+			        while (low <= high) {	// Binary search
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
+			                low = mid + 1;
+			            }
+			            else if (midVal > symbol) {
+			                high = mid - 1;
+			            }
+			            else {
+							root = ((OrNode)root).children[mid];
+							continue seek;
+			            }
+			        }
+					root = null;
+					break seek;
+				case TYPE_AND 	:
+					temp = ((AndNode)root).chars;
+					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
+						if (temp[index] != source.charAt(from)) {
+							root = null;
+							break seek;
+						}
+					}
+					if (index < maxIndex) {
+						break seek;
+					}
+					else {
+						root = ((AndNode)root).child;
+					}
+					break;
+				case TYPE_TERM	:
+					if (from == to) {
+						break seek;
+					}
+					else {
+						root = ((TermNode)root).child;
+					}
+					break;
+			}
+		}
+		forPosition[0] = from;
+		if (from == to) {
+			if (root instanceof TermNode) {
+				return root;
+			}
+			else if ((root instanceof OrNode) && ((OrNode)root).chars[0] == '\0') {
+				return ((AndNode)((OrNode)root).children[0]).child;
+			}
+			else {
+				return root;
+			}
+		}
+		else {
+			return root;
+		}
 	}
 	
 	protected void print(final Node root, final PrintWriter ps, final String prefix) {
@@ -929,18 +1519,27 @@ seek:	while (root != null && from < to) {
 					print(((TermNode)root).child, ps, prefix+"  ");
 					break;
 				default:
-					ps.println("ANother!!!");
+					ps.println("Another!!!");
 			}
 		}
 	}	
 	
 	@SuppressWarnings("unchecked")
-	private boolean walk(final Node root, final char[] place, final int from, final Walker<T> callback) {
+	private boolean walk(final Node root, final char[] place, final int from, final Walker<T> callback, final boolean direction) {
 		if (root != null) {
 			if (root.type == TYPE_OR) {
-				for (int index = 0, maxIndex = ((OrNode)root).filled; index < maxIndex; index++) {
-					if (!walk(((OrNode)root).children[index],place,from,callback)) {
-						return false;
+				if (direction) {
+					for (int index = 0, maxIndex = ((OrNode)root).filled; index < maxIndex; index++) {
+						if (!walk(((OrNode)root).children[index],place,from,callback,direction)) {
+							return false;
+						}
+					}
+				}
+				else {
+					for (int index = ((OrNode)root).filled - 1; index >= 0; index--) {
+						if (!walk(((OrNode)root).children[index],place,from,callback,direction)) {
+							return false;
+						}
 					}
 				}
 				return true;
@@ -949,14 +1548,14 @@ seek:	while (root != null && from < to) {
 				final int	dataLen = ((AndNode)root).chars.length; 
 				
 				System.arraycopy(((AndNode)root).chars,0,place,from,dataLen);
-				return walk(((AndNode)root).child,place,from+dataLen,callback);
+				return walk(((AndNode)root).child,place,from+dataLen,callback,direction);
 			}
 			else if (root.type == TYPE_TERM) {
 				if (!callback.process(place,from,((TermNode)root).id,(T)((TermNode)root).cargo)) {
 					return false;
 				}
 				else {
-					return walk(((TermNode)root).child,place,from,callback);
+					return walk(((TermNode)root).child,place,from,callback,direction);
 				}
 			}
 		}
@@ -1011,11 +1610,23 @@ seek:	while (root != null && from < to) {
 		final AndNode	result = new AndNode(len);
 		final TermNode	term = new TermNode(result,null);
 
-		System.arraycopy(source,from,result.chars,0,len);
+		System.arraycopy(source, from, result.chars, 0, len);
 		result.child = term;
 		return result;
 	}
 
+	private static AndNode createAndTail(final CharSequence source, final int from, final int to) {
+		final int		len = to - from;
+		final AndNode	result = new AndNode(len);
+		final TermNode	term = new TermNode(result, null);
+
+		for(int index = 0; index < len; index++) {
+			result.chars[index] = source.charAt(from + index);
+		}
+		result.child = term;
+		return result;
+	}
+	
 	private static void expandOrNode(final OrNode root) {
 		final int		oldLen = ((OrNode)root).chars.length, newLen = oldLen + RANGE_ALLOCATE;
 		final char[]	newChars = new char[newLen];
