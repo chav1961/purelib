@@ -2,6 +2,11 @@ package chav1961.purelib.basic;
 
 import java.util.Map.Entry;
 
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.HTML.Tag;
+import javax.swing.text.html.parser.ParserDelegator;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -10,6 +15,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import org.w3c.dom.Document;
@@ -36,6 +42,7 @@ import chav1961.purelib.enumerations.XSDCollection;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @last.update 0.0.7
  */
 public class XMLUtils {
 	private static final String 	W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
@@ -141,6 +148,40 @@ public class XMLUtils {
 	        }			
 		}
 	}
+
+	/**
+	 * <p>Parse html stream and build XML document</p>
+	 * @param html html stream to parse. Can't be null
+	 * @param logger logger to print errors. Can't be null
+	 * @return document parsed. Can't be null
+	 * @throws NullPointerException when any parameter is null
+	 * @throws ContentException on any parsing errors
+	 * @since 0.0.7
+	 */
+	public static Document loadHtml(final InputStream html, final LoggerFacade logger) throws NullPointerException, ContentException {
+		if (html == null) {
+			throw new NullPointerException("Html stream can't be null"); 
+		}
+		else if (logger == null) {
+			throw new NullPointerException("Logger facade can't be null"); 
+		}
+		else {
+			try(final LoggerFacade			tran = logger.transaction("loadHTML")) {
+				final DocumentBuilderFactory	dbf = DocumentBuilderFactory.newInstance();
+				final DocumentBuilder		docBuilder = dbf.newDocumentBuilder();
+				final Document				doc = docBuilder.newDocument();
+				final HTMLEditorKit.Parser	parser = new ParserDelegator();
+				final HTMLTableParser		parserCallback = new HTMLTableParser(doc,tran);
+				
+				parser.parse(new InputStreamReader(html, PureLibSettings.DEFAULT_CONTENT_ENCODING), parserCallback, true);
+				tran.rollback();
+				return doc;
+			} catch (IOException | ParserConfigurationException e) {
+				throw new ContentException(e.getLocalizedMessage(), e);
+			}
+		}
+	}
+	
 	
 	/**
 	 * <p>Get XSD from purelib XSD collection.</p> 
@@ -334,5 +375,31 @@ public class XMLUtils {
 		else {
 			return ContinueMode.CONTINUE;
 		}
-	}	
+	}
+	
+	private static class HTMLTableParser extends HTMLEditorKit.ParserCallback {
+		private final Document		doc;
+		private final LoggerFacade	logger;
+		
+		private HTMLTableParser(final Document doc, final LoggerFacade logger) {
+			this.doc = doc;
+			this.logger = logger;
+		}
+		
+		@Override
+	    public void handleText(char[] data, int pos) {
+	    }
+
+		@Override
+	    public void handleStartTag(Tag t, MutableAttributeSet a, int pos) {
+	    }
+
+		@Override
+	    public void handleEndTag(Tag t, int pos) {
+	    }
+	    
+	    @Override
+	    public void handleSimpleTag(Tag t, MutableAttributeSet a, int pos) {
+	    }
+	}
 }

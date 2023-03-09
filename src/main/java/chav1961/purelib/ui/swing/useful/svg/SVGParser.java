@@ -127,7 +127,7 @@ public class SVGParser {
 	public static SVGPainter parse(final InputStream svgXml, final SubstitutionSource ss) throws NullPointerException, ContentException {
 		return parse(svgXml,PureLibSettings.CURRENT_LOGGER,(propName,attributes,instrumentType)->{return SVGUtils.extractInstrument(propName,attributes,instrumentType);},(src)->ss.getValue(src),FillPolicy.FILL_BOTH);
 	}
-	
+
 	public static SVGPainter parse(final InputStream svgXml, final LoggerFacade logger, final InstrumentGetter getter, final SubstitutionSource ss, final FillPolicy policy) throws NullPointerException, ContentException {
 		if (svgXml == null) {
 			throw new NullPointerException("SVG input stream can't be null");
@@ -139,7 +139,7 @@ public class SVGParser {
 			throw new NullPointerException("Instrument getter can't be null");
 		}
 		else {
-			final Document			doc = XMLUtils.validateAndLoadXML(svgXml,XMLUtils.getPurelibXSD(XSDCollection.SVG_restricted),logger);
+			final Document			doc = XMLUtils.validateAndLoadXML(svgXml, XMLUtils.getPurelibXSD(XSDCollection.SVG_restricted),logger);
 			
 			doc.normalizeDocument();
 			XMLUtils.walkDownXML(doc.getDocumentElement(),(mode,node)->{	// Extract all styles from the content
