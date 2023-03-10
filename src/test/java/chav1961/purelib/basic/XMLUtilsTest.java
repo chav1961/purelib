@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
@@ -134,5 +136,17 @@ public class XMLUtilsTest {
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {			
 		}		
+	}
+
+	@Test
+	public void loadHTMLTest() throws IOException, NullPointerException, ContentException {
+		try(final InputStream	is = new ByteArrayInputStream("<html id=\"100\"><body><p id=\"aa\">test <font color=red>test</font> test</p></body></html>".getBytes())) {
+			final Document		doc = XMLUtils.loadHtml(is, PureLibSettings.CURRENT_LOGGER);
+		
+			Element item = doc.getDocumentElement();
+			Assert.assertEquals("html", item.getNodeName());
+			Assert.assertEquals("100", item.getAttribute("id"));
+			Assert.assertEquals(2, item.getChildNodes().getLength());
+		}
 	}
 }

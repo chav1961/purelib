@@ -20,8 +20,10 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -103,7 +105,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public class Utils {
@@ -1607,6 +1609,40 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		throw t;
 	}
 
+	/**
+	 * <p>Convert {@linkplain Enumeration} to {@linkplain Iterable} to use it inside for-each</p>
+	 * @param <T> enumeration content
+	 * @param source enumeration to convert. Can't be null
+	 * @return iterable converted. Can't be null
+	 * @throws NullPointerException when source is null
+	 * @since 0.0.7 
+	 */
+	public static <T> Iterable<T> enumeration2Iterable(final Enumeration<T> source) throws NullPointerException {
+		if (source == null) {
+			throw new NullPointerException("Source enumeration can't be null"); 
+		}
+		else {
+			return new Iterable<T>() {
+				@Override
+				public Iterator<T> iterator() {
+					return new Iterator<T>() {
+
+						@Override
+						public boolean hasNext() {
+							return source.hasMoreElements();
+						}
+
+						@Override
+						public T next() {
+							return source.nextElement();
+						}
+					};
+				}
+			};
+		}
+	}
+	
+	
 	public static <T> T preventRecursiveCall(final Throwable t) throws Throwable {
 		throw t;
 	}

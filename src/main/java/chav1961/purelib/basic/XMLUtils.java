@@ -1,11 +1,14 @@
 package chav1961.purelib.basic;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.HTML.Tag;
+import javax.swing.text.html.parser.DocumentParser;
 import javax.swing.text.html.parser.ParserDelegator;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -18,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -171,7 +175,7 @@ public class XMLUtils {
 				final DocumentBuilder		docBuilder = dbf.newDocumentBuilder();
 				final Document				doc = docBuilder.newDocument();
 				final HTMLEditorKit.Parser	parser = new ParserDelegator();
-				final HTMLTableParser		parserCallback = new HTMLTableParser(doc,tran);
+				final HTMLTableParser		parserCallback = new HTMLTableParser(doc);
 				
 				parser.parse(new InputStreamReader(html, PureLibSettings.DEFAULT_CONTENT_ENCODING), parserCallback, true);
 				tran.rollback();
@@ -181,7 +185,6 @@ public class XMLUtils {
 			}
 		}
 	}
-	
 	
 	/**
 	 * <p>Get XSD from purelib XSD collection.</p> 
@@ -379,27 +382,55 @@ public class XMLUtils {
 	
 	private static class HTMLTableParser extends HTMLEditorKit.ParserCallback {
 		private final Document		doc;
-		private final LoggerFacade	logger;
+		private final List<Tag>		stack = new ArrayList<>();
+		private final List<Element>	treeStack = new ArrayList<>();
 		
-		private HTMLTableParser(final Document doc, final LoggerFacade logger) {
+		private HTMLTableParser(final Document doc) {
 			this.doc = doc;
-			this.logger = logger;
 		}
 		
 		@Override
 	    public void handleText(char[] data, int pos) {
+			treeStack.get(0).appendChild(doc.createTextNode(new String(data)));
 	    }
 
 		@Override
 	    public void handleStartTag(Tag t, MutableAttributeSet a, int pos) {
+	    	processTag(t, a);
+			stack.add(0,t);
 	    }
 
 		@Override
 	    public void handleEndTag(Tag t, int pos) {
+			stack.remove(0);
+	    	placeTag();
 	    }
 	    
 	    @Override
 	    public void handleSimpleTag(Tag t, MutableAttributeSet a, int pos) {
+	    	processTag(t, a);
+	    	placeTag();
+	    }
+	    
+	    private void processTag(Tag t, MutableAttributeSet a) {
+	    	final Element	el = doc.createElement(t.toString());
+	    	
+	    	for(Object key : Utils.enumeration2Iterable(a.getAttributeNames())) {
+	    		final Object	val = a.getAttribute(key);
+	    		el.setAttribute(key.toString(), val.toString());
+	    	}
+	    	treeStack.add(0, el);
+	    }
+	    
+	    private void placeTag() {
+	    	final Element	el = treeStack.remove(0);
+	    	
+	    	if (!treeStack.isEmpty()) {
+		    	treeStack.get(0).appendChild(el);
+	    	}
+	    	else {
+	    		doc.appendChild(el);
+	    	}
 	    }
 	}
 }
