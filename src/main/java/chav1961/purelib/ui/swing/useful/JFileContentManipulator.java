@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
@@ -87,6 +88,11 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 */
 	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final JTextComponent component) throws NullPointerException, IllegalArgumentException {
 		this(fsi,localizer,buildInputStreamGetter(component),buildOutputStreamGetter(component),LRUPersistence.DUMMY);
+		component.getDocument().addDocumentListener(new DocumentListener() {
+			@Override public void removeUpdate(DocumentEvent e) {setModificationFlag();}
+			@Override public void insertUpdate(DocumentEvent e) {setModificationFlag();}
+			@Override public void changedUpdate(DocumentEvent e) {setModificationFlag();}
+		});
 	}
 
 	/**
@@ -112,6 +118,11 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 */
 	public JFileContentManipulator(final FileSystemInterface fsi, final Localizer localizer, final JTextComponent component, final LRUPersistence persistence) throws NullPointerException, IllegalArgumentException {
 		this(fsi,localizer,buildInputStreamGetter(component),buildOutputStreamGetter(component),persistence);
+		component.getDocument().addDocumentListener(new DocumentListener() {
+			@Override public void removeUpdate(DocumentEvent e) {setModificationFlag();}
+			@Override public void insertUpdate(DocumentEvent e) {setModificationFlag();}
+			@Override public void changedUpdate(DocumentEvent e) {setModificationFlag();}
+		});
 	}
 
 	/**

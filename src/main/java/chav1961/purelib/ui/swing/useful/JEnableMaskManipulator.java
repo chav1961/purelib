@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 
 import chav1961.purelib.basic.Utils;
@@ -20,8 +21,10 @@ import chav1961.purelib.ui.swing.SwingUtils;
 public class JEnableMaskManipulator {
 	private final String[]			names;
 	private final List<JComponent>	entities = new ArrayList<>();
-	private final List<Long>		stack = new ArrayList<>();
-	private long					currentMask = 0;
+	private final List<Long>		enableStack = new ArrayList<>();
+	private final List<Long>		checkStack = new ArrayList<>();
+	private long					currentEnableMask = 0;
+	private long					currentCheckMask = 0;
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -87,15 +90,32 @@ loop:		for (String itemName : itemNames) {
 	 * @return current enable mask
 	 */
 	public long getEnableMask() {
-		return currentMask;
+		return currentEnableMask;
 	}
 
+	/**
+	 * <p>Get current check mask</p>
+	 * @return current check mask
+	 */
+	public long getCheckMask() {
+		return currentCheckMask;
+	}
+	
 	/**
 	 * <p>Set current enable mask.</p>
 	 * @param enableMask enable mask to set
 	 */
 	public void setEnableMask(final long enableMask) {
-		currentMask = enableMask;
+		currentEnableMask = enableMask;
+		refreshState();
+	}
+
+	/**
+	 * <p>Set current check mask.</p>
+	 * @param checkMask check mask to set
+	 */
+	public void setCheckMask(final long checkMask) {
+		currentCheckMask = checkMask;
 		refreshState();
 	}
 	
@@ -108,6 +128,14 @@ loop:		for (String itemName : itemNames) {
 	}
 
 	/**
+	 * <p>Set checked state for the given bits to 'check'</p>
+	 * @param checkMask bits to set check state to 'checked'
+	 */
+	public void setCheckMaskOn(final long checkMask) {
+		setCheckMask(getCheckMask() | checkMask);
+	}
+	
+	/**
 	 * <p>Set enabled state for the given bits to 'disable'</p>
 	 * @param enableMask bits to set enable state to 'disabled'
 	 */
@@ -115,6 +143,14 @@ loop:		for (String itemName : itemNames) {
 		setEnableMask(getEnableMask() & ~enableMask);
 	}
 
+	/**
+	 * <p>Set check state for the given bits to 'unchecked'</p>
+	 * @param checkMask bits to set check state to 'unchecked'
+	 */
+	public void setCheckMaskOff(final long checkMask) {
+		setCheckMask(getCheckMask() & ~checkMask);
+	}
+	
 	/**
 	 * <p>Set enabled state for the given bits to value typed by second parameter</p>
 	 * @param enableMask bits to change enable state
@@ -128,6 +164,20 @@ loop:		for (String itemName : itemNames) {
 			setEnableMaskOff(enableMask);
 		}
 	}
+
+	/**
+	 * <p>Set enabled state for the given bits to value typed by second parameter</p>
+	 * @param enableMask bits to change enable state
+	 * @param state new state for enable mask
+	 */
+	public void setCheckMaskTo(final long checkMask, final boolean state) {
+		if (state) {
+			setCheckMaskOn(checkMask);
+		}
+		else {
+			setCheckMaskOff(checkMask);
+		}
+	}
 	
 	/**
 	 * <p>Push current enable mask state and set the new enable mask state</p>
@@ -137,28 +187,58 @@ loop:		for (String itemName : itemNames) {
 	public long pushEnableMask(final long enableMask) {
 		final long	result = getEnableMask();
 		
-		stack.add(0,result);
+		enableStack.add(0,result);
 		setEnableMask(enableMask);
 		return result;
 	}
 
+	/**
+	 * <p>Push current check mask state and set the new check mask state</p>
+	 * @param checkMask check mask to set
+	 * @return previous check mask
+	 */
+	public long pushCheckMask(final long checkMask) {
+		final long	result = getCheckMask();
+		
+		checkStack.add(0,result);
+		setCheckMask(checkMask);
+		return result;
+	}
+	
 	/**
 	 * <p>Pop enable mask and set it</p>
 	 * @return mask popped.
 	 * @throws IllegalStateException enable mask stack exhausted
 	 */
 	public long popEnableMask() throws IllegalStateException {
-		if (stack.isEmpty()) {
+		if (enableStack.isEmpty()) {
 			throw new IllegalStateException("Enable mask stack exhausted");
 		}
 		else {
-			final long result = stack.remove(0);
+			final long result = enableStack.remove(0);
 			
 			setEnableMask(result);
 			return result;
 		}
 	}
 
+	/**
+	 * <p>Pop check mask and set it</p>
+	 * @return mask popped.
+	 * @throws IllegalStateException check mask stack exhausted
+	 */
+	public long popCheckMask() throws IllegalStateException {
+		if (checkStack.isEmpty()) {
+			throw new IllegalStateException("Check mask stack exhausted");
+		}
+		else {
+			final long result = checkStack.remove(0);
+			
+			setCheckMask(result);
+			return result;
+		}
+	}
+	
 	private void refreshState() {
 		for(int index = 0; index < names.length; index++) {
 			final boolean	state = (getEnableMask() & (1L << index)) != 0;
@@ -168,6 +248,17 @@ loop:		for (String itemName : itemNames) {
 		
 				if (c instanceof JComponent) {
 					((JComponent)c).setEnabled(state);
+				}
+			}
+		}
+		for(int index = 0; index < names.length; index++) {
+			final boolean	state = (getCheckMask() & (1L << index)) != 0;
+			
+			for (JComponent component : entities) {
+				final Container	c = SwingUtils.findComponentByName(component, names[index]);
+		
+				if (c instanceof AbstractButton) {
+					((AbstractButton)c).setSelected(state);
 				}
 			}
 		}

@@ -193,6 +193,8 @@ public abstract class SwingUtils {
 	public static final KeyStroke			KS_REDO = KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK); 
 	public static final KeyStroke			KS_UP = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0); 
 	public static final KeyStroke			KS_DOWN = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0); 
+	public static final KeyStroke			KS_FIND = KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK); 
+	public static final KeyStroke			KS_FIND_REPLACE = KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK); 
 	
 	public static final String				ACTION_FORWARD = "forward";
 	public static final String				ACTION_BACKWARD = "backward";
@@ -218,6 +220,8 @@ public abstract class SwingUtils {
 	public static final String				ACTION_UP = "up";
 	public static final String				ACTION_DOWN = "down";
 	public static final String				ACTION_SOFT_CLOSE = "softclose";
+	public static final String				ACTION_FIND = "find";
+	public static final String				ACTION_FIND_REPLACE = "findReplace";
 	
 	public static enum EditorKeys {
 		EK_INSERT(KS_INSERT, ACTION_INSERT),
