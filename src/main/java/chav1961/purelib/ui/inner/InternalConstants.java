@@ -23,6 +23,7 @@ public class InternalConstants {
 	public static final ImageIcon	ICON_NEW_DIR;
 	public static final ImageIcon	ICON_LEVEL_UP;
 	public static final ImageIcon	ICON_SEARCH;
+	public static final ImageIcon	ICON_FIND_REPLACE;
 	public static final ImageIcon	ICON_CHECK;
 	public static final ImageIcon	ICON_INSERT;
 	public static final ImageIcon	ICON_EDIT;
@@ -54,6 +55,7 @@ public class InternalConstants {
 			ICON_NEW_DIR = loadIcon("mkdir.png");
 			ICON_LEVEL_UP = loadIcon("levelUp.png");
 			ICON_SEARCH = loadIcon("search.png");
+			ICON_FIND_REPLACE = loadIcon("findReplace24.png");
 			ICON_CHECK = loadIcon("check.png");
 			ICON_INSERT = loadIcon("insert.png");
 			ICON_EDIT = loadIcon("edit.png");

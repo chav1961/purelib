@@ -817,6 +817,21 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	/**
 	 * <p>Create dialog with the form</p>
 	 * @param window parent window of the dialog
+	 * @param type modality type
+	 * @param localizer localizer to use with the dialog
+	 * @param form form built
+	 * @return true if the 'OK' was pressed, false otherwise
+	 * @throws LocalizationException on any localization problems
+	 * @throws IllegalArgumentException on any parameter's problems
+	 * @since 0.0.7
+	 */
+	public static boolean ask(final Dialog window, final Dialog.ModalityType type, final Localizer localizer, final AutoBuiltForm<?,?> form) throws LocalizationException, IllegalArgumentException {
+		return askInternal(window,new JDialog(window,type), localizer, form, DUMMY_OK_AND_CANCEL);
+	}
+	
+	/**
+	 * <p>Create dialog with the form</p>
+	 * @param window parent window of the dialog
 	 * @param localizer localizer to use with the dialog
 	 * @param form form built
 	 * @return true if the 'OK' was pressed, false otherwise
@@ -827,6 +842,21 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 		return askInternal(window,new JDialog(window,true), localizer, form, DUMMY_OK_AND_CANCEL);
 	}
 
+	/**
+	 * <p>Create dialog with the form</p>
+	 * @param window parent window of the dialog
+	 * @param type modality type
+	 * @param localizer localizer to use with the dialog
+	 * @param form form built
+	 * @return true if the 'OK' was pressed, false otherwise
+	 * @throws LocalizationException on any localization problems
+	 * @throws IllegalArgumentException on any parameter's problems
+	 * @since 0.0.7
+	 */
+	public static boolean ask(final Frame window, final Dialog.ModalityType type, final Localizer localizer, final AutoBuiltForm<?,?> form) throws LocalizationException, IllegalArgumentException {
+		return askInternal(window,new JDialog(window,type), localizer, form, DUMMY_OK_AND_CANCEL);
+	}
+	
 	/**
 	 * <p>Create dialog with the form</p>
 	 * @param window parent window of the dialog
@@ -844,6 +874,22 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	/**
 	 * <p>Create dialog with the form</p>
 	 * @param window parent window of the dialog
+	 * @param type modality type
+	 * @param localizer localizer to use with the dialog
+	 * @param form form built
+	 * @param okAndCancel application paths of the form buttons to use as 'OK' and 'Cancel'. Can be empty array (means don't use), array[1] (means use 'Cancel'), and array[2](means use 'OK' and 'Cancel');
+	 * @return true if the 'OK' was pressed, false otherwise
+	 * @throws LocalizationException on any localization problems
+	 * @throws IllegalArgumentException on any parameter's problems
+	 * @since 0.0.7
+	 */
+	public static boolean ask(final Dialog window, final Dialog.ModalityType type, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
+		return askInternal(window,new JDialog(window,type), localizer, form, okAndCancel);
+	}
+	
+	/**
+	 * <p>Create dialog with the form</p>
+	 * @param window parent window of the dialog
 	 * @param localizer localizer to use with the dialog
 	 * @param form form built
 	 * @param okAndCancel application paths of the form buttons to use as 'OK' and 'Cancel'. Can be empty array (means don't use), array[1] (means use 'Cancel'), and array[2](means use 'OK' and 'Cancel');
@@ -855,6 +901,22 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 		return askInternal(window,new JDialog(window,true), localizer, form, okAndCancel);
 	}
 
+	/**
+	 * <p>Create dialog with the form</p>
+	 * @param window parent window of the dialog
+	 * @param type modality type
+	 * @param localizer localizer to use with the dialog
+	 * @param form form built
+	 * @param okAndCancel application paths of the form buttons to use as 'OK' and 'Cancel'. Can be empty array (means don't use), array[1] (means use 'Cancel'), and array[2](means use 'OK' and 'Cancel');
+	 * @return true if the 'OK' was pressed, false otherwise
+	 * @throws LocalizationException on any localization problems
+	 * @throws IllegalArgumentException on any parameter's problems
+	 * @since 0.0.7
+	 */
+	public static boolean ask(final Frame window, final Dialog.ModalityType type, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
+		return askInternal(window,new JDialog(window,type), localizer, form, okAndCancel);
+	}
+	
 	static boolean askInternal(final Window parent, final JDialog dlg, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
 		if (okAndCancel.length > 2) {
 			throw new IllegalArgumentException("Ok and cancel URI array length is too long. Only 0..2 are available");
