@@ -19,14 +19,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.BitCharSet;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.ExtendedBitCharSet;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.InternalUtils.Lexema.LexType;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
@@ -46,7 +50,7 @@ class InternalUtils {
 	
 	static {
 		for(Predefines item : Predefines.values()) {
-			PREDEFINED.placeName(item.name(), item);
+			PREDEFINED.placeName((CharSequence)item.name(), item);
 		}
 		
 		try{AW = new AsmWriter(new ByteArrayOutputStream(), new PrintWriter(System.out));
@@ -60,10 +64,175 @@ class InternalUtils {
 			throw new PreparationException(e.getLocalizedMessage(), e);
 		}
 	}
+
+	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParser1(final String className, final Class<NodeType> clazz, final String rule, final SimpleURLClassLoader loader, final boolean ignoreCase, final boolean addTrace) throws SyntaxException {
+		final char[]									content = CharUtils.terminateAndConvert2CharArray(rule, EOF);
+		final SyntaxTreeInterface<NodeType>				items = new AndOrTree<>(1,1);
+		final SyntaxTreeInterface<Object>				lexTypes = new AndOrTree<>(1,1);
+		final Lexema									lex = new Lexema();
+		final int[]										temp = new int[2];
+		final SyntaxNode<EntityType, SyntaxNode>		root = (SyntaxNode<EntityType, SyntaxNode>) AbstractBNFParser.TEMPLATE.clone();
+		final List<SyntaxNode<EntityType, SyntaxNode>>	rules = new ArrayList<>();
+		final GrowableCharArray<GrowableCharArray<?>>	gca = new GrowableCharArray<GrowableCharArray<?>>(false);
+		final int										unique = AI.incrementAndGet();
+
+		prepareKeywordsTree(clazz, items);
+		
+		int from = next(content, 0, items, temp, lex); 
+		
+		while (lex.type != Lexema.LexType.EOF) {
+			final SyntaxNode<EntityType, SyntaxNode>	clone = (SyntaxNode<EntityType, SyntaxNode>)AbstractBNFParser.TEMPLATE.clone(); 
+			
+			from = parse(content, from, items, temp, lex, clone);
+			extractLexSequences(clone, lexTypes);
+			rules.add(clone);
+		}
+		buildHead(unique, gca);
+		buildTestLex(unique, rules, gca, ignoreCase);
+		buildTestSyntax(unique, rules, gca);
+		buildSkipLex(unique, rules, gca);
+		buildSkipSyntax(unique, rules, gca);
+		buildParseLex(unique, rules, gca);
+		buildParseSyntax(unique, rules, gca);
+		buildTail(unique, gca);
+		return null;
+	}	
+
+	private static void buildHead(int unique, GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		gca.append("BNFParser"+unique+": BNFParserHeader unique="+unique+"\n");
+	}
+	
+	private static void buildTestLex(final int unique, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca, final boolean ignoreCase) {
+		// TODO Auto-generated method stub
+		final ExtendedBitCharSet	bcs = new ExtendedBitCharSet();
+
+		collectChars4Switch(rules, bcs);
+		final char[]	chars = ignoreCase ? buildLowerAndUpper(bcs.toArray()) : bcs.toArray();
+		final char[]	formattedChars = toFormattedCharArray(chars);
+		
+		gca.append(" BNFParserTestLexHead unique="+unique+"\n");
+		gca.append(" BNFParserTestLexSwitch unique="+unique+",chars="+formattedChars+"\n");
+		int seq = 0;
+		for (char symbol : chars) {
+			final List<char[]>	sequences = new ArrayList<>();
+			
+			collectSequences4Char(rules, symbol, sequences);
+			for(char[] item : sequences) {
+				if (ignoreCase) {
+					gca.append(" BNFParserTestLexSwitchItemIgnoreCase unique="+unique+",lowChars=\""+toFormattedStringArray(item)+"\",seq="+seq+"\n");
+				}
+				else {
+					gca.append(" BNFParserTestLexSwitchItem unique="+unique+",chars=\""+toFormattedStringArray(item)+"\",seq="+seq+"\n");
+				}
+				seq++;
+			}
+		}
+		gca.append(" BNFParserTestLexSwitchDefault unique="+unique+"\n");
+		gca.append(" BNFParserTestLexTail unique="+unique+"\n");
+	}
+	
+	private static char[] buildLowerAndUpper(final char[] source) {
+		return source;
+	}
+
+	private static void buildTestSyntax(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private static void buildSkipLex(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private static void buildSkipSyntax(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private static void buildParseLex(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private static void buildParseSyntax(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private static void buildTail(int unique, GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		gca.append("BNFParser"+unique+": BNFParserTail unique="+unique+"\n");
+	}
+	
+	private static void collectChars4Switch(final List<SyntaxNode<EntityType, SyntaxNode>> rules, final BitCharSet bcs) {
+		for (SyntaxNode<EntityType, SyntaxNode> item : rules) {
+			SyntaxNodeUtils.walkDown(item, (m, n)->{
+				if (m == NodeEnterMode.ENTER) {
+					switch (n.getType()) {
+						case Char		:
+							bcs.add((char)n.value);
+							break;
+						case Sequence	:
+							bcs.add(((char[])n.cargo)[0]);
+							break;
+						default:
+							break;
+					}
+				}
+				return ContinueMode.CONTINUE;
+			});
+		}
+	}
+
+	private static void collectSequences4Char(final List<SyntaxNode<EntityType, SyntaxNode>> rules, final char symbol, final List<char[]> sequences) {
+		for (SyntaxNode<EntityType, SyntaxNode> item : rules) {
+			SyntaxNodeUtils.walkDown(item, (m, n)->{
+				if (m == NodeEnterMode.ENTER) {
+					switch (n.getType()) {
+						case Char		:
+							if (((char)n.value) == symbol) {
+								sequences.add(new char[]{(char)n.value});
+							}
+							break;
+						case Sequence	:
+							if (((char[])n.cargo)[0] == symbol) {
+								sequences.add(((char[])n.cargo));
+							}
+							break;
+						default:
+							break;
+					}
+				}
+				return ContinueMode.CONTINUE;
+			});
+		}
+		sequences.sort((o1,o2)->o1.length-o2.length);
+	}
+	
+	private static char[] toFormattedCharArray(final char[] array) {
+		final char[]	result = new char[4 * array.length + 1];
+		
+		for(int index = 0; index < array.length; index++) {
+			result[4*index] = ',';
+			result[4*index+1] = '\"';
+			result[4*index+2] =array[index];
+			result[4*index+3] = '\"';
+		}
+		result[0]='[';
+		result[result.length-1] = ']';
+		return null;
+	}
+
+	private static char[] toFormattedStringArray(final char[] array) {
+		return array;
+	}
 	
 	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParser(final String className, final Class<NodeType> clazz, final String rule, final SimpleURLClassLoader loader, final boolean addTrace) throws SyntaxException {
 		final char[]									content = CharUtils.terminateAndConvert2CharArray(rule, EOF);
 		final SyntaxTreeInterface<NodeType>				items = new AndOrTree<>(1,1);
+		final SyntaxTreeInterface<Object>				lexTypes = new AndOrTree<>(1,1);
 		final Lexema									lex = new Lexema();
 		final int[]										temp = new int[2];
 		final SyntaxNode<EntityType, SyntaxNode>		root = (SyntaxNode<EntityType, SyntaxNode>) AbstractBNFParser.TEMPLATE.clone();
@@ -77,6 +246,7 @@ class InternalUtils {
 			final SyntaxNode<EntityType, SyntaxNode>	clone = (SyntaxNode<EntityType, SyntaxNode>)AbstractBNFParser.TEMPLATE.clone(); 
 			
 			from = parse(content, from, items, temp, lex, clone);
+			extractLexSequences(clone, lexTypes);
 			rules.add(clone);
 		}
 		
@@ -108,6 +278,20 @@ class InternalUtils {
 	}
 	
 	
+	private static void extractLexSequences(final SyntaxNode<EntityType, SyntaxNode> node, final SyntaxTreeInterface<Object> lexTypes) {
+		// TODO Auto-generated method stub
+		switch (node.getType()) {
+			case Char		:
+				node.value = lexTypes.placeName(CharUtils.toCharSequence((char)node.value), lexTypes);
+				break;
+			case Sequence	:
+				node.value = lexTypes.placeName(CharUtils.toCharSequence((char)node.value), lexTypes);
+				break;
+			default:
+		}
+	}
+
+
 	static <NodeType extends Enum<?>> int parse(final char[] content, int from, final SyntaxTreeInterface<NodeType> keywords, final int[] temp, final Lexema lex, final SyntaxNode<EntityType, SyntaxNode> root) throws SyntaxException {
 		long	left;
 		

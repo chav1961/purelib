@@ -1,0 +1,1122 @@
+; -------------------------------------------------------------------------
+;		Print imports for the class generated 
+; -------------------------------------------------------------------------
+
+printImports	.macro	package:str=,ruleEnum:str=
+		.if		exists(package)
+			.package	&package
+		.endif
+		.import	chav1961.purelib.basic.interfaces.SyntaxTreeInterface
+		.import	chav1961.purelib.basic.CharUtils
+		.import	chav1961.purelib.cdb.SyntaxNode
+		.import	chav1961.purelib.cdb.interfaces.RuleBasedParser
+		.import	chav1961.purelib.cdb.AbstractBNFParser protected
+		.import	chav1961.purelib.cdb.intern.Predefines
+		.import	chav1961.purelib.cdb.intern.BNFParserStack
+		.import	java.lang.Integer
+		.import	&ruleEnum
+		.mend
+
+; -------------------------------------------------------------------------
+;		Make beginning of the class generated
+; -------------------------------------------------------------------------
+
+beginClassDeclaration	.macro className:str=
+		.source	"&className"
+		.line	auto
+&className	.class	public extends chav1961.purelib.cdb.AbstractBNFParser implements chav1961.purelib.cdb.interfaces.RuleBasedParser  
+		.mend
+
+; -------------------------------------------------------------------------
+;		Make declarations of all the fields used in EntityType.Sequence
+; -------------------------------------------------------------------------
+
+declareSequenceField	.macro className:str=,fieldName:str=
+&fieldName	.field		char[] private static final
+		.mend
+
+; -------------------------------------------------------------------------
+;		Start preparation of the <clinit> method of the class 	
+; -------------------------------------------------------------------------
+
+beforeClinit	.macro	className:str=
+&className		.method	void static
+				.stack	optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+;		Build char[] instances for all the fields used in EntityType.Sequence
+; -------------------------------------------------------------------------
+
+clinitPrepareSequence	.macro	className:str=,fieldName:str=,value:str=
+		ldc				"&value"
+		invokevirtual	java.lang.String.toCharArray()[C
+		putstatic		&fieldName
+		.mend
+
+; -------------------------------------------------------------------------
+;		End preparation of the <clinit> method of the class 	
+; -------------------------------------------------------------------------
+
+afterClinit	.macro className:str=
+		return
+&className		.end
+		.mend
+		
+; -------------------------------------------------------------------------
+
+prepareConstructor	.macro className:str=
+&className		.method		void public
+clazz			.parameter	java.lang.Class final
+names			.parameter 	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+				.stack	optimistic
+				aload		this
+				dup
+				aload		clazz
+				aload		names
+				invokespecial	chav1961.purelib.cdb.AbstractBNFParser.<init>(Ljava/lang/Class;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;)V
+				return
+&className		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+skipBlank		.macro
+				aload	content
+				iload	from
+				invokestatic chav1961.purelib.cdb.AbstractBNFParser.skipBlank([CI)I
+				istore	from
+		.mend
+
+; -------------------------------------------------------------------------
+
+traceExecution	.macro		name:str
+				ldc			"&name"
+				aload		content
+				iload		from
+				invokestatic chav1961.purelib.cdb.AbstractBNFParser.traceExecution(Ljava/lang/String;[CI)V
+		.mend
+
+; -------------------------------------------------------------------------
+
+duplicateSyntaxNode	.macro
+				getstatic	chav1961.purelib.cdb.AbstractBNFParser.TEMPLATE	
+				invokevirtual	chav1961.purelib.cdb.SyntaxNode.clone()Ljava/lang/Object;
+				checkcast	chav1961.purelib.cdb.SyntaxNode
+				dup
+				aload		stack
+				swap
+				invokevirtual chav1961.purelib.cdb.intern.BNFParserStack.add(Lchav1961/purelib/cdb/SyntaxNode;)V
+		.mend
+
+; -------------------------------------------------------------------------
+
+throwSyntaxException	.macro	message:str 
+				aload		content
+				iload		from
+				ldc			"&message"
+				getstatic	chav1961.purelib.cdb.AbstractBNFParser.EMPTY_PARAMETERS
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.throwSyntaxException([CILjava/lang/String;[Ljava/lang/Object;)V
+		.mend
+
+; -------------------------------------------------------------------------
+
+processRootType .macro	keyword:int=
+					aload	root
+					.if	keyword>=0
+						aload		keywords
+						ldc2_w		&keyword.L
+						invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
+						checkcast	java.lang.Enum
+					.else
+						aconst_null
+					.endif
+					putfield	chav1961.purelib.cdb.SyntaxNode.type
+		.mend
+
+; -------------------------------------------------------------------------
+
+processEntityType .macro	keyword:int=
+					aload	root
+					ldc		&keyword
+					invokestatic chav1961.purelib.cdb.AbstractBNFParser.extractEntityType(I)Ljava/lang/Enum;	
+					putfield	chav1961.purelib.cdb.SyntaxNode.type
+		.mend
+
+; -------------------------------------------------------------------------
+
+processChildren .macro	mode:str,keyword:int=
+					aload	stack
+					invokevirtual chav1961.purelib.cdb.intern.BNFParserStack.pop()[Lchav1961/purelib/cdb/SyntaxNode;
+					dup
+					dup
+					arraylength
+					ifeq	skipStore
+					arraylength
+					ldc		1
+					if_icmpne	store
+					aload	root
+					invokestatic chav1961.purelib.cdb.AbstractBNFParser.moveContent2Root([Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/SyntaxNode;)V 
+					goto	exitChildren
+store:				aload	root
+					swap
+					putfield	chav1961.purelib.cdb.SyntaxNode.children
+					.choise	mode
+						.of "rule"
+							processRootType		keyword=&keyword
+						.of "option"
+							processEntityType	keyword=&keyword
+						.otherwise
+							.error "unknown mode [&mode]"
+					.endchoise
+					goto	exitChildren
+skipStore:			pop2					
+exitChildren:					
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareCharParseMethod	.macro className:str=,fieldValue:int=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack		optimistic
+				skipBlank
+				aload		content
+				iload		from
+				caload
+				ldc			&fieldValue
+				if_icmpeq	trueLabel
+				throwSyntaxException " missing character (&fieldValue)"
+trueLabel:		iload		from
+				ldc			1
+				iadd				
+				ireturn
+&methodName		.end
+		.mend
+
+
+; -------------------------------------------------------------------------
+
+prepareSequenceParseMethod	.macro className:str=,fieldName:str=,methodName:str=,testMethodName:str=
+&methodName		.method	int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack	optimistic
+				skipBlank
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName([CI[I[J)Z
+				ifne		trueLabel
+				throwSyntaxException "missing sequence (&fieldName)"
+trueLabel:		getstatic	&fieldName
+				arraylength
+				iload		from
+				iadd				
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameParseMethod .macro className:str=,name:int=,methodName:str=,referenceMethodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final 
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack		optimistic
+				aload		content
+				iload		from
+				aload		names
+				aload		keywords
+				aload		root
+				aload		stack
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&referenceMethodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+preparePredefinedParseMethod .macro className:str=,name:str=,methodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final 
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack		optimistic
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&name
+				aload		names
+				aload		root
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.parsePredefined([CILchav1961/purelib/cdb/intern/Predefines;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+		
+prepareOptionParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack	optimistic
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName.Optional([CI[I[J)Z
+				ifeq		falseLabel
+				.if			makeChildren
+					aload		stack
+					invokevirtual	chav1961.purelib.cdb.intern.BNFParserStack.push()V
+				.endif						
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareOptionParseMethodItem  .macro className:str=,methodName:str=,makeChildren:bool=
+				aload		content
+				iload		from
+				aload		names
+				aload		keywords
+				.if			makeChildren
+					duplicateSyntaxNode
+				.else	
+					aload		root
+				.endif
+				aload		stack
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
+				istore		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareOptionParseMethodEnd   .macro className:str=,methodName:str=,keyword:int=,makeChildren:bool=
+				.if			makeChildren
+					processChildren	"option",keyword=&keyword
+				.endif
+falseLabel:		iload		from
+				ireturn
+&methodName		.end				
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRepeatParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack	optimistic
+again:			skipBlank
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName.Repeated([CI[I[J)Z
+				ifeq		falseLabel
+				.if			makeChildren
+					aload		stack
+					invokevirtual	chav1961.purelib.cdb.intern.BNFParserStack.push()V
+				.endif
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRepeatParseMethodItem  .macro className:str=,methodName:str=,makeChildren:bool=
+				aload		content
+				iload		from
+				aload		names
+				aload		keywords
+				.if			makeChildren
+					duplicateSyntaxNode
+				.else	
+					aload		root
+				.endif
+				aload		stack
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
+				istore		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRepeatParseMethodEnd   .macro className:str=,methodName:str=,testMethodName:str=,keyword:int=,makeChildren:bool=
+				goto		again
+falseLabel:	
+				.if			makeChildren
+					processChildren	"option",keyword=&keyword
+				.endif
+				iload		from
+				ireturn
+&methodName		.end				
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRepeat1ParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack	optimistic
+				.if			makeChildren
+					aload		stack
+					invokevirtual	chav1961.purelib.cdb.intern.BNFParserStack.push()V
+				.endif						
+again:			
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRepeat1ParseMethodItem  .macro className:str=,methodName:str=,makeChildren:bool=
+				skipBlank
+				aload		content
+				iload		from
+				aload		names
+				aload		keywords
+				.if			makeChildren
+					duplicateSyntaxNode
+				.else	
+					aload		root
+				.endif
+				aload		stack
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
+				istore		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareRepeat1ParseMethodEnd   .macro className:str=,methodName:str=,testMethodName:str=,keyword:int=,makeChildren:bool=
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName([CI[I[J)Z
+				ifne		again
+				.if			makeChildren
+					processChildren	"option",keyword=&keyword
+				.endif
+				iload		from
+				ireturn
+&methodName		.end				
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareSwitchParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack		optimistic
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName([CI[I[J)Z
+				ifne		trueLabel
+				throwSyntaxException "No switch alternatives were detected"
+trueLabel:				
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareSwitchParseMethodItem  .macro className:str=,methodName:str=,testMethodName:str=
+localLabel		.local		int
+localLabel		.set		uniqueG()
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName([CI[I[J)Z
+				ifeq		falseLabel&localLabel
+				aload		content
+				iload		from
+				aload		names
+				aload		keywords
+				aload		root
+				aload		stack
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
+				istore		from
+				goto		falseLabel
+falseLabel&localLabel:				
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareSwitchParseMethodEnd   .macro className:str=,methodName:str=
+falseLabel:		iload		from
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareCaseParseMethodStart .macro className:str=,methodName:str=,testMethodName:str=,makeChildren:bool=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack final
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack		optimistic
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&testMethodName([CI[I[J)Z
+				ifeq		falseLabel
+				.if			makeChildren
+					aload		stack
+					invokevirtual	chav1961.purelib.cdb.intern.BNFParserStack.push()V
+				.endif						
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareCaseParseMethodItem  .macro className:str=,methodName:str=,makeChildren:bool=
+				aload		content
+				iload		from
+				aload		names
+				aload		keywords
+				.if			makeChildren
+					duplicateSyntaxNode
+				.else	
+					aload		root
+				.endif
+				aload		stack
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;Lchav1961/purelib/cdb/intern/BNFParserStack;[I[J)I
+				istore		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareCaseParseMethodEnd   .macro className:str=,methodName:str=,keyword:int=,makeChildren:bool=
+				.if			makeChildren
+					processChildren	"option",keyword=&keyword
+				.endif
+falseLabel:		iload		from
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareDetectedParseMethod .macro className:str=,methodName:str=,item:int=
+&methodName		.method		int private static
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+stack			.parameter	chav1961.purelib.cdb.intern.BNFParserStack
+tempInt			.parameter	int[] final
+tempLong		.parameter	long[] final
+				.stack	optimistic
+tempRule		.var		java.lang.Enum				
+				aload		keywords
+				ldc2_w		&item.L
+				invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
+				checkcast	java.lang.Enum
+				astore		tempRule
+				duplicateRootNode				
+				aload		tempRule
+				putfield	chav1961.purelib.cdb.SyntaxNode.type
+				iload		from
+				ireturn
+&methodName		.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareTestInternal	.macro className:str=,testMethod:str=
+testInternal	.method	boolean protected
+content			.parameter	char[] final
+from			.parameter	int
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+				.stack	optimistic
+				skipBlank
+				aload		content
+				iload		from
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
+				invokestatic	&testMethod([CI[I[J)Z
+				ireturn
+testInternal	.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareSkipInternal	.macro className:str=,testMethod:str=,skipMethod:str=
+skipInternal	.method	int protected
+content			.parameter	char[] final
+from			.parameter	int
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+				.stack	optimistic
+				skipBlank
+				aload		content
+				iload		from
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
+				invokestatic	&testMethod([CI[I[J)Z
+				ifeq		falseLabel
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				ldc			0
+				iaload
+				ireturn
+falseLabel:		aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				ldc			0
+				iaload
+				istore		from
+				throwSyntaxException	"parse error"
+				ldc			0
+				ireturn 				
+skipInternal	.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareParseInternal	.macro className:str=,testMethod:str=,parseMethod:str=
+parseInternal	.method	int protected
+content			.parameter	char[] final
+from			.parameter	int
+names			.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter	chav1961.purelib.cdb.SyntaxNode final
+				.stack	optimistic
+tempFrom		.var		int
+				skipBlank
+				aload		content
+				iload		from
+				aload		names
+				aload		keywords
+				aload		root
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempInt
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser.tempLong
+				invokestatic	&parseMethod([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
+				ireturn 				
+parseInternal	.end
+		.mend
+
+; -------------------------------------------------------------------------
+
+endClassDeclaration	.macro className:str=
+&className		.end
+		.mend
+
+		
+; -------------------------------------------------------------------------
+		
+prepareNameTestMethodStart		.macro className:str=,name:int=,methodName:str=
+&methodName		.method			boolean public static
+content			.parameter		char[] final
+from			.parameter		int
+tempInt			.parameter		int[] final
+tempLong		.parameter		long[] final
+				.stack			optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodChar		.macro	value:int=,trueJump:str=,falseJump:str=,addTrace:bool=false
+label			.local	int
+label			.set	uniqueG()
+
+				skipBlank
+		.if addTrace
+				traceExecution	"Test char [&value]"
+		.endif
+				aload			content
+				iload			from
+				caload
+				ldc				&value
+		.if	falseJump != ""
+				if_icmpne		&falseJump
+			.if addTrace
+				traceExecution	"Char [&value] found"
+			.endif
+				iinc			from,1
+			.if trueJump != ""
+				goto			&trueJump
+			.endif
+		.elseif trueJump != ""
+				if_icmpne		charLabel&label
+			.if addTrace
+				traceExecution	"Char [&value] found"
+			.endif
+				iinc			from,1
+				goto			&trueJump
+charLabel&label:				
+		.else			 	
+				.error			"Neither true nor false jump was defined"
+		.endif
+		.mend		
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodSequence	.macro	fieldName:str=,trueJump:str=,falseJump:str=,addTrace:bool=false
+label			.local	int
+label			.set	uniqueG()
+
+				skipBlank
+		.if addTrace
+				traceExecution	"Test sequence &fieldName"
+		.endif				
+				aload			content
+				iload			from
+				getstatic		&fieldName
+				ldc				0
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.compareSequence([CI[CZ)Z
+		.if	falseJump != ""				
+				ifeq			&falseJump
+			.if addTrace
+				traceExecution	"Sequence &fieldName found"
+			.endif				
+				iload			from
+				getstatic		&fieldName
+				arraylength
+				iadd
+				istore			from
+			.if trueJump != ""
+				goto			&trueJump
+			.endif
+		.elseif trueJump != ""
+				ifne			sequenceLabel&label
+			.if addTrace
+				traceExecution	"Sequence &fieldName found"
+			.endif				
+				iload			from
+				getstatic		&fieldName
+				arraylength
+				iadd
+				istore			from				
+				goto			&trueJump
+sequenceLabel&label:				
+		.else			 	
+				.error			"Neither true nor false jump was defined"
+		.endif
+		.mend		
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodPredefined .macro	predefinedName:str=,trueJump:str=,falseJump:str=,addTrace:bool=false
+label			.local	int
+label			.set	uniqueG()
+
+				skipBlank
+		.if addTrace
+				traceExecution	"Test predefined [&predefinedName]"
+		.endif
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)Z
+		.if	falseJump != ""				
+				ifeq		&falseJump
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
+			.if addTrace
+				traceExecution	"Predefined [&predefinedName] found"
+			.endif
+				istore		from
+			.if trueJump != ""
+				goto		&trueJump
+			.endif
+		.elseif trueJump != ""
+				ifeq		predefinedLabel&label
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.skipPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)I
+			.if addTrace
+				traceExecution	"Predefined [&predefinedName] found"
+			.endif
+				istore		from
+				goto		&trueJump
+predefinedLabel&label:				
+		.else			 	
+				.error		"Neither true nor false jump was defined"
+		.endif
+		.mend		
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodOptionStart	.macro
+				iload		from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodOptionEnd		.macro trueLabel:str="",falseLabel:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+		.if trueLabel != ""
+&trueLabel:		pop
+			.if trueJump != ""
+				goto		&trueJump
+&falseLabel:	istore		from
+			.else
+				goto		skipOption&label
+&falseLabel:	istore		from
+			.endif
+		.else
+				pop
+			.if trueJump != ""
+				goto		&trueJump
+&falseLabel:	istore		from
+			.else
+				goto		skipOption&label
+&falseLabel:	istore		from
+			.endif
+		.endif
+skipOption&label:		
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodSwitchEnd	.macro trueLabel:str="",trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+		.if falseJump != ""
+				goto	&falseJump
+		.else
+				goto	testSwitch&label
+		.endif
+		.if	trueJump != ""
+&trueLabel:		goto	&trueJump
+		.else
+&trueLabel:			
+		.endif
+		.if falseJump == ""
+testSwitch&label:
+		.endif
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodRepeatStart	.macro trueLabel:str=
+&trueLabel:		iload	from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodRepeatEnd		.macro trueLabel:str=,falseLabel:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				pop
+				goto	&trueLabel
+&falseLabel:	istore	from
+			.if trueJump != ""
+				goto	&trueJump
+			.endif	
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodRepeat1Start	.macro trueLabel:str=
+				ldc		0
+&trueLabel:		iload	from
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodRepeat1End		.macro trueLabel:str=,falseLabel:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				pop2
+				ldc		1
+				goto	&trueLabel
+&falseLabel:	swap
+				ifeq	err1Repeat&label
+				pop
+			.if trueJump != ""
+				goto	&trueJump
+			.else
+				goto	skip1Repeat&label
+			.endif	
+err1Repeat&label:			
+				istore	from
+			.if falseJump != ""
+				goto	&falseJump
+			.endif	
+skip1Repeat&label:			
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameTestMethodRule		.macro methodName:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				aload		content
+				iload		from
+				aload		tempInt
+				aload		tempLong
+				invokestatic	&methodName([CI[I[J)Z
+		.if falseJump != ""
+				ifeq		&falseJump
+				aload		tempInt
+				ldc			0
+				iaload
+				istore		from
+			.if trueJump != ""
+				goto		&trueJump
+			.endif
+		.else 
+				ifeq		skipRule&label
+				aload		tempInt
+				ldc			0
+				iaload
+				istore		from
+				goto		&trueJump
+skipRule&label:				
+		.endif
+		.mend
+
+; -------------------------------------------------------------------------
+		
+prepareNameTestMethodEnd		.macro className:str=,name:int=,methodName:str=
+				ldc				1
+store:			aload			tempInt
+				ldc				0
+				iload			from
+				iastore
+				ireturn
+falseLabel:		ldc				0
+				goto			store
+&methodName		.end
+		.mend		
+		
+; -------------------------------------------------------------------------
+		
+prepareNameSkipMethodStart		.macro className:str=,name:int=,methodName:str=
+&methodName		.method			int public static
+content			.parameter		char[] final
+from			.parameter		int
+tempInt			.parameter		int[] final
+tempLong		.parameter		long[] final
+				.stack			optimistic
+		.mend
+		
+; -------------------------------------------------------------------------
+
+		
+prepareNameSkipMethodEnd		.macro className:str=,name:int=,methodName:str=
+				iload			from
+				ireturn
+falseLabel:		throwSyntaxException	"parse error"
+				ldc				0
+				ireturn
+&methodName		.end
+		.mend		
+				
+; -------------------------------------------------------------------------
+		
+prepareNameParseMethodStart		.macro className:str=,name:int=,methodName:str=,ruleClass:str=,ruleField:str=
+&methodName		.method			int public static
+content			.parameter		char[] final
+from			.parameter		int
+names			.parameter		chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+keywords		.parameter		chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+root			.parameter		chav1961.purelib.cdb.SyntaxNode
+tempInt			.parameter		int[] final
+tempLong		.parameter		long[] final
+				.stack			optimistic
+tempFrom		.var			int
+tempRule		.var			java.lang.Enum
+				getstatic		&ruleClass..&ruleField
+				astore			tempRule
+		.mend
+
+; -------------------------------------------------------------------------
+
+prepareNameParseMethodRule 		.macro methodName:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				aload			content
+				iload			from
+				aload			names
+				aload			keywords
+				duplicateRootNode
+				aload			tempInt
+				aload			tempLong
+				invokestatic	&methodName([CILchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
+				dup
+				istore		tempFrom
+		.if falseJump != ""
+				iflt		&falseJump
+				iload		tempFrom
+				istore		from
+			.if trueJump != ""
+				goto		&trueJump
+			.endif
+		.else 
+				iflt		skipRule&label
+				iload		tempFrom
+				istore		from
+				goto		&trueJump
+skipRule&label:				
+		.endif
+		.mend		
+		
+; -------------------------------------------------------------------------
+
+prepareNameParseMethodPredefined 	.macro predefinedName:str=,trueJump:str=,falseJump:str=
+label			.local	int
+label			.set	uniqueG()
+
+				skipBlank
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.testPredefined([CILchav1961/purelib/cdb/intern/Predefines;[I[J)Z
+		.if	falseJump != ""				
+				ifeq		&falseJump
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		names
+				duplicateRootNode
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.parsePredefined([CILchav1961/purelib/cdb/intern/Predefines;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
+				istore		from
+			.if trueJump != ""
+				goto		&trueJump
+			.endif
+		.elseif trueJump != ""
+				ifne		predefinedLabel&label
+				aload		content
+				iload		from
+				getstatic	chav1961.purelib.cdb.intern.Predefines.&predefinedName
+				aload		names
+				duplicateRootNode
+				aload		tempInt
+				aload		tempLong
+				invokestatic	chav1961.purelib.cdb.AbstractBNFParser.parsePredefined([CILchav1961/purelib/cdb/intern/Predefines;Lchav1961/purelib/basic/interfaces/SyntaxTreeInterface;Lchav1961/purelib/cdb/SyntaxNode;[I[J)I
+				istore		from
+				goto		&trueJump
+predefinedLabel&label:				
+		.else			 	
+				.error		"Neither true nor false jump was defined"
+		.endif
+		.mend		
+
+; -------------------------------------------------------------------------
+
+prepareNameParseMethodDetector	.macro className:str=,methodName:str=,item:int=
+				duplicateRootNode
+				aload		keywords
+				ldc2_w		&item.L
+				invokeinterface	chav1961.purelib.basic.interfaces.SyntaxTreeInterface.getCargo(J)Ljava/lang/Object;
+				checkcast	java.lang.Enum
+				putfield	chav1961.purelib.cdb.SyntaxNode.type
+		.mend		
+		
+; -------------------------------------------------------------------------
+		
+prepareNameParseMethodEnd		.macro className:str=,name:int=,methodName:str=
+				iload			from
+				ireturn
+falseLabel:		throwSyntaxException	"parse error"
+				ldc				-1
+				ireturn
+&methodName		.end
+		.mend		
+
+; -------------------------------------------------------------------------
+
+duplicateRootNode	.macro
+				aload		root
+				aload		tempRule
+				invokestatic chav1961.purelib.cdb.AbstractBNFParser.cloneNode(Lchav1961/purelib/cdb/SyntaxNode;Ljava/lang/Enum;)Lchav1961/purelib/cdb/SyntaxNode;
+		.mend
+
+; -------------------------------------------------------------------------
+							
