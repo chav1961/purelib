@@ -122,7 +122,7 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public class CharUtils {
@@ -2836,6 +2836,16 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 			return new OrdinalCharSequence(content, from, to);
 		}
 	}
+
+	/**
+	 * <p>Create {@linkplain CharSequence} wrapper for the given char</p>
+	 * @param content char to make wrapper for
+	 * @return wrapper created. Can't be null
+	 * @since 0.0.7
+	 */
+	public static CharSequence toCharSequence(final char content) {
+		return new OrdinalCharSequence(content);
+	}
 	
 	/**
 	 * <p>Create {@linkplain CharSequence} wrapper for the given piece of char array. Differ to {@linkplain #toCharSequence(char[], int, int)}, makes weak reference for wrapper content</p>
@@ -3421,6 +3431,13 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	private final int		from;
     	private final int 		to;
 
+		private OrdinalCharSequence(final char content) {
+			this.content = new char[] {content};
+			this.from = 0;
+			this.to = 1;
+		}
+    	
+    	
 		private OrdinalCharSequence(final char[] content, final int from, final int to) {
 			this.content = content;
 			this.from = from;
