@@ -63,7 +63,7 @@ public class SVGUtils {
 				for (int index = 0; index < pointCount; index++) {
 					from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,false),number,true);
 					x = number[0];
-					from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,false),number,true);
+					from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,skipComma(content, from),false),number,true);
 					y = number[0];
 					result[index] = new Point2D.Float(x,y); 
 				}
@@ -317,11 +317,11 @@ loop:		for (;;) {
 						do {
 							x = x2 = xOld;
 							y = y2 = yOld;
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,skipComma(content,from),true),number,true);
 							x2 += number[0];
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y2 += number[0];
-							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
+							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,skipComma(content,from),true),number,true);
 							x += number[0];
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 							y += number[0];
@@ -408,13 +408,12 @@ loop:		for (;;) {
 	
 	private static int skipComma(final char[] content, int from) throws SyntaxException {
 		from = UnsafedCharUtils.uncheckedSkipBlank(content, from, true);
-		return from;
-//		if (content[from] == ',') {
-//			return UnsafedCharUtils.uncheckedSkipBlank(content, from + 1, true);
-//		}
-//		else {
-//			throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Missing ','"); 
-//		}
+		if (content[from] == ',') {
+			return UnsafedCharUtils.uncheckedSkipBlank(content, from + 1, true);
+		}
+		else {
+			return from;
+		}
 	}
 
 	static <T> T convertTo(final Class<T> awaited, final String source) throws SyntaxException {
@@ -480,13 +479,18 @@ loop:		for (;;) {
 					return null;
 				}
 			case "stroke-width"	:
-				return instrumentType.cast(convertTo(Stroke.class,attributes.get(propName).toString()));
+				if (attributes.containsKey(propName)) {
+					return instrumentType.cast(convertTo(Stroke.class,attributes.get(propName).toString()));
+				}
+				else {
+					return (T) new BasicStroke(1f);
+				}
 			case "transform"	:
 				if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
 					return instrumentType.cast(convertTo(AffineTransform.class,attributes.get(propName).toString()));
 				}
 				else {
-					return null;
+					return (T) new AffineTransform();
 				}
 			case "font"	:
 				final String	fontFamily = (String)(attributes.containsKey("font-family") ? attributes.get("font-family").toString() : "Courier");

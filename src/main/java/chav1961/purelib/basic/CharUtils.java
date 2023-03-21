@@ -3416,7 +3416,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	else {
     		final char[]	result = new char[seq.length() + tail.length];
     		
-    		for(int index = 0; index < result.length; index++) {
+    		for(int index = 0; index < seq.length(); index++) {
     			result[index] = seq.charAt(index);
     		}
     		if (tail.length > 0) {

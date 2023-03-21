@@ -943,29 +943,36 @@ public class SVGPainter {
 	}
 	
 	protected static class PathPainter extends AbstractPainter {
-		private final GeneralPath	path;
-		private final Color			drawColor, fillColor;
-		private final Stroke		stroke;
+		private final GeneralPath		path;
+		private final Color				drawColor, fillColor;
+		private final Stroke			stroke;
+		private final AffineTransform	transform;
 		
-		PathPainter(final GeneralPath path, final Color drawColor, final Stroke drawStroke) {
+		PathPainter(final GeneralPath path, final Color drawColor, final Stroke drawStroke, final AffineTransform transform) {
 			this.path = path;
  			this.drawColor = drawColor;
 			this.fillColor = null;
 			this.stroke = drawStroke;
+			this.transform = transform;
 		}
 
-		PathPainter(final GeneralPath path, final Color drawColor, final Color fillColor, final Stroke drawStroke) {
+		PathPainter(final GeneralPath path, final Color drawColor, final Color fillColor, final Stroke drawStroke, final AffineTransform transform) {
 			this.path = path;
  			this.drawColor = drawColor;
 			this.fillColor = fillColor;
 			this.stroke = drawStroke;
+			this.transform = transform;
 		}
 		
 		@Override
 		public void paint(final Graphics2D g2d) {
 			final Color				oldColor = g2d.getColor();
 			final Stroke			oldStroke = g2d.getStroke();
+			final AffineTransform	oldTransform = g2d.getTransform();
+			final AffineTransform	newTransform = new AffineTransform(oldTransform);
 			
+			newTransform.concatenate(transform);
+			g2d.setTransform(newTransform);
 			if (fillColor != null) {
 				g2d.setColor(fillColor);
 				g2d.fill(path);
@@ -973,8 +980,10 @@ public class SVGPainter {
 			g2d.setColor(drawColor);
 			g2d.setStroke(stroke);
 			g2d.draw(path);
+			g2d.setTransform(oldTransform);
 			g2d.setStroke(oldStroke);
-			g2d.setColor(oldColor);			
+			g2d.setColor(oldColor);
+			
 		}
 
 		@Override
@@ -984,18 +993,20 @@ public class SVGPainter {
 	}
 
 	protected static class DynamicPathPainter extends AbstractPainter {
-		private final OnlineObjectGetter<GeneralPath>	pathGetter;
-		private final GeneralPath						path;
-		private final OnlineObjectGetter<Color>			drawColorGetter, fillColorGetter;
-		private final Color								drawColor, fillColor;
-		private final OnlineObjectGetter<Stroke>		strokeGetter;
-		private final Stroke							stroke;
+		private final OnlineObjectGetter<GeneralPath>		pathGetter;
+		private final GeneralPath							path;
+		private final OnlineObjectGetter<Color>				drawColorGetter, fillColorGetter;
+		private final Color									drawColor, fillColor;
+		private final OnlineObjectGetter<Stroke>			strokeGetter;
+		private final Stroke								stroke;
+		private final OnlineObjectGetter<AffineTransform>	transformGetter;
+		private final AffineTransform						transform;
 		
-		DynamicPathPainter(final OnlineObjectGetter<GeneralPath> path, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> drawStroke) {
-			this(path,drawColor,null,drawStroke);
+		DynamicPathPainter(final OnlineObjectGetter<GeneralPath> path, final OnlineObjectGetter<Color> drawColor, final OnlineObjectGetter<Stroke> drawStroke, final OnlineObjectGetter<AffineTransform> drawTransformGetter) {
+			this(path,drawColor,null,drawStroke,drawTransformGetter);
 		}
 
-		DynamicPathPainter(final OnlineObjectGetter<GeneralPath> pathGetter, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
+		DynamicPathPainter(final OnlineObjectGetter<GeneralPath> pathGetter, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter, final OnlineObjectGetter<AffineTransform> drawTransformGetter) {
 			if (pathGetter.isImmutable()) {
 				this.path = pathGetter.get();
 				this.pathGetter = null;
@@ -1034,14 +1045,31 @@ public class SVGPainter {
 				this.stroke = null;
 				this.strokeGetter = strokeGetter;
 			}
+			if (drawTransformGetter.isImmutable()) {
+				this.transform = drawTransformGetter.get();
+				this.transformGetter = null;
+			}
+			else {
+				this.transform = null;
+				this.transformGetter = drawTransformGetter;
+			}
 		}
 		
 		@Override
 		public void paint(final Graphics2D g2d) {
-			final Color			oldColor = g2d.getColor();
-			final Stroke		oldStroke = g2d.getStroke();
-			final GeneralPath	path2Draw = path != null ? path : pathGetter.get();
-			
+			final Color				oldColor = g2d.getColor();
+			final Stroke			oldStroke = g2d.getStroke();
+			final AffineTransform	oldTransform = g2d.getTransform();
+			final AffineTransform	newTransform = new AffineTransform(oldTransform);
+			final GeneralPath		path2Draw = path != null ? path : pathGetter.get();
+
+			if (transform != null) {
+				newTransform.concatenate(transform);
+			}
+			else {
+				newTransform.concatenate(transformGetter.get());
+			}
+			g2d.setTransform(newTransform);
 			if (fillColor != null) {
 				g2d.setColor(fillColor);
 				g2d.fill(path2Draw);
@@ -1054,6 +1082,7 @@ public class SVGPainter {
 			g2d.setColor(drawColor != null ? drawColor : drawColorGetter.get());
 			g2d.setStroke(stroke != null ? stroke : strokeGetter.get());
 			g2d.draw(path2Draw);
+			g2d.setTransform(oldTransform);
 			g2d.setStroke(oldStroke);
 			g2d.setColor(oldColor);			
 		}

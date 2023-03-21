@@ -101,7 +101,8 @@ public class SVGParser {
 	private static final String		PATH_ATTR_STROKE = "stroke";
 	private static final String		PATH_ATTR_FILL = "fill";
 	private static final String		PATH_ATTR_STROKE_WIDTH = "stroke-width";
-	private static final String[]	PATH_ATTRIBUTES = {PATH_ATTR_D, PATH_ATTR_STROKE, PATH_ATTR_FILL, PATH_ATTR_STROKE_WIDTH};
+	private static final String		PATH_ATTR_TRANSFORM = "transform";
+	private static final String[]	PATH_ATTRIBUTES = {PATH_ATTR_D, PATH_ATTR_STROKE, PATH_ATTR_FILL, PATH_ATTR_STROKE_WIDTH, PATH_ATTR_TRANSFORM};
 
 	private static final String		TEXT_ATTR_X = "x";
 	private static final String		TEXT_ATTR_Y = "y";
@@ -139,7 +140,7 @@ public class SVGParser {
 			throw new NullPointerException("Instrument getter can't be null");
 		}
 		else {
-			final Document			doc = XMLUtils.validateAndLoadXML(svgXml, XMLUtils.getPurelibXSD(XSDCollection.SVG_restricted),logger);
+			final Document			doc = XMLUtils.validateAndLoadXML(svgXml, XMLUtils.getPurelibXSD(XSDCollection.SVG_full),logger);
 			
 			doc.normalizeDocument();
 			XMLUtils.walkDownXML(doc.getDocumentElement(),(mode,node)->{	// Extract all styles from the content
@@ -428,13 +429,15 @@ public class SVGParser {
 //															? 
 														, SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,PATH_ATTR_STROKE_WIDTH,String.class),ss,ci)
 //															: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(PATH_ATTR_STROKE_WIDTH,props,Stroke.class))
+														, SVGUtils.buildOnlineObjectGetter(AffineTransform.class,XMLUtils.getAttribute(node,PATH_ATTR_TRANSFORM,String.class),ss,ci)
 							));
 						}
 						else {
 							primitives.add(new PathPainter(SVGUtils.extractCommands(XMLUtils.getAttribute(node,PATH_ATTR_D,String.class))
 														,(Color)getter.getInstrument(PATH_ATTR_STROKE,props,Color.class)
 														,(Color)getter.getInstrument(PATH_ATTR_FILL,props,Color.class)
-														,(Stroke)getter.getInstrument(PATH_ATTR_STROKE_WIDTH,props,Stroke.class))
+														,(Stroke)getter.getInstrument(PATH_ATTR_STROKE_WIDTH,props,Stroke.class)
+														,(AffineTransform)getter.getInstrument(PATH_ATTR_TRANSFORM,props,AffineTransform.class))
 							);
 						}
 						break;
