@@ -8,15 +8,15 @@ import chav1961.purelib.cdb.interfaces.RuleBasedParser;
 public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implements RuleBasedParser<NodeType, Cargo> {
 	protected static final int		EOF = 0;
 	
+	protected int	prevFrom;
 	protected int	lexType;
 	protected long	value;
 	
 	public AbstractBNFParser2() {
 	}
 
-	protected abstract int nextTestLexema(final char[] content, int from);
-	protected abstract boolean testInternal(final char[] content, final int from);
-
+	protected abstract int nextLexema(final char[] content, int from);
+	protected boolean testInternal(final char[] content, final int from) {return true;}
 	
 	
 	@Override
@@ -34,8 +34,13 @@ public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implem
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length-1));
 		}
 		else {
-			from = nextTestLexema(content, from);
-			return testInternal(content, from);
+			prevFrom = from;
+			from = nextLexema(content, from);
+			
+			final boolean	result = testInternal(content, from);
+			
+			prevFrom = from;
+			return result;
 		}
 	}
 
@@ -95,7 +100,10 @@ public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implem
 		return CharUtils.skipBlank(content, from, true);
 	}
 
-	protected int nextTestLexemaPredef(final char[] content, int from) {
+	protected int nextLexemaPredef(final char[] content, int from) {
 		return 0;
+	}
+
+	protected void traceLex(final char[] content, int from) {
 	}
 }

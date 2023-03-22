@@ -12,6 +12,7 @@ import org.junit.Test;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
@@ -38,7 +39,7 @@ public class InternalUtilsTest {
 	
 	static {
 		for(TestType item : TestType.values()) {
-			tt.placeName(item.name(), item.ordinal(), item);
+			tt.placeName((CharSequence)item.name(), item.ordinal(), item);
 		}
 	}
 	
@@ -161,6 +162,12 @@ public class InternalUtilsTest {
 		}
 	}
 
+	@Test
+	public void buildTest2Test() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		test2Test("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
+	}	
+	
+	
 	@Test
 	public void buildTestTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		testTest("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
@@ -372,6 +379,19 @@ public class InternalUtilsTest {
 		return InternalUtils.buildRuleBasedParserClass("MyClass"+System.currentTimeMillis(), TestType.class, root, tt, PureLibSettings.INTERNAL_LOADER, true);
 	}
 
+	private <Cargo> Class<RuleBasedParser<TestType, Cargo>> parseAndBuild2(final String source) throws SyntaxException, IOException {
+		final SyntaxNode<EntityType, SyntaxNode>	root = new SyntaxNode<>(0, 0, EntityType.Root, 0, null);
+		final char[]	content = CharUtils.terminateAndConvert2CharArray(source, '\uFFFF'); 
+		final int[]		temp = new int[2];
+		final Lexema	lex = new Lexema();
+		final Writer	wr = new StringWriter();
+		
+		Assert.assertEquals(content.length-1, InternalUtils.parse(content, InternalUtils.next(content, 0, tt, temp, lex), tt, temp, lex, root));
+		InternalUtils.printTree(root, tt, new PrintWriter(System.err));
+		
+		return InternalUtils.buildRuleBasedParser1("MyClass"+System.currentTimeMillis(), TestType.class, source, PureLibSettings.INTERNAL_LOADER, false, false);
+	}
+	
 	private void testTest(final String rule, final String trueString, final int whereTrue, final String falseString, final int whereFalse) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		SyntaxTreeInterface<Object>					sti = new AndOrTree<>();
 		Class<RuleBasedParser<TestType, Object>>	cl = parseAndBuild(rule);
@@ -381,6 +401,15 @@ public class InternalUtilsTest {
 		Assert.assertFalse(obj.test(falseString.toCharArray(), 0));
 	}
 
+	private void test2Test(final String rule, final String trueString, final int whereTrue, final String falseString, final int whereFalse) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		SyntaxTreeInterface<Object>					sti = new AndOrTree<>();
+		Class<RuleBasedParser<TestType, Object>>	cl = parseAndBuild2(rule);
+		RuleBasedParser<TestType, Object>			obj = cl.getConstructor(Class.class, SyntaxTreeInterface.class).newInstance(TestType.class, sti);
+		
+		Assert.assertTrue(obj.test(trueString.toCharArray(), 0));
+		Assert.assertFalse(obj.test(falseString.toCharArray(), 0));
+	}
+	
 	private void totalTestTest(final String rule, final String trueString, final int whereTrue, final String falseString, final int whereFalse) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		SyntaxTreeInterface<Object>					sti = new AndOrTree<>();
 		Class<RuleBasedParser<TestType, Object>>	rbpc = InternalUtils.buildRuleBasedParser("MyClass"+System.currentTimeMillis(), TestType.class, rule, PureLibSettings.INTERNAL_LOADER, true); 

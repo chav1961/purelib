@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import chav1961.purelib.basic.AndOrTree;
@@ -46,6 +47,7 @@ class InternalUtils {
 	
 	private static final SyntaxTreeInterface<Predefines>	PREDEFINED = new AndOrTree<>(1,1);
 	private static final AsmWriter		AW;
+//	private static final AsmWriter		AW2;
 	private static final AtomicInteger	AI = new AtomicInteger();
 	
 	static {
@@ -63,6 +65,17 @@ class InternalUtils {
 		} catch (IOException e) {
 			throw new PreparationException(e.getLocalizedMessage(), e);
 		}
+
+//		try{AW2 = new AsmWriter(new ByteArrayOutputStream(), new PrintWriter(System.out));
+//		
+//			try(final InputStream	is = InternalUtils.class.getResourceAsStream("ruleBasedParserMacros2.txt");
+//				final Reader		rdr = new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING)) {
+//				
+//				Utils.copyStream(rdr, AW2);
+//			}
+//		} catch (IOException e) {
+//			throw new PreparationException(e.getLocalizedMessage(), e);
+//		}
 	}
 
 	static <NodeType extends Enum<?>, Cargo> Class<RuleBasedParser<NodeType, Cargo>> buildRuleBasedParser1(final String className, final Class<NodeType> clazz, final String rule, final SimpleURLClassLoader loader, final boolean ignoreCase, final boolean addTrace) throws SyntaxException {
@@ -75,6 +88,8 @@ class InternalUtils {
 		final List<SyntaxNode<EntityType, SyntaxNode>>	rules = new ArrayList<>();
 		final GrowableCharArray<GrowableCharArray<?>>	gca = new GrowableCharArray<GrowableCharArray<?>>(false);
 		final int										unique = AI.incrementAndGet();
+		final String									packageName = className.contains(".") ? className.substring(0, className.lastIndexOf('.')) : "";
+		final String									simpleName = className.contains(".") ? className.substring(className.lastIndexOf('.') + 1) : className;
 
 		prepareKeywordsTree(clazz, items);
 		
@@ -87,23 +102,26 @@ class InternalUtils {
 			extractLexSequences(clone, lexTypes);
 			rules.add(clone);
 		}
-		buildHead(unique, gca);
-		buildTestLex(unique, rules, gca, ignoreCase);
-		buildTestSyntax(unique, rules, gca);
-		buildSkipLex(unique, rules, gca);
-		buildSkipSyntax(unique, rules, gca);
-		buildParseLex(unique, rules, gca);
-		buildParseSyntax(unique, rules, gca);
-		buildTail(unique, gca);
+		buildHead(unique, packageName, simpleName, clazz, gca);
+		buildCommonLex(unique, clazz, rules, gca, ignoreCase, addTrace);
+		buildTestSyntax(unique, clazz, rules, gca);
+		buildSkipSyntax(unique, clazz, rules, gca);
+		buildParseSyntax(unique, clazz, rules, gca);
+		buildTail(unique, simpleName, gca);
+		System.err.println("Result="+new String(gca.extract()));
 		return null;
 	}	
 
-	private static void buildHead(int unique, GrowableCharArray<GrowableCharArray<?>> gca) {
-		// TODO Auto-generated method stub
-		gca.append("BNFParser"+unique+": BNFParserHeader unique="+unique+"\n");
+	private static <NodeType extends Enum<?>> void buildHead(final int unique, final String packageName, final String simpleName, final Class<NodeType> clazz, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" printImport ruleEnum=\"").append(clazz.getCanonicalName()).append("\"");
+		if (!packageName.isEmpty()) {
+			gca.append(",package=\"").append(packageName).append("\"");
+		}
+		gca.append('\n');
+		gca.append(" BNFParserHeader unique=").append(unique).append(",ruleEnum=\"").append(clazz.getCanonicalName()).append("\",className=\"").append(simpleName).append("\"\n");
 	}
 	
-	private static void buildTestLex(final int unique, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca, final boolean ignoreCase) {
+	private static <NodeType extends Enum<?>> void buildCommonLex(final int unique, final Class<NodeType> clazz, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca, final boolean ignoreCase, final boolean traceOn) {
 		// TODO Auto-generated method stub
 		final ExtendedBitCharSet	bcs = new ExtendedBitCharSet();
 
@@ -111,8 +129,8 @@ class InternalUtils {
 		final char[]	chars = ignoreCase ? buildLowerAndUpper(bcs.toArray()) : bcs.toArray();
 		final char[]	formattedChars = toFormattedCharArray(chars);
 		
-		gca.append(" BNFParserTestLexHead unique="+unique+"\n");
-		gca.append(" BNFParserTestLexSwitch unique="+unique+",chars="+formattedChars+"\n");
+		gca.append(" BNFParserLexHead unique=").append(unique).append('\n');
+		gca.append(" BNFParserLexSwitch unique=").append(unique).append(",chars=").append(formattedChars).append('\n');
 		int seq = 0;
 		for (char symbol : chars) {
 			final List<char[]>	sequences = new ArrayList<>();
@@ -120,52 +138,157 @@ class InternalUtils {
 			collectSequences4Char(rules, symbol, sequences);
 			for(char[] item : sequences) {
 				if (ignoreCase) {
-					gca.append(" BNFParserTestLexSwitchItemIgnoreCase unique="+unique+",lowChars=\""+toFormattedStringArray(item)+"\",seq="+seq+"\n");
+					gca.append(" BNFParserLexSwitchItemIgnoreCase unique=").append(unique).append(",lowChars=\"").append(toFormattedStringArray(item))
+						.append("\",seq=").append(seq).append('\n');
 				}
 				else {
-					gca.append(" BNFParserTestLexSwitchItem unique="+unique+",chars=\""+toFormattedStringArray(item)+"\",seq="+seq+"\n");
+					gca.append(" BNFParserLexSwitchItem unique=").append(unique).append(",chars=\"").append(toFormattedStringArray(item))
+						.append("\",seq=").append(seq).append('\n');
 				}
 				seq++;
 			}
 		}
-		gca.append(" BNFParserTestLexSwitchDefault unique="+unique+"\n");
-		gca.append(" BNFParserTestLexTail unique="+unique+"\n");
+		gca.append(" BNFParserLexSwitchDefault unique=").append(unique).append('\n');
+		gca.append(" BNFParserLexTail unique=").append(unique);
+		if (traceOn) {
+			gca.append(",trace=true");
+		}
+		gca.append('\n');
 	}
 	
 	private static char[] buildLowerAndUpper(final char[] source) {
-		return source;
+		int	count = 0, displ = 0;
+		
+		for(char item : source) {
+			if (Character.isLetter(item)) {
+				count+= 2;
+			}
+			else {
+				count++;
+			}
+		}
+		if (count > source.length) {
+			final char[]	result = new char[count];
+	
+			for(char item : source) {
+				if (Character.isLetter(item)) {
+					result[displ++] = Character.toUpperCase(item);
+					result[displ++] = Character.toLowerCase(item);
+				}
+				else {
+					result[displ++] = item;
+				}
+			}
+			Arrays.sort(result);
+			return result;
+		}
+		else {
+			return source;
+		}
 	}
 
-	private static void buildTestSyntax(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
-		// TODO Auto-generated method stub
-		
+	private static <NodeType extends Enum<?>> void buildTestSyntax(final int unique, final Class<NodeType> clazz, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" BNFParserTestHead unique=").append(unique).append(",ruleEnum=\"").append(clazz.getCanonicalName()).append("\"\n");
+		gca.append(" BNFParserTestSwitch unique=").append(unique).append(",cardinality=").append(clazz.getEnumConstants().length).append('\n');
+		for(NodeType item : clazz.getEnumConstants()) {
+			gca.append(" BNFParserTestItem unique=").append(unique).append(",ordinal=").append(item.ordinal()).append('\n');
+			for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
+				if (node.getType() == item) {
+					buildTestSyntaxRule(unique, item.ordinal(), node, gca);
+				}
+			}
+		}
+		gca.append(" BNFParserTestDefault unique=").append(unique).append('\n');
+		gca.append(" BNFParserTestTail unique=").append(unique).append('\n');
+		for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
+			buildTestSyntaxRuleMethod(unique, node, gca);
+		}
 	}
 
-	private static void buildSkipLex(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
+	private static <NodeType extends Enum<?>> void buildTestSyntaxRule(final int unique, final int ordinal, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" BNFParserTestItemCall unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+	}
+
+	private static <NodeType extends Enum<?>> void buildTestSyntaxRuleMethod(final int unique, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
 		// TODO Auto-generated method stub
+		final int	ordinal = ((Enum)rule.cargo).ordinal();
 		
+		gca.append(" BNFParserTestMethodHead unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+		walkRule(rule,(node)->{});
+		gca.append(" BNFParserTestMethodTail unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
 	}
 	
-	private static void buildSkipSyntax(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
+	private static <NodeType extends Enum<?>> void buildSkipSyntax(final int unique, final Class<NodeType> clazz, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" BNFParserSkipHead unique=").append(unique).append(",ruleEnum=\"").append(clazz.getCanonicalName()).append("\"\n");
+		gca.append(" BNFParserSkipSwitch unique=").append(unique).append(",cardinality=").append(clazz.getEnumConstants().length).append('\n');
+		for(NodeType item : clazz.getEnumConstants()) {
+			gca.append(" BNFParserSkipItem unique=").append(unique).append(",ordinal=").append(item.ordinal()).append('\n');
+			for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
+				if (node.getType() == item) {
+					buildSkipSyntaxRule(unique, item.ordinal(), node, gca);
+				}
+			}
+		}
+		gca.append(" BNFParserSkipDefault unique=").append(unique).append('\n');
+		gca.append(" BNFParserSkipTail unique=").append(unique).append('\n');
+		for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
+			buildSkipSyntaxRuleMethod(unique, node, gca);
+		}
+	}
+
+	private static <NodeType extends Enum<?>> void buildSkipSyntaxRule(final int unique, final int ordinal, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" BNFParserSkipItemCall unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+	}
+
+	private static <NodeType extends Enum<?>> void buildSkipSyntaxRuleMethod(final int unique, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		final int	ordinal = ((Enum)rule.cargo).ordinal();
+		
+		gca.append(" BNFParserSkipMethodHead unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+		walkRule(rule,(node)->{});
+		gca.append(" BNFParserSkipMethodTail unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+	}
+	
+	private static <NodeType extends Enum<?>> void buildParseSyntax(final int unique, final Class<NodeType> clazz, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" BNFParserParseHead unique=").append(unique).append(",ruleEnum=\"").append(clazz.getCanonicalName()).append("\"\n");
+		gca.append(" BNFParserParseSwitch unique=").append(unique).append(",cardinality=").append(clazz.getEnumConstants().length).append('\n');
+		for(NodeType item : clazz.getEnumConstants()) {
+			gca.append(" BNFParserParseItem unique=").append(unique).append(",ordinal=").append(item.ordinal()).append('\n');
+			for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
+				if (node.getType() == item) {
+					buildParseSyntaxRule(unique, item.ordinal(), node, gca);
+				}
+			}
+		}
+		gca.append(" BNFParserParseDefault unique=").append(unique).append('\n');
+		gca.append(" BNFParserParseTail unique=").append(unique).append('\n');
+		for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
+			buildParseSyntaxRuleMethod(unique, node, gca);
+		}
+	}
+
+	private static <NodeType extends Enum<?>> void buildParseSyntaxRule(final int unique, final int ordinal, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" BNFParserParseItemCall unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+	}
+
+	private static <NodeType extends Enum<?>> void buildParseSyntaxRuleMethod(final int unique, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		// TODO Auto-generated method stub
+		final int	ordinal = ((Enum)rule.cargo).ordinal();
+		
+		gca.append(" BNFParserParseMethodHead unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+		walkRule(rule,(node)->{});
+		gca.append(" BNFParserParseMethodTail unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+	}
+	
+	private static void buildTail(final int unique, final String simpleName, final GrowableCharArray<GrowableCharArray<?>> gca) {
+		gca.append(" BNFParserTail unique=").append(unique).append(",className=\"").append(simpleName).append("\"\n");
+	}
+
+	private static void walkRule(final SyntaxNode<EntityType, SyntaxNode> rule, final Consumer<SyntaxNode<EntityType, SyntaxNode>> callback) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private static void buildParseLex(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	private static void buildParseSyntax(int unique, List<SyntaxNode<EntityType, SyntaxNode>> rules, GrowableCharArray<GrowableCharArray<?>> gca) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private static void buildTail(int unique, GrowableCharArray<GrowableCharArray<?>> gca) {
-		// TODO Auto-generated method stub
-		gca.append("BNFParser"+unique+": BNFParserTail unique="+unique+"\n");
-	}
-	
 	private static void collectChars4Switch(final List<SyntaxNode<EntityType, SyntaxNode>> rules, final BitCharSet bcs) {
 		for (SyntaxNode<EntityType, SyntaxNode> item : rules) {
 			SyntaxNodeUtils.walkDown(item, (m, n)->{
@@ -222,7 +345,7 @@ class InternalUtils {
 		}
 		result[0]='[';
 		result[result.length-1] = ']';
-		return null;
+		return result;
 	}
 
 	private static char[] toFormattedStringArray(final char[] array) {
