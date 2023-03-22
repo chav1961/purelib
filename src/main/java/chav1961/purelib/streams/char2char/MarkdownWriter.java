@@ -32,12 +32,11 @@ import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
  * this description to validate XML output</p>
  * <p>The class is not thread-safe.</p>
  * 
- * @see <a href="http://www.wikicreole.org/">Creole Wiki</a>  
+ * @see <a href="https://daringfireball.net/projects/markdown/syntax">Markdown Wiki</a>  
  * @see java.io.Writer Writer
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
- * @last.update 0.0.4
+ * @since 0.0.7
  */
 
 public class MarkdownWriter extends Writer {
