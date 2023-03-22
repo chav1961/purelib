@@ -3,8 +3,8 @@
 <xs:schema xmlns="http://www.w3.org/2000/svg" xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:xlink="http://www.w3.org/1999/xlink"
            targetNamespace="http://www.w3.org/2000/svg">
-    <xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="root://chav1961.purelib.basic.xsd.XSDConst/chav1961/purelib/basic/xsd/xlink.xsd"/>
-    <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="root://chav1961.purelib.basic.xsd.XSDConst/chav1961/purelib/basic/xsd/namespace.xsd"/>
+    <xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="SVG_full_xlink.xsd"/>
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="SVG_full_namespace.xsd"/>
 
     <!-- simpleTypes -->
     <xs:simpleType name="FontStretchType">

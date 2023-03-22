@@ -8,9 +8,12 @@ import java.util.Spliterator;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.stream.IntStream;
 
+import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.ReusableInstances;
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
 import chav1961.purelib.basic.growablearrays.GrowableShortArray.PlainSpliterator;
 import chav1961.purelib.basic.growablearrays.GrowableShortArray.SlicedSpliterator;
+import chav1961.purelib.basic.interfaces.RichAppendable;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 /**
@@ -21,16 +24,19 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 
-public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence, Appendable {
+public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence, RichAppendable {
 	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final char[]	NULL_CHAR = new char[0];
+	private static final char[]	TRUE_CHAR = "true".toCharArray();
+	private static final char[]	FALSE_CHAR = "false".toCharArray();
 	
 	private final boolean		usePlain;
 	private final int			initialSize, initialPow;
 	private final AbstractArrayContentManager<char[]>	aacm;
+	private final ReusableInstances<char[]>		chars = new ReusableInstances<>(()->new char[100]);
 	private int					filled = 0;
 	private char[]				plain = null;
 	private char[][]			sliced = null;
@@ -276,7 +282,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	}
 
 	@Override
-	public T append(final CharSequence csq) throws IOException {
+	public T append(final CharSequence csq) {
 		if (csq == null) {
 			throw new NullPointerException("Char sequence to append can't be null"); 
 		}
@@ -287,7 +293,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public T append(final CharSequence csq, final int start, final int end) throws IOException {
+	public T append(final CharSequence csq, final int start, final int end) {
 		if (csq == null) {
 			throw new NullPointerException("Char sequence to append can't be null"); 
 		}
@@ -308,6 +314,48 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 		}
 	}
 	
+	
+	@Override
+	public T append(final boolean value) {
+		append(value ? TRUE_CHAR : FALSE_CHAR);
+		return (T) this;
+	}
+
+	@Override
+	public T append(final int v) {
+		return append((long)v);
+	}
+
+	@Override
+	public T append(final long v) {
+		final char[]	temp = chars.allocate();
+		
+		try{final int	filled = CharUtils.printLong(temp, 0, v, true);
+		
+			append(temp, 0, filled);
+			return (T) this;
+		} finally {
+			chars.free(temp);
+		}
+	}
+
+	@Override
+	public T append(final float v) {
+		return append((double)v);
+	}
+
+	@Override
+	public T append(final double v) {
+		final char[]	temp = chars.allocate();
+		
+		try{final int	filled = CharUtils.printDouble(temp, 0, v, true);
+		
+			append(temp, 0, filled);
+			return (T) this;
+		} finally {
+			chars.free(temp);
+		}
+	}
 	
 	/**
 	 * <p>Read data from the given index</p>

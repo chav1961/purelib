@@ -1,27 +1,23 @@
 package chav1961.purelib.basic;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.HTML.Tag;
-import javax.swing.text.html.parser.DocumentParser;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.parser.ParserDelegator;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.util.Properties;
-
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -154,6 +150,53 @@ public class XMLUtils {
 	}
 
 	/**
+	 * <p>Validate XML content by it's XSD and load DOM</p>
+	 * @param xml XML content to validate and load
+	 * @param xsd XSD to check validation
+	 * @param logger logger facade to print error messages
+	 * @return DOM if the XML content is valid
+	 * @throws NullPointerException if any parameters are null
+	 * @throws ContentException on any validation problems
+	 * @since 0.0.7
+	 */
+	public static Document validateAndLoadXML(final InputStream xml, final URL xsd, final LoggerFacade logger) throws NullPointerException, ContentException {
+		if (xml == null) {
+			throw new NullPointerException("XML input stream can't be null");
+		}
+		else if (xsd == null) {
+			throw new NullPointerException("XSD input stream can't be null");
+		}
+		else if (logger == null) {
+			throw new NullPointerException("Logger facade can't be null");
+		}
+		else {
+			try(final LoggerFacade	tran = logger.transaction("validateAndLoadXML")) {
+				final DocumentBuilderFactory 	dbf = DocumentBuilderFactory.newInstance();
+			
+				dbf.setNamespaceAware(true);
+				dbf.setValidating(true);
+				dbf.setAttribute(XSDConst.SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
+				dbf.setAttribute(XSDConst.SCHEMA_SOURCE, xsd.toString());
+				
+			    final DocumentBuilder 			db = dbf.newDocumentBuilder();
+			    
+			    db.setErrorHandler(new ErrorHandler() {
+					@Override public void warning(SAXParseException exception) throws SAXException {logger.message(Severity.warning,exception.toString());}
+					@Override public void error(SAXParseException exception) throws SAXException {logger.message(Severity.error,exception.toString()); throw exception;}
+					@Override public void fatalError(SAXParseException exception) throws SAXException {logger.message(Severity.severe,exception.toString()); throw exception;}
+					}
+			    );
+			    final Document	doc = db.parse(new InputSource(xml));
+			    
+			    tran.rollback();
+	            return doc;
+	        } catch (IOException | SAXException | ParserConfigurationException e) {
+	            throw new ContentException(e.getLocalizedMessage(),e);
+	        }			
+		}
+	}
+	
+	/**
 	 * <p>Parse html stream and build XML document</p>
 	 * @param html html stream to parse. Can't be null
 	 * @param logger logger to print errors. Can't be null
@@ -198,6 +241,22 @@ public class XMLUtils {
 		}
 		else {
 			return Utils.class.getResourceAsStream("xsd/"+item+".xsd");
+		}
+	}
+
+	/**
+	 * <p>Get XSD from purelib XSD collection.</p> 
+	 * @param item xsd type to get
+	 * @return content of the XSD
+	 * @throws NullPointerException if item is null
+	 * @since 0.0.7
+	 */
+	public static URL getPurelibXSDURL(final XSDCollection item) throws NullPointerException {
+		if (item == null) {
+			throw new NullPointerException("XSD connection item can't be null");
+		}
+		else {
+			return Utils.class.getResource("xsd/"+item+".xsd");
 		}
 	}
 	
