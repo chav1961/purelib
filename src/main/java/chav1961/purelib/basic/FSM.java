@@ -186,7 +186,7 @@ public class FSM<Terminal extends Enum<?>,NonTerminal extends Enum<?>,Exit exten
 	}
 	
 	/**
-	 * <p>Change current state if the FSM without calling any actions</p>
+	 * <p>Change current state in the FSM without calling any actions</p>
 	 * @param state state to set. Can't be null
 	 * @since 0.0.6
 	 */
