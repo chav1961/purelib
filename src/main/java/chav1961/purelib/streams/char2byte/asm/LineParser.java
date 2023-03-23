@@ -459,6 +459,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private final long									longArray[] = new long[2];	// Temporary arrays to use in different calls
 	private final int									intArray[] = new int[2];
 	private final short									shortArray[] = new short[2];
+	private final boolean								printAssembler;
+	private final boolean								printExpandedMacros;
 	
 	private ParserState									state = ParserState.beforePackage;
 	private long										packageId = -1;
@@ -505,6 +507,8 @@ class LineParser implements LineByLineProcessorCallback {
 		this.methodHandlesLookupId = tree.placeOrChangeName(METHODHANDLESLOOKUP,0,METHODHANDLESLOOKUP.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 		this.stringId = tree.placeOrChangeName(STRING,0,STRING.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 		this.methodTypeId = tree.placeOrChangeName(METHODTYPE,0,METHODTYPE.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
+		this.printAssembler = !PureLibSettings.instance().getProperty(PureLibSettings.SUPPRESS_PRINT_ASSEMBLER,boolean.class,"true") && diagnostics != null;
+		this.printExpandedMacros = printAssembler && PureLibSettings.instance().getProperty(PureLibSettings.PRINT_EXPANDED_MACROS,boolean.class,"false");		
 	}
 	
 	@Override
@@ -513,8 +517,8 @@ class LineParser implements LineByLineProcessorCallback {
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 
-		if (diagnostics != null && !PureLibSettings.instance().getProperty(PureLibSettings.SUPPRESS_PRINT_ASSEMBLER,boolean.class,"true")) {
-			diagnostics.write("\t"+new String(data,from,len));
+		if (printAssembler) {
+			printDiagnostics('\t'+new String(data,from,len));
 		}
 		
 		try{
@@ -917,12 +921,13 @@ class LineParser implements LineByLineProcessorCallback {
 						final Macros	m = macros.getCargo(macroId);
 						
 						nestingDepth++;
-						try(final LineByLineProcessor	lbl = new LineByLineProcessor(diagnostics != null && PureLibSettings.instance().getProperty(PureLibSettings.PRINT_EXPANDED_MACROS,boolean.class,"false") 
+						try(final LineByLineProcessor	lbl = new LineByLineProcessor(printExpandedMacros
 																? new LineByLineProcessorCallback(){
 																		@Override
 																		public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-																			diagnostics.write("\t> "+new String(data,from,length));
-																			try{LineParser.this.processLine(displacement,lineNo, data, from, len);
+																			printDiagnostics("\n\t> "+new String(data,from,length));
+																			try{
+																				LineParser.this.processLine(displacement,lineNo, data, from, len);
 																			} catch (Exception  exc) {
 																				diagnostics.flush();
 																				throw exc;
@@ -2628,6 +2633,17 @@ class LineParser implements LineByLineProcessorCallback {
 						return UnsafedCharUtils.uncheckedParseLongExtended(data,start,result,true);
 					case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 						return UnsafedCharUtils.uncheckedParseLong(data,start,result,true);
+					case '\'' : 
+						char[]		charValue = new char[1];
+						start = UnsafedCharUtils.uncheckedParseEscapedChar(data, start + 1, charValue);
+						
+						if (data[start] == '\'') {
+							result[0] = charValue[0];
+							return start + 1;
+						}
+						else {
+							throw new ContentException("Unclosed '\'' in the expression");
+						}
 					case '(' :
 						if (data[start = InternalUtils.skipBlank(data,calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.additional,result))]==')') {
 							return InternalUtils.skipBlank(data,start+1);
@@ -2966,6 +2982,12 @@ class LineParser implements LineByLineProcessorCallback {
 		return new String(result);
 	}
 
+	protected synchronized void printDiagnostics(final String text) throws IOException {
+		if (diagnostics != null && printAssembler) {
+			diagnostics.write(text);
+		}
+	}
+	
 	private static class EntityDescriptor {
 		public short			options;
 		public short			specialFlags;

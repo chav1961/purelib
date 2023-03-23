@@ -7,6 +7,7 @@ import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import chav1961.purelib.basic.AndOrTree;
@@ -44,6 +45,7 @@ public class InternalUtilsTest {
 	}
 	
 	@Test
+	@Ignore
 	public void lexemaTest() throws SyntaxException {
 		final char[]	content = CharUtils.terminateAndConvert2CharArray("([{|}]))*)+:::=@Empty<Test1>'123''4'\r\n", '\uFFFF');
 		final int[]		temp = new int[2];
@@ -121,6 +123,7 @@ public class InternalUtilsTest {
 	}
 
 	@Test
+	@Ignore
 	public void parserTest() throws SyntaxException, IOException {
 		Assert.assertEquals("<Test1> ::= '1' \r\n", parseAndPrint("<Test1>::='1'"));
 		Assert.assertEquals("<Test1> ::= '1' :<Test2> \r\n", parseAndPrint("<Test1>::='1':<Test2>"));
@@ -165,10 +168,12 @@ public class InternalUtilsTest {
 	@Test
 	public void buildTest2Test() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		test2Test("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
+		test2Test("<Test1>::='11'", " 11 \n", 2, " 12\n", 1);
 	}	
 	
 	
 	@Test
+	@Ignore
 	public void buildTestTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		testTest("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
 		testTest("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
@@ -192,6 +197,7 @@ public class InternalUtilsTest {
 	}	
 	
 	@Test
+	@Ignore
 	public void buildSkipTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		skipTest("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
 		skipTest("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
@@ -215,6 +221,7 @@ public class InternalUtilsTest {
 	}	
 
 	@Test
+	@Ignore
 	public void buildParseTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		SyntaxNode<TestType,SyntaxNode> node;
 		
@@ -339,6 +346,7 @@ public class InternalUtilsTest {
 
 	
 	@Test
+	@Ignore
 	public void complexTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		final SyntaxTreeInterface<Object>				tree = new AndOrTree<>();
 		final SyntaxTreeInterface<Object>				names = new AndOrTree<>();

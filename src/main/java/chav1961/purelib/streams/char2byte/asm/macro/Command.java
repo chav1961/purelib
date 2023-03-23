@@ -495,26 +495,28 @@ class ForEachCommand extends LoopCommand {
 				parameters[1] = parameters[0];
 
 				from = InternalUtils.skipBlank(data,from);
-				if (!UnsafedCharUtils.uncheckedCompare(data,from,SPLITTED,0,SPLITTED.length)) {
-					throw new SyntaxException(lineNo,from-begin,"Missing 'splitted'!");  
-				}
-				else {
-					from += SPLITTED.length - 1;
-				}
-				from = InternalUtils.skipBlank(data,from);
-				if (!UnsafedCharUtils.uncheckedCompare(data,from,BY,0,BY.length)) {
-					throw new SyntaxException(lineNo,from-begin,"Missing 'by'!");  
-				}
-				else {
-					from += BY.length - 1;
-				}
 				
-				from = InternalUtils.parseExpression(InternalUtils.ORDER_CAT,lineNo,data,begin,InternalUtils.skipBlank(data,from+1),macro,parameters);
-				if (parameters[0].getValueType() != ExpressionNodeValue.STRING) {
-					throw new SyntaxException(lineNo,from-begin,"Splitter value must be string!");  
+				if (UnsafedCharUtils.uncheckedCompare(data,from,SPLITTED,0,SPLITTED.length)) {
+					from += SPLITTED.length - 1;
+					from = InternalUtils.skipBlank(data,from);
+					if (!UnsafedCharUtils.uncheckedCompare(data,from,BY,0,BY.length)) {
+						throw new SyntaxException(lineNo,from-begin,"Missing 'by'!");  
+					}
+					else {
+						from += BY.length - 1;
+					}
+					
+					from = InternalUtils.parseExpression(InternalUtils.ORDER_CAT,lineNo,data,begin,InternalUtils.skipBlank(data,from+1),macro,parameters);
+					if (parameters[0].getValueType() != ExpressionNodeValue.STRING) {
+						throw new SyntaxException(lineNo,from-begin,"Splitter value must be string!");  
+					}
+					parameters[2] = parameters[0];
+					parameters[0] = var;
 				}
-				parameters[2] = parameters[0];
-				parameters[0] = var;
+				else {
+					parameters[2] = new ConstantNode(new char[0]);
+					parameters[0] = var;
+				}
 				return this;
 			}
 		} catch (IllegalArgumentException exc) {

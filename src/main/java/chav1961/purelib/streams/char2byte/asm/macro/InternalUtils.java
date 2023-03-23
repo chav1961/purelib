@@ -327,9 +327,30 @@ class InternalUtils {
 				} while (data[from] == ',');
 				
 				if (data[from] == '}') {
-					result[0] = new ConstantNode(itemList.isEmpty() ? (convert2PreferredType ? preferredType : ExpressionNodeValue.STRING_ARRAY) 
-												: ExpressionNodeValue.arrayByType(itemList.get(0).getValueType())
-												, itemList.size());
+					final ExpressionNodeValue	arrayValueType = itemList.isEmpty() 
+																? (convert2PreferredType ? preferredType : ExpressionNodeValue.STRING_ARRAY) 
+																: ExpressionNodeValue.arrayByType(itemList.get(0).getValueType());
+					final ExpressionNodeValue	valueType = ExpressionNodeValue.typeByArray(arrayValueType);
+					
+					result[0] = new ConstantNode(arrayValueType, itemList.size());
+					for (int index = 0; index < itemList.size(); index++) {
+						switch (valueType) {
+							case BOOLEAN	:
+								result[0].getBooleanContent()[index] = itemList.get(index).getBoolean();
+								break;
+							case INTEGER	:
+								result[0].getLongContent()[index] = itemList.get(index).getLong();
+								break;
+							case REAL		:
+								result[0].getDoubleContent()[index] = itemList.get(index).getDouble();
+								break;
+							case STRING		:
+								result[0].getStringContent()[index] = itemList.get(index).getString();
+								break;
+							default :
+								throw new UnsupportedOperationException("Value type ["+arrayValueType+"] is not supported yet");
+						}
+					}
 					from++;
 				}
 				else {

@@ -389,8 +389,15 @@ class ConstantNode extends ExpressionNode {
 				else {
 					throw new CalculationException("Attempt to get size of null"); 
 				}
+			case STRING:
+				if (stringValue != null) {
+					return stringValue.length; 
+				}
+				else {
+					throw new CalculationException("Attempt to get size of null"); 
+				}
 			default:
-				throw new CalculationException("Attempt to get size of non-array or null value"); 
+				throw new CalculationException("Attempt to get size of non-array, non-string or null value"); 
 		}
 	}
 	
@@ -2159,9 +2166,10 @@ class FuncToIntNode extends FuncNode {
 																UnsafedCharUtils.uncheckedParseLong(list[0].getString(),0,temp,true);
 																return temp[0];
 															} catch (SyntaxException e) {
-																throw new CalculationException("Error converting string to long: "+e.getLocalizedMessage());
+																throw new CalculationException("Error converting string to long: "+e.getLocalizedMessage(), e);
 															}
-														case BOOLEAN	: throw new CalculationException("Boolean value can't be converted to integer!");
+														case BOOLEAN	: 
+															throw new CalculationException("Boolean value can't be converted to integer!");
 														default : throw new UnsupportedOperationException("Value type to convert ["+list[0].getValueType()+"] is not supported yet");
 													}
 												}

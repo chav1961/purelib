@@ -3434,7 +3434,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 		private OrdinalCharSequence(final char content) {
 			this.content = new char[] {content};
 			this.from = 0;
-			this.to = 1;
+			this.to = 0;
 		}
     	
     	

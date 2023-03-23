@@ -100,32 +100,32 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 	private static final AssignWithConversion[][]	CONV_TABLE;
 	
 	static {
-		COMMANDS.placeName(".break",CMD_BREAK,null);
-		COMMANDS.placeName(".choise",CMD_CHOISE,null);
-		COMMANDS.placeName(".continue",CMD_CONTINUE,null);
-		COMMANDS.placeName(".else",CMD_ELSE,null);
-		COMMANDS.placeName(".elseif",CMD_ELSEIF,null);
-		COMMANDS.placeName(".endchoise",CMD_ENDCHOISE,null);
-		COMMANDS.placeName(".endfor",CMD_ENDFOR,null);
-		COMMANDS.placeName(".endforall",CMD_ENDFOR_ALL,null);
-		COMMANDS.placeName(".endif",CMD_ENDIF,null);
-		COMMANDS.placeName(".endwhile",CMD_ENDWHILE,null);
-		COMMANDS.placeName(".exit",CMD_EXIT,null);
-		COMMANDS.placeName(".for",CMD_FOR,null);
-		COMMANDS.placeName(".forall",CMD_FOR_ALL,null);
-		COMMANDS.placeName(".if",CMD_IF,null);
-		COMMANDS.placeName("in",CMD_IN,null);
-		COMMANDS.placeName(".macro",CMD_MACRO,null);
-		COMMANDS.placeName(".mend",CMD_MEND,null);
-		COMMANDS.placeName(".error",CMD_ERROR,null);
-		COMMANDS.placeName(".local",CMD_LOCAL,null);
-		COMMANDS.placeName(".of",CMD_OF,null);
-		COMMANDS.placeName(".otherwise",CMD_OTHERWISE,null);
-		COMMANDS.placeName(".set",CMD_SET,null);
-		COMMANDS.placeName(".setindex",CMD_SET_INDEX,null);
-		COMMANDS.placeName("step",CMD_STEP,null);
-		COMMANDS.placeName("to",CMD_TO,null);
-		COMMANDS.placeName(".while",CMD_WHILE,null);
+		COMMANDS.placeName((CharSequence)".break",CMD_BREAK,null);
+		COMMANDS.placeName((CharSequence)".choise",CMD_CHOISE,null);
+		COMMANDS.placeName((CharSequence)".continue",CMD_CONTINUE,null);
+		COMMANDS.placeName((CharSequence)".else",CMD_ELSE,null);
+		COMMANDS.placeName((CharSequence)".elseif",CMD_ELSEIF,null);
+		COMMANDS.placeName((CharSequence)".endchoise",CMD_ENDCHOISE,null);
+		COMMANDS.placeName((CharSequence)".endfor",CMD_ENDFOR,null);
+		COMMANDS.placeName((CharSequence)".endforall",CMD_ENDFOR_ALL,null);
+		COMMANDS.placeName((CharSequence)".endif",CMD_ENDIF,null);
+		COMMANDS.placeName((CharSequence)".endwhile",CMD_ENDWHILE,null);
+		COMMANDS.placeName((CharSequence)".exit",CMD_EXIT,null);
+		COMMANDS.placeName((CharSequence)".for",CMD_FOR,null);
+		COMMANDS.placeName((CharSequence)".forall",CMD_FOR_ALL,null);
+		COMMANDS.placeName((CharSequence)".if",CMD_IF,null);
+		COMMANDS.placeName((CharSequence)"in",CMD_IN,null);
+		COMMANDS.placeName((CharSequence)".macro",CMD_MACRO,null);
+		COMMANDS.placeName((CharSequence)".mend",CMD_MEND,null);
+		COMMANDS.placeName((CharSequence)".error",CMD_ERROR,null);
+		COMMANDS.placeName((CharSequence)".local",CMD_LOCAL,null);
+		COMMANDS.placeName((CharSequence)".of",CMD_OF,null);
+		COMMANDS.placeName((CharSequence)".otherwise",CMD_OTHERWISE,null);
+		COMMANDS.placeName((CharSequence)".set",CMD_SET,null);
+		COMMANDS.placeName((CharSequence)".setindex",CMD_SET_INDEX,null);
+		COMMANDS.placeName((CharSequence)"step",CMD_STEP,null);
+		COMMANDS.placeName((CharSequence)"to",CMD_TO,null);
+		COMMANDS.placeName((CharSequence)".while",CMD_WHILE,null);
 		
 		CONV_TABLE = new AssignWithConversion[ExpressionNodeValue.class.getEnumConstants().length][ExpressionNodeValue.class.getEnumConstants().length];
 		
@@ -838,9 +838,9 @@ public class Macros implements LineByLineProcessorCallback, Closeable {
 		final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
 		
 		try{exec.exec(cmd.getDeclarations(),gca);
-		} catch (CalculationException exc) {
+		} catch (CalculationException | RuntimeException exc) {
 //			final MacroCommand		cmd1 = parseCall(lineNo,data,from,length);
-//			exc.printStackTrace();
+			exc.printStackTrace();
 			throw new IOException("Macro "+new String(cmd.getName())+": "+exc.getLocalizedMessage()); 
 		}
 		return gca.getReader();

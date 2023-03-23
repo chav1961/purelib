@@ -163,7 +163,7 @@ public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
 			throw new NullPointerException("Output stream can't be null"); 
 		}
 		else if (diagnostics == null) {
-			throw new NullPointerException("DIagnostics stream can't be null"); 
+			throw new NullPointerException("Diagnostics stream can't be null"); 
 		}
 		else {
 			this.owner = owner;

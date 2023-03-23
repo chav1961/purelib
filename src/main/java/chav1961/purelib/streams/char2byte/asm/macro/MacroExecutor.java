@@ -153,8 +153,16 @@ public abstract class MacroExecutor implements MacroExecutorInterface {
 		if (source == null) {
 			throw new CalculationException("Attempt to split null string");
 		}
-		else if (splitter == null || splitter.length == 0) {
-			throw new CalculationException("Attempt to use null or empty splitter");
+		else if (splitter == null) {
+			throw new CalculationException("Attempt to use null splitter");
+		}
+		else if (splitter.length == 0) {
+			final char[][]	result = new char[source.length][];
+			
+			for(int index = 0; index < result.length; index++) {
+				result[index] = new char[] {source[index]};
+			}
+			return result;
 		}
 		else {
 			final int	symbol = splitter[0];

@@ -455,9 +455,6 @@ public class MacroCompiler {
 	
 	static void compileExpression(final ExpressionNode node, final Storage storage, final AssemblerTemplateRepo repo, final NameKeeper callback, final GrowableCharArray<?> writer, final int trueLabel, final int falseLabel) throws CalculationException {
 		try(final NameKeeper	current = callback.push()) {
-			if (node == null) {
-				int x = 0;
-			}
 			switch (node.getType()) {
 				case CONSTANT				:
 					buildConstant(node, storage, repo, callback, writer, trueLabel, falseLabel);

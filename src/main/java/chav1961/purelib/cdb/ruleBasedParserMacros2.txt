@@ -7,6 +7,7 @@ printImports		.macro	package:str=,ruleEnum:str=
 			.package	&package
 		.endif
 		.import	chav1961.purelib.basic.interfaces.SyntaxTreeInterface
+		.import	chav1961.purelib.basic.exceptions.SyntaxException
 		.import	chav1961.purelib.basic.CharUtils
 		.import	chav1961.purelib.cdb.SyntaxNode
 		.import	chav1961.purelib.cdb.interfaces.RuleBasedParser
@@ -21,13 +22,22 @@ printImports		.macro	package:str=,ruleEnum:str=
 ;		Print header for the parser 
 ; -------------------------------------------------------------------------
 
-BNFParserHeader		.macro unique:int=,ruleEnum:str=,className:str=
+BNFParserHeader		.macro unique:int=,ruleEnum:str=,className:str=,predefs:int=0
 		.if		!exists(className)
 			.error		"mandatory parameter 'className' is missing"
 		.else
 			.source	"&className"
 			.line	auto
-&className	.class	public extends chav1961.purelib.cdb.AbstractBNFParser2 implements chav1961.purelib.cdb.interfaces.RuleBasedParser  
+&className	.class		public extends chav1961.purelib.cdb.AbstractBNFParser2 implements chav1961.purelib.cdb.interfaces.RuleBasedParser
+&className	.method		void public
+clazz		.parameter	java.lang.Class final 
+tree		.parameter	chav1961.purelib.basic.interfaces.SyntaxTreeInterface final
+			.stack		optimistic
+			aload		this
+			ldc			&predefs
+			invokespecial	chav1961.purelib.cdb.AbstractBNFParser2.<init>(I)V
+			return
+&className	.end			
 		.endif
 		.mend
 		
@@ -39,13 +49,13 @@ BNFParserLexHead	.macro unique:int=,className:str=
 		.if		!exists(className)
 			.error		"mandatory parameter 'className' is missing"
 		.else
-nextLexema:		.method	int protected
-this			.parameter &className final
+nextLexema		.method		int protected
 content			.parameter char[] final
 from			.parameter int
-				.stack	optimistic
+				.stack		optimistic
+				aload		this
 				iload		from
-				putfield	prevFrom
+				putfield	chav1961.purelib.cdb.AbstractBNFParser2.prevFrom
 				aload		this
 				aload		content
 				iload		from
@@ -53,7 +63,7 @@ from			.parameter int
 				istore		from
 				aload		content
 				iload		from
-				iaload
+				caload
 		.endif
 		.mend
 
@@ -67,11 +77,11 @@ index			.local	int
 		.if		!exists(chars)
 			.error		"mandatory parameter 'chars' is missing"
 		.else
-			.tableswitch
-				.for	index = 0 to chars.length
-					'&chars[index]' : label&index 
-				.next
-				.default : standard
+			lookupswitch
+				.for	index = 0 to len(chars)-1
+					'&chars[index]',label&index 
+				.endfor
+				.default standard
 			.end
 		.endif				
 		.mend
@@ -80,8 +90,57 @@ index			.local	int
 ;		Print switch item for lexical parser 
 ; -------------------------------------------------------------------------
 
-BNFParserLexSwitchItem	.macro unique:int=,chars:str=,seq:int=
-label&seq: 		
+BNFParserLexSwitchItem	.macro unique:int=,chars:str=,seq:int=,lexType:int=,inline:bool=true
+lenChar			.local	int
+curChar			.local	str
+
+		.if		!exists(chars)
+			.error		"mandatory parameter 'chars' is missing"
+		.elseif	!exists(seq)
+			.error		"mandatory parameter 'seq' is missing"
+		.elseif	!exists(lexType)
+			.error		"mandatory parameter 'lexType' is missing"
+		.elseif len(chars) > 1
+			.if	inline
+label&seq:		
+lenChar			.set	0
+				.forall	curChar in chars
+					aload	content
+					iload	from
+					ldc		&lenChar
+					iadd
+					caload
+					ldc		'&curChar'
+					if_icmpne	standard
+lenChar				.set	lenChar+1
+				.endforall
+lenChar			.set	len(chars)
+				aload		this
+				ldc			&lexType
+				putfield	chav1961.purelib.cdb.AbstractBNFParser2.lexType
+				iinc		from,&lenChar
+				goto		exitLex
+			.else
+lenChar			.set	len(chars)
+label&seq:		aload		this
+				aload		content
+				iload		from
+				ldc			"&chars"
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.compareTo([CILjava/lang/String;)Z
+				ifeq		standard
+				aload		this
+				ldc			&lexType
+				putfield	chav1961.purelib.cdb.AbstractBNFParser2.lexType
+				iinc		from,&lenChar
+				goto		exitLex
+			.endif
+		.else 		
+label&seq:		aload		this
+				ldc			&lexType
+				putfield	chav1961.purelib.cdb.AbstractBNFParser2.lexType
+				iinc		from,1
+				goto		exitLex
+		.endif
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -89,7 +148,7 @@ label&seq:
 ; -------------------------------------------------------------------------
 
 BNFParserLexSwitchDefault	.macro unique:int=
-				aload		this
+standard:		aload		this
 				aload		content
 				iload		from
 				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.nextLexemaPredef([CI)I
@@ -101,6 +160,7 @@ BNFParserLexSwitchDefault	.macro unique:int=
 ; -------------------------------------------------------------------------
 
 BNFParserLexTail	.macro unique:int=,trace:bool=false
+exitLex:
 			.if	trace
 				aload		this
 				aload		content
@@ -109,9 +169,214 @@ BNFParserLexTail	.macro unique:int=,trace:bool=false
 			.endif
 				iload	from
 				ireturn
-nextLexema:		.end
+nextLexema		.end
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method head for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserTestHead		.macro	unique:int=,ruleEnum:str=
+test			.method	void private	
+				.stack	optimistic
 		.mend
 		
+; -------------------------------------------------------------------------
+;		Print test method switch for the parser 
+; -------------------------------------------------------------------------
+		
+BNFParserTestSwitch 	.macro	unique:int=,cardinality:int=
+				nop
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print test method switch item for the parser 
+; -------------------------------------------------------------------------
+		
+BNFParserTestItem 		.macro	unique:int=,ordinal:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method switch item default for the parser 
+; -------------------------------------------------------------------------
+		
+BNFParserTestDefault 	.macro	unique:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method tail for the parser 
+; -------------------------------------------------------------------------
+		
+BNFParserTestTail 		.macro	unique:int=
+				return
+test			.end				
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule call for the parser 
+; -------------------------------------------------------------------------
+		
+BNFParserTestItemCall 	.macro	unique:int=,ordinal:int=
+				return
+		.mend
+		
+		
+; -------------------------------------------------------------------------
+;		Print test method rule header for the parser 
+; -------------------------------------------------------------------------
+		
+BNFParserTestMethodHead	.macro	unique:int=,ordinal:int=
+x				.method 	void private
+				.stack		optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserTestMethodTail	.macro	unique:int=,ordinal:int=
+				return
+x				.end				
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipHead 		.macro	unique:int=,ruleEnum:str=
+skip			.method	void private	
+				.stack	optimistic
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipSwitch 	.macro	unique:str=,cardinality:str=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipItem 		.macro	unique:int=,ordinal:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipDefault 	.macro	unique:int=
+				nop
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipTail 		.macro	unique:int=
+				return
+skip			.end				
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipItemCall 	.macro	unique:int=,ordinal:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipMethodHead	.macro	unique:int=,ordinal:int=
+xS				.method 	void private
+				.stack		optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print skip method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserSkipMethodTail	.macro	unique:int=,ordinal:int=
+				return
+xS				.end				
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print parse method head for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseHead 		.macro	unique:int=,ruleEnum:str=
+parse			.method	void private
+				.stack	optimistic
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print parse method switch for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseSwitch 	.macro	unique:int=,cardinality:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print parse method switch item for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseItem 		.macro	unique:int=,ordinal:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print parse method default for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseDefault 	.macro	unique:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print parse method tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseTail 		.macro	unique:int=
+				return
+parse			.end				
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print parse method call for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseItemCall 	.macro	unique:int=,ordinal:str=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print parse method rule head for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseMethodHead	.macro	unique:int=,ordinal:int=
+xP					.method	void private
+					.stack	optimistic
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print parse method rule tail for the parser 
+; -------------------------------------------------------------------------
+
+BNFParserParseMethodTail 	.macro	unique:int=,ordinal:int=
+					return
+xP					.end					
+		.mend
+
 ; -------------------------------------------------------------------------
 ;		Print tail for the parser 
 ; -------------------------------------------------------------------------
