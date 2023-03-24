@@ -78,7 +78,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public final class PureLibSettings {
@@ -173,12 +173,42 @@ public final class PureLibSettings {
 	/**
 	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
 	 */
-	public static final String		SUPPRESS_PRINT_ASSEMBLER = "purelib.settings.assembler.printSuppress";
+	public static final String		SUPPRESS_PRINT_ASSEMBLER = "purelib.settings.assembler.print.suppress";
 	
 	/**
 	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
 	 */
-	public static final String		PRINT_EXPANDED_MACROS = "purelib.settings.macros.printExpanded";
+	public static final String		PRINT_ASSEMBLER_LINES = "purelib.settings.assembler.print.lines";
+
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
+	 */
+	public static final String		PRINT_ASSEMBLER_ADDRESS = "purelib.settings.assembler.print.address";
+	
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
+	 */
+	public static final String		PRINT_ASSEMBLER_CODE = "purelib.settings.assembler.print.code";
+	
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
+	 */
+	public static final String		PRINT_ASSEMBLER_SOURCE = "purelib.settings.assembler.print.source";
+	
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
+	 */
+	public static final String		PRINT_ASSEMBLER_MACROS = "purelib.settings.assembler.print.macros";
+	
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
+	 */
+	public static final String		PRINT_ASSEMBLER_TOTALS = "purelib.settings.assembler.print.totals";
+	
+	/**
+	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p>
+	 */
+	public static final String		PRINT_EXPANDED_MACROS = "purelib.settings.assembler.print.expanded.macros";
 
 	/**
 	 * <p>This is a key to "Print expanded macros of the AsmWriter" for debugging purposes. Default for the given property is <b>false</b></p> 
@@ -209,6 +239,11 @@ public final class PureLibSettings {
 	 * <p>Predefined MIMEs in the Pure Library: MIME for CREOLE text</p>
 	 */
 	public static final MimeType	MIME_CREOLE_TEXT = buildMime("text","x-wiki.creole");
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for MARKDOWN text</p>
+	 */
+	public static final MimeType	MIME_MARKDOWN_TEXT = buildMime("text","markdown");
 
 	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for HTML text</p>
