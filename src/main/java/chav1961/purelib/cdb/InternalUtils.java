@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -106,7 +107,7 @@ class InternalUtils {
 		}
 		buildHead(unique, packageName, simpleName, clazz, predefMask, gca);
 		buildCommonLex(unique, simpleName, clazz, rules, lexTypes, gca, ignoreCase, addTrace);
-		buildTestSyntax(unique, clazz, rules, gca);
+		buildTestSyntax(unique, clazz, rules, items, gca);
 		buildSkipSyntax(unique, clazz, rules, gca);
 		buildParseSyntax(unique, clazz, rules, gca);
 		buildTail(unique, simpleName, gca);
@@ -235,35 +236,97 @@ class InternalUtils {
 		}
 	}
 	
-	private static <NodeType extends Enum<?>> void buildTestSyntax(final int unique, final Class<NodeType> clazz, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca) {
+	private static <NodeType extends Enum<?>> void buildTestSyntax(final int unique, final Class<NodeType> clazz, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final SyntaxTreeInterface<NodeType> items, final GrowableCharArray<GrowableCharArray<?>> gca) {
 		gca.append(" BNFParserTestHead unique=").append(unique).append(",ruleEnum=\"").append(clazz.getCanonicalName()).append("\"\n");
 		gca.append(" BNFParserTestSwitch unique=").append(unique).append(",cardinality=").append(clazz.getEnumConstants().length).append('\n');
 		for(NodeType item : clazz.getEnumConstants()) {
 			gca.append(" BNFParserTestItem unique=").append(unique).append(",ordinal=").append(item.ordinal()).append('\n');
-			for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
-				if (node.getType() == item) {
-					buildTestSyntaxRule(unique, item.ordinal(), node, gca);
-				}
-			}
 		}
 		gca.append(" BNFParserTestDefault unique=").append(unique).append('\n');
 		gca.append(" BNFParserTestTail unique=").append(unique).append('\n');
 		for (SyntaxNode<EntityType, SyntaxNode> node : rules) {
-			buildTestSyntaxRuleMethod(unique, node, gca);
+			buildTestSyntaxRuleMethod(unique, node, items, gca);
 		}
 	}
 
-	private static <NodeType extends Enum<?>> void buildTestSyntaxRule(final int unique, final int ordinal, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
-		gca.append(" BNFParserTestItemCall unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
-	}
-
-	private static <NodeType extends Enum<?>> void buildTestSyntaxRuleMethod(final int unique, final SyntaxNode<EntityType, SyntaxNode> rule, final GrowableCharArray<GrowableCharArray<?>> gca) {
+	private static <NodeType extends Enum<?>> void buildTestSyntaxRuleMethod(final int unique, final SyntaxNode<EntityType, SyntaxNode> rule, final SyntaxTreeInterface<NodeType> items, final GrowableCharArray<GrowableCharArray<?>> gca) {
 		// TODO Auto-generated method stub
-		final int	ordinal = ((Enum)rule.cargo).ordinal();
+		final int			ordinal = ((Enum)rule.cargo).ordinal();
+		final Writer		wr = new PrintWriter(System.err);
+		final List<Integer>	uniqueStack = new ArrayList<>();
+		final AtomicInteger	uniqueLabel = new AtomicInteger();
 		
 		gca.append(" BNFParserTestMethodHead unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
-		walkRule(rule,(node)->{});
-		gca.append(" BNFParserTestMethodTail unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
+		uniqueStack.add(0,uniqueLabel.incrementAndGet());
+		SyntaxNodeUtils.walkDown(rule, (mode, node)->{
+			if (mode == NodeEnterMode.ENTER) {
+				switch (node.getType()) {
+					case Case		:
+						uniqueStack.add(0,uniqueLabel.incrementAndGet());
+						gca.append(" BNFParserTestCaseBefore unique=").append(unique).append(",trueJump=").append(uniqueStack.get(1)).append('\n');
+						break;
+					case Sequence : case Char :
+						gca.append(" BNFParserTestChar unique=").append(unique).append(",lexType=").append(node.value).append(",falseJump=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Name		:
+						break;
+					case Option		:
+						uniqueStack.add(0,uniqueLabel.incrementAndGet());
+						gca.append(" BNFParserTestOptionBefore unique=").append(unique).append(",falseJump=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Predefined	:
+						gca.append(" BNFParserTestChar unique=").append(unique).append(",lexType=").append(-1-((Predefines)node.cargo).ordinal()).append(",falseJump=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Repeat		:
+						uniqueStack.add(0,uniqueLabel.incrementAndGet());
+						gca.append(" BNFParserTestRepeatBefore unique=").append(unique).append(",falseJump=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Repeat1	:
+						uniqueStack.add(0,uniqueLabel.incrementAndGet());
+						gca.append(" BNFParserTestRepeat1Before unique=").append(unique).append(",falseJump=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Root		:
+						break;
+					case Switch		:
+						uniqueStack.add(0,uniqueLabel.incrementAndGet());
+						gca.append(" BNFParserTestSwitchBefore unique=").append(unique).append(",trueJump=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Rule : case Detected :
+						break;
+					default:
+						throw new UnsupportedOperationException("Node type ["+node.getType()+"] is not supported yet"); 
+				}
+			}
+			else {
+				switch (node.getType()) {
+					case Case		:
+						gca.append(" BNFParserTestCaseAfter unique=").append(unique).append(",trueJump=").append(uniqueStack.remove(0)).append(",falseJumpTotal=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Name		:
+						break;
+					case Option		:
+						gca.append(" BNFParserTestOptionAfter unique=").append(unique).append(",falseJump=").append(uniqueStack.remove(0)).append('\n');
+						break;
+					case Repeat		:
+						gca.append(" BNFParserTestRepeatAfter unique=").append(unique).append(",falseJump=").append(uniqueStack.remove(0)).append('\n');
+						break;
+					case Repeat1	:
+						gca.append(" BNFParserTestRepeat1After unique=").append(unique).append(",falseJump=").append(uniqueStack.remove(0)).append(",falseJumpTotal=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Root		:
+						break;
+					case Switch		:
+						gca.append(" BNFParserTestSwitchAfter unique=").append(unique).append(",trueJump=").append(uniqueStack.remove(0)).append(",falseJumpTotal=").append(uniqueStack.get(0)).append('\n');
+						break;
+					case Sequence : case Char : case Predefined	: case Rule : case Detected :
+						break;
+					default:
+						throw new UnsupportedOperationException("Node type ["+node.getType()+"] is not supported yet"); 
+				}
+			}
+			return ContinueMode.CONTINUE;
+		});
+		gca.append(" BNFParserTestMethodTail unique=").append(unique).append(",ordinal=").append(ordinal).append(",falseJump=").append(uniqueStack.remove(0)).append('\n');
 	}
 	
 	private static <NodeType extends Enum<?>> void buildSkipSyntax(final int unique, final Class<NodeType> clazz, final List<SyntaxNode<EntityType, SyntaxNode>> rules, final GrowableCharArray<GrowableCharArray<?>> gca) {
@@ -293,7 +356,7 @@ class InternalUtils {
 		final int	ordinal = ((Enum)rule.cargo).ordinal();
 		
 		gca.append(" BNFParserSkipMethodHead unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
-		walkRule(rule,(node)->{});
+		walkRule(rule,(mode,node)->{});
 		gca.append(" BNFParserSkipMethodTail unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
 	}
 	
@@ -324,7 +387,7 @@ class InternalUtils {
 		final int	ordinal = ((Enum)rule.cargo).ordinal();
 		
 		gca.append(" BNFParserParseMethodHead unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
-		walkRule(rule,(node)->{});
+		walkRule(rule,(mode,node)->{});
 		gca.append(" BNFParserParseMethodTail unique=").append(unique).append(",ordinal=").append(ordinal).append('\n');
 	}
 	
@@ -332,9 +395,59 @@ class InternalUtils {
 		gca.append(" BNFParserTail unique=").append(unique).append(",className=\"").append(simpleName).append("\"\n");
 	}
 
-	private static void walkRule(final SyntaxNode<EntityType, SyntaxNode> rule, final Consumer<SyntaxNode<EntityType, SyntaxNode>> callback) {
-		// TODO Auto-generated method stub
-		
+	private static void walkRule(final SyntaxNode<EntityType, SyntaxNode> root, final BiConsumer<NodeEnterMode, SyntaxNode<EntityType, SyntaxNode>> callback) {
+		switch (root.type) {
+			case Char : case Name : case Detected : case Predefined	: case Sequence	:
+				callback.accept(NodeEnterMode.ENTER,root);
+				break;
+			case Option		:
+				callback.accept(NodeEnterMode.ENTER, root);
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					walkRule(item, callback);
+				}
+				callback.accept(NodeEnterMode.EXIT, root);
+				break;
+			case Repeat		:
+				callback.accept(NodeEnterMode.ENTER, root);
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					walkRule(item, callback);
+				}
+				callback.accept(NodeEnterMode.EXIT, root);
+				break;
+			case Repeat1		:
+				callback.accept(NodeEnterMode.ENTER, root);
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					walkRule(item, callback);
+				}
+				callback.accept(NodeEnterMode.EXIT, root);
+				break;
+			case Root		:
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					walkRule(item, callback);
+				}
+				break;
+			case Rule		:
+				callback.accept(NodeEnterMode.ENTER, root);
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					walkRule(item, callback);
+				}
+				callback.accept(NodeEnterMode.EXIT, root);
+				break;
+			case Switch		:
+				callback.accept(NodeEnterMode.ENTER, root);
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					walkRule(item, callback);
+				}
+				callback.accept(NodeEnterMode.EXIT, root);
+				break;
+			case Case		:
+				for (SyntaxNode<EntityType, SyntaxNode> item : root.children) {
+					walkRule(item, callback);
+				}
+				break;
+			default:
+				throw new UnsupportedOperationException("Node type ["+root.type+"] is not supported yet");
+		}
 	}
 
 	private static void collectChars4Switch(final List<SyntaxNode<EntityType, SyntaxNode>> rules, final BitCharSet bcs) {
@@ -375,17 +488,22 @@ class InternalUtils {
 	}
 	
 	private static char[] toFormattedCharArray(final char[] array) {
-		final char[]	result = new char[4 * array.length + 1];
-		
-		for(int index = 0; index < array.length; index++) {
-			result[4*index] = ',';
-			result[4*index+1] = '\"';
-			result[4*index+2] =array[index];
-			result[4*index+3] = '\"';
+		if (array.length == 0) {
+			return new char[] {'{','}'};
 		}
-		result[0]='{';
-		result[result.length-1] = '}';
-		return result;
+		else {
+			final char[]	result = new char[4 * array.length + 1];
+			
+			for(int index = 0; index < array.length; index++) {
+				result[4*index] = ',';
+				result[4*index+1] = '\"';
+				result[4*index+2] =array[index];
+				result[4*index+3] = '\"';
+			}
+			result[0]='{';
+			result[result.length-1] = '}';
+			return result;
+		}
 	}
 
 	private static char[] toFormattedStringArray(final char[] array) {
@@ -733,10 +851,10 @@ loop:	for (;;) {
 		return from;
 	}
 	
-	static <NodeType extends Enum<?>> void printTree(final SyntaxNode<EntityType, SyntaxNode> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
+	static <NodeType extends Enum<?>> void printTree(final SyntaxNode<EntityType, ?> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		switch (root.type) {
 			case Char		:
-				wr.write("'"+((char)root.value)+"' ");
+				wr.write("="+root.value+" '"+(root.cargo instanceof char[] ? new String((char[])root.cargo) : "")+"'");
 				break;
 			case Name		:
 				wr.write("<"+(keywords.getName(root.value))+"> ");
@@ -785,7 +903,7 @@ loop:	for (;;) {
 				wr.write("\r\n");
 				break;
 			case Sequence	:
-				wr.write("\""+new String((char[])root.cargo)+"\" ");
+				wr.write("="+root.value+" \""+(root.cargo instanceof char[] ? new String((char[])root.cargo) : "")+"\"");
 				break;
 			case Switch		:
 				String	prefix = "{";

@@ -167,8 +167,22 @@ public class InternalUtilsTest {
 
 	@Test
 	public void buildTest2Test() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		test2Test("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
-		test2Test("<Test1>::='11'", " 11 \n", 2, " 12\n", 1);
+//		test2Test("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
+//		test2Test("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
+//		test2Test("<Test1>::='123'", " 123 \n", 4, "23\n", 0);
+//		test2Test("<Test1>::='123':<Test2>", " 123 \n", 4, "23\n", 0);
+//		test2Test("<Test1>::='123''4'", " 123 4\n", 6, "123 5\n", 0);
+//		test2Test("<Test1>::='1''234'", " 1 234\n", 6, "123 5\n", 0);
+//		test2Test("<Test1>::=('1''234')", " 1 234\n", 6, "123 5\n", 0);
+//		test2Test("<Test1>::=@FixedNumber@Name", " 12assa\n", 7, " 12 3\n", 0);
+//		test2Test("<Test1>::='1'['2']'3'", " 123\n", 4, " 143\n", 1);
+//		test2Test("<Test1>::='1'['2']'3'", " 13\n", 4, " 143\n", 1);
+//		test2Test("<Test1>::=('1'',')*'2'", " 1,1,2\n", 6, " 1,3,2\n", 1);
+//		test2Test("<Test1>::=('1'',')*'2'", " 2\n", 6, " 1,3,2\n", 1);
+//		test2Test("<Test1>::=('1'',')+'2'", " 1,1,2\n", 6, " 3,2\n", 1);
+		test2Test("<Test1>::='1'{'2'|'3'|'4'}'5'", " 145\n", 4, " 143\n", 1);
+//		test2Test("<Test1>::='1'{'2'|'3'|'4'}'5'", " 125\n", 4, " 143\n", 1);
+//		test2Test("<Test1>::='1'{'2'|'3'|'4'|@Empty}'5'", " 15\n", 3, " 143\n", 1);
 	}	
 	
 	
@@ -344,7 +358,6 @@ public class InternalUtilsTest {
 		Assert.assertEquals(TestType.Test1, node.children[1].type);
 	}	
 
-	
 	@Test
 	@Ignore
 	public void complexTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
@@ -397,7 +410,7 @@ public class InternalUtilsTest {
 		Assert.assertEquals(content.length-1, InternalUtils.parse(content, InternalUtils.next(content, 0, tt, temp, lex), tt, temp, lex, root));
 		InternalUtils.printTree(root, tt, new PrintWriter(System.err));
 		
-		return InternalUtils.buildRuleBasedParser1("MyClass"+System.currentTimeMillis(), TestType.class, source, PureLibSettings.INTERNAL_LOADER, false, false);
+		return InternalUtils.buildRuleBasedParser1("MyClass"+System.currentTimeMillis(), TestType.class, source, PureLibSettings.INTERNAL_LOADER, false, true);
 	}
 	
 	private void testTest(final String rule, final String trueString, final int whereTrue, final String falseString, final int whereFalse) throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {

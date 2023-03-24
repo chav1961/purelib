@@ -1,5 +1,7 @@
 package chav1961.purelib.cdb;
 
+import java.util.Arrays;
+
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -12,20 +14,28 @@ public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implem
 	protected static final int		ILLEGAL = 1;
 	protected static final int		FIRST_FREE  = 2;
 
+	private static final int		INITIAL_STACK_DEPTH = 16;
+	
 	protected final SyntaxTreeInterface<Cargo>	tree = new AndOrTree<>();
 	protected final int[]	tempInt = new int[2];
 	protected final long[]	tempLong = new long[2];
 	protected final int		predefAvailableMask;
+	protected int[][]		stateStack = new int[INITIAL_STACK_DEPTH][];
 	protected int			prevFrom;
 	protected int			lexType;
 	protected long			value;
+	protected int			stateStackDepth = 0;
 	
 	protected AbstractBNFParser2(final int predefAvailableMask) {
 		this.predefAvailableMask = predefAvailableMask;
 	}
 
 	protected abstract int nextLexema(final char[] content, int from);
-	protected boolean testInternal(final char[] content, final int from) {return true;}
+	protected abstract int testInternal(final char[] content, final int from, final int rule);
+	
+	protected void print(final String content) {
+		System.err.println(content);
+	}
 	
 	@Override
 	public SyntaxTreeInterface<Cargo> getNamesTree() {
@@ -46,7 +56,7 @@ public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implem
 			try{from = nextLexema(content, from);
 
 				if (lexType != ILLEGAL) {
-					return testInternal(content, from);
+					return testInternal(content, from, 0) >= 0;
 				}
 				else {
 					return false;
@@ -194,7 +204,7 @@ public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implem
 								break;
 							default :
 						}
-						return from + 1;
+						return from;
 					}
 					else {
 						lexType = ILLEGAL;
@@ -204,7 +214,8 @@ public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implem
 					if (Character.isJavaIdentifierStart(content[from])) {
 						from = CharUtils.parseName(content, from, tempInt);
 						
-						getNamesTree().placeName(content, tempInt[0], tempInt[1]-tempInt[0], null);
+						getNamesTree().placeName(content, tempInt[0], tempInt[1], null);
+						lexType = -1 - Predefines.Name.ordinal();
 						return from;
 					}
 					else {
@@ -215,6 +226,73 @@ public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implem
 		}
 	}
 
-	protected void traceLex(final char[] content, int from) {
+	protected void pushCurrentState(final int from) {
+		if (stateStackDepth >= stateStack.length) {
+			stateStack = Arrays.copyOf(stateStack, 2 * stateStack.length);
+		}
+		if (stateStack[stateStackDepth] == null) {
+			stateStack[stateStackDepth] = new int[3];
+		}
+		stateStack[stateStackDepth][0] = prevFrom;
+		stateStack[stateStackDepth][1] = lexType;
+		stateStack[stateStackDepth][2] = from;
+		stateStackDepth++;
+	}
+	
+	protected int popCurrentState() {
+		if (stateStackDepth <= 0) {
+			throw new IllegalStateException("Current state stack exhausted"); 
+		}
+		else {
+			stateStackDepth--;
+			prevFrom = stateStack[stateStackDepth][0];
+			lexType = stateStack[stateStackDepth][1];
+			return stateStack[stateStackDepth][2];
+		}
+	}
+
+	protected int restoreCurrentState() {
+		if (stateStackDepth <= 0) {
+			throw new IllegalStateException("Current state stack exhausted"); 
+		}
+		else {
+			prevFrom = stateStack[stateStackDepth - 1][0];
+			lexType = stateStack[stateStackDepth - 1][1];
+			return stateStack[stateStackDepth - 1][2];
+		}
+	}
+	
+	protected void removeCurrentState() {
+		if (stateStackDepth <= 0) {
+			throw new IllegalStateException("Current state stack exhausted"); 
+		}
+		else {
+			stateStackDepth--;
+		}
+	}
+	
+	protected void traceLex(final char[] content, final int col) {
+		final int		from = Math.max(0, col - 10), to = Math.min(content.length, col + 10), pos = col < 10 ? col : 10;
+		final char[]	piece = Arrays.copyOfRange(content, from, to);
+		final char[]	pointer = new char[piece.length];
+		final String	message;
+		
+		Arrays.fill(pointer,' ');
+		pointer[Math.min(col, pointer.length-1)] = '^';
+		
+		if (lexType >= FIRST_FREE) {
+			message = "<"+lexType+">";
+		}
+		else if (lexType < 0) {
+			message = Predefines.values()[-1 - lexType].name();
+		}
+		else {
+			switch (lexType) {
+				case EOF 	: message = "EOF"; break;
+				case ILLEGAL: message = "ILLEGAL"; break;
+				default 	: message = "UNKNOWN"; break;
+			}
+		}
+		print("Point["+col+"]="+message+", char=["+((int)content[col])+"]\n"+new String(piece)+"\n"+new String(pointer));
 	}
 }

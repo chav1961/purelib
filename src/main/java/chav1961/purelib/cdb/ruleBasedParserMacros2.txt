@@ -177,7 +177,10 @@ nextLexema		.end
 ; -------------------------------------------------------------------------
 
 BNFParserTestHead		.macro	unique:int=,ruleEnum:str=
-test			.method	void private	
+testInternal	.method	int protected
+content			.parameter	char[] final 
+from			.parameter	int
+ordinal			.parameter	int
 				.stack	optimistic
 		.mend
 		
@@ -186,7 +189,14 @@ test			.method	void private
 ; -------------------------------------------------------------------------
 		
 BNFParserTestSwitch 	.macro	unique:int=,cardinality:int=
-				nop
+index			.local	int
+				iload	ordinal
+				tableswitch
+				.for index = 0 to cardinality-1
+					&index,label&index
+				.endfor
+					.default	falsetest
+				.end
 		.mend
 		
 ; -------------------------------------------------------------------------
@@ -194,7 +204,13 @@ BNFParserTestSwitch 	.macro	unique:int=,cardinality:int=
 ; -------------------------------------------------------------------------
 		
 BNFParserTestItem 		.macro	unique:int=,ordinal:int=
-				nop
+label&ordinal:	aload	this
+				aload	content
+				iload	from
+				invokevirtual	testInternal&ordinal([CI)I
+				dup
+				iflt	exit
+				ireturn
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -202,7 +218,8 @@ BNFParserTestItem 		.macro	unique:int=,ordinal:int=
 ; -------------------------------------------------------------------------
 		
 BNFParserTestDefault 	.macro	unique:int=
-				nop
+falsetest:		ldc		-1
+exit:			ireturn
 		.mend
 
 ; -------------------------------------------------------------------------
@@ -210,35 +227,175 @@ BNFParserTestDefault 	.macro	unique:int=
 ; -------------------------------------------------------------------------
 		
 BNFParserTestTail 		.macro	unique:int=
-				return
-test			.end				
+testInternal	.end				
 		.mend
 
-; -------------------------------------------------------------------------
-;		Print test method rule call for the parser 
-; -------------------------------------------------------------------------
-		
-BNFParserTestItemCall 	.macro	unique:int=,ordinal:int=
-				return
-		.mend
-		
-		
 ; -------------------------------------------------------------------------
 ;		Print test method rule header for the parser 
 ; -------------------------------------------------------------------------
 		
 BNFParserTestMethodHead	.macro	unique:int=,ordinal:int=
-x				.method 	void private
+testInternal&ordinal	.method 	int private
+content			.parameter	char[] final 
+from			.parameter	int
 				.stack		optimistic
+		.mend
+
+BNFParserTestNextLexema	.macro
+				aload		this
+				aload		content
+				iload		from
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.nextLexema([CI)I
+				istore		from
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule check char 
+; -------------------------------------------------------------------------
+
+BNFParserTestChar		.macro	unique:int=,lexType:int=,falseJump:int=
+				aload		this
+				getfield	chav1961.purelib.cdb.AbstractBNFParser2.lexType
+				ldc			&lexType
+				if_icmpne	failure&falseJump
+				BNFParserTestNextLexema
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print test method rule check option start
+; -------------------------------------------------------------------------
+
+BNFParserTestOptionBefore	.macro unique:int=,falseJump:int=
+				aload		this
+				iload		from
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.pushCurrentState(I)V
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule check option end
+; -------------------------------------------------------------------------
+
+		
+BNFParserTestOptionAfter	.macro unique:int=,falseJump:int=
+				goto		success&falseJump
+failure&falseJump:
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.popCurrentState()I
+				istore		from
+success&falseJump:
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print test method rule repeat option start
+; -------------------------------------------------------------------------
+
+BNFParserTestRepeatBefore	.macro unique:int=,falseJump:int=
+repeat&falseJump:	
+				aload		this
+				iload		from
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.pushCurrentState(I)V
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule repeat option end
+; -------------------------------------------------------------------------
+		
+BNFParserTestRepeatAfter	.macro unique:int=,falseJump:int=
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.removeCurrentState()V
+				goto		repeat&falseJump
+failure&falseJump:
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.popCurrentState()I
+				istore		from
+		.mend
+		
+
+; -------------------------------------------------------------------------
+;		Print test method rule repeat1 option start
+; -------------------------------------------------------------------------
+
+BNFParserTestRepeat1Before	.macro unique:int=,falseJump:int=
+				ldc			-1
+repeat&falseJump:	
+				aload		this
+				iload		from
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.pushCurrentState(I)V
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule repeat1 option end
+; -------------------------------------------------------------------------
+		
+BNFParserTestRepeat1After	.macro unique:int=,falseJump:int=,falseJumpTotal:int=
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.removeCurrentState()V
+				pop
+				ldc			0
+				goto		repeat&falseJump
+failure&falseJump:
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.popCurrentState()I
+				istore		from
+				ifne		failure&falseJumpTotal
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print test method rule switch option start
+; -------------------------------------------------------------------------
+
+BNFParserTestSwitchBefore	.macro unique:int=,trueJump:int=
+				aload		this
+				iload		from
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.pushCurrentState(I)V
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule switch option end
+; -------------------------------------------------------------------------
+		
+BNFParserTestSwitchAfter	.macro unique:int=,trueJump:int=,falseJumpTotal:int=
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.popCurrentState()I
+				istore		from
+				goto		failure&falseJumpTotal
+success&trueJump:
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.popCurrentState()I
+				istore		from
+		.mend
+		
+; -------------------------------------------------------------------------
+;		Print test method rule case option start
+; -------------------------------------------------------------------------
+
+BNFParserTestCaseBefore	.macro unique:int=,trueJump:int=,falseJumpTotal:int=
+				nop
+		.mend
+
+; -------------------------------------------------------------------------
+;		Print test method rule case option end
+; -------------------------------------------------------------------------
+		
+BNFParserTestCaseAfter	.macro unique:int=,trueJump:int=,falseJumpTotal:int=
+				goto		success&falseJumpTotal
+failure&trueJump:
+				aload		this
+				invokevirtual	chav1961.purelib.cdb.AbstractBNFParser2.restoreCurrentState()I
+				istore		from
 		.mend
 
 ; -------------------------------------------------------------------------
 ;		Print test method rule tail for the parser 
 ; -------------------------------------------------------------------------
 
-BNFParserTestMethodTail	.macro	unique:int=,ordinal:int=
-				return
-x				.end				
+BNFParserTestMethodTail	.macro	unique:int=,ordinal:int=,falseJump:int=
+				iload		from
+				ireturn
+failure&falseJump:
+				ldc			-1				
+				ireturn
+testInternal&ordinal	.end				
 		.mend
 
 ; -------------------------------------------------------------------------
