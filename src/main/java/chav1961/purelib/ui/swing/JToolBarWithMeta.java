@@ -2,13 +2,18 @@ package chav1961.purelib.ui.swing;
 
 import java.awt.Container;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -16,6 +21,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.Constants;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.interfaces.UIItemState;
@@ -30,7 +36,7 @@ import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListenerSource;
  * <p>This class is a model-driven toolbar. The base model for toolbar is a menu model.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, LocaleChangeListener, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = 366031204608808220L;
@@ -41,6 +47,7 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final UIItemState			state;
+	private final List<KeyStrokeAndAction> acc = new ArrayList<>();
 
 	/**
 	 * <p>Constructor of the class</p>
@@ -83,12 +90,11 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 				}
 			}			
 			
-			
 			for (ContentNodeMetadata child : metadata) {
 				if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_NODE)) {
 					final JMenuPopupWithMeta	menu = new JMenuPopupWithMeta(child, state);
 					final JButton 				btn = new JButtonWithMetaAndActions(child,InternalButtonLAFType.ICON_THEN_TEXT,menu);					
-					
+				
 					for (ContentNodeMetadata item : child) {
 						SwingUtils.toMenuEntity(item,menu);
 					}
@@ -100,17 +106,25 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 					add(btn);
 				}
 				else if (child.getRelativeUIPath().toString().startsWith(NAVIGATION_LEAF)) {
+					final AbstractButton	ab;
+					
 					if (child.getApplicationPath() != null && URIUtils.parseQuery(child.getApplicationPath()).containsKey("checkable")) {
-						add(new JInternalToggleButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
+						add(ab = new JInternalToggleButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
 					}
 					else if (child.getApplicationPath() != null && child.getApplicationPath().getFragment() != null) {
 						final JInternalToggleButtonWithMeta	btn = new JInternalToggleButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT); 
 						
 						fragments.get(child.getApplicationPath().getFragment()).add(btn);
-						add(btn);
+						add(ab = btn);
 					}
 					else {	// Button groups
-						add(new JInternalButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
+						add(ab = new JInternalButtonWithMeta(child,InternalButtonLAFType.ICON_THEN_TEXT));
+					}
+					for (ContentNodeMetadata item : metadata.getOwner().byApplicationPath(URIUtils.removeQueryFromURI(child.getApplicationPath()))) { 
+						if (item.getRelativeUIPath().toString().startsWith("./keyset.key")) {
+							acc.add(new KeyStrokeAndAction(KeyStroke.getKeyStroke(item.getLabelId()), ab));
+							break;
+						}
 					}
 				}
 				else if (SEPARATOR.equals(child.getRelativeUIPath())) {
@@ -141,6 +155,22 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 		fireContentChanged(getNodeMetadata());
 	}
 
+	/**
+	 * <p>Assign button accelerators, if exists</p>
+	 * @param component component to assign accelerators to. Can't be null
+	 * @since 0.0.7
+	 */
+	public void assignAccelerators(final JComponent component) throws NullPointerException {
+		if (component == null) {
+			throw new NullPointerException("Component to assign accelerators to can't be null"); 
+		}
+		else {
+			for (KeyStrokeAndAction item : acc) {
+				SwingUtils.assignActionKey(component, item.stroke, (e)->item.action.doClick(), item.action.getName());
+			}
+		}
+	}
+	
 	private void fireContentChanged(final ContentNodeMetadata node) {
 		final Container	c = SwingUtils.findComponentByName(this, node.getUIPath().toString());
 		
@@ -224,6 +254,16 @@ public class JToolBarWithMeta extends JToolBar implements NodeMetadataOwner, Loc
 	private void fillLocalizedStrings() throws LocalizationException {
 		if (getNodeMetadata().getTooltipId() != null) {
 			setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+		}
+	}
+	
+	private static class KeyStrokeAndAction {
+		private final KeyStroke			stroke;
+		private final AbstractButton	action;
+		
+		private KeyStrokeAndAction(KeyStroke stroke, AbstractButton action) {
+			this.stroke = stroke;
+			this.action = action;
 		}
 	}
 }

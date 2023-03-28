@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.FocusTraversalPolicy;
@@ -811,7 +812,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
 	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?,?> form) throws LocalizationException, IllegalArgumentException {
-		return askInternal(window,new JDialog(window,true), localizer, form, DUMMY_OK_AND_CANCEL);
+		return askInternal(window,new JDialog(window,ModalityType.DOCUMENT_MODAL), localizer, form, DUMMY_OK_AND_CANCEL);
 	}
 
 	/**
@@ -839,7 +840,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
 	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?,?> form) throws LocalizationException, IllegalArgumentException {
-		return askInternal(window,new JDialog(window,true), localizer, form, DUMMY_OK_AND_CANCEL);
+		return askInternal(window,new JDialog(window,ModalityType.DOCUMENT_MODAL), localizer, form, DUMMY_OK_AND_CANCEL);
 	}
 
 	/**
@@ -868,7 +869,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
 	public static boolean ask(final Dialog window, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
-		return askInternal(window,new JDialog(window,true), localizer, form, okAndCancel);
+		return askInternal(window,new JDialog(window,ModalityType.DOCUMENT_MODAL), localizer, form, okAndCancel);
 	}
 
 	/**
@@ -898,7 +899,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	 * @throws IllegalArgumentException on any parameter's problems
 	 */
 	public static boolean ask(final Frame window, final Localizer localizer, final AutoBuiltForm<?,?> form, final URI[] okAndCancel) throws LocalizationException, IllegalArgumentException {
-		return askInternal(window,new JDialog(window,true), localizer, form, okAndCancel);
+		return askInternal(window,new JDialog(window,ModalityType.DOCUMENT_MODAL), localizer, form, okAndCancel);
 	}
 
 	/**

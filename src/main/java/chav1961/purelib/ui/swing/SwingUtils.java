@@ -1245,10 +1245,23 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	/**
+	 * <p>Assign action listener for object and all it's subtree</p> 
+	 * @param root object to assign action listener to. Can't be null
+	 * @param listener listener to assign. Can't be null
+	 * @since 0.0.5 
+	 */
 	public static void assignActionListeners(final JComponent root, final ActionListener listener) {
 		assignActionListeners(root, listener, (a, b, c, d)->a);
 	}
 	
+	/**
+	 * <p>Assign action listener for object and all it's subtree</p>
+	 * @param root object to assign action listener to. Can't be null
+	 * @param listener listener to assign. Can't be null
+	 * @param preprocess preprocessor for action commands. Can't be null
+	 * @since 0.0.5 
+	 */
 	public static void assignActionListeners(final JComponent root, final ActionListener listener, final PreprocessActionStringCallback<?,?> preprocess) {
 		if (root == null) {
 			throw new NullPointerException("Root component can't be null"); 
@@ -2775,10 +2788,7 @@ loop:			for (;;) {
 			this.metadata = metadata;
 			this.state = state;
 			this.setName(metadata.getName());
-			try{fillLocalizedStrings();
-			} catch (IOException | LocalizationException e) {
-				e.printStackTrace();
-			}
+			fillLocalizedStrings();
 		}
 
 		@Override
@@ -2788,16 +2798,13 @@ loop:			for (;;) {
 
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-			try{fillLocalizedStrings();
-				for (int index = 0, maxIndex = this.getMenuCount(); index < maxIndex; index++) {
-					final JMenu	item = this.getMenu(index);
-					
-					if (item instanceof LocaleChangeListener) {
-						((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
-					}
+			fillLocalizedStrings();
+			for (int index = 0, maxIndex = this.getMenuCount(); index < maxIndex; index++) {
+				final JMenu	item = this.getMenu(index);
+				
+				if (item instanceof LocaleChangeListener) {
+					((LocaleChangeListener)item).localeChanged(oldLocale, newLocale);
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 		
@@ -2830,7 +2837,7 @@ loop:			for (;;) {
 			super.setVisible(visible);
 		}
 
-		private void fillLocalizedStrings() throws LocalizationException, IOException {
+		private void fillLocalizedStrings() throws LocalizationException {
 			final String	ttId = getNodeMetadata().getTooltipId();
 			
 			if (ttId != null && !ttId.isEmpty()) {
@@ -2855,8 +2862,8 @@ loop:			for (;;) {
 				}
 			}
 			
+			fillLocalizedStrings();
 			try{
-				fillLocalizedStrings();
 				if (metadata.getIcon() != null) {
 					this.setIcon(extractIcon(metadata.getIcon()));
 				}
@@ -2872,13 +2879,10 @@ loop:			for (;;) {
 
 		@Override
 		public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-			try{fillLocalizedStrings();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			fillLocalizedStrings();
 		}
 
-		private void fillLocalizedStrings() throws LocalizationException, IOException {
+		private void fillLocalizedStrings() throws LocalizationException {
 			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
 			if (getNodeMetadata().getTooltipId() != null) {
 				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
