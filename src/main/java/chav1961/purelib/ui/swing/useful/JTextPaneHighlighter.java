@@ -13,11 +13,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
+import javax.swing.undo.UndoManager;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
@@ -78,8 +80,9 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 										}
 									};
 	private final boolean			useNestedLexemas;
+	private boolean					highlightLocked = false;
 	
-	private volatile TimerTask		tt = null;	// Timer is used to reduce parser calls because JTextPane always fills it's content line-by-line!
+//	private volatile TimerTask		tt = null;	// Timer is used to reduce parser calls because JTextPane always fills it's content line-by-line!
 
 	/**
 	 * <p>Constructor of the class</p>
@@ -133,44 +136,60 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 		return source;
 	}
 
+	protected void lockHiglighting() {
+		highlightLocked = true;
+		doc.removeDocumentListener(listener);
+	}
+
+	protected void unlockHiglighting() {
+		doc.addDocumentListener(listener);
+		highlightLocked = false;
+	}
+	
+	protected boolean isHighlightingLocked() {
+		return highlightLocked;
+	}
+	
 	private void callHighlighter() {
 		SwingUtilities.invokeLater(()->{
-			try{doc.removeDocumentListener(listener);
+			try{lockHiglighting();
 				doc.setCharacterAttributes(0,doc.getLength(),getOrdinalCharacterStyle(),false);
 				doc.setParagraphAttributes(0,doc.getLength(),getOrdinalParagraphStyle(),false);
 				
-				final String	text = getText().replace("\r","");
-				
-				if (!text.trim().isEmpty()) {
-					final HighlightItem<LexemaType>[]	lexList = parseString(text);
-	
-					Arrays.sort(lexList, sorter);
-					for (HighlightItem<LexemaType> currentItem : lexList) {
-						final HighlightItem<LexemaType>	item = preprocessLexema(currentItem,text);
-						
-						if (item.length > 0) {
-							if (characterStyles.containsKey(item.type)) {
-								doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
-							}
-							if (paragraphStyles.containsKey(item.type)) {
-								doc.setParagraphAttributes(item.from,item.length,paragraphStyles.get(item.type),useNestedLexemas);
+				try{final String 	text = doc.getText(0, getDocument().getLength()) .replace("\r","");
+					if (!text.trim().isEmpty()) {
+						final HighlightItem<LexemaType>[]	lexList = parseString(text);
+		
+						Arrays.sort(lexList, sorter);
+						for (HighlightItem<LexemaType> currentItem : lexList) {
+							final HighlightItem<LexemaType>	item = preprocessLexema(currentItem,text);
+							
+							if (item.length > 0) {
+								if (characterStyles.containsKey(item.type)) {
+									doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
+								}
+								if (paragraphStyles.containsKey(item.type)) {
+									doc.setParagraphAttributes(item.from,item.length,paragraphStyles.get(item.type),useNestedLexemas);
+								}
 							}
 						}
 					}
+				} catch (BadLocationException e) {
 				}
 			} finally {
-				doc.addDocumentListener(listener);
+				unlockHiglighting();
 			}
 		});
 	}
 	
 	private void highlight() {
-		synchronized(this) {
-			if (tt != null) {
-				tt.cancel();
-			}
-			tt = new SimpleTimerTask(()->callHighlighter());
-			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY_MILLISECONDS);
-		}
+		callHighlighter();
+//		synchronized(this) {
+//			if (tt != null) {
+//				tt.cancel();
+//			}
+//			tt = new SimpleTimerTask(()->callHighlighter());
+//			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY_MILLISECONDS);
+//		}
 	}
 }

@@ -241,6 +241,11 @@ public class JCreoleEditor extends JTextPaneHighlighter<CreoleLexema>{
 		super(true);
 	}
 
+	@Override
+	public boolean isHighlightingLocked() {
+		return super.isHighlightingLocked();
+	}
+	
 	/**
 	 * <p>Get paragraph styles for the given Creole lexema</p>
 	 * @param lex lexema to get paragraph style for
