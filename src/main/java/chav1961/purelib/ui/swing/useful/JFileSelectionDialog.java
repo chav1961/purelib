@@ -18,6 +18,7 @@ import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -51,6 +52,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface.FileSystemListCallbackInterface;
@@ -79,7 +81,7 @@ import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
  * @since 0.0.3
  * @last.update 0.0.7
  */
-public class JFileSelectionDialog extends JPanel implements LocaleChangeListener, LocalizerOwner {
+public class JFileSelectionDialog extends JPanel implements LocaleChangeListener, LocalizerOwner, LoggerFacadeOwner {
 	private static final long 	serialVersionUID = 4285629141818684880L;
 	private static final int	ICON_BORDER_WIDTH = 2;
 	private static final int	MIN_WIDTH = 400;
@@ -124,6 +126,9 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public static final int		OPTIONS_FOR_OPEN  = 1 << 7; 
 	public static final int		OPTIONS_CONFIRM_REPLACEMENT = 1 << 8; 
 	public static final int		OPTIONS_NOCHECK_FILTER = 1 << 9; 
+
+	private static final Comparator<String[]>	ORDER = (s1,s2)->s1[1].compareToIgnoreCase(s2[1]);
+	private static final FilterCallback			ALL_CALLBACK = FilterCallback.of(ACCEPT_ALL_FILES, "*");
 	
 	/**
 	 * <p>This interface is analog of {@linkplain FilterCallback}</p>  
@@ -170,7 +175,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		 * @lastUpdate 0.0.6
 		 */
 		static FilterCallback of(final String name, final String... mask) throws IllegalArgumentException {
-			if (name == null || name.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(name)) {
 				throw new IllegalArgumentException("Filter name can't be null or empty");
 			}
 			else if (mask == null || mask.length == 0 || Utils.checkArrayContent4Nulls(mask, true) >= 0) {
@@ -221,7 +226,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	private final JButton			mkDir = new JWrappedButton(PureLibStandardIcons.NEW_DIR.getIcon());
 	private final JButton			delete = new JWrappedButton(PureLibStandardIcons.REMOVE.getIcon());
 	private final JButton			levelUp = new JWrappedButton(PureLibStandardIcons.LEVEL_UP.getIcon());
-	private final JList<String>		content = new JList<>();
+	private final JList<String[]>	content = new JList<>();
 	private final JLabel			fileNameLabel = new JLabel();
 	private final JTextField		fileName = new JTextField();
 	private final JLabel			filterLabel = new JLabel();
@@ -238,7 +243,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 												}
 												fillCurrentState(currentNode.open(sb.length() > 0 ? sb.toString() : "/"));
 											} catch (IOException exc) {
-												logger.message(Severity.error,exc,"Error changing file system location to parent: "+exc.getLocalizedMessage());
+												SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,exc,"Error changing file system location to parent: "+exc.getLocalizedMessage());
 											}
 										}
 									};
@@ -301,7 +306,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			levelUp.addActionListener((e)->{
 				try{fillCurrentState(currentNode.open("../"));
 				} catch (IOException e1) {
-					logger.message(Severity.error,e1,"Error changing file system location to parent: "+e1.getLocalizedMessage());
+					SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e1,"Error changing file system location to parent: "+e1.getLocalizedMessage());
 				}
 			});
 			mkDir.addActionListener((e)->{
@@ -319,14 +324,14 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 						fillCurrentState(currentNode);
 					}
 				} catch (HeadlessException | LocalizationException | IllegalArgumentException | IOException e1) {
-					logger.message(Severity.error,e1,"Error creating directory ["+answer+"] : "+e1.getLocalizedMessage());
+					SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e1,"Error creating directory ["+answer+"] : "+e1.getLocalizedMessage());
 				}
 			});
 			delete.addActionListener((e)->{
 				final Set<String>	forDeletion = new HashSet<>();
 				
-				for (String item : content.getSelectedValuesList()) {
-					forDeletion.add(item);
+				for (String[] item : content.getSelectedValuesList()) {
+					forDeletion.add(item[0]);
 				}
 				try{if (forDeletion.size() > 0 && new JLocalizedOptionPane(localizer).confirm(this, new LocalizedFormatter(ASK_CONFIRM_DELETE_MESSAGE,forDeletion),ASK_CONFIRM_DELETE_CAPTION,JOptionPane.QUESTION_MESSAGE,JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
 						for (String item : forDeletion) {
@@ -337,7 +342,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 						fillCurrentState(currentNode);
 					}
 				} catch (HeadlessException | LocalizationException | IllegalArgumentException | IOException e1) {
-					logger.message(Severity.error,e1,"Error deleting selected list : "+e1.getLocalizedMessage());
+					SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e1,"Error deleting selected list : "+e1.getLocalizedMessage());
 				}
 			});
 			
@@ -384,15 +389,15 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			
 			final JScrollPane	scroll = new JScrollPane(content); 
 			
-			content.setModel(new DefaultListModel<String>());
+			content.setModel(new DefaultListModel<String[]>());
 			content.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 			content.setVisibleRowCount(-1);
-			content.setCellRenderer(new ListCellRenderer<String>() {
+			content.setCellRenderer(new ListCellRenderer<String[]>() {
 				@Override
-				public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
-					final JLabel	result = new JLabel(URLDecoder.decode(value, Charset.forName(PureLibSettings.DEFAULT_CONTENT_ENCODING)));
+				public Component getListCellRendererComponent(JList<? extends String[]> list, String[] value, int index, boolean isSelected, boolean cellHasFocus) {
+					final JLabel	result = new JLabel(URLDecoder.decode(value[1], Charset.forName(PureLibSettings.DEFAULT_CONTENT_ENCODING)));
 					
-					try(final FileSystemInterface	node = currentNode.clone().open(value);) {
+					try(final FileSystemInterface	node = currentNode.clone().open(value[0]);) {
 						
 						if (node.isDirectory()) {
 							result.setIcon(PureLibStandardIcons.DIRECTORY.getIcon());
@@ -414,11 +419,11 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 							result.setBorder(new LineBorder(Color.BLACK));
 						}
 					} catch (IOException e) {
-						logger.message(Severity.error,e,"Error querying file system node ["+value+"]: "+e.getLocalizedMessage());
+						SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e,"Error querying file system node ["+value+"]: "+e.getLocalizedMessage());
 					}
 					
 					result.setPreferredSize(new Dimension(MIN_WIDTH/3,MIN_HEIGHT/16));
-					result.setToolTipText(value);
+					result.setToolTipText(value[0]);
 					return result;
 				}
 			});
@@ -436,7 +441,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 						if (index >= 0) {
 							String	newLocation = null;
 							
-							try (final FileSystemInterface	fsi = currentNode.clone().open(content.getModel().getElementAt(index))) {
+							try (final FileSystemInterface	fsi = currentNode.clone().open(content.getModel().getElementAt(index)[0])) {
 								
 								if (fsi.isDirectory()) {
 									newLocation = fsi.getName();
@@ -446,12 +451,12 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 									selectAndAccept();
 								}
 							} catch (IOException e1) {
-								logger.message(Severity.error,e1,"Error querying file system node ["+content.getModel().getElementAt(index)+"]: "+e1.getLocalizedMessage());
+								SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e1,"Error querying file system node ["+content.getModel().getElementAt(index)+"]: "+e1.getLocalizedMessage());
 							}
 							if (newLocation != null) {
 								try{fillCurrentState(currentNode.open(newLocation));
 								} catch (IOException e1) {
-									logger.message(Severity.error,e1,"Error opening file system node ["+newLocation+"]: "+e1.getLocalizedMessage());
+									SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e1,"Error opening file system node ["+newLocation+"]: "+e1.getLocalizedMessage());
 								}
 							}
 						}
@@ -479,6 +484,11 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	@Override
 	public Localizer getLocalizer() {
 		return localizer;
+	}
+	
+	@Override
+	public LoggerFacade getLogger() {
+		return logger;
 	}
 	
 	/**
@@ -537,7 +547,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			this.canSelectFile = (options & OPTIONS_CAN_SELECT_FILE) != 0;
 
 			if (filters.length == 0) {
-				filter.addItem(FilterCallback.of(ACCEPT_ALL_FILES, "*.*"));
+				filter.addItem(ALL_CALLBACK);
 			}
 			else {
 				for (FilterCallback item : filters) {
@@ -573,17 +583,17 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 											return true;
 										}
 									} catch (IOException e) {
-										logger.message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
+										SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
 										return false;
 									}
 								}
 							} catch (IOException | HeadlessException | LocalizationException  e) {
-								logger.message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
+								SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
 								return false;
 							}
 						}
 						else {
-							logger.message(Severity.error,"Error processing file name content: file name doesn't fill");
+							SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,"Error processing file name content: file name doesn't fill");
 							return false;
 						}
 					}
@@ -608,13 +618,13 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 										return true;
 									}
 								} catch (IOException e) {
-									logger.message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
+									SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
 									return false;
 								}
 							}
 						}
 						else {
-							logger.message(Severity.error,"Error processing file name content: file name doesn't fill");
+							SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,"Error processing file name content: file name doesn't fill");
 							return false;
 						}
 					}
@@ -636,7 +646,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				if (fsi.exists() && new JLocalizedOptionPane(localizer).confirm(this, new LocalizedFormatter(ASK_CONFIRM_REPLACEMENT_MESSAGE, item), ASK_CONFIRM_REPLACEMENT_CAPTION, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
 					return false;
 				}
-			} catch (IOException | LocalizationException e) {
+			} catch (IOException e) {
 				PureLibSettings.CURRENT_LOGGER.message(Severity.debug, e, e.getLocalizedMessage());
 				return false;
 			}
@@ -651,13 +661,13 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	public Iterable<String> getSelection() {
 		final List<String>	selected = new ArrayList<>();
 		
-		for (String item : content.getSelectedValuesList()) {
-			try (final FileSystemInterface	fsi = currentNode.clone().open(item)) {
+		for (String[] item : content.getSelectedValuesList()) {
+			try (final FileSystemInterface	fsi = currentNode.clone().open(item[0])) {
 				if (fsi.isDirectory() && canSelectDir || fsi.isFile() && canSelectFile) {
 					selected.add(fsi.getPath());
 				}
 			} catch (IOException e) {
-				logger.message(Severity.error,e,"Error getting current file system node ["+item+"] state: "+e.getLocalizedMessage());
+				SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e,"Error getting current file system node ["+item+"] state: "+e.getLocalizedMessage());
 			}
 		}
 		if (selected.size() == 0) {
@@ -667,7 +677,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				try(final FileSystemInterface	fsi = currentNode.clone().open(item)) {
 					selected.add(fsi.getPath());
 				} catch (IOException e) {
-					logger.message(Severity.error,e,"Error getting current file system node ["+item+"] state: "+e.getLocalizedMessage());
+					SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e,"Error getting current file system node ["+item+"] state: "+e.getLocalizedMessage());
 				}
 			}
 			return selected;
@@ -837,26 +847,26 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			parent.addActionListener(forParent);
 			
 			final FilterCallback	currentFilter = (FilterCallback) filter.getSelectedItem();
-			final List<String>		forDirs = new ArrayList<>();
-			final List<String>		forFiles = new ArrayList<>();
+			final List<String[]>	forDirs = new ArrayList<>();
+			final List<String[]>	forFiles = new ArrayList<>();
 			
-			((DefaultListModel<String>)content.getModel()).clear();
+			((DefaultListModel<String[]>)content.getModel()).clear();
 			current.list(new FileSystemListCallbackInterface() {
 				@Override
 				public ContinueMode process(final FileSystemInterface item) throws IOException {
 					if (item.isDirectory()) {
-						forDirs.add(item.getName());
+						forDirs.add(new String[] {item.getName(), item.getAlias()});
 					}
 					else if (currentFilter.accept(item)) {
-						forFiles.add(item.getName());
+						forFiles.add(new String[] {item.getName(), item.getAlias()});
 					}
 					return ContinueMode.CONTINUE;
 				}
 			});
-			forDirs.sort(String.CASE_INSENSITIVE_ORDER);
-			((DefaultListModel<String>)content.getModel()).addAll(forDirs);
-			forFiles.sort(String.CASE_INSENSITIVE_ORDER);
-			((DefaultListModel<String>)content.getModel()).addAll(forFiles);
+			forDirs.sort(ORDER);
+			((DefaultListModel<String[]>)content.getModel()).addAll(forDirs);
+			forFiles.sort(ORDER);
+			((DefaultListModel<String[]>)content.getModel()).addAll(forFiles);
 			
 			levelUp.setEnabled(!"/".equals(current.getPath()));
 			if (forOpen) {
@@ -868,7 +878,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 				accept.setToolTipText(localizer.getValue(ACCEPT_SAVE_TT));
 			}
 		} catch (IOException | LocalizationException  e) {
-			logger.message(Severity.error,e,"Error filling current file system state: "+e.getLocalizedMessage());
+			SwingUtils.getNearestLogger(JFileSelectionDialog.this).message(Severity.error,e,"Error filling current file system state: "+e.getLocalizedMessage());
 		}
 	}
 	

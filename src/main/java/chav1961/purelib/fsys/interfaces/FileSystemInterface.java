@@ -107,6 +107,14 @@ public interface FileSystemInterface extends Cloneable, Closeable, SpiService<Fi
 	 * @throws IOException if any exceptions was thrown
 	 */
 	String getName() throws IOException;
+
+	/**
+	 * <p>Get file/directory alias for the file system cursor</p>
+	 * @return file/directory alias. Can't be neither null nor empty. Root returns "/" instead of alias
+	 * @throws IOException if any exceptions was thrown
+	 * @since 0.0.7
+	 */
+	String getAlias() throws IOException;
 	
 	/**
 	 * <p>Get actual path for the file system cursor</p>

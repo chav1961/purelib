@@ -175,6 +175,11 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	public boolean exists() throws IOException {
 		return (Boolean)getDataWrapper(currentPath).getAttributes().get(DataWrapperInterface.ATTR_EXIST);
 	}
+	
+	@Override
+	public String getAlias() throws IOException {
+		return (String)getDataWrapper(currentPath).getAttributes().get(DataWrapperInterface.ATTR_ALIAS);
+	}
 
 	@Override
 	public boolean isFile() throws IOException {
@@ -1036,7 +1041,14 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			final String	path = currentPath.getPath();
 			final int		slash = path.lastIndexOf('/');
 			
-			return Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, slash >= 0 ? path.substring(slash+1) : path, ATTR_LASTMODIFIED, 0, ATTR_DIR, false, ATTR_EXIST, false, ATTR_CANREAD, false, ATTR_CANWRITE, false);
+			return Utils.mkMap(ATTR_SIZE, 0, 
+						ATTR_NAME, slash >= 0 ? path.substring(slash+1) : path, 
+						ATTR_ALIAS, slash >= 0 ? path.substring(slash+1) : path,
+						ATTR_LASTMODIFIED, 0, 
+						ATTR_DIR, false, 
+						ATTR_EXIST, false, 
+						ATTR_CANREAD, false, 
+						ATTR_CANWRITE, false);
 		}
 	
 		@Override

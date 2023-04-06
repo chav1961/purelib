@@ -404,6 +404,7 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 				final String				content = node.getTextContent();
 				final Map<String, Object>	info = Utils.mkMap(ATTR_SIZE, !isDirectory ? content.getBytes().length : 0
 																, ATTR_NAME, node.getNodeName()
+																, ATTR_ALIAS, node.getNodeName()
 																, ATTR_LASTMODIFIED, 0
 																, ATTR_DIR, isDirectory
 																, ATTR_EXIST, true

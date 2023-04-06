@@ -318,6 +318,7 @@ public class FileSystemOnFileSystem extends AbstractFileSystemWithLockService<Au
 			if (Files.exists(path)) {
 				return Utils.mkMap(ATTR_SIZE, Files.size(path)
 						, ATTR_NAME, path.getFileName() == null ? "/" : path.getFileName().toString()
+						, ATTR_ALIAS, path.getFileName() == null ? "/" : path.getFileName().toString()
 						, ATTR_LASTMODIFIED, path.getFileName() == null ? 1 : Files.getLastModifiedTime(path).toMillis()
 						, ATTR_DIR, Files.isDirectory(path)
 						, ATTR_EXIST, Files.exists(path)
@@ -327,6 +328,7 @@ public class FileSystemOnFileSystem extends AbstractFileSystemWithLockService<Au
 			else {
 				return Utils.mkMap(ATTR_SIZE, 0
 						, ATTR_NAME, path.getFileName() == null ? "/" : path.getFileName().toString()
+						, ATTR_ALIAS, path.getFileName() == null ? "/" : path.getFileName().toString()
 						, ATTR_LASTMODIFIED, 0
 						, ATTR_DIR, false
 						, ATTR_EXIST, false

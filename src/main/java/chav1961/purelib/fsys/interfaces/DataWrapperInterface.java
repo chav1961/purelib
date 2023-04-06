@@ -19,13 +19,14 @@ import java.util.regex.Pattern;
  *   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 
 public interface DataWrapperInterface extends FileSystemLockInterface {
 
 	public static final String ATTR_SIZE = "size";
 	public static final String ATTR_NAME = "name";
+	public static final String ATTR_ALIAS = "alias";
 	public static final String ATTR_LASTMODIFIED = "lastModified";
 	public static final String ATTR_DIR = "dir";
 	public static final String ATTR_EXIST = "exist";

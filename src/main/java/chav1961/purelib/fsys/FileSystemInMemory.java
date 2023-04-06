@@ -77,7 +77,14 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 	public FileSystemInMemory(final URI rootPath) {
 		super(rootPath);
 		this.content = new HashMap<>();
-		content.put("/",new MemoryDesc("/",Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, "/", DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true)));
+		content.put("/",new MemoryDesc("/",Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, 
+								DataWrapperInterface.ATTR_NAME, "/", 
+								DataWrapperInterface.ATTR_ALIAS, "/", 
+								DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), 
+								DataWrapperInterface.ATTR_DIR, true, 
+								DataWrapperInterface.ATTR_EXIST, true, 
+								DataWrapperInterface.ATTR_CANREAD, true, 
+								DataWrapperInterface.ATTR_CANWRITE, true)));
 		this.another = null;
 		this.cloned = false;
 		this.lock = new InMemoryFileSystemLocker(false);
@@ -256,12 +263,26 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 
 		@Override
 		public void mkDir() throws IOException {
-			content.put(wrapper,new MemoryDesc(wrapper,Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, getName(), DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true)));
+			content.put(wrapper,new MemoryDesc(wrapper,Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, 
+						DataWrapperInterface.ATTR_NAME, getName(), 
+						DataWrapperInterface.ATTR_ALIAS, getName(), 
+						DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), 
+						DataWrapperInterface.ATTR_DIR, true, 
+						DataWrapperInterface.ATTR_EXIST, true, 
+						DataWrapperInterface.ATTR_CANREAD, true, 
+						DataWrapperInterface.ATTR_CANWRITE, true)));
 		}
 
 		@Override
 		public void create() throws IOException {
-			content.put(wrapper,new MemoryDesc(wrapper,Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, getName(), DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), DataWrapperInterface.ATTR_DIR, false, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true)));
+			content.put(wrapper,new MemoryDesc(wrapper,Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, 
+					DataWrapperInterface.ATTR_NAME, getName(), 
+					DataWrapperInterface.ATTR_ALIAS, getName(), 
+					DataWrapperInterface.ATTR_LASTMODIFIED, System.currentTimeMillis(), 
+					DataWrapperInterface.ATTR_DIR, false, 
+					DataWrapperInterface.ATTR_EXIST, true, 
+					DataWrapperInterface.ATTR_CANREAD, true, 
+					DataWrapperInterface.ATTR_CANWRITE, true)));
 		}
 
 		@Override
@@ -272,13 +293,27 @@ public class FileSystemInMemory extends AbstractFileSystem implements FileSystem
 		@Override
 		public Map<String, Object> getAttributes() throws IOException {
 			if ("/".equals(wrapper)) {
-				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, "/", DataWrapperInterface.ATTR_LASTMODIFIED, 0L, DataWrapperInterface.ATTR_DIR, true, DataWrapperInterface.ATTR_EXIST, true, DataWrapperInterface.ATTR_CANREAD, true, DataWrapperInterface.ATTR_CANWRITE, true);						
+				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, 
+						DataWrapperInterface.ATTR_NAME, "/", 
+						DataWrapperInterface.ATTR_ALIAS, "/", 
+						DataWrapperInterface.ATTR_LASTMODIFIED, 0L, 
+						DataWrapperInterface.ATTR_DIR, true, 
+						DataWrapperInterface.ATTR_EXIST, true, 
+						DataWrapperInterface.ATTR_CANREAD, true, 
+						DataWrapperInterface.ATTR_CANWRITE, true);						
 			}
 			else if (content.containsKey(wrapper)) {
 				return content.get(wrapper).attributes;
 			}
 			else {
-				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, DataWrapperInterface.ATTR_NAME, getName(), DataWrapperInterface.ATTR_LASTMODIFIED, 0L, DataWrapperInterface.ATTR_DIR, false, DataWrapperInterface.ATTR_EXIST, false, DataWrapperInterface.ATTR_CANREAD, false, DataWrapperInterface.ATTR_CANWRITE, false);						
+				return Utils.mkMap(DataWrapperInterface.ATTR_SIZE, 0L, 
+						DataWrapperInterface.ATTR_NAME, getName(), 
+						DataWrapperInterface.ATTR_ALIAS, getName(), 
+						DataWrapperInterface.ATTR_LASTMODIFIED, 0L, 
+						DataWrapperInterface.ATTR_DIR, false, 
+						DataWrapperInterface.ATTR_EXIST, false, 
+						DataWrapperInterface.ATTR_CANREAD, false, 
+						DataWrapperInterface.ATTR_CANWRITE, false);						
 			}
 		}
 

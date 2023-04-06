@@ -259,6 +259,7 @@ public class FileSystemOnClassLoader extends AbstractFileSystem implements FileS
 				
 				return Utils.mkMap(ATTR_SIZE, 0
 						, ATTR_NAME, path.getName() == null ? "/" : path.getName().toString()
+						, ATTR_ALIAS, path.getName() == null ? "/" : path.getName().toString()
 						, ATTR_LASTMODIFIED, 0
 						, ATTR_DIR, !wrapper.getPath().contains(".")
 						, ATTR_EXIST, true
@@ -272,6 +273,7 @@ public class FileSystemOnClassLoader extends AbstractFileSystem implements FileS
 			else {
 				return Utils.mkMap(ATTR_SIZE, 0
 						, ATTR_NAME, wrapper.getPath() == null ? "/" : wrapper.getPath()
+						, ATTR_ALIAS, wrapper.getPath() == null ? "/" : wrapper.getPath()
 						, ATTR_LASTMODIFIED, 0
 						, ATTR_DIR, false
 						, ATTR_EXIST, false

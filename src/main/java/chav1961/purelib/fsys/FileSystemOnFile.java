@@ -1,10 +1,8 @@
 package chav1961.purelib.fsys;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,10 +12,8 @@ import java.net.URI;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -333,17 +329,37 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 			final Map<String, Object>	result;
 			
 			if (atRoot) {
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0, 
+						ATTR_NAME, "/", 
+						ATTR_ALIAS, "/", 
+						ATTR_LASTMODIFIED, Long.valueOf(0), 
+						ATTR_DIR, true, 
+						ATTR_EXIST, true, 
+						ATTR_CANREAD, true, 
+						ATTR_CANWRITE, true);
 			}
 			else if (atRootItem) {
 				final File	temp = getFile();
 				
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0, 
+						ATTR_NAME, temp.getPath().substring(0, 2), 
+						ATTR_ALIAS, temp.getPath().substring(0, 2), 
+						ATTR_LASTMODIFIED, Long.valueOf(0), 
+						ATTR_DIR, true, 
+						ATTR_EXIST, true, 
+						ATTR_CANREAD, true, 
+						ATTR_CANWRITE, true);
 			}
 			else {
 				final File	temp = getFile();
 				
-				result = Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
+				result = Utils.mkMap(ATTR_SIZE, temp.length(), 
+						ATTR_NAME, temp.getName(), 
+						ATTR_ALIAS, temp.getName(), 
+						ATTR_LASTMODIFIED, temp.lastModified(), 
+						ATTR_DIR, temp.isDirectory(), 
+						ATTR_EXIST, temp.exists(), 
+						ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
 			}
 			return result;
 		}
@@ -465,17 +481,38 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 			final Map<String, Object>	result;
 			
 			if (atRoot) {
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0,
+						ATTR_NAME, "/", 
+						ATTR_ALIAS, "/", 
+						ATTR_LASTMODIFIED, Long.valueOf(0), 
+						ATTR_DIR, true, 
+						ATTR_EXIST, true, 
+						ATTR_CANREAD, true, 
+						ATTR_CANWRITE, true);
 			}
 			else if (atRootItem) {
 				final File	temp = getFile();
 				
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0, 
+						ATTR_NAME, temp.getName(), 
+						ATTR_ALIAS, temp.getName(), 
+						ATTR_LASTMODIFIED, Long.valueOf(0), 
+						ATTR_DIR, true, 
+						ATTR_EXIST, true, 
+						ATTR_CANREAD, true, 
+						ATTR_CANWRITE, true);
 			}
 			else {
 				final File	temp = getFile();
 				
-				result = Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
+				result = Utils.mkMap(ATTR_SIZE, temp.length(), 
+						ATTR_NAME, temp.getName(), 
+						ATTR_ALIAS, temp.getName(), 
+						ATTR_LASTMODIFIED, temp.lastModified(), 
+						ATTR_DIR, temp.isDirectory(), 
+						ATTR_EXIST, temp.exists(), 
+						ATTR_CANREAD, temp.canRead(), 
+						ATTR_CANWRITE, temp.canWrite());
 			}
 			return result;
 		}
@@ -597,17 +634,38 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 			final Map<String, Object>	result;
 			
 			if (atRoot) {
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, "/", ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0, 
+						ATTR_NAME, "/", 
+						ATTR_ALIAS, "/", 
+						ATTR_LASTMODIFIED, Long.valueOf(0), 
+						ATTR_DIR, true, 
+						ATTR_EXIST, true, 
+						ATTR_CANREAD, true, 
+						ATTR_CANWRITE, true);
 			}
 			else if (atRootItem) {
 				final File	temp = getFile();
 				
-				result = Utils.mkMap(ATTR_SIZE, 0, ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, Long.valueOf(0), ATTR_DIR, true, ATTR_EXIST, true, ATTR_CANREAD, true, ATTR_CANWRITE, true);
+				result = Utils.mkMap(ATTR_SIZE, 0, 
+						ATTR_NAME, temp.getName(), 
+						ATTR_ALIAS, temp.getName(), 
+						ATTR_LASTMODIFIED, Long.valueOf(0), 
+						ATTR_DIR, true, 
+						ATTR_EXIST, true, 
+						ATTR_CANREAD, true, 
+						ATTR_CANWRITE, true);
 			}
 			else {
 				final File	temp = getFile();
 				
-				result = Utils.mkMap(ATTR_SIZE, temp.length(), ATTR_NAME, temp.getName(), ATTR_LASTMODIFIED, temp.lastModified(), ATTR_DIR, temp.isDirectory(), ATTR_EXIST, temp.exists(), ATTR_CANREAD, temp.canRead(), ATTR_CANWRITE, temp.canWrite());
+				result = Utils.mkMap(ATTR_SIZE, temp.length(), 
+						ATTR_NAME, temp.getName(), 
+						ATTR_ALIAS, temp.getName(), 
+						ATTR_LASTMODIFIED, temp.lastModified(), 
+						ATTR_DIR, temp.isDirectory(), 
+						ATTR_EXIST, temp.exists(), 
+						ATTR_CANREAD, temp.canRead(), 
+						ATTR_CANWRITE, temp.canWrite());
 			}
 			return result;
 		}
