@@ -197,7 +197,7 @@ public abstract class AbstractLocalizer implements Localizer {
 	@Override
 	public String getValue(final String key) throws LocalizationException, IllegalArgumentException {
 		if (Utils.checkEmptyOrNullString(key)) {
-			throw new IllegalArgumentException("Key to check can't be null or empty");
+			throw new IllegalArgumentException("Key to get value can't be null or empty");
 		}
 		else {
 			return getValue4Locale(currentLocale().getLocale(), key);
@@ -210,7 +210,7 @@ public abstract class AbstractLocalizer implements Localizer {
 			throw new NullPointerException("Locale can't be null");
 		}
 		else if (Utils.checkEmptyOrNullString(key)) {
-			throw new IllegalArgumentException("Key to check can't be null or empty");
+			throw new IllegalArgumentException("Key to get value can't be null or empty");
 		}
 		else if (!containsKey(key)) {
 			throw new LocalizationException("Key ["+key+"] to get value is missing anywhere");
@@ -236,7 +236,7 @@ public abstract class AbstractLocalizer implements Localizer {
 				
 				while (current != null) {
 					if (current instanceof AbstractLocalizer) {
-						if ((id = associations.seekName(key)) >= 0) {
+						if ((id = associations.seekName((CharSequence)key)) >= 0) {
 							try{result = String.format(result,associations.getCargo(id).getParameters());
 							} catch (Exception e) {
 							}
