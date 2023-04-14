@@ -1,26 +1,46 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.util.Locale;
 import java.util.Map;
 
 import javax.swing.JComponent;
 
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.interfaces.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.WizardStep;
 
-public class JModelBasedWizardStep<Common, Err extends Enum<?>> extends JComponent implements WizardStep<Common, Err, JComponent>, NodeMetadataOwner {
+public class JModelBasedWizardStep<Common, Err extends Enum<?>> extends JComponent implements WizardStep<Common, Err, JComponent>, NodeMetadataOwner, LocaleChangeListener {
 	private static final long serialVersionUID = 1965509994262064521L;
 
-	@Override
-	public ContentNodeMetadata getNodeMetadata() {
-		// TODO Auto-generated method stub
-		return null;
+	private final ContentNodeMetadata	metadata;
+	private final StepType				type; 
+	
+	public JModelBasedWizardStep(final ContentNodeMetadata metadata, final StepType type) {
+		if (metadata == null) {
+			throw new NullPointerException("Metadata can't be null");
+		}
+		else if (type == null) {
+			throw new NullPointerException("Step type can't be null");
+		}
+		else {
+			this.metadata = metadata;
+			this.type = type;
+		}
 	}
 
+	@Override
+	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+	}
 	
+	@Override
+	public ContentNodeMetadata getNodeMetadata() {
+		return metadata;
+	}
+
 	@Override
 	public String getStepId() {
 		return getNodeMetadata().getName();
@@ -28,8 +48,7 @@ public class JModelBasedWizardStep<Common, Err extends Enum<?>> extends JCompone
 
 	@Override
 	public StepType getStepType() {
-		// TODO Auto-generated method stub
-		return null;
+		return type;
 	}
 
 	@Override
@@ -49,25 +68,19 @@ public class JModelBasedWizardStep<Common, Err extends Enum<?>> extends JCompone
 
 	@Override
 	public JComponent getContent() {
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	@Override
-	public void beforeShow(Common content, Map<String, Object> temporary, ErrorProcessing<Common, Err> err) throws FlowException, LocalizationException, NullPointerException {
-		// TODO Auto-generated method stub
-		
+	public void beforeShow(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, Err> err) throws FlowException {
 	}
 
 	@Override
-	public boolean validate(Common content, Map<String, Object> temporary, ErrorProcessing<Common, Err> err) throws FlowException, LocalizationException, NullPointerException {
-		// TODO Auto-generated method stub
+	public boolean validate(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, Err> err) throws FlowException {
 		return false;
 	}
 
 	@Override
-	public void afterShow(Common content, Map<String, Object> temporary, ErrorProcessing<Common, Err> err) throws FlowException, LocalizationException, NullPointerException {
-		// TODO Auto-generated method stub
-		
+	public void afterShow(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, Err> err) throws FlowException {
 	}
 }
