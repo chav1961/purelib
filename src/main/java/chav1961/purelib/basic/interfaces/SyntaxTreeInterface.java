@@ -20,6 +20,7 @@ import chav1961.purelib.basic.OrdinalSyntaxTree;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  * @last.update 0.0.7
+ * @param <T> any content associated with the name inserted
  */
 
 public interface SyntaxTreeInterface<T> {
@@ -28,7 +29,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.6
 	 */
-	public static final SyntaxTreeInterface DUMMY = new SyntaxTreeInterface() {
+	public static final SyntaxTreeInterface DUMMY = new SyntaxTreeInterface<>() {
 														@Override public long placeName(char[] value, int from, int to, Object cargo) {return -1;}
 														@Override public long placeOrChangeName(char[] value, int from, int to, Object cargo) {return -1;}
 														@Override public long placeName(String name, Object cargo) {return -1;}
@@ -57,6 +58,7 @@ public interface SyntaxTreeInterface<T> {
 	 * <p>This interface describes processing all terminal nodes in the tree.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
+	 * @param <T> any content associated with the name inserted
 	 */
 	@FunctionalInterface
 	public interface Walker<T> {

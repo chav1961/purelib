@@ -11,11 +11,12 @@ import chav1961.purelib.streams.JsonStaxPrinter;
  * <p>This interface decsribes any object can load and store it's state from JSON stream</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
+ * @param <Any> any entity which content can be assigned for the given one
  */
 public interface JsonSerializable<Any> {
 	/**
 	 * <p>Load object state from JSON</p>
-	 * @param parser parser to load state from. Can't be null
+	 * @param parser to load state from. Can't be null
 	 * @throws SyntaxException on any JSON errors
 	 * @throws IOException on any I/O errors
 	 */
@@ -23,7 +24,7 @@ public interface JsonSerializable<Any> {
 	
 	/**
 	 * <p>Store object state into JSON</p>
-	 * @param printerprinter to store state to. Can't be null
+	 * @param printer printer to store state to. Can't be null
 	 * @throws PrintingException on any JSON errors
 	 * @throws IOException on any I/O errors
 	 */

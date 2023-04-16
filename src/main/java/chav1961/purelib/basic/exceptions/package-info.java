@@ -3,27 +3,27 @@
  * {@link java.lang.Exception}. They are used in all the packages of the library.</p>
  * <p>Hierarchy of exceptions in the package is:</p>
  * <ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.PureLibException} - root of all checked exceptions in the Pure Library</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.PureLibException} - root of all checked exceptions in the Pure Library
  * <ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.CalculationException} - fires on any calculation errors</li>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.ContentException} - fires on any content errors</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.CalculationException} - fires on any calculation errors
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.ContentException} - fires on any content errors
  * <ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.CommandLineParametersException} - fires on any errors in commands typed</li>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.ConsoleCommandException} - fires on any errors in command lines</li>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.SyntaxException} - fires on any errors when parsing from string representation</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.CommandLineParametersException} - fires on any errors in commands typed
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.ConsoleCommandException} - fires on any errors in command lines
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.SyntaxException} - fires on any errors when parsing from string representation
  * <ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.MimeParseException} - special type of {@linkplain chav1961.purelib.basic.exceptions.SyntaxException} to parse MIM strings</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.MimeParseException} - special type of {@linkplain chav1961.purelib.basic.exceptions.SyntaxException} to parse MIM strings
  * </ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.PrintingException} - fires on any errors when building string representation</li>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.TestException} - fires on any errors on testing</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.PrintingException} - fires on any errors when building string representation
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.TestException} - fires on any errors on testing
  * </ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.EnvironmentException} - fires on any errors in the application environment</li>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.FlowException} - fires on any errors on data flow processing</li>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.DebuggingException} - fires on any errors on content debugging</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.EnvironmentException} - fires on any errors in the application environment
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.FlowException} - fires on any errors on data flow processing
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.DebuggingException} - fires on any errors on content debugging
  * </ul>
- * <li>{@linkplain java.lang.RuntimeException} - root of all runtime exceptions in the Pure Library</li>
+ * <li>{@linkplain java.lang.RuntimeException} - root of all runtime exceptions in the Pure Library
  * <ul>
- * <li>{@linkplain chav1961.purelib.basic.exceptions.PreparationException} - fires on any initialization errors in any classes (especially in static initializers)</li>
+ * <li>{@linkplain chav1961.purelib.basic.exceptions.PreparationException} - fires on any initialization errors in any classes (especially in static initializers)
  * </ul>
  * </ul>
  * <p>It's strongly recommended to use all the exceptions in according to their's predefined roles were typed earlier</p>  

@@ -16,6 +16,7 @@ import java.util.function.Predicate;
  * <p>This class is a container for keeping reference value and waiting to it's "change event"</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
+ * @param <T> reference type
  */
 public class ListenableRef<T> {
 	private final Object		awaitSync = new Object();

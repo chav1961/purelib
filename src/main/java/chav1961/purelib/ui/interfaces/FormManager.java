@@ -16,6 +16,8 @@ import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  * @last.update 0.0.5
+ * @param <Id> primary key Id type for the form manager instance
+ * @param <Instance> content for the form manager instance
  */
 
 public interface FormManager<Id,Instance> extends RecordFormManager<Id,Instance>, FieldFormManager<Id,Instance>, ActionFormManager<Id,Instance>, LoggerFacadeOwner {

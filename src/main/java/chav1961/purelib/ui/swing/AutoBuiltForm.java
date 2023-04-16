@@ -84,7 +84,7 @@ import chav1961.purelib.ui.swing.useful.LabelledLayout;
  * <p>If number of fields in the form is too long, you can split form to a set of two-column pairs (named <i>bars</i>). Fields of the class to show must be annotated at least with {@linkplain LocaleResource} annotations. These annotations are source for the field labels and field tooltips 
  * in the form to build. Form can also contains a set of buttons to process actions on it. These buttons are not represents as fields in the class to show, but as 
  * {@linkplain Action} annotation before class description. Any user actions on the form fire {@linkplain FormManager#onField(Object, Object, String, Object, boolean)} or
- * {@linkplain FormManager#onAction(Object, Object, String, Object, boolean)} calls on the {@linkplain FormManager} interface. To simplify code, it's recommended that class to show
+ * {@linkplain FormManager#onAction(Object, Object, String, Object...)} calls on the {@linkplain FormManager} interface. To simplify code, it's recommended that class to show
  * also implements {@linkplain FormManager} interface itself.</p>
  * <p>Form built doesn't contain any predefined buttons ("OK", "Cancel" and similar). You must close this form yourself, if required</p> 
  * @param <T> Instance to build form for

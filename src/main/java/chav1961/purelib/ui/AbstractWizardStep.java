@@ -16,9 +16,11 @@ import chav1961.purelib.ui.interfaces.WizardStep;
  * @see WizardStep 
  * @since 0.0.2
  * @last.update 0.0.6
+ * @param <Common> common instance type to keep all wizard data
+ * @param <ErrorType> set of errors can be detected in the wizard
+ * @param <Content> Swing component to represent wizard content
  */
-
-public abstract class AbstractWizardStep<Common,ErrorType extends Enum<?>, Content extends JComponent> implements WizardStep<Common,ErrorType,Content> {
+public abstract class AbstractWizardStep<Common, ErrorType extends Enum<?>, Content extends JComponent> implements WizardStep<Common,ErrorType,Content> {
 	@Override public abstract StepType getStepType();
 	@Override public abstract String getCaption();
 	@Override public abstract Content getContent();

@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.util.Collection;
 
 import chav1961.purelib.ui.swing.useful.JFileItemDescriptor;
+import chav1961.purelib.ui.swing.useful.JFileList;
+import chav1961.purelib.ui.swing.useful.JFileTree;
 
 /**
- * <p>This interface describes any visual file content keeper<p> 
+ * <p>This interface describes any visual 'file' content keeper. It usually used by {@linkplain JFileList} and {@linkplain JFileTree}
+ * classes</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  */

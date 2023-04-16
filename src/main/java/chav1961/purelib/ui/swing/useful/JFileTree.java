@@ -52,7 +52,7 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentKeeper;
  * <p>This class supports navigation on the file system in the tree style. The class is abstract, and children of the class must 
  * implements at least two methods:</p>
  * <ul>
- * <li>{@linkplain #placeFileContent(Point, Iterable<File>)} method to process DROP operation with the list of files on any tree item</li>
+ * <li>{@linkplain #placeFileContent(Point, Iterable)} method to process DROP operation with the list of files on any tree item</li>
  * <li>{@linkplain #refreshLinkedContent(FileSystemInterface)} method to refresh linked content after change selection inside the tree</li>
  * </ul>
  * <p>Every item in the tree is an instance of {@linkplain JFileItemDescriptor} and can be cast to it safely.</p> 

@@ -9,7 +9,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.SpiService;
 
 /**
- * <p>This interface describes metrix factory to support matrix arithmetics.</p> 
+ * <p>This interface describes matrix factory to support matrix arithmetics.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  */

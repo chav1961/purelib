@@ -34,6 +34,7 @@ public class ReusableInstances<T> implements AutoCloseable {
 	 * <p>This interface returns newly created instance to use in the cache</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @param <T> instance type to create
 	 */
 	@FunctionalInterface
 	public interface TrueConstructor<T> {
@@ -48,6 +49,7 @@ public class ReusableInstances<T> implements AutoCloseable {
 	 * <p>This iterface resets existent instance if the class to the initial state</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @param <T> instance type to prepare
 	 */
 	@FunctionalInterface
 	public interface PseudoConstructor<T> {

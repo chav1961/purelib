@@ -154,7 +154,7 @@ public class GettersAndSettersFactory {
 	 */
 	public interface Serializer<T> {
 		/**
-		 * 
+		 * <p>This interface describes a constructor of the new instance</p>  
 		 * @param <T> class to create instance for
 		 */
 		@FunctionalInterface
@@ -383,6 +383,7 @@ public class GettersAndSettersFactory {
 	 * <p>This class implements getter and setter to the referenced field in the class or instance</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @param <T> value type to get and set inside the object instance
 	 */
 	public static abstract class ObjectGetterAndSetter<T> implements GetterAndSetter {
 		/**

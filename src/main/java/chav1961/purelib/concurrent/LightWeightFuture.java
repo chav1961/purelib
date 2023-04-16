@@ -13,13 +13,13 @@ import chav1961.purelib.concurrent.interfaces.RequestProcessor;
  * <p>This class is light-weight implementation of {@linkplain Future} interface. It can be used to pass processing request to another thread. Typical example
  * to use it is:</p>
  * <code>
- * ArrayLockingQueue<Future<String,String>> queue = ...
+ * ArrayLockingQueue&lt;Future&lt;String,String&gt;&gt; queue = ...
  * // first thread
- * Future<String,String> f = new LightWeightFuture("source");
+ * Future&lt;String,String&gt; f = new LightWeightFuture("source");
  * queue.put(f);
  * String result = f.get();
  * // second thread
- * Future<String,String> f = queue.take();
+ * Future&lt;String,String&gt; f = queue.take();
  * f.complete(f.take().toUpperCase());
  * </code>
  *

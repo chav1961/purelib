@@ -4,15 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
-import java.util.Spliterator;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.Spliterator;
 import java.util.stream.IntStream;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.ReusableInstances;
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
-import chav1961.purelib.basic.growablearrays.GrowableShortArray.PlainSpliterator;
-import chav1961.purelib.basic.growablearrays.GrowableShortArray.SlicedSpliterator;
 import chav1961.purelib.basic.interfaces.RichAppendable;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
@@ -25,8 +23,8 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
  * @last.update 0.0.7
+ * @param <T> type of this or child class to support chain operations with children
  */
-
 public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence, RichAppendable {
 	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final char[]	NULL_CHAR = new char[0];

@@ -15,15 +15,16 @@ import chav1961.purelib.basic.exceptions.ContentException;
  * </ul>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
+ * @param <Id> primary key id type for the form content
+ * @param <Instance> instance type for the form content
  */
-
 public interface FormModel<Id,Instance> {
 	/**
 	 * <p>This enumeration describes operations supported</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
 	 */
-	public enum SupportedOperations {
+	public static enum SupportedOperations {
 		INSERT, DUPLICATE, UPDATE, DELETE
 	}
 	

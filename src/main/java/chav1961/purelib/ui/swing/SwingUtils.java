@@ -1131,6 +1131,8 @@ loop:			for (Component comp : children(node)) {
 	 * <p>This interface describes callback for preprocessing action command string</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.5
+	 * @param <Obj> object instance type associated with the given action
+	 * @param <C> cargo associated with the item
 	 */
 	@FunctionalInterface
 	public interface PreprocessActionStringCallback<Obj,C> {

@@ -1,6 +1,5 @@
 package chav1961.purelib.ui.swing;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -54,10 +53,12 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 
 /**
- * <p>This class implements application navigation menu as a tree.</p>
+ * <p>This class implements application menu as a navigation tree. It is usually used with {@linkplain FileSystemInterface}, 
+ * {@linkplain JsonNode} or {@linkplain ContentNodeMetadata} items.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
  * @last.update 0.0.5
+ * @param <T> type of the tree node content.
  */
 public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListener, NodeMetadataOwner {
 	private static final long 				serialVersionUID = -978827310276837317L;
@@ -76,15 +77,35 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 	private final DefaultMutableTreeNode	rootNode = new DefaultMutableTreeNode();
 	private final LightWeightListenerList<ActionListener>	listeners = new LightWeightListenerList<>(ActionListener.class); 
 	
-	public enum ContentType {
+	/**
+	 * <p>THis enumeration describes content type of the navigator</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 */
+	public static enum ContentType {
 		METADATA, JSON, FSYS
 	}
 
-	public SimpleNavigatorTree(final Localizer localizer, final FileSystemInterface fsi) throws NullPointerException, IllegalArgumentException, LocalizationException, IOException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param fsi file system root. Can't be null
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IOException on any I/O errors
+	 */
+	public SimpleNavigatorTree(final Localizer localizer, final FileSystemInterface fsi) throws NullPointerException, IOException {
 		this(localizer, fsi, false);
 	}
 	
-	public SimpleNavigatorTree(final Localizer localizer, final FileSystemInterface fsi, final boolean lazyLoading) throws NullPointerException, IllegalArgumentException, LocalizationException, IOException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param fsi file system root. Can't be null
+	 * @param lazyLoading use lazy tree loading (true if yes)
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IOException on any I/O errors
+	 */
+	public SimpleNavigatorTree(final Localizer localizer, final FileSystemInterface fsi, final boolean lazyLoading) throws NullPointerException, IOException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -123,12 +144,27 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 			prepareCommon(lazyLoading);
 		}
 	}
-	
-	public SimpleNavigatorTree(final Localizer localizer, final JsonNode root) throws NullPointerException, IllegalArgumentException, LocalizationException {
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param root JSON node root. Can't be null
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IllegalArgumentException on any parameter errors
+	 */
+	public SimpleNavigatorTree(final Localizer localizer, final JsonNode root) throws NullPointerException, IllegalArgumentException {
 		this(localizer,root,false);
 	}
-	
-	public SimpleNavigatorTree(final Localizer localizer, final JsonNode root, final boolean lazyLoading) throws NullPointerException, IllegalArgumentException, LocalizationException {
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param root JSON node root. Can't be null
+	 * @param lazyLoading use lazy tree loading (true if yes)
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IllegalArgumentException on any parameter errors
+	 */
+	public SimpleNavigatorTree(final Localizer localizer, final JsonNode root, final boolean lazyLoading) throws NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -175,11 +211,26 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 		}
 	}
 
-	public SimpleNavigatorTree(final Localizer localizer, final ContentNodeMetadata metadata) throws NullPointerException, IllegalArgumentException, LocalizationException {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param metadata metadata root. Can't be null
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IllegalArgumentException on any parameter errors
+	 */
+	public SimpleNavigatorTree(final Localizer localizer, final ContentNodeMetadata metadata) throws NullPointerException, IllegalArgumentException {
 		this(localizer,metadata,false);
 	}
-	
-	public SimpleNavigatorTree(final Localizer localizer, final ContentNodeMetadata metadata, final boolean lazyLoading) throws NullPointerException, IllegalArgumentException, LocalizationException {
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param localizer localizer to use. Can't be null
+	 * @param metadata metadata root. Can't be null
+	 * @param lazyLoading use lazy tree loading (true if yes)
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IllegalArgumentException on any parameter errors
+	 */
+	public SimpleNavigatorTree(final Localizer localizer, final ContentNodeMetadata metadata, final boolean lazyLoading) throws NullPointerException, IllegalArgumentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
@@ -232,6 +283,10 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 		}
 	}
 
+	/**
+	 * <p>Get content type of the navigator</p>
+	 * @return content type. Can't be null
+	 */
 	public ContentType getConentType() {
 		return contentType;
 	}
@@ -294,6 +349,10 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 		}
 	}
 	
+	/**
+	 * <p>Add action listener to the navigator</p>
+	 * @param listener listener to add. Can't be null
+	 */
 	public void addActionListener(final ActionListener listener) {
 		if (listener == null) {
 			throw new NullPointerException("Listener can't be null");
@@ -303,6 +362,10 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 		}
 	}
 
+	/**
+	 * <p>Remove action listener from the navigator</p>
+	 * @param listener listener to remove. Can't be null
+	 */
 	public void removeActionListener(final ActionListener listener) {
 		if (listener == null) {
 			throw new NullPointerException("Listener can't be null");
@@ -312,6 +375,13 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 		}
 	}
 
+	/**
+	 * <p>Find and select item by it's URI</p>
+	 * @param item item URI to find. Can't be null
+	 * @return true if found, false otherwise
+	 * @throws NullPointerException item is null
+	 * @throws IllegalArgumentException illegal item content
+	 */
 	public boolean findAndSelect(final URI item) throws NullPointerException, IllegalArgumentException {
 		if (item == null) {
 			throw new NullPointerException("URI to find can't be null");
@@ -330,6 +400,11 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 		}
 	}
 	
+	/**
+	 * <p>Find and select item by it's URI</p>
+	 * @param item item URI to find. Can't be null
+	 * @throws NullPointerException item is null
+	 */
 	public void findAndDoubleClick(final URI item) throws NullPointerException {
 		if (item == null) {
 			throw new NullPointerException("URI to find can't be null");
