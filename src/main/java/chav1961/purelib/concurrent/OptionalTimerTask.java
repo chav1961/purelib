@@ -3,6 +3,9 @@ package chav1961.purelib.concurrent;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+
 /**
  * <p>This class is a rejectable timer task, that can use lambdas to implement it's body instead of using inheritance.</p> 
  * @author Alexander Chernomyrdin aka chav1961
@@ -35,11 +38,12 @@ public class OptionalTimerTask extends TimerTask {
 	
 	@Override
 	public void run() {
-		try {
+		try{
 			if (!cancel.get()) {
 				runnable.run();
 			}
 		} catch (Exception exc) {
+			PureLibSettings.CURRENT_LOGGER.message(Severity.error, exc, exc.getLocalizedMessage());
 		}
 	}
 }
