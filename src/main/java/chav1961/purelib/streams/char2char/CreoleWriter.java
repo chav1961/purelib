@@ -11,7 +11,6 @@ import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
-import chav1961.purelib.streams.char2char.intern.CreoleOutputWriter;
 import chav1961.purelib.streams.char2char.intern.CreoleOutputWriterFactory;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack.ListType;

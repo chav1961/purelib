@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.char2char.intern;
+package chav1961.purelib.streams.char2char;
 
 
 import java.io.IOException;

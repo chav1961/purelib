@@ -11,6 +11,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.streams.char2char.CreoleOutputWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
