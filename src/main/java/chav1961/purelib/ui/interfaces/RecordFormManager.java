@@ -3,14 +3,22 @@ package chav1961.purelib.ui.interfaces;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 
+/**
+ * <p>This interface describes actions for record processing.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.2
+ * @param <Id> record identifier type. Use Object type if not required
+ * @param <Instance> instance type.
+ */
 public interface RecordFormManager<Id,Instance> {
 	/**
 	 * <p>This enumeration describes action on the UI screen for processing callback</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.2
+	 * @last.update 0.0.7
 	 */
 	public static enum RecordAction {
-		INSERT, DUPLICATE, CHANGE, DELETE, CHECK
+		INSERT, DUPLICATE, UPDATE, DELETE, CHECK, REFRESH
 	}
 
 	/**
