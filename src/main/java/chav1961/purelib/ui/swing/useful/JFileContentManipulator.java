@@ -19,6 +19,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.InputStreamGetter;
@@ -72,7 +73,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	private final InputStreamGetter		getterIn;
 	private final OutputStreamGetter	getterOut;
 	private final LRUPersistence		persistence;
-	private final List<String>			lru = new ArrayList<>();
+	private final List<String>			lru;
 	
 	private boolean				wasChanged = false;
 	private String				currentName = "", currentDir = "";
@@ -150,8 +151,25 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @throws IllegalArgumentException manipulator name is null or empty
 	 * @since 0.0.6
 	 */
-	public JFileContentManipulator(final String name, final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut, final LRUPersistence persistence) throws NullPointerException {
-		if (name == null || name.isEmpty()) {
+	public JFileContentManipulator(final String name, final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut, final LRUPersistence persistence) throws NullPointerException, IllegalArgumentException {
+		this(name, fsi, localizer, getterIn, getterOut, persistence, new ArrayList<>());
+	}	
+	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param name manipulator instance name. Can't be null or empty
+	 * @param fsi file system to use as content. Can't be null
+	 * @param localizer localizer to use. Can't be null
+	 * @param getterIn callback to get content when save
+	 * @param getterOut callback to put content when load
+	 * @param persistence persistence interface to load/store persistence
+	 * @param sharedLRU shared list for persistence. Used with multiple content manipulators
+	 * @throws NullPointerException any of parameters are null
+	 * @throws IllegalArgumentException manipulator name is null or empty
+	 * @since 0.0.7
+	 */
+	public JFileContentManipulator(final String name, final FileSystemInterface fsi, final Localizer localizer, final InputStreamGetter getterIn, final OutputStreamGetter getterOut, final LRUPersistence persistence, final List<String> sharedLRU) throws NullPointerException, IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Manipulator name can't be null or empty");
 		}
 		else if (fsi == null) {
@@ -169,6 +187,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		else if (persistence == null) {
 			throw new NullPointerException("Persistence interface can't be null");
 		}
+		else if (sharedLRU == null) {
+			throw new NullPointerException("Shared LRU list can't be null");
+		}
 		else {
 			this.name = name;
 			this.fsi = fsi;
@@ -176,6 +197,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			this.getterIn = getterIn;
 			this.getterOut = getterOut;
 			this.persistence = persistence;
+			this.lru = sharedLRU;
 			try{persistence.loadLRU(name, lru);
 			} catch (IOException e) {
 				lru.clear();
@@ -223,7 +245,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	@Override
 	public void close() throws IOException, UnsupportedOperationException {
 		commit();
-		persistence.saveLRU(name,lru);
+		persistence.saveLRU(name, getLastUsed());
 	}
 
 	/**
@@ -413,7 +435,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		if (file == null || file.isEmpty()) {
 			throw new IllegalArgumentException("File name can't be null or empty"); 
 		}
-		else if (!lru.contains(file)) {
+		else if (!getLastUsed().contains(file)) {
 			throw new IllegalArgumentException("File to open ["+file+"] not found in the 'last used' list. Use getLastUsed() to get valid names"); 
 		}
 		else if (progress == null) {
@@ -423,7 +445,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			try(final FileSystemInterface	current = fsi.clone().open(file)) {
 				if (!current.exists() || !current.isFile()) {
 					if (new JLocalizedOptionPane(localizer).confirm(null, LRU_MISSING, LRU_MISSING_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-						lru.remove(file);
+						getLastUsed().remove(file);
 						fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 					}
 					return false;
@@ -617,7 +639,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			throw new IllegalArgumentException("File name to remove can't be null or empty");
 		}
 		else {
-			lru.remove(fileName);
+			getLastUsed().remove(fileName);
 			fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 		}			
 	}
@@ -676,14 +698,14 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 
 	protected boolean processNew(final ProgressIndicator progress) throws IOException {
-		try(final OutputStream	os = getterOut.getContent()) {
+		try(final OutputStream	os = getterOut.getOutputContent()) {
 			os.flush();
 		}
 		return true;
 	}
 	
 	protected boolean processLoad(final String fileName, final InputStream source, final ProgressIndicator progress) throws IOException {
-		try(final OutputStream			os = getterOut.getContent()) {
+		try(final OutputStream			os = getterOut.getOutputContent()) {
 
 			Utils.copyStream(source, os, progress);
 		}
@@ -691,7 +713,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 
 	protected boolean processStore(final String fileName, final OutputStream target, final ProgressIndicator progress) throws IOException {
-		try(final InputStream			is = getterIn.getContent()) {
+		try(final InputStream			is = getterIn.getInputContent()) {
 
 			Utils.copyStream(is, target, progress);
 		}
@@ -705,8 +727,8 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		else {
 			return new InputStreamGetter() {
 				@Override
-				public InputStream getContent() {
-					try{return new ByteArrayInputStream(component.getText().getBytes("UTF-8"));
+				public InputStream getInputContent() {
+					try{return new ByteArrayInputStream(component.getText().getBytes(PureLibSettings.DEFAULT_CONTENT_ENCODING));
 					} catch (UnsupportedEncodingException e) {
 						return new ByteArrayInputStream(component.getText().getBytes());					
 					}
@@ -722,12 +744,12 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		else {
 			return new OutputStreamGetter() {
 				@Override
-				public OutputStream getContent() {
+				public OutputStream getOutputContent() {
 					return new ByteArrayOutputStream() {
 						@Override
 						public void close() throws IOException{
 							super.close();
-							component.setText(this.toString("UTF-8"));
+							component.setText(this.toString(PureLibSettings.DEFAULT_CONTENT_ENCODING));
 						}
 					};
 				}
@@ -736,15 +758,15 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 	
 	private void fillLru(final String name, final boolean fromSave) {
-		if (lru.size() > 0) {	// Avoid filling by repeatable values
-			if (lru.get(0).equals(name) && fromSave) {
+		if (getLastUsed().size() > 0) {	// Avoid filling by repeatable values
+			if (getLastUsed().get(0).equals(name) && fromSave) {
 				return;
 			}
 		}
-		lru.remove(name);
-		lru.add(0,name);
-		if (lru.size() > LRU_LIMIT) {
-			lru.remove(lru.size()-1);
+		getLastUsed().remove(name);
+		getLastUsed().add(0,name);
+		if (getLastUsed().size() > LRU_LIMIT) {
+			getLastUsed().remove(getLastUsed().size()-1);
 		}
 	}
 	

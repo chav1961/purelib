@@ -17,7 +17,7 @@ public interface OutputStreamGetter {
 	 * @return content stream. Can't be null
 	 * @throws IOException on any I/O errors
 	 */
-	OutputStream getContent() throws IOException;
+	OutputStream getOutputContent() throws IOException;
 	
 	/**
 	 * <p>Get dummy output stream getter</p>
@@ -26,7 +26,7 @@ public interface OutputStreamGetter {
 	static OutputStreamGetter dummy() {
 		return new OutputStreamGetter() {
 			@Override
-			public OutputStream getContent() throws IOException {
+			public OutputStream getOutputContent() throws IOException {
 				return new OutputStream() {
 					@Override
 					public void write(int b) throws IOException {

@@ -7,7 +7,7 @@ import java.io.InputStream;
  * <p>This interface produces input stream to get content of the manipulated entity on saving</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 @FunctionalInterface
 public interface InputStreamGetter {
@@ -16,7 +16,7 @@ public interface InputStreamGetter {
 	 * @return content stream. Can't be null
 	 * @throws IOException on any I/O errors
 	 */
-	InputStream getContent() throws IOException;
+	InputStream getInputContent() throws IOException;
 	
 	/**
 	 * <p>Get dummy input stream getter</p>
@@ -25,7 +25,7 @@ public interface InputStreamGetter {
 	static InputStreamGetter dummy() {
 		return new InputStreamGetter() {
 			@Override
-			public InputStream getContent() throws IOException {
+			public InputStream getInputContent() throws IOException {
 				return new InputStream() {
 					@Override
 					public int read() throws IOException {
