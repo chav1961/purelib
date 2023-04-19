@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowListener;
@@ -13,8 +14,15 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
@@ -30,6 +38,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.LocalizerOwner;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.interfaces.LRUPersistence;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeListener;
@@ -60,11 +69,15 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangedEvent;
 public class JFileContentManipulator implements Closeable, LocaleChangeListener, LocalizerOwner {
 	private static final String				UNSAVED_TITLE = "JFileContentManipulator.unsaved.title";
 	private static final String				UNSAVED_BODY = "JFileContentManipulator.unsaved.body";
+	private static final String				UNSAVED_CAPTION = "JFileContentManipulator.unsaved.caption";
+	private static final String				UNSAVED_SELECT_ALL = "JFileContentManipulator.unsaved.selectAll";
+	private static final String				UNSAVED_DESELECT_ALL = "JFileContentManipulator.unsaved.deselectAll";
 	private static final String				PROGRESS_LOADING = "JFileContentManipulator.progress.loading";
 	private static final String				PROGRESS_SAVING = "JFileContentManipulator.progress.saving";
 	private static final String				LRU_MISSING_TITLE = "JFileContentManipulator.lru.missing.title";
 	private static final String				LRU_MISSING = "JFileContentManipulator.lru.missing";	
 	private static final int				LRU_LIMIT = 10;
+	private static final AtomicInteger		AI = new AtomicInteger();
 
 	private final LightWeightListenerList<FileContentChangeListener>	listeners = new LightWeightListenerList<>(FileContentChangeListener.class);
 	private final String				name;
@@ -74,10 +87,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	private final OutputStreamGetter	getterOut;
 	private final LRUPersistence		persistence;
 	private final List<String>			lru;
-	
-	private boolean				wasChanged = false;
-	private String				currentName = "", currentDir = "";
-	private FilterCallback[]	filters = new FilterCallback[0];
+	private final List<FileDesc>		files = new ArrayList<>();
+
+	private int							filesIndex = 0;
 	
 	/**
 	 * <p>Constructor of the class</p>
@@ -222,13 +234,71 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @since 0.0.7
 	 */
 	public boolean commit() throws IOException {
-		if (wasChanged) {
-			switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+		int	count = 0;
+		
+		for(FileDesc item : files) {
+			if (item.wasChanged) {
+				count++;
+			}
+		}
+		if (count == 1) {
+			switch (new JLocalizedOptionPane(localizer).confirm(null, UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 				case  JOptionPane.YES_OPTION :
 					if (saveFile()) {
 						
 						clearModificationFlag();
 					}
+				case  JOptionPane.NO_OPTION : 
+					return true;
+				case  JOptionPane.CANCEL_OPTION : case  JOptionPane.CLOSED_OPTION :
+					return false;
+				default :
+					throw new UnsupportedOperationException("Illegal option from JLocalizedOptionPane.confirm(...)");
+			}
+		}
+		else if (count > 1) {
+			final ItemAndSelection<FileDesc>[]		content = ItemAndSelection.of(files);
+			final JList<ItemAndSelection<FileDesc>>	list = new JList<>(content);
+			final JLabel	caption = new JLabel(localizer.getValue(UNSAVED_CAPTION));
+			final JButton	selectAll = new JButton(localizer.getValue(UNSAVED_SELECT_ALL));
+			final JButton	deselectAll = new JButton(localizer.getValue(UNSAVED_DESELECT_ALL));
+			final JPanel	rightPanel = new JPanel();
+			final JPanel	panel = new JPanel(new BorderLayout(5,5));
+
+			selectAll.addActionListener((e)->{
+				for (ItemAndSelection<FileDesc> item : content) {
+					item.setSelected(true);
+				}
+				list.setModel(list.getModel());
+			});
+			deselectAll.addActionListener((e)->{
+				for (ItemAndSelection<FileDesc> item : content) {
+					item.setSelected(false);
+				}
+				list.setModel(list.getModel());
+			});
+			
+			rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+			rightPanel.add(selectAll);
+			rightPanel.add(deselectAll);
+			
+			panel.add(caption, BorderLayout.NORTH);
+			panel.add(new JScrollPane(list), BorderLayout.CENTER);
+			panel.add(rightPanel, BorderLayout.EAST);
+
+			switch (new JLocalizedOptionPane(localizer).confirm(null, panel, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
+				case  JOptionPane.YES_OPTION :
+					int	lastSelected = getCurrentFileSupport();
+					
+					for (ItemAndSelection<FileDesc> item : content) {
+						if (item.isSelected()) {
+							setCurrentFileSupport(item.getItem().id);
+							if (saveFile()) {
+								clearModificationFlag();
+							}
+						}
+					}
+					setCurrentFileSupport(lastSelected);
 				case  JOptionPane.NO_OPTION : 
 					return true;
 				case  JOptionPane.CANCEL_OPTION : case  JOptionPane.CLOSED_OPTION :
@@ -269,7 +339,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			throw new NullPointerException("Progress indicator can't be null"); 
 		}
 		else {
-			if (wasChanged) {
+			if (getFileDesc().wasChanged) {
 				switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 					case  JOptionPane.YES_OPTION :
 						if (!saveFile(progress)) {
@@ -284,7 +354,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			}
 			if (processNew(progress)) {
 				clearModificationFlag();
-				currentName = "";
+				getFileDesc().currentName = "";
 				fireEvent(FileContentChangeType.NEW_FILE_CREATED);
 				return true;
 			}
@@ -315,7 +385,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			throw new NullPointerException("Progress indicator can't be null"); 
 		}
 		else {
-			if (wasChanged) {
+			if (getFileDesc().wasChanged) {
 				switch (new JLocalizedOptionPane(localizer).confirm(null,UNSAVED_BODY, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 					case  JOptionPane.YES_OPTION :
 						if (!saveFile(progress)) {
@@ -328,16 +398,16 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 						return false;
 				}
 			}
-			for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS, filters)) {
+			for (String item : JFileSelectionDialog.select((Dialog)null, localizer, getFileDesc().currentDir.isEmpty() ? fsi : fsi.open(getFileDesc().currentDir), JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS, getFileDesc().filters)) {
 				try(final FileSystemInterface	current = fsi.clone().open(item)) {
 					
 					progress.start(String.format(localizer.getValue(PROGRESS_LOADING),current.getName()), current.size());
 					try(final InputStream			is = current.read()) {
 						if (processLoad(item, is, progress)) {
 							clearModificationFlag();
-							currentName = item;
-							currentDir = current.open("../").getPath();
-							fillLru(currentName,false);
+							getFileDesc().currentName = item;
+							getFileDesc().currentDir = current.open("../").getPath();
+							fillLru(getFileDesc().currentName,false);
 							fireEvent(FileContentChangeType.FILE_LOADED);
 							fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 							return true;
@@ -391,9 +461,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 						try(final InputStream			is = current.read()) {
 							if (processLoad(file, is, progress)) {
 								clearModificationFlag();
-								currentName = current.getPath();
-								currentDir = current.open("../").getPath();
-								fillLru(currentName,false);
+								getFileDesc().currentName = current.getPath();
+								getFileDesc().currentDir = current.open("../").getPath();
+								fillLru(getFileDesc().currentName,false);
 								fireEvent(FileContentChangeType.FILE_LOADED);
 								fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 								return true;
@@ -455,9 +525,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 						try(final InputStream			is = current.read()) {
 							if (processLoad(file, is, progress)) {
 								clearModificationFlag();
-								currentName = current.getPath();
-								currentDir = current.open("../").getPath();
-								fillLru(currentName,false);
+								getFileDesc().currentName = current.getPath();
+								getFileDesc().currentDir = current.open("../").getPath();
+								fillLru(getFileDesc().currentName,false);
 								fireEvent(FileContentChangeType.FILE_LOADED);
 								fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 								return true;
@@ -495,11 +565,11 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			throw new NullPointerException("Progress indicator can't be null"); 
 		}
 		else {
-			if (currentName.isEmpty()) {
+			if (getFileDesc().currentName.isEmpty()) {
 				return saveFileAs(progress);
 			}
 			else {
-				try(final FileSystemInterface	current = fsi.clone().open(currentName)) {
+				try(final FileSystemInterface	current = fsi.clone().open(getFileDesc().currentName)) {
 					
 					if (current.exists()) {
 						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()), current.size());
@@ -509,9 +579,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 						progress.start(String.format(localizer.getValue(PROGRESS_SAVING),current.getName()));
 					}
 					try(final OutputStream			os = current.write()) {
-						if (processStore(currentName, os, progress)) {
+						if (processStore(getFileDesc().currentName, os, progress)) {
 							clearModificationFlag();
-							fillLru(currentName, true);
+							fillLru(getFileDesc().currentName, true);
 							fireEvent(FileContentChangeType.FILE_STORED);
 							fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 							return true;
@@ -543,7 +613,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @throws IOException on any I/O errors
 	 */
 	public boolean saveFileAs(final ProgressIndicator progress) throws IOException {
-		for (String item : JFileSelectionDialog.select((Dialog)null, localizer, currentDir.isEmpty() ? fsi : fsi.open(currentDir), JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE, filters)) {
+		for (String item : JFileSelectionDialog.select((Dialog)null, localizer, getFileDesc().currentDir.isEmpty() ? fsi : fsi.open(getFileDesc().currentDir), JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_ALLOW_MKDIR | JFileSelectionDialog.OPTIONS_ALLOW_DELETE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE, getFileDesc().filters)) {
 			try(final FileSystemInterface	current = fsi.clone().open(item)) {
 			
 				if (current.exists()) {
@@ -556,9 +626,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 				try(final OutputStream			os = current.write()) {
 					if (processStore(item, os, progress)) {
 						clearModificationFlag();
-						currentName = item;
-						currentDir = current.open("../").getPath();
-						fillLru(currentName,true);
+						getFileDesc().currentName = item;
+						getFileDesc().currentDir = current.open("../").getPath();
+						fillLru(getFileDesc().currentName,true);
 						fireEvent(FileContentChangeType.FILE_STORED_AS);
 						fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 						return true;
@@ -580,11 +650,11 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @return file name. Returns empty string for new content was not saved yet
 	 */
 	public String getCurrentNameOfTheFile() {
-		if (currentName.isEmpty() || "/".equals(currentName)) {
+		if (getFileDesc().currentName.isEmpty() || "/".equals(getFileDesc().currentName)) {
 			return "";
 		}
 		else {
-			return currentName.substring(currentName.lastIndexOf('/')+1);
+			return getFileDesc().currentName.substring(getFileDesc().currentName.lastIndexOf('/')+1);
 		}
 	}
 
@@ -593,14 +663,14 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @return file path. Returns empty string for new content was not saved yet
 	 */
 	public String getCurrentPathOfTheFile() {
-		return currentName;
+		return getFileDesc().currentName;
 	}
 	
 	/**
 	 * <p>Notify the class that loaded content was modified. The class is used this information to confirm saving</p>
 	 */
 	public void setModificationFlag() {
-		wasChanged = true;
+		getFileDesc().wasChanged = true;
 		fireEvent(FileContentChangeType.MODIFICATION_FLAG_SET);
 	}
 
@@ -608,7 +678,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * <p>Notify the class that loaded content is treated as not modified. The class is used this information to confirm saving</p>
 	 */
 	public void clearModificationFlag() {
-		wasChanged = false;
+		getFileDesc().wasChanged = false;
 		fireEvent(FileContentChangeType.MODIFICATION_FLAG_CLEAR);
 	}
 	
@@ -617,7 +687,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @return true if yes
 	 */
 	public boolean wasChanged() {
-		return wasChanged; 
+		return getFileDesc().wasChanged; 
 	}
 
 	/**
@@ -684,7 +754,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			throw new IllegalArgumentException("File filters are null or contains nulls inside");
 		}
 		else {
-			this.filters = filters.clone();
+			getFileDesc().filters = filters.clone();
 		}
 	}
 	
@@ -694,9 +764,50 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @since 0.0.6
 	 */
 	public FilterCallback[] getFilters() {
-		return filters;
+		return getFileDesc().filters;
+	}
+	
+	public int getFileSupportCount() {
+		return files.size();
 	}
 
+	public int appendNewFileSupport() {
+		final FileDesc	fd = new FileDesc(); 
+		
+		files.add(fd);		
+		return fd.id;
+	}
+	
+	public int getCurrentFileSupport() {
+		return files.get(filesIndex).id;
+	}
+	
+	public void setCurrentFileSupport(final int id) {
+		for(int index = 0; index < files.size(); index++) {
+			if (files.get(index).id == id) {
+				filesIndex = index;
+				fireEvent(FileContentChangeType.FILE_SUPPORT_ID_CHANGED);
+				return;
+			}
+		}
+		throw new IllegalArgumentException("File support id ["+id+"] not found in the files list");
+	}
+	
+	public void removeFileSupport(final int id) {
+		for(int index = files.size() - 1; index >= 0; index--) {
+			if (files.get(index).id == id) {
+				if (index == filesIndex) {
+					throw new IllegalArgumentException("Attempt to remove current file support id ["+id+"]. Change selection firstly");
+				}
+				else {
+					files.remove(index);
+					return;
+				}
+			}
+		}
+		throw new IllegalArgumentException("File support id ["+id+"] not found in the files list");
+	}
+	
 	protected boolean processNew(final ProgressIndicator progress) throws IOException {
 		try(final OutputStream	os = getterOut.getOutputContent()) {
 			os.flush();
@@ -718,6 +829,10 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			Utils.copyStream(is, target, progress);
 		}
 		return true;
+	}
+
+	protected FileDesc getFileDesc() {
+		return files.get(0);
 	}
 	
 	static InputStreamGetter buildInputStreamGetter(final JTextComponent component) {
@@ -771,10 +886,23 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 	
 	private void fireEvent(final FileContentChangeType type) {
-		final FileContentChangedEvent<?>	event = new FileContentChangedEvent<>() {
+		final FileContentChangedEvent<JFileContentManipulator>	event = new FileContentChangedEvent<>() {
 											@Override public FileContentChangeType getChangeType() {return type;}
 											@Override public JFileContentManipulator getOwner() {return JFileContentManipulator.this;}
+											@Override public int getFileSupportId() {return getCurrentFileSupport();}
 										}; 
 		listeners.fireEvent((l)->l.actionPerformed(event));
+	}
+	
+	private static class FileDesc {
+		private final int			id = AI.incrementAndGet();
+		private boolean				wasChanged = false;
+		private String				currentName = "<new>", currentDir = "";
+		private FilterCallback[]	filters = new FilterCallback[0];
+		
+		@Override
+		public String toString() {
+			return currentName;
+		}
 	}
 }
