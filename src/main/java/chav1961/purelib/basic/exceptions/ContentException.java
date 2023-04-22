@@ -4,7 +4,8 @@ import java.net.URI;
 
 /**
  * <p>This exception describes any problems on content parsing of data. Differ to {@link SyntaxException}
- * it not contains row and column localization for problems detected</p>
+ * it not contains row and column localization for problems detected. It's recommended to use it similar to
+ * {@linkplain IllegalArgumentException} </p>
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

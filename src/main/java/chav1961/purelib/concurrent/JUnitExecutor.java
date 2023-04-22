@@ -77,7 +77,7 @@ public class JUnitExecutor<Command,Response> {
 	 * @throws InterruptedException when the slave thread was interrupted
 	 * @throws NullPointerException when callback is null
 	 */
-	public void waitCommand(CommandProcessor<Command, Response> proc) throws InterruptedException, NullPointerException {
+	public void waitCommand(final CommandProcessor<Command, Response> proc) throws InterruptedException, NullPointerException {
 		if (proc == null) {
 			throw new NullPointerException("Command processor can't be null");
 		}

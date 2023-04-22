@@ -4,13 +4,53 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.concurrent.interfaces.ExecutionControl;
 import chav1961.purelib.concurrent.interfaces.ResourceDispatcherLock;
 
+/**
+ * <p>This class implements simple resource dispatcher. It supports locking and unlocking a <b>group</b> of resources, up to 64 items in the group.
+ * Every resource in the dispatcher identifies by it's index (0..63). There is an example to use this class:</p>
+ * <code>
+ * try(final SimpleBitmapResourceDispatcher disp = new SimpleBitmapResourceDispatcher((1L << 0) | (1L << 1))) { // initially register resources with index 0 and 1
+ *    disp.start();
+ *    . . .
+ *    try(final ResourceDispatcherLock lock = disp.lock((1L << 0) | (1L << 1))) { // lock group of two resources with index 0 and 1
+ *    // process locked resources 
+ *    }
+ *    . . .
+ *    disp.registerResourceIndex(2);
+ *    . . .
+ *    try(final ResourceDispatcherLock lock = disp.lock((1L << 0) | (1L << 2))) { // lock group of two resources with index 0 and 2
+ *    // process locked resources 
+ *    }
+ *    . . .
+ *    disp.unregisterResourceIndex(2);
+ *    . . .
+ *    disp.stop();
+ * }
+ * <code>
+ * <p>The main usage of this class is to avoid deadlocks, when more than one resource locking is required. It works similar to:</p>
+ * <code>
+ * synchronized(resourceIndex0) {
+ *   synchronized(resourceIndex1) {
+ *     . . .
+ *     synchronized(resourceIndexN) {
+ *        // process locked resources
+ *     }
+ *     . . .
+ *   }
+ * }
+ * </code>
+ * <p>This class is thread-safe</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ *
+ */
 public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionControl  {
 	private static final AtomicInteger	AI = new AtomicInteger(1);
 	
@@ -27,9 +67,9 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 		this.bitmap = new AtomicLong(resourceBitmap);
 	}
 	
-	public ResourceDispatcherLock lock(final long resourcebitmap) throws IllegalArgumentException, IllegalStateException, InterruptedException, ContentException {
+	public ResourceDispatcherLock lock(final long resourcebitmap) throws IllegalArgumentException, IllegalStateException, InterruptedException, FlowException {
 		if (!isAvailable) {
-			throw new ContentException("Resource lock unsuccessful (dispatcher suspended)"); 
+			throw new FlowException("Resource lock unsuccessful (dispatcher suspended)"); 
 		}
 		else {
 			final OperationRequest	rq = new OperationRequest(OperationRequest.Action.ALLOCATE, resourcebitmap);
@@ -38,14 +78,21 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 			rq.latch.await();
 			if (rq.success) {
 				return new ResourceDispatcherLock() {
+					private AtomicBoolean closed = new AtomicBoolean(false);
+					
 					@Override
-					public void close() throws Exception {
-						queue.put(new OperationRequest(OperationRequest.Action.FREE, resourcebitmap));
+					public void close() throws InterruptedException {
+						if (!closed.getAndSet(true)) {
+							queue.put(new OperationRequest(OperationRequest.Action.FREE, resourcebitmap));
+						}
+						else {
+							throw new IllegalStateException("Resource is already unlocked");
+						}
 					}
 				};
 			}
 			else {
-				throw new ContentException("Resource lock unsuccessful ("+rq.cause+")"); 
+				throw new FlowException("Resource lock unsuccessful ("+rq.cause+")"); 
 			}
 		}
 	}
@@ -86,7 +133,9 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 	
 	@Override
 	public synchronized void close() throws IllegalStateException {
-		try{stop();
+		try{if (isStarted()) {
+				stop();
+			}
 		} catch (InterruptedException e) {
 			throw new IllegalStateException(e);
 		}
@@ -94,7 +143,7 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 
 	@Override
 	public synchronized void start() throws IllegalStateException {
-		if (isStarted) {
+		if (isStarted()) {
 			throw new IllegalStateException("Dispatcher is already started");
 		}
 		else {
@@ -108,8 +157,11 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 
 	@Override
 	public synchronized void suspend() throws IllegalStateException {
-		if (isStarted) {
-			throw new IllegalStateException("Dispatcher is already started");
+		if (!isStarted()) {
+			throw new IllegalStateException("Dispatcher is not started");
+		}
+		else if (isSuspended()) {
+			throw new IllegalStateException("Dispatcher is already suspended");
 		}
 		else {
 			isSuspended = true;
@@ -119,8 +171,11 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 
 	@Override
 	public synchronized void resume() throws IllegalStateException {
-		if (isStarted) {
-			throw new IllegalStateException("Dispatcher is already started");
+		if (!isStarted()) {
+			throw new IllegalStateException("Dispatcher is not started");
+		}
+		else if (!isSuspended()) {
+			throw new IllegalStateException("Dispatcher is not suspended");
 		}
 		else {
 			isSuspended = false;
@@ -130,8 +185,8 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 
 	@Override
 	public synchronized void stop() throws IllegalStateException, InterruptedException {
-		if (isStarted) {
-			throw new IllegalStateException("Dispatcher is already started");
+		if (!isStarted()) {
+			throw new IllegalStateException("Dispatcher is not started");
 		}
 		else {
 			dispatcher.interrupt();
@@ -220,7 +275,6 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 		awaited.clear();
 	}
 
-	
 	private static class OperationRequest {
 		private static enum Action {
 			ALLOCATE,

@@ -6,7 +6,8 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ JUnitExecutorTest.class, XByteStreamTest.class, XCharStreamTest.class, XStreamTest.class 
-	, ListenablesTest.class, LightWeightFutureTest.class })
+	, ListenablesTest.class, LightWeightFutureTest.class, SimpleBitmapResourceDispatcherTest.class
+	, SimpleObjectResourceDispatcherTest.class })
 public class AllTests {
 
 }
