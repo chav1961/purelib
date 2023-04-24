@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -588,7 +589,7 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	}
 
 	private void fillLocalizedStrings(final Locale oldLocale, final Locale newLocale) throws LocalizationException, IllegalArgumentException {
-		if (text == null) {
+		if (Utils.checkEmptyOrNullString(text)) {
 			label.setText("");
 		}
 		else if (localizer.containsKey(text)) {
@@ -597,8 +598,8 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		else {
 			label.setText(text);
 		}
-		if (tooltip == null) {
-			label.setToolTipText("");
+		if (Utils.checkEmptyOrNullString(tooltip)) {
+			label.setToolTipText(null);
 		}
 		else if (localizer.containsKey(tooltip)) {
 			label.setToolTipText(localizer.getValue(tooltip));

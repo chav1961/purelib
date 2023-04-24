@@ -36,6 +36,20 @@ public class JEnableMaskManipulator {
 	 * @throws IllegalArgumentException any list is null, empty, contains nulls/empties inside or item name in not exists in the component's list  
 	 */
 	public JEnableMaskManipulator(final String[] itemNames, final JComponent... components) throws IllegalArgumentException {
+		this(itemNames, false, components);
+	}	
+	
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param itemNames swing item names to manipulate. the same first name in the array will be associated with 0-th bit in the long mask,
+	 * the next will be associated with the 2-th bit in the long mask and so on. Can't be null, empty and doesn't contain nulls or empties inside.
+	 * All the names mentioned must exists in the second parameter on the constructor. Number of names must be less than 64 
+	 * @param ignoreMissing ignore missing items 
+	 * @param components components to manipulate with the class. Can't be null, empty or contains nulls inside. Can contain duplicate names anywhere.
+	 * These enable state of duplicate names will be changed together
+	 * @throws IllegalArgumentException any list is null, empty, contains nulls/empties inside or item name in not exists in the component's list  
+	 */
+	public JEnableMaskManipulator(final String[] itemNames, final boolean ignoreMissing, final JComponent... components) throws IllegalArgumentException {
 		if (itemNames == null || itemNames.length == 0 || Utils.checkArrayContent4Nulls(itemNames, true) >= 0) {
 			throw new IllegalArgumentException("Item names list is null, empty or contains nulls/empties inside");
 		}
@@ -49,7 +63,9 @@ loop:		for (String itemName : itemNames) {
 						continue loop;
 					}
 				}
-				throw new IllegalArgumentException("Item name ["+itemName+"] not found anywhere in the component list");
+				if (!ignoreMissing) {
+					throw new IllegalArgumentException("Item name ["+itemName+"] not found anywhere in the component list");
+				}
 			}
 			this.names = itemNames;
 			this.entities.addAll(Arrays.asList(components));

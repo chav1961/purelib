@@ -56,9 +56,20 @@ import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangedEvent;
  * <li>assign {@linkplain DocumentListener} to your {@linkplain JTextComponent} to call {@linkplain #setModificationFlag()} method</li>  
  * <li>enjoy!</li>  
  * </ul>
- * <p>This class can also be used to manipulate any sort of content, not only visual editors. To use this class, you need create class instance with
+ * <p>This class can also be used to manipulate any sort of content, not only Swing visual editors. To use this class, you need create class instance with
  * the {@linkplain #JFileContentManipulator(FileSystemInterface, Localizer, InputStreamGetter, OutputStreamGetter)} constructor and mark 
  * it's modification state programmatically.</p>
+ * <p>The class can support more than one file content simultaneously (for example, tabs in multitab editor). Every content is identified by it's unique
+ * number. Use these methods:</p>
+ * <ul>
+ * <li> {@linkplain #appendNewFileSupport()} - to add new file content support and get it's unique number.
+ * <li> {@linkplain #removeFileSupport(int)} - to remove file support with the given unique number from this class.
+ * <li> {@linkplain #setCurrentFileSupport(int)} - to set current file support. All the methods similar to {@linkplain #getCurrentNameOfTheFile()} will use
+ * selected file support for it's functionality
+ * <li> {@linkplain #getFileSupportCount()} - get number of the files supported
+ * </ul>
+ * <p>At the initial state, this class has no any file support. If there is not required to support more than one file, simply call {@linkplain #appendNewFileSupport()}
+ * method at once after create instance of this class.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @see JFileSelectionDialog
  * @see FileSystemInterface
@@ -687,7 +698,12 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @return true if yes
 	 */
 	public boolean wasChanged() {
-		return getFileDesc().wasChanged; 
+		if (getFileSupportCount() == 0) {
+			return false;
+		}
+		else {
+			return getFileDesc().wasChanged; 
+		}
 	}
 
 	/**
@@ -832,7 +848,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 
 	protected FileDesc getFileDesc() {
-		return files.get(0);
+		return files.get(filesIndex);
 	}
 	
 	static InputStreamGetter buildInputStreamGetter(final JTextComponent component) {
